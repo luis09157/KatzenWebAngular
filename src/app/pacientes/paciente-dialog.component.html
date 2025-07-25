@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Paciente' : (data.paciente ? 'Editar Paciente' : 'Agregar Paciente') }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="pacienteForm">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Especie</mat-label>
+        <input matInput formControlName="especie" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Raza</mat-label>
+        <input matInput formControlName="raza" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Sexo</mat-label>
+        <input matInput formControlName="sexo" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Edad</mat-label>
+        <input matInput formControlName="edad" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Color</mat-label>
+        <input matInput formControlName="color" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Peso</mat-label>
+        <input matInput formControlName="peso" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Cliente</mat-label>
+        <input matInput formControlName="nombreCliente" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>ID Cliente</mat-label>
+        <input matInput formControlName="idCliente" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Imagen (URL)</mat-label>
+        <input matInput formControlName="imageUrl" />
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cerrar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+</mat-dialog-actions> 

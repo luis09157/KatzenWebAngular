@@ -1,0 +1,49 @@
+<div class="clientes-contenedor">
+  <mat-card class="clientes-card">
+    <div class="header-row">
+      <span class="titulo">Clientes</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()">Agregar Cliente</button>
+    </div>
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar cliente</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, correo, etc." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <div class="tabla-titulo">Lista de Clientes</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let cliente">
+            {{ (cliente.nombre ? cliente.nombre : 'N/P') }} {{ (cliente.apellidoPaterno ? cliente.apellidoPaterno : 'N/P') }} {{ cliente.apellidoMaterno ? cliente.apellidoMaterno : '' }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let cliente">{{ cliente.telefono ? cliente.telefono : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="correo">
+          <th mat-header-cell *matHeaderCellDef>Correo</th>
+          <td mat-cell *matCellDef="let cliente">{{ cliente.correo ? cliente.correo : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="expediente">
+          <th mat-header-cell *matHeaderCellDef>Expediente</th>
+          <td mat-cell *matCellDef="let cliente">{{ cliente.expediente ? cliente.expediente : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let cliente">
+            <button mat-icon-button color="accent" (click)="verCliente(cliente)"><mat-icon>visibility</mat-icon></button>
+            <button mat-icon-button color="primary" (click)="editarCliente(cliente)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="bajaLogicaCliente(cliente.id)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>

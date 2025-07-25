@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Historial Clínico' : (data.historial ? 'Editar Historial Clínico' : 'Agregar Historial Clínico') }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="historialForm">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Paciente</mat-label>
+        <input type="text" matInput [formControl]="pacienteCtrl" [matAutocomplete]="autoPaciente" [disabled]="modoVer" placeholder="Buscar paciente o dueño">
+        <mat-autocomplete #autoPaciente="matAutocomplete" (optionSelected)="onPacienteSelected($event.option.value)" [displayWith]="displayPacienteFn">
+          <mat-option *ngFor="let paciente of pacientesFiltrados$ | async" [value]="paciente">
+            {{ getPacienteLabel(paciente.id) }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Cita</mat-label>
+        <input type="text" matInput [formControl]="citaCtrl" [matAutocomplete]="autoCita" [disabled]="modoVer || !historialForm.get('paciente_id')?.value" placeholder="Buscar cita">
+        <mat-autocomplete #autoCita="matAutocomplete" (optionSelected)="onCitaSelected($event.option.value)" [displayWith]="displayCitaFn">
+          <mat-option *ngFor="let cita of citasFiltradas$ | async" [value]="cita">
+            {{ getCitaLabel(cita.id) }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha de Registro</mat-label>
+        <input matInput formControlName="fecha_registro" type="datetime-local" [disabled]="modoVer" required />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Diagnóstico</mat-label>
+        <input matInput formControlName="diagnostico" [disabled]="modoVer" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Tratamiento</mat-label>
+        <input matInput formControlName="tratamiento" [disabled]="modoVer" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Medicamentos</mat-label>
+        <input matInput formControlName="medicamentos" [disabled]="modoVer" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Notas</mat-label>
+        <textarea matInput formControlName="notas" rows="2" [disabled]="modoVer"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cerrar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+</mat-dialog-actions> 

@@ -1,0 +1,43 @@
+<div class="usuarios-contenedor">
+  <mat-card class="usuarios-card">
+    <div class="header-row">
+      <span class="titulo">Usuarios</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalUsuario()">Agregar Usuario</button>
+    </div>
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar usuario</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, correo, etc." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <div class="tabla-titulo">Lista de Usuarios</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let usuario">{{ usuario.nombre ? usuario.nombre : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="correo">
+          <th mat-header-cell *matHeaderCellDef>Correo</th>
+          <td mat-cell *matCellDef="let usuario">{{ usuario.correo ? usuario.correo : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="perfil">
+          <th mat-header-cell *matHeaderCellDef>Perfil</th>
+          <td mat-cell *matCellDef="let usuario">{{ usuario.perfil ? usuario.perfil : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let usuario">
+            <button mat-icon-button color="accent" (click)="verUsuario(usuario)"><mat-icon>visibility</mat-icon></button>
+            <button mat-icon-button color="primary" (click)="editarUsuario(usuario)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="bajaLogicaUsuario(usuario.id)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>

@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cita' : (data.cita ? 'Editar Cita' : 'Agregar Cita') }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="citaForm">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Cliente ID</mat-label>
+        <input matInput formControlName="cliente_id" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Paciente ID</mat-label>
+        <input matInput formControlName="paciente_id" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha y Hora</mat-label>
+        <input matInput formControlName="fecha_hora" type="datetime-local" required />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Motivo</mat-label>
+        <input matInput formControlName="motivo" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado" required>
+          <mat-option value="pendiente">Pendiente</mat-option>
+          <mat-option value="realizada">Realizada</mat-option>
+          <mat-option value="cancelada">Cancelada</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Veterinario</mat-label>
+        <input matInput formControlName="veterinario" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Observaciones</mat-label>
+        <textarea matInput formControlName="observaciones" rows="2"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cerrar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+</mat-dialog-actions> 

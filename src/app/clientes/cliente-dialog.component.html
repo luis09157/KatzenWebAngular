@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="clienteForm">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Apellido Paterno</mat-label>
+        <input matInput formControlName="apellidoPaterno" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Apellido Materno</mat-label>
+        <input matInput formControlName="apellidoMaterno" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="telefono" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Correo</mat-label>
+        <input matInput formControlName="correo" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Expediente</mat-label>
+        <input matInput formControlName="expediente" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Calle</mat-label>
+        <input matInput formControlName="calle" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Número</mat-label>
+        <input matInput formControlName="numero" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Colonia</mat-label>
+        <input matInput formControlName="colonia" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Municipio</mat-label>
+        <input matInput formControlName="municipio" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Fecha</mat-label>
+        <input matInput formControlName="fecha" type="date" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Google Maps</mat-label>
+        <input matInput formControlName="urlGoogleMaps" />
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">Cerrar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+</mat-dialog-actions> 

@@ -1,0 +1,63 @@
+<div class="pacientes-contenedor">
+  <mat-card class="pacientes-card">
+    <div class="header-row">
+      <span class="titulo">Pacientes</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalPaciente()">Agregar Paciente</button>
+    </div>
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar paciente</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, especie, cliente, etc." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <div class="tabla-titulo">Lista de Pacientes</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.nombre ? paciente.nombre : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="especie">
+          <th mat-header-cell *matHeaderCellDef>Especie</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.especie ? paciente.especie : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="raza">
+          <th mat-header-cell *matHeaderCellDef>Raza</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.raza ? paciente.raza : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="sexo">
+          <th mat-header-cell *matHeaderCellDef>Sexo</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.sexo ? paciente.sexo : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="edad">
+          <th mat-header-cell *matHeaderCellDef>Edad</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.edad ? paciente.edad : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="color">
+          <th mat-header-cell *matHeaderCellDef>Color</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.color ? paciente.color : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="peso">
+          <th mat-header-cell *matHeaderCellDef>Peso</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.peso ? paciente.peso : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="nombreCliente">
+          <th mat-header-cell *matHeaderCellDef>Cliente</th>
+          <td mat-cell *matCellDef="let paciente">{{ paciente.nombreCliente ? paciente.nombreCliente : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let paciente">
+            <button mat-icon-button color="accent" (click)="verPaciente(paciente)"><mat-icon>visibility</mat-icon></button>
+            <button mat-icon-button color="primary" (click)="editarPaciente(paciente)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="bajaLogicaPaciente(paciente.id)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>

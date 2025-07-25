@@ -1,0 +1,61 @@
+.login-container {
+  max-width: 370px;
+  margin: 60px auto;
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(80, 80, 80, 0.10);
+  text-align: center;
+}
+.logo {
+  width: 90px;
+  margin-bottom: 1.2rem;
+}
+h2 {
+  color: #4bbf73; /* Verde institucional */
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+.bienvenida {
+  color: #7b2c5c; /* Morado institucional */
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+input, button {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #bdbdbd;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+input:focus {
+  outline: 2px solid #4bbf73;
+  border-color: #4bbf73;
+}
+button {
+  background: #7b2c5c; /* Morado institucional */
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #319e9b; /* Aqua institucional */
+}
+@media (max-width: 500px) {
+  .login-container {
+    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    max-width: 98vw;
+  }
+  .logo {
+    width: 70px;
+  }
+  h2 {
+    font-size: 1.3rem;
+  }
+}

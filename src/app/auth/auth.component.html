@@ -1,0 +1,10 @@
+<div class="login-container">
+  <img src="assets/katzen-logo.jpg" alt="Logo KatzenVet" class="logo" />
+  <h2>Bienvenido a KatzenVet</h2>
+  <p class="bienvenida">Por favor inicia sesión para acceder al sistema administrativo.</p>
+  <form (ngSubmit)="login()">
+    <input type="email" [(ngModel)]="email" name="email" placeholder="Correo" required>
+    <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Entrar</button>
+  </form>
+</div>

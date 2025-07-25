@@ -1,0 +1,78 @@
+.pacientes-contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.pacientes-card {
+  padding: 24px 16px 32px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(80, 80, 80, 0.08);
+  background: #fff;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.titulo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #222;
+}
+.contador {
+  font-size: 1rem;
+  color: #666;
+  margin-left: 8px;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+.buscador {
+  width: 100%;
+  margin-bottom: 18px;
+}
+.tabla-titulo {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #444;
+}
+.tabla-contenedor {
+  overflow-x: auto;
+  margin-top: 0;
+}
+
+.mat-table {
+  min-width: 700px;
+}
+
+.mat-header-cell, .mat-cell {
+  padding: 12px 8px;
+  font-size: 1rem;
+}
+
+.mat-header-row {
+  background: #f5f5f5;
+}
+
+.mat-row:nth-child(even) {
+  background: #fafafa;
+}
+
+@media (max-width: 900px) {
+  .pacientes-contenedor {
+    padding: 8px 0;
+  }
+  .pacientes-card {
+    padding: 12px 4px 20px 4px;
+  }
+  .mat-table {
+    min-width: 400px;
+  }
+}

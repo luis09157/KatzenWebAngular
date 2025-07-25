@@ -1,0 +1,36 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" mode="side" opened>
+    <mat-toolbar color="primary">KatzenVet</mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
+      <a mat-list-item routerLink="/admin/usuarios" routerLinkActive="active">Usuarios</a>
+      <a mat-list-item routerLink="/admin/cliente" routerLinkActive="active">Clientes</a>
+      <a mat-list-item routerLink="/admin/paciente" routerLinkActive="active">Pacientes</a>
+      <a mat-list-item routerLink="/admin/citas" routerLinkActive="active">Citas</a>
+      <a mat-list-item routerLink="/admin/historiales" routerLinkActive="active">Historiales</a>
+      <a mat-list-item (click)="logout()">Cerrar sesión</a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="drawer.toggle()" class="hide-desktop">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Panel de Administración</span>
+    </mat-toolbar>
+    <div class="breadcrumbs-container">
+      <ng-container *ngIf="breadcrumbs.length">
+        <nav class="breadcrumbs">
+          <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
+            <a *ngIf="!last" [routerLink]="crumb.url">{{ crumb.label }}</a>
+            <span *ngIf="last">{{ crumb.label }}</span>
+            <span *ngIf="!last"> / </span>
+          </ng-container>
+        </nav>
+      </ng-container>
+    </div>
+    <div class="main-content" [@routeAnimations]="o.isActivated && o.activatedRoute.routeConfig?.path">
+      <router-outlet #o="outlet"></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container> 

@@ -1,0 +1,51 @@
+<div class="historiales-contenedor">
+  <mat-card class="historiales-card">
+    <div class="header-row">
+      <span class="titulo">Historiales Clínicos</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalHistorial()">Agregar Historial</button>
+    </div>
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar historial</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por paciente, diagnóstico, etc." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <div class="tabla-titulo">Lista de Historiales Clínicos</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="fecha_registro">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let historial">{{ historial.fecha_registro ? historial.fecha_registro : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="paciente">
+          <th mat-header-cell *matHeaderCellDef>Paciente</th>
+          <td mat-cell *matCellDef="let historial">{{ historial.paciente ? historial.paciente : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="diagnostico">
+          <th mat-header-cell *matHeaderCellDef>Diagnóstico</th>
+          <td mat-cell *matCellDef="let historial">{{ historial.diagnostico ? historial.diagnostico : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="tratamiento">
+          <th mat-header-cell *matHeaderCellDef>Tratamiento</th>
+          <td mat-cell *matCellDef="let historial">{{ historial.tratamiento ? historial.tratamiento : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="medicamentos">
+          <th mat-header-cell *matHeaderCellDef>Medicamentos</th>
+          <td mat-cell *matCellDef="let historial">{{ historial.medicamentos ? historial.medicamentos : 'N/P' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let historial">
+            <button mat-icon-button color="accent" (click)="verHistorial(historial)"><mat-icon>visibility</mat-icon></button>
+            <button mat-icon-button color="primary" (click)="editarHistorial(historial)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="bajaLogicaHistorial(historial.id)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>
