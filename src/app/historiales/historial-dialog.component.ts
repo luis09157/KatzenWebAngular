@@ -146,7 +146,24 @@ export class HistorialDialogComponent implements OnInit {
 
   guardar() {
     if (this.historialForm.valid) {
-      this.dialogRef.close(this.historialForm.value);
+      let historial = this.historialForm.value;
+      
+      // Siempre generar un id único si no existe o está vacío
+      if (!historial.id || historial.id === '') {
+        historial.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+      }
+      
+      // Convertir la fecha del DatePicker a string si es necesario
+      if (historial.fecha_registro instanceof Date) {
+        historial.fecha_registro = historial.fecha_registro.toISOString().replace('T', ' ').substring(0, 19);
+      }
+      
+      // Asegurar que todos los campos estén presentes
+      historial.activo = true;
+      historial.created_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      historial.updated_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      
+      this.dialogRef.close(historial);
     }
   }
 

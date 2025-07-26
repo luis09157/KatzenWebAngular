@@ -1,36 +1,117 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" mode="side" opened>
-    <mat-toolbar color="primary">KatzenVet</mat-toolbar>
-    <mat-nav-list>
-      <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
-      <a mat-list-item routerLink="/admin/usuarios" routerLinkActive="active">Usuarios</a>
-      <a mat-list-item routerLink="/admin/cliente" routerLinkActive="active">Clientes</a>
-      <a mat-list-item routerLink="/admin/paciente" routerLinkActive="active">Pacientes</a>
-      <a mat-list-item routerLink="/admin/citas" routerLinkActive="active">Citas</a>
-      <a mat-list-item routerLink="/admin/historiales" routerLinkActive="active">Historiales</a>
-      <a mat-list-item (click)="logout()">Cerrar sesión</a>
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="drawer.toggle()" class="hide-desktop">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Panel de Administración</span>
-    </mat-toolbar>
-    <div class="breadcrumbs-container">
-      <ng-container *ngIf="breadcrumbs.length">
-        <nav class="breadcrumbs">
-          <ng-container *ngFor="let crumb of breadcrumbs; let last = last">
-            <a *ngIf="!last" [routerLink]="crumb.url">{{ crumb.label }}</a>
-            <span *ngIf="last">{{ crumb.label }}</span>
-            <span *ngIf="!last"> / </span>
-          </ng-container>
-        </nav>
-      </ng-container>
+<div class="main-content">
+  <!-- Búsqueda de Pacientes -->
+  <div class="search-section">
+    <mat-card class="search-card">
+      <div class="search-header">
+        <h2>Buscar Paciente</h2>
+        <p>Ingresa el nombre del paciente o del cliente para encontrar información</p>
+      </div>
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar por paciente o cliente</mat-label>
+        <input matInput [formControl]="searchControl" [matAutocomplete]="auto" placeholder="Ej: Paty, Valeria Bazan, etc.">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onPacienteSelected($event.option.value)">
+          <mat-option *ngFor="let paciente of pacientesFiltrados$ | async" [value]="paciente">
+            <div class="paciente-option">
+              <span class="paciente-nombre">{{ paciente.nombre }}</span>
+              <span class="paciente-cliente">{{ paciente.nombreCliente }}</span>
+              <span class="paciente-especie">{{ paciente.especie }} - {{ paciente.raza }}</span>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </mat-card>
+  </div>
+
+  <!-- Detalles del Paciente -->
+  <div class="patient-details" *ngIf="mostrarDetalles && pacienteSeleccionado">
+    <div class="details-container">
+      <!-- Panel Izquierdo - Información del Paciente -->
+      <mat-card class="patient-info-card">
+        <div class="patient-header">
+          <div class="patient-avatar">
+            <img [src]="pacienteSeleccionado.imageUrl || 'assets/default-pet.png'" alt="Foto del paciente" class="avatar-img">
+          </div>
+          <div class="patient-basic-info">
+            <h3 class="patient-name">{{ pacienteSeleccionado.nombre }}</h3>
+            <p class="patient-details">
+              <span class="detail-item">{{ pacienteSeleccionado.edad || 'N/A' }}</span>
+              <span class="detail-item">{{ pacienteSeleccionado.especie }} - {{ pacienteSeleccionado.raza }}</span>
+            </p>
+          </div>
+        </div>
+        <div class="patient-details-grid">
+          <div class="detail-row">
+            <span class="detail-label">Especie:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.especie || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Raza:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.raza || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Sexo:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.sexo || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Edad:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.edad || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Color:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.color || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Peso:</span>
+            <span class="detail-value">{{ pacienteSeleccionado.peso || 'N/A' }}</span>
+          </div>
+        </div>
+      </mat-card>
+      <!-- Panel Derecho - Información del Cliente -->
+      <mat-card class="client-info-card" *ngIf="getClienteInfo(pacienteSeleccionado)">
+        <div class="client-header">
+          <h3>Información del Cliente</h3>
+        </div>
+        <div class="client-info" *ngIf="getClienteInfo(pacienteSeleccionado) as cliente">
+          <div class="client-name">
+            <h4>{{ cliente.nombre }} {{ cliente.apellidoPaterno }} {{ cliente.apellidoMaterno }}</h4>
+          </div>
+          <div class="client-details">
+            <div class="contact-item">
+              <mat-icon>phone</mat-icon>
+              <span>{{ cliente.telefono || 'N/A' }}</span>
+            </div>
+            <div class="contact-item">
+              <mat-icon>email</mat-icon>
+              <span>{{ cliente.correo || 'N/A' }}</span>
+            </div>
+            <div class="contact-item" *ngIf="cliente.calle">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ cliente.calle }} {{ cliente.numero }}, {{ cliente.colonia }}, {{ cliente.municipio }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card>
     </div>
-    <div class="main-content">
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+    <!-- Acciones Rápidas -->
+    <mat-card class="actions-card">
+      <div class="actions-header">
+        <h3>Acciones Rápidas</h3>
+      </div>
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" routerLink="/admin/historiales">
+          <mat-icon>medical_services</mat-icon>
+          Ver Historial Clínico
+        </button>
+        <button mat-raised-button color="accent" routerLink="/admin/citas">
+          <mat-icon>event</mat-icon>
+          Agendar Cita
+        </button>
+        <button mat-raised-button color="warn" routerLink="/admin/paciente">
+          <mat-icon>edit</mat-icon>
+          Editar Paciente
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>

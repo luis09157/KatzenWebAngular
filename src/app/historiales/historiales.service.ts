@@ -21,7 +21,15 @@ export class HistorialesService {
   // Agregar o actualizar un historial (siempre con activo: true)
   guardarHistorial(historial: any) {
     historial.activo = true;
-    return this.db.object(`Katzen/Historiales_Clinicos/${historial.id}`).set(historial);
+    
+    // Si tiene id válido, actualiza; si no, crea nuevo
+    if (historial.id && historial.id !== '') {
+      return this.db.object(`Katzen/Historiales_Clinicos/${historial.id}`).set(historial);
+    } else {
+      // Para nuevos historiales, usar push() para que Firebase genere la key
+      const ref = this.db.list('Katzen/Historiales_Clinicos').push(historial);
+      return ref;
+    }
   }
 
   // Actualizar solo algunos campos de un historial

@@ -1,63 +1,93 @@
-<div class="pacientes-contenedor">
-  <mat-card class="pacientes-card">
-    <div class="header-row">
-      <span class="titulo">Pacientes</span>
-      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
-      <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalPaciente()">Agregar Paciente</button>
+<!-- Header principal -->
+<div class="patient-header">
+  <div class="header-left">
+    <button mat-icon-button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-brand">
+      <mat-icon class="brand-icon">pets</mat-icon>
+      <div class="brand-text">
+        <h1>KatzenVet</h1>
+        <span>Panel de Pacientes</span>
+      </div>
     </div>
-    <mat-form-field appearance="outline" class="buscador">
-      <mat-label>Buscar paciente</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, especie, cliente, etc." />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-    <div class="tabla-titulo">Lista de Pacientes</div>
-    <div class="tabla-contenedor">
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef>Nombre</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.nombre ? paciente.nombre : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="especie">
-          <th mat-header-cell *matHeaderCellDef>Especie</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.especie ? paciente.especie : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="raza">
-          <th mat-header-cell *matHeaderCellDef>Raza</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.raza ? paciente.raza : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="sexo">
-          <th mat-header-cell *matHeaderCellDef>Sexo</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.sexo ? paciente.sexo : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="edad">
-          <th mat-header-cell *matHeaderCellDef>Edad</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.edad ? paciente.edad : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="color">
-          <th mat-header-cell *matHeaderCellDef>Color</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.color ? paciente.color : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="peso">
-          <th mat-header-cell *matHeaderCellDef>Peso</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.peso ? paciente.peso : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="nombreCliente">
-          <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let paciente">{{ paciente.nombreCliente ? paciente.nombreCliente : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let paciente">
-            <button mat-icon-button color="accent" (click)="verPaciente(paciente)"><mat-icon>visibility</mat-icon></button>
-            <button mat-icon-button color="primary" (click)="editarPaciente(paciente)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="bajaLogicaPaciente(paciente.id)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </div>
+  
+  <div class="header-center">
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre del cliente (dueño)..." 
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchInput()"
+        autocomplete="off"
+      >
+      <button mat-icon-button class="clear-btn" *ngIf="searchTerm" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-  </mat-card>
+  </div>
+  
+  <div class="header-right">
+    <button mat-raised-button color="primary" class="add-btn" (click)="nuevoPaciente()">
+      <mat-icon>add</mat-icon>
+      Nuevo Paciente
+    </button>
+  </div>
+</div>
+
+<!-- Contenido principal -->
+<div class="patient-content">
+  <!-- Panel de búsqueda y resultados -->
+  <div class="search-panel" *ngIf="!selectedPatient">
+    <div class="search-info">
+      <h2>Buscar Pacientes</h2>
+      <p>Ingresa el nombre del cliente (dueño) para encontrar sus mascotas</p>
+    </div>
+    
+    <!-- Resultados de búsqueda -->
+    <div class="search-results" *ngIf="filteredPatients.length > 0">
+      <h3>Resultados encontrados ({{ filteredPatients.length }})</h3>
+      <div class="patient-cards">
+        <div 
+          class="patient-card" 
+          *ngFor="let paciente of filteredPatients"
+          (click)="selectPatient(paciente)"
+        >
+          <div class="patient-avatar">
+            <mat-icon>pets</mat-icon>
+          </div>
+          <div class="patient-info">
+            <h4>{{ paciente.nombre }}</h4>
+            <p class="breed">{{ paciente.raza }}</p>
+            <p class="owner">{{ paciente.nombreCliente }}</p>
+            <div class="patient-stats">
+              <span class="stat">
+                <mat-icon>event</mat-icon>
+                {{ paciente.edad || 'N/A' }}
+              </span>
+              <span class="stat">
+                <mat-icon>medical_services</mat-icon>
+                {{ paciente.historiales?.length || 0 }} historiales
+              </span>
+            </div>
+          </div>
+          <div class="patient-actions">
+            <button mat-icon-button (click)="selectPatient(paciente)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sin resultados -->
+    <div class="no-results" *ngIf="searchTerm && filteredPatients.length === 0">
+      <mat-icon>search_off</mat-icon>
+      <h3>No se encontraron pacientes</h3>
+      <p>Intenta con otro nombre de cliente</p>
+    </div>
+  </div>
 </div>

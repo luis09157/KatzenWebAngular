@@ -22,21 +22,27 @@
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Fecha de Registro</mat-label>
-        <input matInput formControlName="fecha_registro" type="datetime-local" [disabled]="modoVer" required />
+        <input matInput [matDatepicker]="picker" formControlName="fecha_registro" [disabled]="modoVer" required placeholder="Seleccionar fecha">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
     </div>
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Diagnóstico</mat-label>
-        <input matInput formControlName="diagnostico" [disabled]="modoVer" required />
+        <textarea matInput formControlName="diagnostico" rows="3" [disabled]="modoVer" required></textarea>
       </mat-form-field>
-      <mat-form-field appearance="fill">
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Tratamiento</mat-label>
-        <input matInput formControlName="tratamiento" [disabled]="modoVer" />
+        <textarea matInput formControlName="tratamiento" rows="3" [disabled]="modoVer"></textarea>
       </mat-form-field>
-      <mat-form-field appearance="fill">
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Medicamentos</mat-label>
-        <input matInput formControlName="medicamentos" [disabled]="modoVer" />
+        <textarea matInput formControlName="medicamentos" rows="3" [disabled]="modoVer"></textarea>
       </mat-form-field>
     </div>
     <div class="form-row">

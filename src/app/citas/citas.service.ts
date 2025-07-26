@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,12 @@ export class CitasService {
 
   // Obtener todas las citas (solo activas)
   getCitas(): Observable<any[]> {
-    return this.db.list('Katzen/Citas').valueChanges();
+    return this.db.list('Katzen/Citas').snapshotChanges().pipe(
+      map(actions => actions.map(a => ({
+        id: a.key,
+        ...a.payload.val() as any
+      })))
+    );
   }
 
   // Agregar o actualizar una cita (siempre con activo: true)

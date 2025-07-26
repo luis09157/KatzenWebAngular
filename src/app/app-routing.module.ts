@@ -11,17 +11,18 @@ const routes: Routes = [
     component: AdminLayoutComponent,
     canActivate: [AuthGuard],
     children: [
+      { path: 'inicio', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule) },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'usuarios', loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule) },
       { path: 'cliente', loadChildren: () => import('./clientes/clientes.module').then(m => m.ClientesModule) },
       { path: 'paciente', loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule) },
       { path: 'citas', loadChildren: () => import('./citas/citas.module').then(m => m.CitasModule) },
       { path: 'historiales', loadChildren: () => import('./historiales/historiales.module').then(m => m.HistorialesModule) },
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+      { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },
-  { path: '', redirectTo: '/admin/dashboard', pathMatch: 'full' },
-  { path: '**', redirectTo: '/admin/dashboard' }
+  { path: '', redirectTo: '/admin/inicio', pathMatch: 'full' },
+  { path: '**', redirectTo: '/admin/inicio' }
 ];
 
 @NgModule({

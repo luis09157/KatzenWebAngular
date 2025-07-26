@@ -1,20 +1,280 @@
 .sidenav-container {
   height: 100vh;
 }
+
 .sidenav {
   width: 220px;
 }
+
 .main-content {
+  background: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 0 32px 0;
+}
+
+/* Estilos para la búsqueda de pacientes */
+.search-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.search-card {
   padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(80, 80, 80, 0.08);
+  background: #fff;
+  max-width: 800px;
+  width: 100%;
 }
-.hide-desktop {
-  display: none;
+
+.search-header {
+  margin-bottom: 20px;
+  text-align: center;
 }
+
+.search-header h2 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.search-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.paciente-option {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.paciente-nombre {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.paciente-cliente {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.paciente-especie {
+  color: #888;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Estilos para los detalles del paciente */
+.patient-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.details-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.patient-info-card, .client-info-card {
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(80, 80, 80, 0.08);
+  background: #fff;
+}
+
+.patient-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.patient-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.patient-basic-info {
+  flex: 1;
+}
+
+.patient-name {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.patient-details {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.detail-item {
+  margin-right: 16px;
+}
+
+.patient-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.detail-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.client-header h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.client-name h4 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.client-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+
+.contact-item mat-icon {
+  color: #666;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Estilos para las acciones rápidas */
+.actions-card {
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(80, 80, 80, 0.08);
+  background: #fff;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.actions-header h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.actions-grid button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.actions-grid button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1100px) {
+  .details-container {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+  .actions-card {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .sidenav {
     width: 0;
   }
-  .hide-desktop {
-    display: inline-flex;
+  .main-content {
+    padding: 16px 0 16px 0;
+  }
+  .search-card {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .details-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .actions-card {
+    padding: 16px;
+  }
+  .patient-details-grid {
+    grid-template-columns: 1fr;
+  }
+  .actions-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -32,13 +32,49 @@ export class HistorialesComponent implements OnInit {
       this.historialesService.getHistoriales().subscribe(historiales => {
         this.dataSource.data = (historiales || []).filter(h => h.activo !== false).map(historial => ({
           ...historial,
-          paciente: this.pacientesMap[historial.paciente_id] || 'N/P'
+          paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
+          fecha_registro: this.formatearFecha(historial.fecha_registro)
         }));
         if (this.paginator) {
           this.dataSource.paginator = this.paginator;
         }
       });
     });
+  }
+
+  formatearFecha(fecha: any): string {
+    if (!fecha) return 'N/P';
+    
+    try {
+      // Si es un objeto Date del DatePicker
+      if (fecha instanceof Date) {
+        return fecha.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      // Si es un string de fecha
+      if (typeof fecha === 'string') {
+        const date = new Date(fecha);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      }
+      
+      return 'N/P';
+    } catch (error) {
+      return 'N/P';
+    }
   }
 
   aplicarFiltro(event: Event) {

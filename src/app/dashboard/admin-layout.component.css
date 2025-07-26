@@ -1,20 +1,8 @@
-.sidenav-container {
-  height: 100vh;
-}
-.sidenav {
-  width: 220px;
-}
+/* Contenido principal sin menú lateral */
 .main-content {
-  padding: 24px;
-}
-.hide-desktop {
-  display: none;
-}
-@media (max-width: 768px) {
-  .sidenav {
-    width: 0;
-  }
-  .hide-desktop {
-    display: inline-flex;
-  }
+  height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
 } 

@@ -1,0 +1,436 @@
+<!-- Header principal -->
+<mat-toolbar class="admin-header">
+  <button mat-icon-button class="menu-toggle" (click)="toggleSidenav()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  
+  <div class="header-brand">
+    <div class="brand-logo">
+      <mat-icon>pets</mat-icon>
+    </div>
+    <div class="brand-text">
+      <h1>KatzenVet</h1>
+      <span>Sistema Veterinario</span>
+    </div>
+  </div>
+  
+  <span class="header-spacer"></span>
+  
+  <div class="header-actions">
+    <div class="user-profile">
+      <mat-icon>account_circle</mat-icon>
+      <span>Administrador</span>
+    </div>
+    
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item>
+        <mat-icon>person</mat-icon>
+        <span>Mi Perfil</span>
+      </button>
+      <button mat-menu-item>
+        <mat-icon>settings</mat-icon>
+        <span>Configuración</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
+
+<!-- Overlay para cerrar el menú -->
+<div class="sidenav-overlay" *ngIf="sidenavOpened" (click)="closeSidenav()"></div>
+
+<!-- Menú lateral flotante -->
+<div class="floating-sidenav" [class.opened]="sidenavOpened">
+  <div class="sidenav-header">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <mat-icon>veterinary</mat-icon>
+      </div>
+      <div class="logo-text">
+        <h3>KatzenVet</h3>
+        <span>Panel Admin</span>
+      </div>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="closeSidenav()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  
+  <div class="sidenav-content">
+    <div class="menu-section">
+      <h4 class="section-title">Navegación Principal</h4>
+      <div class="menu-cards">
+        <div class="menu-card" routerLink="/admin/inicio" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon dashboard">
+            <mat-icon>dashboard</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Dashboard</h5>
+            <p>Vista general</p>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/paciente" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon patients">
+            <mat-icon>pets</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Pacientes</h5>
+            <p>{{ totalPacientes }} registrados</p>
+            <div class="card-badge">{{ totalPacientes }}</div>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon clients">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Clientes</h5>
+            <p>{{ totalClientes }} registrados</p>
+            <div class="card-badge">{{ totalClientes }}</div>
+          </div>
+        </div>
+        
+        <div class="menu-card urgent" routerLink="/admin/citas" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon appointments">
+            <mat-icon>event</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Citas</h5>
+            <p>{{ citasHoy }} hoy</p>
+            <div class="card-badge urgent">{{ citasHoy }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="menu-section">
+      <h4 class="section-title">Gestión Médica</h4>
+      <div class="menu-cards">
+        <div class="menu-card" routerLink="/admin/historiales" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon medical">
+            <mat-icon>medical_services</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Historiales</h5>
+            <p>Clínicos</p>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/vacunas" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon vaccines">
+            <mat-icon>vaccines</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Vacunas</h5>
+            <p>Programación</p>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/medicamentos" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon medication">
+            <mat-icon>medication</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Medicamentos</h5>
+            <p>Inventario</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="menu-section">
+      <h4 class="section-title">Administración</h4>
+      <div class="menu-cards">
+        <div class="menu-card" routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon users">
+            <mat-icon>admin_panel_settings</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Usuarios</h5>
+            <p>Gestión</p>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/reportes" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon reports">
+            <mat-icon>analytics</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Reportes</h5>
+            <p>Estadísticas</p>
+          </div>
+        </div>
+        
+        <div class="menu-card" routerLink="/admin/configuracion" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon settings">
+            <mat-icon>settings</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Configuración</h5>
+            <p>Sistema</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="menu-footer">
+      <div class="menu-card logout" (click)="logout()">
+        <div class="card-icon logout-icon">
+          <mat-icon>logout</mat-icon>
+        </div>
+        <div class="card-content">
+          <h5>Cerrar Sesión</h5>
+          <p>Salir del sistema</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Layout principal -->
+<div class="admin-layout">
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="dashboard-container">
+      <!-- Sección de bienvenida -->
+      <div class="welcome-section">
+        <div class="welcome-content">
+          <h2>¡Bienvenido al Panel Administrativo!</h2>
+          <p>Gestiona tu clínica veterinaria de manera eficiente</p>
+          <div class="welcome-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ totalPacientes }}</span>
+              <span class="stat-label">Pacientes</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ totalClientes }}</span>
+              <span class="stat-label">Clientes</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ citasHoy }}</span>
+              <span class="stat-label">Citas Hoy</span>
+            </div>
+          </div>
+        </div>
+        <div class="welcome-actions">
+          <button mat-raised-button color="primary" class="action-btn primary" (click)="onActionButton('nueva-cita')">
+            <mat-icon>add</mat-icon>
+            Nueva Cita
+          </button>
+          <button mat-stroked-button class="action-btn secondary" (click)="onActionButton('nuevo-paciente')">
+            <mat-icon>pets</mat-icon>
+            Nuevo Paciente
+          </button>
+        </div>
+      </div>
+
+      <!-- Estadísticas principales -->
+      <div class="stats-grid">
+        <mat-card class="stat-card patients-card">
+          <mat-card-content>
+            <div class="stat-icon patients">
+              <mat-icon>pets</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ totalPacientes }}</h3>
+              <p>Pacientes</p>
+              <span class="stat-trend positive">+12% este mes</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card clients-card">
+          <mat-card-content>
+            <div class="stat-icon clients">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ totalClientes }}</h3>
+              <p>Clientes</p>
+              <span class="stat-trend positive">+8% este mes</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card appointments-card">
+          <mat-card-content>
+            <div class="stat-icon appointments">
+              <mat-icon>event</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ citasHoy }}</h3>
+              <p>Citas Hoy</p>
+              <span class="stat-trend neutral">Sin cambios</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card revenue-card">
+          <mat-card-content>
+            <div class="stat-icon revenue">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>${{ ingresosHoy }}</h3>
+              <p>Ingresos Hoy</p>
+              <span class="stat-trend positive">+15% vs ayer</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Paneles de contenido -->
+      <div class="content-grid">
+        <!-- Panel de citas próximas -->
+        <mat-card class="content-card appointments-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>schedule</mat-icon>
+              Próximas Citas
+            </mat-card-title>
+            <button mat-icon-button [matMenuTriggerFor]="appointmentsMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #appointmentsMenu="matMenu">
+              <button mat-menu-item>Ver todas</button>
+              <button mat-menu-item>Agregar cita</button>
+            </mat-menu>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="appointment-list">
+              <div class="appointment-item" *ngFor="let cita of citasProximas">
+                <div class="appointment-time">
+                  <span class="time">{{ cita.hora }}</span>
+                  <span class="date">{{ cita.fecha }}</span>
+                </div>
+                <div class="appointment-info">
+                  <h4>{{ cita.paciente }}</h4>
+                  <p>{{ cita.cliente }}</p>
+                  <span class="appointment-type">{{ cita.tipo }}</span>
+                </div>
+                <div class="appointment-status" [class]="cita.estado">
+                  <mat-icon>{{ cita.estado === 'confirmada' ? 'check_circle' : 'schedule' }}</mat-icon>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Panel de pacientes recientes -->
+        <mat-card class="content-card patients-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>pets</mat-icon>
+              Pacientes Recientes
+            </mat-card-title>
+            <button mat-icon-button [matMenuTriggerFor]="patientsMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #patientsMenu="matMenu">
+              <button mat-menu-item>Ver todos</button>
+              <button mat-menu-item>Agregar paciente</button>
+            </mat-menu>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="patient-list">
+              <div class="patient-item" *ngFor="let paciente of pacientesRecientes">
+                <div class="patient-avatar">
+                  <mat-icon>pets</mat-icon>
+                </div>
+                <div class="patient-info">
+                  <h4>{{ paciente.nombre }}</h4>
+                  <p>{{ paciente.raza }}</p>
+                  <span class="patient-owner">{{ paciente.propietario }}</span>
+                </div>
+                <div class="patient-actions">
+                  <button mat-icon-button (click)="verPaciente(paciente)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Panel de actividades -->
+        <mat-card class="content-card activities-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>timeline</mat-icon>
+              Actividad Reciente
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="activity-list">
+              <div class="activity-item" *ngFor="let actividad of actividadesRecientes">
+                <div class="activity-icon" [class]="actividad.tipo">
+                  <mat-icon>{{ actividad.icono }}</mat-icon>
+                </div>
+                <div class="activity-content">
+                  <p>{{ actividad.descripcion }}</p>
+                  <span class="activity-time">{{ actividad.tiempo }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Panel de recordatorios -->
+        <mat-card class="content-card reminders-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>notifications</mat-icon>
+              Recordatorios
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="reminder-list">
+              <div class="reminder-item" *ngFor="let recordatorio of recordatorios">
+                <div class="reminder-icon">
+                  <mat-icon>{{ recordatorio.icono }}</mat-icon>
+                </div>
+                <div class="reminder-content">
+                  <h4>{{ recordatorio.titulo }}</h4>
+                  <p>{{ recordatorio.descripcion }}</p>
+                  <span class="reminder-date">{{ recordatorio.fecha }}</span>
+                </div>
+                <div class="reminder-priority" [class]="recordatorio.prioridad">
+                  <mat-icon>{{ recordatorio.prioridad === 'alta' ? 'priority_high' : 'low_priority' }}</mat-icon>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Gráfico de estadísticas -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>analytics</mat-icon>
+            Estadísticas del Mes
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <div class="chart-placeholder">
+              <mat-icon>bar_chart</mat-icon>
+              <p>Gráfico de estadísticas</p>
+              <span>Aquí se mostrarían las estadísticas mensuales</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 

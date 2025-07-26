@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,12 @@ export class PacientesService {
 
   // Obtener todos los pacientes (solo activos)
   getPacientes(): Observable<any[]> {
-    return this.db.list('Katzen/Mascota').valueChanges();
+    return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
+      map(actions => actions.map(a => ({
+        id: a.key,
+        ...a.payload.val() as any
+      })))
+    );
   }
 
   // Obtener un paciente por id
