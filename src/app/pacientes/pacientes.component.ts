@@ -37,25 +37,29 @@ export class PacientesComponent implements OnInit {
       fecha: '11/12/2024',
       hora: '09:58',
       descripcion: 'aquí podemos usar la...',
-      tiempoAtras: 'Hace 4 semanas y 2 días'
+      tiempoAtras: 'Hace 4 semanas y 2 días',
+      usuario: 'Martin Soporte'
     },
     {
       fecha: '29/10/2024',
       hora: '11:19',
       descripcion: 'hola',
-      tiempoAtras: 'Hace 2 meses y 2 semanas'
+      tiempoAtras: 'Hace 2 meses y 2 semanas',
+      usuario: 'Prueba MyVete Sucursal De Prueba'
     },
     {
       fecha: '29/10/2024',
       hora: '11:18',
       descripcion: 'hola',
-      tiempoAtras: 'Hace 2 meses y 2 semanas'
+      tiempoAtras: 'Hace 2 meses y 2 semanas',
+      usuario: 'SysAdmin'
     },
     {
       fecha: '24/01/2024',
       hora: '09:00',
       descripcion: 'ANTIPARASITARIOS F...',
-      tiempoAtras: 'Hace 11 meses y 2 semanas'
+      tiempoAtras: 'Hace 11 meses y 2 semanas',
+      usuario: 'SysAdmin'
     }
   ];
 
@@ -214,9 +218,47 @@ export class PacientesComponent implements OnInit {
     this.pacientesFiltrados = [];
   }
 
-  getClienteNombre(clienteId: string): string {
-    const cliente = this.allClientes.find(c => c.id === clienteId);
-    return cliente ? cliente.nombre : 'Desconocido';
+  getClienteNombre(idCliente: string): string {
+    const cliente = this.allClientes.find(c => c.id === idCliente);
+    if (!cliente) return 'Desconocido';
+    return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
+  }
+
+  displayPaciente = (paciente: any): string => {
+    if (!paciente || !paciente.nombre) return '';
+    const clienteNombre = this.getClienteNombre(paciente.idCliente);
+    return `${paciente.nombre} - ${clienteNombre}`;
+  }
+
+  toggleSidenav() {
+    // Este método se puede implementar si necesitas funcionalidad del menú
+    console.log('Toggle sidenav');
+  }
+
+  getClienteTelefono(idCliente: string): string {
+    const cliente = this.allClientes.find(c => c.id === idCliente);
+    return cliente?.telefono || 'Sin teléfono';
+  }
+
+  getClienteEmail(idCliente: string): string {
+    const cliente = this.allClientes.find(c => c.id === idCliente);
+    return cliente?.email || 'Sin email';
+  }
+
+  calcularEdad(fechaNacimiento: string): string {
+    if (!fechaNacimiento) return 'Edad no registrada';
+    
+    const fechaNac = new Date(fechaNacimiento);
+    const hoy = new Date();
+    const diferencia = hoy.getTime() - fechaNac.getTime();
+    const años = Math.floor(diferencia / (1000 * 60 * 60 * 24 * 365));
+    const meses = Math.floor((diferencia % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+    
+    if (años > 0) {
+      return `${años} año${años > 1 ? 's' : ''} y ${meses} mes${meses > 1 ? 'es' : ''}`;
+    } else {
+      return `${meses} mes${meses > 1 ? 'es' : ''}`;
+    }
   }
 
   // Eliminar métodos y referencias viejas
