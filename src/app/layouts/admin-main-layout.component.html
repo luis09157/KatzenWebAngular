@@ -22,14 +22,14 @@
   </div>
 </mat-toolbar>
 
-<!-- Overlay solo en móvil/tablet -->
-<div class="sidenav-overlay" *ngIf="sidenavOpened && isMobile" (click)="closeSidenav()"></div>
+<!-- Overlay para web y móvil -->
+<div class="sidenav-overlay" *ngIf="sidenavOpened" (click)="closeSidenav()"></div>
 
-<!-- Menú lateral -->
-<nav class="main-sidenav" [class.opened]="sidenavOpened || !isMobile" [class.mobile]="isMobile">
+<!-- Menú lateral flotante -->
+<nav class="main-sidenav" [class.opened]="sidenavOpened" [class.mobile]="isMobile">
   <div class="sidenav-header">
     <span class="sidenav-title">KatzenVet</span>
-    <button mat-icon-button class="close-btn" *ngIf="isMobile" (click)="closeSidenav()">
+    <button mat-icon-button class="close-btn" (click)="closeSidenav()">
       <mat-icon>close</mat-icon>
     </button>
   </div>

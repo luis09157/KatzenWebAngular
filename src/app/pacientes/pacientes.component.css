@@ -4,8 +4,7 @@
   background: #f8fafc;
   margin: 0;
   padding: 0;
-  margin-left: 240px;
-  width: calc(100vw - 240px);
+  width: 100vw;
 }
 
 /* Buscador */
@@ -479,11 +478,6 @@
 }
 
 @media (max-width: 900px) {
-  .main-container {
-    margin-left: 0;
-    width: 100vw;
-  }
-  
   .expediente-vista {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;

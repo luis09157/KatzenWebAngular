@@ -35,7 +35,8 @@ export class AdminMainLayoutComponent implements OnInit {
 
   checkMobile() {
     this.isMobile = window.innerWidth < 900;
-    if (!this.isMobile) {
+    // En móvil, cerrar el menú automáticamente
+    if (this.isMobile && this.sidenavOpened) {
       this.sidenavOpened = false;
     }
   }
@@ -43,13 +44,16 @@ export class AdminMainLayoutComponent implements OnInit {
   toggleSidenav() {
     this.sidenavOpened = !this.sidenavOpened;
   }
+
   closeSidenav() {
     this.sidenavOpened = false;
   }
+
   logout() {
     this.authService.logout?.();
     this.router.navigate(['/admin/login']);
   }
+
   navegar(ruta: string) {
     this.router.navigate([ruta]);
     this.closeSidenav();
