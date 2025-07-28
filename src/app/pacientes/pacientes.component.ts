@@ -20,10 +20,10 @@ export class PacientesComponent implements OnInit {
 
   // Propiedades para la nueva vista
   searchTerm: string = '';
-  selectedPatient: any = null;
-  filteredPatients: any[] = [];
-  allPatients: any[] = [];
-  allClients: any[] = [];
+  pacientesFiltrados: any[] = [];
+  pacienteSeleccionado: any = null;
+  allPacientes: any[] = [];
+  allClientes: any[] = [];
 
   // Propiedades para vacunas
   nuevaVacuna: string = '';
@@ -63,6 +63,117 @@ export class PacientesComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'especie', 'raza', 'sexo', 'edad', 'color', 'peso', 'nombreCliente', 'acciones'];
   dataSource!: MatTableDataSource<any>;
 
+  duenioEditable: any = { nombre: '', email: '', telefono: '' };
+  historialEjemplo: any[] = [
+    { fecha: '11/12/2024', descripcion: 'Consulta general, sin novedades.' },
+    { fecha: '29/10/2024', descripcion: 'Vacunación anual.' }
+  ];
+  vacunasEjemplo: any[] = [
+    { nombre: 'Quíntuple', fecha: '10/10/2024', observaciones: 'Sin reacción.' }
+  ];
+  recordatoriosEjemplo: any[] = [
+    { tipo: 'Desparasitación', fecha: '01/11/2024', estado: 'Pendiente' }
+  ];
+  busquedaHistorial: string = '';
+
+  onFotoChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.pacienteSeleccionado.foto = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  errores: any = {
+    paciente: {},
+    duenio: {},
+    vacunas: [],
+    historial: [],
+    recordatorios: []
+  };
+
+  validarPaciente() {
+    const p = this.pacienteSeleccionado;
+    this.errores.paciente = {
+      nombre: !p.nombre,
+      especie: !p.especie,
+      raza: !p.raza,
+      edad: !p.edad,
+      peso: !p.peso,
+      color: !p.color
+    };
+    return !Object.values(this.errores.paciente).some(e => e);
+  }
+
+  validarDuenio() {
+    const d = this.duenioEditable;
+    this.errores.duenio = {
+      nombre: !d.nombre,
+      telefono: !d.telefono,
+      email: d.email && !/^\S+@\S+\.\S+$/.test(d.email)
+    };
+    return !Object.values(this.errores.duenio).some(e => e);
+  }
+
+  validarVacunas() {
+    this.errores.vacunas = this.vacunasEjemplo.map(v => ({
+      nombre: !v.nombre,
+      fecha: !v.fecha
+    }));
+    return this.errores.vacunas.every(e => !e.nombre && !e.fecha);
+  }
+
+  validarHistorial() {
+    this.errores.historial = this.historialEjemplo.map(h => ({
+      fecha: !h.fecha,
+      descripcion: !h.descripcion
+    }));
+    return this.errores.historial.every(e => !e.fecha && !e.descripcion);
+  }
+
+  validarRecordatorios() {
+    this.errores.recordatorios = this.recordatoriosEjemplo.map(r => ({
+      tipo: !r.tipo,
+      fecha: !r.fecha
+    }));
+    return this.errores.recordatorios.every(e => !e.tipo && !e.fecha);
+  }
+
+  esFormularioValido() {
+    return this.validarPaciente() && this.validarDuenio() && this.validarVacunas() && this.validarHistorial() && this.validarRecordatorios();
+  }
+
+  guardarCambios() {
+    if (!this.esFormularioValido()) {
+      alert('Por favor corrige los errores antes de guardar.');
+      return;
+    }
+    // Aquí guardarías los cambios en la base de datos
+    alert('Cambios guardados (simulado)');
+  }
+
+  agregarHistorial() {
+    this.historialEjemplo.push({ fecha: '', descripcion: '' });
+  }
+  eliminarHistorial(h: any) {
+    this.historialEjemplo = this.historialEjemplo.filter(x => x !== h);
+  }
+  agregarVacuna() {
+    this.vacunasEjemplo.push({ nombre: '', fecha: '', observaciones: '' });
+  }
+  eliminarVacuna(v: any) {
+    this.vacunasEjemplo = this.vacunasEjemplo.filter(x => x !== v);
+  }
+  agregarRecordatorio() {
+    this.recordatoriosEjemplo.push({ tipo: '', fecha: '', estado: '' });
+  }
+  eliminarRecordatorio(r: any) {
+    this.recordatoriosEjemplo = this.recordatoriosEjemplo.filter(x => x !== r);
+  }
+
   constructor(
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
@@ -71,173 +182,43 @@ export class PacientesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.cargarDatos();
-  }
-
-  cargarDatos() {
     this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.allPatients = pacientes || [];
-      this.allPatients = this.allPatients.map(paciente => ({
-        ...paciente,
-        nombreCliente: this.getClienteInfo(paciente.cliente_id)?.nombre || 'N/A'
-      }));
-      this.dataSource = new MatTableDataSource(this.allPatients);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
+      this.allPacientes = pacientes || [];
+      this.filtrarPacientes();
     });
-
     this.clientesService.getClientes().subscribe(clientes => {
-      this.allClients = clientes || [];
+      this.allClientes = clientes || [];
     });
   }
 
-  // Métodos para la nueva vista
-  goBack() {
-    this.router.navigate(['/admin/inicio']);
-  }
-
-  onSearchInput() {
-    if (!this.searchTerm.trim()) {
-      this.filteredPatients = [];
+  filtrarPacientes() {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) {
+      this.pacientesFiltrados = [];
       return;
     }
-
-    const searchLower = this.searchTerm.toLowerCase();
-    this.filteredPatients = this.allPatients.filter(paciente => 
-      paciente.nombreCliente?.toLowerCase().includes(searchLower) ||
-      paciente.nombre?.toLowerCase().includes(searchLower) ||
-      paciente.raza?.toLowerCase().includes(searchLower)
-    );
+    this.pacientesFiltrados = this.allPacientes.filter(p => {
+      const nombre = (p.nombre || '').toLowerCase();
+      const clienteNombre = this.getClienteNombre(p.cliente_id).toLowerCase();
+      return nombre.includes(term) || clienteNombre.includes(term);
+    });
   }
 
-  clearSearch() {
+  seleccionarPaciente(paciente: any) {
+    this.pacienteSeleccionado = paciente;
+  }
+
+  limpiarSeleccion() {
+    this.pacienteSeleccionado = null;
     this.searchTerm = '';
-    this.filteredPatients = [];
+    this.pacientesFiltrados = [];
   }
 
-  selectPatient(paciente: any) {
-    this.selectedPatient = paciente;
+  getClienteNombre(clienteId: string): string {
+    const cliente = this.allClientes.find(c => c.id === clienteId);
+    return cliente ? cliente.nombre : 'Desconocido';
   }
 
-  backToSearch() {
-    this.selectedPatient = null;
-  }
-
-  nuevoPaciente() {
-    this.abrirModalPaciente();
-  }
-
-  editPatient() {
-    this.editarPaciente(this.selectedPatient);
-  }
-
-  addHistory() {
-    // Implementar lógica para agregar historial
-    console.log('Agregar historial para:', this.selectedPatient.nombre);
-  }
-
-  nuevaCita() {
-    this.router.navigate(['/admin/citas'], { 
-      queryParams: { paciente: this.selectedPatient.id } 
-    });
-  }
-
-  verHistoriales() {
-    this.router.navigate(['/admin/historiales'], { 
-      queryParams: { paciente: this.selectedPatient.id } 
-    });
-  }
-
-  agregarVacuna() {
-    if (!this.nuevaVacuna || !this.fechaVacuna) {
-      Swal.fire('Error', 'Por favor completa los campos requeridos', 'error');
-      return;
-    }
-
-    // Aquí implementarías la lógica para guardar la vacuna
-    console.log('Vacuna agregada:', {
-      paciente: this.selectedPatient.nombre,
-      vacuna: this.nuevaVacuna,
-      fecha: this.fechaVacuna,
-      observaciones: this.observacionesVacuna,
-      proxima: this.proximaVacuna
-    });
-
-    Swal.fire('Éxito', 'Vacuna agregada correctamente', 'success');
-    
-    // Limpiar formulario
-    this.nuevaVacuna = '';
-    this.observacionesVacuna = '';
-    this.proximaVacuna = '';
-    this.fechaVacuna = null;
-  }
-
-  onTabChange(event: any) {
-    console.log('Tab cambiado:', event.index);
-  }
-
-  getClienteInfo(clienteId: string) {
-    return this.allClients.find(cliente => cliente.id === clienteId);
-  }
-
-  // Métodos originales
-  aplicarFiltro(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
-  }
-
-  abrirModalPaciente(paciente?: any) {
-    const dialogRef = this.dialog.open(PacienteDialogComponent, {
-      width: '600px',
-      data: paciente || {}
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarDatos();
-      }
-    });
-  }
-
-  verPaciente(paciente: any) {
-    this.selectPatient(paciente);
-  }
-
-  editarPaciente(paciente: any) {
-    this.abrirModalPaciente(paciente);
-  }
-
-  bajaLogicaPaciente(id: string) {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: "Esta acción marcará el paciente como inactivo",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.pacientesService.bajaLogicaPaciente(id).then(() => {
-          Swal.fire(
-            'Eliminado!',
-            'El paciente ha sido marcado como inactivo.',
-            'success'
-          );
-          this.cargarDatos();
-        }).catch(error => {
-          Swal.fire(
-            'Error!',
-            'No se pudo eliminar el paciente.',
-            'error'
-          );
-        });
-      }
-    });
-  }
+  // Eliminar métodos y referencias viejas
+  // Eliminar cargarDatos(), onSearchInput(), clearSearch(), selectPatient(), backToSearch(), nuevoPaciente(), editPatient(), addHistory(), nuevaCita(), verHistoriales(), agregarVacuna(), onTabChange(), getClienteInfo(), goBack(), aplicarFiltro(), abrirModalPaciente(), verPaciente(), editarPaciente(), bajaLogicaPaciente(), y cualquier referencia a allPatients, allClients, filteredPatients, selectedPatient.
 }

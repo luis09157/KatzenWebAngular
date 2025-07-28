@@ -1,0 +1,76 @@
+<mat-toolbar class="admin-header">
+  <button mat-icon-button class="menu-toggle" (click)="toggleSidenav()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <div class="header-brand">
+    <mat-icon class="brand-logo">pets</mat-icon>
+    <span class="brand-title">KatzenVet</span>
+    <span class="brand-subtitle">Sistema Veterinario</span>
+  </div>
+  <span class="header-spacer"></span>
+  <div class="header-actions">
+    <span class="user-name">{{ usuario?.nombre || 'Administrador' }}</span>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
+
+<!-- Overlay solo en móvil/tablet -->
+<div class="sidenav-overlay" *ngIf="sidenavOpened && isMobile" (click)="closeSidenav()"></div>
+
+<!-- Menú lateral -->
+<nav class="main-sidenav" [class.opened]="sidenavOpened || !isMobile" [class.mobile]="isMobile">
+  <div class="sidenav-header">
+    <span class="sidenav-title">KatzenVet</span>
+    <button mat-icon-button class="close-btn" *ngIf="isMobile" (click)="closeSidenav()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="sidenav-content">
+    <a class="sidenav-link" routerLink="/admin/inicio" routerLinkActive="active" (click)="navegar('/admin/inicio')">
+      <mat-icon>dashboard</mat-icon>
+      <span>Dashboard</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/paciente" routerLinkActive="active" (click)="navegar('/admin/paciente')">
+      <mat-icon>pets</mat-icon>
+      <span>Pacientes</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/clientes" routerLinkActive="active" (click)="navegar('/admin/clientes')">
+      <mat-icon>people</mat-icon>
+      <span>Clientes</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/citas" routerLinkActive="active" (click)="navegar('/admin/citas')">
+      <mat-icon>event</mat-icon>
+      <span>Citas</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/historiales" routerLinkActive="active" (click)="navegar('/admin/historiales')">
+      <mat-icon>medical_services</mat-icon>
+      <span>Historiales</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/vacunas" routerLinkActive="active" (click)="navegar('/admin/vacunas')">
+      <mat-icon>vaccines</mat-icon>
+      <span>Vacunas</span>
+    </a>
+    <a class="sidenav-link" routerLink="/admin/medicamentos" routerLinkActive="active" (click)="navegar('/admin/medicamentos')">
+      <mat-icon>inventory_2</mat-icon>
+      <span>Medicamentos</span>
+    </a>
+    <div class="sidenav-footer">
+      <button mat-button color="warn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <router-outlet></router-outlet>
+</div> 

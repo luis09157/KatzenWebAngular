@@ -1,93 +1,146 @@
-<!-- Header principal -->
-<div class="patient-header">
-  <div class="header-left">
-    <button mat-icon-button class="back-btn" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <div class="header-brand">
-      <mat-icon class="brand-icon">pets</mat-icon>
-      <div class="brand-text">
-        <h1>KatzenVet</h1>
-        <span>Panel de Pacientes</span>
-      </div>
-    </div>
-  </div>
-  
-  <div class="header-center">
-    <div class="search-container">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input 
-        type="text" 
-        placeholder="Buscar por nombre del cliente (dueño)..." 
-        class="search-input"
-        [(ngModel)]="searchTerm"
-        (input)="onSearchInput()"
-        autocomplete="off"
-      >
-      <button mat-icon-button class="clear-btn" *ngIf="searchTerm" (click)="clearSearch()">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-  </div>
-  
-  <div class="header-right">
-    <button mat-raised-button color="primary" class="add-btn" (click)="nuevoPaciente()">
-      <mat-icon>add</mat-icon>
-      Nuevo Paciente
-    </button>
-  </div>
-</div>
+<div class="pacientes-container">
+  <mat-form-field class="buscador-paciente" appearance="outline">
+    <mat-label>Buscar paciente</mat-label>
+    <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="searchTerm" (ngModelChange)="filtrarPacientes()">
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="seleccionarPaciente($event.option.value)">
+      <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
+        {{ paciente.nombre }} <span class="dueño">- {{ getClienteNombre(paciente.cliente_id) }}</span>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 
-<!-- Contenido principal -->
-<div class="patient-content">
-  <!-- Panel de búsqueda y resultados -->
-  <div class="search-panel" *ngIf="!selectedPatient">
-    <div class="search-info">
-      <h2>Buscar Pacientes</h2>
-      <p>Ingresa el nombre del cliente (dueño) para encontrar sus mascotas</p>
-    </div>
-    
-    <!-- Resultados de búsqueda -->
-    <div class="search-results" *ngIf="filteredPatients.length > 0">
-      <h3>Resultados encontrados ({{ filteredPatients.length }})</h3>
-      <div class="patient-cards">
-        <div 
-          class="patient-card" 
-          *ngFor="let paciente of filteredPatients"
-          (click)="selectPatient(paciente)"
-        >
-          <div class="patient-avatar">
-            <mat-icon>pets</mat-icon>
-          </div>
-          <div class="patient-info">
-            <h4>{{ paciente.nombre }}</h4>
-            <p class="breed">{{ paciente.raza }}</p>
-            <p class="owner">{{ paciente.nombreCliente }}</p>
-            <div class="patient-stats">
-              <span class="stat">
-                <mat-icon>event</mat-icon>
-                {{ paciente.edad || 'N/A' }}
-              </span>
-              <span class="stat">
-                <mat-icon>medical_services</mat-icon>
-                {{ paciente.historiales?.length || 0 }} historiales
-              </span>
-            </div>
-          </div>
-          <div class="patient-actions">
-            <button mat-icon-button (click)="selectPatient(paciente)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-          </div>
-        </div>
+  <div *ngIf="pacienteSeleccionado" class="expediente-container">
+    <!-- Panel izquierdo: Perfil editable -->
+    <div class="expediente-left">
+      <div class="foto-perfil">
+        <img [src]="pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente">
+        <input type="file" (change)="onFotoChange($event)">
+      </div>
+      <mat-form-field appearance="fill">
+        <mat-label>Nombre</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.nombre" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.nombre">El nombre es obligatorio</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Edad</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.edad" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.edad">La edad es obligatoria</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Especie</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.especie" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.especie">La especie es obligatoria</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Raza</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.raza" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.raza">La raza es obligatoria</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Color</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.color" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.color">El color es obligatorio</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Peso</mat-label>
+        <input matInput [(ngModel)]="pacienteSeleccionado.peso" (ngModelChange)="validarPaciente()">
+        <mat-error *ngIf="errores.paciente.peso">El peso es obligatorio</mat-error>
+      </mat-form-field>
+      <h3>Dueño</h3>
+      <mat-form-field appearance="fill">
+        <mat-label>Nombre dueño</mat-label>
+        <input matInput [(ngModel)]="duenioEditable.nombre" (ngModelChange)="validarDuenio()">
+        <mat-error *ngIf="errores.duenio.nombre">El nombre del dueño es obligatorio</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput [(ngModel)]="duenioEditable.email" (ngModelChange)="validarDuenio()">
+        <mat-error *ngIf="errores.duenio.email">El email no es válido</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Teléfono</mat-label>
+        <input matInput [(ngModel)]="duenioEditable.telefono" (ngModelChange)="validarDuenio()">
+        <mat-error *ngIf="errores.duenio.telefono">El teléfono es obligatorio</mat-error>
+      </mat-form-field>
+      <div class="acciones-perfil">
+        <button mat-raised-button color="primary" (click)="guardarCambios()" [disabled]="!esFormularioValido()">Guardar</button>
+        <button mat-button color="warn" (click)="limpiarSeleccion()">Cancelar</button>
       </div>
     </div>
-    
-    <!-- Sin resultados -->
-    <div class="no-results" *ngIf="searchTerm && filteredPatients.length === 0">
-      <mat-icon>search_off</mat-icon>
-      <h3>No se encontraron pacientes</h3>
-      <p>Intenta con otro nombre de cliente</p>
+
+    <!-- Panel central: Tabs -->
+    <div class="expediente-center">
+      <mat-tab-group>
+        <mat-tab label="Historial">
+          <div *ngFor="let h of historialEjemplo; let i = index" class="historial-item">
+            <mat-form-field appearance="fill">
+              <mat-label>Fecha</mat-label>
+              <input matInput [(ngModel)]="h.fecha" (ngModelChange)="validarHistorial()">
+              <mat-error *ngIf="errores.historial[i]?.fecha">La fecha es obligatoria</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Descripción</mat-label>
+              <textarea matInput [(ngModel)]="h.descripcion" (ngModelChange)="validarHistorial()"></textarea>
+              <mat-error *ngIf="errores.historial[i]?.descripcion">La descripción es obligatoria</mat-error>
+            </mat-form-field>
+            <button mat-icon-button color="warn" (click)="eliminarHistorial(h)"><mat-icon>delete</mat-icon></button>
+          </div>
+          <button mat-stroked-button color="primary" (click)="agregarHistorial()">Agregar historial</button>
+        </mat-tab>
+        <mat-tab label="Vacunas">
+          <div *ngFor="let v of vacunasEjemplo; let i = index" class="vacuna-item">
+            <mat-form-field appearance="fill">
+              <mat-label>Vacuna</mat-label>
+              <input matInput [(ngModel)]="v.nombre" (ngModelChange)="validarVacunas()">
+              <mat-error *ngIf="errores.vacunas[i]?.nombre">El nombre de la vacuna es obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Fecha</mat-label>
+              <input matInput [(ngModel)]="v.fecha" (ngModelChange)="validarVacunas()">
+              <mat-error *ngIf="errores.vacunas[i]?.fecha">La fecha es obligatoria</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Observaciones</mat-label>
+              <textarea matInput [(ngModel)]="v.observaciones"></textarea>
+            </mat-form-field>
+            <button mat-icon-button color="warn" (click)="eliminarVacuna(v)"><mat-icon>delete</mat-icon></button>
+          </div>
+          <button mat-stroked-button color="primary" (click)="agregarVacuna()">Agregar vacuna</button>
+        </mat-tab>
+        <mat-tab label="Recordatorios">
+          <div *ngFor="let r of recordatoriosEjemplo; let i = index" class="recordatorio-item">
+            <mat-form-field appearance="fill">
+              <mat-label>Tipo</mat-label>
+              <input matInput [(ngModel)]="r.tipo" (ngModelChange)="validarRecordatorios()">
+              <mat-error *ngIf="errores.recordatorios[i]?.tipo">El tipo es obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Fecha</mat-label>
+              <input matInput [(ngModel)]="r.fecha" (ngModelChange)="validarRecordatorios()">
+              <mat-error *ngIf="errores.recordatorios[i]?.fecha">La fecha es obligatoria</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Estado</mat-label>
+              <input matInput [(ngModel)]="r.estado">
+            </mat-form-field>
+            <button mat-icon-button color="warn" (click)="eliminarRecordatorio(r)"><mat-icon>delete</mat-icon></button>
+          </div>
+          <button mat-stroked-button color="primary" (click)="agregarRecordatorio()">Agregar recordatorio</button>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+
+    <!-- Panel derecho: Historial clínico -->
+    <div class="expediente-right">
+      <h3>Historial Clínico</h3>
+      <mat-form-field appearance="outline">
+        <mat-label>Buscar en historial</mat-label>
+        <input matInput [(ngModel)]="busquedaHistorial">
+      </mat-form-field>
+      <div *ngFor="let h of historialEjemplo | filter:busquedaHistorial" class="historial-clinico-item">
+        <div><strong>{{ h.fecha }}</strong></div>
+        <div>{{ h.descripcion }}</div>
+      </div>
     </div>
   </div>
 </div>

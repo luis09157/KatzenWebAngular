@@ -12,10 +12,17 @@ import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    AdminMainLayoutComponent
   ],
   imports: [
     BrowserModule,
@@ -25,7 +32,12 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AngularFirestoreModule,
     AngularFireAuthModule,
     AngularFireStorageModule,
-    DashboardModule
+    DashboardModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatDividerModule
   ],
   providers: [
     provideAnimationsAsync()

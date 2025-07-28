@@ -3,12 +3,13 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './auth/auth.guard';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { AdminLayoutComponent } from './dashboard/admin-layout.component';
+import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
 
 const routes: Routes = [
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
     path: 'admin',
-    component: AdminLayoutComponent,
+    component: AdminMainLayoutComponent,
     canActivate: [AuthGuard],
     children: [
       { path: 'inicio', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule) },

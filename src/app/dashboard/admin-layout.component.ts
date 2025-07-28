@@ -18,6 +18,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class AdminLayoutComponent implements OnInit {
   breadcrumbs: Array<{ label: string, url: string }> = [];
+  sidenavOpened = false;
+  totalPacientes = 0;
+  totalClientes = 0;
+  citasHoy = 0;
 
   constructor(
     private router: Router,
@@ -30,8 +34,15 @@ export class AdminLayoutComponent implements OnInit {
     });
   }
 
+  toggleSidenav() {
+    this.sidenavOpened = !this.sidenavOpened;
+  }
+  closeSidenav() {
+    this.sidenavOpened = false;
+  }
+
   logout() {
-    // Puedes implementar el logout aquí si lo necesitas
+    // Implementar lógica de logout si es necesario
   }
 
   private buildBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: Array<{ label: string, url: string }> = []): Array<{ label: string, url: string }> {

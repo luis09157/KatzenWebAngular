@@ -1,4 +1,139 @@
-<!-- Contenido principal sin menú lateral -->
+<mat-toolbar class="admin-header">
+  <button mat-icon-button class="menu-toggle" (click)="toggleSidenav()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <div class="header-brand">
+    <div class="brand-logo">
+      <mat-icon>pets</mat-icon>
+    </div>
+    <div class="brand-text">
+      <h1>KatzenVet</h1>
+      <span>Sistema Veterinario</span>
+    </div>
+  </div>
+  <span class="header-spacer"></span>
+  <div class="header-actions">
+    <div class="user-profile">
+      <mat-icon>account_circle</mat-icon>
+      <span>Administrador</span>
+    </div>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item>
+        <mat-icon>person</mat-icon>
+        <span>Mi Perfil</span>
+      </button>
+      <button mat-menu-item>
+        <mat-icon>settings</mat-icon>
+        <span>Configuración</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
+  </div>
+</mat-toolbar>
+
+<div class="sidenav-overlay" *ngIf="sidenavOpened" (click)="closeSidenav()"></div>
+<div class="floating-sidenav" [class.opened]="sidenavOpened">
+  <div class="sidenav-header">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <mat-icon>veterinary</mat-icon>
+      </div>
+      <div class="logo-text">
+        <h3>KatzenVet</h3>
+        <span>Panel Admin</span>
+      </div>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="closeSidenav()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="sidenav-content">
+    <div class="menu-section">
+      <h4 class="section-title">Navegación Principal</h4>
+      <div class="menu-cards">
+        <div class="menu-card" routerLink="/admin/inicio" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon dashboard">
+            <mat-icon>dashboard</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Dashboard</h5>
+            <p>Vista general</p>
+          </div>
+        </div>
+        <div class="menu-card" routerLink="/admin/paciente" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon patients">
+            <mat-icon>pets</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Pacientes</h5>
+            <p>{{ totalPacientes }} registrados</p>
+            <div class="card-badge">{{ totalPacientes }}</div>
+          </div>
+        </div>
+        <div class="menu-card" routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon clients">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Clientes</h5>
+            <p>{{ totalClientes }} registrados</p>
+            <div class="card-badge">{{ totalClientes }}</div>
+          </div>
+        </div>
+        <div class="menu-card" routerLink="/admin/citas" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon appointments">
+            <mat-icon>event</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Citas</h5>
+            <p>{{ citasHoy }} hoy</p>
+            <div class="card-badge">{{ citasHoy }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="menu-section">
+      <h4 class="section-title">Gestión Médica</h4>
+      <div class="menu-cards">
+        <div class="menu-card" routerLink="/admin/historiales" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon medical">
+            <mat-icon>medical_services</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Historiales</h5>
+            <p>Clínicos</p>
+          </div>
+        </div>
+        <div class="menu-card" routerLink="/admin/vacunas" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon vaccines">
+            <mat-icon>vaccines</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Vacunas</h5>
+            <p>Programación</p>
+          </div>
+        </div>
+        <div class="menu-card" routerLink="/admin/medicamentos" routerLinkActive="active" (click)="closeSidenav()">
+          <div class="card-icon inventory">
+            <mat-icon>inventory_2</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>Medicamentos</h5>
+            <p>Inventario</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="main-content" [@routeAnimations]="o.isActivated && o.activatedRoute.routeConfig?.path">
   <router-outlet #o="outlet"></router-outlet>
 </div> 
