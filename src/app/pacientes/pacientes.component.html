@@ -28,20 +28,6 @@
   <div *ngIf="pacienteSeleccionado" class="expediente-vista">
     <!-- Panel izquierdo: Perfil del paciente -->
     <div class="panel-izquierdo">
-      <div class="perfil-header">
-        <div class="botones-accion">
-          <button mat-icon-button class="btn-accion">
-            <span class="btn-text">H</span>
-          </button>
-          <button mat-icon-button class="btn-accion">
-            <span class="btn-text">R</span>
-          </button>
-          <button mat-icon-button class="btn-accion">
-            <span class="btn-text">A</span>
-          </button>
-        </div>
-      </div>
-      
       <!-- Datos del Paciente -->
       <div class="foto-paciente">
         <img [src]="pacienteSeleccionado.imageUrl || pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente">
@@ -256,62 +242,36 @@
       </mat-tab-group>
     </div>
 
-    <!-- Panel derecho: Historial clínico -->
+    <!-- Panel derecho: Log de Actividades -->
     <div class="panel-derecho">
-      <div class="historia-clinica-header">
-        <h3>Historia Clínica <span class="badge">{{ historialClinico.length }}</span></h3>
-        <div class="historia-acciones">
-          <button mat-raised-button color="primary" class="btn-agregar-historial" (click)="agregarHistorialClinico()">
-            <mat-icon>add</mat-icon>
-            Nuevo Historial
+      <div class="log-header">
+        <h3 class="log-titulo">
+          <mat-icon>history</mat-icon>
+          Actividad del Paciente
+        </h3>
+        <div class="log-actions">
+          <button mat-icon-button (click)="probarLog()" matTooltip="Probar log">
+            <mat-icon>bug_report</mat-icon>
           </button>
-          <button mat-button class="btn-periodo">
-            <mat-icon>refresh</mat-icon>
-            Visualizar período
-          </button>
-          <button mat-button class="btn-todas">
-            Ver todas ({{ historialClinico.length }})
-            <mat-icon>expand_more</mat-icon>
-          </button>
+          <span class="log-contador">{{ logActividades.length }} actividades</span>
         </div>
-        <button mat-button class="btn-filtros">
-          [+] Ver filtros avanzados <span class="badge">{{ historialClinico.length }}</span>
-        </button>
       </div>
       
-      <div class="historia-lista">
-        <div *ngFor="let entrada of historialClinico" class="entrada-historia">
-          <div class="entrada-icono">
-            <mat-icon>folder</mat-icon>
-          </div>
-          <div class="entrada-contenido">
-            <div class="entrada-fecha">{{ entrada.fecha }} {{ entrada.hora }}</div>
-            <div class="entrada-tiempo">{{ entrada.tiempoAtras }}</div>
-            <div class="entrada-descripcion">{{ entrada.descripcion }}</div>
-            <div class="entrada-usuario" *ngIf="entrada.usuario">
-              <span class="usuario-tag">{{ entrada.usuario }}</span>
-            </div>
-            <div class="entrada-acciones">
-              <button mat-icon-button class="btn-accion" (click)="verDetalleHistorial(entrada)" matTooltip="Ver detalles">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button class="btn-accion" (click)="editarHistorialClinico(entrada)" matTooltip="Editar">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button class="btn-accion btn-eliminar" (click)="eliminarHistorialClinico(entrada)" matTooltip="Eliminar">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
+      <div class="log-contenido">
+        <div *ngIf="logActividades.length === 0" class="sin-actividades">
+          <mat-icon>info</mat-icon>
+          <p>No hay actividades registradas</p>
         </div>
         
-        <div *ngIf="historialClinico.length === 0" class="sin-historial">
-          <mat-icon>folder_open</mat-icon>
-          <p>No hay historial clínico registrado</p>
-          <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
-            <mat-icon>add</mat-icon>
-            Agregar primer historial
-          </button>
+        <div *ngFor="let actividad of logActividades" class="actividad-item">
+          <div class="actividad-icono" [style.background-color]="getColorActividad(actividad.tipo)">
+            <mat-icon>{{ getIconoActividad(actividad.tipo) }}</mat-icon>
+          </div>
+          <div class="actividad-contenido">
+            <div class="actividad-titulo">{{ actividad.titulo }}</div>
+            <div class="actividad-descripcion">{{ actividad.descripcion }}</div>
+            <div class="actividad-fecha">{{ formatearFechaLog(actividad.fecha_creacion) }}</div>
+          </div>
         </div>
       </div>
     </div>

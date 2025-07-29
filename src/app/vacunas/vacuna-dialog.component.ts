@@ -106,7 +106,8 @@ export class VacunaDialogComponent implements OnInit {
           });
         }
         
-        this.dialogRef.close(true);
+        // Cerrar con los datos del formulario en lugar de true
+        this.dialogRef.close(vacunaData);
       } catch (error) {
         console.error('Error al guardar vacuna:', error);
         Swal.fire({

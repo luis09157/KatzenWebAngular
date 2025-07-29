@@ -1141,3 +1141,191 @@ mat-icon {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
+
+/* Panel derecho - Log de Actividades */
+.panel-derecho {
+  width: 350px;
+  background: #fff;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.log-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.log-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.log-titulo mat-icon {
+  color: #7b2c5c;
+}
+
+.log-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.log-contador {
+  font-size: 0.9rem;
+  color: #666;
+  background: #e9ecef;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.log-contenido {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.sin-actividades {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.sin-actividades mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.sin-actividades p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.actividad-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  min-height: 60px;
+}
+
+.actividad-item:hover {
+  background-color: #f8f9fa;
+}
+
+.actividad-item:last-child {
+  border-bottom: none;
+}
+
+.actividad-icono {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-right: 14px;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.actividad-icono mat-icon {
+  color: white;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  /* Estilos específicos para centrar Material Icons */
+  vertical-align: middle;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Asegurar que los iconos estén perfectamente centrados */
+.actividad-icono mat-icon::before {
+  content: '';
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Mejorar la apariencia del contenido */
+.actividad-contenido {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.actividad-titulo {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.actividad-descripcion {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  word-wrap: break-word;
+}
+
+.actividad-fecha {
+  color: #999;
+  font-size: 0.75rem;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+/* Scrollbar personalizado para el log */
+.log-contenido::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-contenido::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.log-contenido::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.log-contenido::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

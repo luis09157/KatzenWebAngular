@@ -67,7 +67,8 @@ export class HistorialDialogComponent implements OnInit {
           });
         }
         
-        this.dialogRef.close(true);
+        // Cerrar con los datos del formulario en lugar de true
+        this.dialogRef.close(historialData);
       } catch (error) {
         console.error('Error al guardar historial:', error);
         Swal.fire({

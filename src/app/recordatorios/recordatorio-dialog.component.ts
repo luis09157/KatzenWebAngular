@@ -99,7 +99,8 @@ export class RecordatorioDialogComponent implements OnInit {
           await this.recordatoriosService.crearRecordatorio(recordatorioData);
           Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio creado correctamente' });
         }
-        this.dialogRef.close(true);
+        // Cerrar con los datos del formulario en lugar de true
+        this.dialogRef.close(recordatorioData);
       } catch (error) {
         console.error('Error al guardar recordatorio:', error);
         Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el recordatorio' });

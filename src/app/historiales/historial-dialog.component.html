@@ -4,7 +4,7 @@
       <mat-icon>medical_services</mat-icon>
       {{ isEditMode ? 'Editar' : 'Nuevo' }} Historial Clínico
     </h2>
-    <button mat-icon-button (click)="cancelar()" class="close-btn">
+    <button mat-icon-button (click)="cancelar()" class="close-btn" matTooltip="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -14,29 +14,40 @@
       
       <!-- Diagnóstico -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Diagnóstico *</mat-label>
+        <mat-label>
+          <mat-icon class="field-icon">description</mat-icon>
+          Diagnóstico *
+        </mat-label>
         <textarea matInput formControlName="diagnostico" 
                   placeholder="Describe el diagnóstico del paciente"
-                  rows="3"></textarea>
+                  rows="4"></textarea>
         <mat-error *ngIf="historialForm.get('diagnostico')?.hasError('required')">
+          <mat-icon>error</mat-icon>
           El diagnóstico es requerido
         </mat-error>
       </mat-form-field>
 
       <!-- Tratamiento -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tratamiento *</mat-label>
+        <mat-label>
+          <mat-icon class="field-icon">healing</mat-icon>
+          Tratamiento *
+        </mat-label>
         <textarea matInput formControlName="tratamiento" 
                   placeholder="Describe el tratamiento aplicado"
-                  rows="3"></textarea>
+                  rows="4"></textarea>
         <mat-error *ngIf="historialForm.get('tratamiento')?.hasError('required')">
+          <mat-icon>error</mat-icon>
           El tratamiento es requerido
         </mat-error>
       </mat-form-field>
 
       <!-- Medicamentos -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Medicamentos</mat-label>
+        <mat-label>
+          <mat-icon class="field-icon">medication</mat-icon>
+          Medicamentos
+        </mat-label>
         <textarea matInput formControlName="medicamentos" 
                   placeholder="Lista de medicamentos recetados"
                   rows="3"></textarea>
@@ -44,7 +55,10 @@
 
       <!-- Notas -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Notas Adicionales</mat-label>
+        <mat-label>
+          <mat-icon class="field-icon">note</mat-icon>
+          Notas Adicionales
+        </mat-label>
         <textarea matInput formControlName="notas" 
                   placeholder="Observaciones adicionales"
                   rows="3"></textarea>
@@ -61,7 +75,8 @@
                 mat-stroked-button 
                 color="warn" 
                 (click)="eliminarHistorial()"
-                [disabled]="loading">
+                [disabled]="loading"
+                matTooltip="Eliminar historial">
           <mat-icon>delete</mat-icon>
           Eliminar
         </button>
@@ -71,13 +86,16 @@
         <button type="button" 
                 mat-button 
                 (click)="cancelar()"
-                [disabled]="loading">
+                [disabled]="loading"
+                matTooltip="Cancelar">
+          <mat-icon>cancel</mat-icon>
           Cancelar
         </button>
         <button type="submit" 
                 mat-raised-button 
                 color="primary"
-                [disabled]="historialForm.invalid || loading">
+                [disabled]="historialForm.invalid || loading"
+                matTooltip="{{ isEditMode ? 'Actualizar historial' : 'Crear historial' }}">
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

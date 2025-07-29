@@ -45,6 +45,7 @@ export class PacientesComponent implements OnInit {
 
   // Propiedades para vacunas
   vacunas: any[] = [];
+  logActividades: any[] = [];
 
   // Historial clínico de ejemplo
   historialClinico = [
@@ -222,6 +223,7 @@ export class PacientesComponent implements OnInit {
     this.cargarRecordatorios(paciente.id);
     // Cargar vacunas del paciente
     this.cargarVacunas(paciente.id);
+    this.cargarLogActividades(paciente.id);
   }
 
   cargarHistorialClinico(pacienteId: string) {
@@ -337,28 +339,50 @@ export class PacientesComponent implements OnInit {
 
   agregarRecordatorio() {
     if (!this.pacienteSeleccionado) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Selecciona un paciente',
-        text: 'Debes seleccionar un paciente para agregar un recordatorio'
-      });
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
       return;
     }
 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '600px',
-      data: {
-        paciente_id: this.pacienteSeleccionado.id
-      }
+      width: '500px',
+      data: { paciente_id: this.pacienteSeleccionado.id }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.cargarRecordatorios(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Éxito!',
-          text: 'Recordatorio agregado correctamente'
+        result.paciente_id = this.pacienteSeleccionado.id;
+        
+        console.log('Datos del recordatorio antes de crear:', result);
+        
+        this.recordatoriosService.crearRecordatorio(result).then((ref) => {
+          console.log('Recordatorio creado exitosamente, referencia:', ref);
+          
+          // Obtener el ID del recordatorio creado
+          const recordatorioId = ref.key;
+          console.log('ID del recordatorio creado:', recordatorioId);
+          
+          Swal.fire('Éxito', 'Recordatorio creado correctamente', 'success');
+          this.cargarRecordatorios(this.pacienteSeleccionado.id);
+          
+          // Registrar en el log con los datos completos
+          const datosParaLog = {
+            titulo: result.titulo || 'Sin título',
+            fecha_hora_recordatorio: result.fecha_hora_recordatorio || result.fecha_recordatorio,
+            prioridad: result.prioridad || 'media',
+            paciente_id: this.pacienteSeleccionado.id,
+            id: recordatorioId
+          };
+          
+          console.log('Registrando recordatorio en log:', datosParaLog);
+          this.pacientesService.registrarRecordatorio(this.pacienteSeleccionado.id, datosParaLog).then(() => {
+            console.log('Recordatorio registrado en log exitosamente');
+            this.cargarLogActividades(this.pacienteSeleccionado.id);
+          }).catch(error => {
+            console.error('Error al registrar recordatorio en log:', error);
+          });
+        }).catch(error => {
+          console.error('Error al crear recordatorio:', error);
+          Swal.fire('Error', 'No se pudo crear el recordatorio', 'error');
         });
       }
     });
@@ -484,9 +508,34 @@ export class PacientesComponent implements OnInit {
         // Agregar el ID del paciente al historial
         result.paciente_id = this.pacienteSeleccionado.id;
         
-        this.historialesService.crearHistorial(result).then(() => {
+        console.log('Datos del historial antes de crear:', result);
+        
+        this.historialesService.crearHistorial(result).then((ref) => {
+          console.log('Historial creado exitosamente, referencia:', ref);
+          
+          // Obtener el ID del historial creado
+          const historialId = ref.key;
+          console.log('ID del historial creado:', historialId);
+          
           Swal.fire('Éxito', 'Historial clínico creado correctamente', 'success');
           this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+          
+          // Registrar en el log con los datos completos
+          const datosParaLog = {
+            diagnostico: result.diagnostico || 'Sin diagnóstico',
+            tratamiento: result.tratamiento || 'Sin tratamiento',
+            medicamentos: result.medicamentos || 'Sin medicamentos',
+            paciente_id: this.pacienteSeleccionado.id,
+            id: historialId
+          };
+          
+          console.log('Registrando historial clínico en log:', datosParaLog);
+          this.pacientesService.registrarHistorialClinico(this.pacienteSeleccionado.id, datosParaLog).then(() => {
+            console.log('Historial clínico registrado en log exitosamente');
+            this.cargarLogActividades(this.pacienteSeleccionado.id);
+          }).catch(error => {
+            console.error('Error al registrar historial en log:', error);
+          });
         }).catch(error => {
           console.error('Error al crear historial:', error);
           Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
@@ -509,6 +558,9 @@ export class PacientesComponent implements OnInit {
         this.historialesService.actualizarHistorial(historial.id, result).then(() => {
           Swal.fire('Éxito', 'Historial clínico actualizado correctamente', 'success');
           this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+          // Registrar en el log
+          this.pacientesService.registrarEdicionHistorialClinico(this.pacienteSeleccionado.id, result);
+          this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
           console.error('Error al actualizar historial:', error);
           Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error');
@@ -539,6 +591,9 @@ export class PacientesComponent implements OnInit {
         this.historialesService.bajaLogicaHistorial(historial.id).then(() => {
           Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
           this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+          // Registrar en el log
+          this.pacientesService.registrarEliminacionHistorialClinico(this.pacienteSeleccionado.id, historial);
+          this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
           console.error('Error al dar de baja:', error);
           Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
@@ -670,28 +725,45 @@ export class PacientesComponent implements OnInit {
 
   agregarVacuna() {
     if (!this.pacienteSeleccionado) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Selecciona un paciente',
-        text: 'Debes seleccionar un paciente para agregar una vacuna'
-      });
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
       return;
     }
 
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '600px',
-      data: {
-        idPaciente: this.pacienteSeleccionado.id
-      }
+      width: '500px',
+      data: { paciente_id: this.pacienteSeleccionado.id }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.cargarVacunas(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Éxito!',
-          text: 'Vacuna agregada correctamente'
+        result.paciente_id = this.pacienteSeleccionado.id;
+        
+        console.log('Datos de la vacuna antes de crear:', result);
+        
+        this.vacunasService.crearVacuna(result).then(() => {
+          console.log('Vacuna creada exitosamente');
+          
+          Swal.fire('Éxito', 'Vacuna registrada correctamente', 'success');
+          this.cargarVacunas(this.pacienteSeleccionado.id);
+          
+          // Registrar en el log con los datos completos
+          const datosParaLog = {
+            nombre_vacuna: result.nombre_vacuna || 'Sin nombre',
+            dosis: result.dosis || 'Sin dosis',
+            fecha_aplicacion: result.fecha_aplicacion || result.fecha_vacuna,
+            paciente_id: this.pacienteSeleccionado.id
+          };
+          
+          console.log('Registrando vacuna en log:', datosParaLog);
+          this.pacientesService.registrarVacuna(this.pacienteSeleccionado.id, datosParaLog).then(() => {
+            console.log('Vacuna registrada en log exitosamente');
+            this.cargarLogActividades(this.pacienteSeleccionado.id);
+          }).catch(error => {
+            console.error('Error al registrar vacuna en log:', error);
+          });
+        }).catch(error => {
+          console.error('Error al crear vacuna:', error);
+          Swal.fire('Error', 'No se pudo registrar la vacuna', 'error');
         });
       }
     });
@@ -717,30 +789,23 @@ export class PacientesComponent implements OnInit {
 
   eliminarVacuna(vacuna: any) {
     Swal.fire({
-      icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      text: 'La vacuna será eliminada permanentemente.',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         this.vacunasService.eliminarVacuna(vacuna.id).then(() => {
+          Swal.fire('Eliminada', 'Vacuna eliminada correctamente.', 'success');
           this.cargarVacunas(this.pacienteSeleccionado.id);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Eliminado!',
-            text: 'Vacuna eliminada correctamente'
-          });
+          // Registrar en el log
+          this.pacientesService.registrarEliminacionVacuna(this.pacienteSeleccionado.id, vacuna);
+          this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
           console.error('Error al eliminar vacuna:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo eliminar la vacuna'
-          });
+          Swal.fire('Error', 'No se pudo eliminar la vacuna', 'error');
         });
       }
     });
@@ -808,6 +873,88 @@ export class PacientesComponent implements OnInit {
     this.dialog.open(RecordatorioDetalleComponent, {
       width: '700px',
       data: recordatorio
+    });
+  }
+
+  cargarLogActividades(pacienteId: string) {
+    console.log('Cargando log de actividades para paciente:', pacienteId);
+    this.pacientesService.getLogActividades(pacienteId).subscribe(log => {
+      console.log('Log de actividades cargado:', log);
+      console.log('Número de actividades:', log.length);
+      this.logActividades = log;
+      console.log('logActividades actualizado:', this.logActividades);
+    }, error => {
+      console.error('Error al cargar log de actividades:', error);
+    });
+  }
+
+  getIconoActividad(tipo: string): string {
+    switch (tipo) {
+      case 'historial_clinico': return 'medical_services';
+      case 'historial_clinico_editado': return 'edit';
+      case 'historial_clinico_eliminado': return 'delete';
+      case 'vacuna': return 'vaccines';
+      case 'vacuna_editada': return 'edit';
+      case 'vacuna_eliminada': return 'delete';
+      case 'recordatorio': return 'notifications';
+      case 'recordatorio_editado': return 'edit';
+      case 'recordatorio_eliminado': return 'delete';
+      case 'cita': return 'event';
+      default: return 'info';
+    }
+  }
+
+  getColorActividad(tipo: string): string {
+    switch (tipo) {
+      case 'historial_clinico': return '#7b2c5c';
+      case 'historial_clinico_editado': return '#ff9800';
+      case 'historial_clinico_eliminado': return '#f44336';
+      case 'vacuna': return '#4caf50';
+      case 'vacuna_editada': return '#ff9800';
+      case 'vacuna_eliminada': return '#f44336';
+      case 'recordatorio': return '#ff9800';
+      case 'recordatorio_editado': return '#ff9800';
+      case 'recordatorio_eliminado': return '#f44336';
+      case 'cita': return '#2196f3';
+      default: return '#888';
+    }
+  }
+
+  formatearFechaLog(fecha: string): string {
+    if (!fecha) return 'Fecha no disponible';
+    try {
+      const date = new Date(fecha);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      return 'Fecha no disponible';
+    } catch {
+      return 'Fecha no disponible';
+    }
+  }
+
+  // Método de prueba para verificar el log
+  probarLog() {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+
+    console.log('Probando log para paciente:', this.pacienteSeleccionado.id);
+    
+    this.pacientesService.probarLogActividad(this.pacienteSeleccionado.id).then(() => {
+      console.log('Prueba de log exitosa');
+      Swal.fire('Éxito', 'Prueba de log completada', 'success');
+      this.cargarLogActividades(this.pacienteSeleccionado.id);
+    }).catch(error => {
+      console.error('Error en prueba de log:', error);
+      Swal.fire('Error', 'Error en prueba de log: ' + error, 'error');
     });
   }
 
