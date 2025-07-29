@@ -50,8 +50,15 @@ export class AdminMainLayoutComponent implements OnInit {
   }
 
   logout() {
-    this.authService.logout?.();
-    this.router.navigate(['/admin/login']);
+    console.log('Iniciando logout...');
+    this.authService.logout().then(() => {
+      console.log('Logout exitoso, redirigiendo...');
+      // No necesitamos navegar manualmente porque el AuthService ya lo hace
+    }).catch(error => {
+      console.error('Error en logout:', error);
+      // En caso de error, redirigir manualmente
+      this.router.navigate(['/admin/login']);
+    });
   }
 
   navegar(ruta: string) {

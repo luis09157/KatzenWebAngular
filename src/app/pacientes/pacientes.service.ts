@@ -49,7 +49,7 @@ export class PacientesService {
       return Promise.reject('pacienteId está vacío');
     }
     
-    const logRef = this.db.list(`Log_Paciente/${pacienteId}`);
+    const logRef = this.db.list(`Katzen/Log_Paciente/${pacienteId}`);
     const logEntry = {
       ...actividad,
       fecha_creacion: new Date().toISOString(),
@@ -57,7 +57,7 @@ export class PacientesService {
     };
     
     console.log('Log entry a guardar:', logEntry);
-    console.log('Ruta en Firebase:', `Log_Paciente/${pacienteId}`);
+    console.log('Ruta en Firebase:', `Katzen/Log_Paciente/${pacienteId}`);
     
     return logRef.push(logEntry).then((ref) => {
       console.log('Log de actividad guardado exitosamente con ID:', ref.key);
@@ -70,7 +70,7 @@ export class PacientesService {
 
   getLogActividades(pacienteId: string): Observable<any[]> {
     console.log('Obteniendo log de actividades para paciente:', pacienteId);
-    return this.db.list(`Log_Paciente/${pacienteId}`)
+    return this.db.list(`Katzen/Log_Paciente/${pacienteId}`)
       .snapshotChanges()
       .pipe(
         map(changes => {

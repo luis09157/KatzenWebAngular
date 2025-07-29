@@ -25,11 +25,8 @@ export class AuthComponent {
     }
     this.authService.login(this.email, this.password)
       .then(() => {
-        Swal.fire({
-          icon: 'success',
-          title: '¡Bienvenido!',
-          text: 'Inicio de sesión exitoso.'
-        }).then(() => this.router.navigate(['/dashboard']));
+        // Login exitoso - redirigir directamente sin mostrar SweetAlert
+        this.router.navigate(['/admin/inicio']);
       })
       .catch(() => {
         Swal.fire({

@@ -17,12 +17,22 @@ export class AuthService {
   }
 
   logout() {
+    console.log('AuthService: Iniciando logout...');
     return this.afAuth.signOut().then(() => {
-      this.router.navigate(['/auth']);
+      console.log('AuthService: Logout exitoso, redirigiendo a /admin/login');
+      this.router.navigate(['/admin/login']);
+    }).catch(error => {
+      console.error('AuthService: Error en logout:', error);
+      // En caso de error, intentar redirigir de todas formas
+      this.router.navigate(['/admin/login']);
     });
   }
 
   isAuthenticated(): Observable<boolean> {
     return this.user$.pipe(map(user => !!user));
+  }
+
+  getCurrentUser(): Observable<any> {
+    return this.user$;
   }
 } 
