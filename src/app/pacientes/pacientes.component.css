@@ -1237,10 +1237,11 @@ mat-icon {
   height: 42px;
   border-radius: 50%;
   display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   place-items: center;
   margin-right: 14px;
   flex-shrink: 0;
-  position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -1250,12 +1251,16 @@ mat-icon {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  margin: 0;
+  padding: 0;
   display: grid;
   place-items: center;
   line-height: 1;
-  margin: 0;
-  padding: 0;
   text-align: center;
+  /* Forzar centrado */
+  vertical-align: middle;
+  text-indent: 0;
+  /* Estilos específicos para Material Icons */
   font-family: 'Material Icons';
   font-weight: normal;
   font-style: normal;
@@ -1266,10 +1271,27 @@ mat-icon {
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  /* Estilos específicos para centrar Material Icons */
-  vertical-align: middle;
-  text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Corrección específica para iconos movidos a la derecha */
+  text-align: center !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  /* Centrado forzado */
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  /* Centrado específico para Material Icons */
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
 }
 
 /* Asegurar que los iconos estén perfectamente centrados */
