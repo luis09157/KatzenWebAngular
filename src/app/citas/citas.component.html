@@ -4,52 +4,134 @@
       <span class="titulo">Citas</span>
       <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
       <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalCita()">Agregar Cita</button>
+      <button mat-raised-button color="primary" (click)="abrirModalCita()">
+        <mat-icon>add</mat-icon>
+        Agregar Cita
+      </button>
     </div>
+    
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar cita</mat-label>
       <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por cliente, paciente, motivo, etc." />
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
+    
     <div class="tabla-titulo">Lista de Citas</div>
     <div class="tabla-contenedor">
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        
+        <!-- Fecha y Hora -->
         <ng-container matColumnDef="fecha_hora">
           <th mat-header-cell *matHeaderCellDef>Fecha y Hora</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.fecha_hora ? cita.fecha_hora : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <div class="fecha-cell">
+              <mat-icon class="fecha-icon">event</mat-icon>
+              {{ cita.fecha_hora ? cita.fecha_hora : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Cliente -->
         <ng-container matColumnDef="cliente">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.cliente ? cita.cliente : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <div class="cliente-cell">
+              <mat-icon class="cliente-icon">person</mat-icon>
+              {{ cita.cliente ? cita.cliente : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Paciente -->
         <ng-container matColumnDef="paciente">
           <th mat-header-cell *matHeaderCellDef>Paciente</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.paciente ? cita.paciente : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <div class="paciente-cell">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              {{ cita.paciente ? cita.paciente : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Motivo -->
         <ng-container matColumnDef="motivo">
           <th mat-header-cell *matHeaderCellDef>Motivo</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.motivo ? cita.motivo : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <div class="motivo-cell">
+              <mat-icon class="motivo-icon">medical_services</mat-icon>
+              {{ cita.motivo ? cita.motivo : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Estado -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.estado ? cita.estado : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <span class="estado-badge" [style.background-color]="getEstadoColor(cita.estado)">
+              {{ cita.estado ? cita.estado : 'N/P' }}
+            </span>
+          </td>
         </ng-container>
+
+        <!-- Veterinario -->
         <ng-container matColumnDef="veterinario">
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
-          <td mat-cell *matCellDef="let cita">{{ cita.veterinario ? cita.veterinario : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cita">
+            <div class="veterinario-cell">
+              <mat-icon class="veterinario-icon">person_pin</mat-icon>
+              {{ cita.veterinario ? cita.veterinario : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Acciones -->
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let cita">
-            <button mat-icon-button color="accent" (click)="verCita(cita)"><mat-icon>visibility</mat-icon></button>
-            <button mat-icon-button color="primary" (click)="editarCita(cita)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="bajaLogicaCita(cita.id)"><mat-icon>delete</mat-icon></button>
+            <div class="acciones-cell">
+              <button mat-icon-button color="primary" (click)="verCita(cita)" matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="editarCita(cita)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="bajaLogicaCita(cita.id)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="cita.estado === 'pendiente'" 
+                      mat-icon-button color="primary" 
+                      (click)="cambiarEstado(cita, 'confirmada')" 
+                      matTooltip="Confirmar cita">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button *ngIf="cita.estado === 'confirmada'" 
+                      mat-icon-button color="accent" 
+                      (click)="cambiarEstado(cita, 'completada')" 
+                      matTooltip="Marcar como completada">
+                <mat-icon>done_all</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+            class="cita-row"></tr>
       </table>
-      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="dataSource.data.length === 0" class="sin-citas">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No hay citas</h3>
+      <p>No se han encontrado citas registradas.</p>
+      <button mat-raised-button color="primary" (click)="abrirModalCita()">
+        <mat-icon>add</mat-icon>
+        Crear primera cita
+      </button>
     </div>
   </mat-card>
 </div>

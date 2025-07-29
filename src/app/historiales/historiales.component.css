@@ -1,51 +1,46 @@
 .historiales-contenedor {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
 }
 
 .historiales-card {
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
   color: white;
 }
 
 .header-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex: 1;
 }
 
 .titulo {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: 600;
-  margin: 0;
+  margin-bottom: 8px;
 }
 
 .estadisticas {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 24px;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 5px 10px;
-  border-radius: 15px;
-  backdrop-filter: blur(10px);
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
 }
 
 .stat-item mat-icon {
@@ -59,49 +54,43 @@
 }
 
 .buscador {
-  margin: 20px;
-  width: calc(100% - 40px);
+  margin: 24px;
+  width: calc(100% - 48px);
 }
 
 .tabla-titulo {
-  padding: 0 20px 10px 20px;
-  font-size: 1.1rem;
-  font-weight: 500;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
   color: #333;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .tabla-contenedor {
-  padding: 0 20px 20px 20px;
+  padding: 0 24px 24px 24px;
 }
 
-.historial-table {
+table {
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.historial-table th {
-  background: #f5f5f5;
+.mat-header-cell {
+  background: #f8f9fa;
   font-weight: 600;
   color: #333;
+  padding: 16px 8px;
 }
 
-.historial-row {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+.mat-cell {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.historial-row:hover {
-  background-color: #f8f9fa;
-}
-
-.historial-row:active {
-  background-color: #e3f2fd;
-}
-
-.diagnostico-cell,
-.tratamiento-cell,
-.medicamentos-cell {
+/* Celdas específicas */
+.diagnostico-cell, .tratamiento-cell, .medicamentos-cell {
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -110,98 +99,129 @@
 
 .acciones-container {
   display: flex;
-  gap: 5px;
-  justify-content: center;
+  gap: 4px;
+  align-items: center;
 }
 
 .acciones-container button {
-  transition: transform 0.2s ease;
+  width: 32px;
+  height: 32px;
 }
 
-.acciones-container button:hover {
-  transform: scale(1.1);
-}
-
+/* Estado vacío */
 .no-data {
   text-align: center;
-  padding: 40px 20px;
+  padding: 60px 24px;
   color: #666;
 }
 
 .no-data mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
   color: #ccc;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.no-data h3 {
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-size: 20px;
 }
 
 .no-data p {
-  font-size: 1.1rem;
-  margin: 10px 0 20px 0;
+  margin: 0 0 24px 0;
+  color: #666;
+  font-size: 16px;
 }
 
 .no-data button {
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0 auto;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.no-data button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .historiales-contenedor {
-    padding: 10px;
+    padding: 16px;
   }
   
   .header-row {
     flex-direction: column;
-    gap: 15px;
-    text-align: center;
+    gap: 16px;
+    align-items: stretch;
   }
   
   .estadisticas {
-    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .spacer {
+    display: none;
   }
   
   .buscador {
-    margin: 10px;
-    width: calc(100% - 20px);
+    margin: 16px;
+    width: calc(100% - 32px);
   }
   
   .tabla-contenedor {
-    padding: 0 10px 10px 10px;
+    padding: 0 16px 16px 16px;
     overflow-x: auto;
   }
   
-  .diagnostico-cell,
-  .tratamiento-cell,
-  .medicamentos-cell {
-    max-width: 150px;
+  table {
+    min-width: 800px;
   }
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Filas clickeables */
+.historial-row {
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.historiales-card {
-  animation: fadeIn 0.3s ease-out;
+.historial-row:hover {
+  background-color: #f5f5f5;
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Tooltip personalizado */
-.mat-tooltip {
-  background: #333;
-  color: white;
-  font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 4px;
+.historial-row:active {
+  transform: scale(0.99);
+}
+
+/* Indicador visual de doble clic */
+.historial-row::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23666"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') no-repeat center;
+  background-size: 12px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.historial-row:hover::after {
+  opacity: 0.6;
 }

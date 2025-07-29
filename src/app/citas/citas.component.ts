@@ -55,6 +55,33 @@ export class CitasComponent implements OnInit {
     this.dataSource.filter = filtro.trim().toLowerCase();
   }
 
+  getEstadoColor(estado: string): string {
+    switch (estado?.toLowerCase()) {
+      case 'pendiente':
+        return '#ff9800';
+      case 'confirmada':
+        return '#2196f3';
+      case 'completada':
+        return '#4caf50';
+      case 'cancelada':
+        return '#f44336';
+      default:
+        return '#888';
+    }
+  }
+
+  cambiarEstado(cita: any, nuevoEstado: string) {
+    const citaActualizada = { ...cita, estado: nuevoEstado };
+    
+    this.citasService.guardarCita(citaActualizada).then(() => {
+      Swal.fire('Éxito', `Cita marcada como ${nuevoEstado}`, 'success');
+      this.ngOnInit(); // Recargar datos
+    }).catch(error => {
+      console.error('Error al cambiar estado:', error);
+      Swal.fire('Error', 'No se pudo cambiar el estado de la cita', 'error');
+    });
+  }
+
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(CitaDialogComponent, {
       width: '700px',
@@ -64,6 +91,7 @@ export class CitasComponent implements OnInit {
       if (result && !modoVer) {
         this.citasService.guardarCita(result).then(() => {
           Swal.fire('Éxito', 'Cita guardada correctamente', 'success');
+          this.ngOnInit(); // Recargar datos
         });
       }
     });
@@ -89,6 +117,7 @@ export class CitasComponent implements OnInit {
       if (result.isConfirmed) {
         this.citasService.bajaLogicaCita(id).then(() => {
           Swal.fire('Baja lógica', 'La cita fue dada de baja correctamente.', 'success');
+          this.ngOnInit(); // Recargar datos
         });
       }
     });

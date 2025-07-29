@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
   styleUrls: ['./clientes.component.css']
 })
 export class ClientesComponent implements OnInit {
-  displayedColumns: string[] = ['nombre', 'telefono', 'correo', 'expediente', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'fecha', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -32,6 +32,23 @@ export class ClientesComponent implements OnInit {
     this.dataSource.filter = filtro.trim().toLowerCase();
   }
 
+  getEstadoColor(activo: boolean): string {
+    return activo !== false ? '#4caf50' : '#f44336';
+  }
+
+  cambiarEstado(cliente: any, nuevoEstado: boolean) {
+    const clienteActualizado = { ...cliente, activo: nuevoEstado };
+    
+    this.clientesService.guardarCliente(clienteActualizado).then(() => {
+      const mensaje = nuevoEstado ? 'activado' : 'desactivado';
+      Swal.fire('Éxito', `Cliente ${mensaje} correctamente`, 'success');
+      this.ngOnInit(); // Recargar datos
+    }).catch(error => {
+      console.error('Error al cambiar estado:', error);
+      Swal.fire('Error', 'No se pudo cambiar el estado del cliente', 'error');
+    });
+  }
+
   abrirModalCliente(cliente: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(ClienteDialogComponent, {
       width: '700px',
@@ -41,6 +58,7 @@ export class ClientesComponent implements OnInit {
       if (result && !modoVer) {
         this.clientesService.guardarCliente(result).then(() => {
           Swal.fire('Éxito', 'Cliente guardado correctamente', 'success');
+          this.ngOnInit(); // Recargar datos
         });
       }
     });
@@ -66,6 +84,7 @@ export class ClientesComponent implements OnInit {
       if (result.isConfirmed) {
         this.clientesService.bajaLogicaCliente(id).then(() => {
           Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
+          this.ngOnInit(); // Recargar datos
         });
       }
     });

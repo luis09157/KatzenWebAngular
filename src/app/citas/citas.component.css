@@ -1,78 +1,272 @@
 .citas-contenedor {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 0;
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
 }
 
 .citas-card {
-  padding: 24px 16px 32px 16px;
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(80, 80, 80, 0.08);
-  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .header-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.contador {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-right: 16px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.buscador {
+  margin: 24px;
+  width: calc(100% - 48px);
+}
+
+.tabla-titulo {
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tabla-contenedor {
+  padding: 0 24px 24px 24px;
+}
+
+table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mat-header-cell {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  padding: 16px 8px;
+}
+
+.mat-cell {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Celdas específicas */
+.fecha-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fecha-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.cliente-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cliente-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.paciente-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paciente-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.motivo-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.motivo-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.veterinario-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.veterinario-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.estado-badge {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.acciones-cell button {
+  width: 32px;
+  height: 32px;
+}
+
+/* Estado vacío */
+.sin-citas {
+  text-align: center;
+  padding: 60px 24px;
+  color: #666;
+}
+
+.sin-citas mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
   margin-bottom: 16px;
 }
-.titulo {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #222;
+
+.sin-citas h3 {
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-size: 20px;
 }
-.contador {
-  font-size: 1rem;
+
+.sin-citas p {
+  margin: 0 0 24px 0;
   color: #666;
-  margin-left: 8px;
-}
-.spacer {
-  flex: 1 1 auto;
-}
-.buscador {
-  width: 100%;
-  margin-bottom: 18px;
-}
-.tabla-titulo {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #444;
-}
-.tabla-contenedor {
-  overflow-x: auto;
-  margin-top: 0;
+  font-size: 16px;
 }
 
-.mat-table {
-  min-width: 700px;
+.sin-citas button {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.mat-header-cell, .mat-cell {
-  padding: 12px 8px;
-  font-size: 1rem;
+.sin-citas button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
-.mat-header-row {
-  background: #f5f5f5;
-}
-
-.mat-row:nth-child(even) {
-  background: #fafafa;
-}
-
-@media (max-width: 900px) {
+/* Responsive */
+@media (max-width: 768px) {
   .citas-contenedor {
-    padding: 8px 0;
+    padding: 16px;
   }
-  .citas-card {
-    padding: 12px 4px 20px 4px;
+  
+  .header-row {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
   }
-  .mat-table {
-    min-width: 400px;
+  
+  .spacer {
+    display: none;
   }
+  
+  .buscador {
+    margin: 16px;
+    width: calc(100% - 32px);
+  }
+  
+  .tabla-contenedor {
+    padding: 0 16px 16px 16px;
+    overflow-x: auto;
+  }
+  
+  table {
+    min-width: 800px;
+  }
+}
+
+/* Filas clickeables */
+.cita-row {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cita-row:hover {
+  background-color: #f5f5f5;
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cita-row:active {
+  transform: scale(0.99);
+}
+
+/* Indicador visual de doble clic */
+.cita-row::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23666"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') no-repeat center;
+  background-size: 12px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.cita-row:hover::after {
+  opacity: 0.6;
 }

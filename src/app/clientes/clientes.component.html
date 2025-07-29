@@ -4,46 +4,152 @@
       <span class="titulo">Clientes</span>
       <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
       <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()">Agregar Cliente</button>
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+        <mat-icon>add</mat-icon>
+        Agregar Cliente
+      </button>
     </div>
+    
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar cliente</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, correo, etc." />
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, expediente, teléfono, dirección..." />
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
+    
     <div class="tabla-titulo">Lista de Clientes</div>
     <div class="tabla-contenedor">
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        
+        <!-- Nombre -->
         <ng-container matColumnDef="nombre">
           <th mat-header-cell *matHeaderCellDef>Nombre</th>
           <td mat-cell *matCellDef="let cliente">
-            {{ (cliente.nombre ? cliente.nombre : 'N/P') }} {{ (cliente.apellidoPaterno ? cliente.apellidoPaterno : 'N/P') }} {{ cliente.apellidoMaterno ? cliente.apellidoMaterno : '' }}
+            <div class="nombre-cell">
+              <mat-icon class="nombre-icon">person</mat-icon>
+              {{ (cliente.nombre ? cliente.nombre : 'N/P') }} {{ (cliente.apellidoPaterno ? cliente.apellidoPaterno : '') }} {{ cliente.apellidoMaterno ? cliente.apellidoMaterno : '' }}
+            </div>
           </td>
         </ng-container>
-        <ng-container matColumnDef="telefono">
-          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-          <td mat-cell *matCellDef="let cliente">{{ cliente.telefono ? cliente.telefono : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="correo">
-          <th mat-header-cell *matHeaderCellDef>Correo</th>
-          <td mat-cell *matCellDef="let cliente">{{ cliente.correo ? cliente.correo : 'N/P' }}</td>
-        </ng-container>
+
+        <!-- Expediente -->
         <ng-container matColumnDef="expediente">
           <th mat-header-cell *matHeaderCellDef>Expediente</th>
-          <td mat-cell *matCellDef="let cliente">{{ cliente.expediente ? cliente.expediente : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="expediente-cell">
+              <mat-icon class="expediente-icon">folder</mat-icon>
+              {{ cliente.expediente ? cliente.expediente : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
+        <!-- Teléfono -->
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="telefono-cell">
+              <mat-icon class="telefono-icon">phone</mat-icon>
+              {{ cliente.telefono ? cliente.telefono : 'N/P' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Correo -->
+        <ng-container matColumnDef="correo">
+          <th mat-header-cell *matHeaderCellDef>Correo</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="correo-cell">
+              <mat-icon class="correo-icon">email</mat-icon>
+              {{ cliente.correo ? cliente.correo : 'N/P' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Dirección -->
+        <ng-container matColumnDef="direccion">
+          <th mat-header-cell *matHeaderCellDef>Dirección</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="direccion-cell">
+              <mat-icon class="direccion-icon">location_on</mat-icon>
+              <div class="direccion-texto">
+                <div class="direccion-principal">
+                  {{ cliente.calle ? cliente.calle : '' }} {{ cliente.numero ? cliente.numero : '' }}
+                </div>
+                <div class="direccion-secundaria">
+                  {{ cliente.colonia ? cliente.colonia : '' }}, {{ cliente.municipio ? cliente.municipio : '' }}
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Fecha Registro -->
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha Registro</th>
+          <td mat-cell *matCellDef="let cliente">
+            <div class="fecha-cell">
+              <mat-icon class="fecha-icon">event</mat-icon>
+              {{ cliente.fecha ? cliente.fecha : 'N/P' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let cliente">
+            <span class="estado-badge" [style.background-color]="getEstadoColor(cliente.activo)">
+              {{ cliente.activo !== false ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let cliente">
-            <button mat-icon-button color="accent" (click)="verCliente(cliente)"><mat-icon>visibility</mat-icon></button>
-            <button mat-icon-button color="primary" (click)="editarCliente(cliente)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="bajaLogicaCliente(cliente.id)"><mat-icon>delete</mat-icon></button>
+            <div class="acciones-cell">
+              <button mat-icon-button color="primary" (click)="verCliente(cliente)" matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="editarCliente(cliente)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="bajaLogicaCliente(cliente.id)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="cliente.activo !== false" 
+                      mat-icon-button color="warn" 
+                      (click)="cambiarEstado(cliente, false)" 
+                      matTooltip="Desactivar cliente">
+                <mat-icon>block</mat-icon>
+              </button>
+              <button *ngIf="cliente.activo === false" 
+                      mat-icon-button color="primary" 
+                      (click)="cambiarEstado(cliente, true)" 
+                      matTooltip="Activar cliente">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+            class="cliente-row"></tr>
       </table>
-      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="dataSource.data.length === 0" class="sin-clientes">
+      <mat-icon>people_outline</mat-icon>
+      <h3>No hay clientes</h3>
+      <p>No se han encontrado clientes registrados.</p>
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+        <mat-icon>add</mat-icon>
+        Crear primer cliente
+      </button>
     </div>
   </mat-card>
 </div>
