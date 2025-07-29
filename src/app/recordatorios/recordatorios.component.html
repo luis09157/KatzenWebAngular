@@ -1,0 +1,132 @@
+<div class="recordatorios-contenedor">
+  <mat-card class="recordatorios-card">
+    <div class="header-row">
+      <span class="titulo">Recordatorios</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
+        <mat-icon>add</mat-icon>
+        Agregar Recordatorio
+      </button>
+    </div>
+    
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar recordatorio</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por título, paciente, tipo..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    
+    <div class="tabla-titulo">Lista de Recordatorios</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        
+        <!-- Fecha -->
+        <ng-container matColumnDef="fecha_recordatorio">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <div class="fecha-cell">
+              <mat-icon class="fecha-icon">event</mat-icon>
+              {{ recordatorio.fecha_recordatorio }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Título -->
+        <ng-container matColumnDef="titulo">
+          <th mat-header-cell *matHeaderCellDef>Título</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <div class="titulo-cell">
+              <mat-icon [class]="'tipo-icon ' + recordatorio.tipo">{{ getTipoIcono(recordatorio.tipo) }}</mat-icon>
+              <span class="titulo-texto">{{ recordatorio.titulo }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Tipo -->
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <span class="tipo-badge">{{ recordatorio.tipo | titlecase }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <span class="estado-badge" [style.background-color]="getEstadoColor(recordatorio.estado)">
+              {{ recordatorio.estado | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Prioridad -->
+        <ng-container matColumnDef="prioridad">
+          <th mat-header-cell *matHeaderCellDef>Prioridad</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <span class="prioridad-badge" [style.background-color]="getPrioridadColor(recordatorio.prioridad)">
+              {{ recordatorio.prioridad | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Paciente -->
+        <ng-container matColumnDef="paciente">
+          <th mat-header-cell *matHeaderCellDef>Paciente</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <div class="paciente-cell">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              {{ recordatorio.paciente }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <div class="acciones-cell">
+              <button mat-icon-button color="primary" (click)="verRecordatorio(recordatorio)" matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="editarRecordatorio(recordatorio)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="eliminarRecordatorio(recordatorio)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="recordatorio.estado === 'pendiente'" 
+                      mat-icon-button color="primary" 
+                      (click)="cambiarEstado(recordatorio, 'completado')" 
+                      matTooltip="Marcar como completado">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button *ngIf="recordatorio.estado === 'completado'" 
+                      mat-icon-button color="accent" 
+                      (click)="cambiarEstado(recordatorio, 'pendiente')" 
+                      matTooltip="Marcar como pendiente">
+                <mat-icon>schedule</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="dataSource.data.length === 0" class="sin-recordatorios">
+      <mat-icon>notifications_off</mat-icon>
+      <h3>No hay recordatorios</h3>
+      <p>No se han encontrado recordatorios registrados.</p>
+      <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
+        <mat-icon>add</mat-icon>
+        Crear primer recordatorio
+      </button>
+    </div>
+  </mat-card>
+</div> 

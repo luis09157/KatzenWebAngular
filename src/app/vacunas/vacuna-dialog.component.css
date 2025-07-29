@@ -1,4 +1,4 @@
-.historial-dialog {
+.vacuna-dialog {
   min-width: 500px;
   max-width: 600px;
 }
@@ -9,7 +9,7 @@
   align-items: center;
   padding: 16px 24px;
   border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   border-radius: 8px 8px 0 0;
 }
@@ -46,6 +46,22 @@
 .full-width {
   width: 100%;
   margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
 }
 
 .dialog-actions {
@@ -99,9 +115,22 @@ mat-spinner {
   margin-right: 8px;
 }
 
+/* Estilos específicos para vacunas */
+.vacuna-pendiente {
+  color: #ff9800;
+}
+
+.vacuna-aplicada {
+  color: #4caf50;
+}
+
+.vacuna-vencida {
+  color: #f44336;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-  .historial-dialog {
+  .vacuna-dialog {
     min-width: 90vw;
     max-width: 95vw;
   }
@@ -119,5 +148,10 @@ mat-spinner {
   .actions-left,
   .actions-right {
     justify-content: center;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
   }
 } 

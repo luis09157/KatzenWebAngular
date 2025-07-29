@@ -1,0 +1,180 @@
+<div class="vacuna-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>vaccines</mat-icon>
+      {{ isEditMode ? 'Editar' : 'Nueva' }} Vacuna
+    </h2>
+    <button mat-icon-button (click)="cancelar()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="vacunaForm" (ngSubmit)="guardarVacuna()">
+    <div class="dialog-content">
+      
+      <!-- Tipo de vacuna -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de vacuna *</mat-label>
+        <mat-select formControlName="vacuna" placeholder="Seleccionar tipo">
+          <mat-option *ngFor="let tipo of tiposVacunas" [value]="tipo.value">
+            {{ tipo.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="vacunaForm.get('vacuna')?.hasError('required')">
+          El tipo de vacuna es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Dosis -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Dosis *</mat-label>
+        <input matInput formControlName="dosis" 
+               placeholder="Ej: 1ml, 0.5ml, 2ml...">
+        <mat-error *ngIf="vacunaForm.get('dosis')?.hasError('required')">
+          La dosis es requerida
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Fecha de aplicación -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha de aplicación *</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fecha" 
+               placeholder="Seleccionar fecha">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="vacunaForm.get('fecha')?.hasError('required')">
+          La fecha es requerida
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Fecha de recordatorio -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha de recordatorio</mat-label>
+        <input matInput [matDatepicker]="pickerRecordatorio" formControlName="fechaRecordatorio" 
+               placeholder="Seleccionar fecha de recordatorio">
+        <mat-datepicker-toggle matSuffix [for]="pickerRecordatorio"></mat-datepicker-toggle>
+        <mat-datepicker #pickerRecordatorio></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Intervalo y próxima aplicación -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Intervalo (días)</mat-label>
+          <input matInput type="number" formControlName="intervalo" 
+                 placeholder="Días para próxima aplicación"
+                 (blur)="calcularProximaFecha()">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Próxima aplicación</mat-label>
+          <input matInput [matDatepicker]="pickerProxima" formControlName="proximaAplicacion" 
+                 placeholder="Fecha próxima aplicación">
+          <mat-datepicker-toggle matSuffix [for]="pickerProxima"></mat-datepicker-toggle>
+          <mat-datepicker #pickerProxima></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <!-- Lote y veterinario -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Número de lote</mat-label>
+          <input matInput formControlName="lote" 
+                 placeholder="Número de lote de la vacuna">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Veterinario</mat-label>
+          <input matInput formControlName="veterinario" 
+                 placeholder="Veterinario que aplicó">
+        </mat-form-field>
+      </div>
+
+      <!-- Estado y recordatorio -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="aplicada">
+            <mat-option [value]="false">Pendiente</mat-option>
+            <mat-option [value]="true">Aplicada</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="checkbox-container">
+          <mat-checkbox formControlName="recordatorio" color="primary">
+            Crear recordatorio
+          </mat-checkbox>
+        </div>
+      </div>
+
+      <!-- Reacción adversa -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Reacción adversa</mat-label>
+        <textarea matInput formControlName="reaccion" 
+                  placeholder="Describir cualquier reacción adversa observada"
+                  rows="2"></textarea>
+      </mat-form-field>
+
+      <!-- Observaciones -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Observaciones</mat-label>
+        <textarea matInput formControlName="observaciones" 
+                  placeholder="Observaciones adicionales"
+                  rows="3"></textarea>
+      </mat-form-field>
+
+      <!-- ID del Paciente (oculto, se establece automáticamente) -->
+      <input type="hidden" formControlName="idPaciente">
+    </div>
+
+    <div class="dialog-actions">
+      <div class="actions-left">
+        <button *ngIf="isEditMode" 
+                type="button" 
+                mat-stroked-button 
+                color="warn" 
+                (click)="eliminarVacuna()"
+                [disabled]="loading">
+          <mat-icon>delete</mat-icon>
+          Eliminar
+        </button>
+        
+        <button *ngIf="isEditMode && !data.aplicada" 
+                type="button" 
+                mat-stroked-button 
+                color="accent" 
+                (click)="cambiarEstado('aplicada')"
+                [disabled]="loading">
+          <mat-icon>check</mat-icon>
+          Marcar como aplicada
+        </button>
+        
+        <button *ngIf="isEditMode && data.aplicada" 
+                type="button" 
+                mat-stroked-button 
+                color="primary" 
+                (click)="cambiarEstado('pendiente')"
+                [disabled]="loading">
+          <mat-icon>schedule</mat-icon>
+          Marcar como pendiente
+        </button>
+      </div>
+      
+      <div class="actions-right">
+        <button type="button" 
+                mat-button 
+                (click)="cancelar()"
+                [disabled]="loading">
+          Cancelar
+        </button>
+        <button type="submit" 
+                mat-raised-button 
+                color="primary"
+                [disabled]="vacunaForm.invalid || loading">
+          <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div> 

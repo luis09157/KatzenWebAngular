@@ -41,6 +41,8 @@ import { MatTreeModule } from '@angular/material/tree';
 import { PacientesRoutingModule } from './pacientes-routing.module';
 import { PacientesComponent } from './pacientes.component';
 import { PacienteDialogComponent } from './paciente-dialog.component';
+import { RecordatoriosModule } from '../recordatorios/recordatorios.module';
+import { VacunasModule } from '../vacunas/vacunas.module';
 
 @NgModule({
   declarations: [
@@ -52,6 +54,8 @@ import { PacienteDialogComponent } from './paciente-dialog.component';
     FormsModule,
     ReactiveFormsModule,
     PacientesRoutingModule,
+    RecordatoriosModule,
+    VacunasModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

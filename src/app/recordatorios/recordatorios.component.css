@@ -1,0 +1,258 @@
+.recordatorios-contenedor {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.recordatorios-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+}
+
+.titulo {
+  font-size: 24px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.contador {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-right: 16px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.buscador {
+  margin: 24px;
+  width: calc(100% - 48px);
+}
+
+.tabla-titulo {
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tabla-contenedor {
+  padding: 0 24px 24px 24px;
+}
+
+table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mat-header-cell {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  padding: 16px 8px;
+}
+
+.mat-cell {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Celdas específicas */
+.fecha-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fecha-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.titulo-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tipo-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.tipo-icon.vacuna {
+  color: #4caf50;
+}
+
+.tipo-icon.desparasitacion {
+  color: #ff9800;
+}
+
+.tipo-icon.consulta {
+  color: #2196f3;
+}
+
+.tipo-icon.cirugia {
+  color: #f44336;
+}
+
+.tipo-icon.revision {
+  color: #9c27b0;
+}
+
+.tipo-icon.medicamento {
+  color: #00bcd4;
+}
+
+.titulo-texto {
+  font-weight: 500;
+  color: #333;
+}
+
+.tipo-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.estado-badge {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.prioridad-badge {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.paciente-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paciente-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.acciones-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.acciones-cell button {
+  width: 32px;
+  height: 32px;
+}
+
+/* Estado vacío */
+.sin-recordatorios {
+  text-align: center;
+  padding: 60px 24px;
+  color: #666;
+}
+
+.sin-recordatorios mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.sin-recordatorios h3 {
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.sin-recordatorios p {
+  margin: 0 0 24px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.sin-recordatorios button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.sin-recordatorios button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .recordatorios-contenedor {
+    padding: 16px;
+  }
+  
+  .header-row {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .spacer {
+    display: none;
+  }
+  
+  .buscador {
+    margin: 16px;
+    width: calc(100% - 32px);
+  }
+  
+  .tabla-contenedor {
+    padding: 0 16px 16px 16px;
+    overflow-x: auto;
+  }
+  
+  table {
+    min-width: 800px;
+  }
+} 

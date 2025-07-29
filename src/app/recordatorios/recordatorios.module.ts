@@ -15,21 +15,21 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { HistorialesRoutingModule } from './historiales-routing.module';
-import { HistorialesComponent } from './historiales.component';
-import { HistorialDialogComponent } from './historial-dialog.component';
-import { HistorialDetalleComponent } from './historial-detalle.component';
+import { RecordatoriosRoutingModule } from './recordatorios-routing.module';
+import { RecordatoriosComponent } from './recordatorios.component';
+import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
+import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
 
 @NgModule({
   declarations: [
-    HistorialesComponent,
-    HistorialDialogComponent,
-    HistorialDetalleComponent
+    RecordatoriosComponent,
+    RecordatorioDialogComponent,
+    RecordatorioDetalleComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    HistorialesRoutingModule,
+    RecordatoriosRoutingModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -45,8 +45,7 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
     MatProgressSpinnerModule
   ],
   exports: [
-    HistorialDialogComponent,
-    HistorialDetalleComponent
+    RecordatorioDialogComponent
   ]
 })
-export class HistorialesModule { }
+export class RecordatoriosModule { } 

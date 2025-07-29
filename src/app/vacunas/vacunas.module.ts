@@ -14,22 +14,23 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
-import { HistorialesRoutingModule } from './historiales-routing.module';
-import { HistorialesComponent } from './historiales.component';
-import { HistorialDialogComponent } from './historial-dialog.component';
-import { HistorialDetalleComponent } from './historial-detalle.component';
+import { VacunasRoutingModule } from './vacunas-routing.module';
+import { VacunasComponent } from './vacunas.component';
+import { VacunaDialogComponent } from './vacuna-dialog.component';
+import { VacunaDetalleComponent } from './vacuna-detalle.component';
 
 @NgModule({
   declarations: [
-    HistorialesComponent,
-    HistorialDialogComponent,
-    HistorialDetalleComponent
+    VacunasComponent,
+    VacunaDialogComponent,
+    VacunaDetalleComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    HistorialesRoutingModule,
+    VacunasRoutingModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -42,11 +43,11 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule
   ],
   exports: [
-    HistorialDialogComponent,
-    HistorialDetalleComponent
+    VacunaDialogComponent
   ]
 })
-export class HistorialesModule { }
+export class VacunasModule { } 

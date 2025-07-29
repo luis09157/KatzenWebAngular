@@ -19,6 +19,8 @@ const routes: Routes = [
       { path: 'paciente', loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule) },
       { path: 'citas', loadChildren: () => import('./citas/citas.module').then(m => m.CitasModule) },
       { path: 'historiales', loadChildren: () => import('./historiales/historiales.module').then(m => m.HistorialesModule) },
+      { path: 'recordatorios', loadChildren: () => import('./recordatorios/recordatorios.module').then(m => m.RecordatoriosModule) },
+      { path: 'vacunas', loadChildren: () => import('./vacunas/vacunas.module').then(m => m.VacunasModule) },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

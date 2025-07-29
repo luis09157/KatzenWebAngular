@@ -1,0 +1,143 @@
+<div class="vacunas-contenedor">
+  <mat-card class="vacunas-card">
+    <div class="header-row">
+      <span class="titulo">Vacunas</span>
+      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
+        <mat-icon>add</mat-icon>
+        Agregar Vacuna
+      </button>
+    </div>
+    
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar vacuna</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por tipo, paciente, dosis..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    
+    <div class="tabla-titulo">Lista de Vacunas</div>
+    <div class="tabla-contenedor">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        
+        <!-- Fecha -->
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="fecha-cell">
+              <mat-icon class="fecha-icon">event</mat-icon>
+              {{ vacuna.fecha }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Vacuna -->
+        <ng-container matColumnDef="vacuna">
+          <th mat-header-cell *matHeaderCellDef>Vacuna</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="vacuna-cell">
+              <mat-icon [class]="'tipo-icon ' + vacuna.vacuna" [style.color]="getVacunaColor(vacuna.vacuna)">
+                {{ getVacunaIcono(vacuna.vacuna) }}
+              </mat-icon>
+              <span class="vacuna-texto">{{ vacuna.vacuna | titlecase }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Dosis -->
+        <ng-container matColumnDef="dosis">
+          <th mat-header-cell *matHeaderCellDef>Dosis</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <span class="dosis-badge">{{ vacuna.dosis }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <span class="estado-badge" [style.background-color]="getEstadoColor(vacuna.aplicada)">
+              {{ getEstadoText(vacuna.aplicada) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Paciente -->
+        <ng-container matColumnDef="paciente">
+          <th mat-header-cell *matHeaderCellDef>Paciente</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="paciente-cell">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              {{ vacuna.paciente }}
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Próxima Aplicación -->
+        <ng-container matColumnDef="proximaAplicacion">
+          <th mat-header-cell *matHeaderCellDef>Próxima</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="proxima-cell">
+              <mat-icon class="proxima-icon" [style.color]="getDiasRestantesColor(vacuna.diasRestantes)">
+                schedule
+              </mat-icon>
+              <span [style.color]="getDiasRestantesColor(vacuna.diasRestantes)">
+                {{ getDiasRestantesText(vacuna.diasRestantes) }}
+              </span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="acciones-cell">
+              <button mat-icon-button color="primary" (click)="verVacuna(vacuna)" matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="editarVacuna(vacuna)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="eliminarVacuna(vacuna)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="!vacuna.aplicada" 
+                      mat-icon-button color="primary" 
+                      (click)="cambiarEstado(vacuna, 'aplicada')" 
+                      matTooltip="Marcar como aplicada">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button *ngIf="vacuna.aplicada" 
+                      mat-icon-button color="accent" 
+                      (click)="cambiarEstado(vacuna, 'pendiente')" 
+                      matTooltip="Marcar como pendiente">
+                <mat-icon>schedule</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+            (dblclick)="verVacunaDetalle(row)"
+            class="vacuna-row"
+            [class.vacuna-vencida]="row.estaVencida"
+            [class.vacuna-proxima]="row.diasRestantes <= 7 && row.diasRestantes >= 0"></tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="dataSource.data.length === 0" class="sin-vacunas">
+      <mat-icon>vaccines</mat-icon>
+      <h3>No hay vacunas</h3>
+      <p>No se han encontrado vacunas registradas.</p>
+      <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
+        <mat-icon>add</mat-icon>
+        Crear primera vacuna
+      </button>
+    </div>
+  </mat-card>
+</div> 

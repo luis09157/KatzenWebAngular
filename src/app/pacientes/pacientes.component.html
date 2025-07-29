@@ -42,25 +42,29 @@
         </div>
       </div>
       
+      <!-- Datos del Paciente -->
       <div class="foto-paciente">
-        <img [src]="pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente">
-      </div>
-      
-      <div class="info-duenio">
-        <div class="duenio-banner">
-          <span class="duenio-nombre">{{ getClienteNombre(pacienteSeleccionado.idCliente) }}</span>
-          <span class="duenio-telefono">{{ getClienteTelefono(pacienteSeleccionado.idCliente) }}</span>
-        </div>
-        <div class="duenio-email">{{ getClienteEmail(pacienteSeleccionado.idCliente) }}</div>
+        <img [src]="pacienteSeleccionado.imageUrl || pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente">
       </div>
       
       <div class="info-paciente">
         <h3 class="paciente-nombre">{{ pacienteSeleccionado.nombre }}</h3>
         <div class="paciente-detalles">
-          <p>{{ calcularEdad(pacienteSeleccionado.fechaNacimiento) }}</p>
-          <p>{{ pacienteSeleccionado.fechaNacimiento || 'Fecha no registrada' }}</p>
-          <p>{{ pacienteSeleccionado.especie }}, {{ pacienteSeleccionado.raza }}, {{ pacienteSeleccionado.color }}</p>
+          <p class="paciente-edad">{{ calcularEdad(pacienteSeleccionado.edad) }}</p>
+          <p class="paciente-fecha">{{ pacienteSeleccionado.edad || 'Fecha no registrada' }}</p>
+          <p class="paciente-sexo">{{ pacienteSeleccionado.sexo || 'Sexo no registrado' }}</p>
+          <p class="paciente-peso" *ngIf="pacienteSeleccionado.peso">{{ pacienteSeleccionado.peso }} kg</p>
+          <p class="paciente-info">{{ getPacienteInfo(pacienteSeleccionado) }}</p>
         </div>
+      </div>
+      
+      <!-- Datos del Dueño -->
+      <div class="info-duenio">
+        <div class="duenio-banner">
+          <span class="duenio-nombre">{{ getClienteNombreFromPaciente(pacienteSeleccionado) }}</span>
+          <span class="duenio-telefono">{{ getClienteTelefono(pacienteSeleccionado.idCliente) }}</span>
+        </div>
+        <div class="duenio-email">{{ getClienteEmail(pacienteSeleccionado.idCliente) }}</div>
       </div>
       
       <div class="acciones-paciente">
@@ -79,119 +83,172 @@
     <!-- Panel central: Tabs -->
     <div class="panel-central">
       <mat-tab-group class="tabs-principales">
-        <mat-tab label="Historial">
+        <mat-tab label="Historial" [badgeContent]="historialClinico.length">
           <div class="tab-content">
             <h3>Historial Clínico</h3>
-            <div class="historial-lista">
-              <div *ngFor="let entrada of historialClinico" class="entrada-historial">
-                <div class="entrada-icono">
-                  <mat-icon>description</mat-icon>
+            <div class="recordatorios-header">
+              <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
+                <mat-icon>add</mat-icon>
+                Nuevo Historial
+              </button>
+            </div>
+            <div class="recordatorios-lista">
+              <div *ngFor="let historial of historialClinico" class="recordatorio-item" (dblclick)="verDetalleHistorial(historial)">
+                <div class="recordatorio-icono">
+                  <mat-icon>medical_services</mat-icon>
                 </div>
-                <div class="entrada-contenido">
-                  <div class="entrada-fecha">{{ entrada.fecha }} {{ entrada.hora }}</div>
-                  <div class="entrada-tiempo">{{ entrada.tiempoAtras }}</div>
-                  <div class="entrada-descripcion">{{ entrada.descripcion }}</div>
+                <div class="recordatorio-contenido">
+                  <div class="recordatorio-titulo">{{ historial.diagnostico || 'Sin diagnóstico' }}</div>
+                  <div class="recordatorio-fecha">{{ historial.fecha_formateada }}</div>
+                  <div class="recordatorio-estado" [style.color]="historial.activo !== false ? '#4caf50' : '#f44336'">
+                    {{ historial.activo !== false ? 'Activo' : 'Inactivo' }}
+                  </div>
+                  <div class="recordatorio-tiempo">{{ historial.tiempo_transcurrido }}</div>
+                  <div class="recordatorio-prioridad" *ngIf="historial.tratamiento">
+                    {{ historial.tratamiento }}
+                  </div>
+                  <div class="recordatorio-prioridad" *ngIf="historial.medicamentos">
+                    {{ historial.medicamentos }}
+                  </div>
+                </div>
+                <div class="recordatorio-acciones">
+                  <button mat-icon-button (click)="editarHistorialClinico(historial)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="eliminarHistorialClinico(historial)" matTooltip="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </mat-tab>
-        
-        <mat-tab label="Aplicaciones" [badgeContent]="'3'">
-          <div class="tab-content">
-            <h3>Vacunas</h3>
-            
-            <div class="nueva-aplicacion">
-              <label>Nueva aplicación</label>
-              <mat-form-field appearance="outline">
-                <mat-select placeholder="Ninguna">
-                  <mat-option value="quintuple">Quíntuple</mat-option>
-                  <mat-option value="sextuple">Séxtuple</mat-option>
-                  <mat-option value="antirrabica">Antirrábica</mat-option>
-                </mat-select>
-                <button mat-icon-button matSuffix>
+              
+              <div *ngIf="historialClinico.length === 0" class="sin-recordatorios">
+                <mat-icon>medical_services</mat-icon>
+                <p>No hay historial clínico registrado</p>
+                <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
                   <mat-icon>add</mat-icon>
+                  Agregar primer historial
                 </button>
-              </mat-form-field>
-            </div>
-            
-            <div class="observaciones">
-              <label>Observaciones</label>
-              <mat-form-field appearance="outline">
-                <textarea matInput placeholder="Observaciones de la vacuna"></textarea>
-                <button mat-icon-button matSuffix>
-                  <mat-icon>mic</mat-icon>
-                </button>
-              </mat-form-field>
-            </div>
-            
-            <div class="proxima-aplicacion">
-              <label>Próxima aplicación</label>
-              <mat-form-field appearance="outline">
-                <mat-select placeholder="Ninguna">
-                  <mat-option value="quintuple">Quíntuple</mat-option>
-                  <mat-option value="sextuple">Séxtuple</mat-option>
-                  <mat-option value="antirrabica">Antirrábica</mat-option>
-                </mat-select>
-                <mat-icon matSuffix>calendar_today</mat-icon>
-              </mat-form-field>
-            </div>
-            
-            <div class="fecha-aplicacion">
-              <label>Fecha (dd/mm/yyyy)</label>
-              <mat-form-field appearance="outline">
-                <input matInput [matDatepicker]="picker" placeholder="Seleccionar fecha">
-                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
-              </mat-form-field>
-            </div>
-            
-            <div class="botones-vacunas">
-              <button mat-raised-button color="accent" class="btn-plan">PLAN DE VACUNACIÓN</button>
-              <button mat-raised-button color="primary" class="btn-agregar">AGREGAR</button>
-            </div>
-            
-            <div class="timeline-vacunas">
-              <div class="timeline-header">
-                <span>2024</span>
-                <span>2025</span>
-              </div>
-              <div class="timeline-months">
-                <span>ene</span><span>feb</span><span>mar</span><span>abr</span>
-                <span>may</span><span>jun</span><span>jul</span><span>ago</span>
-                <span>sep</span><span>oct</span><span>nov</span><span>dic</span>
-                <span>ene</span><span>feb</span><span>mar</span><span>abr</span>
-                <span>may</span><span>jun</span><span>jul</span><span>ago</span>
-              </div>
-              <div class="timeline-vacunas-barras">
-                <div class="vacuna-barra quintuple" style="left: 20%"></div>
-                <div class="vacuna-barra sextuple" style="left: 40%"></div>
-                <div class="vacuna-barra antirrabica" style="left: 60%"></div>
-                <div class="vacuna-barra quintuple" style="left: 80%"></div>
               </div>
             </div>
           </div>
         </mat-tab>
         
-        <mat-tab label="Recordatorios" [badgeContent]="'2'">
+
+        
+        <mat-tab label="Recordatorios" [badgeContent]="recordatorios.length">
           <div class="tab-content">
             <h3>Recordatorios</h3>
+            <div class="recordatorios-header">
+              <button mat-raised-button color="primary" (click)="agregarRecordatorio()">
+                <mat-icon>add</mat-icon>
+                Nuevo Recordatorio
+              </button>
+            </div>
             <div class="recordatorios-lista">
-              <div class="recordatorio-item">
-                <mat-icon>notifications</mat-icon>
+              <div *ngFor="let recordatorio of recordatorios" class="recordatorio-item" (dblclick)="verDetalleRecordatorio(recordatorio)">
+                <div class="recordatorio-icono">
+                  <mat-icon>notifications</mat-icon>
+                </div>
                 <div class="recordatorio-contenido">
-                  <div class="recordatorio-titulo">Desparasitación</div>
-                  <div class="recordatorio-fecha">15/01/2025</div>
-                  <div class="recordatorio-estado">Pendiente</div>
+                  <div class="recordatorio-titulo">{{ recordatorio.titulo }}</div>
+                  <div class="recordatorio-fecha">{{ recordatorio.fecha_formateada }}</div>
+                  <div class="recordatorio-estado" [style.color]="getEstadoColor(recordatorio.estado)">
+                    {{ recordatorio.estado | titlecase }}
+                  </div>
+                  <div class="recordatorio-tiempo">{{ recordatorio.estado_tiempo }}</div>
+                  <div class="recordatorio-prioridad" [style.color]="getPrioridadColor(recordatorio.prioridad)">
+                    {{ recordatorio.prioridad | titlecase }}
+                  </div>
+                </div>
+                <div class="recordatorio-acciones">
+                  <button mat-icon-button (click)="editarRecordatorio(recordatorio)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="eliminarRecordatorio(recordatorio)" matTooltip="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <button *ngIf="recordatorio.estado === 'pendiente'" 
+                          mat-icon-button 
+                          (click)="cambiarEstadoRecordatorio(recordatorio, 'completado')" 
+                          matTooltip="Marcar como completado">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button *ngIf="recordatorio.estado === 'completado'" 
+                          mat-icon-button 
+                          (click)="cambiarEstadoRecordatorio(recordatorio, 'pendiente')" 
+                          matTooltip="Marcar como pendiente">
+                    <mat-icon>schedule</mat-icon>
+                  </button>
                 </div>
               </div>
-              <div class="recordatorio-item">
-                <mat-icon>notifications</mat-icon>
-                <div class="recordatorio-contenido">
-                  <div class="recordatorio-titulo">Vacuna Anual</div>
-                  <div class="recordatorio-fecha">20/02/2025</div>
-                  <div class="recordatorio-estado">Pendiente</div>
+              
+              <div *ngIf="recordatorios.length === 0" class="sin-recordatorios">
+                <mat-icon>notifications_off</mat-icon>
+                <p>No hay recordatorios registrados</p>
+                <button mat-raised-button color="primary" (click)="agregarRecordatorio()">
+                  <mat-icon>add</mat-icon>
+                  Agregar primer recordatorio
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Vacunas" [badgeContent]="vacunas.length">
+          <div class="tab-content">
+            <h3>Vacunas</h3>
+            <div class="vacunas-header">
+              <button mat-raised-button color="primary" (click)="agregarVacuna()">
+                <mat-icon>add</mat-icon>
+                Nueva Vacuna
+              </button>
+            </div>
+            <div class="vacunas-lista">
+              <div *ngFor="let vacuna of vacunas" class="vacuna-item" (dblclick)="verVacunaDetalle(vacuna)">
+                <div class="vacuna-icono">
+                  <mat-icon [style.color]="getVacunaEstadoColor(vacuna.aplicada)">{{ getVacunaIcono(vacuna.vacuna) }}</mat-icon>
                 </div>
+                <div class="vacuna-contenido">
+                  <div class="vacuna-titulo">{{ vacuna.vacuna | titlecase }}</div>
+                  <div class="vacuna-fecha">{{ vacuna.fecha_formateada }}</div>
+                  <div class="vacuna-dosis">Dosis: {{ vacuna.dosis }}</div>
+                  <div class="vacuna-estado" [style.color]="getVacunaEstadoColor(vacuna.aplicada)">
+                    {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
+                  </div>
+                  <div class="vacuna-tiempo">{{ vacuna.estado_tiempo }}</div>
+                  <div class="vacuna-observaciones" *ngIf="vacuna.observaciones">
+                    {{ vacuna.observaciones }}
+                  </div>
+                </div>
+                <div class="vacuna-acciones">
+                  <button mat-icon-button (click)="editarVacuna(vacuna)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="eliminarVacuna(vacuna)" matTooltip="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <button *ngIf="!vacuna.aplicada" 
+                          mat-icon-button 
+                          (click)="cambiarEstadoVacuna(vacuna, 'aplicada')" 
+                          matTooltip="Marcar como aplicada">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button *ngIf="vacuna.aplicada" 
+                          mat-icon-button 
+                          (click)="cambiarEstadoVacuna(vacuna, 'pendiente')" 
+                          matTooltip="Marcar como pendiente">
+                    <mat-icon>schedule</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
+              <div *ngIf="vacunas.length === 0" class="sin-vacunas">
+                <mat-icon>vaccines</mat-icon>
+                <p>No hay vacunas registradas</p>
+                <button mat-raised-button color="primary" (click)="agregarVacuna()">
+                  <mat-icon>add</mat-icon>
+                  Agregar primera vacuna
+                </button>
               </div>
             </div>
           </div>
@@ -202,19 +259,23 @@
     <!-- Panel derecho: Historial clínico -->
     <div class="panel-derecho">
       <div class="historia-clinica-header">
-        <h3>Historia Clínica <span class="badge">11</span></h3>
+        <h3>Historia Clínica <span class="badge">{{ historialClinico.length }}</span></h3>
         <div class="historia-acciones">
+          <button mat-raised-button color="primary" class="btn-agregar-historial" (click)="agregarHistorialClinico()">
+            <mat-icon>add</mat-icon>
+            Nuevo Historial
+          </button>
           <button mat-button class="btn-periodo">
             <mat-icon>refresh</mat-icon>
             Visualizar período
           </button>
           <button mat-button class="btn-todas">
-            Ver todas (11)
+            Ver todas ({{ historialClinico.length }})
             <mat-icon>expand_more</mat-icon>
           </button>
         </div>
         <button mat-button class="btn-filtros">
-          [+] Ver filtros avanzados <span class="badge">11</span>
+          [+] Ver filtros avanzados <span class="badge">{{ historialClinico.length }}</span>
         </button>
       </div>
       
@@ -230,7 +291,27 @@
             <div class="entrada-usuario" *ngIf="entrada.usuario">
               <span class="usuario-tag">{{ entrada.usuario }}</span>
             </div>
+            <div class="entrada-acciones">
+              <button mat-icon-button class="btn-accion" (click)="verDetalleHistorial(entrada)" matTooltip="Ver detalles">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button class="btn-accion" (click)="editarHistorialClinico(entrada)" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button class="btn-accion btn-eliminar" (click)="eliminarHistorialClinico(entrada)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
           </div>
+        </div>
+        
+        <div *ngIf="historialClinico.length === 0" class="sin-historial">
+          <mat-icon>folder_open</mat-icon>
+          <p>No hay historial clínico registrado</p>
+          <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
+            <mat-icon>add</mat-icon>
+            Agregar primer historial
+          </button>
         </div>
       </div>
     </div>

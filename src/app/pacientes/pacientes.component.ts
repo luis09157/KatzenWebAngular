@@ -5,9 +5,18 @@ import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { PacientesService } from './pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { HistorialesService } from '../historiales/historiales.service';
+import { RecordatoriosService } from '../recordatorios/recordatorios.service';
+import { VacunasService } from '../vacunas/vacunas.service';
 import { PacienteDialogComponent } from './paciente-dialog.component';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { HistorialDialogComponent } from '../historiales/historial-dialog.component';
+import { RecordatorioDialogComponent } from '../recordatorios/recordatorio-dialog.component';
+import { VacunaDialogComponent } from '../vacunas/vacuna-dialog.component';
+import { VacunaDetalleComponent } from '../vacunas/vacuna-detalle.component';
+import { HistorialDetalleComponent } from '../historiales/historial-detalle.component';
+import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-detalle.component';
 
 @Component({
   selector: 'app-pacientes',
@@ -30,6 +39,12 @@ export class PacientesComponent implements OnInit {
   observacionesVacuna: string = '';
   proximaVacuna: string = '';
   fechaVacuna: Date | null = null;
+
+  // Propiedades para recordatorios
+  recordatorios: any[] = [];
+
+  // Propiedades para vacunas
+  vacunas: any[] = [];
 
   // Historial clínico de ejemplo
   historialClinico = [
@@ -165,22 +180,13 @@ export class PacientesComponent implements OnInit {
   eliminarHistorial(h: any) {
     this.historialEjemplo = this.historialEjemplo.filter(x => x !== h);
   }
-  agregarVacuna() {
-    this.vacunasEjemplo.push({ nombre: '', fecha: '', observaciones: '' });
-  }
-  eliminarVacuna(v: any) {
-    this.vacunasEjemplo = this.vacunasEjemplo.filter(x => x !== v);
-  }
-  agregarRecordatorio() {
-    this.recordatoriosEjemplo.push({ tipo: '', fecha: '', estado: '' });
-  }
-  eliminarRecordatorio(r: any) {
-    this.recordatoriosEjemplo = this.recordatoriosEjemplo.filter(x => x !== r);
-  }
 
   constructor(
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
+    private historialesService: HistorialesService,
+    private recordatoriosService: RecordatoriosService,
+    private vacunasService: VacunasService,
     private dialog: MatDialog,
     private router: Router
   ) {}
@@ -210,6 +216,335 @@ export class PacientesComponent implements OnInit {
 
   seleccionarPaciente(paciente: any) {
     this.pacienteSeleccionado = paciente;
+    // Cargar historial clínico real del paciente
+    this.cargarHistorialClinico(paciente.id);
+    // Cargar recordatorios del paciente
+    this.cargarRecordatorios(paciente.id);
+    // Cargar vacunas del paciente
+    this.cargarVacunas(paciente.id);
+  }
+
+  cargarHistorialClinico(pacienteId: string) {
+    this.historialesService.getHistorialesPorPaciente(pacienteId).subscribe(historiales => {
+      this.historialClinico = historiales.map(historial => ({
+        ...historial,
+        fecha_formateada: this.formatearFecha(historial.fecha_registro),
+        tiempo_transcurrido: this.getTiempoTranscurrido(historial.fecha_registro)
+      }));
+    });
+  }
+
+  getTiempoTranscurrido(fecha: any): string {
+    if (!fecha) return '';
+    
+    try {
+      const fechaHistorial = new Date(fecha);
+      const ahora = new Date();
+      const diferencia = ahora.getTime() - fechaHistorial.getTime();
+      const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+      
+      if (dias === 0) {
+        return 'Hoy';
+      } else if (dias === 1) {
+        return 'Ayer';
+      } else if (dias < 7) {
+        return `Hace ${dias} días`;
+      } else if (dias < 30) {
+        const semanas = Math.floor(dias / 7);
+        return `Hace ${semanas} semana${semanas > 1 ? 's' : ''}`;
+      } else {
+        const meses = Math.floor(dias / 30);
+        return `Hace ${meses} mes${meses > 1 ? 'es' : ''}`;
+      }
+    } catch (error) {
+      return '';
+    }
+  }
+
+  formatearFecha(fecha: any): string {
+    if (!fecha) return 'N/P';
+    
+    try {
+      if (fecha instanceof Date) {
+        return fecha.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      if (typeof fecha === 'string') {
+        const date = new Date(fecha);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      }
+      
+      return 'N/P';
+    } catch (error) {
+      return 'N/P';
+    }
+  }
+
+  // Métodos para recordatorios
+  cargarRecordatorios(pacienteId: string) {
+    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).subscribe(recordatorios => {
+      this.recordatorios = (recordatorios || []).map(r => {
+        // Buscar el campo de fecha correcto
+        const fechaRaw = r.fecha_hora_recordatorio || r.fecha_recordatorio || null;
+        let fecha = null;
+        if (fechaRaw) {
+          fecha = new Date(fechaRaw);
+        }
+        let fecha_formateada = 'No disponible';
+        if (fecha && !isNaN(fecha.getTime())) {
+          fecha_formateada = fecha.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+        let estadoTiempo = '';
+        if (fecha && !isNaN(fecha.getTime())) {
+          const ahora = new Date();
+          const diferencia = fecha.getTime() - ahora.getTime();
+          const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+          if (dias < 0) {
+            estadoTiempo = `Vencido hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`;
+          } else if (dias === 0) {
+            estadoTiempo = 'Hoy';
+          } else if (dias === 1) {
+            estadoTiempo = 'Mañana';
+          } else if (dias < 7) {
+            estadoTiempo = `En ${dias} días`;
+          } else {
+            const semanas = Math.floor(dias / 7);
+            estadoTiempo = `En ${semanas} semana${semanas > 1 ? 's' : ''}`;
+          }
+        }
+        return {
+          ...r,
+          fecha_formateada,
+          estado_tiempo: estadoTiempo
+        };
+      });
+    });
+  }
+
+  agregarRecordatorio() {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Selecciona un paciente',
+        text: 'Debes seleccionar un paciente para agregar un recordatorio'
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+      width: '600px',
+      data: {
+        paciente_id: this.pacienteSeleccionado.id
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Recordatorio agregado correctamente'
+        });
+      }
+    });
+  }
+
+  editarRecordatorio(recordatorio: any) {
+    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+      width: '600px',
+      data: recordatorio
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Recordatorio actualizado correctamente'
+        });
+      }
+    });
+  }
+
+  eliminarRecordatorio(recordatorio: any) {
+    Swal.fire({
+      icon: 'warning',
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.recordatoriosService.eliminarRecordatorio(recordatorio.id).then(() => {
+          this.cargarRecordatorios(this.pacienteSeleccionado.id);
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'Recordatorio eliminado correctamente'
+          });
+        }).catch(error => {
+          console.error('Error al eliminar recordatorio:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar el recordatorio'
+          });
+        });
+      }
+    });
+  }
+
+  cambiarEstadoRecordatorio(recordatorio: any, nuevoEstado: string) {
+    if (nuevoEstado === 'completado') {
+      this.recordatoriosService.marcarCompletado(recordatorio.id).then(() => {
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Completado!',
+          text: 'Recordatorio marcado como completado'
+        });
+      });
+    } else {
+      this.recordatoriosService.marcarPendiente(recordatorio.id).then(() => {
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Pendiente!',
+          text: 'Recordatorio marcado como pendiente'
+        });
+      });
+    }
+  }
+
+  getEstadoColor(estado: string): string {
+    switch (estado) {
+      case 'completado':
+        return '#4caf50';
+      case 'pendiente':
+        return '#ff9800';
+      case 'cancelado':
+        return '#f44336';
+      default:
+        return '#666';
+    }
+  }
+
+  getPrioridadColor(prioridad: string): string {
+    switch (prioridad) {
+      case 'urgente':
+        return '#9c27b0';
+      case 'alta':
+        return '#f44336';
+      case 'media':
+        return '#ff9800';
+      case 'baja':
+        return '#4caf50';
+      default:
+        return '#666';
+    }
+  }
+
+  // Métodos para CRUD del historial clínico
+  agregarHistorialClinico() {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(HistorialDialogComponent, {
+      width: '700px',
+      data: { 
+        historial: null, 
+        modoVer: false,
+        paciente_id: this.pacienteSeleccionado.id 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Agregar el ID del paciente al historial
+        result.paciente_id = this.pacienteSeleccionado.id;
+        
+        this.historialesService.crearHistorial(result).then(() => {
+          Swal.fire('Éxito', 'Historial clínico creado correctamente', 'success');
+          this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+        }).catch(error => {
+          console.error('Error al crear historial:', error);
+          Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
+        });
+      }
+    });
+  }
+
+  editarHistorialClinico(historial: any) {
+    const dialogRef = this.dialog.open(HistorialDialogComponent, {
+      width: '700px',
+      data: { 
+        historial: historial, 
+        modoVer: false 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.historialesService.actualizarHistorial(historial.id, result).then(() => {
+          Swal.fire('Éxito', 'Historial clínico actualizado correctamente', 'success');
+          this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+        }).catch(error => {
+          console.error('Error al actualizar historial:', error);
+          Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error');
+        });
+      }
+    });
+  }
+
+  verDetalleHistorial(historial: any) {
+    this.historialesService.getHistorial(historial.id).subscribe((historialCompleto) => {
+      this.dialog.open(HistorialDetalleComponent, {
+        width: '800px',
+        data: historialCompleto
+      });
+    });
+  }
+
+  eliminarHistorialClinico(historial: any) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'El historial será dado de baja (baja lógica).',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, dar de baja',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.historialesService.bajaLogicaHistorial(historial.id).then(() => {
+          Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
+          this.cargarHistorialClinico(this.pacienteSeleccionado.id);
+        }).catch(error => {
+          console.error('Error al dar de baja:', error);
+          Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
+        });
+      }
+    });
   }
 
   limpiarSeleccion() {
@@ -224,9 +559,18 @@ export class PacientesComponent implements OnInit {
     return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
   }
 
+  getClienteNombreFromPaciente(paciente: any): string {
+    // Si el paciente tiene nombreCliente, usarlo directamente
+    if (paciente.nombreCliente) {
+      return paciente.nombreCliente.trim();
+    }
+    // Si no, buscar en la lista de clientes
+    return this.getClienteNombre(paciente.idCliente);
+  }
+
   displayPaciente = (paciente: any): string => {
     if (!paciente || !paciente.nombre) return '';
-    const clienteNombre = this.getClienteNombre(paciente.idCliente);
+    const clienteNombre = this.getClienteNombreFromPaciente(paciente);
     return `${paciente.nombre} - ${clienteNombre}`;
   }
 
@@ -242,23 +586,229 @@ export class PacientesComponent implements OnInit {
 
   getClienteEmail(idCliente: string): string {
     const cliente = this.allClientes.find(c => c.id === idCliente);
-    return cliente?.email || 'Sin email';
+    return cliente?.correo || 'Sin email';
   }
 
   calcularEdad(fechaNacimiento: string): string {
     if (!fechaNacimiento) return 'Edad no registrada';
     
-    const fechaNac = new Date(fechaNacimiento);
-    const hoy = new Date();
-    const diferencia = hoy.getTime() - fechaNac.getTime();
-    const años = Math.floor(diferencia / (1000 * 60 * 60 * 24 * 365));
-    const meses = Math.floor((diferencia % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
-    
-    if (años > 0) {
-      return `${años} año${años > 1 ? 's' : ''} y ${meses} mes${meses > 1 ? 'es' : ''}`;
-    } else {
-      return `${meses} mes${meses > 1 ? 'es' : ''}`;
+    try {
+      // Formato esperado: "18/4/2015" o "12/9/2015"
+      const partes = fechaNacimiento.split('/');
+      if (partes.length !== 3) {
+        return 'Edad no registrada';
+      }
+      
+      const dia = parseInt(partes[0]);
+      const mes = parseInt(partes[1]) - 1; // Meses en JS van de 0-11
+      const año = parseInt(partes[2]);
+      
+      const fechaNac = new Date(año, mes, dia);
+      const hoy = new Date();
+      
+      // Verificar que la fecha sea válida
+      if (isNaN(fechaNac.getTime())) {
+        return 'Edad no registrada';
+      }
+      
+      const diferencia = hoy.getTime() - fechaNac.getTime();
+      const años = Math.floor(diferencia / (1000 * 60 * 60 * 24 * 365));
+      const meses = Math.floor((diferencia % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+      
+      if (años > 0) {
+        return `${años} año${años > 1 ? 's' : ''} y ${meses} mes${meses > 1 ? 'es' : ''}`;
+      } else {
+        return `${meses} mes${meses > 1 ? 'es' : ''}`;
+      }
+    } catch (error) {
+      return 'Edad no registrada';
     }
+  }
+
+  getPacienteInfo(paciente: any): string {
+    const info = [];
+    
+    if (paciente.especie) info.push(paciente.especie);
+    if (paciente.raza) info.push(paciente.raza);
+    if (paciente.color) info.push(paciente.color);
+    
+    return info.length > 0 ? info.join(', ') : 'Información no disponible';
+  }
+
+  // Métodos para vacunas
+  cargarVacunas(pacienteId: string) {
+    this.vacunasService.getVacunasPorPaciente(pacienteId).subscribe(vacunas => {
+      this.vacunas = vacunas.map(v => {
+        const fecha = new Date(v.fecha);
+        const ahora = new Date();
+        const diferencia = fecha.getTime() - ahora.getTime();
+        const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+        
+        let estadoTiempo = '';
+        if (dias < 0) {
+          estadoTiempo = `Vencida hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`;
+        } else if (dias === 0) {
+          estadoTiempo = 'Hoy';
+        } else if (dias === 1) {
+          estadoTiempo = 'Mañana';
+        } else if (dias < 7) {
+          estadoTiempo = `En ${dias} días`;
+        } else {
+          const semanas = Math.floor(dias / 7);
+          estadoTiempo = `En ${semanas} semana${semanas > 1 ? 's' : ''}`;
+        }
+        
+        return {
+          ...v,
+          fecha_formateada: fecha.toLocaleDateString('es-ES'),
+          estado_tiempo: estadoTiempo,
+          dias_restantes: dias
+        };
+      });
+    });
+  }
+
+  agregarVacuna() {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Selecciona un paciente',
+        text: 'Debes seleccionar un paciente para agregar una vacuna'
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(VacunaDialogComponent, {
+      width: '600px',
+      data: {
+        idPaciente: this.pacienteSeleccionado.id
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.cargarVacunas(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Vacuna agregada correctamente'
+        });
+      }
+    });
+  }
+
+  editarVacuna(vacuna: any) {
+    const dialogRef = this.dialog.open(VacunaDialogComponent, {
+      width: '600px',
+      data: vacuna
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.cargarVacunas(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Vacuna actualizada correctamente'
+        });
+      }
+    });
+  }
+
+  eliminarVacuna(vacuna: any) {
+    Swal.fire({
+      icon: 'warning',
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.vacunasService.eliminarVacuna(vacuna.id).then(() => {
+          this.cargarVacunas(this.pacienteSeleccionado.id);
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'Vacuna eliminada correctamente'
+          });
+        }).catch(error => {
+          console.error('Error al eliminar vacuna:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar la vacuna'
+          });
+        });
+      }
+    });
+  }
+
+  cambiarEstadoVacuna(vacuna: any, nuevoEstado: string) {
+    if (nuevoEstado === 'aplicada') {
+      this.vacunasService.marcarAplicada(vacuna.id).then(() => {
+        this.cargarVacunas(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Aplicada!',
+          text: 'Vacuna marcada como aplicada'
+        });
+      });
+    } else {
+      this.vacunasService.marcarPendiente(vacuna.id).then(() => {
+        this.cargarVacunas(this.pacienteSeleccionado.id);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Pendiente!',
+          text: 'Vacuna marcada como pendiente'
+        });
+      });
+    }
+  }
+
+  getVacunaEstadoColor(estado: boolean): string {
+    return estado ? '#4caf50' : '#ff9800';
+  }
+
+  getVacunaIcono(tipo: string): string {
+    switch (tipo) {
+      case 'quintuple':
+        return 'vaccines';
+      case 'sextuple':
+        return 'vaccines';
+      case 'antirrabica':
+        return 'security';
+      case 'coronavirus':
+        return 'coronavirus';
+      case 'triple_felina':
+        return 'pets';
+      case 'leucemia':
+        return 'healing';
+      case 'parvovirus':
+        return 'bug_report';
+      case 'moquillo':
+        return 'sick';
+      case 'hepatitis':
+        return 'medical_services';
+      default:
+        return 'vaccines';
+    }
+  }
+
+  verVacunaDetalle(vacuna: any) {
+    const dialogRef = this.dialog.open(VacunaDetalleComponent, {
+      width: '700px',
+      data: vacuna
+    });
+  }
+
+  verDetalleRecordatorio(recordatorio: any) {
+    this.dialog.open(RecordatorioDetalleComponent, {
+      width: '700px',
+      data: recordatorio
+    });
   }
 
   // Eliminar métodos y referencias viejas

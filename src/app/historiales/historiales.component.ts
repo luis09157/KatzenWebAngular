@@ -3,6 +3,7 @@ import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HistorialDialogComponent } from './historial-dialog.component';
+import { HistorialDetalleComponent } from './historial-detalle.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
@@ -17,6 +18,7 @@ export class HistorialesComponent implements OnInit {
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
+  estadisticas: any = { total: 0, activos: 0, inactivos: 0 };
 
   constructor(
     private historialesService: HistorialesService,
@@ -25,20 +27,35 @@ export class HistorialesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.cargarDatos();
+    this.cargarEstadisticas();
+  }
+
+  cargarDatos() {
     this.pacientesService.getPacientes().subscribe(pacientes => {
       (pacientes || []).forEach(p => {
         this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
       });
-      this.historialesService.getHistoriales().subscribe(historiales => {
-        this.dataSource.data = (historiales || []).filter(h => h.activo !== false).map(historial => ({
-          ...historial,
-          paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
-          fecha_registro: this.formatearFecha(historial.fecha_registro)
-        }));
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
-      });
+      this.cargarHistoriales();
+    });
+  }
+
+  cargarHistoriales() {
+    this.historialesService.getHistorialesActivos().subscribe(historiales => {
+      this.dataSource.data = (historiales || []).map(historial => ({
+        ...historial,
+        paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
+        fecha_registro: this.formatearFecha(historial.fecha_registro)
+      }));
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+      }
+    });
+  }
+
+  cargarEstadisticas() {
+    this.historialesService.getEstadisticasHistoriales().subscribe(stats => {
+      this.estadisticas = stats;
     });
   }
 
@@ -89,9 +106,24 @@ export class HistorialesComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result && !modoVer) {
-        this.historialesService.guardarHistorial(result).then(() => {
-          Swal.fire('Éxito', 'Historial guardado correctamente', 'success');
-        });
+        // Si es un historial existente, actualizar; si no, crear nuevo
+        if (historial && historial.id) {
+          this.historialesService.actualizarHistorial(historial.id, result).then(() => {
+            Swal.fire('Éxito', 'Historial actualizado correctamente', 'success');
+            this.cargarDatos(); // Recargar datos
+          }).catch(error => {
+            console.error('Error al actualizar historial:', error);
+            Swal.fire('Error', 'No se pudo actualizar el historial', 'error');
+          });
+        } else {
+          this.historialesService.crearHistorial(result).then(() => {
+            Swal.fire('Éxito', 'Historial creado correctamente', 'success');
+            this.cargarDatos(); // Recargar datos
+          }).catch(error => {
+            console.error('Error al crear historial:', error);
+            Swal.fire('Error', 'No se pudo crear el historial', 'error');
+          });
+        }
       }
     });
   }
@@ -102,6 +134,13 @@ export class HistorialesComponent implements OnInit {
 
   verHistorial(historial: any) {
     this.abrirModalHistorial(historial, true);
+  }
+
+  verHistorialDetalle(historial: any) {
+    this.dialog.open(HistorialDetalleComponent, {
+      width: '800px',
+      data: historial
+    });
   }
 
   bajaLogicaHistorial(id: string) {
@@ -116,8 +155,74 @@ export class HistorialesComponent implements OnInit {
       if (result.isConfirmed) {
         this.historialesService.bajaLogicaHistorial(id).then(() => {
           Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
+          this.cargarDatos();
+          this.cargarEstadisticas();
+        }).catch(error => {
+          console.error('Error al dar de baja:', error);
+          Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
         });
       }
+    });
+  }
+
+  eliminarHistorial(id: string) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción eliminará permanentemente el historial. No se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.historialesService.eliminarHistorial(id).then(() => {
+          Swal.fire('Eliminado', 'El historial fue eliminado permanentemente.', 'success');
+          this.cargarDatos();
+          this.cargarEstadisticas();
+        }).catch(error => {
+          console.error('Error al eliminar:', error);
+          Swal.fire('Error', 'No se pudo eliminar el historial', 'error');
+        });
+      }
+    });
+  }
+
+  restaurarHistorial(id: string) {
+    Swal.fire({
+      title: '¿Restaurar historial?',
+      text: 'El historial será marcado como activo nuevamente.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, restaurar',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.historialesService.restaurarHistorial(id).then(() => {
+          Swal.fire('Restaurado', 'El historial fue restaurado correctamente.', 'success');
+          this.cargarDatos();
+          this.cargarEstadisticas();
+        }).catch(error => {
+          console.error('Error al restaurar:', error);
+          Swal.fire('Error', 'No se pudo restaurar el historial', 'error');
+        });
+      }
+    });
+  }
+
+  buscarHistoriales(texto: string) {
+    if (texto.trim() === '') {
+      this.cargarHistoriales();
+      return;
+    }
+
+    this.historialesService.buscarHistoriales(texto).subscribe(historiales => {
+      this.dataSource.data = historiales.map(historial => ({
+        ...historial,
+        paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
+        fecha_registro: this.formatearFecha(historial.fecha_registro)
+      }));
     });
   }
 }

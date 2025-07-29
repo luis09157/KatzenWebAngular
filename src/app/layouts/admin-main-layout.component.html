@@ -54,13 +54,13 @@
       <mat-icon>medical_services</mat-icon>
       <span>Historiales</span>
     </a>
+    <a class="sidenav-link" routerLink="/admin/recordatorios" routerLinkActive="active" (click)="navegar('/admin/recordatorios')">
+      <mat-icon>notifications</mat-icon>
+      <span>Recordatorios</span>
+    </a>
     <a class="sidenav-link" routerLink="/admin/vacunas" routerLinkActive="active" (click)="navegar('/admin/vacunas')">
       <mat-icon>vaccines</mat-icon>
       <span>Vacunas</span>
-    </a>
-    <a class="sidenav-link" routerLink="/admin/medicamentos" routerLinkActive="active" (click)="navegar('/admin/medicamentos')">
-      <mat-icon>inventory_2</mat-icon>
-      <span>Medicamentos</span>
     </a>
     <div class="sidenav-footer">
       <button mat-button color="warn" (click)="logout()">
