@@ -8,26 +8,46 @@
   height: 64px;
   z-index: 1001;
 }
+
 .menu-toggle {
   margin-right: 8px;
 }
+
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
+
 .brand-logo {
-  font-size: 28px;
-  color: #7c3aed;
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
 }
+
+.brand-logo:hover {
+  transform: scale(1.05);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .brand-title {
   font-weight: bold;
   font-size: 20px;
-  margin-right: 8px;
+  color: #7B1FA2;
+  line-height: 1;
 }
+
 .brand-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #888;
+  line-height: 1;
+  margin-top: 2px;
 }
 .header-spacer {
   flex: 1 1 auto;
