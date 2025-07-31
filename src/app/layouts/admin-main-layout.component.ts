@@ -12,7 +12,7 @@ export class AdminMainLayoutComponent implements OnInit {
   totalPacientes = 0;
   totalClientes = 0;
   citasHoy = 0;
-  usuario: any = { nombre: 'Administrador', rol: 'admin' };
+  usuario: any = { nombre: 'Administrador', rol: 'admin', email: '' };
   isMobile = false;
 
   constructor(
@@ -31,6 +31,24 @@ export class AdminMainLayoutComponent implements OnInit {
       }
     });
     // Aquí puedes cargar los contadores reales si lo deseas
+  }
+
+  getSaludo(): string {
+    const hora = new Date().getHours();
+    if (hora >= 5 && hora < 12) {
+      return '¡Buenos días!';
+    } else if (hora >= 12 && hora < 19) {
+      return '¡Buenas tardes!';
+    } else {
+      return '¡Buenas noches!';
+    }
+  }
+
+  getNombreUsuario(): string {
+    if (this.usuario?.email) {
+      return this.usuario.email;
+    }
+    return 'Administrador';
   }
 
   checkMobile() {

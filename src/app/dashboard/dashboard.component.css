@@ -1,123 +1,383 @@
-.sidenav-container {
-  height: 100vh;
-}
-
-.sidenav {
-  width: 220px;
-}
-
-.main-content {
-  background: #fff;
+.dashboard-container {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 32px 0 32px 0;
 }
 
-/* Estilos para el dashboard principal */
-.dashboard-content {
-  width: 100%;
-  max-width: 1200px;
-  padding: 0 24px;
+/* Header del Dashboard */
+.dashboard-header {
+  margin-bottom: 32px;
 }
 
 .welcome-section {
   text-align: center;
-  margin-bottom: 48px;
-  padding: 40px 0;
+  margin-bottom: 32px;
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.welcome-section h1 {
-  color: #333;
+.welcome-title {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #7b2c5c 0%, #9c27b0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #7B1FA2;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(123, 31, 162, 0.1);
 }
 
-.welcome-section p {
+.welcome-subtitle {
+  font-size: 1.2rem;
   color: #666;
-  font-size: 1.1rem;
-  margin: 0;
-  max-width: 600px;
-  margin: 0 auto;
+  margin-bottom: 8px;
 }
 
+.current-date {
+  font-size: 1rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Quick Stats */
 .quick-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .stat-card {
-  background: #fff;
+  background: white;
   border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  color: #7b2c5c;
+.stat-icon {
+  background: linear-gradient(135deg, #7B1FA2 0%, #9C27B0 100%);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon mat-icon {
+  color: white;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.stat-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.stat-content p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Calendario */
+.calendar-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.calendar-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-btn {
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background: #e9ecef;
+  transform: scale(1.05);
+}
+
+.month-year {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #7B1FA2;
+  margin: 0;
+  min-width: 200px;
+  text-align: center;
+}
+
+/* Calendario Grid */
+.calendar-container {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 600;
+  color: #666;
+  padding: 12px 8px;
+  font-size: 0.9rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.calendar-day:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.current-month {
+  background: white;
+}
+
+.calendar-day:not(.current-month) {
+  background: #f8f9fa;
+  color: #ccc;
+}
+
+.calendar-day.today {
+  border-color: #7B1FA2;
+  background: linear-gradient(135deg, #7B1FA2 0%, #9C27B0 100%);
+  color: white;
+}
+
+.calendar-day.has-citas {
+  background: linear-gradient(135deg, #fff 0%, #f0f8ff 100%);
+  border-color: #4CAF50;
+}
+
+.calendar-day.has-citas:hover {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.citas-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.citas-dot {
+  width: 8px;
+  height: 8px;
+  background: #4CAF50;
+  border-radius: 50%;
+}
+
+.citas-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4CAF50;
+  background: white;
+  border-radius: 4px;
+  padding: 1px 4px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* Información de citas del día */
+.day-citas-info {
+  margin-top: 24px;
+  padding: 24px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #7B1FA2;
+}
+
+.day-citas-info h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
   margin-bottom: 16px;
 }
 
-.stat-card h3 {
-  color: #333;
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0 0 12px 0;
+.citas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.stat-card p {
+.cita-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.cita-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cita-time {
+  font-weight: 600;
+  color: #7B1FA2;
+  font-size: 1.1rem;
+  min-width: 60px;
+}
+
+.cita-info {
+  flex: 1;
+}
+
+.cita-paciente {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.cita-motivo {
   color: #666;
-  font-size: 0.95rem;
-  margin: 0;
-  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.cita-estado {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-confirmada {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.estado-completada {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado-cancelada {
+  background: #f8d7da;
+  color: #721c24;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidenav {
-    width: 0;
+  .dashboard-container {
+    padding: 16px;
   }
-  .main-content {
-    padding: 16px 0 16px 0;
-  }
-  .dashboard-content {
-    padding: 0 16px;
-  }
-  .welcome-section {
-    padding: 24px 0;
-    margin-bottom: 32px;
-  }
-  .welcome-section h1 {
+  
+  .welcome-title {
     font-size: 2rem;
   }
-  .welcome-section p {
-    font-size: 1rem;
-  }
+  
   .quick-stats {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  .stat-card {
-    padding: 24px 16px;
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .calendar-navigation {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .month-year {
+    min-width: auto;
+  }
+  
+  .calendar-day {
+    padding: 4px;
+  }
+  
+  .day-number {
+    font-size: 0.9rem;
+  }
+  
+  .cita-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .cita-time {
+    min-width: auto;
   }
 }

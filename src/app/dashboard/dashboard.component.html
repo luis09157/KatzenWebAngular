@@ -1,31 +1,113 @@
-<!-- Aquí solo va el contenido central del dashboard, SIN menú lateral ni top bar -->
-<!-- Ejemplo de contenido central, puedes reemplazarlo por tus tarjetas, estadísticas, etc. -->
-<div class="dashboard-content">
-  <div class="welcome-section">
-    <h1>¡Bienvenido al Sistema de Gestión Veterinaria!</h1>
-    <p>Selecciona una opción del menú lateral para comenzar a gestionar tu clínica.</p>
+<div class="dashboard-container" [@routeAnimations]>
+  <!-- Header del Dashboard -->
+  <div class="dashboard-header">
+    <div class="welcome-section">
+      <h1 class="welcome-title">{{ getSaludo() }}</h1>
+      <p class="welcome-subtitle">Bienvenido al Sistema de Gestión Veterinaria KatzenVet</p>
+      <p class="current-date">{{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy' }}</p>
+    </div>
+    
+    <div class="quick-stats">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>pets</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>Pacientes</h3>
+          <p>Gestiona la información de tus pacientes</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>Clientes</h3>
+          <p>Administra los datos de tus clientes</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>event</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>Citas</h3>
+          <p>Organiza y programa las citas</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <mat-icon>medical_services</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>Historiales</h3>
+          <p>Consulta el historial clínico</p>
+        </div>
+      </div>
+    </div>
   </div>
-  
-  <div class="quick-stats">
-    <div class="stat-card">
-      <mat-icon>pets</mat-icon>
-      <h3>Pacientes</h3>
-      <p>Gestiona la información de tus pacientes</p>
+
+  <!-- Calendario de Citas -->
+  <div class="calendar-section">
+    <div class="calendar-header">
+      <h2>Calendario de Citas</h2>
+      <div class="calendar-navigation">
+        <button mat-icon-button (click)="previousMonth()" class="nav-btn">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <h3 class="month-year">{{ getMonthYearString() }}</h3>
+        <button mat-icon-button (click)="nextMonth()" class="nav-btn">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
     </div>
-    <div class="stat-card">
-      <mat-icon>people</mat-icon>
-      <h3>Clientes</h3>
-      <p>Administra los datos de tus clientes</p>
+
+    <div class="calendar-container">
+      <!-- Días de la semana -->
+      <div class="calendar-weekdays">
+        <div class="weekday">Dom</div>
+        <div class="weekday">Lun</div>
+        <div class="weekday">Mar</div>
+        <div class="weekday">Mié</div>
+        <div class="weekday">Jue</div>
+        <div class="weekday">Vie</div>
+        <div class="weekday">Sáb</div>
+      </div>
+
+      <!-- Días del calendario -->
+      <div class="calendar-grid">
+        <div 
+          *ngFor="let day of calendarDays" 
+          class="calendar-day"
+          [class.current-month]="day.isCurrentMonth"
+          [class.today]="day.isToday"
+          [class.has-citas]="day.hasCitas"
+          (click)="day.hasCitas && showCitasForDay(day)"
+        >
+          <div class="day-number">{{ day.day }}</div>
+          <div *ngIf="day.hasCitas" class="citas-indicator">
+            <div class="citas-dot"></div>
+            <span class="citas-count">{{ day.citas.length }}</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="stat-card">
-      <mat-icon>event</mat-icon>
-      <h3>Citas</h3>
-      <p>Organiza y programa las citas</p>
-    </div>
-    <div class="stat-card">
-      <mat-icon>medical_services</mat-icon>
-      <h3>Historiales</h3>
-      <p>Consulta el historial clínico</p>
+
+    <!-- Información de citas del día seleccionado -->
+    <div *ngIf="selectedDayCitas && selectedDayCitas.length > 0" class="day-citas-info">
+      <h4>Citas del {{ selectedDayDate | date:'EEEE, d \'de\' MMMM' }}</h4>
+      <div class="citas-list">
+        <div *ngFor="let cita of selectedDayCitas" class="cita-item">
+          <div class="cita-time">{{ cita.fecha_hora | date:'HH:mm' }}</div>
+          <div class="cita-info">
+            <div class="cita-paciente">{{ cita.paciente || 'N/A' }}</div>
+            <div class="cita-motivo">{{ cita.motivo || 'Sin motivo especificado' }}</div>
+          </div>
+          <div class="cita-estado" [class]="'estado-' + cita.estado?.toLowerCase()">
+            {{ cita.estado || 'Pendiente' }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

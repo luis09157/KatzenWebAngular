@@ -14,6 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { RouterModule } from '@angular/router';
+import { CitasService } from '../citas/citas.service';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { RouterModule } from '@angular/router';
     MatSidenavModule,
     MatListModule,
     RouterModule
-  ]
+  ],
+  providers: [CitasService]
 })
 export class DashboardModule { }
