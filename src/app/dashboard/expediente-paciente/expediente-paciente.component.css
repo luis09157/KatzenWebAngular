@@ -355,6 +355,7 @@ body {
 .floating-sidenav .card-icon.reports { background: var(--info-color); }
 .floating-sidenav .card-icon.settings { background: var(--text-secondary); }
 .floating-sidenav .card-icon.logout-icon { background: var(--error-color); }
+.floating-sidenav .card-icon.patients-table { background: var(--info-color); }
 
 .floating-sidenav .menu-card:hover .card-icon {
   transform: scale(1.1);

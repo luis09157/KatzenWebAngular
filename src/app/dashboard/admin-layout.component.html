@@ -67,14 +67,24 @@
             <p>Vista general</p>
           </div>
         </div>
+        <!-- PACIENTES TABLA - MOVIDA ARRIBA -->
+        <div class="menu-card" routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()" style="border: 3px solid green; background: lightblue;">
+          <div class="card-icon patients-table">
+            <mat-icon>table_chart</mat-icon>
+          </div>
+          <div class="card-content">
+            <h5>📊 Pacientes Tabla</h5>
+            <p>{{ totalPacientes }} registrados</p>
+            <div class="card-badge">{{ totalPacientes }}</div>
+          </div>
+        </div>
         <div class="menu-card" routerLink="/admin/paciente" routerLinkActive="active" (click)="closeSidenav()">
           <div class="card-icon patients">
             <mat-icon>pets</mat-icon>
           </div>
           <div class="card-content">
             <h5>Pacientes</h5>
-            <p>{{ totalPacientes }} registrados</p>
-            <div class="card-badge">{{ totalPacientes }}</div>
+            <p>Búsqueda rápida</p>
           </div>
         </div>
         <div class="menu-card" routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">

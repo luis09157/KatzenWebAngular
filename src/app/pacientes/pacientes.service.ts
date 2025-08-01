@@ -29,6 +29,20 @@ export class PacientesService {
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
+  // Crear un nuevo paciente
+  crearPaciente(paciente: any): Promise<any> {
+    paciente.activo = true;
+    paciente.fecha_creacion = new Date().toISOString();
+    return this.db.list('Katzen/Mascota').push(paciente).then((ref) => {
+      return Promise.resolve(ref);
+    });
+  }
+
+  // Eliminar un paciente permanentemente
+  eliminarPaciente(id: string): Promise<void> {
+    return this.db.object(`Katzen/Mascota/${id}`).remove();
+  }
+
   // Actualizar solo algunos campos de un paciente
   actualizarPaciente(id: string, cambios: Partial<any>) {
     return this.db.object(`Katzen/Mascota/${id}`).update(cambios);

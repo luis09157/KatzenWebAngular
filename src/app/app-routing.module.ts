@@ -5,6 +5,9 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { AdminLayoutComponent } from './dashboard/admin-layout.component';
 import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
 
+// Log de depuración para routing
+console.log('🔍 AppRoutingModule cargado');
+
 const routes: Routes = [
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
@@ -17,6 +20,7 @@ const routes: Routes = [
       { path: 'usuarios', loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule) },
       { path: 'clientes', loadChildren: () => import('./clientes/clientes.module').then(m => m.ClientesModule) },
       { path: 'paciente', loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule) },
+      { path: 'pacientes-admin', loadChildren: () => import('./pacientes-admin/pacientes-admin.module').then(m => m.PacientesAdminModule) },
       { path: 'citas', loadChildren: () => import('./citas/citas.module').then(m => m.CitasModule) },
       { path: 'historiales', loadChildren: () => import('./historiales/historiales.module').then(m => m.HistorialesModule) },
       { path: 'recordatorios', loadChildren: () => import('./recordatorios/recordatorios.module').then(m => m.RecordatoriosModule) },

@@ -1,0 +1,77 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ isEditMode ? 'Editar Paciente' : 'Nuevo Paciente' }}</h2>
+  
+  <form [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" placeholder="Nombre del paciente">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Especie</mat-label>
+          <mat-select formControlName="especie">
+            <mat-option *ngFor="let especie of especies" [value]="especie">
+              {{ especie }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Raza</mat-label>
+          <input matInput formControlName="raza" placeholder="Raza del paciente">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Sexo</mat-label>
+          <mat-select formControlName="sexo">
+            <mat-option *ngFor="let sexo of sexos" [value]="sexo">
+              {{ sexo }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Edad</mat-label>
+          <input matInput formControlName="edad" placeholder="Fecha de nacimiento">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Color</mat-label>
+          <input matInput formControlName="color" placeholder="Color del paciente">
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Peso (kg)</mat-label>
+          <input matInput formControlName="peso" placeholder="Peso en kilogramos">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>ID Cliente</mat-label>
+          <input matInput formControlName="idCliente" placeholder="ID del cliente">
+        </mat-form-field>
+      </div>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre del Cliente</mat-label>
+          <input matInput formControlName="nombreCliente" placeholder="Nombre completo del cliente">
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+    
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
+        {{ isEditMode ? 'Actualizar' : 'Crear' }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div> 

@@ -29,6 +29,9 @@ export class AdminLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    console.log('🔍 AdminLayoutComponent inicializado');
+    console.log('🔍 Total pacientes:', this.totalPacientes);
+    
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       this.breadcrumbs = this.buildBreadcrumbs(this.route.root);
     });
@@ -40,6 +43,10 @@ export class AdminLayoutComponent implements OnInit {
   closeSidenav() {
     this.sidenavOpened = false;
   }
+
+
+
+
 
   logout() {
     // Implementar lógica de logout si es necesario
