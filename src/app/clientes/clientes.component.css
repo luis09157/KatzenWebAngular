@@ -47,32 +47,16 @@ table {
 .mat-cell {
   padding: 12px 8px;
   border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+/* Ancho fijo para la columna de acciones */
+.mat-column-acciones {
+  width: 160px !important;
+  text-align: center !important;
 }
 
 /* Celdas específicas */
-.id-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.id-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #666;
-}
-
-.id-text {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: #666;
-  background: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
-}
-
 .nombre-cell {
   display: flex;
   align-items: center;
@@ -169,6 +153,25 @@ table {
   font-size: 11px;
 }
 
+.antiguedad-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.antiguedad-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.antiguedad-texto {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
 .fecha-cell {
   display: flex;
   align-items: center;
@@ -191,16 +194,7 @@ table {
   text-transform: capitalize;
 }
 
-.acciones-cell {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
 
-.acciones-cell button {
-  width: 32px;
-  height: 32px;
-}
 
 /* Estado vacío */
 .sin-clientes {

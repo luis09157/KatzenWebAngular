@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
   styleUrls: ['./clientes.component.css']
 })
 export class ClientesComponent implements OnInit {
-  displayedColumns: string[] = ['id', 'nombre', 'expediente', 'telefono', 'correo', 'direccion', 'fecha', 'estado', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'antiguedad', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
@@ -66,6 +66,37 @@ export class ClientesComponent implements OnInit {
 
   getEstadoColor(activo: boolean): string {
     return activo !== false ? '#4caf50' : '#f44336';
+  }
+
+  calcularAntiguedad(fecha: string): string {
+    if (!fecha) return 'N/P';
+    
+    try {
+      // Parsear la fecha (formato: "01/08/2025, 14:37:30")
+      const fechaCliente = new Date(fecha.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1'));
+      const fechaActual = new Date();
+      
+      const diferenciaMs = fechaActual.getTime() - fechaCliente.getTime();
+      const diferenciaDias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+      
+      if (diferenciaDias < 30) {
+        return `${diferenciaDias} días`;
+      } else if (diferenciaDias < 365) {
+        const meses = Math.floor(diferenciaDias / 30);
+        return `${meses} mes${meses > 1 ? 'es' : ''}`;
+      } else {
+        const años = Math.floor(diferenciaDias / 365);
+        const mesesRestantes = Math.floor((diferenciaDias % 365) / 30);
+        
+        if (mesesRestantes > 0) {
+          return `${años} año${años > 1 ? 's' : ''} ${mesesRestantes} mes${mesesRestantes > 1 ? 'es' : ''}`;
+        } else {
+          return `${años} año${años > 1 ? 's' : ''}`;
+        }
+      }
+    } catch (error) {
+      return 'N/P';
+    }
   }
 
   cambiarEstado(cliente: any, nuevoEstado: boolean) {
