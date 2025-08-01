@@ -2,25 +2,36 @@
 <mat-dialog-content>
   <form [formGroup]="citaForm">
     <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Cliente ID</mat-label>
-        <input matInput formControlName="cliente_id" required />
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cliente</mat-label>
+        <input matInput formControlName="nombreCliente" placeholder="Buscar cliente..." [matAutocomplete]="auto" [disabled]="modoVer">
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
+          <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+            {{ getNombreCompleto(cliente) }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="citaForm.get('nombreCliente')?.hasError('required')">
+          El cliente es requerido
+        </mat-error>
       </mat-form-field>
-      <mat-form-field appearance="fill">
+    </div>
+    
+    <div class="form-row">
+      <mat-form-field appearance="outline">
         <mat-label>Paciente ID</mat-label>
         <input matInput formControlName="paciente_id" required />
       </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Fecha y Hora</mat-label>
         <input matInput formControlName="fecha_hora" type="datetime-local" required />
       </mat-form-field>
     </div>
     <div class="form-row">
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Motivo</mat-label>
         <input matInput formControlName="motivo" required />
       </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Estado</mat-label>
         <mat-select formControlName="estado" required>
           <mat-option value="pendiente">Pendiente</mat-option>
@@ -28,13 +39,13 @@
           <mat-option value="cancelada">Cancelada</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="outline">
         <mat-label>Veterinario</mat-label>
         <input matInput formControlName="veterinario" />
       </mat-form-field>
     </div>
     <div class="form-row">
-      <mat-form-field appearance="fill" class="full-width">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Observaciones</mat-label>
         <textarea matInput formControlName="observaciones" rows="2"></textarea>
       </mat-form-field>
