@@ -83,7 +83,18 @@ export class CitaDialogComponent implements OnInit {
 
   guardar() {
     if (this.citaForm.valid) {
-      this.dialogRef.close(this.citaForm.value);
+      // Asegurar que el cliente_id esté presente
+      const formValue = this.citaForm.value;
+      if (!formValue.cliente_id) {
+        // Si no hay cliente_id pero hay nombreCliente, buscar el cliente
+        const clienteSeleccionado = this.clientes.find(c => 
+          this.getNombreCompleto(c) === formValue.nombreCliente
+        );
+        if (clienteSeleccionado) {
+          formValue.cliente_id = clienteSeleccionado.id;
+        }
+      }
+      this.dialogRef.close(formValue);
     }
   }
 
