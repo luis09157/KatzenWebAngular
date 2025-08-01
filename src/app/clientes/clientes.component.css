@@ -159,6 +159,16 @@ table {
   line-height: 1.2;
 }
 
+.codigo-postal {
+  color: #ff9800;
+  font-weight: 600;
+  margin-left: 8px;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
 .fecha-cell {
   display: flex;
   align-items: center;

@@ -1,65 +1,119 @@
 <h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
 <mat-dialog-content>
   <form [formGroup]="clienteForm">
+    <!-- Información Personal -->
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Nombre</mat-label>
-        <input matInput formControlName="nombre" required />
+        <input matInput formControlName="nombre" placeholder="Nombre del cliente" />
+        <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Apellido Paterno</mat-label>
-        <input matInput formControlName="apellidoPaterno" required />
+        <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno" />
+        <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{ getErrorMessage('apellidoPaterno') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Apellido Materno</mat-label>
-        <input matInput formControlName="apellidoMaterno" />
+        <input matInput formControlName="apellidoMaterno" placeholder="Apellido materno (opcional)" />
+        <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{ getErrorMessage('apellidoMaterno') }}</mat-error>
       </mat-form-field>
     </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Género</mat-label>
+        <mat-select formControlName="genero" placeholder="Seleccionar género">
+          <mat-option value="Masculino">Masculino</mat-option>
+          <mat-option value="Femenino">Femenino</mat-option>
+          <mat-option value="No binario">No binario</mat-option>
+        </mat-select>
+        <mat-error *ngIf="isFieldInvalid('genero')">{{ getErrorMessage('genero') }}</mat-error>
+      </mat-form-field>
+    </div>
+    
+    <!-- Información de Contacto -->
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Teléfono</mat-label>
-        <input matInput formControlName="telefono" required />
+        <input matInput formControlName="telefono" placeholder="10 dígitos" 
+               (keypress)="soloNumeros($event)" maxlength="10" />
+        <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Correo</mat-label>
-        <input matInput formControlName="correo" />
+        <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />
+        <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Expediente</mat-label>
-        <input matInput formControlName="expediente" />
+        <input matInput formControlName="expediente" placeholder="Número de expediente" />
+        <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
       </mat-form-field>
     </div>
+
+    <!-- Dirección - Orden Correcto -->
     <div class="form-row">
       <mat-form-field appearance="fill">
-        <mat-label>Calle</mat-label>
-        <input matInput formControlName="calle" />
+        <mat-label>Código Postal</mat-label>
+        <input matInput formControlName="codigoPostal" placeholder="00000" maxlength="5" 
+               (input)="onCodigoPostalInput($event)" />
+        <mat-icon matSuffix>location_on</mat-icon>
+        <mat-hint>Ingresa el código postal para autocompletar la dirección</mat-hint>
+        <mat-error *ngIf="isFieldInvalid('codigoPostal')">{{ getErrorMessage('codigoPostal') }}</mat-error>
       </mat-form-field>
+    </div>
+
+    <!-- Selector de colonias -->
+    <div class="form-row" *ngIf="mostrarSelectorColonias && coloniasDisponibles.length > 0">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Selecciona tu colonia</mat-label>
+        <mat-select (selectionChange)="seleccionarColonia($event.value)">
+          <mat-option *ngFor="let colonia of coloniasDisponibles" [value]="colonia">
+            {{ colonia.colonia }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>location_city</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
       <mat-form-field appearance="fill">
-        <mat-label>Número</mat-label>
-        <input matInput formControlName="numero" />
+        <mat-label>Municipio</mat-label>
+        <input matInput formControlName="municipio" placeholder="Municipio" />
+        <mat-error *ngIf="isFieldInvalid('municipio')">{{ getErrorMessage('municipio') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Colonia</mat-label>
-        <input matInput formControlName="colonia" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Municipio</mat-label>
-        <input matInput formControlName="municipio" />
+        <input matInput formControlName="colonia" placeholder="Colonia" />
+        <mat-error *ngIf="isFieldInvalid('colonia')">{{ getErrorMessage('colonia') }}</mat-error>
       </mat-form-field>
     </div>
+
     <div class="form-row">
       <mat-form-field appearance="fill">
-        <mat-label>Fecha</mat-label>
-        <input matInput formControlName="fecha" type="date" />
+        <mat-label>Calle</mat-label>
+        <input matInput formControlName="calle" placeholder="Nombre de la calle" />
+        <mat-error *ngIf="isFieldInvalid('calle')">{{ getErrorMessage('calle') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
+        <mat-label>Número</mat-label>
+        <input matInput formControlName="numero" placeholder="Número" />
+        <mat-error *ngIf="isFieldInvalid('numero')">{{ getErrorMessage('numero') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="form-row">
+      <mat-form-field appearance="fill">
         <mat-label>Google Maps</mat-label>
-        <input matInput formControlName="urlGoogleMaps" />
+        <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/..." />
+        <mat-error *ngIf="isFieldInvalid('urlGoogleMaps')">{{ getErrorMessage('urlGoogleMaps') }}</mat-error>
       </mat-form-field>
     </div>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()" [disabled]="!clienteForm.valid">Guardar</button>
 </mat-dialog-actions> 

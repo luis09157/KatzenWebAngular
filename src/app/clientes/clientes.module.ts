@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 
 import { ClientesRoutingModule } from './clientes-routing.module';
 import { ClientesComponent } from './clientes.component';
@@ -13,6 +14,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ClienteDialogComponent } from './cliente-dialog.component';
 
 @NgModule({
@@ -22,6 +25,7 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     ClientesRoutingModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -32,7 +36,9 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
     MatIconModule,
     MatSelectModule,
     MatDialogModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ]
 })
 export class ClientesModule { }

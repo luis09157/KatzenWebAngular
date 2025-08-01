@@ -18,4 +18,11 @@ mat-dialog-content {
     flex-direction: column;
     gap: 0;
   }
-} 
+}
+
+/* Estilo para campos de ancho completo */
+.full-width {
+  width: 100%;
+}
+
+ 

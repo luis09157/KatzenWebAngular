@@ -76,6 +76,7 @@
                 </div>
                 <div class="direccion-secundaria">
                   {{ cliente.colonia ? cliente.colonia : '' }}, {{ cliente.municipio ? cliente.municipio : '' }}
+                  <span *ngIf="cliente.codigoPostal" class="codigo-postal">CP: {{ cliente.codigoPostal }}</span>
                 </div>
               </div>
             </div>
