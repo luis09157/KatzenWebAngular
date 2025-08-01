@@ -50,6 +50,29 @@ table {
 }
 
 /* Celdas específicas */
+.id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.id-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
+.id-text {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #666;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
 .nombre-cell {
   display: flex;
   align-items: center;
@@ -388,6 +411,8 @@ table {
   font-size: 14px;
   opacity: 0.9;
 }
+
+
 
 .admin-banner button {
   background: rgba(255, 255, 255, 0.2);

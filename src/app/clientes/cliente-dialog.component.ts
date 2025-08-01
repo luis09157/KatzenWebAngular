@@ -2,6 +2,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -14,17 +16,24 @@ export class ClienteDialogComponent implements OnInit {
   codigosPostales: any = {};
   coloniasDisponibles: any[] = [];
   mostrarSelectorColonias: boolean = false;
+  
+  // Propiedades para carga de imágenes
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
+  uploadProgress: number = 0;
+  isUploading: boolean = false;
+  defaultImageUrl: string = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyUzYuNDggMjIgMTIgMjJTMjIgMTcuNTIgMjIgMTJTNzUuNTIgMiAxMiAyWk0xMiAyMEM3LjU4IDIwIDQgMTYuNDIgNCAxMlM3LjU4IDQgMTIgNFMyMCA3LjU4IDIwIDEyUzE2LjQyIDIwIDEyIDIwWiIgZmlsbD0iIzk5OTk5OSIvPgo8cGF0aCBkPSJNMTIgNkM5Ljc5IDYgOCA3Ljc5IDggMTBTOS43OSAxNCAxMiAxNFMxNiAxMi4yMSAxNiAxMFMxNC4yMSA2IDEyIDZaIiBmaWxsPSIjOTk5OTk5Ii8+Cjwvc3ZnPgo=';
 
 
   constructor(
     public dialogRef: MatDialogRef<ClienteDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private http: HttpClient
+    private http: HttpClient,
+    private storage: AngularFireStorage
   ) {
     this.modoVer = data.modoVer;
     this.clienteForm = this.fb.group({
-      id: [data.cliente?.id || ''],
       nombre: [data.cliente?.nombre || '', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       apellidoPaterno: [data.cliente?.apellidoPaterno || '', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       apellidoMaterno: [data.cliente?.apellidoMaterno || '', [Validators.minLength(2), Validators.maxLength(50)]],
@@ -38,6 +47,8 @@ export class ClienteDialogComponent implements OnInit {
       expediente: [data.cliente?.expediente || '', [Validators.maxLength(20)]],
       correo: [data.cliente?.correo || '', [Validators.email]],
       imageUrl: [data.cliente?.imageUrl || ''],
+      imageFileName: [data.cliente?.imageFileName || ''],
+      kilometrosCasa: [data.cliente?.kilometrosCasa || ''],
       urlGoogleMaps: [data.cliente?.urlGoogleMaps || '', [Validators.pattern('^https?://.*')]]
     });
     if (this.modoVer) {
@@ -48,6 +59,11 @@ export class ClienteDialogComponent implements OnInit {
   ngOnInit() {
     this.cargarCodigosPostales();
     this.setupCodigoPostalListener();
+    
+    // Cargar imagen existente si estamos editando
+    if (this.data?.cliente?.imageUrl && this.data.cliente.imageUrl !== this.defaultImageUrl) {
+      this.imagePreview = this.data.cliente.imageUrl;
+    }
   }
 
   cargarCodigosPostales() {
@@ -111,16 +127,14 @@ export class ClienteDialogComponent implements OnInit {
     this.mostrarSelectorColonias = false;
   }
 
-
-
   onCodigoPostalInput(event: any) {
-    const codigo = event.target.value;
-    if (codigo && codigo.length === 5) {
-      this.autocompletarDireccion(codigo);
+    const value = event.target.value;
+    if (value.length > 5) {
+      event.target.value = value.slice(0, 5);
     }
   }
 
-  guardar() {
+  async guardar() {
     // Marcar todos los campos como touched para mostrar errores
     Object.keys(this.clienteForm.controls).forEach(key => {
       const control = this.clienteForm.get(key);
@@ -128,24 +142,55 @@ export class ClienteDialogComponent implements OnInit {
     });
 
     if (this.clienteForm.valid) {
-      // Generar fecha de primera visita automáticamente
-      const fechaPrimeraVisita = new Date().toLocaleString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-      
-      const clienteData = {
-        ...this.clienteForm.value,
-        fecha: fechaPrimeraVisita
-      };
-      
-      this.dialogRef.close(clienteData);
+      try {
+        let imageUrl = this.data?.cliente?.imageUrl || this.defaultImageUrl;
+        
+        // Si hay una nueva imagen seleccionada, subirla
+        if (this.selectedFile) {
+          console.log('🔄 Subiendo imagen del cliente...');
+          imageUrl = await this.uploadImage();
+          console.log('✅ Imagen subida exitosamente:', imageUrl);
+        }
+        
+        // Generar fecha de primera visita automáticamente
+        const fechaPrimeraVisita = new Date().toLocaleString('es-ES', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        const clienteData = {
+          id: this.data?.cliente?.id || '', // Solo incluir ID si estamos editando
+          nombre: this.clienteForm.value.nombre,
+          apellidoPaterno: this.clienteForm.value.apellidoPaterno,
+          apellidoMaterno: this.clienteForm.value.apellidoMaterno,
+          genero: this.clienteForm.value.genero,
+          telefono: this.clienteForm.value.telefono,
+          calle: this.clienteForm.value.calle,
+          numero: this.clienteForm.value.numero,
+          colonia: this.clienteForm.value.colonia,
+          municipio: this.clienteForm.value.municipio,
+          codigoPostal: this.clienteForm.value.codigoPostal,
+          expediente: this.clienteForm.value.expediente,
+          correo: this.clienteForm.value.correo,
+          imageUrl: imageUrl,
+          imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.cliente?.imageFileName || ''),
+          kilometrosCasa: this.clienteForm.value.kilometrosCasa,
+          urlGoogleMaps: this.clienteForm.value.urlGoogleMaps,
+          fecha: fechaPrimeraVisita
+        };
+        
+        this.dialogRef.close(clienteData);
+      } catch (error) {
+        console.error('❌ Error al procesar la imagen:', error);
+        Swal.fire('Error', 'No se pudo procesar la imagen. Intenta de nuevo.', 'error');
+      }
     } else {
       console.log('Formulario inválido:', this.clienteForm.errors);
+      Swal.fire('Error', 'Por favor, completa todos los campos requeridos correctamente', 'error');
     }
   }
 
@@ -196,6 +241,73 @@ export class ClienteDialogComponent implements OnInit {
       return false;
     }
     return true;
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        Swal.fire('Error', 'Por favor selecciona solo archivos de imagen', 'error');
+        return;
+      }
+      
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
+        return;
+      }
+      
+      this.selectedFile = file;
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async uploadImage(): Promise<string> {
+    if (!this.selectedFile) {
+      throw new Error('No hay archivo seleccionado');
+    }
+    
+    const fileName = `${Date.now()}_${this.selectedFile.name}`;
+    const filePath = `Clientes/${fileName}`;
+    const fileRef = this.storage.ref(filePath);
+    
+    const uploadTask = this.storage.upload(filePath, this.selectedFile);
+    
+    return new Promise((resolve, reject) => {
+      uploadTask.percentageChanges().subscribe(percentage => {
+        this.uploadProgress = percentage || 0;
+      });
+      
+      uploadTask.snapshotChanges().subscribe(
+        (snapshot) => {
+          if (snapshot.state === 'running') {
+            this.isUploading = true;
+          } else if (snapshot.state === 'success') {
+            this.isUploading = false;
+            fileRef.getDownloadURL().subscribe(url => {
+              resolve(url);
+            });
+          }
+        },
+        (error) => {
+          this.isUploading = false;
+          reject(error);
+        }
+      );
+    });
+  }
+
+  removeImage() {
+    this.selectedFile = null;
+    this.imagePreview = null;
+    this.uploadProgress = 0;
   }
 
   cerrar() {

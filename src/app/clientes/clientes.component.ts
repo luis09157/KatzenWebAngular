@@ -13,14 +13,13 @@ import Swal from 'sweetalert2';
   styleUrls: ['./clientes.component.css']
 })
 export class ClientesComponent implements OnInit {
-  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'fecha', 'estado', 'acciones'];
+  displayedColumns: string[] = ['id', 'nombre', 'expediente', 'telefono', 'correo', 'direccion', 'fecha', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   // Estadísticas
   totalClientes: number = 0;
   clientesConPacientes: number = 0;
-  clientesSinPacientes: number = 0;
   clientesConCorreo: number = 0;
   clientesSinCorreo: number = 0;
 
@@ -57,8 +56,6 @@ export class ClientesComponent implements OnInit {
       this.clientesConPacientes = clientes.filter(cliente => 
         clientesConPacientesSet.has(cliente.id)
       ).length;
-      
-      this.clientesSinPacientes = this.totalClientes - this.clientesConPacientes;
     });
   }
 
@@ -94,6 +91,9 @@ export class ClientesComponent implements OnInit {
         this.clientesService.guardarCliente(result).then(() => {
           Swal.fire('Éxito', 'Cliente guardado correctamente', 'success');
           this.ngOnInit(); // Recargar datos
+        }).catch(error => {
+          console.error('Error al guardar cliente:', error);
+          Swal.fire('Error', 'No se pudo guardar el cliente', 'error');
         });
       }
     });
@@ -124,4 +124,6 @@ export class ClientesComponent implements OnInit {
       }
     });
   }
+
+
 }

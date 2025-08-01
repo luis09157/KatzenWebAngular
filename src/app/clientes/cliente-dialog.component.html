@@ -1,6 +1,32 @@
 <h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
 <mat-dialog-content>
   <form [formGroup]="clienteForm">
+    <!-- Sección de Imagen -->
+    <div class="image-section">
+      <div class="image-preview" *ngIf="imagePreview">
+        <img [src]="imagePreview" alt="Foto del cliente" />
+        <button mat-icon-button class="remove-image" (click)="removeImage()" *ngIf="!modoVer">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="upload-section" *ngIf="!imagePreview">
+        <div class="upload-placeholder">
+          <mat-icon>person</mat-icon>
+          <p>Sin foto</p>
+        </div>
+      </div>
+      
+      <div class="upload-controls" *ngIf="!modoVer">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+        <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
+          <mat-icon>photo_camera</mat-icon>
+          {{ imagePreview ? 'Cambiar Foto' : 'Agregar Foto' }}
+        </button>
+      </div>
+      
+      <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+    </div>
     <!-- Información Personal -->
     <div class="form-row">
       <mat-form-field appearance="fill">
@@ -52,7 +78,7 @@
       </mat-form-field>
     </div>
 
-    <!-- Dirección - Orden Correcto -->
+    <!-- Dirección -->
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Código Postal</mat-label>
@@ -100,6 +126,11 @@
         <mat-label>Número</mat-label>
         <input matInput formControlName="numero" placeholder="Número" />
         <mat-error *ngIf="isFieldInvalid('numero')">{{ getErrorMessage('numero') }}</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Kilómetros a Casa</mat-label>
+        <input matInput formControlName="kilometrosCasa" placeholder="0.0" type="number" step="0.1" />
+        <mat-error *ngIf="isFieldInvalid('kilometrosCasa')">{{ getErrorMessage('kilometrosCasa') }}</mat-error>
       </mat-form-field>
     </div>
 
