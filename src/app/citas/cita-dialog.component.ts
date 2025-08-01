@@ -28,11 +28,22 @@ export class CitaDialogComponent implements OnInit {
     private pacientesService: PacientesService
   ) {
     this.modoVer = data.modoVer;
+    
+    // Separar fecha_hora en fecha y hora si existe
+    let fecha = '';
+    let hora = '';
+    if (data.cita?.fecha_hora) {
+      const fechaHora = new Date(data.cita.fecha_hora);
+      fecha = fechaHora.toISOString().split('T')[0]; // YYYY-MM-DD
+      hora = fechaHora.toTimeString().slice(0, 5); // HH:MM
+    }
+    
     this.citaForm = this.fb.group({
       id: [data.cita?.id || ''],
       cliente_id: [data.cita?.cliente_id || '', Validators.required],
       paciente_id: [data.cita?.paciente_id || '', Validators.required],
-      fecha_hora: [data.cita?.fecha_hora || '', Validators.required],
+      fecha: [fecha, Validators.required],
+      hora: [hora, Validators.required],
       motivo: [data.cita?.motivo || '', Validators.required],
       estado: [data.cita?.estado || 'pendiente', Validators.required],
       veterinario: [data.cita?.veterinario || ''],
@@ -114,6 +125,14 @@ export class CitaDialogComponent implements OnInit {
         if (clienteSeleccionado) {
           formValue.cliente_id = clienteSeleccionado.id;
         }
+      }
+      
+      // Combinar fecha y hora en el formato correcto
+      if (formValue.fecha && formValue.hora) {
+        const fecha = new Date(formValue.fecha);
+        const [horas, minutos] = formValue.hora.split(':');
+        fecha.setHours(parseInt(horas), parseInt(minutos));
+        formValue.fecha_hora = fecha.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
       }
       
       this.dialogRef.close(formValue);

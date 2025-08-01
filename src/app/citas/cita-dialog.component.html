@@ -38,8 +38,15 @@
     
     <div class="form-row">
       <mat-form-field appearance="outline">
-        <mat-label>Fecha y Hora</mat-label>
-        <input matInput formControlName="fecha_hora" type="datetime-local" required />
+        <mat-label>Fecha</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="fecha" placeholder="Seleccionar fecha" required />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Hora</mat-label>
+        <input matInput formControlName="hora" type="time" required />
       </mat-form-field>
     </div>
     <div class="form-row">

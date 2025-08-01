@@ -13,6 +13,8 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { CitaDialogComponent } from './cita-dialog.component';
 
 @NgModule({
@@ -33,7 +35,9 @@ import { CitaDialogComponent } from './cita-dialog.component';
     MatPaginatorModule,
     MatDialogModule,
     MatSelectModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ]
 })
 export class CitasModule { }
