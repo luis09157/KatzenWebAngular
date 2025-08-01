@@ -1,85 +1,94 @@
-<div class="admin-container">
-   <!-- Estadísticas -->
-   <div class="stats-section">
+<div class="pacientes-contenedor">
+  <!-- Dashboard de Estadísticas -->
+  <div class="dashboard-stats">
     <div class="stat-card">
-      <mat-icon class="stat-icon">pets</mat-icon>
-      <div class="stat-content">
-        <h3>{{ dataSource.data.length }}</h3>
-        <p>Total de Pacientes</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon class="stat-icon">person</mat-icon>
-      <div class="stat-content">
-        <h3>{{ getUniqueOwners() }}</h3>
-        <p>Dueños Únicos</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon class="stat-icon">pets</mat-icon>
-      <div class="stat-content">
-        <h3>{{ getDogsCount() }}</h3>
-        <p>Perros</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon class="stat-icon">pets</mat-icon>
-      <div class="stat-content">
-        <h3>{{ getCatsCount() }}</h3>
-        <p>Gatos</p>
-      </div>
-    </div>
-  </div>
-  <!-- Header con título y botón de nuevo paciente -->
-  <div class="header-section">
-    <div class="header-content">
-      <h1 class="page-title">
+      <div class="stat-icon">
         <mat-icon>pets</mat-icon>
-        Administración de Pacientes
-      </h1>
-      <p class="page-description">
-        Gestiona todos los pacientes registrados en el sistema
-      </p>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ dataSource.data.length }}</div>
+        <div class="stat-label">Total de Pacientes</div>
+      </div>
     </div>
-    <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="nuevoPaciente()">
-        <mat-icon>add</mat-icon>
-        Nuevo Paciente
-      </button>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getUniqueOwners() }}</div>
+        <div class="stat-label">Dueños Únicos</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getDogsCount() }}</div>
+        <div class="stat-label">Perros</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getCatsCount() }}</div>
+        <div class="stat-label">Gatos</div>
+      </div>
     </div>
   </div>
 
-  <!-- Filtro de búsqueda -->
-  <div class="filter-section">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Buscar pacientes</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, especie, raza, dueño...">
+  <!-- Banner de Administración -->
+  <div class="admin-banner">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <div class="banner-text">
+        <h2>Administración de Pacientes</h2>
+        <p>Gestiona todos los pacientes registrados en el sistema</p>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="nuevoPaciente()">
+      <mat-icon>add</mat-icon>
+      Nuevo Paciente
+    </button>
+  </div>
+
+  <mat-card class="pacientes-card">
+    
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar paciente</mat-label>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, especie, raza, dueño..." />
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
-  </div>
+    
+    <div class="tabla-contenedor">
+   
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando pacientes...</p>
+      </div>
 
-  <!-- Tabla de pacientes -->
-  <div class="table-container">
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Cargando pacientes...</p>
-    </div>
+      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-pacientes">
+        <mat-icon>pets</mat-icon>
+        <h3>No hay pacientes</h3>
+        <p>No se han encontrado pacientes registrados.</p>
+        <button mat-raised-button color="primary" (click)="nuevoPaciente()">
+          <mat-icon>add</mat-icon>
+          Crear primer paciente
+        </button>
+      </div>
 
-    <div *ngIf="!loading && dataSource.data.length === 0" class="empty-state">
-      <mat-icon>pets</mat-icon>
-      <h3>No hay pacientes registrados</h3>
-      <p>Comienza agregando el primer paciente al sistema</p>
-      <button mat-raised-button color="primary" (click)="nuevoPaciente()">
-        <mat-icon>add</mat-icon>
-        Agregar primer paciente
-      </button>
-    </div>
-
-    <table *ngIf="!loading && dataSource.data.length > 0" mat-table [dataSource]="dataSource" matSort class="patients-table">
+      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
       
       <!-- Columna Nombre -->
       <ng-container matColumnDef="nombre">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
+        <th mat-header-cell *matHeaderCellDef> Nombre </th>
         <td mat-cell *matCellDef="let paciente"> 
           <div class="patient-name-cell">
             <img [src]="paciente.imageUrl || paciente.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" 
@@ -92,19 +101,19 @@
 
       <!-- Columna Especie -->
       <ng-container matColumnDef="especie">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Especie </th>
+        <th mat-header-cell *matHeaderCellDef> Especie </th>
         <td mat-cell *matCellDef="let paciente"> {{ paciente.especie || 'No especificada' }} </td>
       </ng-container>
 
       <!-- Columna Raza -->
       <ng-container matColumnDef="raza">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Raza </th>
+        <th mat-header-cell *matHeaderCellDef> Raza </th>
         <td mat-cell *matCellDef="let paciente"> {{ paciente.raza || 'No especificada' }} </td>
       </ng-container>
 
       <!-- Columna Sexo -->
       <ng-container matColumnDef="sexo">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Sexo </th>
+        <th mat-header-cell *matHeaderCellDef> Sexo </th>
         <td mat-cell *matCellDef="let paciente"> 
           <span class="sex-badge" [class.male]="paciente.sexo === 'Macho'" [class.female]="paciente.sexo === 'Hembra'">
             {{ paciente.sexo || 'No especificado' }}
@@ -114,19 +123,19 @@
 
       <!-- Columna Edad -->
       <ng-container matColumnDef="edad">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Edad </th>
+        <th mat-header-cell *matHeaderCellDef> Edad </th>
         <td mat-cell *matCellDef="let paciente"> {{ calcularEdad(paciente.edad) }} </td>
       </ng-container>
 
       <!-- Columna Color -->
       <ng-container matColumnDef="color">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Color </th>
+        <th mat-header-cell *matHeaderCellDef> Color </th>
         <td mat-cell *matCellDef="let paciente"> {{ paciente.color || 'No especificado' }} </td>
       </ng-container>
 
       <!-- Columna Peso -->
       <ng-container matColumnDef="peso">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Peso </th>
+        <th mat-header-cell *matHeaderCellDef> Peso </th>
         <td mat-cell *matCellDef="let paciente"> 
           {{ paciente.peso ? paciente.peso + ' kg' : 'No especificado' }} 
         </td>
@@ -134,7 +143,7 @@
 
       <!-- Columna Dueño -->
       <ng-container matColumnDef="nombreCliente">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Dueño </th>
+        <th mat-header-cell *matHeaderCellDef> Dueño </th>
         <td mat-cell *matCellDef="let paciente"> 
           <div class="owner-cell">
             <mat-icon class="owner-icon">person</mat-icon>
@@ -165,13 +174,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
 
-    <!-- Paginador -->
-    <mat-paginator *ngIf="!loading && dataSource.data.length > 0" 
-                   [pageSizeOptions]="[10, 25, 50, 100]" 
-                   showFirstLastButtons 
-                   class="table-paginator">
-    </mat-paginator>
-  </div>
-
- 
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
 </div> 

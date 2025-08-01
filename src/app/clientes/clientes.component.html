@@ -33,11 +33,11 @@
     
     <div class="stat-card">
       <div class="stat-icon">
-        <mat-icon>email_off</mat-icon>
+        <mat-icon>folder</mat-icon>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{{ clientesSinCorreo }}</div>
-        <div class="stat-label">Sin Correo Electrónico</div>
+        <div class="stat-number">{{ clientesConExpediente }}</div>
+        <div class="stat-label">Con Expediente</div>
       </div>
     </div>
   </div>
@@ -67,7 +67,6 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
     
-    <div class="tabla-titulo">Lista de Clientes</div>
     <div class="tabla-contenedor">
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
         
@@ -168,20 +167,6 @@
               </button>
               <button mat-icon-button color="warn" (click)="bajaLogicaCliente(cliente.id)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-              </button>
-              <button *ngIf="cliente.activo !== false" 
-                      mat-icon-button color="warn" 
-                      (click)="cambiarEstado(cliente, false)" 
-                      matTooltip="Desactivar cliente"
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">block</mat-icon>
-              </button>
-              <button *ngIf="cliente.activo === false" 
-                      mat-icon-button color="primary" 
-                      (click)="cambiarEstado(cliente, true)" 
-                      matTooltip="Activar cliente"
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">check_circle</mat-icon>
               </button>
             </div>
           </td>

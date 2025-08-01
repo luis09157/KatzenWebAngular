@@ -21,7 +21,7 @@ export class ClientesComponent implements OnInit {
   totalClientes: number = 0;
   clientesConPacientes: number = 0;
   clientesConCorreo: number = 0;
-  clientesSinCorreo: number = 0;
+  clientesConExpediente: number = 0;
 
   constructor(
     private clientesService: ClientesService, 
@@ -42,7 +42,7 @@ export class ClientesComponent implements OnInit {
   calcularEstadisticas(clientes: any[]) {
     this.totalClientes = clientes.length;
     this.clientesConCorreo = clientes.filter(c => c.correo && c.correo.trim() !== '').length;
-    this.clientesSinCorreo = clientes.filter(c => !c.correo || c.correo.trim() === '').length;
+    this.clientesConExpediente = clientes.filter(c => c.expediente && c.expediente.trim() !== '').length;
     
     // Obtener pacientes para calcular relaciones
     this.pacientesService.getPacientes().subscribe(pacientes => {

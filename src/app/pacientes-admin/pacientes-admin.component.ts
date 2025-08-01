@@ -29,7 +29,7 @@ export class PacientesAdminComponent implements OnInit {
     'acciones'
   ];
   
-  dataSource!: MatTableDataSource<any>;
+  dataSource = new MatTableDataSource<any>([]);
   pacientes: any[] = [];
   clientes: any[] = [];
   loading = false;
@@ -41,22 +41,26 @@ export class PacientesAdminComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('🚀 PacientesAdminComponent inicializado');
     this.cargarDatos();
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    // Configurar paginador y ordenamiento después de que la vista esté lista
+    setTimeout(() => {
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+      }
+      if (this.sort) {
+        this.dataSource.sort = this.sort;
+      }
+    }, 0);
   }
 
   cargarDatos() {
     this.loading = true;
-    console.log('🔄 Iniciando carga de datos...');
     
     // Cargar pacientes
     this.pacientesService.getPacientes().subscribe(pacientes => {
-      console.log('📋 Pacientes cargados:', pacientes);
       this.pacientes = pacientes || [];
       this.prepararDataSource();
     }, error => {
@@ -66,7 +70,6 @@ export class PacientesAdminComponent implements OnInit {
 
     // Cargar clientes para obtener nombres
     this.clientesService.getClientes().subscribe(clientes => {
-      console.log('👥 Clientes cargados:', clientes);
       this.clientes = clientes || [];
       this.prepararDataSource();
     }, error => {
@@ -78,25 +81,19 @@ export class PacientesAdminComponent implements OnInit {
 
 
   prepararDataSource() {
-    console.log('🔧 Preparando DataSource...');
-    console.log('📋 Pacientes disponibles:', this.pacientes);
-    console.log('👥 Clientes disponibles:', this.clientes);
-    
     // Combinar datos de pacientes con nombres de clientes
     const pacientesConCliente = this.pacientes.map(paciente => {
       const pacienteConCliente = {
         ...paciente,
         nombreCliente: this.getClienteNombre(paciente.cliente_id || paciente.idCliente)
       };
-      console.log('🐕 Paciente procesado:', pacienteConCliente);
       return pacienteConCliente;
     });
-
-    console.log('📊 Datos finales para tabla:', pacientesConCliente);
     
-    this.dataSource = new MatTableDataSource(pacientesConCliente);
+    // Actualizar el dataSource existente en lugar de crear uno nuevo
+    this.dataSource.data = pacientesConCliente;
     
-    // Configurar paginador y ordenamiento después de que la vista esté inicializada
+    // Configurar paginador y ordenamiento de forma segura
     setTimeout(() => {
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
@@ -107,7 +104,6 @@ export class PacientesAdminComponent implements OnInit {
     }, 0);
     
     this.loading = false;
-    console.log('✅ DataSource preparado. Total de pacientes:', pacientesConCliente.length);
   }
 
   getClienteNombre(idCliente: string): string {
@@ -153,10 +149,7 @@ export class PacientesAdminComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('🔄 Actualizando paciente:', paciente.id, result);
-        
         this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
-          console.log('✅ Paciente actualizado exitosamente');
           Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
           // Firebase se actualiza automáticamente en tiempo real
         }).catch(error => {
@@ -199,10 +192,7 @@ export class PacientesAdminComponent implements OnInit {
     // Manejar el resultado cuando se edita desde el modo "ver"
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('🔄 Actualizando paciente desde modo "ver":', paciente.id, result);
-        
         this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
-          console.log('✅ Paciente actualizado exitosamente desde modo "ver"');
           Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
           // Firebase se actualiza automáticamente en tiempo real
         }).catch(error => {
