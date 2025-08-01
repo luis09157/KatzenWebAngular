@@ -19,6 +19,7 @@ export class CitasComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
+  loading = false;
 
   constructor(
     private citasService: CitasService,
@@ -28,6 +29,7 @@ export class CitasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loading = true;
     this.clientesService.getClientes().subscribe(clientes => {
       (clientes || []).forEach(c => {
         this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
@@ -45,9 +47,22 @@ export class CitasComponent implements OnInit {
           if (this.paginator) {
             this.dataSource.paginator = this.paginator;
           }
+          this.loading = false;
         });
       });
     });
+  }
+
+  getCitasPendientes(): number {
+    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'pendiente').length;
+  }
+
+  getCitasConfirmadas(): number {
+    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'confirmada').length;
+  }
+
+  getCitasCompletadas(): number {
+    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'completada').length;
   }
 
   aplicarFiltro(event: Event) {
@@ -108,16 +123,21 @@ export class CitasComponent implements OnInit {
   bajaLogicaCita(id: string) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'La cita será dada de baja (baja lógica).',
+      text: '¿Deseas eliminar esta cita? Esta acción no se puede deshacer.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then(result => {
+    }).then((result) => {
       if (result.isConfirmed) {
-        this.citasService.bajaLogicaCita(id).then(() => {
-          Swal.fire('Baja lógica', 'La cita fue dada de baja correctamente.', 'success');
+        this.citasService.eliminarCita(id).then(() => {
+          Swal.fire('Eliminado', 'Cita eliminada correctamente', 'success');
           this.ngOnInit(); // Recargar datos
+        }).catch(error => {
+          console.error('Error al eliminar cita:', error);
+          Swal.fire('Error', 'No se pudo eliminar la cita', 'error');
         });
       }
     });
