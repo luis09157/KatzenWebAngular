@@ -1,76 +1,138 @@
 <div class="dialog-container">
-  <h2 mat-dialog-title>{{ isEditMode ? 'Editar Paciente' : 'Nuevo Paciente' }}</h2>
+  <h2 mat-dialog-title>{{ isViewMode ? 'Ver Paciente' : (isEditMode ? 'Editar Paciente' : 'Nuevo Paciente') }}</h2>
   
-  <form [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
-    <mat-dialog-content>
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" placeholder="Nombre del paciente">
-        </mat-form-field>
-        
-        <mat-form-field appearance="outline">
-          <mat-label>Especie</mat-label>
-          <mat-select formControlName="especie">
-            <mat-option *ngFor="let especie of especies" [value]="especie">
-              {{ especie }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+      <form [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
+      <mat-dialog-content>
+        <!-- Sección de imagen - PRIMERA -->
+        <div class="image-section">
+          <h4>Foto del Paciente</h4>
+          <div class="image-container">
+            <div class="upload-section" *ngIf="!imagePreview">
+              <div class="upload-placeholder">
+                <mat-icon>pets</mat-icon>
+                <p>Sin foto</p>
+              </div>
+            </div>
+            
+            <div class="image-preview" *ngIf="imagePreview">
+              <img [src]="imagePreview" alt="Foto del paciente" class="preview-image">
+              <button mat-icon-button class="remove-image" (click)="removeImage()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            
+            <div class="upload-controls">
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+              <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
+                <mat-icon>photo_camera</mat-icon>
+                {{ imagePreview ? 'Cambiar Foto' : 'Agregar Foto' }}
+              </button>
+            </div>
+            
+            <div class="upload-progress" *ngIf="isUploading">
+              <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+              <p>Subiendo imagen... {{ uploadProgress | number:'1.0-0' }}%</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="nombre" placeholder="Nombre del paciente" [disabled]="isViewMode">
+            <mat-error *ngIf="isFieldInvalid('nombre')">
+              {{ getErrorMessage('nombre') }}
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Especie</mat-label>
+            <mat-select formControlName="especie" [disabled]="isViewMode">
+              <mat-option *ngFor="let especie of especies" [value]="especie">
+                {{ especie }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFieldInvalid('especie')">
+              {{ getErrorMessage('especie') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
       
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Raza</mat-label>
-          <input matInput formControlName="raza" placeholder="Raza del paciente">
-        </mat-form-field>
-        
-        <mat-form-field appearance="outline">
-          <mat-label>Sexo</mat-label>
-          <mat-select formControlName="sexo">
-            <mat-option *ngFor="let sexo of sexos" [value]="sexo">
-              {{ sexo }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+                    <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Raza</mat-label>
+                  <input matInput formControlName="raza" placeholder="Raza del paciente" [disabled]="isViewMode">
+                  <mat-error *ngIf="isFieldInvalid('raza')">
+                    {{ getErrorMessage('raza') }}
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline">
+                  <mat-label>Sexo</mat-label>
+                  <mat-select formControlName="sexo" [disabled]="isViewMode">
+                    <mat-option *ngFor="let sexo of sexos" [value]="sexo">
+                      {{ sexo }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="isFieldInvalid('sexo')">
+                    {{ getErrorMessage('sexo') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
       
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Edad</mat-label>
-          <input matInput formControlName="edad" placeholder="Fecha de nacimiento">
-        </mat-form-field>
-        
-        <mat-form-field appearance="outline">
-          <mat-label>Color</mat-label>
-          <input matInput formControlName="color" placeholder="Color del paciente">
-        </mat-form-field>
-      </div>
+                    <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha de Nacimiento</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="edad" placeholder="Seleccionar fecha" [max]="maxDate" [disabled]="isViewMode">
+                  <mat-datepicker-toggle matSuffix [for]="picker" [disabled]="isViewMode"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                  <mat-error *ngIf="pacienteForm.get('edad')?.hasError('futureDate')">
+                    La fecha no puede ser posterior a hoy
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline">
+                  <mat-label>Color</mat-label>
+                  <input matInput formControlName="color" placeholder="Color del paciente" [disabled]="isViewMode">
+                  <mat-error *ngIf="isFieldInvalid('color')">
+                    {{ getErrorMessage('color') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
       
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Peso (kg)</mat-label>
-          <input matInput formControlName="peso" placeholder="Peso en kilogramos">
-        </mat-form-field>
-        
-        <mat-form-field appearance="outline">
-          <mat-label>ID Cliente</mat-label>
-          <input matInput formControlName="idCliente" placeholder="ID del cliente">
-        </mat-form-field>
-      </div>
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Peso (kg)</mat-label>
+                  <input matInput formControlName="peso" placeholder="Peso en kilogramos" [disabled]="isViewMode">
+                  <mat-error *ngIf="isFieldInvalid('peso')">
+                    {{ getErrorMessage('peso') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
       
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombre del Cliente</mat-label>
-          <input matInput formControlName="nombreCliente" placeholder="Nombre completo del cliente">
-        </mat-form-field>
-      </div>
+                    <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Nombre del Cliente</mat-label>
+                  <input matInput formControlName="nombreCliente" placeholder="Buscar cliente..." [matAutocomplete]="auto" [disabled]="isViewMode">
+                  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
+                    <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+                      {{ getNombreCompleto(cliente) }}
+                    </mat-option>
+                  </mat-autocomplete>
+                  <mat-error *ngIf="isFieldInvalid('nombreCliente')">
+                    {{ getErrorMessage('nombreCliente') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
     </mat-dialog-content>
     
     <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
+      <button mat-button type="button" (click)="onCancel()">{{ isViewMode ? 'Cerrar' : 'Cancelar' }}</button>
+      <button *ngIf="!isViewMode" mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
         {{ isEditMode ? 'Actualizar' : 'Crear' }}
+      </button>
+      <button *ngIf="isViewMode" mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
+        Guardar Cambios
       </button>
     </mat-dialog-actions>
   </form>

@@ -75,6 +75,8 @@ export class PacientesAdminComponent implements OnInit {
     });
   }
 
+
+
   prepararDataSource() {
     console.log('🔧 Preparando DataSource...');
     console.log('📋 Pacientes disponibles:', this.pacientes);
@@ -151,11 +153,14 @@ export class PacientesAdminComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        console.log('🔄 Actualizando paciente:', paciente.id, result);
+        
         this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
+          console.log('✅ Paciente actualizado exitosamente');
           Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-          this.cargarDatos();
+          // Firebase se actualiza automáticamente en tiempo real
         }).catch(error => {
-          console.error('Error al actualizar paciente:', error);
+          console.error('❌ Error al actualizar paciente:', error);
           Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
         });
       }
@@ -176,7 +181,7 @@ export class PacientesAdminComponent implements OnInit {
       if (result.isConfirmed) {
         this.pacientesService.eliminarPaciente(paciente.id).then(() => {
           Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
-          this.cargarDatos();
+          // Firebase se actualiza automáticamente en tiempo real
         }).catch(error => {
           console.error('Error al eliminar paciente:', error);
           Swal.fire('Error', 'No se pudo eliminar el paciente', 'error');
@@ -189,6 +194,22 @@ export class PacientesAdminComponent implements OnInit {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
       width: '600px',
       data: { paciente, modo: 'ver' }
+    });
+
+    // Manejar el resultado cuando se edita desde el modo "ver"
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('🔄 Actualizando paciente desde modo "ver":', paciente.id, result);
+        
+        this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
+          console.log('✅ Paciente actualizado exitosamente desde modo "ver"');
+          Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+          // Firebase se actualiza automáticamente en tiempo real
+        }).catch(error => {
+          console.error('❌ Error al actualizar paciente desde modo "ver":', error);
+          Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
+        });
+      }
     });
   }
 
