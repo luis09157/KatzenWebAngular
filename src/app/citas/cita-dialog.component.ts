@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -16,6 +17,33 @@ export class CitaDialogComponent implements OnInit {
   modoVer: boolean = false;
   clientes: any[] = [];
   pacientes: any[] = [];
+  doctores: any[] = [];
+  motivos: string[] = [
+    'Consulta General',
+    'Vacunación',
+    'Desparasitación',
+    'Esterilización/Castración',
+    'Cirugía',
+    'Emergencia',
+    'Control Post-operatorio',
+    'Revisión de Heridas',
+    'Tratamiento Dental',
+    'Análisis de Sangre',
+    'Radiografía',
+    'Ecografía',
+    'Dermatología',
+    'Oftalmología',
+    'Cardiología',
+    'Neurología',
+    'Oncología',
+    'Fisioterapia',
+    'Rehabilitación',
+    'Control de Peso',
+    'Nutrición',
+    'Comportamiento',
+    'Grooming (Peluquería)',
+    'Otro'
+  ];
   filteredClientes!: Observable<any[]>;
   clienteSeleccionado: any = null;
   pacientesDelCliente: any[] = [];
@@ -25,7 +53,8 @@ export class CitaDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
     private clientesService: ClientesService,
-    private pacientesService: PacientesService
+    private pacientesService: PacientesService,
+    private usuariosService: UsuariosService
   ) {
     this.modoVer = data.modoVer;
     
@@ -58,6 +87,7 @@ export class CitaDialogComponent implements OnInit {
   ngOnInit() {
     this.cargarClientes();
     this.cargarPacientes();
+    this.cargarDoctores();
     this.setupAutocomplete();
   }
 
@@ -70,6 +100,15 @@ export class CitaDialogComponent implements OnInit {
   cargarPacientes() {
     this.pacientesService.getPacientes().subscribe(pacientes => {
       this.pacientes = pacientes || [];
+    });
+  }
+
+  cargarDoctores() {
+    this.usuariosService.getUsuarios().subscribe(usuarios => {
+      // Filtrar solo usuarios con perfil doctor o doctor_a
+      this.doctores = (usuarios || []).filter(usuario => 
+        usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a'
+      );
     });
   }
 

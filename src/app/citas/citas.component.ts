@@ -39,11 +39,21 @@ export class CitasComponent implements OnInit {
           this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
         });
         this.citasService.getCitas().subscribe(citas => {
-          this.dataSource.data = (citas || []).filter(c => c.activo !== false).map(cita => ({
-            ...cita,
-            cliente: this.clientesMap[cita.cliente_id] || 'N/P',
-            paciente: this.pacientesMap[cita.paciente_id] || 'N/P'
-          }));
+          // Filtrar citas activas, mapear datos y ordenar por fecha (más recientes primero)
+          this.dataSource.data = (citas || [])
+            .filter(c => c.activo !== false)
+            .map(cita => ({
+              ...cita,
+              cliente: this.clientesMap[cita.cliente_id] || 'N/P',
+              paciente: this.pacientesMap[cita.paciente_id] || 'N/P'
+            }))
+            .sort((a, b) => {
+              // Ordenar por fecha_hora, más reciente primero
+              const fechaA = new Date(a.fecha_hora || 0);
+              const fechaB = new Date(b.fecha_hora || 0);
+              return fechaB.getTime() - fechaA.getTime();
+            });
+          
           if (this.paginator) {
             this.dataSource.paginator = this.paginator;
           }

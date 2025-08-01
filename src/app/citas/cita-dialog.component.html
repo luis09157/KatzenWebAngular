@@ -52,7 +52,12 @@
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Motivo</mat-label>
-        <input matInput formControlName="motivo" required />
+        <mat-select formControlName="motivo" required>
+          <mat-option value="">Seleccionar motivo</mat-option>
+          <mat-option *ngFor="let motivo of motivos" [value]="motivo">
+            {{ motivo }}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Estado</mat-label>
@@ -64,13 +69,19 @@
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Veterinario</mat-label>
-        <input matInput formControlName="veterinario" />
+        <mat-select formControlName="veterinario">
+          <mat-option value="">Seleccionar veterinario</mat-option>
+          <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">
+            {{ doctor.nombre }}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
     </div>
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Observaciones</mat-label>
-        <textarea matInput formControlName="observaciones" rows="2"></textarea>
+        <textarea matInput formControlName="observaciones" rows="3" 
+                  placeholder="Ej: Síntomas observados, antecedentes importantes, medicamentos actuales, alergias conocidas, comportamiento reciente, etc."></textarea>
       </mat-form-field>
     </div>
   </form>
