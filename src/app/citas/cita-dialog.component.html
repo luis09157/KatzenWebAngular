@@ -22,13 +22,12 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Paciente</mat-label>
-        <input matInput formControlName="nombrePaciente" placeholder="Buscar paciente..." [matAutocomplete]="autoPaciente" [disabled]="modoVer">
-        <mat-autocomplete #autoPaciente="matAutocomplete" (optionSelected)="onPacienteSelected($event.option.value)">
-          <mat-option *ngFor="let paciente of filteredPacientes | async" [value]="paciente">
+        <mat-select formControlName="paciente_id" [disabled]="!clienteSeleccionado || modoVer" required>
+          <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
             {{ paciente.nombre }} - {{ paciente.especie || 'Sin especie' }}
           </mat-option>
-        </mat-autocomplete>
-        <mat-error *ngIf="citaForm.get('nombrePaciente')?.hasError('required')">
+        </mat-select>
+        <mat-error *ngIf="citaForm.get('paciente_id')?.hasError('required')">
           El paciente es requerido
         </mat-error>
       </mat-form-field>

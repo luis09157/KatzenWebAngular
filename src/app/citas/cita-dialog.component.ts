@@ -17,7 +17,8 @@ export class CitaDialogComponent implements OnInit {
   clientes: any[] = [];
   pacientes: any[] = [];
   filteredClientes!: Observable<any[]>;
-  filteredPacientes!: Observable<any[]>;
+  clienteSeleccionado: any = null;
+  pacientesDelCliente: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<CitaDialogComponent>,
@@ -36,8 +37,7 @@ export class CitaDialogComponent implements OnInit {
       estado: [data.cita?.estado || 'pendiente', Validators.required],
       veterinario: [data.cita?.veterinario || ''],
       observaciones: [data.cita?.observaciones || ''],
-      nombreCliente: [data.cita?.nombreCliente || '', Validators.required],
-      nombrePaciente: [data.cita?.nombrePaciente || '', Validators.required]
+      nombreCliente: [data.cita?.nombreCliente || '', Validators.required]
     });
     if (this.modoVer) {
       this.citaForm.disable();
@@ -67,11 +67,6 @@ export class CitaDialogComponent implements OnInit {
       startWith(''),
       map(value => this._filterClientes(value))
     );
-    
-    this.filteredPacientes = this.citaForm.get('nombrePaciente')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filterPacientes(value))
-    );
   }
 
   private _filterClientes(value: string): any[] {
@@ -81,13 +76,7 @@ export class CitaDialogComponent implements OnInit {
     );
   }
 
-  private _filterPacientes(value: string): any[] {
-    const filterValue = value.toLowerCase();
-    return this.pacientes.filter(paciente => 
-      paciente.nombre?.toLowerCase().includes(filterValue) ||
-      paciente.especie?.toLowerCase().includes(filterValue)
-    );
-  }
+
 
   getNombreCompleto(cliente: any): string {
     const nombre = cliente.nombre || '';
@@ -100,17 +89,17 @@ export class CitaDialogComponent implements OnInit {
   }
 
   onClienteSelected(cliente: any) {
+    this.clienteSeleccionado = cliente;
     this.citaForm.patchValue({
       cliente_id: cliente.id,
-      nombreCliente: this.getNombreCompleto(cliente)
+      nombreCliente: this.getNombreCompleto(cliente),
+      paciente_id: '' // Limpiar paciente seleccionado
     });
-  }
-
-  onPacienteSelected(paciente: any) {
-    this.citaForm.patchValue({
-      paciente_id: paciente.id,
-      nombrePaciente: `${paciente.nombre} - ${paciente.especie || 'Sin especie'}`
-    });
+    
+    // Filtrar pacientes del cliente seleccionado
+    this.pacientesDelCliente = this.pacientes.filter(paciente => 
+      paciente.cliente_id === cliente.id || paciente.idCliente === cliente.id
+    );
   }
 
   guardar() {
@@ -124,17 +113,6 @@ export class CitaDialogComponent implements OnInit {
         );
         if (clienteSeleccionado) {
           formValue.cliente_id = clienteSeleccionado.id;
-        }
-      }
-      
-      // Asegurar que el paciente_id esté presente
-      if (!formValue.paciente_id) {
-        // Si no hay paciente_id pero hay nombrePaciente, buscar el paciente
-        const pacienteSeleccionado = this.pacientes.find(p => 
-          `${p.nombre} - ${p.especie || 'Sin especie'}` === formValue.nombrePaciente
-        );
-        if (pacienteSeleccionado) {
-          formValue.paciente_id = pacienteSeleccionado.id;
         }
       }
       
