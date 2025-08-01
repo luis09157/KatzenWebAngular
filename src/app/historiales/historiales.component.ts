@@ -19,6 +19,7 @@ export class HistorialesComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
   estadisticas: any = { total: 0, activos: 0, inactivos: 0 };
+  loading = false;
 
   constructor(
     private historialesService: HistorialesService,
@@ -27,6 +28,7 @@ export class HistorialesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loading = true;
     this.cargarDatos();
     this.cargarEstadisticas();
   }
@@ -50,6 +52,7 @@ export class HistorialesComponent implements OnInit {
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
+      this.loading = false;
     });
   }
 
@@ -57,6 +60,26 @@ export class HistorialesComponent implements OnInit {
     this.historialesService.getEstadisticasHistoriales().subscribe(stats => {
       this.estadisticas = stats;
     });
+  }
+
+  getHistorialesRecientes(): number {
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+    
+    return this.dataSource.data.filter(historial => {
+      if (!historial.fecha_registro) return false;
+      const fechaHistorial = new Date(historial.fecha_registro);
+      return fechaHistorial >= hace30Dias;
+    }).length;
+  }
+
+  getPacientesUnicos(): number {
+    const pacientesUnicos = new Set(
+      this.dataSource.data
+        .map(historial => historial.paciente_id)
+        .filter(id => id && id !== 'N/P')
+    );
+    return pacientesUnicos.size;
   }
 
   formatearFecha(fecha: any): string {

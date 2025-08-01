@@ -42,11 +42,23 @@
         <input matInput [matDatepicker]="picker" formControlName="fecha" placeholder="Seleccionar fecha" required />
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">
+          La fecha es requerida
+        </mat-error>
+        <mat-error *ngIf="citaForm.get('fecha')?.hasError('fechaPasada')">
+          La fecha no puede ser anterior a hoy
+        </mat-error>
       </mat-form-field>
       
       <mat-form-field appearance="outline">
         <mat-label>Hora</mat-label>
         <input matInput formControlName="hora" type="time" required />
+        <mat-error *ngIf="citaForm.get('hora')?.hasError('required')">
+          La hora es requerida
+        </mat-error>
+        <mat-error *ngIf="citaForm.get('hora')?.hasError('formatoInvalido')">
+          Formato de hora inválido
+        </mat-error>
       </mat-form-field>
     </div>
     <div class="form-row">
@@ -58,6 +70,9 @@
             {{ motivo }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="citaForm.get('motivo')?.hasError('required')">
+          El motivo es requerido
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Estado</mat-label>
@@ -88,5 +103,9 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" 
+          [disabled]="!esFormularioValido()" 
+          (click)="guardar()">
+    Guardar
+  </button>
 </mat-dialog-actions> 

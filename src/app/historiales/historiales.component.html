@@ -1,29 +1,65 @@
 <div class="historiales-contenedor">
-  <mat-card class="historiales-card">
-    <div class="header-row">
-      <div class="header-info">
-        <span class="titulo">Historiales Clínicos</span>
-        <div class="estadisticas">
-          <span class="stat-item">
-            <mat-icon>list</mat-icon>
-            Total: {{ estadisticas.total }}
-          </span>
-          <span class="stat-item">
-            <mat-icon>check_circle</mat-icon>
-            Activos: {{ estadisticas.activos }}
-          </span>
-          <span class="stat-item">
-            <mat-icon>cancel</mat-icon>
-            Inactivos: {{ estadisticas.inactivos }}
-          </span>
-        </div>
+  <!-- Dashboard de Estadísticas -->
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>medical_services</mat-icon>
       </div>
-      <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
-        <mat-icon>add</mat-icon>
-        Agregar Historial
-      </button>
+      <div class="stat-content">
+        <div class="stat-number">{{ estadisticas.total }}</div>
+        <div class="stat-label">Total de Historiales</div>
+      </div>
     </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ estadisticas.activos }}</div>
+        <div class="stat-label">Activos</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getHistorialesRecientes() }}</div>
+        <div class="stat-label">Últimos 30 días</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getPacientesUnicos() }}</div>
+        <div class="stat-label">Pacientes Únicos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner de Administración -->
+  <div class="admin-banner">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <mat-icon>medical_services</mat-icon>
+      </div>
+      <div class="banner-text">
+        <h2>Administración de Historiales Clínicos</h2>
+        <p>Gestiona todos los historiales médicos de los pacientes</p>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
+      <mat-icon>add</mat-icon>
+      Nuevo Historial
+    </button>
+  </div>
+
+  <mat-card class="historiales-card">
     
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar historial</mat-label>
@@ -31,79 +67,98 @@
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
     
-    <div class="tabla-titulo">Lista de Historiales Clínicos</div>
     <div class="tabla-contenedor">
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 historial-table">
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando historiales...</p>
+      </div>
+
+      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-historiales">
+        <mat-icon>medical_services</mat-icon>
+        <h3>No hay historiales</h3>
+        <p>No se han encontrado historiales clínicos registrados.</p>
+        <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
+          <mat-icon>add</mat-icon>
+          Crear primer historial
+        </button>
+      </div>
+
+      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        
         <ng-container matColumnDef="fecha_registro">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
-          <td mat-cell *matCellDef="let historial">{{ historial.fecha_registro ? historial.fecha_registro : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let historial">
+            <div class="fecha-cell">
+              <mat-icon class="fecha-icon">event</mat-icon>
+              {{ historial.fecha_registro ? historial.fecha_registro : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
         <ng-container matColumnDef="paciente">
           <th mat-header-cell *matHeaderCellDef>Paciente</th>
-          <td mat-cell *matCellDef="let historial">{{ historial.paciente ? historial.paciente : 'N/P' }}</td>
+          <td mat-cell *matCellDef="let historial">
+            <div class="paciente-cell">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              {{ historial.paciente ? historial.paciente : 'N/P' }}
+            </div>
+          </td>
         </ng-container>
+
         <ng-container matColumnDef="diagnostico">
           <th mat-header-cell *matHeaderCellDef>Diagnóstico</th>
           <td mat-cell *matCellDef="let historial">
             <div class="diagnostico-cell">
+              <mat-icon class="diagnostico-icon">healing</mat-icon>
               {{ historial.diagnostico ? (historial.diagnostico.length > 50 ? historial.diagnostico.substring(0, 50) + '...' : historial.diagnostico) : 'N/P' }}
             </div>
           </td>
         </ng-container>
+
         <ng-container matColumnDef="tratamiento">
           <th mat-header-cell *matHeaderCellDef>Tratamiento</th>
           <td mat-cell *matCellDef="let historial">
             <div class="tratamiento-cell">
+              <mat-icon class="tratamiento-icon">medication</mat-icon>
               {{ historial.tratamiento ? (historial.tratamiento.length > 50 ? historial.tratamiento.substring(0, 50) + '...' : historial.tratamiento) : 'N/P' }}
             </div>
           </td>
         </ng-container>
+
         <ng-container matColumnDef="medicamentos">
           <th mat-header-cell *matHeaderCellDef>Medicamentos</th>
           <td mat-cell *matCellDef="let historial">
             <div class="medicamentos-cell">
+              <mat-icon class="medicamentos-icon">local_pharmacy</mat-icon>
               {{ historial.medicamentos ? (historial.medicamentos.length > 30 ? historial.medicamentos.substring(0, 30) + '...' : historial.medicamentos) : 'N/P' }}
             </div>
           </td>
         </ng-container>
+
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let historial">
-            <div class="acciones-container">
-              <button mat-icon-button color="accent" 
-                      (click)="verHistorialDetalle(historial)" 
-                      matTooltip="Ver detalles completos">
-                <mat-icon>visibility</mat-icon>
+          <th mat-header-cell *matHeaderCellDef style="text-align: center;">Acciones</th>
+          <td mat-cell *matCellDef="let historial" style="text-align: center;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
+              <button mat-icon-button color="primary" (click)="verHistorialDetalle(historial)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
               </button>
-              <button mat-icon-button color="primary" 
-                      (click)="editarHistorial(historial)" 
-                      matTooltip="Editar historial">
-                <mat-icon>edit</mat-icon>
+              <button mat-icon-button color="accent" (click)="editarHistorial(historial)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" 
-                      (click)="bajaLogicaHistorial(historial.id)" 
-                      matTooltip="Dar de baja">
-                <mat-icon>delete</mat-icon>
+              <button mat-icon-button color="warn" (click)="bajaLogicaHistorial(historial.id)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
               </button>
             </div>
           </td>
         </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
             (dblclick)="verHistorialDetalle(row)"
             class="historial-row"></tr>
       </table>
+
       <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
-    </div>
-    
-    <!-- Mensaje cuando no hay datos -->
-    <div *ngIf="dataSource.data.length === 0" class="no-data">
-      <mat-icon>medical_services</mat-icon>
-      <p>No hay historiales clínicos registrados</p>
-      <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
-        <mat-icon>add</mat-icon>
-        Crear primer historial
-      </button>
     </div>
   </mat-card>
 </div>

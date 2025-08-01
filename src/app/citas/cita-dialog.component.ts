@@ -71,8 +71,8 @@ export class CitaDialogComponent implements OnInit {
       id: [data.cita?.id || ''],
       cliente_id: [data.cita?.cliente_id || '', Validators.required],
       paciente_id: [data.cita?.paciente_id || '', Validators.required],
-      fecha: [fecha, Validators.required],
-      hora: [hora, Validators.required],
+      fecha: [fecha, [Validators.required, this.validarFecha.bind(this)]],
+      hora: [hora, [Validators.required, this.validarHora.bind(this)]],
       motivo: [data.cita?.motivo || '', Validators.required],
       estado: [data.cita?.estado || 'pendiente', Validators.required],
       veterinario: [data.cita?.veterinario || ''],
@@ -152,7 +152,7 @@ export class CitaDialogComponent implements OnInit {
     );
   }
 
-  guardar() {
+  async guardar() {
     if (this.citaForm.valid) {
       // Asegurar que el cliente_id esté presente
       const formValue = this.citaForm.value;
@@ -174,11 +174,54 @@ export class CitaDialogComponent implements OnInit {
         formValue.fecha_hora = fecha.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
       }
       
+      // Limpiar campos temporales que no deben guardarse
+      delete formValue.nombreCliente;
+      
       this.dialogRef.close(formValue);
     }
   }
 
   cerrar() {
     this.dialogRef.close();
+  }
+
+  // Validadores personalizados
+  validarFecha(control: any): {[key: string]: any} | null {
+    if (!control.value) {
+      return { 'required': true };
+    }
+    
+    const fecha = new Date(control.value);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    if (fecha < hoy) {
+      return { 'fechaPasada': true };
+    }
+    
+    return null;
+  }
+
+  validarHora(control: any): {[key: string]: any} | null {
+    if (!control.value) {
+      return { 'required': true };
+    }
+    
+    const horaRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!horaRegex.test(control.value)) {
+      return { 'formatoInvalido': true };
+    }
+    
+    return null;
+  }
+
+  // Método para verificar si el formulario es válido
+  esFormularioValido(): boolean {
+    return this.citaForm.valid && 
+           this.citaForm.get('cliente_id')?.value && 
+           this.citaForm.get('paciente_id')?.value &&
+           this.citaForm.get('fecha')?.value &&
+           this.citaForm.get('hora')?.value &&
+           this.citaForm.get('motivo')?.value;
   }
 } 

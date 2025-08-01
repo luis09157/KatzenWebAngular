@@ -20,14 +20,21 @@ export class CitasService {
   }
 
   // Agregar o actualizar una cita (siempre con activo: true)
-  guardarCita(cita: any) {
+  async guardarCita(cita: any): Promise<any> {
     cita.activo = true;
-    // Si tiene id, actualiza; si no, push
+    
+    // Si tiene id, actualiza; si no, push y captura el ID generado
     if (cita.id) {
       return this.db.object(`Katzen/Citas/${cita.id}`).set(cita);
     } else {
+      // Para nuevas citas, usar push y capturar el ID generado
       const ref = this.db.list('Katzen/Citas').push(cita);
-      return ref;
+      return ref.then((result: any) => {
+        // Actualizar el objeto cita con el ID generado
+        const citaActualizada = { ...cita, id: result.key };
+        // Actualizar el registro con el ID incluido
+        return this.db.object(`Katzen/Citas/${result.key}`).update(citaActualizada);
+      });
     }
   }
 
