@@ -132,7 +132,7 @@ export class CitasComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.citasService.eliminarCita(id).then(() => {
+        this.citasService.bajaLogicaCita(id).then(() => {
           Swal.fire('Eliminado', 'Cita eliminada correctamente', 'success');
           this.ngOnInit(); // Recargar datos
         }).catch(error => {
