@@ -1,14 +1,65 @@
 <div class="clientes-contenedor">
-  <mat-card class="clientes-card">
-    <div class="header-row">
-      <span class="titulo">Clientes</span>
-      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
-      <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
-        <mat-icon>add</mat-icon>
-        Agregar Cliente
-      </button>
+  <!-- Dashboard de Estadísticas -->
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ totalClientes }}</div>
+        <div class="stat-label">Total de Clientes</div>
+      </div>
     </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ clientesConPacientes }}</div>
+        <div class="stat-label">Con Pacientes</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>person_off</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ clientesSinPacientes }}</div>
+        <div class="stat-label">Sin Pacientes</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>email</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ clientesConCorreo }}</div>
+        <div class="stat-label">Con Correo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner de Administración -->
+  <div class="admin-banner">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="banner-text">
+        <h2>Administración de Clientes</h2>
+        <p>Gestiona todos los clientes registrados en el sistema</p>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+      <mat-icon>add</mat-icon>
+      Nuevo Cliente
+    </button>
+  </div>
+
+  <mat-card class="clientes-card">
     
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar cliente</mat-label>

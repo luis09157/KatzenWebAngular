@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ClientesService } from './clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ClienteDialogComponent } from './cliente-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
@@ -15,8 +16,19 @@ export class ClientesComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'fecha', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
+  // Estadísticas
+  totalClientes: number = 0;
+  clientesConPacientes: number = 0;
+  clientesSinPacientes: number = 0;
+  clientesConCorreo: number = 0;
+  clientesSinCorreo: number = 0;
 
-  constructor(private clientesService: ClientesService, private dialog: MatDialog) {}
+  constructor(
+    private clientesService: ClientesService, 
+    private pacientesService: PacientesService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.clientesService.getClientes().subscribe(clientes => {
@@ -24,6 +36,29 @@ export class ClientesComponent implements OnInit {
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
+      this.calcularEstadisticas(clientes || []);
+    });
+  }
+
+  calcularEstadisticas(clientes: any[]) {
+    this.totalClientes = clientes.length;
+    this.clientesConCorreo = clientes.filter(c => c.correo && c.correo.trim() !== '').length;
+    this.clientesSinCorreo = clientes.filter(c => !c.correo || c.correo.trim() === '').length;
+    
+    // Obtener pacientes para calcular relaciones
+    this.pacientesService.getPacientes().subscribe(pacientes => {
+      const pacientesData = pacientes || [];
+      
+      // Crear un Set de IDs de clientes que tienen pacientes
+      const clientesConPacientesSet = new Set(
+        pacientesData.map(paciente => paciente.idCliente).filter(id => id)
+      );
+      
+      this.clientesConPacientes = clientes.filter(cliente => 
+        clientesConPacientesSet.has(cliente.id)
+      ).length;
+      
+      this.clientesSinPacientes = this.totalClientes - this.clientesConPacientes;
     });
   }
 
