@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClientesService } from '../clientes/clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -14,13 +15,16 @@ export class CitaDialogComponent implements OnInit {
   citaForm: FormGroup;
   modoVer: boolean = false;
   clientes: any[] = [];
+  pacientes: any[] = [];
   filteredClientes!: Observable<any[]>;
+  filteredPacientes!: Observable<any[]>;
 
   constructor(
     public dialogRef: MatDialogRef<CitaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private pacientesService: PacientesService
   ) {
     this.modoVer = data.modoVer;
     this.citaForm = this.fb.group({
@@ -32,7 +36,8 @@ export class CitaDialogComponent implements OnInit {
       estado: [data.cita?.estado || 'pendiente', Validators.required],
       veterinario: [data.cita?.veterinario || ''],
       observaciones: [data.cita?.observaciones || ''],
-      nombreCliente: [data.cita?.nombreCliente || '', Validators.required]
+      nombreCliente: [data.cita?.nombreCliente || '', Validators.required],
+      nombrePaciente: [data.cita?.nombrePaciente || '', Validators.required]
     });
     if (this.modoVer) {
       this.citaForm.disable();
@@ -41,6 +46,7 @@ export class CitaDialogComponent implements OnInit {
 
   ngOnInit() {
     this.cargarClientes();
+    this.cargarPacientes();
     this.setupAutocomplete();
   }
 
@@ -50,10 +56,21 @@ export class CitaDialogComponent implements OnInit {
     });
   }
 
+  cargarPacientes() {
+    this.pacientesService.getPacientes().subscribe(pacientes => {
+      this.pacientes = pacientes || [];
+    });
+  }
+
   setupAutocomplete() {
     this.filteredClientes = this.citaForm.get('nombreCliente')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filterClientes(value))
+    );
+    
+    this.filteredPacientes = this.citaForm.get('nombrePaciente')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterPacientes(value))
     );
   }
 
@@ -61,6 +78,14 @@ export class CitaDialogComponent implements OnInit {
     const filterValue = value.toLowerCase();
     return this.clientes.filter(cliente => 
       this.getNombreCompleto(cliente).toLowerCase().includes(filterValue)
+    );
+  }
+
+  private _filterPacientes(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.pacientes.filter(paciente => 
+      paciente.nombre?.toLowerCase().includes(filterValue) ||
+      paciente.especie?.toLowerCase().includes(filterValue)
     );
   }
 
@@ -81,6 +106,13 @@ export class CitaDialogComponent implements OnInit {
     });
   }
 
+  onPacienteSelected(paciente: any) {
+    this.citaForm.patchValue({
+      paciente_id: paciente.id,
+      nombrePaciente: `${paciente.nombre} - ${paciente.especie || 'Sin especie'}`
+    });
+  }
+
   guardar() {
     if (this.citaForm.valid) {
       // Asegurar que el cliente_id esté presente
@@ -94,6 +126,18 @@ export class CitaDialogComponent implements OnInit {
           formValue.cliente_id = clienteSeleccionado.id;
         }
       }
+      
+      // Asegurar que el paciente_id esté presente
+      if (!formValue.paciente_id) {
+        // Si no hay paciente_id pero hay nombrePaciente, buscar el paciente
+        const pacienteSeleccionado = this.pacientes.find(p => 
+          `${p.nombre} - ${p.especie || 'Sin especie'}` === formValue.nombrePaciente
+        );
+        if (pacienteSeleccionado) {
+          formValue.paciente_id = pacienteSeleccionado.id;
+        }
+      }
+      
       this.dialogRef.close(formValue);
     }
   }

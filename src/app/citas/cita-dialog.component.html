@@ -20,10 +20,24 @@
     <input type="hidden" formControlName="cliente_id">
     
     <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Paciente ID</mat-label>
-        <input matInput formControlName="paciente_id" required />
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Paciente</mat-label>
+        <input matInput formControlName="nombrePaciente" placeholder="Buscar paciente..." [matAutocomplete]="autoPaciente" [disabled]="modoVer">
+        <mat-autocomplete #autoPaciente="matAutocomplete" (optionSelected)="onPacienteSelected($event.option.value)">
+          <mat-option *ngFor="let paciente of filteredPacientes | async" [value]="paciente">
+            {{ paciente.nombre }} - {{ paciente.especie || 'Sin especie' }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="citaForm.get('nombrePaciente')?.hasError('required')">
+          El paciente es requerido
+        </mat-error>
       </mat-form-field>
+    </div>
+    
+    <!-- Campo oculto para el paciente_id -->
+    <input type="hidden" formControlName="paciente_id">
+    
+    <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Fecha y Hora</mat-label>
         <input matInput formControlName="fecha_hora" type="datetime-local" required />
