@@ -1,13 +1,14 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { ClientesService } from '../clientes/clientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
+import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
-
 @Component({
   selector: 'app-historiales',
   templateUrl: './historiales.component.html',
@@ -24,6 +25,7 @@ export class HistorialesComponent implements OnInit {
   constructor(
     private historialesService: HistorialesService,
     private pacientesService: PacientesService,
+    private clientesService: ClientesService,
     private dialog: MatDialog
   ) {}
 
@@ -123,6 +125,12 @@ export class HistorialesComponent implements OnInit {
   }
 
   abrirModalHistorial(historial: any = null, modoVer: boolean = false) {
+    // Si es un nuevo historial (no hay historial existente), primero seleccionar cliente
+    if (!historial && !modoVer) {
+      this.seleccionarClienteParaHistorial();
+      return;
+    }
+
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
       width: '700px',
       data: { historial, modoVer }
@@ -147,6 +155,43 @@ export class HistorialesComponent implements OnInit {
             Swal.fire('Error', 'No se pudo crear el historial', 'error');
           });
         }
+      }
+    });
+  }
+
+  seleccionarClienteParaHistorial() {
+    const dialogRef = this.dialog.open(SeleccionarClienteDialogComponent, {
+      width: '600px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.cliente && result.paciente) {
+        this.abrirModalHistorialConPaciente(result.paciente);
+      }
+    });
+  }
+
+  abrirModalHistorialConPaciente(paciente: any) {
+    const historialNuevo = {
+      paciente_id: paciente.id,
+      paciente_nombre: paciente.nombre
+    };
+
+    const dialogRef = this.dialog.open(HistorialDialogComponent, {
+      width: '700px',
+      data: { historial: historialNuevo, modoVer: false }
+    });
+    
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.historialesService.crearHistorial(result).then(() => {
+          Swal.fire('Éxito', 'Historial creado correctamente', 'success');
+          this.cargarDatos(); // Recargar datos
+        }).catch(error => {
+          console.error('Error al crear historial:', error);
+          Swal.fire('Error', 'No se pudo crear el historial', 'error');
+        });
       }
     });
   }

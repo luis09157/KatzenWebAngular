@@ -23,6 +23,11 @@ export class ClientesComponent implements OnInit {
   clientesConCorreo: number = 0;
   clientesConExpediente: number = 0;
 
+  // Datos originales y filtrados
+  todosLosClientes: any[] = [];
+  clientesFiltrados: any[] = [];
+  filtroActual: string = '';
+
   constructor(
     private clientesService: ClientesService, 
     private pacientesService: PacientesService,
@@ -31,7 +36,13 @@ export class ClientesComponent implements OnInit {
 
   ngOnInit(): void {
     this.clientesService.getClientes().subscribe(clientes => {
-      this.dataSource.data = (clientes || []).filter(c => c.activo !== false);
+      console.log('Clientes cargados:', clientes);
+      
+      this.todosLosClientes = (clientes || []).filter(c => c.activo !== false);
+      this.clientesFiltrados = [...this.todosLosClientes];
+      console.log('Clientes activos:', this.todosLosClientes);
+      
+      this.dataSource.data = this.clientesFiltrados;
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
@@ -61,7 +72,55 @@ export class ClientesComponent implements OnInit {
 
   aplicarFiltro(event: Event) {
     const filtro = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filtro.trim().toLowerCase();
+    console.log('Aplicando filtro:', filtro);
+    console.log('Total de clientes antes del filtro:', this.todosLosClientes.length);
+    
+    this.filtroActual = filtro.toLowerCase().trim();
+    
+    if (!this.filtroActual) {
+      this.clientesFiltrados = [...this.todosLosClientes];
+    } else {
+      this.clientesFiltrados = this.todosLosClientes.filter(cliente => {
+        const nombre = (cliente.nombre || '').toLowerCase();
+        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
+        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
+        const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+        const telefono = (cliente.telefono || '').toLowerCase();
+        const correo = (cliente.correo || '').toLowerCase();
+        const expediente = (cliente.expediente || '').toLowerCase();
+        
+        console.log('Buscando:', this.filtroActual, 'en cliente:', {
+          nombre,
+          apellidoPaterno,
+          apellidoMaterno,
+          nombreCompleto,
+          telefono,
+          correo,
+          expediente
+        });
+        
+        const encontrado = nombre.includes(this.filtroActual) || 
+               apellidoPaterno.includes(this.filtroActual) ||
+               apellidoMaterno.includes(this.filtroActual) ||
+               nombreCompleto.includes(this.filtroActual) ||
+               telefono.includes(this.filtroActual) || 
+               correo.includes(this.filtroActual) ||
+               expediente.includes(this.filtroActual);
+        
+        console.log('Resultado búsqueda:', encontrado);
+        return encontrado;
+      });
+    }
+    
+    this.dataSource.data = this.clientesFiltrados;
+    console.log('Total de clientes después del filtro:', this.clientesFiltrados.length);
+  }
+
+  limpiarFiltro() {
+    console.log('Limpiando filtro');
+    this.filtroActual = '';
+    this.clientesFiltrados = [...this.todosLosClientes];
+    this.dataSource.data = this.clientesFiltrados;
   }
 
   getEstadoColor(activo: boolean): string {
@@ -119,6 +178,27 @@ export class ClientesComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result && !modoVer) {
+        // Validación adicional de email único
+        const email = result.correo;
+        if (email) {
+          const clienteActual = cliente;
+          const emailExiste = this.dataSource.data.some(c => {
+            if (c.correo && c.correo.toLowerCase() === email.toLowerCase()) {
+              // Si estamos editando, no considerar el cliente actual
+              if (clienteActual && c.id === clienteActual.id) {
+                return false;
+              }
+              return true;
+            }
+            return false;
+          });
+
+          if (emailExiste) {
+            Swal.fire('Error', 'Este correo electrónico ya está registrado por otro cliente', 'error');
+            return;
+          }
+        }
+
         this.clientesService.guardarCliente(result).then(() => {
           Swal.fire('Éxito', 'Cliente guardado correctamente', 'success');
           this.ngOnInit(); // Recargar datos

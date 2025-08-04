@@ -19,12 +19,14 @@ import { HistorialesRoutingModule } from './historiales-routing.module';
 import { HistorialesComponent } from './historiales.component';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
+import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 
 @NgModule({
   declarations: [
     HistorialesComponent,
     HistorialDialogComponent,
-    HistorialDetalleComponent
+    HistorialDetalleComponent,
+    SeleccionarClienteDialogComponent
   ],
   imports: [
     CommonModule,
@@ -46,7 +48,8 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
   ],
   exports: [
     HistorialDialogComponent,
-    HistorialDetalleComponent
+    HistorialDetalleComponent,
+    SeleccionarClienteDialogComponent
   ]
 })
 export class HistorialesModule { }

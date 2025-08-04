@@ -1,3 +1,28 @@
+/* Estilos para el header del diálogo */
+.cliente-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.cliente-dialog-header h2 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.close-button {
+  color: #f44336;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #f44336;
+}
+
 .form-row {
   display: flex;
   flex-wrap: wrap;
@@ -123,6 +148,41 @@ mat-dialog-content {
 
 mat-progress-bar {
   margin-top: 8px;
+}
+
+/* Estilos para campos con error */
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline {
+  color: #f44336 !important;
+}
+
+.mat-form-field.mat-form-field-invalid .mat-form-field-label {
+  color: #f44336 !important;
+}
+
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline-thick {
+  color: #f44336 !important;
+}
+
+/* Resaltar campos requeridos vacíos */
+.mat-form-field.mat-form-field-invalid .mat-form-field-wrapper {
+  margin-bottom: 0;
+}
+
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline-start,
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline-end,
+.mat-form-field.mat-form-field-invalid .mat-form-field-outline-gap {
+  border-color: #f44336 !important;
+}
+
+/* Animación para campos con error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.mat-form-field.mat-form-field-invalid.ng-touched {
+  animation: shake 0.5s ease-in-out;
 }
 
  

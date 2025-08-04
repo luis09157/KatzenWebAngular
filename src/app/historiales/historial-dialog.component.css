@@ -241,3 +241,37 @@ mat-spinner {
     padding: 16px 20px;
   }
 } 
+
+.paciente-info {
+  margin-bottom: 20px;
+}
+
+.paciente-info mat-card {
+  background-color: #f8f9fa;
+  border-left: 4px solid #3f51b5;
+}
+
+.paciente-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.paciente-icon {
+  color: #3f51b5;
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.paciente-details h3 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.paciente-details p {
+  margin: 2px 0;
+  color: #666;
+  font-size: 0.9rem;
+} 

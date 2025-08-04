@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -13,10 +14,12 @@ export class HistorialDialogComponent implements OnInit {
   historialForm: FormGroup;
   isEditMode = false;
   loading = false;
+  pacienteInfo: any = null;
 
   constructor(
     private fb: FormBuilder,
     private historialesService: HistorialesService,
+    private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<HistorialDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -31,15 +34,32 @@ export class HistorialDialogComponent implements OnInit {
 
   ngOnInit() {
     if (this.data) {
-      this.isEditMode = true;
+      this.isEditMode = !!this.data.historial?.id;
+      
+      // Si es un nuevo historial con paciente seleccionado
+      if (!this.isEditMode && this.data.historial?.paciente_id) {
+        this.cargarInformacionPaciente(this.data.historial.paciente_id);
+      }
+      
+      // Si es edición, cargar información del paciente
+      if (this.isEditMode && this.data.historial?.paciente_id) {
+        this.cargarInformacionPaciente(this.data.historial.paciente_id);
+      }
+
       this.historialForm.patchValue({
-        diagnostico: this.data.diagnostico || '',
-        tratamiento: this.data.tratamiento || '',
-        medicamentos: this.data.medicamentos || '',
-        notas: this.data.notas || '',
-        paciente_id: this.data.paciente_id || ''
+        diagnostico: this.data.historial?.diagnostico || '',
+        tratamiento: this.data.historial?.tratamiento || '',
+        medicamentos: this.data.historial?.medicamentos || '',
+        notas: this.data.historial?.notas || '',
+        paciente_id: this.data.historial?.paciente_id || ''
       });
     }
+  }
+
+  cargarInformacionPaciente(pacienteId: string) {
+    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+      this.pacienteInfo = paciente;
+    });
   }
 
   async guardarHistorial() {
@@ -49,9 +69,9 @@ export class HistorialDialogComponent implements OnInit {
       try {
         const historialData = this.historialForm.value;
         
-        if (this.isEditMode && this.data.id) {
+        if (this.isEditMode && this.data.historial?.id) {
           // Actualizar historial existente
-          await this.historialesService.actualizarHistorial(this.data.id, historialData);
+          await this.historialesService.actualizarHistorial(this.data.historial.id, historialData);
           Swal.fire({
             icon: 'success',
             title: '¡Éxito!',
@@ -93,7 +113,7 @@ export class HistorialDialogComponent implements OnInit {
   }
 
   async eliminarHistorial() {
-    if (!this.data?.id) return;
+    if (!this.data?.historial?.id) return;
 
     const result = await Swal.fire({
       icon: 'warning',
@@ -110,7 +130,7 @@ export class HistorialDialogComponent implements OnInit {
       this.loading = true;
       
       try {
-        await this.historialesService.eliminarHistorial(this.data.id);
+        await this.historialesService.eliminarHistorial(this.data.historial.id);
         Swal.fire({
           icon: 'success',
           title: '¡Eliminado!',

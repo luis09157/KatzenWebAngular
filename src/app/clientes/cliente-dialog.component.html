@@ -1,4 +1,10 @@
-<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
+<div class="cliente-dialog-header">
+  <h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
+  <button mat-icon-button class="close-button" (click)="cerrar()" matTooltip="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
 <mat-dialog-content>
   <form [formGroup]="clienteForm">
     <!-- Sección de Imagen -->
@@ -67,8 +73,9 @@
         <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
-        <mat-label>Correo</mat-label>
+        <mat-label>Correo {{ data.cliente?.id ? '(No editable)' : '' }}</mat-label>
         <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />
+        <mat-icon matSuffix *ngIf="data.cliente?.id" matTooltip="El correo no se puede editar">lock</mat-icon>
         <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
@@ -146,5 +153,6 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()" [disabled]="!clienteForm.valid">Guardar</button>
+  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()" 
+          [disabled]="!isFormValidForSave()">Guardar</button>
 </mat-dialog-actions> 

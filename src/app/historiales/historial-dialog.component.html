@@ -9,6 +9,26 @@
     </button>
   </div>
 
+  <!-- Información del Paciente -->
+  <div *ngIf="pacienteInfo" class="paciente-info">
+    <mat-card>
+      <mat-card-content>
+        <div class="paciente-header">
+          <mat-icon class="paciente-icon">pets</mat-icon>
+          <div class="paciente-details">
+            <h3>{{ pacienteInfo.nombre || 'Sin nombre' }}</h3>
+            <p *ngIf="pacienteInfo.especie || pacienteInfo.raza">
+              {{ pacienteInfo.especie || '' }} {{ pacienteInfo.raza ? '- ' + pacienteInfo.raza : '' }}
+            </p>
+            <p *ngIf="pacienteInfo.edad">
+              Edad: {{ pacienteInfo.edad }} años
+            </p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
   <form [formGroup]="historialForm" (ngSubmit)="guardarHistorial()">
     <div class="dialog-content">
       
