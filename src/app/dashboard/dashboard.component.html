@@ -8,7 +8,7 @@
     </div>
     
     <div class="quick-stats">
-      <div class="stat-card">
+      <div class="stat-card" (click)="navegarA('pacientes-admin')" style="cursor: pointer;">
         <div class="stat-icon">
           <mat-icon>pets</mat-icon>
         </div>
@@ -16,8 +16,11 @@
           <h3>Pacientes</h3>
           <p>Gestiona la información de tus pacientes</p>
         </div>
+        <div class="stat-arrow">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" (click)="navegarA('clientes')" style="cursor: pointer;">
         <div class="stat-icon">
           <mat-icon>people</mat-icon>
         </div>
@@ -25,8 +28,11 @@
           <h3>Clientes</h3>
           <p>Administra los datos de tus clientes</p>
         </div>
+        <div class="stat-arrow">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" (click)="navegarA('citas')" style="cursor: pointer;">
         <div class="stat-icon">
           <mat-icon>event</mat-icon>
         </div>
@@ -34,14 +40,20 @@
           <h3>Citas</h3>
           <p>Organiza y programa las citas</p>
         </div>
+        <div class="stat-arrow">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" (click)="navegarA('historiales')" style="cursor: pointer;">
         <div class="stat-icon">
           <mat-icon>medical_services</mat-icon>
         </div>
         <div class="stat-content">
           <h3>Historiales</h3>
           <p>Consulta el historial clínico</p>
+        </div>
+        <div class="stat-arrow">
+          <mat-icon>arrow_forward</mat-icon>
         </div>
       </div>
     </div>

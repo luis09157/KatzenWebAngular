@@ -102,13 +102,13 @@
       <!-- Columna Especie -->
       <ng-container matColumnDef="especie">
         <th mat-header-cell *matHeaderCellDef> Especie </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.especie || 'No especificada' }} </td>
+        <td mat-cell *matCellDef="let paciente"> {{ paciente.especie || 'N/P' }} </td>
       </ng-container>
 
       <!-- Columna Raza -->
       <ng-container matColumnDef="raza">
         <th mat-header-cell *matHeaderCellDef> Raza </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.raza || 'No especificada' }} </td>
+        <td mat-cell *matCellDef="let paciente"> {{ paciente.raza || 'N/P' }} </td>
       </ng-container>
 
       <!-- Columna Sexo -->
@@ -116,7 +116,7 @@
         <th mat-header-cell *matHeaderCellDef> Sexo </th>
         <td mat-cell *matCellDef="let paciente"> 
           <span class="sex-badge" [class.male]="paciente.sexo === 'Macho'" [class.female]="paciente.sexo === 'Hembra'">
-            {{ paciente.sexo || 'No especificado' }}
+            {{ paciente.sexo || 'N/P' }}
           </span>
         </td>
       </ng-container>
@@ -124,20 +124,20 @@
       <!-- Columna Edad -->
       <ng-container matColumnDef="edad">
         <th mat-header-cell *matHeaderCellDef> Edad </th>
-        <td mat-cell *matCellDef="let paciente"> {{ calcularEdad(paciente.edad) }} </td>
+        <td mat-cell *matCellDef="let paciente"> {{ calcularEdad(paciente.edad) || 'N/P' }} </td>
       </ng-container>
 
       <!-- Columna Color -->
       <ng-container matColumnDef="color">
         <th mat-header-cell *matHeaderCellDef> Color </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.color || 'No especificado' }} </td>
+        <td mat-cell *matCellDef="let paciente"> {{ paciente.color || 'N/P' }} </td>
       </ng-container>
 
       <!-- Columna Peso -->
       <ng-container matColumnDef="peso">
         <th mat-header-cell *matHeaderCellDef> Peso </th>
         <td mat-cell *matCellDef="let paciente"> 
-          {{ paciente.peso ? paciente.peso + ' kg' : 'No especificado' }} 
+          {{ paciente.peso ? paciente.peso + ' kg' : 'N/P' }} 
         </td>
       </ng-container>
 
@@ -147,7 +147,7 @@
         <td mat-cell *matCellDef="let paciente"> 
           <div class="owner-cell">
             <mat-icon class="owner-icon">person</mat-icon>
-            <span>{{ paciente.nombreCliente }}</span>
+            <span>{{ paciente.nombreCliente || 'N/P' }}</span>
           </div>
         </td>
       </ng-container>

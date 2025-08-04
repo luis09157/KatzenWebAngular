@@ -144,6 +144,11 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  navegarA(ruta: string) {
+    console.log(`🚀 Navegando a: /admin/${ruta}`);
+    this.router.navigate([`/admin/${ruta}`]);
+  }
+
   logout() {
     this.authService.logout();
   }

@@ -204,12 +204,12 @@ export class PacientesAdminComponent implements OnInit {
   }
 
   calcularEdad(fechaNacimiento: string): string {
-    if (!fechaNacimiento) return 'Edad no registrada';
+    if (!fechaNacimiento) return 'N/P';
     
     try {
       const partes = fechaNacimiento.split('/');
       if (partes.length !== 3) {
-        return 'Edad no registrada';
+        return 'N/P';
       }
       
       const dia = parseInt(partes[0]);
@@ -220,7 +220,7 @@ export class PacientesAdminComponent implements OnInit {
       const hoy = new Date();
       
       if (isNaN(fechaNac.getTime())) {
-        return 'Edad no registrada';
+        return 'N/P';
       }
       
       const diferencia = hoy.getTime() - fechaNac.getTime();
@@ -233,7 +233,7 @@ export class PacientesAdminComponent implements OnInit {
         return `${meses} mes${meses > 1 ? 'es' : ''}`;
       }
     } catch (error) {
-      return 'Edad no registrada';
+      return 'N/P';
     }
   }
 
