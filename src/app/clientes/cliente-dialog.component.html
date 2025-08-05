@@ -73,9 +73,9 @@
         <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
-        <mat-label>Correo {{ data.cliente?.id ? '(No editable)' : '' }}</mat-label>
+        <mat-label>Correo {{ data.cliente?.id && data.cliente?.correo ? '(No editable)' : '' }}</mat-label>
         <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />
-        <mat-icon matSuffix *ngIf="data.cliente?.id" matTooltip="El correo no se puede editar">lock</mat-icon>
+        <mat-icon matSuffix *ngIf="data.cliente?.id && data.cliente?.correo" matTooltip="El correo no se puede editar">lock</mat-icon>
         <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">

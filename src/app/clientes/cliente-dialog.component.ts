@@ -42,6 +42,7 @@ export class ClienteDialogComponent implements OnInit {
   ) {
     this.modoVer = data.modoVer;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
+    const tieneCorreo = !!data.cliente?.correo; // Verificar si ya tiene correo
     
     this.clienteForm = this.fb.group({
       nombre: [data.cliente?.nombre || '', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -58,7 +59,7 @@ export class ClienteDialogComponent implements OnInit {
       correo: [
         { 
           value: data.cliente?.correo || '', 
-          disabled: isEditMode // Bloquear en modo edición
+          disabled: isEditMode && tieneCorreo // Bloquear solo si está editando Y ya tiene correo
         }, 
         [Validators.email], 
         isEditMode ? [] : [this.emailUnicoValidator.bind(this)] // Solo validar si NO es edición
@@ -674,15 +675,26 @@ export class ClienteDialogComponent implements OnInit {
   }
 
   calcularEdad(fechaNacimiento: string): string {
-    if (!fechaNacimiento) return 'N/A';
+    if (!fechaNacimiento) return 'N/P';
     
     try {
       const fecha = new Date(fechaNacimiento);
+      
+      // Validar que la fecha sea válida
+      if (isNaN(fecha.getTime())) {
+        return 'N/P';
+      }
+      
       const hoy = new Date();
       const diferencia = hoy.getTime() - fecha.getTime();
       const edadEnMilisegundos = diferencia / (1000 * 60 * 60 * 24 * 365.25);
       const años = Math.floor(edadEnMilisegundos);
       const meses = Math.floor((edadEnMilisegundos - años) * 12);
+      
+      // Validar que los cálculos sean válidos
+      if (isNaN(años) || isNaN(meses) || años < 0 || meses < 0) {
+        return 'N/P';
+      }
       
       if (años === 0) {
         return `${meses} mes${meses !== 1 ? 'es' : ''}`;
@@ -693,7 +705,7 @@ export class ClienteDialogComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error al calcular edad:', error);
-      return 'N/A';
+      return 'N/P';
     }
   }
 }
