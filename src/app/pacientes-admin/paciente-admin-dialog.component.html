@@ -93,6 +93,27 @@
                   </mat-error>
                 </mat-form-field>
               </div>
+
+              <!-- Campo de fecha de fallecimiento (solo visible cuando estado es Fallecido) -->
+              <div class="form-row" *ngIf="pacienteForm.get('estado')?.value === 'Fallecido'">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha de Fallecimiento</mat-label>
+                  <input matInput [matDatepicker]="fallecimientoPicker" formControlName="fechaFallecimiento" placeholder="Seleccionar fecha" [max]="maxDate" [disabled]="isViewMode">
+                  <mat-datepicker-toggle matSuffix [for]="fallecimientoPicker" [disabled]="isViewMode"></mat-datepicker-toggle>
+                  <mat-datepicker #fallecimientoPicker></mat-datepicker>
+                  <mat-error *ngIf="isFieldInvalid('fechaFallecimiento')">
+                    {{ getErrorMessage('fechaFallecimiento') }}
+                  </mat-error>
+                </mat-form-field>
+                
+                <!-- Campo de edad al fallecimiento (solo lectura) -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Edad al Fallecimiento</mat-label>
+                  <input matInput [value]="getEdadAlFallecimiento()" readonly placeholder="Se calculará automáticamente" [style.color]="getEdadAlFallecimiento() !== 'Selecciona ambas fechas' ? '#4CAF50' : '#666'">
+                  <mat-icon matSuffix [style.color]="getEdadAlFallecimiento() !== 'Selecciona ambas fechas' ? '#4CAF50' : '#666'">info</mat-icon>
+                  <mat-hint *ngIf="getEdadAlFallecimiento() === 'Selecciona ambas fechas'">Selecciona fecha de nacimiento y fallecimiento</mat-hint>
+                </mat-form-field>
+              </div>
       
                     <div class="form-row">
                 <mat-form-field appearance="outline">

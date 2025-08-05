@@ -49,6 +49,7 @@ export class PacienteAdminDialogComponent implements OnInit {
             sexo: ['', Validators.required],
             estado: ['Vivo', Validators.required], // Campo de estado con valor por defecto 'Vivo'
             edad: [''],
+            fechaFallecimiento: [''], // Nuevo campo para fecha de fallecimiento
             color: ['', [Validators.maxLength(30)]],
             peso: ['', [Validators.pattern(/^\d*\.?\d*$/), Validators.min(0), Validators.max(200)]],
             idCliente: [''], // Sin validación visible, se llena automáticamente
@@ -60,6 +61,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     console.log('🚀 PacienteAdminDialogComponent ngOnInit iniciado');
     this.cargarClientes();
     this.setupDateValidation();
+    this.setupEstadoChangeListener();
     
     if (this.data && this.data.paciente) {
       console.log('🔍 Datos recibidos en el diálogo:', this.data);
@@ -86,10 +88,21 @@ export class PacienteAdminDialogComponent implements OnInit {
         console.log('⚠️ No se encontró campo edad o no es string:', pacienteData.edad);
       }
       
-      // Primero asignar todos los datos excepto la fecha
-      delete pacienteData.edad;
-      console.log('🔍 Datos del paciente antes de patchValue:', pacienteData);
-      this.pacienteForm.patchValue(pacienteData);
+      // Preparar datos para el formulario
+      const formData = { ...pacienteData };
+      
+      // Convertir fecha de fallecimiento si existe
+      let fechaFallecimientoConvertida: Date | null = null;
+      if (formData.fechaFallecimiento && typeof formData.fechaFallecimiento === 'string') {
+        fechaFallecimientoConvertida = this.convertirFechaStringADate(formData.fechaFallecimiento);
+        delete formData.fechaFallecimiento;
+        console.log('📅 Fecha de fallecimiento convertida:', fechaFallecimientoConvertida);
+      }
+      
+      // Primero asignar todos los datos excepto las fechas
+      delete formData.edad;
+      console.log('🔍 Datos del paciente antes de patchValue:', formData);
+      this.pacienteForm.patchValue(formData);
       
       // Luego asignar la fecha específicamente con setTimeout para asegurar que el datepicker esté listo
       if (fechaConvertida) {
@@ -105,6 +118,22 @@ export class PacienteAdminDialogComponent implements OnInit {
           this.pacienteForm.get('edad')?.markAsTouched();
           this.pacienteForm.get('edad')?.updateValueAndValidity();
         }, 200); // Aumenté el timeout a 200ms
+      }
+      
+      // Asignar fecha de fallecimiento si existe
+      if (fechaFallecimientoConvertida) {
+        setTimeout(() => {
+          console.log('📅 Asignando fecha de fallecimiento al formulario:', fechaFallecimientoConvertida);
+          this.pacienteForm.get('fechaFallecimiento')?.setValue(fechaFallecimientoConvertida);
+          
+          // Verificar que la fecha se asignó correctamente
+          const fechaFallecimientoValue = this.pacienteForm.get('fechaFallecimiento')?.value;
+          console.log('📅 Valor final del campo fechaFallecimiento:', fechaFallecimientoValue);
+          
+          // Forzar detección de cambios
+          this.pacienteForm.get('fechaFallecimiento')?.markAsTouched();
+          this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
+        }, 300); // Timeout ligeramente mayor para asegurar que el campo esté listo
       }
       
       // Cargar imagen existente si el paciente tiene una
@@ -125,6 +154,35 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.pacienteForm.get('edad')?.valueChanges.subscribe(date => {
       if (date && date > today) {
         this.pacienteForm.get('edad')?.setErrors({ futureDate: true });
+      }
+    });
+  }
+
+  setupEstadoChangeListener() {
+    // Escuchar cambios en el campo estado
+    this.pacienteForm.get('estado')?.valueChanges.subscribe(estado => {
+      if (estado === 'Fallecido') {
+        // Si el estado es Fallecido, hacer requerida la fecha de fallecimiento
+        this.pacienteForm.get('fechaFallecimiento')?.setValidators([Validators.required]);
+        this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
+      } else {
+        // Si el estado es Vivo, quitar la validación requerida
+        this.pacienteForm.get('fechaFallecimiento')?.clearValidators();
+        this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
+      }
+    });
+
+    // Escuchar cambios en la fecha de fallecimiento para calcular edad automáticamente
+    this.pacienteForm.get('fechaFallecimiento')?.valueChanges.subscribe(fechaFallecimiento => {
+      if (fechaFallecimiento && this.pacienteForm.get('estado')?.value === 'Fallecido') {
+        this.calcularYMostrarEdadAlFallecimiento();
+      }
+    });
+
+    // Escuchar cambios en la fecha de nacimiento para calcular edad automáticamente
+    this.pacienteForm.get('edad')?.valueChanges.subscribe(fechaNacimiento => {
+      if (fechaNacimiento && this.pacienteForm.get('estado')?.value === 'Fallecido' && this.pacienteForm.get('fechaFallecimiento')?.value) {
+        this.calcularYMostrarEdadAlFallecimiento();
       }
     });
   }
@@ -240,6 +298,11 @@ export class PacienteAdminDialogComponent implements OnInit {
           formValues.edad = this.convertirDateAString(formValues.edad);
         }
         
+        // Convertir la fecha de fallecimiento si existe
+        if (formValues.fechaFallecimiento && formValues.fechaFallecimiento instanceof Date) {
+          formValues.fechaFallecimiento = this.convertirDateAString(formValues.fechaFallecimiento);
+        }
+        
         const pacienteData = {
           ...formValues,
           imageUrl: imageUrl,
@@ -306,6 +369,10 @@ export class PacienteAdminDialogComponent implements OnInit {
     
     if (field?.hasError('futureDate')) {
       return 'La fecha no puede ser posterior a hoy';
+    }
+    
+    if (fieldName === 'fechaFallecimiento' && field?.hasError('required')) {
+      return 'La fecha de fallecimiento es requerida cuando el estado es Fallecido';
     }
     
     return '';
@@ -436,5 +503,103 @@ export class PacienteAdminDialogComponent implements OnInit {
     const año = fecha.getFullYear();
     
     return `${dia}/${mes}/${año}`;
+  }
+
+  // Función para calcular la edad al momento del fallecimiento
+  calcularEdadAlFallecimiento(fechaNacimiento: string, fechaFallecimiento: string): number {
+    if (!fechaNacimiento || !fechaFallecimiento) {
+      return 0;
+    }
+    
+    try {
+      const nacimiento = this.convertirFechaStringADate(fechaNacimiento);
+      const fallecimiento = this.convertirFechaStringADate(fechaFallecimiento);
+      
+      if (!nacimiento || !fallecimiento) {
+        return 0;
+      }
+      
+      const diferencia = fallecimiento.getTime() - nacimiento.getTime();
+      const edadEnMilisegundos = diferencia / (1000 * 60 * 60 * 24 * 365.25);
+      
+      return Math.floor(edadEnMilisegundos);
+    } catch (error) {
+      console.error('Error al calcular edad al fallecimiento:', error);
+      return 0;
+    }
+  }
+
+  // Método para obtener la edad al fallecimiento en formato legible
+  getEdadAlFallecimiento(): string {
+    const fechaNacimiento = this.pacienteForm.get('edad')?.value;
+    const fechaFallecimiento = this.pacienteForm.get('fechaFallecimiento')?.value;
+    
+    if (!fechaNacimiento || !fechaFallecimiento) {
+      return 'Selecciona ambas fechas';
+    }
+    
+    // Convertir fechas a string si son objetos Date
+    let fechaNacString = '';
+    let fechaFallecimientoString = '';
+    
+    if (fechaNacimiento instanceof Date) {
+      fechaNacString = this.convertirDateAString(fechaNacimiento);
+    } else if (typeof fechaNacimiento === 'string') {
+      fechaNacString = fechaNacimiento;
+    }
+    
+    if (fechaFallecimiento instanceof Date) {
+      fechaFallecimientoString = this.convertirDateAString(fechaFallecimiento);
+    } else if (typeof fechaFallecimiento === 'string') {
+      fechaFallecimientoString = fechaFallecimiento;
+    }
+    
+    if (!fechaNacString || !fechaFallecimientoString) {
+      return 'Selecciona ambas fechas';
+    }
+    
+    const edad = this.calcularEdadAlFallecimiento(fechaNacString, fechaFallecimientoString);
+    return `${edad} años`;
+  }
+
+  // Método para calcular y mostrar la edad al fallecimiento automáticamente
+  calcularYMostrarEdadAlFallecimiento() {
+    const fechaNacimiento = this.pacienteForm.get('edad')?.value;
+    const fechaFallecimiento = this.pacienteForm.get('fechaFallecimiento')?.value;
+    
+    if (!fechaNacimiento || !fechaFallecimiento) {
+      return;
+    }
+    
+    // Convertir fechas a string si son objetos Date
+    let fechaNacString = '';
+    let fechaFallecimientoString = '';
+    
+    if (fechaNacimiento instanceof Date) {
+      fechaNacString = this.convertirDateAString(fechaNacimiento);
+    } else if (typeof fechaNacimiento === 'string') {
+      fechaNacString = fechaNacimiento;
+    }
+    
+    if (fechaFallecimiento instanceof Date) {
+      fechaFallecimientoString = this.convertirDateAString(fechaFallecimiento);
+    } else if (typeof fechaFallecimiento === 'string') {
+      fechaFallecimientoString = fechaFallecimiento;
+    }
+    
+    if (!fechaNacString || !fechaFallecimientoString) {
+      return;
+    }
+    
+    const edad = this.calcularEdadAlFallecimiento(fechaNacString, fechaFallecimientoString);
+    
+    // Mostrar la edad calculada en el campo de solo lectura
+    console.log(`📊 Edad calculada al fallecimiento: ${edad} años`);
+    
+    // Forzar la detección de cambios para actualizar la vista
+    setTimeout(() => {
+      // Esto forzará la actualización del campo de solo lectura
+      this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
+    }, 100);
   }
 } 
