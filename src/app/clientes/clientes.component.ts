@@ -236,5 +236,43 @@ export class ClientesComponent implements OnInit {
     });
   }
 
+  // Función para encontrar clientes sin pacientes
+  encontrarClientesSinPacientes() {
+    // Obtener pacientes para comparar
+    this.pacientesService.getPacientes().subscribe(pacientes => {
+      const pacientesData = pacientes || [];
+      
+      // Crear un Set de IDs de clientes que tienen pacientes
+      const clientesConPacientesSet = new Set(
+        pacientesData.map(paciente => paciente.idCliente).filter(id => id)
+      );
+      
+      // Encontrar clientes que NO tienen pacientes
+      const clientesSinPacientes = this.todosLosClientes.filter(cliente => 
+        !clientesConPacientesSet.has(cliente.id)
+      );
+      
+      if (clientesSinPacientes.length === 0) {
+        Swal.fire('Información', 'Todos los clientes tienen pacientes registrados.', 'info');
+      } else {
+        const nombres = clientesSinPacientes.map(cliente => {
+          const nombreCompleto = `${cliente.nombre || ''} ${cliente.apellidoPaterno || ''} ${cliente.apellidoMaterno || ''}`.trim();
+          return nombreCompleto || 'Sin nombre';
+        });
+        
+        Swal.fire({
+          title: 'Clientes Sin Pacientes',
+          html: `
+            <p><strong>Total: ${clientesSinPacientes.length} cliente(s)</strong></p>
+            <ul style="text-align: left; max-height: 200px; overflow-y: auto;">
+              ${nombres.map(nombre => `<li>${nombre}</li>`).join('')}
+            </ul>
+          `,
+          icon: 'info',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
+  }
 
 }

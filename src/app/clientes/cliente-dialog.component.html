@@ -150,6 +150,70 @@
       </mat-form-field>
     </div>
   </form>
+
+  <!-- Sección de Mascotas (solo en modo ver) -->
+  <div class="pacientes-section" *ngIf="modoVer">
+    <div class="section-header">
+      <h3>Mascotas</h3>
+      <mat-icon>pets</mat-icon>
+    </div>
+    
+    <div class="loading-container" *ngIf="cargandoPacientes">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando pacientes...</p>
+    </div>
+    
+    <div class="no-pacientes" *ngIf="!cargandoPacientes && pacientesRelacionados.length === 0">
+      <mat-icon>info</mat-icon>
+      <p>Este cliente no tiene pacientes registrados</p>
+    </div>
+    
+    <div class="pacientes-grid" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
+      <mat-card class="paciente-card" *ngFor="let paciente of pacientesRelacionados">
+        <mat-card-header>
+          <mat-card-title>{{ paciente.nombre }}</mat-card-title>
+          <mat-card-subtitle>
+            <span class="especie-badge" [class]="paciente.especie?.toLowerCase()">
+              {{ paciente.especie || 'N/A' }}
+            </span>
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="paciente-info">
+            <div class="info-row">
+              <mat-icon>category</mat-icon>
+              <span><strong>Raza:</strong> {{ paciente.raza || 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>wc</mat-icon>
+              <span><strong>Sexo:</strong> {{ paciente.sexo || 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>schedule</mat-icon>
+              <span><strong>Edad:</strong> {{ calcularEdad(paciente.edad) }}</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>palette</mat-icon>
+              <span><strong>Color:</strong> {{ paciente.color || 'N/A' }}</span>
+            </div>
+            <div class="info-row" *ngIf="paciente.peso">
+              <mat-icon>fitness_center</mat-icon>
+              <span><strong>Peso:</strong> {{ paciente.peso }} kg</span>
+            </div>
+            <div class="info-row">
+              <mat-icon>circle</mat-icon>
+              <span><strong>Estado:</strong> 
+                <span class="estado-badge" [class]="paciente.estado?.toLowerCase()">
+                  {{ paciente.estado || 'N/A' }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cerrar()">Cerrar</button>

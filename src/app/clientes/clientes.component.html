@@ -53,10 +53,16 @@
         <p>Gestiona todos los clientes registrados en el sistema</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="abrirModalCliente()">
-      <mat-icon>add</mat-icon>
-      Nuevo Cliente
-    </button>
+    <div class="banner-actions">
+      <button mat-stroked-button color="accent" (click)="encontrarClientesSinPacientes()" matTooltip="Buscar clientes sin pacientes">
+        <mat-icon>search</mat-icon>
+        Sin Pacientes
+      </button>
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+        <mat-icon>add</mat-icon>
+        Nuevo Cliente
+      </button>
+    </div>
   </div>
 
   <mat-card class="clientes-card">

@@ -185,4 +185,197 @@ mat-progress-bar {
   animation: shake 0.5s ease-in-out;
 }
 
+/* Estilos para la sección de pacientes relacionados */
+.pacientes-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+  font-size: 1.2em;
+}
+
+.section-header mat-icon {
+  color: #673ab7;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.loading-container p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.no-pacientes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #666;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}
+
+.no-pacientes mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #999;
+}
+
+.no-pacientes p {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.pacientes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.paciente-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.paciente-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.paciente-card mat-card-header {
+  padding: 16px 16px 8px 16px;
+  background: linear-gradient(135deg, #673ab7 0%, #8e24aa 100%);
+  color: white;
+}
+
+.paciente-card mat-card-title {
+  color: white;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.paciente-card mat-card-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+}
+
+.especie-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.especie-badge.canino {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.especie-badge.felino {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.paciente-card mat-card-content {
+  padding: 16px;
+}
+
+.paciente-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.info-row mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #673ab7;
+  flex-shrink: 0;
+}
+
+.info-row span {
+  flex: 1;
+}
+
+.info-row strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.estado-badge.vivo {
+  background: #4caf50;
+  color: white;
+}
+
+.estado-badge.fallecido {
+  background: #f44336;
+  color: white;
+}
+
+.estado-badge.adoptado {
+  background: #ff9800;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pacientes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .paciente-card {
+    margin-bottom: 16px;
+  }
+}
+
  

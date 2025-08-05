@@ -17,6 +17,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { ClienteDialogComponent } from './cliente-dialog.component';
 
@@ -42,6 +43,7 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     AngularFireStorageModule
   ]
 })

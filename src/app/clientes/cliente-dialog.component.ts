@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors }
 import { HttpClient } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ClientesService } from './clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { Observable, map } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -19,6 +20,8 @@ export class ClienteDialogComponent implements OnInit {
   coloniasDisponibles: any[] = [];
   mostrarSelectorColonias: boolean = false;
   todosLosClientes: any[] = [];
+  pacientesRelacionados: any[] = [];
+  cargandoPacientes: boolean = false;
   
   // Propiedades para carga de imágenes
   selectedFile: File | null = null;
@@ -34,7 +37,8 @@ export class ClienteDialogComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private storage: AngularFireStorage,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private pacientesService: PacientesService
   ) {
     this.modoVer = data.modoVer;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
@@ -77,6 +81,11 @@ export class ClienteDialogComponent implements OnInit {
     // Cargar imagen existente si estamos editando
     if (this.data?.cliente?.imageUrl && this.data.cliente.imageUrl !== this.defaultImageUrl) {
       this.imagePreview = this.data.cliente.imageUrl;
+    }
+    
+    // Cargar pacientes relacionados si estamos en modo ver
+    if (this.modoVer && this.data?.cliente?.id) {
+      this.cargarPacientesRelacionados();
     }
   }
 
@@ -625,5 +634,66 @@ export class ClienteDialogComponent implements OnInit {
         this.todosLosClientes = [];
       }
     });
+  }
+
+  cargarPacientesRelacionados() {
+    if (!this.data?.cliente?.id) {
+      console.log('❌ No hay ID de cliente para cargar pacientes');
+      return;
+    }
+
+    this.cargandoPacientes = true;
+    console.log('🔄 Cargando pacientes relacionados para cliente:', this.data.cliente.id);
+
+    this.pacientesService.getPacientes().subscribe({
+      next: (pacientes) => {
+        const pacientesData = pacientes || [];
+        this.pacientesRelacionados = pacientesData.filter(paciente => 
+          paciente.idCliente === this.data.cliente.id
+        );
+        
+        console.log('✅ Pacientes relacionados cargados:', this.pacientesRelacionados.length);
+        this.pacientesRelacionados.forEach((paciente, index) => {
+          console.log(`Paciente ${index}:`, {
+            id: paciente.id,
+            nombre: paciente.nombre,
+            especie: paciente.especie,
+            raza: paciente.raza,
+            estado: paciente.estado
+          });
+        });
+        
+        this.cargandoPacientes = false;
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar pacientes relacionados:', error);
+        this.pacientesRelacionados = [];
+        this.cargandoPacientes = false;
+      }
+    });
+  }
+
+  calcularEdad(fechaNacimiento: string): string {
+    if (!fechaNacimiento) return 'N/A';
+    
+    try {
+      const fecha = new Date(fechaNacimiento);
+      const hoy = new Date();
+      const diferencia = hoy.getTime() - fecha.getTime();
+      const edadEnMilisegundos = diferencia / (1000 * 60 * 60 * 24 * 365.25);
+      const años = Math.floor(edadEnMilisegundos);
+      const meses = Math.floor((edadEnMilisegundos - años) * 12);
+      
+      if (años === 0) {
+        return `${meses} mes${meses !== 1 ? 'es' : ''}`;
+      } else if (meses === 0) {
+        return `${años} año${años !== 1 ? 's' : ''}`;
+      } else {
+        return `${años} año${años !== 1 ? 's' : ''} y ${meses} mes${meses !== 1 ? 'es' : ''}`;
+      }
+    } catch (error) {
+      console.error('Error al calcular edad:', error);
+      return 'N/A';
+    }
   }
 }
