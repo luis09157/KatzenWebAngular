@@ -1,0 +1,179 @@
+.citas-dia-dialog {
+  max-width: 600px;
+  width: 100%;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.dialog-header mat-icon {
+  color: #2196f3;
+}
+
+.close-btn {
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.sin-citas {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.sin-citas mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.sin-citas h3 {
+  margin: 10px 0;
+  color: #333;
+}
+
+.sin-citas p {
+  margin: 0;
+  color: #666;
+}
+
+.citas-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cita-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.cita-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.cita-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #fff;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.cita-hora {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.cita-hora mat-icon {
+  color: #2196f3;
+}
+
+.cita-estado {
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cita-content {
+  padding: 20px;
+}
+
+.cita-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.cita-info > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cita-info mat-icon {
+  color: #666;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.cita-info span {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.cita-observaciones {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  background: #fff3cd;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+}
+
+.cita-observaciones mat-icon {
+  color: #856404;
+  margin-top: 2px;
+}
+
+.cita-observaciones span {
+  color: #856404;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Scrollbar personalizada */
+.citas-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.citas-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.citas-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.citas-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+} 

@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
@@ -10,7 +11,24 @@ import { map, startWith } from 'rxjs/operators';
 @Component({
   selector: 'app-cita-dialog',
   templateUrl: './cita-dialog.component.html',
-  styleUrls: ['./cita-dialog.component.css']
+  styleUrls: ['./cita-dialog.component.css'],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: {
+        parse: {
+          dateInput: 'DD/MM/YYYY',
+        },
+        display: {
+          dateInput: 'DD/MM/YYYY',
+          monthYearLabel: 'MMM YYYY',
+          dateA11yLabel: 'LL',
+          monthYearA11yLabel: 'MMMM YYYY',
+        },
+      },
+    },
+  ]
 })
 export class CitaDialogComponent implements OnInit {
   citaForm: FormGroup;
@@ -47,6 +65,8 @@ export class CitaDialogComponent implements OnInit {
   filteredClientes!: Observable<any[]>;
   clienteSeleccionado: any = null;
   pacientesDelCliente: any[] = [];
+  
+
 
   constructor(
     public dialogRef: MatDialogRef<CitaDialogComponent>,
@@ -54,17 +74,65 @@ export class CitaDialogComponent implements OnInit {
     private fb: FormBuilder,
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
-    private usuariosService: UsuariosService
+    private usuariosService: UsuariosService,
+    private dateAdapter: DateAdapter<any>
   ) {
     this.modoVer = data.modoVer;
     
     // Separar fecha_hora en fecha y hora si existe
     let fecha = '';
     let hora = '';
-    if (data.cita?.fecha_hora) {
-      const fechaHora = new Date(data.cita.fecha_hora);
-      fecha = fechaHora.toISOString().split('T')[0]; // YYYY-MM-DD
-      hora = fechaHora.toTimeString().slice(0, 5); // HH:MM
+    
+    console.log('🔍 Datos de cita recibidos:', data.cita);
+    console.log('🔍 Campos específicos:', {
+      fecha: data.cita?.fecha,
+      fecha_hora: data.cita?.fecha_hora,
+      hora: data.cita?.hora,
+      tipo_fecha: typeof data.cita?.fecha,
+      tipo_fecha_hora: typeof data.cita?.fecha_hora
+    });
+    
+    // Método para procesar fecha correctamente
+    const procesarFecha = (fechaString: string) => {
+      try {
+        // Si es un string con formato ISO, extraer la fecha sin conversión de zona horaria
+        if (fechaString.includes('T')) {
+          // Extraer fecha directamente del string ISO sin crear objeto Date
+          const fechaPart = fechaString.split('T')[0]; // "2025-08-15"
+          const horaPart = fechaString.split('T')[1]; // "00:00:00.000Z"
+          
+          // Extraer hora de la parte de tiempo
+          const hora = horaPart.split(':')[0] + ':' + horaPart.split(':')[1]; // "00:00"
+          
+          return {
+            fecha: fechaPart, // "2025-08-15"
+            hora: hora // "00:00"
+          };
+        } else {
+          // Si no tiene T, asumir que es solo fecha
+          return {
+            fecha: fechaString,
+            hora: '00:00'
+          };
+        }
+      } catch (error) {
+        console.error('Error procesando fecha:', error);
+        return { fecha: '', hora: '' };
+      }
+    };
+    
+    // Usar el campo 'fecha' que es la fecha real de la cita
+    if (data.cita?.fecha) {
+      const resultado = procesarFecha(data.cita.fecha);
+      fecha = resultado.fecha;
+      // Usar la hora del campo 'hora' si está disponible, sino usar la del resultado
+      hora = data.cita.hora || resultado.hora;
+      console.log('📅 Constructor: Usando campo fecha:', fecha, hora);
+    } else if (data.cita?.fecha_hora) {
+      const resultado = procesarFecha(data.cita.fecha_hora);
+      fecha = resultado.fecha;
+      hora = resultado.hora;
+      console.log('📅 Constructor: Usando campo fecha_hora:', fecha, hora);
     }
     
     this.citaForm = this.fb.group({
@@ -85,21 +153,41 @@ export class CitaDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Configurar el datepicker para español
+    this.dateAdapter.setLocale('es-ES');
+    
     this.cargarClientes();
     this.cargarPacientes();
     this.cargarDoctores();
     this.setupAutocomplete();
+    
+    // Si hay datos de cita, establecer valores (tanto para editar como para ver)
+    if (this.data.cita) {
+      this.establecerValoresEdicion();
+    }
   }
 
   cargarClientes() {
     this.clientesService.getClientes().subscribe(clientes => {
       this.clientes = clientes || [];
+      console.log('👥 Clientes cargados:', this.clientes.length);
+      // Si hay datos de cita y pacientes cargados, establecer valores
+      if (this.data.cita && this.pacientes.length > 0) {
+        console.log('🔄 Intentando establecer valores después de cargar clientes');
+        this.establecerValoresEdicion();
+      }
     });
   }
 
   cargarPacientes() {
     this.pacientesService.getPacientes().subscribe(pacientes => {
       this.pacientes = pacientes || [];
+      console.log('🐾 Pacientes cargados:', this.pacientes.length);
+      // Si hay datos de cita y clientes cargados, establecer valores
+      if (this.data.cita && this.clientes.length > 0) {
+        console.log('🔄 Intentando establecer valores después de cargar pacientes');
+        this.establecerValoresEdicion();
+      }
     });
   }
 
@@ -171,7 +259,10 @@ export class CitaDialogComponent implements OnInit {
         const fecha = new Date(formValue.fecha);
         const [horas, minutos] = formValue.hora.split(':');
         fecha.setHours(parseInt(horas), parseInt(minutos));
-        formValue.fecha_hora = fecha.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM
+        
+        // Guardar tanto la fecha real como fecha_hora para compatibilidad
+        formValue.fecha = fecha.toISOString(); // Fecha real de la cita
+        formValue.fecha_hora = fecha.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM para compatibilidad
       }
       
       // Limpiar campos temporales que no deben guardarse
@@ -223,5 +314,65 @@ export class CitaDialogComponent implements OnInit {
            this.citaForm.get('fecha')?.value &&
            this.citaForm.get('hora')?.value &&
            this.citaForm.get('motivo')?.value;
+  }
+
+  // Método para establecer valores cuando se edita o ve una cita
+  establecerValoresEdicion() {
+    const cita = this.data.cita;
+    if (!cita) return;
+
+    console.log('🔧 Estableciendo valores para cita:', cita, 'Modo ver:', this.modoVer);
+
+    // Buscar el cliente en la lista de clientes
+    const cliente = this.clientes.find(c => c.id === cita.cliente_id);
+    if (cliente) {
+      this.clienteSeleccionado = cliente;
+      this.citaForm.patchValue({
+        cliente_id: cita.cliente_id,
+        nombreCliente: this.getNombreCompleto(cliente)
+      });
+      
+      // Filtrar pacientes del cliente seleccionado
+      this.pacientesDelCliente = this.pacientes.filter(paciente => 
+        paciente.cliente_id === cliente.id || paciente.idCliente === cliente.id
+      );
+      console.log('👤 Cliente establecido:', cliente.nombre);
+    }
+
+    // Buscar el paciente en la lista de pacientes
+    const paciente = this.pacientes.find(p => p.id === cita.paciente_id);
+    if (paciente) {
+      this.citaForm.patchValue({
+        paciente_id: cita.paciente_id
+      });
+      console.log('🐾 Paciente establecido:', paciente.nombre);
+    }
+
+    // Establecer otros valores
+    const valoresAEstablecer = {
+      motivo: cita.motivo || '',
+      estado: cita.estado || 'pendiente',
+      veterinario: cita.veterinario || '',
+      observaciones: cita.observaciones || ''
+    };
+    
+    console.log('📝 Valores a establecer:', valoresAEstablecer);
+    this.citaForm.patchValue(valoresAEstablecer);
+    
+    // Verificar que los valores se establecieron correctamente
+    setTimeout(() => {
+      const estadoActual = this.citaForm.get('estado')?.value;
+      const fechaActual = this.citaForm.get('fecha')?.value;
+      const horaActual = this.citaForm.get('hora')?.value;
+      const clienteActual = this.citaForm.get('nombreCliente')?.value;
+      const pacienteActual = this.citaForm.get('paciente_id')?.value;
+      console.log('✅ Valores actuales del formulario:', {
+        estado: estadoActual,
+        fecha: fechaActual,
+        hora: horaActual,
+        cliente: clienteActual,
+        paciente: pacienteActual
+      });
+    }, 100);
   }
 } 

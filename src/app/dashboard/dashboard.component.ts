@@ -4,6 +4,8 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CitasService } from '../citas/citas.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +38,8 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private citasService: CitasService
+    private citasService: CitasService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -54,7 +57,16 @@ export class DashboardComponent implements OnInit {
       this.citasMap = {};
       
       this.citas.forEach(cita => {
-        if (cita.fecha_hora) {
+        // Usar el campo 'fecha' que es la fecha real de la cita
+        if (cita.fecha) {
+          const fecha = new Date(cita.fecha);
+          const key = this.formatDateKey(fecha);
+          if (!this.citasMap[key]) {
+            this.citasMap[key] = [];
+          }
+          this.citasMap[key].push(cita);
+        } else if (cita.fecha_hora) {
+          // Fallback a fecha_hora si no hay fecha
           const fecha = new Date(cita.fecha_hora);
           const key = this.formatDateKey(fecha);
           if (!this.citasMap[key]) {
@@ -129,8 +141,18 @@ export class DashboardComponent implements OnInit {
   }
 
   showCitasForDay(day: any) {
-    this.selectedDayCitas = day.citas || [];
-    this.selectedDayDate = day.date;
+    const citas = day.citas || [];
+    const fecha = day.date;
+    
+    // Abrir modal con las citas del día
+    this.dialog.open(CitasDiaDialogComponent, {
+      width: '600px',
+      maxHeight: '80vh',
+      data: {
+        citas: citas,
+        fecha: fecha
+      }
+    });
   }
 
   getSaludo(): string {
@@ -142,6 +164,24 @@ export class DashboardComponent implements OnInit {
     } else {
       return '¡Buenas noches!';
     }
+  }
+
+  getHoraFormateada(cita: any): string {
+    // Usar el campo 'hora' que es la hora correcta de la cita
+    if (cita.hora) {
+      return cita.hora;
+    }
+    
+    // Fallback a fecha_hora si no hay hora
+    if (cita.fecha_hora) {
+      const fecha = new Date(cita.fecha_hora);
+      return fecha.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    return '00:00';
   }
 
   navegarA(ruta: string) {

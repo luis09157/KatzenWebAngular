@@ -39,7 +39,20 @@ export class CitasService {
   }
 
   // Baja lógica: marcar como inactiva
-  bajaLogicaCita(id: string) {
-    return this.db.object(`Katzen/Citas/${id}`).update({ activo: false });
+  async bajaLogicaCita(id: string): Promise<any> {
+    console.log('🗑️ Intentando eliminar cita con ID:', id);
+    
+    try {
+      const result = await this.db.object(`Katzen/Citas/${id}`).update({ 
+        activo: false,
+        fecha_eliminacion: new Date().toISOString()
+      });
+      
+      console.log('✅ Cita eliminada exitosamente:', id);
+      return result;
+    } catch (error) {
+      console.error('❌ Error al eliminar cita:', error);
+      throw error;
+    }
   }
 } 

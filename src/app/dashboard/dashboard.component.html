@@ -4,7 +4,7 @@
     <div class="welcome-section">
       <h1 class="welcome-title">{{ getSaludo() }}</h1>
       <p class="welcome-subtitle">Bienvenido al Sistema de Gestión Veterinaria KatzenVet</p>
-      <p class="current-date">{{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy' }}</p>
+      <p class="current-date">{{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</p>
     </div>
     
     <div class="quick-stats">
@@ -94,7 +94,10 @@
           [class.current-month]="day.isCurrentMonth"
           [class.today]="day.isToday"
           [class.has-citas]="day.hasCitas"
-          (click)="day.hasCitas && showCitasForDay(day)"
+          (dblclick)="showCitasForDay(day)"
+          [style.cursor]="day.hasCitas ? 'pointer' : 'default'"
+          [matTooltip]="day.hasCitas ? 'Doble clic para ver citas' : ''"
+          matTooltipPosition="above"
         >
           <div class="day-number">{{ day.day }}</div>
           <div *ngIf="day.hasCitas" class="citas-indicator">
@@ -105,21 +108,6 @@
       </div>
     </div>
 
-    <!-- Información de citas del día seleccionado -->
-    <div *ngIf="selectedDayCitas && selectedDayCitas.length > 0" class="day-citas-info">
-      <h4>Citas del {{ selectedDayDate | date:'EEEE, d \'de\' MMMM' }}</h4>
-      <div class="citas-list">
-        <div *ngFor="let cita of selectedDayCitas" class="cita-item">
-          <div class="cita-time">{{ cita.fecha_hora | date:'HH:mm' }}</div>
-          <div class="cita-info">
-            <div class="cita-paciente">{{ cita.paciente || 'N/A' }}</div>
-            <div class="cita-motivo">{{ cita.motivo || 'Sin motivo especificado' }}</div>
-          </div>
-          <div class="cita-estado" [class]="'estado-' + cita.estado?.toLowerCase()">
-            {{ cita.estado || 'Pendiente' }}
-          </div>
-        </div>
-      </div>
-    </div>
+
   </div>
 </div>

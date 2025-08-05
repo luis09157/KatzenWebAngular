@@ -1,0 +1,63 @@
+<div class="citas-dia-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>event</mat-icon>
+      Citas del {{ data.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}
+    </h2>
+    <button mat-icon-button (click)="cerrar()" class="close-btn" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div *ngIf="data.citas.length === 0" class="sin-citas">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No hay citas programadas</h3>
+      <p>No se han encontrado citas para este día.</p>
+    </div>
+
+    <div *ngIf="data.citas.length > 0" class="citas-container">
+      <div *ngFor="let cita of data.citas" class="cita-card">
+        <div class="cita-header">
+          <div class="cita-hora">
+            <mat-icon>schedule</mat-icon>
+            {{ getHoraFormateada(cita) }}
+          </div>
+          <div class="cita-estado" [style.background-color]="getEstadoColor(cita.estado)">
+            {{ cita.estado || 'Pendiente' }}
+          </div>
+        </div>
+        
+        <div class="cita-content">
+          <div class="cita-info">
+            <div class="cita-cliente">
+              <mat-icon>person</mat-icon>
+              <span>{{ cita.cliente || 'Cliente no especificado' }}</span>
+            </div>
+            <div class="cita-paciente">
+              <mat-icon>pets</mat-icon>
+              <span>{{ cita.paciente || 'Paciente no especificado' }}</span>
+            </div>
+            <div class="cita-motivo">
+              <mat-icon>medical_services</mat-icon>
+              <span>{{ cita.motivo || 'Sin motivo especificado' }}</span>
+            </div>
+            <div *ngIf="cita.veterinario" class="cita-veterinario">
+              <mat-icon>person_pin</mat-icon>
+              <span>{{ cita.veterinario }}</span>
+            </div>
+          </div>
+          
+          <div *ngIf="cita.observaciones" class="cita-observaciones">
+            <mat-icon>note</mat-icon>
+            <span>{{ cita.observaciones }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="cerrar()">Cerrar</button>
+  </mat-dialog-actions>
+</div> 

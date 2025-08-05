@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -33,6 +34,7 @@ import { CitaDialogComponent } from './cita-dialog.component';
     MatTableModule,
     MatIconModule,
     MatPaginatorModule,
+    MatSortModule,
     MatDialogModule,
     MatSelectModule,
     MatAutocompleteModule,

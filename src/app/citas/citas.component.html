@@ -91,7 +91,7 @@
           <td mat-cell *matCellDef="let cita">
             <div class="fecha-cell">
               <mat-icon class="fecha-icon">event</mat-icon>
-              {{ cita.fecha_hora ? cita.fecha_hora : 'N/P' }}
+              {{ getFechaFormateada(cita) }}
             </div>
           </td>
         </ng-container>
@@ -161,20 +161,32 @@
               <button mat-icon-button color="accent" (click)="editarCita(cita)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" (click)="bajaLogicaCita(cita.id)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+              <button mat-icon-button color="warn" 
+                      (click)="bajaLogicaCita(cita.id)" 
+                      matTooltip="Eliminar" 
+                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
               </button>
-              <button *ngIf="cita.estado === 'pendiente'" 
+              <button *ngIf="cita.estado?.toLowerCase() === 'pendiente'" 
                       mat-icon-button color="primary" 
                       (click)="cambiarEstado(cita, 'confirmada')" 
-                      matTooltip="Confirmar cita" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                      matTooltip="Confirmar cita" 
+                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">check</mat-icon>
               </button>
-              <button *ngIf="cita.estado === 'confirmada'" 
-                      mat-icon-button color="accent" 
+              <button *ngIf="cita.estado?.toLowerCase() === 'confirmada'" 
+                      mat-icon-button color="success" 
                       (click)="cambiarEstado(cita, 'completada')" 
-                      matTooltip="Marcar como completada" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                      matTooltip="Marcar como completada" 
+                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">done_all</mat-icon>
+              </button>
+              <button *ngIf="cita.estado?.toLowerCase() === 'completada'" 
+                      mat-icon-button color="accent" 
+                      (click)="cambiarEstado(cita, 'confirmada')" 
+                      matTooltip="Revertir a confirmada" 
+                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">undo</mat-icon>
               </button>
             </div>
           </td>
