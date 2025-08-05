@@ -109,6 +109,34 @@ table {
   color: white;
 }
 
+/* Estilos para badges de estado */
+.estado-badge {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.estado-badge.vivo {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+}
+
+.estado-badge.fallecido {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+/* Estilo por defecto para estado */
+.estado-badge:not(.vivo):not(.fallecido) {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+}
+
 .actions-cell {
   display: flex;
   gap: 4px;

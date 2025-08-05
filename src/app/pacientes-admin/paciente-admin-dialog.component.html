@@ -80,6 +80,20 @@
                 </mat-form-field>
               </div>
       
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Estado</mat-label>
+                  <mat-select formControlName="estado" [disabled]="isViewMode">
+                    <mat-option *ngFor="let estado of estados" [value]="estado">
+                      {{ estado }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="isFieldInvalid('estado')">
+                    {{ getErrorMessage('estado') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+      
                     <div class="form-row">
                 <mat-form-field appearance="outline">
                   <mat-label>Fecha de Nacimiento</mat-label>

@@ -22,6 +22,7 @@ export class PacientesAdminComponent implements OnInit {
     'especie', 
     'raza', 
     'sexo', 
+    'estado',
     'edad', 
     'color', 
     'peso', 

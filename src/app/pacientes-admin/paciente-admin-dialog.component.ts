@@ -21,6 +21,7 @@ export class PacienteAdminDialogComponent implements OnInit {
 
   especies = ['CANINO', 'FELINO', 'AVE', 'REPTIL', 'OTRO'];
   sexos = ['Macho Entero', 'Macho Castrado', 'Hembra Entera', 'Hembra Esterilizada'];
+  estados = ['Vivo', 'Fallecido'];
 
   // Variables para autocompletado de clientes
   clientes: any[] = [];
@@ -46,6 +47,7 @@ export class PacienteAdminDialogComponent implements OnInit {
             especie: ['', Validators.required],
             raza: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
             sexo: ['', Validators.required],
+            estado: ['Vivo', Validators.required], // Campo de estado con valor por defecto 'Vivo'
             edad: [''],
             color: ['', [Validators.maxLength(30)]],
             peso: ['', [Validators.pattern(/^\d*\.?\d*$/), Validators.min(0), Validators.max(200)]],
@@ -55,10 +57,13 @@ export class PacienteAdminDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log('🚀 PacienteAdminDialogComponent ngOnInit iniciado');
     this.cargarClientes();
     this.setupDateValidation();
     
     if (this.data && this.data.paciente) {
+      console.log('🔍 Datos recibidos en el diálogo:', this.data);
+      
       // Detectar el modo
       if (this.data.modo === 'ver') {
         this.isViewMode = true;
@@ -68,12 +73,46 @@ export class PacienteAdminDialogComponent implements OnInit {
         this.isViewMode = false;
       }
       
-      this.pacienteForm.patchValue(this.data.paciente);
+      // Preparar los datos del paciente, convirtiendo la fecha si es necesario
+      const pacienteData = { ...this.data.paciente };
+      console.log('🔍 Datos originales del paciente:', pacienteData);
+      
+      let fechaConvertida: Date | null = null;
+      if (pacienteData.edad && typeof pacienteData.edad === 'string') {
+        console.log('📅 Convirtiendo fecha string:', pacienteData.edad);
+        fechaConvertida = this.convertirFechaStringADate(pacienteData.edad);
+        console.log('📅 Fecha convertida:', fechaConvertida);
+      } else {
+        console.log('⚠️ No se encontró campo edad o no es string:', pacienteData.edad);
+      }
+      
+      // Primero asignar todos los datos excepto la fecha
+      delete pacienteData.edad;
+      console.log('🔍 Datos del paciente antes de patchValue:', pacienteData);
+      this.pacienteForm.patchValue(pacienteData);
+      
+      // Luego asignar la fecha específicamente con setTimeout para asegurar que el datepicker esté listo
+      if (fechaConvertida) {
+        setTimeout(() => {
+          console.log('📅 Asignando fecha al formulario:', fechaConvertida);
+          this.pacienteForm.get('edad')?.setValue(fechaConvertida);
+          
+          // Verificar que la fecha se asignó correctamente
+          const edadValue = this.pacienteForm.get('edad')?.value;
+          console.log('📅 Valor final del campo edad:', edadValue);
+          
+          // Forzar detección de cambios
+          this.pacienteForm.get('edad')?.markAsTouched();
+          this.pacienteForm.get('edad')?.updateValueAndValidity();
+        }, 200); // Aumenté el timeout a 200ms
+      }
       
       // Cargar imagen existente si el paciente tiene una
       if (this.data.paciente.imageUrl && this.data.paciente.imageUrl !== this.defaultImageUrl) {
         this.imagePreview = this.data.paciente.imageUrl;
       }
+    } else {
+      console.log('⚠️ No se recibieron datos del paciente');
     }
   }
 
@@ -193,8 +232,16 @@ export class PacienteAdminDialogComponent implements OnInit {
           imageUrl = await this.uploadImage();
         }
         
+        // Obtener los valores del formulario
+        const formValues = this.pacienteForm.value;
+        
+        // Convertir la fecha de vuelta al formato string si existe
+        if (formValues.edad && formValues.edad instanceof Date) {
+          formValues.edad = this.convertirDateAString(formValues.edad);
+        }
+        
         const pacienteData = {
-          ...this.pacienteForm.value,
+          ...formValues,
           imageUrl: imageUrl,
           imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.paciente?.imageFileName || ''),
           fecha: new Date().toLocaleString('es-ES')
@@ -336,5 +383,58 @@ export class PacienteAdminDialogComponent implements OnInit {
   removeImage() {
     this.selectedFile = null;
     this.imagePreview = null;
+  }
+
+  // Función para convertir fecha en formato string (dd/mm/yyyy) a objeto Date
+  convertirFechaStringADate(fechaString: string): Date | null {
+    if (!fechaString) {
+      console.log('❌ Fecha string vacía');
+      return null;
+    }
+    
+    console.log('🔄 Convirtiendo fecha:', fechaString);
+    
+    try {
+      const partes = fechaString.split('/');
+      console.log('📅 Partes de la fecha:', partes);
+      
+      if (partes.length !== 3) {
+        console.log('❌ Formato de fecha inválido, se esperaban 3 partes');
+        return null;
+      }
+      
+      const dia = parseInt(partes[0]);
+      const mes = parseInt(partes[1]) - 1; // Los meses en JS van de 0 a 11
+      const año = parseInt(partes[2]);
+      
+      console.log('📅 Dia:', dia, 'Mes:', mes, 'Año:', año);
+      
+      const fecha = new Date(año, mes, dia);
+      
+      // Verificar que la fecha sea válida
+      if (isNaN(fecha.getTime())) {
+        console.log('❌ Fecha inválida después de crear Date object');
+        return null;
+      }
+      
+      console.log('✅ Fecha convertida exitosamente:', fecha);
+      return fecha;
+    } catch (error) {
+      console.error('❌ Error al convertir fecha:', error);
+      return null;
+    }
+  }
+
+  // Función para convertir Date a string en formato dd/mm/yyyy
+  convertirDateAString(fecha: Date): string {
+    if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
+      return '';
+    }
+    
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const año = fecha.getFullYear();
+    
+    return `${dia}/${mes}/${año}`;
   }
 } 
