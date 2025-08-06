@@ -137,24 +137,8 @@ export class HistorialesComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result && !modoVer) {
-        // Si es un historial existente, actualizar; si no, crear nuevo
-        if (historial && historial.id) {
-          this.historialesService.actualizarHistorial(historial.id, result).then(() => {
-            Swal.fire('Éxito', 'Historial actualizado correctamente', 'success');
-            this.cargarDatos(); // Recargar datos
-          }).catch(error => {
-            console.error('Error al actualizar historial:', error);
-            Swal.fire('Error', 'No se pudo actualizar el historial', 'error');
-          });
-        } else {
-          this.historialesService.crearHistorial(result).then(() => {
-            Swal.fire('Éxito', 'Historial creado correctamente', 'success');
-            this.cargarDatos(); // Recargar datos
-          }).catch(error => {
-            console.error('Error al crear historial:', error);
-            Swal.fire('Error', 'No se pudo crear el historial', 'error');
-          });
-        }
+        // Solo recargar datos, ya que el historial se maneja en el componente del diálogo
+        this.cargarDatos();
       }
     });
   }
@@ -185,13 +169,8 @@ export class HistorialesComponent implements OnInit {
     
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.historialesService.crearHistorial(result).then(() => {
-          Swal.fire('Éxito', 'Historial creado correctamente', 'success');
-          this.cargarDatos(); // Recargar datos
-        }).catch(error => {
-          console.error('Error al crear historial:', error);
-          Swal.fire('Error', 'No se pudo crear el historial', 'error');
-        });
+        // El historial ya se creó en el componente del diálogo
+        this.cargarDatos(); // Solo recargar datos
       }
     });
   }

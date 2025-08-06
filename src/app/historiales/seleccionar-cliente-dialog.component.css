@@ -217,6 +217,79 @@
   gap: 10px;
 }
 
+/* Estilos para pacientes fallecidos */
+.pacientes-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #3f51b5;
+}
+
+.section-header h4 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.section-icon {
+  color: #3f51b5;
+}
+
+.section-icon.fallecido {
+  color: #9e9e9e;
+}
+
+.paciente-item.fallecido {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+.paciente-item.fallecido:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.paciente-icon.fallecido {
+  color: #9e9e9e;
+}
+
+.estado-fallecido {
+  color: #f44336 !important;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.arrow-icon.disabled {
+  color: #ccc;
+}
+
+.paciente-item.fallecido .arrow-icon {
+  color: #ccc;
+}
+
+.paciente-item.fallecido:hover .arrow-icon {
+  color: #ccc;
+}
+
+.note {
+  font-style: italic;
+  color: #999;
+  font-size: 0.8rem;
+  margin-top: 10px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .seleccionar-cliente-dialog {

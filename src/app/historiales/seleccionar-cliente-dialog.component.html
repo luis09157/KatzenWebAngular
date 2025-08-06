@@ -25,13 +25,13 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>
             <mat-icon class="search-icon">search</mat-icon>
-            Buscar cliente por nombre, teléfono o email
+            Buscar cliente por nombre, teléfono, correo o expediente
           </mat-label>
           <input matInput 
                  type="text" 
                  [(ngModel)]="filtroCliente"
                  (input)="aplicarFiltroCliente($event)"
-                 placeholder="Ej: luis niño martinez">
+                 placeholder="Ej: luis niño, 8111234567, luis@email.com, 123456">
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
@@ -64,8 +64,18 @@
             <mat-icon class="cliente-icon">person</mat-icon>
             <div class="cliente-details">
               <h4>{{ getNombreCompletoCliente(cliente) }}</h4>
-              <p>{{ cliente.telefono || 'Sin teléfono' }}</p>
-              <p *ngIf="cliente.email">{{ cliente.email }}</p>
+              <p>
+                <mat-icon class="detail-icon">phone</mat-icon>
+                {{ cliente.telefono || 'Sin teléfono' }}
+              </p>
+              <p *ngIf="cliente.correo">
+                <mat-icon class="detail-icon">email</mat-icon>
+                {{ cliente.correo }}
+              </p>
+              <p *ngIf="cliente.expediente">
+                <mat-icon class="detail-icon">folder</mat-icon>
+                Expediente: {{ cliente.expediente }}
+              </p>
             </div>
           </div>
           <mat-icon class="arrow-icon">arrow_forward</mat-icon>
@@ -95,21 +105,60 @@
       </div>
 
       <div *ngIf="!loading && pacientes.length > 0" class="pacientes-list">
-        <div class="results-info">
-          <p>{{ pacientes.length }} paciente{{ pacientes.length !== 1 ? 's' : '' }} encontrado{{ pacientes.length !== 1 ? 's' : '' }}</p>
-        </div>
-        <div *ngFor="let paciente of pacientes" 
-             class="paciente-item"
-             (click)="seleccionarPaciente(paciente)">
-          <div class="paciente-info">
-            <mat-icon class="paciente-icon">pets</mat-icon>
-            <div class="paciente-details">
-              <h4>{{ paciente.nombre || 'Sin nombre' }}</h4>
-              <p>{{ paciente.especie || 'Sin especie' }} {{ paciente.raza ? '- ' + paciente.raza : '' }}</p>
-              <p *ngIf="paciente.edad">Edad: {{ paciente.edad }} años</p>
-            </div>
+        <!-- Pacientes Vivos -->
+        <div *ngIf="getPacientesVivos().length > 0" class="pacientes-section">
+          <div class="section-header">
+            <mat-icon class="section-icon">pets</mat-icon>
+            <h4>Pacientes Disponibles</h4>
           </div>
-          <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+          <div class="results-info">
+            <p>{{ getPacientesVivos().length }} paciente{{ getPacientesVivos().length !== 1 ? 's' : '' }} disponible{{ getPacientesVivos().length !== 1 ? 's' : '' }}</p>
+          </div>
+          <div *ngFor="let paciente of getPacientesVivos()" 
+               class="paciente-item"
+               (click)="seleccionarPaciente(paciente)">
+            <div class="paciente-info">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              <div class="paciente-details">
+                <h4>{{ paciente.nombre || 'Sin nombre' }}</h4>
+                <p>{{ paciente.especie || 'Sin especie' }} {{ paciente.raza ? '- ' + paciente.raza : '' }}</p>
+                <p *ngIf="paciente.edad">Edad: {{ paciente.edad }} años</p>
+              </div>
+            </div>
+            <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+          </div>
+        </div>
+
+        <!-- Pacientes Fallecidos -->
+        <div *ngIf="getPacientesFallecidos().length > 0" class="pacientes-section">
+          <div class="section-header">
+            <mat-icon class="section-icon fallecido">rest_in_peace</mat-icon>
+            <h4>Pacientes Fallecidos</h4>
+          </div>
+          <div class="results-info">
+            <p>{{ getPacientesFallecidos().length }} paciente{{ getPacientesFallecidos().length !== 1 ? 's' : '' }} fallecido{{ getPacientesFallecidos().length !== 1 ? 's' : '' }}</p>
+          </div>
+          <div *ngFor="let paciente of getPacientesFallecidos()" 
+               class="paciente-item fallecido"
+               [class.disabled]="true">
+            <div class="paciente-info">
+              <mat-icon class="paciente-icon fallecido">rest_in_peace</mat-icon>
+              <div class="paciente-details">
+                <h4>{{ paciente.nombre || 'Sin nombre' }}</h4>
+                <p>{{ paciente.especie || 'Sin especie' }} {{ paciente.raza ? '- ' + paciente.raza : '' }}</p>
+                <p class="estado-fallecido">Fallecido</p>
+              </div>
+            </div>
+            <mat-icon class="arrow-icon disabled">block</mat-icon>
+          </div>
+        </div>
+
+        <!-- Mensaje si no hay pacientes vivos -->
+        <div *ngIf="getPacientesVivos().length === 0 && getPacientesFallecidos().length > 0" class="no-data">
+          <mat-icon>warning</mat-icon>
+          <h3>No hay pacientes disponibles</h3>
+          <p>El cliente {{ getNombreCompletoCliente(clienteSeleccionado) }} solo tiene pacientes fallecidos</p>
+          <p class="note">No se pueden agregar historiales clínicos a pacientes fallecidos</p>
         </div>
       </div>
     </div>

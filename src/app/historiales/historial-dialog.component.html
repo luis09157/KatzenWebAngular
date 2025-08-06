@@ -1,88 +1,116 @@
 <div class="historial-dialog">
+  <!-- Header con gradiente moderno -->
   <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>medical_services</mat-icon>
-      {{ isEditMode ? 'Editar' : 'Nuevo' }} Historial Clínico
-    </h2>
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>medical_services</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2 mat-dialog-title>{{ isEditMode ? 'Editar' : 'Nuevo' }} Historial Clínico</h2>
+        <p class="header-subtitle">Registro médico del paciente</p>
+      </div>
+    </div>
     <button mat-icon-button (click)="cancelar()" class="close-btn" matTooltip="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Información del Paciente -->
+  <!-- Información del Paciente Mejorada -->
   <div *ngIf="pacienteInfo" class="paciente-info">
-    <mat-card>
-      <mat-card-content>
-        <div class="paciente-header">
-          <mat-icon class="paciente-icon">pets</mat-icon>
-          <div class="paciente-details">
-            <h3>{{ pacienteInfo.nombre || 'Sin nombre' }}</h3>
-            <p *ngIf="pacienteInfo.especie || pacienteInfo.raza">
-              {{ pacienteInfo.especie || '' }} {{ pacienteInfo.raza ? '- ' + pacienteInfo.raza : '' }}
-            </p>
-            <p *ngIf="pacienteInfo.edad">
-              Edad: {{ pacienteInfo.edad }} años
-            </p>
-          </div>
+    <div class="paciente-card">
+      <div class="paciente-avatar">
+        <mat-icon class="paciente-icon">pets</mat-icon>
+      </div>
+      <div class="paciente-details">
+        <h3 class="paciente-nombre">{{ pacienteInfo.nombre || 'Sin nombre' }}</h3>
+        <div class="paciente-stats">
+          <span class="stat-item" *ngIf="pacienteInfo.especie">
+            <mat-icon>category</mat-icon>
+            {{ pacienteInfo.especie }}
+          </span>
+          <span class="stat-item" *ngIf="pacienteInfo.raza">
+            <mat-icon>pets</mat-icon>
+            {{ pacienteInfo.raza }}
+          </span>
+          <span class="stat-item" *ngIf="pacienteInfo.edad">
+            <mat-icon>schedule</mat-icon>
+            {{ pacienteInfo.edad }} años
+          </span>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
   </div>
 
   <form [formGroup]="historialForm" (ngSubmit)="guardarHistorial()">
     <div class="dialog-content">
       
-      <!-- Diagnóstico -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>
-          <mat-icon class="field-icon">description</mat-icon>
-          Diagnóstico *
-        </mat-label>
-        <textarea matInput formControlName="diagnostico" 
-                  placeholder="Describe el diagnóstico del paciente"
-                  rows="4"></textarea>
-        <mat-error *ngIf="historialForm.get('diagnostico')?.hasError('required')">
-          <mat-icon>error</mat-icon>
-          El diagnóstico es requerido
-        </mat-error>
-      </mat-form-field>
+      <!-- Sección de Diagnóstico -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">description</mat-icon>
+          <h3>Diagnóstico</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Describe el diagnóstico del paciente</mat-label>
+          <textarea matInput formControlName="diagnostico" 
+                    placeholder="Ej: El paciente presenta síntomas de..."
+                    rows="4"></textarea>
+          <mat-error *ngIf="historialForm.get('diagnostico')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            El diagnóstico es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <!-- Tratamiento -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>
-          <mat-icon class="field-icon">healing</mat-icon>
-          Tratamiento *
-        </mat-label>
-        <textarea matInput formControlName="tratamiento" 
-                  placeholder="Describe el tratamiento aplicado"
-                  rows="4"></textarea>
-        <mat-error *ngIf="historialForm.get('tratamiento')?.hasError('required')">
-          <mat-icon>error</mat-icon>
-          El tratamiento es requerido
-        </mat-error>
-      </mat-form-field>
+      <!-- Sección de Tratamiento -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">healing</mat-icon>
+          <h3>Tratamiento</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Describe el tratamiento aplicado</mat-label>
+          <textarea matInput formControlName="tratamiento" 
+                    placeholder="Ej: Se aplicó tratamiento para..."
+                    rows="4"></textarea>
+          <mat-error *ngIf="historialForm.get('tratamiento')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            El tratamiento es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-      <!-- Medicamentos -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>
-          <mat-icon class="field-icon">medication</mat-icon>
-          Medicamentos
-        </mat-label>
-        <textarea matInput formControlName="medicamentos" 
-                  placeholder="Lista de medicamentos recetados"
-                  rows="3"></textarea>
-      </mat-form-field>
+      <!-- Sección de Medicamentos -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">medication</mat-icon>
+          <h3>Medicamentos</h3>
+          <span class="optional-badge">Opcional</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Lista de medicamentos recetados</mat-label>
+          <textarea matInput formControlName="medicamentos" 
+                    placeholder="Ej: Antibiótico X - 1 tableta cada 8 horas por 7 días"
+                    rows="3"></textarea>
+        </mat-form-field>
+      </div>
 
-      <!-- Notas -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>
-          <mat-icon class="field-icon">note</mat-icon>
-          Notas Adicionales
-        </mat-label>
-        <textarea matInput formControlName="notas" 
-                  placeholder="Observaciones adicionales"
-                  rows="3"></textarea>
-      </mat-form-field>
+      <!-- Sección de Notas -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">note</mat-icon>
+          <h3>Notas Adicionales</h3>
+          <span class="optional-badge">Opcional</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Observaciones adicionales</mat-label>
+          <textarea matInput formControlName="notas" 
+                    placeholder="Ej: El paciente debe regresar en 7 días para revisión"
+                    rows="3"></textarea>
+        </mat-form-field>
+      </div>
 
       <!-- ID del Paciente (oculto, se establece automáticamente) -->
       <input type="hidden" formControlName="paciente_id">
@@ -96,7 +124,8 @@
                 color="warn" 
                 (click)="eliminarHistorial()"
                 [disabled]="loading"
-                matTooltip="Eliminar historial">
+                matTooltip="Eliminar historial"
+                class="delete-btn">
           <mat-icon>delete</mat-icon>
           Eliminar
         </button>
@@ -107,7 +136,8 @@
                 mat-button 
                 (click)="cancelar()"
                 [disabled]="loading"
-                matTooltip="Cancelar">
+                matTooltip="Cancelar"
+                class="cancel-btn">
           <mat-icon>cancel</mat-icon>
           Cancelar
         </button>
@@ -115,7 +145,8 @@
                 mat-raised-button 
                 color="primary"
                 [disabled]="historialForm.invalid || loading"
-                matTooltip="{{ isEditMode ? 'Actualizar historial' : 'Crear historial' }}">
+                matTooltip="{{ isEditMode ? 'Actualizar historial' : 'Crear historial' }}"
+                class="submit-btn">
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

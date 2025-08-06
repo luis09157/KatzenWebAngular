@@ -34,18 +34,41 @@ export class SeleccionarClienteDialogComponent implements OnInit {
 
   cargarClientes() {
     this.loading = true;
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.clientes = clientes.filter(c => c.activo !== false);
-      this.clientesFiltrados = [...this.clientes];
-      this.loading = false;
+    console.log('🔄 Cargando clientes...');
+    this.clientesService.getClientes().subscribe({
+      next: (clientes) => {
+        console.log('📋 Clientes recibidos:', clientes);
+        this.clientes = clientes || [];
+        this.clientesFiltrados = [...this.clientes];
+        console.log('✅ Clientes cargados:', this.clientes.length);
+        console.log('🔍 Clientes filtrados:', this.clientesFiltrados.length);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar clientes:', error);
+        this.clientes = [];
+        this.clientesFiltrados = [];
+        this.loading = false;
+      }
     });
   }
 
   cargarPacientes(clienteId: string) {
     this.loading = true;
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.pacientes = pacientes.filter(p => p.cliente_id === clienteId);
-      this.loading = false;
+    console.log('🔄 Cargando pacientes para cliente:', clienteId);
+    this.pacientesService.getPacientes().subscribe({
+      next: (pacientes) => {
+        console.log('📋 Pacientes recibidos:', pacientes);
+        // Mostrar todos los pacientes del cliente (vivos y fallecidos)
+        this.pacientes = (pacientes || []).filter(p => p.idCliente === clienteId);
+        console.log('✅ Pacientes cargados para cliente', clienteId, ':', this.pacientes.length);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar pacientes:', error);
+        this.pacientes = [];
+        this.loading = false;
+      }
     });
   }
 
@@ -53,18 +76,38 @@ export class SeleccionarClienteDialogComponent implements OnInit {
     const filtro = (event.target as HTMLInputElement).value.toLowerCase();
     this.filtroCliente = filtro;
     
+    console.log('🔍 Aplicando filtro:', filtro);
+    
     if (!filtro) {
       this.clientesFiltrados = [...this.clientes];
+      console.log('📋 Mostrando todos los clientes:', this.clientesFiltrados.length);
     } else {
       this.clientesFiltrados = this.clientes.filter(cliente => {
         const nombreCompleto = this.getNombreCompletoCliente(cliente).toLowerCase();
         const telefono = (cliente.telefono || '').toLowerCase();
-        const email = (cliente.email || '').toLowerCase();
+        const correo = (cliente.correo || '').toLowerCase();
+        const expediente = (cliente.expediente || '').toLowerCase();
         
-        return nombreCompleto.includes(filtro) || 
-               telefono.includes(filtro) || 
-               email.includes(filtro);
+        const coincideNombre = nombreCompleto.includes(filtro);
+        const coincideTelefono = telefono.includes(filtro);
+        const coincideCorreo = correo.includes(filtro);
+        const coincideExpediente = expediente.includes(filtro);
+        
+        const coincide = coincideNombre || coincideTelefono || coincideCorreo || coincideExpediente;
+        
+        if (coincide) {
+          console.log('✅ Cliente coincide:', {
+            nombre: nombreCompleto,
+            telefono: telefono,
+            correo: correo,
+            expediente: expediente
+          });
+        }
+        
+        return coincide;
       });
+      
+      console.log('🔍 Clientes filtrados encontrados:', this.clientesFiltrados.length);
     }
   }
 
@@ -75,12 +118,24 @@ export class SeleccionarClienteDialogComponent implements OnInit {
   }
 
   seleccionarPaciente(paciente: any) {
+    // Validar que el paciente no esté fallecido
+    if (paciente.estado === 'Fallecido' || paciente.estado === 'fallecido') {
+      console.log('❌ No se puede agregar historial a paciente fallecido:', paciente.nombre);
+      return;
+    }
+    
     this.pacienteSeleccionado = paciente;
     this.continuar();
   }
 
   continuar() {
     if (this.clienteSeleccionado && this.pacienteSeleccionado) {
+      // Validación adicional para pacientes fallecidos
+      if (this.pacienteSeleccionado.estado === 'Fallecido' || this.pacienteSeleccionado.estado === 'fallecido') {
+        console.log('❌ No se puede agregar historial a paciente fallecido:', this.pacienteSeleccionado.nombre);
+        return;
+      }
+      
       this.dialogRef.close({
         cliente: this.clienteSeleccionado,
         paciente: this.pacienteSeleccionado
@@ -98,7 +153,11 @@ export class SeleccionarClienteDialogComponent implements OnInit {
   }
 
   getNombreCompletoCliente(cliente: any): string {
-    return `${cliente.nombre} ${cliente.apellido || ''}`.trim();
+    const nombre = cliente.nombre || '';
+    const apellidoPaterno = cliente.apellidoPaterno || '';
+    const apellidoMaterno = cliente.apellidoMaterno || '';
+    
+    return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
   }
 
   getInformacionCliente(cliente: any): string {
@@ -112,5 +171,17 @@ export class SeleccionarClienteDialogComponent implements OnInit {
     const especie = paciente.especie || 'Sin especie';
     const raza = paciente.raza ? ` (${paciente.raza})` : '';
     return `${nombre} - ${especie}${raza}`;
+  }
+
+  isPacienteFallecido(paciente: any): boolean {
+    return paciente.estado === 'Fallecido' || paciente.estado === 'fallecido';
+  }
+
+  getPacientesVivos(): any[] {
+    return this.pacientes.filter(p => !this.isPacienteFallecido(p));
+  }
+
+  getPacientesFallecidos(): any[] {
+    return this.pacientes.filter(p => this.isPacienteFallecido(p));
   }
 } 

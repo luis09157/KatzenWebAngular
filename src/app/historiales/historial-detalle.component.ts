@@ -1,17 +1,57 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { PacientesService } from '../pacientes/pacientes.service';
+import { ClientesService } from '../clientes/clientes.service';
 
 @Component({
   selector: 'app-historial-detalle',
   templateUrl: './historial-detalle.component.html',
   styleUrls: ['./historial-detalle.component.css']
 })
-export class HistorialDetalleComponent {
+export class HistorialDetalleComponent implements OnInit {
+  pacienteInfo: any = null;
+  clienteInfo: any = null;
+  loading = true;
+
   constructor(
     public dialogRef: MatDialogRef<HistorialDetalleComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private pacientesService: PacientesService,
+    private clientesService: ClientesService
   ) {
     console.log('DATA RECIBIDA EN MODAL DETALLE:', data);
+  }
+
+  ngOnInit() {
+    this.cargarInformacion();
+  }
+
+  async cargarInformacion() {
+    try {
+      // Cargar información del paciente
+      if (this.data.paciente_id) {
+        this.pacientesService.getPaciente(this.data.paciente_id).subscribe(paciente => {
+          this.pacienteInfo = paciente;
+          this.loading = false;
+        });
+      }
+
+      // Cargar información del cliente
+      if (this.data.paciente_id) {
+        this.pacientesService.getPaciente(this.data.paciente_id).subscribe(paciente => {
+          if (paciente && (paciente.idCliente || paciente.cliente_id)) {
+            const clienteId = paciente.idCliente || paciente.cliente_id;
+            this.clientesService.getCliente(clienteId).subscribe(cliente => {
+              this.clienteInfo = cliente;
+              this.loading = false;
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error al cargar información:', error);
+      this.loading = false;
+    }
   }
 
   cerrar() {
@@ -93,5 +133,33 @@ export class HistorialDetalleComponent {
     } catch (error) {
       return '';
     }
+  }
+
+  getNombrePaciente(): string {
+    if (this.pacienteInfo && this.pacienteInfo.nombre) {
+      return this.pacienteInfo.nombre;
+    }
+    return 'Paciente no encontrado';
+  }
+
+  getNombreCliente(): string {
+    if (this.clienteInfo) {
+      const nombre = this.clienteInfo.nombre || '';
+      const apellidoPaterno = this.clienteInfo.apellidoPaterno || '';
+      const apellidoMaterno = this.clienteInfo.apellidoMaterno || '';
+      return [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
+    }
+    return 'Cliente no encontrado';
+  }
+
+  getInfoPaciente(): string {
+    if (!this.pacienteInfo) return 'Información no disponible';
+    
+    const info = [];
+    if (this.pacienteInfo.especie) info.push(this.pacienteInfo.especie);
+    if (this.pacienteInfo.raza) info.push(this.pacienteInfo.raza);
+    if (this.pacienteInfo.sexo) info.push(this.pacienteInfo.sexo);
+    
+    return info.length > 0 ? info.join(', ') : 'Información no disponible';
   }
 } 

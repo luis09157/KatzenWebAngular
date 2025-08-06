@@ -6,18 +6,18 @@
       <div class="buscador-header">
         <h2>Buscar Paciente</h2>
         <p class="buscador-descripcion">
-          Escribe el <b>nombre del paciente</b> para encontrar su expediente.
+          Escribe el <b>nombre del paciente</b> o <b>nombre del cliente</b> para encontrar su expediente.
         </p>
       </div>
       <mat-form-field class="buscador-paciente-grande" appearance="outline">
         <mat-label>¿A quién buscas?</mat-label>
-        <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="searchTerm" (ngModelChange)="filtrarPacientes()" placeholder="Ejemplo: Luna, Max, Paty...">
+        <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="searchTerm" (ngModelChange)="filtrarPacientes()" placeholder="Ejemplo: Luna, Max, Paty, Juan Pérez...">
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPaciente" (optionSelected)="seleccionarPaciente($event.option.value)">
           <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
             {{ paciente.nombre }} <span class="dueño">- {{ getClienteNombre(paciente.idCliente) }}</span>
           </mat-option>
           <mat-option *ngIf="pacientesFiltrados.length === 0 && searchTerm">
-            <span>No se encontró ningún paciente con ese nombre.</span>
+            <span>No se encontró ningún paciente o cliente con ese nombre.</span>
           </mat-option>
         </mat-autocomplete>
       </mat-form-field>

@@ -51,9 +51,12 @@ export class ClientesComponent implements OnInit {
   }
 
   calcularEstadisticas(clientes: any[]) {
-    this.totalClientes = clientes.length;
-    this.clientesConCorreo = clientes.filter(c => c.correo && c.correo.trim() !== '').length;
-    this.clientesConExpediente = clientes.filter(c => c.expediente && c.expediente.trim() !== '').length;
+    // Solo contar clientes activos
+    const clientesActivos = clientes.filter(c => c.activo !== false);
+    
+    this.totalClientes = clientesActivos.length;
+    this.clientesConCorreo = clientesActivos.filter(c => c.correo && c.correo.trim() !== '').length;
+    this.clientesConExpediente = clientesActivos.filter(c => c.expediente && c.expediente.trim() !== '').length;
     
     // Obtener pacientes para calcular relaciones
     this.pacientesService.getPacientes().subscribe(pacientes => {
@@ -64,7 +67,7 @@ export class ClientesComponent implements OnInit {
         pacientesData.map(paciente => paciente.idCliente).filter(id => id)
       );
       
-      this.clientesConPacientes = clientes.filter(cliente => 
+      this.clientesConPacientes = clientesActivos.filter(cliente => 
         clientesConPacientesSet.has(cliente.id)
       ).length;
     });

@@ -82,8 +82,11 @@ export class PacientesAdminComponent implements OnInit {
 
 
   prepararDataSource() {
+    // Filtrar solo pacientes activos
+    const pacientesActivos = this.pacientes.filter(p => p.activo !== false);
+    
     // Combinar datos de pacientes con nombres de clientes
-    const pacientesConCliente = this.pacientes.map(paciente => {
+    const pacientesConCliente = pacientesActivos.map(paciente => {
       const pacienteConCliente = {
         ...paciente,
         nombreCliente: this.getClienteNombre(paciente.cliente_id || paciente.idCliente)

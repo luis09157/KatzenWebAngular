@@ -132,7 +132,7 @@ export class HistorialesService {
         const historiales = changes.map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }));
         const activos = historiales.filter(h => h.activo !== false).length;
         const inactivos = historiales.filter(h => h.activo === false).length;
-        const total = historiales.length;
+        const total = activos; // Solo contar los activos como total
         
         return {
           total,

@@ -194,7 +194,8 @@ export class PacientesComponent implements OnInit {
 
   ngOnInit() {
     this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.allPacientes = pacientes || [];
+      // Filtrar solo pacientes activos
+      this.allPacientes = (pacientes || []).filter(p => p.activo !== false);
       this.filtrarPacientes();
     });
     this.clientesService.getClientes().subscribe(clientes => {
@@ -208,10 +209,37 @@ export class PacientesComponent implements OnInit {
       this.pacientesFiltrados = [];
       return;
     }
-    this.pacientesFiltrados = this.allPacientes.filter(p => {
-      const nombre = (p.nombre || '').toLowerCase();
-      const clienteNombre = this.getClienteNombre(p.cliente_id).toLowerCase();
-      return nombre.includes(term) || clienteNombre.includes(term);
+    
+    // Filtrar solo pacientes activos
+    const pacientesActivos = this.allPacientes.filter(p => p.activo !== false);
+    
+    this.pacientesFiltrados = pacientesActivos.filter(p => {
+      const nombrePaciente = (p.nombre || '').toLowerCase();
+      const nombreCliente = this.getClienteNombre(p.cliente_id || p.idCliente).toLowerCase();
+      
+      // Buscar en nombre del paciente
+      if (nombrePaciente.includes(term)) {
+        return true;
+      }
+      
+      // Buscar en nombre completo del cliente
+      if (nombreCliente.includes(term)) {
+        return true;
+      }
+      
+      // Buscar en partes individuales del nombre del cliente
+      const cliente = this.allClientes.find(c => c.id === (p.cliente_id || p.idCliente));
+      if (cliente) {
+        const nombre = (cliente.nombre || '').toLowerCase();
+        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
+        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
+        
+        if (nombre.includes(term) || apellidoPaterno.includes(term) || apellidoMaterno.includes(term)) {
+          return true;
+        }
+      }
+      
+      return false;
     });
   }
 

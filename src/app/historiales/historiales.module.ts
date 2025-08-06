@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -31,6 +31,7 @@ import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     HistorialesRoutingModule,
     MatCardModule,
     MatFormFieldModule,

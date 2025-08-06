@@ -12,17 +12,35 @@
   <div class="dialog-content">
     <div class="info-grid">
       
-      <!-- Información Principal -->
+      <!-- Información del Paciente y Cliente -->
       <div class="info-section">
         <h3 class="section-title">
-          <mat-icon>info</mat-icon>
-          Información Principal
+          <mat-icon>pets</mat-icon>
+          Información del Paciente
         </h3>
         <div class="info-cards">
           <div class="info-card">
-            <div class="info-label">ID del Historial</div>
-            <div class="info-value">{{ data.id || 'No disponible' }}</div>
+            <div class="info-label">Nombre del Paciente</div>
+            <div class="info-value">{{ getNombrePaciente() }}</div>
           </div>
+          <div class="info-card">
+            <div class="info-label">Propietario</div>
+            <div class="info-value">{{ getNombreCliente() }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Información del Paciente</div>
+            <div class="info-value">{{ getInfoPaciente() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Historial -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Información del Historial
+        </h3>
+        <div class="info-cards">
           <div class="info-card">
             <div class="info-label">Estado</div>
             <div class="info-value" [style.color]="getEstadoColor(data.activo)">
@@ -36,20 +54,6 @@
           <div class="info-card">
             <div class="info-label">Última Actualización</div>
             <div class="info-value">{{ formatearFecha(data.updated_at) }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Información del Paciente -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>pets</mat-icon>
-          Información del Paciente
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-label">ID del Paciente</div>
-            <div class="info-value">{{ data.paciente_id || 'No disponible' }}</div>
           </div>
         </div>
       </div>
