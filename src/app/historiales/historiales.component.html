@@ -74,7 +74,9 @@
       </div>
 
       <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-historiales">
-        <mat-icon>medical_services</mat-icon>
+        <div class="empty-icon-container">
+          <mat-icon>medical_services</mat-icon>
+        </div>
         <h3>No hay historiales</h3>
         <p>No se han encontrado historiales clínicos registrados.</p>
         <button mat-raised-button color="primary" (click)="abrirModalHistorial()">

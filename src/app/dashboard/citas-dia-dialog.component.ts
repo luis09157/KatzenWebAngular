@@ -48,6 +48,25 @@ export class CitasDiaDialogComponent {
     }
   }
 
+  getEstadoIcon(estado: string): string {
+    switch (estado?.toLowerCase()) {
+      case 'pendiente':
+        return 'schedule';
+      case 'confirmada':
+        return 'check_circle';
+      case 'completada':
+        return 'done_all';
+      case 'cancelada':
+        return 'cancel';
+      default:
+        return 'help';
+    }
+  }
+
+  trackByCita(index: number, cita: any): any {
+    return cita.id || index;
+  }
+
   cerrar() {
     this.dialogRef.close();
   }

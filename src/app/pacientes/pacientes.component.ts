@@ -46,6 +46,9 @@ export class PacientesComponent implements OnInit {
   // Propiedades para vacunas
   vacunas: any[] = [];
   logActividades: any[] = [];
+  
+  // Control de estado
+  isCreatingHistorial = false;
 
   // Historial clínico de ejemplo
   historialClinico = [
@@ -522,6 +525,13 @@ export class PacientesComponent implements OnInit {
       return;
     }
 
+    // Evitar múltiples clics
+    if (this.isCreatingHistorial) {
+      return;
+    }
+
+    this.isCreatingHistorial = true;
+
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
       width: '700px',
       data: { 
@@ -538,6 +548,16 @@ export class PacientesComponent implements OnInit {
         
         console.log('Datos del historial antes de crear:', result);
         
+        // Mostrar loading
+        Swal.fire({
+          title: 'Creando historial...',
+          text: 'Por favor espera',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        
         this.historialesService.crearHistorial(result).then((ref) => {
           console.log('Historial creado exitosamente, referencia:', ref);
           
@@ -545,10 +565,14 @@ export class PacientesComponent implements OnInit {
           const historialId = ref.key;
           console.log('ID del historial creado:', historialId);
           
+          // Cerrar loading y mostrar éxito
+          Swal.close();
           Swal.fire('Éxito', 'Historial clínico creado correctamente', 'success');
+          
+          // Recargar el historial clínico
           this.cargarHistorialClinico(this.pacienteSeleccionado.id);
           
-          // Registrar en el log con los datos completos
+          // Registrar en el log de actividades (solo para tracking)
           const datosParaLog = {
             diagnostico: result.diagnostico || 'Sin diagnóstico',
             tratamiento: result.tratamiento || 'Sin tratamiento',
@@ -566,8 +590,13 @@ export class PacientesComponent implements OnInit {
           });
         }).catch(error => {
           console.error('Error al crear historial:', error);
+          Swal.close();
           Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
+        }).finally(() => {
+          this.isCreatingHistorial = false;
         });
+      } else {
+        this.isCreatingHistorial = false;
       }
     });
   }

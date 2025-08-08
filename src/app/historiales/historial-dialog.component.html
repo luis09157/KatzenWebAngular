@@ -36,6 +36,18 @@
             <mat-icon>schedule</mat-icon>
             {{ pacienteInfo.edad }} años
           </span>
+          <span class="stat-item" *ngIf="pacienteInfo.peso">
+            <mat-icon>monitor_weight</mat-icon>
+            {{ pacienteInfo.peso }} kg
+          </span>
+          <span class="stat-item" *ngIf="pacienteInfo.sexo">
+            <mat-icon>wc</mat-icon>
+            {{ pacienteInfo.sexo }}
+          </span>
+        </div>
+        <div class="paciente-cliente" *ngIf="pacienteInfo.cliente">
+          <mat-icon>person</mat-icon>
+          <span>Propietario: {{ pacienteInfo.cliente }}</span>
         </div>
       </div>
     </div>

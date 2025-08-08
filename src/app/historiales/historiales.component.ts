@@ -169,14 +169,60 @@ export class HistorialesComponent implements OnInit {
     
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // El historial ya se creó en el componente del diálogo
-        this.cargarDatos(); // Solo recargar datos
+        // Crear el historial desde aquí para poder registrar en el log
+        this.historialesService.crearHistorial(result).then((ref) => {
+          console.log('Historial creado exitosamente desde administración:', ref);
+          
+          // Registrar en el log de actividades del paciente
+          const datosParaLog = {
+            diagnostico: result.diagnostico || 'Sin diagnóstico',
+            tratamiento: result.tratamiento || 'Sin tratamiento',
+            medicamentos: result.medicamentos || 'Sin medicamentos',
+            paciente_id: paciente.id,
+            id: ref.key
+          };
+          
+          this.pacientesService.registrarHistorialClinico(paciente.id, datosParaLog).then(() => {
+            console.log('Historial clínico registrado en log desde administración');
+          }).catch(error => {
+            console.error('Error al registrar historial en log:', error);
+          });
+          
+          this.cargarDatos();
+        }).catch(error => {
+          console.error('Error al crear historial desde administración:', error);
+          Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
+        });
       }
     });
   }
 
   editarHistorial(historial: any) {
-    this.abrirModalHistorial(historial, false);
+    const dialogRef = this.dialog.open(HistorialDialogComponent, {
+      width: '700px',
+      data: { historial, modoVer: false }
+    });
+    
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Actualizar el historial
+        this.historialesService.actualizarHistorial(historial.id, result).then(() => {
+          console.log('Historial actualizado exitosamente desde administración');
+          
+          // Registrar la edición en el log de actividades del paciente
+          this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {
+            console.log('Edición de historial registrada en log desde administración');
+          }).catch(error => {
+            console.error('Error al registrar edición en log:', error);
+          });
+          
+          this.cargarDatos();
+        }).catch(error => {
+          console.error('Error al actualizar historial desde administración:', error);
+          Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error');
+        });
+      }
+    });
   }
 
   verHistorial(historial: any) {
@@ -200,13 +246,25 @@ export class HistorialesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
-        this.historialesService.bajaLogicaHistorial(id).then(() => {
-          Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
-          this.cargarDatos();
-          this.cargarEstadisticas();
-        }).catch(error => {
-          console.error('Error al dar de baja:', error);
-          Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
+        // Obtener los datos del historial antes de dar de baja para registrar en el log
+        this.historialesService.getHistorial(id).subscribe(historial => {
+          if (historial) {
+            this.historialesService.bajaLogicaHistorial(id).then(() => {
+              // Registrar la baja lógica en el log de actividades del paciente
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {
+                console.log('Baja lógica de historial registrada en log desde administración');
+              }).catch(error => {
+                console.error('Error al registrar baja lógica en log:', error);
+              });
+              
+              Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
+              this.cargarDatos();
+              this.cargarEstadisticas();
+            }).catch(error => {
+              console.error('Error al dar de baja:', error);
+              Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
+            });
+          }
         });
       }
     });
@@ -224,13 +282,25 @@ export class HistorialesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
-        this.historialesService.eliminarHistorial(id).then(() => {
-          Swal.fire('Eliminado', 'El historial fue eliminado permanentemente.', 'success');
-          this.cargarDatos();
-          this.cargarEstadisticas();
-        }).catch(error => {
-          console.error('Error al eliminar:', error);
-          Swal.fire('Error', 'No se pudo eliminar el historial', 'error');
+        // Obtener los datos del historial antes de eliminarlo para registrar en el log
+        this.historialesService.getHistorial(id).subscribe(historial => {
+          if (historial) {
+            this.historialesService.eliminarHistorial(id).then(() => {
+              // Registrar la eliminación en el log de actividades del paciente
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {
+                console.log('Eliminación de historial registrada en log desde administración');
+              }).catch(error => {
+                console.error('Error al registrar eliminación en log:', error);
+              });
+              
+              Swal.fire('Eliminado', 'El historial fue eliminado permanentemente.', 'success');
+              this.cargarDatos();
+              this.cargarEstadisticas();
+            }).catch(error => {
+              console.error('Error al eliminar:', error);
+              Swal.fire('Error', 'No se pudo eliminar el historial', 'error');
+            });
+          }
         });
       }
     });
@@ -246,13 +316,25 @@ export class HistorialesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
-        this.historialesService.restaurarHistorial(id).then(() => {
-          Swal.fire('Restaurado', 'El historial fue restaurado correctamente.', 'success');
-          this.cargarDatos();
-          this.cargarEstadisticas();
-        }).catch(error => {
-          console.error('Error al restaurar:', error);
-          Swal.fire('Error', 'No se pudo restaurar el historial', 'error');
+        // Obtener los datos del historial antes de restaurarlo para registrar en el log
+        this.historialesService.getHistorial(id).subscribe(historial => {
+          if (historial) {
+            this.historialesService.restaurarHistorial(id).then(() => {
+              // Registrar la restauración en el log de actividades del paciente
+              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).then(() => {
+                console.log('Restauración de historial registrada en log desde administración');
+              }).catch(error => {
+                console.error('Error al registrar restauración en log:', error);
+              });
+              
+              Swal.fire('Restaurado', 'El historial fue restaurado correctamente.', 'success');
+              this.cargarDatos();
+              this.cargarEstadisticas();
+            }).catch(error => {
+              console.error('Error al restaurar:', error);
+              Swal.fire('Error', 'No se pudo restaurar el historial', 'error');
+            });
+          }
         });
       }
     });

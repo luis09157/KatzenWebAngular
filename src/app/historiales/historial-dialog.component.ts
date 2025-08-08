@@ -37,8 +37,11 @@ export class HistorialDialogComponent implements OnInit {
       this.isEditMode = !!this.data.historial?.id;
       
       // Si es un nuevo historial con paciente seleccionado
-      if (!this.isEditMode && this.data.historial?.paciente_id) {
-        this.cargarInformacionPaciente(this.data.historial.paciente_id);
+      if (!this.isEditMode && this.data.paciente_id) {
+        this.cargarInformacionPaciente(this.data.paciente_id);
+        this.historialForm.patchValue({
+          paciente_id: this.data.paciente_id
+        });
       }
       
       // Si es edición, cargar información del paciente
@@ -51,7 +54,7 @@ export class HistorialDialogComponent implements OnInit {
         tratamiento: this.data.historial?.tratamiento || '',
         medicamentos: this.data.historial?.medicamentos || '',
         notas: this.data.historial?.notas || '',
-        paciente_id: this.data.historial?.paciente_id || ''
+        paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || ''
       });
     }
   }
@@ -77,18 +80,11 @@ export class HistorialDialogComponent implements OnInit {
             title: '¡Éxito!',
             text: 'Historial clínico actualizado correctamente'
           });
+          this.dialogRef.close(historialData);
         } else {
-          // Crear nuevo historial
-          await this.historialesService.crearHistorial(historialData);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Historial clínico creado correctamente'
-          });
+          // Para nuevos historiales, solo devolver los datos sin crear
+          this.dialogRef.close(historialData);
         }
-        
-        // Cerrar con los datos del formulario en lugar de true
-        this.dialogRef.close(historialData);
       } catch (error) {
         console.error('Error al guardar historial:', error);
         Swal.fire({
