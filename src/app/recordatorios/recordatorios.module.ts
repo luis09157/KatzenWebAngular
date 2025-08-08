@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -19,16 +19,19 @@ import { RecordatoriosRoutingModule } from './recordatorios-routing.module';
 import { RecordatoriosComponent } from './recordatorios.component';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
 import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
+import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
 
 @NgModule({
   declarations: [
     RecordatoriosComponent,
     RecordatorioDialogComponent,
-    RecordatorioDetalleComponent
+    RecordatorioDetalleComponent,
+    SeleccionarClienteRecordatorioDialogComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RecordatoriosRoutingModule,
     MatCardModule,
     MatFormFieldModule,
@@ -45,7 +48,8 @@ import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
     MatProgressSpinnerModule
   ],
   exports: [
-    RecordatorioDialogComponent
+    RecordatorioDialogComponent,
+    SeleccionarClienteRecordatorioDialogComponent
   ]
 })
 export class RecordatoriosModule { } 

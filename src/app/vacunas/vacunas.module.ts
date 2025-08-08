@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,16 +20,19 @@ import { VacunasRoutingModule } from './vacunas-routing.module';
 import { VacunasComponent } from './vacunas.component';
 import { VacunaDialogComponent } from './vacuna-dialog.component';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
+import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-vacuna-dialog.component';
 
 @NgModule({
   declarations: [
     VacunasComponent,
     VacunaDialogComponent,
-    VacunaDetalleComponent
+    VacunaDetalleComponent,
+    SeleccionarClienteVacunaDialogComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     VacunasRoutingModule,
     MatCardModule,
     MatFormFieldModule,
@@ -47,7 +50,8 @@ import { VacunaDetalleComponent } from './vacuna-detalle.component';
     MatCheckboxModule
   ],
   exports: [
-    VacunaDialogComponent
+    VacunaDialogComponent,
+    SeleccionarClienteVacunaDialogComponent
   ]
 })
 export class VacunasModule { } 

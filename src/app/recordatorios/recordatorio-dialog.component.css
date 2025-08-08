@@ -257,4 +257,98 @@ mat-spinner {
 
 .paciente-cliente span {
   font-weight: 600;
+}
+
+/* Estilos para la información de selección de cliente y paciente */
+.seleccion-info {
+  margin-bottom: 24px;
+}
+
+.seleccion-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.seleccion-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.cliente-section, .paciente-section {
+  margin-bottom: 20px;
+}
+
+.cliente-section:last-child, .paciente-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 6px;
+  border-left: 4px solid #ff6b6b;
+}
+
+.section-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #ff6b6b;
+}
+
+.cliente-nombre, .paciente-nombre {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+.cliente-stats, .paciente-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cliente-stats .stat-item, .paciente-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  font-size: 11px;
+  color: #495057;
+  font-weight: 500;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.cliente-stats .stat-item mat-icon, .paciente-stats .stat-item mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #ff6b6b;
 } 

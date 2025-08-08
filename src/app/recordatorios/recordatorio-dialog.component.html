@@ -12,8 +12,69 @@
   <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()">
     <div class="dialog-content">
       
-      <!-- Información del Paciente -->
-      <div *ngIf="pacienteInfo" class="paciente-info">
+      <!-- Información del Cliente y Paciente -->
+      <div *ngIf="data.cliente && data.paciente" class="seleccion-info">
+        <div class="seleccion-card">
+          <div class="cliente-section">
+            <div class="section-header">
+              <mat-icon class="section-icon">person</mat-icon>
+              <h4>Cliente Seleccionado</h4>
+            </div>
+            <div class="cliente-details">
+              <h3 class="cliente-nombre">{{ getNombreCompletoCliente(data.cliente) }}</h3>
+              <div class="cliente-stats">
+                <span class="stat-item" *ngIf="data.cliente.telefono">
+                  <mat-icon>phone</mat-icon>
+                  {{ data.cliente.telefono }}
+                </span>
+                <span class="stat-item" *ngIf="data.cliente.correo">
+                  <mat-icon>email</mat-icon>
+                  {{ data.cliente.correo }}
+                </span>
+                <span class="stat-item" *ngIf="data.cliente.expediente">
+                  <mat-icon>folder</mat-icon>
+                  Expediente: {{ data.cliente.expediente }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="paciente-section">
+            <div class="section-header">
+              <mat-icon class="section-icon">pets</mat-icon>
+              <h4>Paciente Seleccionado</h4>
+            </div>
+            <div class="paciente-details">
+              <h3 class="paciente-nombre">{{ data.paciente.nombre || 'Sin nombre' }}</h3>
+              <div class="paciente-stats">
+                <span class="stat-item" *ngIf="data.paciente.especie">
+                  <mat-icon>category</mat-icon>
+                  {{ data.paciente.especie }}
+                </span>
+                <span class="stat-item" *ngIf="data.paciente.raza">
+                  <mat-icon>pets</mat-icon>
+                  {{ data.paciente.raza }}
+                </span>
+                <span class="stat-item" *ngIf="data.paciente.edad">
+                  <mat-icon>schedule</mat-icon>
+                  {{ data.paciente.edad }} años
+                </span>
+                <span class="stat-item" *ngIf="data.paciente.peso">
+                  <mat-icon>monitor_weight</mat-icon>
+                  {{ data.paciente.peso }} kg
+                </span>
+                <span class="stat-item" *ngIf="data.paciente.sexo">
+                  <mat-icon>wc</mat-icon>
+                  {{ data.paciente.sexo }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información del Paciente (para edición) -->
+      <div *ngIf="pacienteInfo && !data.cliente" class="paciente-info">
         <div class="paciente-card">
           <div class="paciente-avatar">
             <mat-icon class="paciente-icon">pets</mat-icon>

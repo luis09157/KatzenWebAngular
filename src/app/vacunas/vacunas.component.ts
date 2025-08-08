@@ -3,9 +3,10 @@ import { VacunasService } from './vacunas.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { VacunaDialogComponent } from './vacuna-dialog.component';
+import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-vacuna-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import Swal from 'sweetalert2';
+import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
 
 @Component({
@@ -85,16 +86,46 @@ export class VacunasComponent implements OnInit {
   }
 
   abrirModalVacuna(vacuna: any = null) {
-    const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '600px',
-      data: vacuna
-    });
-    
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarVacunas();
-      }
-    });
+    // Si es una vacuna existente (edición), abrir directamente
+    if (vacuna && vacuna.id) {
+      const dialogRef = this.dialog.open(VacunaDialogComponent, {
+        width: '600px',
+        data: vacuna
+      });
+      
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.cargarVacunas();
+        }
+      });
+    } else {
+      // Si es una nueva vacuna, primero seleccionar cliente y paciente
+      const seleccionDialogRef = this.dialog.open(SeleccionarClienteVacunaDialogComponent, {
+        width: '600px',
+        data: {}
+      });
+      
+      seleccionDialogRef.afterClosed().subscribe(result => {
+        if (result && result.cliente && result.paciente) {
+          // Abrir el modal de vacuna con el cliente y paciente seleccionados
+          const vacunaDialogRef = this.dialog.open(VacunaDialogComponent, {
+            width: '600px',
+            data: {
+              idPaciente: result.paciente.id,
+              cliente_id: result.cliente.id,
+              paciente: result.paciente,
+              cliente: result.cliente
+            }
+          });
+          
+          vacunaDialogRef.afterClosed().subscribe(dialogResult => {
+            if (dialogResult) {
+              this.cargarVacunas();
+            }
+          });
+        }
+      });
+    }
   }
 
   editarVacuna(vacuna: any) {

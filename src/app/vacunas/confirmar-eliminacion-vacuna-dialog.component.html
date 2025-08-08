@@ -1,0 +1,84 @@
+<div class="confirmar-eliminacion-vacuna-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>warning</mat-icon>
+      Confirmar Eliminación
+    </h2>
+    <button mat-icon-button (click)="cancelar()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <div class="warning-section">
+      <div class="warning-icon">
+        <mat-icon>delete_forever</mat-icon>
+      </div>
+      <div class="warning-text">
+        <h3>¿Estás seguro de que deseas eliminar esta vacuna?</h3>
+        <p>Esta acción marcará la vacuna como inactiva y no se mostrará en la lista principal.</p>
+      </div>
+    </div>
+
+    <div class="vacuna-info">
+      <div class="info-card">
+        <div class="info-header">
+          <mat-icon class="info-icon">vaccines</mat-icon>
+          <h4>Información de la Vacuna</h4>
+        </div>
+        <div class="info-details">
+          <div class="info-row">
+            <span class="label">Vacuna:</span>
+            <span class="value">{{ data.vacuna }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Paciente:</span>
+            <span class="value">{{ data.paciente }}</span>
+          </div>
+          <div class="info-row" *ngIf="data.dosis">
+            <span class="label">Dosis:</span>
+            <span class="value">{{ data.dosis }}</span>
+          </div>
+          <div class="info-row" *ngIf="data.fecha">
+            <span class="label">Fecha:</span>
+            <span class="value">{{ data.fecha }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Estado:</span>
+            <span class="value estado-badge" [style.background-color]="getEstadoColor(data.aplicada)">
+              {{ getEstadoText(data.aplicada) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning-message">
+      <mat-icon class="warning-icon-small">info</mat-icon>
+      <p><strong>Nota:</strong> Los datos se mantendrán en la base de datos para auditoría, pero la vacuna no aparecerá en la lista principal.</p>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <div class="actions-left">
+      <button type="button" 
+              mat-button 
+              (click)="cancelar()"
+              class="cancel-btn">
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+    </div>
+    
+    <div class="actions-right">
+      <button type="button" 
+              mat-raised-button 
+              color="warn"
+              (click)="confirmar()"
+              class="confirm-btn">
+        <mat-icon>delete_forever</mat-icon>
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>

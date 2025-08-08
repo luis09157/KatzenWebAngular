@@ -3,9 +3,10 @@ import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
+import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import Swal from 'sweetalert2';
+import Swal from 'sweetalert2/dist/sweetalert2.js';
 
 @Component({
   selector: 'app-recordatorios',
@@ -81,16 +82,46 @@ export class RecordatoriosComponent implements OnInit {
   }
 
   abrirModalRecordatorio(recordatorio: any = null) {
-    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '600px',
-      data: recordatorio
-    });
-    
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarRecordatorios();
-      }
-    });
+    // Si es un recordatorio existente (edición), abrir directamente
+    if (recordatorio && recordatorio.id) {
+      const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+        width: '600px',
+        data: recordatorio
+      });
+      
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.cargarRecordatorios();
+        }
+      });
+    } else {
+      // Si es un nuevo recordatorio, primero seleccionar cliente y paciente
+      const seleccionDialogRef = this.dialog.open(SeleccionarClienteRecordatorioDialogComponent, {
+        width: '600px',
+        data: {}
+      });
+      
+      seleccionDialogRef.afterClosed().subscribe(result => {
+        if (result && result.cliente && result.paciente) {
+          // Abrir el modal de recordatorio con el cliente y paciente seleccionados
+          const recordatorioDialogRef = this.dialog.open(RecordatorioDialogComponent, {
+            width: '600px',
+            data: {
+              paciente_id: result.paciente.id,
+              cliente_id: result.cliente.id,
+              paciente: result.paciente,
+              cliente: result.cliente
+            }
+          });
+          
+          recordatorioDialogRef.afterClosed().subscribe(dialogResult => {
+            if (dialogResult) {
+              this.cargarRecordatorios();
+            }
+          });
+        }
+      });
+    }
   }
 
   editarRecordatorio(recordatorio: any) {
