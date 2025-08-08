@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map } from 'rxjs';
+import { Observable, map, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +39,22 @@ export class RecordatoriosService {
   async crearRecordatorio(recordatorio: any): Promise<any> {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     
+    // Verificar si ya existe un recordatorio similar para evitar duplicados
+    const recordatoriosExistentes = await firstValueFrom(this.getRecordatoriosPorPaciente(recordatorio.paciente_id));
+    
+    if (recordatoriosExistentes) {
+      const duplicado = recordatoriosExistentes.find(r => 
+        r.titulo === recordatorio.titulo &&
+        r.fecha_hora_recordatorio === recordatorio.fecha_hora_recordatorio &&
+        r.tipo === recordatorio.tipo &&
+        r.activo !== false
+      );
+      
+      if (duplicado) {
+        throw new Error('Ya existe un recordatorio similar para este paciente');
+      }
+    }
+    
     const nuevoRecordatorio = {
       ...recordatorio,
       created_at: timestamp,
@@ -47,8 +63,16 @@ export class RecordatoriosService {
       activo: true
     };
 
-    const ref = await this.db.list('Katzen/Recordatorios').push(nuevoRecordatorio);
-    return ref;
+    console.log('Intentando crear recordatorio:', nuevoRecordatorio);
+    
+    try {
+      const ref = await this.db.list('Katzen/Recordatorios').push(nuevoRecordatorio);
+      console.log('Recordatorio creado exitosamente con ID:', ref.key);
+      return ref;
+    } catch (error) {
+      console.error('Error al crear recordatorio en Firebase:', error);
+      throw error;
+    }
   }
 
   // Actualizar recordatorio existente

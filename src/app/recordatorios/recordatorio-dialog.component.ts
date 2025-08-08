@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { RecordatoriosService } from './recordatorios.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -13,6 +14,7 @@ export class RecordatorioDialogComponent implements OnInit {
   recordatorioForm: FormGroup;
   isEditMode = false;
   loading = false;
+  pacienteInfo: any = null;
 
   // Tipos de recordatorios predefinidos
   tiposRecordatorio = [
@@ -35,6 +37,7 @@ export class RecordatorioDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private recordatoriosService: RecordatoriosService,
+    private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<RecordatorioDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -53,35 +56,68 @@ export class RecordatorioDialogComponent implements OnInit {
 
   ngOnInit() {
     if (this.data) {
-      this.isEditMode = true;
-      let fecha: Date | null = null;
-      let hora = '';
-      if (this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio) {
-        const fechaObj = new Date(this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio);
-        if (!isNaN(fechaObj.getTime())) {
-          fecha = fechaObj;
-          hora = fechaObj.toTimeString().slice(0,5);
+      // Si tiene ID, es modo edición
+      if (this.data.id) {
+        this.isEditMode = true;
+        let fecha: Date | null = null;
+        let hora = '';
+        if (this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio) {
+          const fechaObj = new Date(this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio);
+          if (!isNaN(fechaObj.getTime())) {
+            fecha = fechaObj;
+            hora = fechaObj.toTimeString().slice(0,5);
+          }
+        }
+        this.recordatorioForm.patchValue({
+          titulo: this.data.titulo || '',
+          descripcion: this.data.descripcion || '',
+          tipo: this.data.tipo || '',
+          fecha_material: fecha,
+          hora_material: hora,
+          estado: this.data.estado || 'pendiente',
+          prioridad: this.data.prioridad || 'media',
+          paciente_id: this.data.paciente_id || '',
+          notas: this.data.notas || ''
+        });
+        
+        // Cargar información del paciente para edición
+        if (this.data.paciente_id) {
+          this.cargarInformacionPaciente(this.data.paciente_id);
+        }
+      } else {
+        // Es un nuevo recordatorio, establecer el paciente_id si viene desde la página del paciente
+        this.isEditMode = false;
+        if (this.data.paciente_id) {
+          this.recordatorioForm.patchValue({
+            paciente_id: this.data.paciente_id
+          });
+          // Cargar información del paciente
+          this.cargarInformacionPaciente(this.data.paciente_id);
         }
       }
-      this.recordatorioForm.patchValue({
-        titulo: this.data.titulo || '',
-        descripcion: this.data.descripcion || '',
-        tipo: this.data.tipo || '',
-        fecha_material: fecha,
-        hora_material: hora,
-        estado: this.data.estado || 'pendiente',
-        prioridad: this.data.prioridad || 'media',
-        paciente_id: this.data.paciente_id || '',
-        notas: this.data.notas || ''
-      });
     }
   }
 
+  cargarInformacionPaciente(pacienteId: string) {
+    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+      this.pacienteInfo = paciente;
+    });
+  }
+
   async guardarRecordatorio() {
+    console.log('Iniciando guardarRecordatorio');
+    console.log('Formulario válido:', this.recordatorioForm.valid);
+    console.log('Formulario valores:', this.recordatorioForm.value);
+    console.log('Errores del formulario:', this.recordatorioForm.errors);
+    
     if (this.recordatorioForm.valid) {
       this.loading = true;
+      console.log('Loading iniciado');
+      
       try {
         const recordatorioData = this.recordatorioForm.value;
+        console.log('Datos del recordatorio:', recordatorioData);
+        
         // Combinar fecha (Date) y hora (string) en string ISO
         let fechaISO = '';
         if (recordatorioData.fecha_material && recordatorioData.hora_material) {
@@ -92,21 +128,53 @@ export class RecordatorioDialogComponent implements OnInit {
         }
         recordatorioData.fecha_hora_recordatorio = fechaISO;
         recordatorioData.fecha_recordatorio = fechaISO;
+        
+        console.log('Datos procesados:', recordatorioData);
+        
         if (this.isEditMode && this.data.id) {
+          console.log('Modo edición');
           await this.recordatoriosService.actualizarRecordatorio(this.data.id, recordatorioData);
           Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio actualizado correctamente' });
+          this.dialogRef.close(recordatorioData);
         } else {
-          await this.recordatoriosService.crearRecordatorio(recordatorioData);
+          console.log('Modo creación');
+          // Crear nuevo recordatorio
+          const ref = await this.recordatoriosService.crearRecordatorio(recordatorioData);
+          const recordatorioId = ref.key;
+          
+          // Agregar el ID al objeto de datos
+          recordatorioData.id = recordatorioId;
+          
+          console.log('Recordatorio creado con ID:', recordatorioId);
           Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio creado correctamente' });
+          
+          // Cerrar con los datos completos incluyendo el ID
+          this.dialogRef.close(recordatorioData);
         }
-        // Cerrar con los datos del formulario en lugar de true
-        this.dialogRef.close(recordatorioData);
       } catch (error) {
         console.error('Error al guardar recordatorio:', error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el recordatorio' });
+        let mensajeError = 'No se pudo guardar el recordatorio';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('Ya existe un recordatorio similar')) {
+            mensajeError = 'Ya existe un recordatorio similar para este paciente';
+          }
+        }
+        
+        Swal.fire({ icon: 'error', title: 'Error', text: mensajeError });
       } finally {
+        console.log('Loading finalizado');
         this.loading = false;
       }
+    } else {
+      console.log('Formulario no válido');
+      console.log('Errores por campo:');
+      Object.keys(this.recordatorioForm.controls).forEach(key => {
+        const control = this.recordatorioForm.get(key);
+        if (control?.errors) {
+          console.log(`${key}:`, control.errors);
+        }
+      });
     }
   }
 

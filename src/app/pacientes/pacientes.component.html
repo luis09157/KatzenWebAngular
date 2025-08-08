@@ -11,7 +11,7 @@
       </div>
       <mat-form-field class="buscador-paciente-grande" appearance="outline">
         <mat-label>¿A quién buscas?</mat-label>
-        <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="searchTerm" (ngModelChange)="filtrarPacientes()" placeholder="Ejemplo: Luna, Max, Paty, Juan Pérez...">
+        <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="searchTerm" (input)="onSearchInput($event)" placeholder="Ejemplo: Luna, Max, Paty, Juan Pérez...">
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPaciente" (optionSelected)="seleccionarPaciente($event.option.value)">
           <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
             {{ paciente.nombre }} <span class="dueño">- {{ getClienteNombre(paciente.idCliente) }}</span>

@@ -206,12 +206,24 @@ export class PacientesComponent implements OnInit {
     });
   }
 
+  onSearchInput(event: any) {
+    // Obtener el valor del input de forma segura
+    const value = event?.target?.value || '';
+    this.searchTerm = value;
+    this.filtrarPacientes();
+  }
+
   filtrarPacientes() {
-    const term = this.searchTerm.trim().toLowerCase();
-    if (!term) {
-      this.pacientesFiltrados = [];
-      return;
-    }
+    try {
+      // Asegurar que searchTerm sea siempre un string
+      const searchValue = String(this.searchTerm || '');
+      
+      // Verificar que searchTerm no esté vacío después de trim
+      const term = searchValue.trim().toLowerCase();
+      if (!term) {
+        this.pacientesFiltrados = [];
+        return;
+      }
     
     // Filtrar solo pacientes activos
     const pacientesActivos = this.allPacientes.filter(p => p.activo !== false);
@@ -244,6 +256,10 @@ export class PacientesComponent implements OnInit {
       
       return false;
     });
+    } catch (error) {
+      console.error('Error en filtrarPacientes:', error);
+      this.pacientesFiltrados = [];
+    }
   }
 
   seleccionarPaciente(paciente: any) {
@@ -376,44 +392,34 @@ export class PacientesComponent implements OnInit {
 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
       width: '500px',
-      data: { paciente_id: this.pacienteSeleccionado.id }
+      data: { 
+        paciente_id: this.pacienteSeleccionado.id,
+        desdePaciente: true // Flag para indicar que viene desde la página del paciente
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        result.paciente_id = this.pacienteSeleccionado.id;
+        // El recordatorio ya se creó en el diálogo, solo recargar y registrar en log
+        console.log('Recordatorio creado desde diálogo:', result);
         
-        console.log('Datos del recordatorio antes de crear:', result);
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
         
-        this.recordatoriosService.crearRecordatorio(result).then((ref) => {
-          console.log('Recordatorio creado exitosamente, referencia:', ref);
-          
-          // Obtener el ID del recordatorio creado
-          const recordatorioId = ref.key;
-          console.log('ID del recordatorio creado:', recordatorioId);
-          
-          Swal.fire('Éxito', 'Recordatorio creado correctamente', 'success');
-          this.cargarRecordatorios(this.pacienteSeleccionado.id);
-          
-          // Registrar en el log con los datos completos
-          const datosParaLog = {
-            titulo: result.titulo || 'Sin título',
-            fecha_hora_recordatorio: result.fecha_hora_recordatorio || result.fecha_recordatorio,
-            prioridad: result.prioridad || 'media',
-            paciente_id: this.pacienteSeleccionado.id,
-            id: recordatorioId
-          };
-          
-          console.log('Registrando recordatorio en log:', datosParaLog);
-          this.pacientesService.registrarRecordatorio(this.pacienteSeleccionado.id, datosParaLog).then(() => {
-            console.log('Recordatorio registrado en log exitosamente');
-            this.cargarLogActividades(this.pacienteSeleccionado.id);
-          }).catch(error => {
-            console.error('Error al registrar recordatorio en log:', error);
-          });
+        // Registrar en el log con los datos completos
+        const datosParaLog = {
+          titulo: result.titulo || 'Sin título',
+          fecha_hora_recordatorio: result.fecha_hora_recordatorio || result.fecha_recordatorio,
+          prioridad: result.prioridad || 'media',
+          paciente_id: this.pacienteSeleccionado.id,
+          id: result.id // El ID ya viene del diálogo
+        };
+        
+        console.log('Registrando recordatorio en log:', datosParaLog);
+        this.pacientesService.registrarRecordatorio(this.pacienteSeleccionado.id, datosParaLog).then(() => {
+          console.log('Recordatorio registrado en log exitosamente');
+          this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
-          console.error('Error al crear recordatorio:', error);
-          Swal.fire('Error', 'No se pudo crear el recordatorio', 'error');
+          console.error('Error al registrar recordatorio en log:', error);
         });
       }
     });
