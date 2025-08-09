@@ -17,6 +17,7 @@ export class VacunaDialogComponent implements OnInit {
   isEditMode = false;
   loading = false;
   doctores: any[] = [];
+  pacienteInfo: any = null;
 
   // Tipos de vacunas predefinidos
   tiposVacunas = [
@@ -110,6 +111,20 @@ export class VacunaDialogComponent implements OnInit {
     });
   }
 
+  cargarInformacionPaciente(pacienteId: string) {
+    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+      this.pacienteInfo = paciente;
+    });
+  }
+
+  getNombreCompletoCliente(cliente: any): string {
+    const nombre = cliente.nombre || '';
+    const apellidoPaterno = cliente.apellidoPaterno || '';
+    const apellidoMaterno = cliente.apellidoMaterno || '';
+    
+    return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+  }
+
   ngOnInit() {
     console.log('VacunaDialogComponent - Datos recibidos:', this.data);
     console.log('VacunaDialogComponent - Tipos de vacunas:', this.tiposVacunas);
@@ -128,6 +143,11 @@ export class VacunaDialogComponent implements OnInit {
       this.vacunaForm.patchValue({
         idCliente: this.data.cliente_id || this.data.idCliente
       });
+    }
+
+    // Cargar información del paciente si no viene completa en data
+    if ((this.data?.paciente_id || this.data?.idPaciente) && !this.data?.paciente) {
+      this.cargarInformacionPaciente(this.data.paciente_id || this.data.idPaciente);
     }
 
     if (this.data && this.data.id) {
@@ -333,13 +353,7 @@ export class VacunaDialogComponent implements OnInit {
     }
   }
   
-  // Método para obtener el nombre completo del cliente
-  getNombreCompletoCliente(cliente: any): string {
-    if (!cliente) return '';
-    const nombre = cliente.nombre || '';
-    const apellido = cliente.apellido || '';
-    return `${nombre} ${apellido}`.trim();
-  }
+
 
   // Cargar lista de doctores
   cargarDoctores() {
