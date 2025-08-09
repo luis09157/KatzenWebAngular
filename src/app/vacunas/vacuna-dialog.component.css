@@ -1,46 +1,36 @@
-.vacuna-dialog {
-  min-width: 500px;
-  max-width: 600px;
+/* Estilos para el modal de vacunas con Material Design */
+mat-dialog-content {
+  min-width: 600px;
+  max-width: 800px;
+  padding: 20px;
 }
 
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
-  border-radius: 8px 8px 0 0;
-}
-
-.dialog-header h2 {
-  margin: 0;
+/* Título del diálogo */
+h2[mat-dialog-title] {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 20px;
-  font-weight: 600;
+  color: #4caf50;
+  margin-bottom: 0;
 }
 
-.dialog-header mat-icon {
+h2[mat-dialog-title] mat-icon {
   font-size: 24px;
   width: 24px;
   height: 24px;
 }
 
-.close-btn {
-  color: white;
+/* Formulario */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dialog-content {
-  padding: 24px;
-  max-height: 60vh;
-  overflow-y: auto;
+.form-row mat-form-field {
+  flex: 1 1 200px;
+  min-width: 180px;
 }
 
 .full-width {
@@ -48,14 +38,32 @@
   margin-bottom: 16px;
 }
 
-.form-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
+/* Secciones del formulario */
+.form-section {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
 }
 
-.half-width {
-  flex: 1;
+.form-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #424242;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-section-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #4caf50;
 }
 
 .checkbox-container {
@@ -64,97 +72,22 @@
   padding: 8px 0;
 }
 
-.dialog-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #fafafa;
-  border-radius: 0 0 8px 8px;
-}
-
-.actions-left {
-  display: flex;
-  gap: 8px;
-}
-
-.actions-right {
-  display: flex;
-  gap: 12px;
-}
-
-/* Estilos para los campos de texto */
-mat-form-field {
-  margin-bottom: 16px;
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* Estilos para botones */
-button[mat-raised-button] {
-  min-width: 120px;
-  height: 40px;
-}
-
-button[mat-stroked-button] {
-  min-width: 100px;
-  height: 40px;
-}
-
-button[mat-button] {
-  min-width: 80px;
-  height: 40px;
-}
-
-/* Estilos para el spinner */
-mat-spinner {
-  margin-right: 8px;
-}
-
-/* Estilos específicos para vacunas */
-.vacuna-pendiente {
-  color: #ff9800;
-}
-
-.vacuna-aplicada {
-  color: #4caf50;
-}
-
-.vacuna-vencida {
-  color: #f44336;
-}
-
-/* Estilos para la información de selección de cliente y paciente */
+/* Información de cliente y paciente seleccionado */
 .seleccion-info {
   margin-bottom: 24px;
 }
 
 .seleccion-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid #dee2e6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.seleccion-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #4caf50 0%, #45a049 100%);
+  border: 2px solid #e8f5e8;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.08);
+  margin-bottom: 20px;
 }
 
 .cliente-section, .paciente-section {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .cliente-section:last-child, .paciente-section:last-child {
@@ -167,85 +100,74 @@ mat-spinner {
   gap: 8px;
   margin-bottom: 12px;
   padding: 8px 12px;
-  background: rgba(76, 175, 80, 0.1);
-  border-radius: 6px;
-  border-left: 4px solid #4caf50;
+  background: rgba(76, 175, 80, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
 }
 
 .section-header h4 {
   margin: 0;
   color: #2c3e50;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .section-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
   color: #4caf50;
 }
 
 .cliente-nombre, .paciente-nombre {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 6px 0;
+  font-size: 15px;
   font-weight: 600;
   color: #2c3e50;
-  line-height: 1.2;
 }
 
 .cliente-stats, .paciente-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cliente-stats .stat-item, .paciente-stats .stat-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: 3px;
+  padding: 3px 6px;
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  font-size: 11px;
+  border-radius: 8px;
+  font-size: 10px;
   color: #495057;
   font-weight: 500;
   border: 1px solid rgba(76, 175, 80, 0.2);
 }
 
 .cliente-stats .stat-item mat-icon, .paciente-stats .stat-item mat-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
   color: #4caf50;
 }
 
 /* Responsive */
-@media (max-width: 600px) {
-  .vacuna-dialog {
-    min-width: 90vw;
-    max-width: 95vw;
-  }
-  
-  .dialog-content {
+@media (max-width: 768px) {
+  mat-dialog-content {
+    min-width: 95vw;
     padding: 16px;
-  }
-  
-  .dialog-actions {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .actions-left,
-  .actions-right {
-    justify-content: center;
   }
   
   .form-row {
     flex-direction: column;
     gap: 0;
+  }
+  
+  .form-section {
+    padding: 12px;
+    margin-bottom: 16px;
   }
 } 

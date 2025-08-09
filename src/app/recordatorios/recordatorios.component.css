@@ -36,9 +36,68 @@
   flex: 1;
 }
 
+/* Botón del header */
+.header-row button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  min-height: 44px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.header-row button mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin-right: 6px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
+}
+
 .buscador {
   margin: 24px;
   width: calc(100% - 48px);
+}
+
+/* Forzar visibilidad de Material Icons */
+::ng-deep .header-row button .material-icons,
+::ng-deep .sin-recordatorios button .material-icons,
+::ng-deep .recordatorios-contenedor button mat-icon {
+  font-family: 'Material Icons' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  direction: ltr !important;
+  margin-right: 8px !important;
+}
+
+/* Respaldo CSS para iconos que no cargan */
+.header-row button mat-icon:empty::before,
+.sin-recordatorios button mat-icon:empty::before {
+  content: '+';
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 8px;
 }
 
 .tabla-titulo {
@@ -221,18 +280,62 @@ table {
 }
 
 .sin-recordatorios button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  margin: 0 auto !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  min-height: 48px !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
+}
+
+/* Selector más específico para Material Button */
+.sin-recordatorios .mat-raised-button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  min-height: 48px !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
+}
+
+.sin-recordatorios button mat-icon,
+.sin-recordatorios .mat-raised-button mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin-right: 6px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
 }
 
 .sin-recordatorios button:hover {

@@ -10,8 +10,8 @@ export class UsuariosService {
   constructor(private db: AngularFireDatabase) {}
 
   // Obtener todos los usuarios
-  getUsuarios(): Observable<any[]> {
-    return this.db.list('Katzen/Usuarios').valueChanges();
+  getUsuarios(): Observable<any> {
+    return this.db.object('Katzen/Usuarios').valueChanges();
   }
 
   // Obtener un usuario por id

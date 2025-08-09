@@ -5,7 +5,7 @@
       <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
       <span class="spacer"></span>
       <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
-        <mat-icon>add</mat-icon>
+        <mat-icon aria-hidden="false">add</mat-icon>
         Agregar Recordatorio
       </button>
     </div>
@@ -124,7 +124,7 @@
       <h3>No hay recordatorios</h3>
       <p>No se han encontrado recordatorios registrados.</p>
       <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
-        <mat-icon>add</mat-icon>
+        <mat-icon aria-hidden="false">add</mat-icon>
         Crear primer recordatorio
       </button>
     </div>

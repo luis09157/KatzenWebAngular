@@ -40,7 +40,7 @@ export class VacunasComponent implements OnInit {
       this.dataSource.data = (vacunas || []).filter(v => v.activo !== false).map(vacuna => ({
         ...vacuna,
         paciente: this.pacientesMap[vacuna.idPaciente] || 'N/P',
-        fecha: this.formatearFecha(vacuna.fecha),
+        fecha: this.formatearFecha(vacuna.fechaAplicacion || vacuna.fecha),
         proximaAplicacion: this.formatearFecha(vacuna.proximaAplicacion),
         diasRestantes: this.vacunasService.getDiasRestantes(vacuna),
         estaVencida: this.vacunasService.estaVencida(vacuna)
@@ -150,7 +150,7 @@ export class VacunasComponent implements OnInit {
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      text: 'Esta acción marcará la vacuna como eliminada (baja lógica)',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
@@ -160,7 +160,8 @@ export class VacunasComponent implements OnInit {
 
     if (result.isConfirmed) {
       try {
-        await this.vacunasService.eliminarVacuna(vacuna.id);
+        // Usar baja lógica en lugar de eliminación física
+        await this.vacunasService.bajaLogicaVacuna(vacuna.id);
         Swal.fire({
           icon: 'success',
           title: '¡Eliminado!',

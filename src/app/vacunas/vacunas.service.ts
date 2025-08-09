@@ -117,9 +117,10 @@ export class VacunasService {
 
   // Calcular próxima fecha de vacuna
   calcularProximaFecha(vacuna: any): string {
-    if (!vacuna.fecha || !vacuna.intervalo) return '';
+    const fecha = vacuna.fechaAplicacion || vacuna.fecha;
+    if (!fecha || !vacuna.intervalo) return '';
     
-    const fechaActual = new Date(vacuna.fecha);
+    const fechaActual = new Date(fecha);
     const proximaFecha = new Date(fechaActual.getTime() + (vacuna.intervalo * 24 * 60 * 60 * 1000));
     
     return proximaFecha.toLocaleDateString('es-ES');
@@ -127,9 +128,10 @@ export class VacunasService {
 
   // Verificar si la vacuna está vencida
   estaVencida(vacuna: any): boolean {
-    if (!vacuna.fecha) return false;
+    const fecha = vacuna.fechaAplicacion || vacuna.fecha;
+    if (!fecha) return false;
     
-    const fechaVacuna = new Date(vacuna.fecha);
+    const fechaVacuna = new Date(fecha);
     const hoy = new Date();
     
     return fechaVacuna < hoy;
@@ -137,9 +139,10 @@ export class VacunasService {
 
   // Obtener días restantes para la vacuna
   getDiasRestantes(vacuna: any): number {
-    if (!vacuna.fecha) return 0;
+    const fecha = vacuna.proximaAplicacion || vacuna.fechaAplicacion || vacuna.fecha;
+    if (!fecha) return 0;
     
-    const fechaVacuna = new Date(vacuna.fecha);
+    const fechaVacuna = new Date(fecha);
     const hoy = new Date();
     const diferencia = fechaVacuna.getTime() - hoy.getTime();
     
