@@ -75,6 +75,12 @@ export class HistorialDialogComponent implements OnInit {
         if (this.isEditMode && this.data.historial?.id) {
           // Actualizar historial existente
           await this.historialesService.actualizarHistorial(this.data.historial.id, historialData);
+          
+          // Registrar en el log de actividades
+          if (historialData.paciente_id) {
+            await this.registrarHistorialEnLog(historialData, 'editado');
+          }
+          
           Swal.fire({
             icon: 'success',
             title: '¡Éxito!',
@@ -82,7 +88,22 @@ export class HistorialDialogComponent implements OnInit {
           });
           this.dialogRef.close(historialData);
         } else {
-          // Para nuevos historiales, solo devolver los datos sin crear
+          // Crear nuevo historial
+          const ref = await this.historialesService.crearHistorial(historialData);
+          const historialId = ref.key;
+          historialData.id = historialId;
+          
+          // Registrar en el log de actividades
+          if (historialData.paciente_id) {
+            await this.registrarHistorialEnLog(historialData, 'creado');
+          }
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: 'Historial clínico creado correctamente'
+          });
+          
           this.dialogRef.close(historialData);
         }
       } catch (error) {
@@ -96,6 +117,14 @@ export class HistorialDialogComponent implements OnInit {
         this.loading = false;
       }
     } else {
+      // Marcar todos los campos como tocados para mostrar errores
+      Object.keys(this.historialForm.controls).forEach(key => {
+        const control = this.historialForm.get(key);
+        if (control?.invalid) {
+          control.markAsTouched();
+        }
+      });
+      
       Swal.fire({
         icon: 'warning',
         title: 'Campos requeridos',
@@ -143,6 +172,31 @@ export class HistorialDialogComponent implements OnInit {
       } finally {
         this.loading = false;
       }
+    }
+  }
+
+  // Registrar historial en log de actividades
+  private async registrarHistorialEnLog(historialData: any, accion: string): Promise<void> {
+    try {
+      const datosLog = {
+        tipo: 'historial_clinico',
+        accion: accion,
+        fecha: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        datos: {
+          id: historialData.id,
+          diagnostico: historialData.diagnostico,
+          tratamiento: historialData.tratamiento,
+          medicamentos: historialData.medicamentos,
+          notas: historialData.notas
+        },
+        usuario: 'Sistema', // TODO: Obtener usuario actual
+        paciente_id: historialData.paciente_id
+      };
+
+      await this.pacientesService.registrarHistorialClinico(historialData.paciente_id, datosLog);
+      console.log(`Historial clínico ${accion} registrado en log exitosamente`);
+    } catch (error) {
+      console.error('Error al registrar historial en log:', error);
     }
   }
 } 

@@ -141,6 +141,12 @@ export class RecordatorioDialogComponent implements OnInit {
         if (this.isEditMode && this.data.id) {
           console.log('Modo edición');
           await this.recordatoriosService.actualizarRecordatorio(this.data.id, recordatorioData);
+          
+          // Registrar en el log de actividades
+          if (recordatorioData.paciente_id) {
+            await this.registrarRecordatorioEnLog(recordatorioData, 'editado');
+          }
+          
           Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio actualizado correctamente' });
           this.dialogRef.close(recordatorioData);
         } else {
@@ -151,6 +157,11 @@ export class RecordatorioDialogComponent implements OnInit {
           
           // Agregar el ID al objeto de datos
           recordatorioData.id = recordatorioId;
+          
+          // Registrar en el log de actividades
+          if (recordatorioData.paciente_id) {
+            await this.registrarRecordatorioEnLog(recordatorioData, 'creado');
+          }
           
           console.log('Recordatorio creado con ID:', recordatorioId);
           Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio creado correctamente' });
@@ -176,11 +187,20 @@ export class RecordatorioDialogComponent implements OnInit {
     } else {
       console.log('Formulario no válido');
       console.log('Errores por campo:');
+      
+      // Marcar todos los campos como tocados para mostrar errores
       Object.keys(this.recordatorioForm.controls).forEach(key => {
         const control = this.recordatorioForm.get(key);
-        if (control?.errors) {
+        if (control?.invalid) {
+          control.markAsTouched();
           console.log(`${key}:`, control.errors);
         }
+      });
+      
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos requeridos',
+        text: 'Por favor completa los campos obligatorios'
       });
     }
   }
@@ -264,5 +284,33 @@ export class RecordatorioDialogComponent implements OnInit {
     const apellidoMaterno = cliente.apellidoMaterno || '';
     
     return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+  }
+
+  // Registrar recordatorio en log de actividades
+  private async registrarRecordatorioEnLog(recordatorioData: any, accion: string): Promise<void> {
+    try {
+      const datosLog = {
+        tipo: 'recordatorio',
+        accion: accion,
+        fecha: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        datos: {
+          id: recordatorioData.id,
+          titulo: recordatorioData.titulo,
+          descripcion: recordatorioData.descripcion,
+          tipo: recordatorioData.tipo,
+          fecha_hora_recordatorio: recordatorioData.fecha_hora_recordatorio,
+          estado: recordatorioData.estado,
+          prioridad: recordatorioData.prioridad,
+          notas: recordatorioData.notas
+        },
+        usuario: 'Sistema', // TODO: Obtener usuario actual
+        paciente_id: recordatorioData.paciente_id
+      };
+
+      await this.pacientesService.registrarRecordatorio(recordatorioData.paciente_id, datosLog);
+      console.log(`Recordatorio ${accion} registrado en log exitosamente`);
+    } catch (error) {
+      console.error('Error al registrar recordatorio en log:', error);
+    }
   }
 } 

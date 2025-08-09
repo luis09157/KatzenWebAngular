@@ -251,6 +251,14 @@ export class VacunaDialogComponent implements OnInit {
         this.loading = false;
       }
     } else {
+      // Marcar todos los campos como tocados para mostrar errores
+      Object.keys(this.vacunaForm.controls).forEach(key => {
+        const control = this.vacunaForm.get(key);
+        if (control?.invalid) {
+          control.markAsTouched();
+        }
+      });
+      
       Swal.fire({
         icon: 'warning',
         title: 'Campos requeridos',
