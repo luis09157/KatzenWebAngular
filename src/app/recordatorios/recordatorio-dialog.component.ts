@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
@@ -8,7 +9,13 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-recordatorio-dialog',
   templateUrl: './recordatorio-dialog.component.html',
-  styleUrls: ['./recordatorio-dialog.component.css']
+  styleUrls: ['./recordatorio-dialog.component.css'],
+  providers: [
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: { appearance: 'fill' }
+    }
+  ]
 })
 export class RecordatorioDialogComponent implements OnInit {
   recordatorioForm: FormGroup;
@@ -249,5 +256,13 @@ export class RecordatorioDialogComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  getNombreCompletoCliente(cliente: any): string {
+    const nombre = cliente.nombre || '';
+    const apellidoPaterno = cliente.apellidoPaterno || '';
+    const apellidoMaterno = cliente.apellidoMaterno || '';
+    
+    return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
   }
 } 

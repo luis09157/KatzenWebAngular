@@ -1,46 +1,62 @@
+/* Estilos simplificados para el modal de recordatorios */
+
+/* Contenedor principal */
 .recordatorio-dialog {
   min-width: 500px;
   max-width: 600px;
+  width: 100%;
 }
 
-.dialog-header {
+/* Header del modal */
+h2[mat-dialog-title] {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  justify-content: space-between;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
-  border-radius: 8px 8px 0 0;
-}
-
-.dialog-header h2 {
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 20px;
+  padding: 16px 20px;
+  font-size: 18px;
   font-weight: 600;
 }
 
-.dialog-header mat-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
+.title-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-content mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .close-btn {
-  color: white;
+  color: white !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
 .close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.dialog-content {
-  padding: 24px;
-  max-height: 60vh;
-  overflow-y: auto;
+/* Contenido del modal */
+mat-dialog-content {
+  padding: 20px;
+}
+
+/* Formulario */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row mat-form-field {
+  flex: 1;
 }
 
 .full-width {
@@ -48,24 +64,99 @@
   margin-bottom: 16px;
 }
 
-.form-row {
-  display: flex;
-  gap: 16px;
+.half-width {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Información del cliente y paciente */
+.seleccion-info {
+  margin-bottom: 20px;
+}
+
+.seleccion-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e9ecef;
   margin-bottom: 16px;
 }
 
-.half-width {
-  flex: 1;
+.cliente-section,
+.paciente-section {
+  margin-bottom: 16px;
 }
 
-.dialog-actions {
+.paciente-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #fafafa;
-  border-radius: 0 0 8px 8px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-icon {
+  color: #ff6b6b;
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.cliente-nombre,
+.paciente-nombre {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.cliente-stats,
+.paciente-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.stat-item mat-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+  color: #999;
+}
+
+/* Acciones del modal */
+mat-dialog-actions {
+  padding: 16px 20px !important;
+  background: #f8f9fa !important;
+  border-top: 1px solid #e9ecef !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 0 !important;
 }
 
 .actions-left {
@@ -75,280 +166,103 @@
 
 .actions-right {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
 }
 
-/* Estilos para los campos de texto */
-mat-form-field {
-  margin-bottom: 16px;
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-/* Estilos para botones */
+/* Botones */
 button[mat-raised-button] {
-  min-width: 120px;
+  min-width: 100px;
   height: 40px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+}
+
+button[mat-raised-button]:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
 }
 
 button[mat-stroked-button] {
-  min-width: 100px;
+  min-width: 80px;
   height: 40px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.25px;
+  border-width: 1px;
+  transition: all 0.2s ease;
 }
 
 button[mat-button] {
-  min-width: 80px;
+  min-width: 70px;
   height: 40px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.25px;
+  transition: all 0.2s ease;
 }
 
-/* Estilos para el spinner */
-mat-spinner {
-  margin-right: 8px;
+button mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 6px !important;
 }
 
-/* Estilos específicos para prioridades */
-.prioridad-alta {
-  color: #f44336;
+/* FORZAR ESTILOS MATERIAL DESIGN FILL - MUY ESPECÍFICO */
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #f5f5f5 !important;
+  border-radius: 4px 4px 0 0 !important;
+  padding: 0.75em 0.75em 0 0.75em !important;
 }
 
-.prioridad-media {
-  color: #ff9800;
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-underline::before {
+  background-color: rgba(0, 0, 0, 0.12) !important;
 }
 
-.prioridad-baja {
-  color: #4caf50;
+::ng-deep .mat-form-field-appearance-fill.mat-focused .mat-form-field-underline::before {
+  background-color: #ff6b6b !important;
+  height: 2px !important;
 }
 
-.prioridad-urgente {
-  color: #9c27b0;
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-label {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill.mat-focused .mat-form-field-label {
+  color: #ff6b6b !important;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
   .recordatorio-dialog {
-    min-width: 90vw;
-    max-width: 95vw;
-  }
-  
-  .dialog-content {
-    padding: 16px;
-  }
-  
-  .dialog-actions {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .actions-left,
-  .actions-right {
-    justify-content: center;
+    min-width: 100%;
+    max-width: 100%;
   }
   
   .form-row {
     flex-direction: column;
-    gap: 0;
+  }
+  
+  mat-dialog-content {
+    padding: 16px;
+  }
+  
+  mat-dialog-actions {
+    padding: 12px 16px !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .actions-left,
+  .actions-right {
+    width: 100%;
+    justify-content: center;
   }
 }
-
-/* Estilos para información del paciente */
-.paciente-info {
-  margin-bottom: 24px;
-}
-
-.paciente-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #dee2e6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.paciente-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
-}
-
-.paciente-avatar {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-.paciente-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-  color: white;
-}
-
-.paciente-details {
-  flex: 1;
-}
-
-.paciente-nombre {
-  margin: 0 0 12px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #2c3e50;
-  line-height: 1.2;
-}
-
-.paciente-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 107, 107, 0.1);
-  border-radius: 20px;
-  font-size: 12px;
-  color: #495057;
-  font-weight: 500;
-}
-
-.stat-item mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #ff6b6b;
-}
-
-.paciente-cliente {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(52, 152, 219, 0.1);
-  border-radius: 8px;
-  font-size: 13px;
-  color: #495057;
-  font-weight: 500;
-}
-
-.paciente-cliente mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #3498db;
-}
-
-.paciente-cliente span {
-  font-weight: 600;
-}
-
-/* Estilos para la información de selección de cliente y paciente */
-.seleccion-info {
-  margin-bottom: 24px;
-}
-
-.seleccion-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #dee2e6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.seleccion-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
-}
-
-.cliente-section, .paciente-section {
-  margin-bottom: 20px;
-}
-
-.cliente-section:last-child, .paciente-section:last-child {
-  margin-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background: rgba(255, 107, 107, 0.1);
-  border-radius: 6px;
-  border-left: 4px solid #ff6b6b;
-}
-
-.section-header h4 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.section-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: #ff6b6b;
-}
-
-.cliente-nombre, .paciente-nombre {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
-  line-height: 1.2;
-}
-
-.cliente-stats, .paciente-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.cliente-stats .stat-item, .paciente-stats .stat-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  font-size: 11px;
-  color: #495057;
-  font-weight: 500;
-  border: 1px solid rgba(255, 107, 107, 0.2);
-}
-
-.cliente-stats .stat-item mat-icon, .paciente-stats .stat-item mat-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  color: #ff6b6b;
-} 

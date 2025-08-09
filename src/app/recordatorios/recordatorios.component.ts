@@ -86,6 +86,9 @@ export class RecordatoriosComponent implements OnInit {
     if (recordatorio && recordatorio.id) {
       const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
         width: '600px',
+        minWidth: '500px',
+        maxWidth: '90vw',
+        panelClass: 'recordatorio-dialog-container',
         data: recordatorio
       });
       
@@ -98,6 +101,9 @@ export class RecordatoriosComponent implements OnInit {
       // Si es un nuevo recordatorio, primero seleccionar cliente y paciente
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteRecordatorioDialogComponent, {
         width: '600px',
+        minWidth: '500px',
+        maxWidth: '90vw',
+        panelClass: 'seleccionar-cliente-dialog-container',
         data: {}
       });
       
@@ -106,6 +112,9 @@ export class RecordatoriosComponent implements OnInit {
           // Abrir el modal de recordatorio con el cliente y paciente seleccionados
           const recordatorioDialogRef = this.dialog.open(RecordatorioDialogComponent, {
             width: '600px',
+            minWidth: '500px',
+            maxWidth: '90vw',
+            panelClass: 'recordatorio-dialog-container',
             data: {
               paciente_id: result.paciente.id,
               cliente_id: result.cliente.id,
@@ -131,6 +140,9 @@ export class RecordatoriosComponent implements OnInit {
   verRecordatorio(recordatorio: any) {
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
       width: '600px',
+      minWidth: '500px',
+      maxWidth: '90vw',
+      panelClass: 'recordatorio-dialog-container',
       data: { ...recordatorio, modoSoloLectura: true }
     });
   }

@@ -1,16 +1,16 @@
 <div class="recordatorio-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
+  <h2 mat-dialog-title class="dialog-header">
+    <span class="title-content">
       <mat-icon>notifications</mat-icon>
       {{ isEditMode ? 'Editar' : 'Nuevo' }} Recordatorio
-    </h2>
+    </span>
     <button mat-icon-button (click)="cancelar()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </h2>
 
-  <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()">
-    <div class="dialog-content">
+  <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()" id="recordatorioForm">
+    <mat-dialog-content class="dialog-content">
       
       <!-- Información del Cliente y Paciente -->
       <div *ngIf="data.cliente && data.paciente" class="seleccion-info">
@@ -112,7 +112,7 @@
       </div>
       
       <!-- Título -->
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Título *</mat-label>
         <input matInput formControlName="titulo" 
                placeholder="Ej: Vacuna anual, Desparasitación...">
@@ -122,7 +122,7 @@
       </mat-form-field>
 
       <!-- Descripción -->
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Descripción</mat-label>
         <textarea matInput formControlName="descripcion" 
                   placeholder="Descripción detallada del recordatorio"
@@ -130,9 +130,9 @@
       </mat-form-field>
 
       <!-- Tipo de recordatorio -->
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Tipo de recordatorio *</mat-label>
-        <mat-select formControlName="tipo" placeholder="Seleccionar tipo">
+        <mat-select formControlName="tipo">
           <mat-option *ngFor="let tipo of tiposRecordatorio" [value]="tipo.value">
             {{ tipo.label }}
           </mat-option>
@@ -144,18 +144,18 @@
 
       <!-- Fecha y hora modernos -->
       <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="fill" class="half-width">
           <mat-label>Fecha *</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="fecha_material" placeholder="Seleccionar fecha">
+          <input matInput [matDatepicker]="picker" formControlName="fecha_material">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           <mat-error *ngIf="recordatorioForm.get('fecha_material')?.hasError('required')">
             La fecha es requerida
           </mat-error>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="fill" class="half-width">
           <mat-label>Hora *</mat-label>
-          <input matInput type="time" formControlName="hora_material" placeholder="Seleccionar hora">
+          <input matInput type="time" formControlName="hora_material">
           <mat-error *ngIf="recordatorioForm.get('hora_material')?.hasError('required')">
             La hora es requerida
           </mat-error>
@@ -164,7 +164,7 @@
 
       <!-- Estado y prioridad -->
       <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="fill" class="half-width">
           <mat-label>Estado</mat-label>
           <mat-select formControlName="estado">
             <mat-option *ngFor="let estado of estados" [value]="estado.value">
@@ -173,7 +173,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="fill" class="half-width">
           <mat-label>Prioridad</mat-label>
           <mat-select formControlName="prioridad">
             <mat-option value="baja">Baja</mat-option>
@@ -185,7 +185,7 @@
       </div>
 
       <!-- Notas -->
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Notas adicionales</mat-label>
         <textarea matInput formControlName="notas" 
                   placeholder="Notas o comentarios adicionales"
@@ -194,9 +194,9 @@
 
       <!-- ID del Paciente (oculto, se establece automáticamente) -->
       <input type="hidden" formControlName="paciente_id">
-    </div>
+    </mat-dialog-content>
 
-    <div class="dialog-actions">
+    <mat-dialog-actions class="dialog-actions">
       <div class="actions-left">
         <button *ngIf="isEditMode" 
                 type="button" 
@@ -239,12 +239,13 @@
         <button type="submit" 
                 mat-raised-button 
                 color="primary"
+                form="recordatorioForm"
                 [disabled]="recordatorioForm.invalid || loading">
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}
         </button>
       </div>
-    </div>
+    </mat-dialog-actions>
   </form>
 </div> 
