@@ -80,6 +80,36 @@
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
 }
 
+.admin-banner button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  min-height: 44px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
+}
+
+.admin-banner button mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin-right: 6px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
+}
+
 .banner-content {
   display: flex;
   align-items: center;
@@ -159,7 +189,7 @@
   text-align: center;
 }
 
-.sin-citas mat-icon {
+.sin-citas mat-icon:first-child {
   font-size: 64px;
   width: 64px;
   height: 64px;
@@ -178,6 +208,70 @@
   margin: 0 0 24px 0;
   color: #7f8c8d;
   font-size: 16px;
+}
+
+.sin-citas button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin: 0 auto !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  min-height: 48px !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Selector más específico para Material Button */
+.sin-citas .mat-raised-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  min-height: 48px !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.sin-citas button mat-icon,
+.sin-citas .mat-raised-button mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  margin-right: 6px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
+}
+
+.sin-citas button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Tabla */

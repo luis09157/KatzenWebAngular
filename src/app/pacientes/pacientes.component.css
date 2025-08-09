@@ -211,49 +211,7 @@
   padding: 8px 0;
 }
 
-/* Acciones del paciente */
-.acciones-paciente {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: auto;
-  padding-top: 20px;
-}
 
-.btn-accion-paciente {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-accion-paciente:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.btn-accion-paciente mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-}
-
-.btn-accion-paciente:nth-child(1) {
-  color: #f44336;
-}
-
-.btn-accion-paciente:nth-child(2) {
-  color: #4caf50;
-}
-
-.btn-accion-paciente:nth-child(3) {
-  color: #2196f3;
-}
 
 /* Panel central */
 .panel-central {
@@ -856,29 +814,40 @@
 }
 
 .btn-accion {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: white;
-  color: #666;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: white !important;
+  color: #666 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
 }
 
 .btn-accion:hover {
-  background: #f0f2f5;
-  color: #333;
-  transform: scale(1.1);
+  background: #f0f2f5 !important;
+  color: #333 !important;
+  transform: scale(1.1) !important;
 }
 
 .btn-accion mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
 }
 
 .btn-eliminar:hover {
@@ -999,25 +968,23 @@ mat-icon {
   src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
 }
 
-/* Estilos específicos para botones de acción */
+/* Estilos específicos para botones de acción - GLOBAL */
 .btn-accion mat-icon {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
-  display: flex !important;
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  margin: 0 !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
   color: inherit !important;
 }
 
-.btn-accion-paciente mat-icon {
-  font-size: 20px !important;
-  width: 20px !important;
-  height: 20px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
+
 
 .btn-agregar-historial mat-icon {
   font-size: 18px !important;
@@ -1184,11 +1151,32 @@ mat-icon {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .vacuna-acciones button {
-  width: 32px;
-  height: 32px;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  min-width: 40px !important;
+}
+
+.vacuna-acciones button mat-icon {
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  top: 0 !important;
 }
 
 .sin-vacunas {
