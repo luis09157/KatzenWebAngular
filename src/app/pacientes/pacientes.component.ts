@@ -757,28 +757,51 @@ export class PacientesComponent implements OnInit {
   cargarVacunas(pacienteId: string) {
     this.vacunasService.getVacunasPorPaciente(pacienteId).subscribe(vacunas => {
       this.vacunas = vacunas.map(v => {
-        const fecha = new Date(v.fecha);
-        const ahora = new Date();
-        const diferencia = fecha.getTime() - ahora.getTime();
-        const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-        
+        // Usar fechaAplicacion en lugar de fecha, con fallback a fechaRegistro
+        const fechaRaw = v.fechaAplicacion || v.fechaRegistro || v.fecha;
+        let fecha = null;
+        let fecha_formateada = 'N/P';
         let estadoTiempo = '';
-        if (dias < 0) {
-          estadoTiempo = `Vencida hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`;
-        } else if (dias === 0) {
-          estadoTiempo = 'Hoy';
-        } else if (dias === 1) {
-          estadoTiempo = 'Mañana';
-        } else if (dias < 7) {
-          estadoTiempo = `En ${dias} días`;
-        } else {
-          const semanas = Math.floor(dias / 7);
-          estadoTiempo = `En ${semanas} semana${semanas > 1 ? 's' : ''}`;
+        let dias = 0;
+        
+        if (fechaRaw) {
+          try {
+            fecha = new Date(fechaRaw);
+            if (!isNaN(fecha.getTime())) {
+              fecha_formateada = fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              });
+              
+              // Calcular tiempo restante
+              const ahora = new Date();
+              const diferencia = fecha.getTime() - ahora.getTime();
+              dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+              
+              if (dias < 0) {
+                estadoTiempo = `Vencida hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`;
+              } else if (dias === 0) {
+                estadoTiempo = 'Hoy';
+              } else if (dias === 1) {
+                estadoTiempo = 'Mañana';
+              } else if (dias < 7) {
+                estadoTiempo = `En ${dias} días`;
+              } else {
+                const semanas = Math.floor(dias / 7);
+                estadoTiempo = `En ${semanas} semana${semanas > 1 ? 's' : ''}`;
+              }
+            }
+          } catch (error) {
+            console.warn('Error procesando fecha de vacuna:', error);
+            fecha_formateada = 'Fecha inválida';
+            estadoTiempo = 'N/A';
+          }
         }
         
         return {
           ...v,
-          fecha_formateada: fecha.toLocaleDateString('es-ES'),
+          fecha_formateada,
           estado_tiempo: estadoTiempo,
           dias_restantes: dias
         };
@@ -799,35 +822,11 @@ export class PacientesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        result.paciente_id = this.pacienteSeleccionado.id;
-        
-        console.log('Datos de la vacuna antes de crear:', result);
-        
-        this.vacunasService.crearVacuna(result).then(() => {
-          console.log('Vacuna creada exitosamente');
-          
-          Swal.fire('Éxito', 'Vacuna registrada correctamente', 'success');
-          this.cargarVacunas(this.pacienteSeleccionado.id);
-          
-          // Registrar en el log con los datos completos
-          const datosParaLog = {
-            nombre_vacuna: result.nombre_vacuna || 'Sin nombre',
-            dosis: result.dosis || 'Sin dosis',
-            fecha_aplicacion: result.fecha_aplicacion || result.fecha_vacuna,
-            paciente_id: this.pacienteSeleccionado.id
-          };
-          
-          console.log('Registrando vacuna en log:', datosParaLog);
-          this.pacientesService.registrarVacuna(this.pacienteSeleccionado.id, datosParaLog).then(() => {
-            console.log('Vacuna registrada en log exitosamente');
-            this.cargarLogActividades(this.pacienteSeleccionado.id);
-          }).catch(error => {
-            console.error('Error al registrar vacuna en log:', error);
-          });
-        }).catch(error => {
-          console.error('Error al crear vacuna:', error);
-          Swal.fire('Error', 'No se pudo registrar la vacuna', 'error');
-        });
+        // Solo recargar las vacunas y el log - NO crear la vacuna manualmente
+        // porque VacunaDialogComponent ya lo hace
+        console.log('Vacuna creada desde diálogo, recargando datos...');
+        this.cargarVacunas(this.pacienteSeleccionado.id);
+        this.cargarLogActividades(this.pacienteSeleccionado.id);
       }
     });
   }

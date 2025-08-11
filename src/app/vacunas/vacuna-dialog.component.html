@@ -9,7 +9,7 @@
     </button>
   </h2>
 
-  <form [formGroup]="vacunaForm" (ngSubmit)="guardarVacuna()" id="vacunaForm">
+  <form [formGroup]="vacunaForm" id="vacunaForm">
     <mat-dialog-content class="dialog-content">
       
       <!-- Información del Paciente (versión compacta como historial) -->
@@ -217,11 +217,11 @@
                 [disabled]="loading">
           Cancelar
         </button>
-        <button type="submit" 
+        <button type="button" 
                 mat-raised-button 
                 color="primary"
-                [disabled]="vacunaForm.invalid || loading"
-                form="vacunaForm">
+                (click)="guardarVacuna()"
+                [disabled]="vacunaForm.invalid || loading">
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

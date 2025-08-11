@@ -18,6 +18,7 @@ export class VacunaDialogComponent implements OnInit {
   loading = false;
   doctores: any[] = [];
   pacienteInfo: any = null;
+  private operationId: string = '';
 
   // Tipos de vacunas predefinidos
   tiposVacunas = [
@@ -176,8 +177,19 @@ export class VacunaDialogComponent implements OnInit {
   }
 
   async guardarVacuna() {
+    // Prevenir múltiples ejecuciones
+    if (this.loading) {
+      console.log('VacunaDialogComponent - Operación ya en progreso, ignorando llamada');
+      return;
+    }
+    
+    // Generar ID único para esta operación
+    this.operationId = 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    console.log('VacunaDialogComponent - ID de operación:', this.operationId);
+    
     if (this.vacunaForm.valid) {
       this.loading = true;
+      console.log('VacunaDialogComponent - Iniciando guardado de vacuna');
       
       try {
         const vacunaData = { ...this.vacunaForm.value };
@@ -203,6 +215,7 @@ export class VacunaDialogComponent implements OnInit {
         
         if (this.isEditMode && this.data.id) {
           // Actualizar vacuna existente
+          console.log('VacunaDialogComponent - Actualizando vacuna existente');
           await this.vacunasService.actualizarVacuna(this.data.id, vacunaData);
           
           // Registrar en el log de actividades
@@ -217,20 +230,26 @@ export class VacunaDialogComponent implements OnInit {
           });
         } else {
           // Crear nueva vacuna
-          const ref = await this.vacunasService.crearVacuna(vacunaData);
-          const vacunaId = ref ? (typeof ref === 'string' ? ref : ref.key) : this.generateId();
+          console.log('VacunaDialogComponent - Creando nueva vacuna - Operación ID:', this.operationId);
+          const resultado = await this.vacunasService.crearVacuna(vacunaData);
+          const vacunaId = resultado.key;
           vacunaData.id = vacunaId;
+          
+          console.log('VacunaDialogComponent - Vacuna creada con ID:', vacunaId, '- Operación ID:', this.operationId);
           
           // Crear recordatorio automático si está marcado
           if (vacunaData.recordatorio && vacunaData.fechaRecordatorio && vacunaData.idPaciente) {
+            console.log('VacunaDialogComponent - Creando recordatorio automático - Operación ID:', this.operationId);
             await this.crearRecordatorioAutomatico(vacunaData);
           }
           
           // Registrar en el log de actividades
           if (vacunaData.idPaciente) {
+            console.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
             await this.registrarVacunaEnLog(vacunaData, 'creada');
           }
           
+          console.log('VacunaDialogComponent - Mostrando mensaje de éxito - Operación ID:', this.operationId);
           Swal.fire({
             icon: 'success',
             title: '¡Éxito!',
@@ -238,14 +257,23 @@ export class VacunaDialogComponent implements OnInit {
           });
         }
         
+        console.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
         // Cerrar con los datos del formulario en lugar de true
         this.dialogRef.close(vacunaData);
       } catch (error) {
-        console.error('Error al guardar vacuna:', error);
+        console.error('VacunaDialogComponent - Error al guardar vacuna:', error);
+        
+        // Solo mostrar error si realmente falló la creación de la vacuna
+        // No mostrar error si solo falló el log o recordatorio
+        let mensajeError = 'No se pudo guardar la vacuna';
+        if (error instanceof Error) {
+          mensajeError = error.message;
+        }
+        
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo guardar la vacuna'
+          text: mensajeError
         });
       } finally {
         this.loading = false;
@@ -432,19 +460,33 @@ export class VacunaDialogComponent implements OnInit {
   // Registrar vacuna en log de actividades
   private async registrarVacunaEnLog(vacunaData: any, accion: string): Promise<void> {
     try {
+      // Validar que los datos necesarios estén presentes
+      if (!vacunaData || !vacunaData.vacuna || !vacunaData.idPaciente) {
+        console.warn('VacunaDialogComponent - Datos insuficientes para registrar en log:', vacunaData);
+        return;
+      }
+
       const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
-      const nombreVacuna = tipoVacuna ? tipoVacuna.label : vacunaData.vacuna;
+      const nombreVacuna = tipoVacuna ? tipoVacuna.label : vacunaData.vacuna || 'Vacuna sin nombre';
+      
+      // Asegurar que fecha_aplicacion tenga un valor válido
+      let fechaAplicacion = vacunaData.fechaAplicacion;
+      if (!fechaAplicacion) {
+        fechaAplicacion = new Date().toISOString();
+        console.warn('VacunaDialogComponent - fechaAplicacion undefined, usando fecha actual:', fechaAplicacion);
+      }
       
       const datosLog = {
         nombre_vacuna: nombreVacuna,
-        dosis: vacunaData.dosis,
-        fecha_aplicacion: vacunaData.fechaAplicacion,
-        veterinario: vacunaData.veterinario,
-        lote: vacunaData.lote,
+        dosis: vacunaData.dosis || 'Sin dosis',
+        fecha_aplicacion: fechaAplicacion,
+        veterinario: vacunaData.veterinario || 'Sin veterinario',
+        lote: vacunaData.lote || 'Sin lote',
         estado: vacunaData.aplicada ? 'aplicada' : 'pendiente',
-        observaciones: vacunaData.observaciones
+        observaciones: vacunaData.observaciones || 'Sin observaciones'
       };
 
+      console.log('VacunaDialogComponent - Registrando en log:', datosLog);
       await this.pacientesService.registrarVacuna(vacunaData.idPaciente, datosLog);
       console.log(`Vacuna ${accion} registrada en log exitosamente`);
     } catch (error) {

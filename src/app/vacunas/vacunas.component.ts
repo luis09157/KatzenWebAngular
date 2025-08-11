@@ -162,18 +162,29 @@ export class VacunasComponent implements OnInit {
       try {
         // Usar baja lógica en lugar de eliminación física
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
+        
+        // Mostrar mensaje de éxito
         Swal.fire({
           icon: 'success',
           title: '¡Eliminado!',
           text: 'Vacuna eliminada correctamente'
         });
+        
+        // Recargar la lista de vacunas
         this.cargarVacunas();
       } catch (error) {
         console.error('Error al eliminar vacuna:', error);
+        
+        // Mostrar mensaje de error específico
+        let mensajeError = 'No se pudo eliminar la vacuna';
+        if (error instanceof Error) {
+          mensajeError = error.message;
+        }
+        
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo eliminar la vacuna'
+          text: mensajeError
         });
       }
     }

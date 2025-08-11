@@ -118,6 +118,13 @@ export class PacientesService {
   }
 
   registrarVacuna(pacienteId: string, vacuna: any): Promise<void> {
+    // Asegurar que fecha_aplicacion tenga un valor válido
+    let fechaAplicacion = vacuna.fecha_aplicacion;
+    if (!fechaAplicacion) {
+      fechaAplicacion = new Date().toISOString();
+      console.warn('PacientesService - fecha_aplicacion undefined, usando fecha actual:', fechaAplicacion);
+    }
+    
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna',
       titulo: 'Vacuna Aplicada',
@@ -127,7 +134,7 @@ export class PacientesService {
       datos: {
         nombre_vacuna: vacuna.nombre_vacuna,
         dosis: vacuna.dosis,
-        fecha_aplicacion: vacuna.fecha_aplicacion
+        fecha_aplicacion: fechaAplicacion
       }
     });
   }
@@ -183,6 +190,13 @@ export class PacientesService {
   }
 
   registrarEdicionVacuna(pacienteId: string, vacuna: any): Promise<void> {
+    // Asegurar que fecha_aplicacion tenga un valor válido
+    let fechaAplicacion = vacuna.fecha_aplicacion;
+    if (!fechaAplicacion) {
+      fechaAplicacion = new Date().toISOString();
+      console.warn('PacientesService - fecha_aplicacion undefined en edición, usando fecha actual:', fechaAplicacion);
+    }
+    
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna_editada',
       titulo: 'Vacuna Editada',
@@ -192,7 +206,7 @@ export class PacientesService {
       datos: {
         nombre_vacuna: vacuna.nombre_vacuna,
         dosis: vacuna.dosis,
-        fecha_aplicacion: vacuna.fecha_aplicacion
+        fecha_aplicacion: fechaAplicacion
       }
     });
   }
@@ -229,6 +243,13 @@ export class PacientesService {
   }
 
   registrarEliminacionVacuna(pacienteId: string, vacuna: any): Promise<void> {
+    // Asegurar que fecha_aplicacion tenga un valor válido
+    let fechaAplicacion = vacuna.fecha_aplicacion;
+    if (!fechaAplicacion) {
+      fechaAplicacion = new Date().toISOString();
+      console.warn('PacientesService - fecha_aplicacion undefined en eliminación, usando fecha actual:', fechaAplicacion);
+    }
+    
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna_eliminada',
       titulo: 'Vacuna Eliminada',
@@ -238,7 +259,7 @@ export class PacientesService {
       datos: {
         nombre_vacuna: vacuna.nombre_vacuna,
         dosis: vacuna.dosis,
-        fecha_aplicacion: vacuna.fecha_aplicacion
+        fecha_aplicacion: fechaAplicacion
       }
     });
   }

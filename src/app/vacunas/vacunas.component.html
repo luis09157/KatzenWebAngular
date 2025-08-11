@@ -6,7 +6,7 @@
       <span class="spacer"></span>
       <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
         <mat-icon>add</mat-icon>
-        Agregar Vacuna
+        Nueva Vacuna
       </button>
     </div>
     
@@ -131,13 +131,15 @@
 
     <!-- Estado vacío -->
     <div *ngIf="dataSource.data.length === 0" class="sin-vacunas">
-      <mat-icon>vaccines</mat-icon>
+      <div class="empty-icon-container">
+        <mat-icon>vaccines</mat-icon>
+      </div>
       <h3>No hay vacunas</h3>
       <p>No se han encontrado vacunas registradas.</p>
-      <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
-        <mat-icon>add</mat-icon>
-        Crear primera vacuna
-      </button>
+             <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
+         <mat-icon>add</mat-icon>
+         Agregar primera vacuna
+       </button>
     </div>
   </mat-card>
 </div> 

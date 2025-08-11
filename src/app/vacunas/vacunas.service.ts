@@ -12,7 +12,9 @@ export class VacunasService {
   getVacunas(): Observable<any[]> {
     return this.db.list('Katzen/Vacunas').snapshotChanges().pipe(
       map(changes => 
-        changes.map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+        changes
+          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+          .filter(v => v.activo !== false && v.activo !== 0) // Solo mostrar vacunas activas
       )
     );
   }
@@ -23,7 +25,7 @@ export class VacunasService {
       map(changes => 
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(v => v.idPaciente === pacienteId)
+          .filter(v => v.idPaciente === pacienteId && v.activo !== false && v.activo !== 0) // Solo mostrar vacunas activas
       )
     );
   }
@@ -37,18 +39,49 @@ export class VacunasService {
 
   // Crear nueva vacuna
   async crearVacuna(vacuna: any): Promise<any> {
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    
-    const nuevaVacuna = {
-      ...vacuna,
-      fechaRegistro: timestamp,
-      id: this.generateId(), // Generar ID único
-      recordatorio: vacuna.recordatorio || false,
-      stability: vacuna.stability || 0
-    };
+    try {
+      const timestamp = Date.now();
+      console.log(`VacunasService [${timestamp}] - Iniciando creación de vacuna:`, vacuna);
+      const timestampStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      
+      // Validación básica de campos requeridos
+      if (!vacuna.idPaciente || !vacuna.vacuna) {
+        throw new Error('Faltan campos requeridos: idPaciente y vacuna');
+      }
+      
+      // NO validar duplicados - solo crear la vacuna directamente
+      console.log(`VacunasService [${timestamp}] - Saltando validación de duplicados, creando vacuna directamente...`);
+      
+      console.log(`VacunasService [${timestamp}] - Preparando datos de nueva vacuna...`);
+      const nuevaVacuna = {
+        ...vacuna,
+        fechaRegistro: timestampStr,
+        recordatorio: vacuna.recordatorio || false,
+        stability: vacuna.stability || 0,
+        activo: true,
+        aplicada: vacuna.aplicada || false
+      };
 
-    const ref = await this.db.object(`Katzen/Vacunas/${nuevaVacuna.id}`).set(nuevaVacuna);
-    return ref;
+      console.log(`VacunasService [${timestamp}] - Datos de nueva vacuna preparados:`, nuevaVacuna);
+
+      // Usar push() para generar ID automático de Firebase
+      console.log(`VacunasService [${timestamp}] - Ejecutando push() a Firebase...`);
+      console.log(`VacunasService [${timestamp}] - Ruta Firebase: Katzen/Vacunas`);
+      
+      const ref = await this.db.list('Katzen/Vacunas').push(nuevaVacuna);
+      
+      console.log(`VacunasService [${timestamp}] - Push() completado, ID generado:`, ref.key);
+      console.log(`VacunasService [${timestamp}] - Vacuna creada exitosamente con ID:`, ref.key);
+      
+      // Retornar el ID generado por Firebase
+      return { key: ref.key, ...nuevaVacuna };
+    } catch (error) {
+      console.error('Error al crear vacuna:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('No se pudo registrar la vacuna en la base de datos');
+    }
   }
 
   // Actualizar vacuna existente
@@ -62,11 +95,25 @@ export class VacunasService {
   }
 
   // Baja lógica: marcar como inactiva
-  bajaLogicaVacuna(id: string): Promise<void> {
-    return this.db.object(`Katzen/Vacunas/${id}`).update({ 
-      activo: false,
-      fechaEliminacion: new Date().toISOString().replace('T', ' ').substring(0, 19)
-    });
+  async bajaLogicaVacuna(id: string): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      
+      // Realizar la actualización
+      await this.db.object(`Katzen/Vacunas/${id}`).update({ 
+        activo: false,
+        fechaEliminacion: timestamp
+      });
+      
+      // Si llegamos aquí, la operación fue exitosa
+      // No necesitamos verificar nada más
+    } catch (error) {
+      console.error('Error en baja lógica de vacuna:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('No se pudo realizar la baja lógica de la vacuna');
+    }
   }
 
   // Restaurar vacuna
