@@ -243,22 +243,26 @@ export class PacientesService {
   }
 
   registrarEliminacionVacuna(pacienteId: string, vacuna: any): Promise<void> {
+    // Usar los campos correctos según la estructura de la base de datos
+    const nombreVacuna = vacuna.vacuna || 'Vacuna sin nombre';
+    const dosis = vacuna.dosis || 'Sin dosis';
+    
     // Asegurar que fecha_aplicacion tenga un valor válido
-    let fechaAplicacion = vacuna.fecha_aplicacion;
+    let fechaAplicacion = vacuna.fechaAplicacion || vacuna.fechaRegistro;
     if (!fechaAplicacion) {
       fechaAplicacion = new Date().toISOString();
-      console.warn('PacientesService - fecha_aplicacion undefined en eliminación, usando fecha actual:', fechaAplicacion);
+      console.warn('PacientesService - fechaAplicacion undefined en eliminación, usando fecha actual:', fechaAplicacion);
     }
     
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna_eliminada',
       titulo: 'Vacuna Eliminada',
-      descripcion: `${vacuna.nombre_vacuna} - ${vacuna.dosis}`,
+      descripcion: `${nombreVacuna} - ${dosis}`,
       icono: 'delete',
       color: '#f44336',
       datos: {
-        nombre_vacuna: vacuna.nombre_vacuna,
-        dosis: vacuna.dosis,
+        nombre_vacuna: nombreVacuna,
+        dosis: dosis,
         fecha_aplicacion: fechaAplicacion
       }
     });

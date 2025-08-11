@@ -150,7 +150,7 @@ export class VacunasComponent implements OnInit {
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'Esta acción marcará la vacuna como eliminada (baja lógica)',
+      text: 'La vacuna será eliminada del sistema.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',

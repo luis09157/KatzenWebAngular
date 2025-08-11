@@ -852,14 +852,15 @@ export class PacientesComponent implements OnInit {
   eliminarVacuna(vacuna: any) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'La vacuna será eliminada permanentemente.',
+      text: 'La vacuna será eliminada del sistema.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
-        this.vacunasService.eliminarVacuna(vacuna.id).then(() => {
+        // Usar baja lógica en lugar de eliminación física
+        this.vacunasService.bajaLogicaVacuna(vacuna.id).then(() => {
           Swal.fire('Eliminada', 'Vacuna eliminada correctamente.', 'success');
           this.cargarVacunas(this.pacienteSeleccionado.id);
           // Registrar en el log
