@@ -279,68 +279,13 @@ table {
   font-size: 16px;
 }
 
-.sin-recordatorios button {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  margin: 0 auto !important;
-  transition: all 0.3s ease !important;
-  cursor: pointer !important;
-  min-height: 48px !important;
-  font-size: 16px !important;
-  text-transform: none !important;
-  letter-spacing: 0.5px !important;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
+/* ESTILOS PARA BOTONES MATERIAL DESIGN */
+.header-row button[mat-raised-button] {
+  margin-left: auto;
 }
 
-/* Selector más específico para Material Button */
-.sin-recordatorios .mat-raised-button {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%) !important;
-  color: white !important;
-  border: none !important;
-  padding: 12px 24px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: 0 auto !important;
-  transition: all 0.3s ease !important;
-  cursor: pointer !important;
-  min-height: 48px !important;
-  font-size: 16px !important;
-  text-transform: none !important;
-  letter-spacing: 0.5px !important;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
-}
-
-.sin-recordatorios button mat-icon,
-.sin-recordatorios .mat-raised-button mat-icon {
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  line-height: 18px !important;
-  margin-right: 6px !important;
-  margin-left: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  vertical-align: middle !important;
-  position: relative !important;
-  top: 0 !important;
-}
-
-.sin-recordatorios button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+.header-row button[mat-raised-button] mat-icon {
+  margin-right: 8px;
 }
 
 /* Responsive */

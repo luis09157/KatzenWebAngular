@@ -63,9 +63,9 @@
           <div class="tab-content">
             <h3>Historial Clínico</h3>
             <div class="recordatorios-header">
-              <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
-                <mat-icon>add</mat-icon>
-                Nuevo Historial
+              <button class="btn-normal btn-historial" (click)="agregarHistorialClinico()">
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Nuevo Historial</span>
               </button>
             </div>
             <div class="recordatorios-lista">
@@ -100,9 +100,9 @@
               <div *ngIf="historialClinico.length === 0" class="sin-recordatorios">
                 <mat-icon>medical_services</mat-icon>
                 <p>No hay historial clínico registrado</p>
-                <button mat-raised-button color="primary" (click)="agregarHistorialClinico()">
-                  <mat-icon>add</mat-icon>
-                  Agregar primer historial
+                <button class="btn-normal btn-historial" (click)="agregarHistorialClinico()">
+                  <span class="btn-icon">+</span>
+                  <span class="btn-text">Agregar primer historial</span>
                 </button>
               </div>
             </div>
@@ -115,9 +115,9 @@
           <div class="tab-content">
             <h3>Recordatorios</h3>
             <div class="recordatorios-header">
-              <button mat-raised-button color="primary" (click)="agregarRecordatorio()">
-                <mat-icon>add</mat-icon>
-                Nuevo Recordatorio
+              <button class="btn-normal btn-recordatorio" (click)="agregarRecordatorio()">
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Nuevo Recordatorio</span>
               </button>
             </div>
             <div class="recordatorios-lista">
@@ -161,9 +161,9 @@
               <div *ngIf="recordatorios.length === 0" class="sin-recordatorios">
                 <mat-icon>notifications_off</mat-icon>
                 <p>No hay recordatorios registrados</p>
-                <button mat-raised-button color="primary" (click)="agregarRecordatorio()">
-                  <mat-icon>add</mat-icon>
-                  Agregar primer recordatorio
+                <button class="btn-normal btn-recordatorio" (click)="agregarRecordatorio()">
+                  <span class="btn-icon">+</span>
+                  <span class="btn-text">Agregar primer recordatorio</span>
                 </button>
               </div>
             </div>
@@ -174,9 +174,9 @@
           <div class="tab-content">
             <h3>Vacunas</h3>
             <div class="vacunas-header">
-              <button mat-raised-button color="primary" (click)="agregarVacuna()">
-                <mat-icon>add</mat-icon>
-                Nueva Vacuna
+              <button class="btn-normal btn-vacuna" (click)="agregarVacuna()">
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Nueva Vacuna</span>
               </button>
             </div>
             <div class="vacunas-lista">
@@ -221,9 +221,9 @@
               <div *ngIf="vacunas.length === 0" class="sin-vacunas">
                 <mat-icon>vaccines</mat-icon>
                 <p>No hay vacunas registradas</p>
-                <button mat-raised-button color="primary" (click)="agregarVacuna()">
-                  <mat-icon>add</mat-icon>
-                  Agregar primera vacuna
+                <button class="btn-normal btn-vacuna" (click)="agregarVacuna()">
+                  <span class="btn-icon">+</span>
+                  <span class="btn-text">Agregar primera vacuna</span>
                 </button>
               </div>
             </div>

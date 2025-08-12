@@ -579,11 +579,11 @@
 }
 
 .sin-recordatorios mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
   color: #ccc;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -596,43 +596,89 @@
   line-height: 1.5;
 }
 
-.sin-recordatorios button {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
+/* BOTONES NORMALES Y SIMPLES */
+.btn-normal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
   border: none;
-  padding: 16px 32px;
   border-radius: 8px;
+  font-size: 16px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
   cursor: pointer;
-  min-width: 200px;
-  height: 48px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+  min-height: 48px;
+  color: white !important;
 }
 
-.sin-recordatorios button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+/* Botones de estado vacío (centrados) */
+.sin-historial .btn-normal,
+.sin-recordatorios .btn-normal,
+.sin-vacunas .btn-normal {
+  margin: 0 auto;
 }
 
-.sin-recordatorios button mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: white;
-  margin: 0;
+/* Botones de header (arriba a la izquierda) */
+.recordatorios-header .btn-normal,
+.vacunas-header .btn-normal {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.btn-icon {
+  font-size: 36px;
+  font-weight: bold;
+  color: white !important;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+.btn-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: white !important;
+}
+
+/* Colores específicos */
+.btn-historial {
+  background: #3f51b5;
+  color: white;
+}
+
+.btn-recordatorio {
+  background: #f44336;
+  color: white;
+}
+
+.btn-vacuna {
+  background: #4caf50;
+  color: white;
+}
+
+/* Hover effects */
+.btn-normal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Asegurar que todos los elementos dentro del botón sean blancos */
+.btn-normal * {
+  color: white !important;
+}
+
+.btn-normal span {
+  color: white !important;
+}
+
+
+
+
 
 /* Panel derecho */
 .panel-derecho {
@@ -862,11 +908,11 @@
 }
 
 .sin-historial mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
   color: #ccc;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .sin-historial p {
@@ -875,32 +921,11 @@
   color: #999;
 }
 
-.sin-historial button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
 
-.sin-historial button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
 
-.sin-historial button mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: white;
-}
+
+
+
 
 /* Responsive */
 @media (max-width: 1200px) {
@@ -1186,11 +1211,11 @@ mat-icon {
 }
 
 .sin-vacunas mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
   color: #ccc;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .sin-vacunas p {
@@ -1199,25 +1224,7 @@ mat-icon {
   color: #999;
 }
 
-.sin-vacunas button {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
 
-.sin-vacunas button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
 
 /* Panel derecho - Log de Actividades */
 .panel-derecho {

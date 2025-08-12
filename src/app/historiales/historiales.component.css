@@ -156,75 +156,38 @@
 
 /* Estado vacío */
 .sin-historiales {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
   text-align: center;
-  min-height: 400px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.empty-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  width: 100%;
+  padding: 60px 24px;
+  color: #666;
 }
 
 .sin-historiales mat-icon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #bdc3c7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
 }
 
 .sin-historiales h3 {
-  margin: 0 0 12px 0;
-  color: #2c3e50;
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1.2;
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-size: 20px;
 }
 
 .sin-historiales p {
-  margin: 0 0 32px 0;
-  color: #7f8c8d;
+  margin: 0 0 24px 0;
+  color: #666;
   font-size: 16px;
-  line-height: 1.5;
-  max-width: 400px;
 }
 
-.sin-historiales button {
-  min-width: 200px;
-  height: 48px;
-  border-radius: 8px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
+/* ESTILOS PARA BOTONES MATERIAL DESIGN */
+.admin-banner button[mat-raised-button] {
+  margin-left: auto;
 }
 
-.sin-historiales button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.sin-historiales button mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+.admin-banner button[mat-raised-button] mat-icon {
   margin-right: 8px;
-  color: white;
 }
 
 /* Tabla */
