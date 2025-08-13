@@ -83,4 +83,8 @@ export class AdminMainLayoutComponent implements OnInit {
     this.router.navigate([ruta]);
     this.closeSidenav();
   }
+
+  irAlInicio() {
+    this.router.navigate(['/admin/inicio']);
+  }
 } 

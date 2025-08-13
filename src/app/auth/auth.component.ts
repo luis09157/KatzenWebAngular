@@ -36,4 +36,8 @@ export class AuthComponent {
         });
       });
   }
+
+  irAlInicio() {
+    this.router.navigate(['/admin/inicio']);
+  }
 }
