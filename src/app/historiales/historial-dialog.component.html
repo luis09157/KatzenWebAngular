@@ -56,7 +56,234 @@
   <form [formGroup]="historialForm" (ngSubmit)="guardarHistorial()">
     <div class="dialog-content">
       
-      <!-- Sección de Diagnóstico -->
+      <!-- Sección de Historia Clínica -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">medical_services</mat-icon>
+          <h3>Historia Clínica</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Describe la historia clínica del paciente</mat-label>
+          <textarea matInput formControlName="historia_clinica" 
+                    placeholder="Ej: El paciente presenta antecedentes de..."
+                    rows="4"></textarea>
+          <mat-error *ngIf="historialForm.get('historia_clinica')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            La historia clínica es requerida
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Examen Físico -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">monitor_weight</mat-icon>
+          <h3>Examen Físico</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Peso (kg)</mat-label>
+            <input matInput type="number" formControlName="peso" 
+                   placeholder="Ej: 25.5">
+            <mat-error *ngIf="historialForm.get('peso')?.hasError('required')">
+              <mat-icon>error</mat-icon>
+              El peso es requerido
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>TR</mat-label>
+            <input matInput formControlName="tr" 
+                   placeholder="Ej: Normal, Alterado">
+            <mat-error *ngIf="historialForm.get('tr')?.hasError('required')">
+              <mat-icon>error</mat-icon>
+              El TR es requerido
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Hallazgos del examen físico</mat-label>
+          <textarea matInput formControlName="hallazgos" 
+                    placeholder="Ej: Se observa..."
+                    rows="3"></textarea>
+          <mat-error *ngIf="historialForm.get('hallazgos')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            Los hallazgos son requeridos
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Diagnóstico Presuntivo -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">description</mat-icon>
+          <h3>Diagnóstico Presuntivo</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Describe el diagnóstico presuntivo</mat-label>
+          <textarea matInput formControlName="diagnostico_presuntivo" 
+                    placeholder="Ej: Se sospecha..."
+                    rows="4"></textarea>
+          <mat-error *ngIf="historialForm.get('diagnostico_presuntivo')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            El diagnóstico presuntivo es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Estudios Solicitados -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">science</mat-icon>
+          <h3>Estudios Solicitados</h3>
+          <span class="optional-badge">Opcional</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Lista de estudios solicitados</mat-label>
+          <textarea matInput formControlName="estudios_solicitados" 
+                    placeholder="Ej: Hemograma completo, Radiografía torácica..."
+                    rows="3"></textarea>
+        </mat-form-field>
+        
+        <!-- Carga de Archivos -->
+        <div class="archivos-section">
+          <div class="archivos-header">
+            <h4>Archivos Adjuntos</h4>
+            <span class="archivos-info">PDF, PNG, JPEG hasta 10MB (máx. 5 archivos) - Opcional</span>
+          </div>
+          
+          <!-- Input de archivos -->
+          <div class="archivo-input-container">
+            <input type="file" 
+                   #archivoInput
+                   multiple
+                   accept=".pdf,.png,.jpeg,.jpg"
+                   (change)="onArchivoSeleccionado($event)"
+                   class="archivo-input"
+                   [disabled]="archivosSeleccionados.length >= maxArchivos">
+            <button type="button" 
+                    mat-stroked-button 
+                    color="primary"
+                    (click)="archivoInput.click()"
+                    [disabled]="archivosSeleccionados.length >= maxArchivos"
+                    class="archivo-btn">
+              <mat-icon>attach_file</mat-icon>
+              Seleccionar Archivos
+            </button>
+          </div>
+          
+          <!-- Lista de archivos seleccionados -->
+          <div class="archivos-lista" *ngIf="archivosSeleccionados.length > 0">
+            <h5>Archivos a subir:</h5>
+            <div class="archivo-item" *ngFor="let archivo of archivosSeleccionados; let i = index">
+              <div class="archivo-info">
+                <mat-icon class="archivo-icon">description</mat-icon>
+                <span class="archivo-nombre">{{ archivo.name }}</span>
+                <span class="archivo-tamaño">({{ (archivo.size / 1024 / 1024).toFixed(2) }} MB)</span>
+              </div>
+              <button type="button" 
+                      mat-icon-button 
+                      color="warn"
+                      (click)="removerArchivo(i)"
+                      class="remover-archivo-btn">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Lista de archivos ya subidos -->
+          <div class="archivos-lista" *ngIf="archivosSubidos.length > 0">
+            <h5>Archivos subidos:</h5>
+            <div class="archivo-item" *ngFor="let archivo of archivosSubidos; let i = index">
+              <div class="archivo-info">
+                <mat-icon class="archivo-icon">cloud_done</mat-icon>
+                <span class="archivo-nombre">Archivo {{ i + 1 }}</span>
+                <a [href]="archivo" target="_blank" class="archivo-link">
+                  <mat-icon>open_in_new</mat-icon>
+                  Ver
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Indicador de carga -->
+          <div class="archivo-loading" *ngIf="subiendoArchivos">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Subiendo archivos...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Manejo Terapéutico -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">healing</mat-icon>
+          <h3>Manejo Terapéutico</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Describe el manejo terapéutico</mat-label>
+          <textarea matInput formControlName="manejo_terapeutico" 
+                    placeholder="Ej: Se implementará el siguiente manejo..."
+                    rows="4"></textarea>
+          <mat-error *ngIf="historialForm.get('manejo_terapeutico')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            El manejo terapéutico es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Receta -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">receipt</mat-icon>
+          <h3>Receta</h3>
+          <span class="optional-badge">Opcional</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Detalles de la receta médica</mat-label>
+          <textarea matInput formControlName="receta" 
+                    placeholder="Ej: Medicamento X - Dosis, frecuencia, duración..."
+                    rows="4"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Médico que Atendió -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">person</mat-icon>
+          <h3>Médico que Atendió</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Selecciona el médico veterinario</mat-label>
+          <mat-select formControlName="medico_atendio" 
+                     placeholder="Selecciona un doctor"
+                     [disabled]="cargandoDoctores">
+            <mat-option *ngIf="cargandoDoctores" value="" disabled>
+              <mat-spinner diameter="16"></mat-spinner>
+              Cargando doctores...
+            </mat-option>
+            <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">
+              {{ doctor.nombre }}
+            </mat-option>
+            <mat-option *ngIf="!cargandoDoctores && doctores.length === 0" value="" disabled>
+              No hay doctores disponibles
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="historialForm.get('medico_atendio')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            El médico es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Sección de Diagnóstico (mantener compatibilidad) -->
       <div class="form-section">
         <div class="section-header">
           <mat-icon class="section-icon">description</mat-icon>
@@ -75,7 +302,7 @@
         </mat-form-field>
       </div>
 
-      <!-- Sección de Tratamiento -->
+      <!-- Sección de Tratamiento (mantener compatibilidad) -->
       <div class="form-section">
         <div class="section-header">
           <mat-icon class="section-icon">healing</mat-icon>
@@ -94,7 +321,7 @@
         </mat-form-field>
       </div>
 
-      <!-- Sección de Medicamentos -->
+      <!-- Sección de Medicamentos (mantener compatibilidad) -->
       <div class="form-section">
         <div class="section-header">
           <mat-icon class="section-icon">medication</mat-icon>
@@ -109,7 +336,7 @@
         </mat-form-field>
       </div>
 
-      <!-- Sección de Notas -->
+      <!-- Sección de Notas (mantener compatibilidad) -->
       <div class="form-section">
         <div class="section-header">
           <mat-icon class="section-icon">note</mat-icon>

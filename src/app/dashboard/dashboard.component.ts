@@ -6,6 +6,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { CitasService } from '../citas/citas.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
+import { UsuariosService } from '../usuarios/usuarios.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-dashboard',
@@ -39,7 +41,8 @@ export class DashboardComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private citasService: CitasService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private usuariosService: UsuariosService
   ) {}
 
   ngOnInit(): void {
@@ -191,6 +194,36 @@ export class DashboardComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  async agregarDoctoras() {
+    try {
+      const resultado = await this.usuariosService.agregarDoctoras();
+      
+      if (resultado) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Las 2 doctoras han sido agregadas/actualizadas exitosamente en el sistema.',
+          confirmButtonText: 'Perfecto'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron agregar las doctoras. Revisa la consola para más detalles.',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    } catch (error) {
+      console.error('Error al agregar doctoras:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error inesperado al agregar las doctoras.',
+        confirmButtonText: 'Entendido'
+      });
+    }
   }
 
   private buildBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: Array<{ label: string, url: string }> = []): Array<{ label: string, url: string }> {

@@ -116,10 +116,19 @@ export class HistorialesService {
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.activo !== false)
           .filter(h => 
+            // Campos existentes
             (h.diagnostico && h.diagnostico.toLowerCase().includes(texto.toLowerCase())) ||
             (h.tratamiento && h.tratamiento.toLowerCase().includes(texto.toLowerCase())) ||
             (h.medicamentos && h.medicamentos.toLowerCase().includes(texto.toLowerCase())) ||
-            (h.notas && h.notas.toLowerCase().includes(texto.toLowerCase()))
+            (h.notas && h.notas.toLowerCase().includes(texto.toLowerCase())) ||
+            // Nuevos campos
+            (h.historia_clinica && h.historia_clinica.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.diagnostico_presuntivo && h.diagnostico_presuntivo.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.manejo_terapeutico && h.manejo_terapeutico.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.hallazgos && h.hallazgos.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.estudios_solicitados && h.estudios_solicitados.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.receta && h.receta.toLowerCase().includes(texto.toLowerCase())) ||
+            (h.medico_atendio && h.medico_atendio.toLowerCase().includes(texto.toLowerCase()))
           )
       )
     );

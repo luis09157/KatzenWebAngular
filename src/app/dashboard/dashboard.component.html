@@ -59,6 +59,21 @@
     </div>
   </div>
 
+  <!-- Botón temporal para agregar doctoras -->
+  <div class="temp-section" style="margin: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+    <h3 style="color: #6c757d; margin-bottom: 16px;">🔧 ADMINISTRACIÓN TEMPORAL</h3>
+    <button mat-raised-button 
+            color="accent" 
+            (click)="agregarDoctoras()"
+            style="margin-right: 12px;">
+      <mat-icon>person_add</mat-icon>
+      Agregar 2 Doctoras al Sistema
+    </button>
+    <span style="color: #6c757d; font-size: 12px; font-style: italic;">
+      Este botón es temporal y se usará solo una vez para agregar a Brisaida y Sthefany
+    </span>
+  </div>
+
   <!-- Calendario de Citas -->
   <div class="calendar-section">
     <div class="calendar-header">
