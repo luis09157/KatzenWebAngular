@@ -12,10 +12,18 @@ export class CitasService {
   // Obtener todas las citas (solo activas)
   getCitas(): Observable<any[]> {
     return this.db.list('Katzen/Citas').snapshotChanges().pipe(
-      map(actions => actions.map(a => ({
-        id: a.key,
-        ...a.payload.val() as any
-      })))
+      map(actions => actions
+        .map(a => ({
+          id: a.key,
+          ...a.payload.val() as any
+        }))
+        .filter(cita => cita.activo !== false) // Solo citas activas
+        .sort((a, b) => {
+          const fechaA = new Date(a.fecha || a.fecha_hora || a.created_at || 0);
+          const fechaB = new Date(b.fecha || b.fecha_hora || b.created_at || 0);
+          return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+        })
+      )
     );
   }
 

@@ -154,6 +154,12 @@ export class HistorialDialogComponent implements OnInit {
   }
 
   async guardarHistorial() {
+    // Prevenir múltiples ejecuciones simultáneas
+    if (this.loading) {
+      console.log('⚠️ Guardado ya en progreso, ignorando llamada adicional');
+      return;
+    }
+    
     if (this.historialForm.valid) {
       this.loading = true;
       

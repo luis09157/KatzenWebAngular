@@ -11,10 +11,18 @@ export class PacientesService {
   // Obtener todos los pacientes (solo activos)
   getPacientes(): Observable<any[]> {
     return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
-      map(actions => actions.map(a => ({
-        id: a.key,
-        ...a.payload.val() as any
-      })))
+      map(actions => actions
+        .map(a => ({
+          id: a.key,
+          ...a.payload.val() as any
+        }))
+        .filter(paciente => paciente.activo !== false) // Solo pacientes activos
+        .sort((a, b) => {
+          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || a.created_at || 0);
+          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || b.created_at || 0);
+          return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+        })
+      )
     );
   }
 

@@ -58,6 +58,50 @@
         </div>
       </div>
 
+      <!-- Historia Clínica -->
+      <div class="info-section" *ngIf="data.historia_clinica">
+        <h3 class="section-title">
+          <mat-icon>description</mat-icon>
+          Historia Clínica
+        </h3>
+        <div class="info-content">
+          <div class="content-text">{{ data.historia_clinica }}</div>
+        </div>
+      </div>
+
+      <!-- Examen Físico -->
+      <div class="info-section" *ngIf="data.peso || data.tr || data.hallazgos">
+        <h3 class="section-title">
+          <mat-icon>monitor_heart</mat-icon>
+          Examen Físico
+        </h3>
+        <div class="info-cards">
+          <div class="info-card" *ngIf="data.peso">
+            <div class="info-label">Peso</div>
+            <div class="info-value">{{ data.peso }}</div>
+          </div>
+          <div class="info-card" *ngIf="data.tr">
+            <div class="info-label">TR</div>
+            <div class="info-value">{{ data.tr }}</div>
+          </div>
+          <div class="info-card" *ngIf="data.hallazgos">
+            <div class="info-label">Hallazgos</div>
+            <div class="info-value">{{ data.hallazgos }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnóstico Presuntivo -->
+      <div class="info-section" *ngIf="data.diagnostico_presuntivo">
+        <h3 class="section-title">
+          <mat-icon>healing</mat-icon>
+          Diagnóstico Presuntivo
+        </h3>
+        <div class="info-content">
+          <div class="content-text">{{ data.diagnostico_presuntivo }}</div>
+        </div>
+      </div>
+
       <!-- Diagnóstico -->
       <div class="info-section">
         <h3 class="section-title">
@@ -88,6 +132,69 @@
         </h3>
         <div class="info-content">
           <div class="content-text">{{ data.medicamentos }}</div>
+        </div>
+      </div>
+
+      <!-- Manejo Terapéutico -->
+      <div class="info-section" *ngIf="data.manejo_terapeutico">
+        <h3 class="section-title">
+          <mat-icon>medical_services</mat-icon>
+          Manejo Terapéutico
+        </h3>
+        <div class="info-content">
+          <div class="content-text">{{ data.manejo_terapeutico }}</div>
+        </div>
+      </div>
+
+      <!-- Receta -->
+      <div class="info-section" *ngIf="data.receta">
+        <h3 class="section-title">
+          <mat-icon>receipt</mat-icon>
+          Receta
+        </h3>
+        <div class="info-content">
+          <div class="content-text">{{ data.receta }}</div>
+        </div>
+      </div>
+
+      <!-- Médico que Atendió -->
+      <div class="info-section" *ngIf="data.medico_atendio">
+        <h3 class="section-title">
+          <mat-icon>person</mat-icon>
+          Médico que Atendió
+        </h3>
+        <div class="info-content">
+          <div class="content-text">{{ data.medico_atendio }}</div>
+        </div>
+      </div>
+
+      <!-- Estudios Solicitados (Archivos) -->
+      <div class="info-section" *ngIf="data.archivos && data.archivos.length > 0">
+        <h3 class="section-title">
+          <mat-icon>folder</mat-icon>
+          Estudios Solicitados
+        </h3>
+        <div class="archivos-container">
+          <div class="archivo-item" *ngFor="let archivo of data.archivos; let i = index">
+            <div class="archivo-info">
+              <mat-icon class="archivo-icon">description</mat-icon>
+              <span class="archivo-nombre">Archivo {{ i + 1 }}</span>
+            </div>
+            <div class="archivo-actions">
+              <button mat-icon-button 
+                      color="primary" 
+                      (click)="verArchivo(archivo)"
+                      matTooltip="Ver en el navegador">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button 
+                      color="accent" 
+                      (click)="descargarArchivo(archivo)"
+                      matTooltip="Descargar archivo">
+                <mat-icon>download</mat-icon>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

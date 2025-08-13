@@ -169,30 +169,9 @@ export class HistorialesComponent implements OnInit {
     
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Crear el historial desde aquí para poder registrar en el log
-        this.historialesService.crearHistorial(result).then((ref) => {
-          console.log('Historial creado exitosamente desde administración:', ref);
-          
-          // Registrar en el log de actividades del paciente
-          const datosParaLog = {
-            diagnostico: result.diagnostico || 'Sin diagnóstico',
-            tratamiento: result.tratamiento || 'Sin tratamiento',
-            medicamentos: result.medicamentos || 'Sin medicamentos',
-            paciente_id: paciente.id,
-            id: ref.key
-          };
-          
-          this.pacientesService.registrarHistorialClinico(paciente.id, datosParaLog).then(() => {
-            console.log('Historial clínico registrado en log desde administración');
-          }).catch(error => {
-            console.error('Error al registrar historial en log:', error);
-          });
-          
-          this.cargarDatos();
-        }).catch(error => {
-          console.error('Error al crear historial desde administración:', error);
-          Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
-        });
+        // El historial ya se creó en el diálogo, solo recargar datos
+        console.log('Historial creado exitosamente desde administración');
+        this.cargarDatos();
       }
     });
   }

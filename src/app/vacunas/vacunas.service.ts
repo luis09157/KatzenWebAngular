@@ -15,6 +15,11 @@ export class VacunasService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(v => v.activo !== false && v.activo !== 0) // Solo mostrar vacunas activas
+          .sort((a, b) => {
+            const fechaA = new Date(a.fechaRegistro || a.fecha_aplicacion || a.created_at || 0);
+            const fechaB = new Date(b.fechaRegistro || b.fecha_aplicacion || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -26,6 +31,11 @@ export class VacunasService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(v => v.idPaciente === pacienteId && v.activo !== false && v.activo !== 0) // Solo mostrar vacunas activas
+          .sort((a, b) => {
+            const fechaA = new Date(a.fechaRegistro || a.fecha_aplicacion || a.created_at || 0);
+            const fechaB = new Date(b.fechaRegistro || b.fecha_aplicacion || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }

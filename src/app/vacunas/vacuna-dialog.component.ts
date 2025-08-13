@@ -22,15 +22,14 @@ export class VacunaDialogComponent implements OnInit {
 
   // Tipos de vacunas predefinidos
   tiposVacunas = [
+    { value: 'puppy', label: 'Puppy' },
     { value: 'quintuple', label: 'Quíntuple' },
     { value: 'sextuple', label: 'Séxtuple' },
-    { value: 'antirrabica', label: 'Antirrábica' },
-    { value: 'coronavirus', label: 'Coronavirus' },
     { value: 'triple_felina', label: 'Triple Felina' },
-    { value: 'leucemia', label: 'Leucemia' },
-    { value: 'parvovirus', label: 'Parvovirus' },
-    { value: 'moquillo', label: 'Moquillo' },
-    { value: 'hepatitis', label: 'Hepatitis' },
+    { value: 'antirrabica', label: 'Antirrábica' },
+    { value: 'bordetella', label: 'Bordetella' },
+    { value: 'leucemia_felina', label: 'Leucemia Felina' },
+    { value: 'giardia', label: 'Giardia' },
     { value: 'otra', label: 'Otra' }
   ];
 

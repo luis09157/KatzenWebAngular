@@ -12,7 +12,13 @@ export class RecordatoriosService {
   getRecordatorios(): Observable<any[]> {
     return this.db.list('Katzen/Recordatorios').snapshotChanges().pipe(
       map(changes => 
-        changes.map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+        changes
+          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
+            const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -24,6 +30,11 @@ export class RecordatoriosService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(r => r.paciente_id === pacienteId)
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
+            const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }

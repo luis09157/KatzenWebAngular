@@ -12,13 +12,21 @@ export class ClientesService {
   // Obtener todos los clientes (solo activos)
   getClientes(): Observable<any[]> {
     return this.db.list('Katzen/Cliente').snapshotChanges().pipe(
-      map(actions => actions.map(a => {
-        const clienteData = a.payload.val() as any;
-        return {
-          id: a.key, // Usar la key de Firebase como ID
-          ...clienteData
-        };
-      }))
+      map(actions => actions
+        .map(a => {
+          const clienteData = a.payload.val() as any;
+          return {
+            id: a.key, // Usar la key de Firebase como ID
+            ...clienteData
+          };
+        })
+        .filter(cliente => cliente.activo !== false) // Solo clientes activos
+        .sort((a, b) => {
+          const fechaA = new Date(a.fecha_registro || a.fecha_creacion || a.created_at || 0);
+          const fechaB = new Date(b.fecha_registro || b.fecha_creacion || b.created_at || 0);
+          return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+        })
+      )
     );
   }
 

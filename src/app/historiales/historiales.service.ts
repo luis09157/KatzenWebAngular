@@ -12,7 +12,13 @@ export class HistorialesService {
   getHistoriales(): Observable<any[]> {
     return this.db.list('Katzen/Historiales_Clinicos').snapshotChanges().pipe(
       map(changes => 
-        changes.map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+        changes
+          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
+            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -24,6 +30,11 @@ export class HistorialesService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.paciente_id === pacienteId && h.activo !== false)
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
+            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -93,6 +104,11 @@ export class HistorialesService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.activo !== false)
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
+            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -104,6 +120,11 @@ export class HistorialesService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.activo === false)
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
+            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }
@@ -130,6 +151,11 @@ export class HistorialesService {
             (h.receta && h.receta.toLowerCase().includes(texto.toLowerCase())) ||
             (h.medico_atendio && h.medico_atendio.toLowerCase().includes(texto.toLowerCase()))
           )
+          .sort((a, b) => {
+            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
+            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
+            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          })
       )
     );
   }

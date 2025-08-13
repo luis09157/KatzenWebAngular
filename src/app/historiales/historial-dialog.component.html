@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <form [formGroup]="historialForm" (ngSubmit)="guardarHistorial()">
+  <form [formGroup]="historialForm">
     <div class="dialog-content">
       
       <!-- Sección de Historia Clínica -->
@@ -380,9 +380,10 @@
           <mat-icon>cancel</mat-icon>
           Cancelar
         </button>
-        <button type="submit" 
+        <button type="button" 
                 mat-raised-button 
                 color="primary"
+                (click)="guardarHistorial()"
                 [disabled]="historialForm.invalid || loading"
                 matTooltip="{{ isEditMode ? 'Actualizar historial' : 'Crear historial' }}"
                 class="submit-btn">

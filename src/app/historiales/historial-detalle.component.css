@@ -152,4 +152,76 @@
 
 .historial-detalle-dialog::-webkit-scrollbar-thumb:hover {
   background: #5a6fd8;
+}
+
+/* Estilos para la sección de archivos */
+.archivos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.archivo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.archivo-item:hover {
+  background: #e9ecef;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.archivo-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.archivo-icon {
+  color: #667eea;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.archivo-nombre {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.archivo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.archivo-actions button {
+  transition: all 0.3s ease;
+}
+
+.archivo-actions button:hover {
+  transform: scale(1.1);
+}
+
+/* Responsive para archivos */
+@media (max-width: 768px) {
+  .archivo-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .archivo-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 } 

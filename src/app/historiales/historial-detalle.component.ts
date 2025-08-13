@@ -162,4 +162,53 @@ export class HistorialDetalleComponent implements OnInit {
     
     return info.length > 0 ? info.join(', ') : 'Información no disponible';
   }
+
+  // Métodos para manejar archivos
+  verArchivo(urlArchivo: string) {
+    try {
+      // Abrir el archivo en una nueva pestaña del navegador
+      window.open(urlArchivo, '_blank');
+    } catch (error) {
+      console.error('Error al abrir archivo:', error);
+      alert('No se pudo abrir el archivo. Inténtalo de nuevo.');
+    }
+  }
+
+  descargarArchivo(urlArchivo: string) {
+    try {
+      // Crear un enlace temporal para descargar el archivo
+      const link = document.createElement('a');
+      link.href = urlArchivo;
+      
+      // Extraer el nombre del archivo de la URL
+      const nombreArchivo = this.extraerNombreArchivo(urlArchivo);
+      link.download = nombreArchivo;
+      
+      // Simular click para iniciar la descarga
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error al descargar archivo:', error);
+      alert('No se pudo descargar el archivo. Inténtalo de nuevo.');
+    }
+  }
+
+  private extraerNombreArchivo(url: string): string {
+    try {
+      // Intentar extraer el nombre del archivo de la URL
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      const nombreArchivo = pathname.split('/').pop();
+      
+      if (nombreArchivo && nombreArchivo.includes('.')) {
+        return nombreArchivo;
+      }
+      
+      // Si no se puede extraer, usar un nombre genérico
+      return 'archivo_descargado';
+    } catch (error) {
+      return 'archivo_descargado';
+    }
+  }
 } 

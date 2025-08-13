@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Usuario } from './usuario.model';
 
 @Injectable({
@@ -11,7 +12,17 @@ export class UsuariosService {
 
   // Obtener todos los usuarios
   getUsuarios(): Observable<any> {
-    return this.db.list('Katzen/Usuarios').valueChanges();
+    return this.db.list('Katzen/Usuarios').snapshotChanges().pipe(
+      map(changes => changes
+        .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+        .filter(usuario => usuario.activo !== false) // Solo usuarios activos
+        .sort((a, b) => {
+          const fechaA = new Date(a.fecha_registro || a.fecha_creacion || a.created_at || 0);
+          const fechaB = new Date(b.fecha_registro || b.fecha_creacion || b.created_at || 0);
+          return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+        })
+      )
+    );
   }
 
   // Obtener un usuario por id
