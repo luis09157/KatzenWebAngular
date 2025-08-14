@@ -4,13 +4,13 @@ import { AuthGuard } from './auth/auth.guard';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { AdminLayoutComponent } from './dashboard/admin-layout.component';
 import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
-import { ConstruccionComponent } from './construccion/construccion.component';
+import { LandingComponent } from './landing/landing.component';
 
 // Log de depuración para routing
 console.log('🔍 AppRoutingModule cargado');
 
 const routes: Routes = [
-  { path: '', component: ConstruccionComponent },
+  { path: '', component: LandingComponent },
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
     path: 'admin',

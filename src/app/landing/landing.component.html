@@ -1,0 +1,320 @@
+<!-- Header con navegación fija -->
+<header class="header" [class.scrolled]="isScrolled">
+  <nav class="nav-container">
+    <div class="nav-brand" (click)="scrollToSection('inicio')">
+      <div class="nav-logo-container">
+        <span class="nav-logo-icon">🐕🐱</span>
+      </div>
+      <span class="nav-title">KatzenVet</span>
+    </div>
+    <div class="nav-links">
+      <a (click)="scrollToSection('inicio')" class="nav-link">Inicio</a>
+      <a (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
+      <a (click)="scrollToSection('nosotros')" class="nav-link">Nosotros</a>
+      <a (click)="scrollToSection('testimonios')" class="nav-link">Testimonios</a>
+      <a (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
+      <a href="/admin/inicio" class="nav-link admin-link">Admin</a>
+    </div>
+    <div class="nav-mobile-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+</header>
+
+<!-- Hero Section -->
+<section id="inicio" class="hero">
+  <div class="hero-background">
+    <div class="hero-pattern"></div>
+    <div class="floating-elements">
+      <div class="floating-element" style="--delay: 0s">🐾</div>
+      <div class="floating-element" style="--delay: 2s">❤️</div>
+      <div class="floating-element" style="--delay: 4s">⭐</div>
+      <div class="floating-element" style="--delay: 6s">🏥</div>
+    </div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <span class="badge-icon">🏆</span>
+        <span class="badge-text">Clínica Veterinaria de Excelencia</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="title-line">Clínica Veterinaria</span>
+        <span class="title-highlight">Katzen</span>
+      </h1>
+      <p class="hero-subtitle">Cuidamos a tu mejor amigo con amor y profesionalismo</p>
+      <p class="hero-description">
+        Más de <strong>10 años de experiencia</strong> en el cuidado de mascotas. 
+        Ofrecemos servicios veterinarios integrales con <strong>tecnología de vanguardia</strong> 
+        y un equipo comprometido con el bienestar de tu compañero peludo.
+      </p>
+      <div class="hero-buttons">
+        <button (click)="scrollToSection('contacto')" class="btn btn-primary">
+          <span class="btn-icon">📞</span>
+          <span class="btn-text">Agendar Cita</span>
+          <div class="btn-ripple"></div>
+        </button>
+        <button (click)="scrollToSection('servicios')" class="btn btn-secondary">
+          <span class="btn-icon">🐾</span>
+          <span class="btn-text">Ver Servicios</span>
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="stat-number">10+</span>
+          <span class="stat-label">Años</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-number">1000+</span>
+          <span class="stat-label">Mascotas</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Emergencias</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="image-container">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&h=600&fit=crop" 
+             alt="Mascotas felices" class="hero-img">
+        <div class="image-overlay">
+          <div class="overlay-content">
+            <span class="overlay-icon">❤️</span>
+            <span class="overlay-text">Cuidado con Amor</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Servicios Section -->
+<section id="servicios" class="servicios">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Nuestros Servicios</div>
+      <h2 class="section-title">Cuidado Integral para tu Mascota</h2>
+      <p class="section-subtitle">Ofrecemos una amplia gama de servicios veterinarios con la más alta calidad y tecnología</p>
+    </div>
+    <div class="servicios-grid">
+      <div class="servicio-card" *ngFor="let servicio of servicios; let i = index" 
+           [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="servicio-icon-container" [style.background]="servicio.color + '20'">
+          <span class="servicio-icon" [style.color]="servicio.color">{{ servicio.icon }}</span>
+        </div>
+        <h3 class="servicio-titulo">{{ servicio.titulo }}</h3>
+        <p class="servicio-descripcion">{{ servicio.descripcion }}</p>
+        <div class="servicio-hover">
+          <span class="hover-text">Saber más</span>
+          <span class="hover-arrow">→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Nosotros Section -->
+<section id="nosotros" class="nosotros">
+  <div class="container">
+    <div class="nosotros-content">
+      <div class="nosotros-text">
+        <div class="section-badge">Sobre Nosotros</div>
+        <h2 class="section-title">Comprometidos con el Bienestar de tu Mascota</h2>
+        <p class="nosotros-descripcion">
+          En la <strong>Clínica Veterinaria Katzen</strong>, entendemos que las mascotas son parte de la familia. 
+          Nuestro equipo de veterinarios altamente calificados se dedica a proporcionar la mejor 
+          atención médica posible para tu compañero peludo.
+        </p>
+        <p class="nosotros-descripcion">
+          Contamos con instalaciones modernas y equipamiento de última generación para 
+          diagnosticar y tratar a tu mascota de manera efectiva y compasiva. 
+          Nuestra misión es mantener a tu mascota saludable y feliz.
+        </p>
+        <div class="nosotros-stats">
+          <div class="stat" *ngFor="let stat of stats">
+            <div class="stat-icon">{{ stat.icon }}</div>
+            <span class="stat-number">{{ stat.numero }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="nosotros-image">
+        <div class="image-container">
+          <img src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=700&h=600&fit=crop" 
+               alt="Veterinario cuidando mascota" class="nosotros-img">
+          <div class="image-overlay">
+            <div class="overlay-content">
+              <span class="overlay-icon">👨‍⚕️</span>
+              <span class="overlay-text">Equipo Profesional</span>
+            </div>
+          </div>
+        </div>
+        <div class="nosotros-image-decoration">
+          <div class="decoration-dot"></div>
+          <div class="decoration-dot"></div>
+          <div class="decoration-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonios Section -->
+<section id="testimonios" class="testimonios">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Testimonios</div>
+      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+      <p class="section-subtitle">Experiencias reales de familias que confían en nosotros</p>
+    </div>
+    <div class="testimonios-grid">
+      <div class="testimonio-card" *ngFor="let testimonio of testimonios">
+        <div class="testimonio-header">
+          <img [src]="testimonio.imagen" [alt]="testimonio.nombre" class="testimonio-avatar">
+          <div class="testimonio-info">
+            <h4 class="testimonio-nombre">{{ testimonio.nombre }}</h4>
+            <p class="testimonio-mascota">{{ testimonio.mascota }}</p>
+            <div class="testimonio-rating">
+              <span class="star" *ngFor="let star of getRatingStars(testimonio.rating)">⭐</span>
+            </div>
+          </div>
+        </div>
+        <p class="testimonio-texto">{{ testimonio.texto }}</p>
+        <div class="testimonio-quote">"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Horarios Section -->
+<section class="horarios">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Horarios</div>
+      <h2 class="section-title">Estamos aquí cuando nos necesites</h2>
+      <p class="section-subtitle">Horarios flexibles para tu comodidad</p>
+    </div>
+    <div class="horarios-grid">
+      <div class="horario-card" *ngFor="let horario of horarios">
+        <div class="horario-icon">{{ horario.icon }}</div>
+        <div class="horario-dia">{{ horario.dia }}</div>
+        <div class="horario-tiempo">{{ horario.horario }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contacto Section -->
+<section id="contacto" class="contacto">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge">Contacto</div>
+      <h2 class="section-title">Contáctanos</h2>
+      <p class="section-subtitle">Estamos aquí para ayudarte y cuidar de tu mascota</p>
+    </div>
+    <div class="contacto-content">
+      <div class="contacto-info">
+        <div class="contacto-item" *ngFor="let item of [
+          {icon: '📍', title: 'Dirección', content: 'C. Zinc 318, Los Cristales 1er Sector, 67117 Guadalupe, N.L.'},
+          {icon: '📞', title: 'Teléfono', content: '+52 81 3602 4090'},
+          {icon: '💬', title: 'WhatsApp', content: '+52 81 3602 4090', link: 'https://wa.me/528136024090'},
+          {icon: '🕒', title: 'Emergencias', content: '24 horas, 7 días a la semana'}
+        ]">
+          <div class="contacto-icon">{{ item.icon }}</div>
+          <div class="contacto-details">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.content }}</p>
+            <a *ngIf="item.link" [href]="item.link" target="_blank" class="whatsapp-link">
+              Enviar mensaje
+            </a>
+          </div>
+        </div>
+        <div class="redes-sociales">
+          <h4>Síguenos</h4>
+          <div class="redes-grid">
+            <a *ngFor="let red of redesSociales" 
+               [href]="red.enlace" 
+               target="_blank" 
+               class="red-social-link"
+               [style.background-color]="red.color">
+              <span class="red-icon">{{ red.icon }}</span>
+              <span class="red-nombre">{{ red.nombre }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="contacto-map">
+        <h4>Ubicación</h4>
+        <div class="map-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3593.5!2d-100.1234!3d25.6789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDQwJzQ0LjAiTiAxMDDCsDA3JzQyLjQiVw!5e0!3m2!1ses!2smx!4v1234567890"
+            width="100%" 
+            height="300" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <a href="https://maps.app.goo.gl/iuTW5Q7j4uWT6ftt8" 
+           target="_blank" 
+           class="map-link">
+          <span class="map-icon">🗺️</span>
+          Ver en Google Maps
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo-container">
+          <span class="footer-logo-icon">🐕🐱</span>
+        </div>
+        <div class="footer-brand-text">
+          <h3>Clínica Veterinaria Katzen</h3>
+          <p>Cuidando a tu mejor amigo desde 2014</p>
+          <p class="footer-motto">"Donde el amor por las mascotas se encuentra con la excelencia médica"</p>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-section">
+          <h4>Servicios</h4>
+          <a (click)="scrollToSection('servicios')">Consultas</a>
+          <a (click)="scrollToSection('servicios')">Vacunación</a>
+          <a (click)="scrollToSection('servicios')">Cirugía</a>
+          <a (click)="scrollToSection('servicios')">Laboratorio</a>
+        </div>
+        <div class="footer-section">
+          <h4>Información</h4>
+          <a (click)="scrollToSection('nosotros')">Sobre Nosotros</a>
+          <a (click)="scrollToSection('testimonios')">Testimonios</a>
+          <a (click)="scrollToSection('contacto')">Contacto</a>
+          <a href="/admin/inicio">Panel Admin</a>
+        </div>
+        <div class="footer-section">
+          <h4>Contacto</h4>
+          <p>📍 C. Zinc 318, Guadalupe, N.L.</p>
+          <p>📞 +52 81 3602 4090</p>
+          <p>💬 WhatsApp disponible</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Clínica Veterinaria Katzen. Todos los derechos reservados.</p>
+      <p class="footer-heart">❤️ Hecho con amor para las mascotas</p>
+    </div>
+  </div>
+</footer>
