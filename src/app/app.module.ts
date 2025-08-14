@@ -13,6 +13,7 @@ import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
+import { ConstruccionComponent } from './construccion/construccion.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -23,7 +24,8 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 @NgModule({
   declarations: [
     AppComponent,
-    AdminMainLayoutComponent
+    AdminMainLayoutComponent,
+    ConstruccionComponent
   ],
   imports: [
     BrowserModule,
