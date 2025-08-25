@@ -1,0 +1,50 @@
+<div class="autocomplete-field">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ label }}</mat-label>
+    <input matInput 
+           [placeholder]="placeholder"
+           [value]="searchText"
+           (input)="onSearchInput($event)"
+           (focus)="onFocus()"
+           (blur)="onBlur()"
+           [required]="required"
+           [disabled]="disabled"
+           autocomplete="off">
+    
+    <mat-icon matSuffix *ngIf="isSearching">
+      <mat-spinner diameter="20"></mat-spinner>
+    </mat-icon>
+    
+    <mat-error *ngIf="required && !value">
+      Este campo es requerido
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Dropdown de resultados -->
+  <div class="dropdown-container" *ngIf="showDropdown && filteredItems.length > 0">
+    <div class="dropdown-list">
+      <!-- Botón para crear nuevo -->
+      <div *ngIf="allowCustom && showCreateButton" 
+           class="dropdown-item create-new"
+           (click)="createNewItem()">
+        <mat-icon>add</mat-icon>
+        <span>Crear nuevo "{{ searchText }}"</span>
+      </div>
+      
+      <!-- Lista de elementos encontrados -->
+      <div *ngFor="let item of filteredItems" 
+           class="dropdown-item"
+           (click)="selectItem(item)">
+        <div class="item-main">
+          <span class="item-name">{{ item[displayField] }}</span>
+          <span *ngIf="item.descripcion" class="item-description">
+            {{ item.descripcion }}
+          </span>
+        </div>
+        <div class="item-meta" *ngIf="item.uso_count !== undefined">
+          <span class="usage-count">{{ item.uso_count }} usos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

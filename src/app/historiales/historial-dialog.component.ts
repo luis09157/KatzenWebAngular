@@ -59,11 +59,7 @@ export class HistorialDialogComponent implements OnInit {
       // Información del médico
       medico_atendio: ['', Validators.required],
       
-      // Campos existentes (mantener compatibilidad)
-      diagnostico: ['', Validators.required],
-      tratamiento: ['', Validators.required],
-      medicamentos: [''],
-      notas: [''],
+      // ID del paciente
       paciente_id: ['', Validators.required]
     });
   }
@@ -99,12 +95,6 @@ export class HistorialDialogComponent implements OnInit {
         estudios_solicitados: this.data.historial?.estudios_solicitados || '',
         receta: this.data.historial?.receta || '',
         medico_atendio: this.data.historial?.medico_atendio || '',
-        
-        // Campos existentes
-        diagnostico: this.data.historial?.diagnostico || '',
-        tratamiento: this.data.historial?.tratamiento || '',
-        medicamentos: this.data.historial?.medicamentos || '',
-        notas: this.data.historial?.notas || '',
         paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || ''
       });
     }
@@ -387,11 +377,6 @@ export class HistorialDialogComponent implements OnInit {
           estudios_solicitados: historialData.estudios_solicitados,
           receta: historialData.receta,
           medico_atendio: historialData.medico_atendio,
-          // Campos existentes
-          diagnostico: historialData.diagnostico,
-          tratamiento: historialData.tratamiento,
-          medicamentos: historialData.medicamentos,
-          notas: historialData.notas,
           // Archivos
           archivos: historialData.archivos
         },

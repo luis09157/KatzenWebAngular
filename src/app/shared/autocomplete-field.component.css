@@ -1,0 +1,107 @@
+.autocomplete-field {
+  position: relative;
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dropdown-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-list {
+  padding: 8px 0;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-item.create-new {
+  border-bottom: 1px solid #e0e0e0;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.dropdown-item.create-new:hover {
+  background-color: #e3f2fd;
+}
+
+.dropdown-item.create-new mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.item-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+}
+
+.usage-count {
+  font-size: 11px;
+  color: #999;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* Scrollbar personalizado */
+.dropdown-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dropdown-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dropdown-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

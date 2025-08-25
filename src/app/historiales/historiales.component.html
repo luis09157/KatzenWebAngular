@@ -53,10 +53,16 @@
         <p>Gestiona todos los historiales médicos de los pacientes</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
-      <mat-icon>add</mat-icon>
-      Nuevo Historial
-    </button>
+    <div class="banner-actions">
+      <button mat-stroked-button color="accent" (click)="ejecutarMigracion()" *ngIf="necesitaMigracion">
+        <mat-icon>sync</mat-icon>
+        Migrar Base de Datos
+      </button>
+      <button mat-raised-button color="primary" (click)="abrirModalHistorial()">
+        <mat-icon>add</mat-icon>
+        Nuevo Historial
+      </button>
+    </div>
   </div>
 
   <mat-card class="historiales-card">
@@ -107,32 +113,32 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="diagnostico">
-          <th mat-header-cell *matHeaderCellDef>Diagnóstico</th>
+        <ng-container matColumnDef="diagnostico_presuntivo">
+          <th mat-header-cell *matHeaderCellDef>Diagnóstico Presuntivo</th>
           <td mat-cell *matCellDef="let historial">
             <div class="diagnostico-cell">
-              <mat-icon class="diagnostico-icon">healing</mat-icon>
-              {{ historial.diagnostico ? (historial.diagnostico.length > 50 ? historial.diagnostico.substring(0, 50) + '...' : historial.diagnostico) : 'N/P' }}
+              <mat-icon class="diagnostico-icon">description</mat-icon>
+              {{ historial.diagnostico_presuntivo ? (historial.diagnostico_presuntivo.length > 50 ? historial.diagnostico_presuntivo.substring(0, 50) + '...' : historial.diagnostico_presuntivo) : 'N/P' }}
             </div>
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="tratamiento">
-          <th mat-header-cell *matHeaderCellDef>Tratamiento</th>
+        <ng-container matColumnDef="manejo_terapeutico">
+          <th mat-header-cell *matHeaderCellDef>Manejo Terapéutico</th>
           <td mat-cell *matCellDef="let historial">
             <div class="tratamiento-cell">
-              <mat-icon class="tratamiento-icon">medication</mat-icon>
-              {{ historial.tratamiento ? (historial.tratamiento.length > 50 ? historial.tratamiento.substring(0, 50) + '...' : historial.tratamiento) : 'N/P' }}
+              <mat-icon class="tratamiento-icon">healing</mat-icon>
+              {{ historial.manejo_terapeutico ? (historial.manejo_terapeutico.length > 50 ? historial.manejo_terapeutico.substring(0, 50) + '...' : historial.manejo_terapeutico) : 'N/P' }}
             </div>
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="medicamentos">
-          <th mat-header-cell *matHeaderCellDef>Medicamentos</th>
+        <ng-container matColumnDef="medico_atendio">
+          <th mat-header-cell *matHeaderCellDef>Médico</th>
           <td mat-cell *matCellDef="let historial">
-            <div class="medicamentos-cell">
-              <mat-icon class="medicamentos-icon">local_pharmacy</mat-icon>
-              {{ historial.medicamentos ? (historial.medicamentos.length > 30 ? historial.medicamentos.substring(0, 30) + '...' : historial.medicamentos) : 'N/P' }}
+            <div class="medico-cell">
+              <mat-icon class="medico-icon">person</mat-icon>
+              {{ historial.medico_atendio ? historial.medico_atendio : 'N/P' }}
             </div>
           </td>
         </ng-container>

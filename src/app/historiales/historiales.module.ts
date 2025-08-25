@@ -20,6 +20,7 @@ import { HistorialesComponent } from './historiales.component';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
 import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.
     ReactiveFormsModule,
     FormsModule,
     HistorialesRoutingModule,
+    SharedModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,

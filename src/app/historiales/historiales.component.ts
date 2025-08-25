@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { MigrationService } from '../shared/migration.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
@@ -15,17 +16,19 @@ import Swal from 'sweetalert2';
   styleUrls: ['./historiales.component.css']
 })
 export class HistorialesComponent implements OnInit {
-  displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico', 'tratamiento', 'medicamentos', 'acciones'];
+  displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico_presuntivo', 'manejo_terapeutico', 'medico_atendio', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
   estadisticas: any = { total: 0, activos: 0, inactivos: 0 };
   loading = false;
+  necesitaMigracion = false;
 
   constructor(
     private historialesService: HistorialesService,
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
+    private migrationService: MigrationService,
     private dialog: MatDialog
   ) {}
 
@@ -33,6 +36,48 @@ export class HistorialesComponent implements OnInit {
     this.loading = true;
     this.cargarDatos();
     this.cargarEstadisticas();
+    this.verificarMigracion();
+  }
+
+  verificarMigracion() {
+    this.migrationService.verificarHistorialesParaMigracion().subscribe(
+      (necesita) => {
+        this.necesitaMigracion = necesita;
+        console.log('¿Necesita migración?', necesita);
+      },
+      (error) => {
+        console.error('Error al verificar migración:', error);
+      }
+    );
+  }
+
+  async ejecutarMigracion() {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: '¿Ejecutar Migración?',
+      text: 'Esta acción actualizará todos los historiales existentes para eliminar campos duplicados. ¿Estás seguro?',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, ejecutar migración',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        this.loading = true;
+        await this.migrationService.migrarHistoriales();
+        
+        // Recargar datos después de la migración
+        this.cargarDatos();
+        this.verificarMigracion();
+        
+      } catch (error) {
+        console.error('Error en migración:', error);
+      } finally {
+        this.loading = false;
+      }
+    }
   }
 
   cargarDatos() {

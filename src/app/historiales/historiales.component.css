@@ -167,6 +167,17 @@
   height: 64px;
   color: #ccc;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contenedor del ícono vacío */
+.empty-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .sin-historiales h3 {
@@ -181,12 +192,67 @@
   font-size: 16px;
 }
 
+/* Botón Crear Primer Historial */
+.sin-historiales button[mat-raised-button] {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  min-height: 48px;
+  min-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  transition: all 0.3s ease;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.sin-historiales button[mat-raised-button]:hover {
+  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+  transform: translateY(-2px);
+}
+
+.sin-historiales button[mat-raised-button]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.sin-historiales button[mat-raised-button] mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ESTILOS PARA BOTONES MATERIAL DESIGN */
 .admin-banner button[mat-raised-button] {
   margin-left: auto;
 }
 
 .admin-banner button[mat-raised-button] mat-icon {
+  margin-right: 8px;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.banner-actions button[mat-stroked-button] {
+  border-width: 2px;
+}
+
+.banner-actions button[mat-stroked-button] mat-icon {
   margin-right: 8px;
 }
 
@@ -216,7 +282,7 @@
 .paciente-cell,
 .diagnostico-cell,
 .tratamiento-cell,
-.medicamentos-cell {
+.medico-cell {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -226,7 +292,7 @@
 .paciente-icon,
 .diagnostico-icon,
 .tratamiento-icon,
-.medicamentos-icon {
+.medico-icon {
   color: #667eea;
   font-size: 18px;
   width: 18px;

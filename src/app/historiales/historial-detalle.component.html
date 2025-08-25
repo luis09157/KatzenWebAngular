@@ -94,7 +94,7 @@
       <!-- Diagnóstico Presuntivo -->
       <div class="info-section" *ngIf="data.diagnostico_presuntivo">
         <h3 class="section-title">
-          <mat-icon>healing</mat-icon>
+          <mat-icon>description</mat-icon>
           Diagnóstico Presuntivo
         </h3>
         <div class="info-content">
@@ -102,43 +102,10 @@
         </div>
       </div>
 
-      <!-- Diagnóstico -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>healing</mat-icon>
-          Diagnóstico
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.diagnostico || 'No disponible' }}</div>
-        </div>
-      </div>
-
-      <!-- Tratamiento -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>medication</mat-icon>
-          Tratamiento
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.tratamiento || 'No disponible' }}</div>
-        </div>
-      </div>
-
-      <!-- Medicamentos -->
-      <div class="info-section" *ngIf="data.medicamentos">
-        <h3 class="section-title">
-          <mat-icon>local_pharmacy</mat-icon>
-          Medicamentos
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.medicamentos }}</div>
-        </div>
-      </div>
-
       <!-- Manejo Terapéutico -->
       <div class="info-section" *ngIf="data.manejo_terapeutico">
         <h3 class="section-title">
-          <mat-icon>medical_services</mat-icon>
+          <mat-icon>healing</mat-icon>
           Manejo Terapéutico
         </h3>
         <div class="info-content">
