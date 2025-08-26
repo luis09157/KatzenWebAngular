@@ -275,11 +275,20 @@ export class PacientesComponent implements OnInit {
 
   cargarHistorialClinico(pacienteId: string) {
     this.historialesService.getHistorialesPorPaciente(pacienteId).subscribe(historiales => {
-      this.historialClinico = historiales.map(historial => ({
-        ...historial,
-        fecha_formateada: this.formatearFecha(historial.fecha_registro),
-        tiempo_transcurrido: this.getTiempoTranscurrido(historial.fecha_registro)
-      }));
+      console.log('📋 Historiales cargados para paciente:', pacienteId, historiales);
+      
+      this.historialClinico = historiales.map(historial => {
+        const historialFormateado = {
+          ...historial,
+          fecha_formateada: this.formatearFecha(historial.fecha_registro),
+          tiempo_transcurrido: this.getTiempoTranscurrido(historial.fecha_registro)
+        };
+        
+        console.log('📝 Historial formateado:', historialFormateado);
+        console.log('🔍 Campo diagnostico_presuntivo:', historialFormateado.diagnostico_presuntivo);
+        
+        return historialFormateado;
+      });
     });
   }
 
@@ -549,61 +558,30 @@ export class PacientesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Agregar el ID del paciente al historial
-        result.paciente_id = this.pacienteSeleccionado.id;
+        console.log('✅ Historial creado exitosamente desde diálogo');
         
-        console.log('Datos del historial antes de crear:', result);
+        // Recargar el historial clínico
+        this.cargarHistorialClinico(this.pacienteSeleccionado.id);
         
-        // Mostrar loading
-        Swal.fire({
-          title: 'Creando historial...',
-          text: 'Por favor espera',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
+        // Registrar en el log de actividades (solo para tracking)
+        const datosParaLog = {
+          diagnostico_presuntivo: result.diagnostico_presuntivo || 'Sin diagnóstico',
+          manejo_terapeutico: result.manejo_terapeutico || 'Sin tratamiento',
+          receta: result.receta || 'Sin medicamentos',
+          paciente_id: this.pacienteSeleccionado.id,
+          id: result.id
+        };
         
-        this.historialesService.crearHistorial(result).then((ref) => {
-          console.log('Historial creado exitosamente, referencia:', ref);
-          
-          // Obtener el ID del historial creado
-          const historialId = ref.key;
-          console.log('ID del historial creado:', historialId);
-          
-          // Cerrar loading y mostrar éxito
-          Swal.close();
-          Swal.fire('Éxito', 'Historial clínico creado correctamente', 'success');
-          
-          // Recargar el historial clínico
-          this.cargarHistorialClinico(this.pacienteSeleccionado.id);
-          
-          // Registrar en el log de actividades (solo para tracking)
-          const datosParaLog = {
-            diagnostico: result.diagnostico || 'Sin diagnóstico',
-            tratamiento: result.tratamiento || 'Sin tratamiento',
-            medicamentos: result.medicamentos || 'Sin medicamentos',
-            paciente_id: this.pacienteSeleccionado.id,
-            id: historialId
-          };
-          
-          console.log('Registrando historial clínico en log:', datosParaLog);
-          this.pacientesService.registrarHistorialClinico(this.pacienteSeleccionado.id, datosParaLog).then(() => {
-            console.log('Historial clínico registrado en log exitosamente');
-            this.cargarLogActividades(this.pacienteSeleccionado.id);
-          }).catch(error => {
-            console.error('Error al registrar historial en log:', error);
-          });
+        console.log('Registrando historial clínico en log:', datosParaLog);
+        this.pacientesService.registrarHistorialClinico(this.pacienteSeleccionado.id, datosParaLog).then(() => {
+          console.log('Historial clínico registrado en log exitosamente');
+          this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
-          console.error('Error al crear historial:', error);
-          Swal.close();
-          Swal.fire('Error', 'No se pudo crear el historial clínico', 'error');
-        }).finally(() => {
-          this.isCreatingHistorial = false;
+          console.error('Error al registrar historial en log:', error);
         });
-      } else {
-        this.isCreatingHistorial = false;
       }
+      
+      this.isCreatingHistorial = false;
     });
   }
 

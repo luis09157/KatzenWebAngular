@@ -418,7 +418,7 @@
 
 /* Recordatorios */
 .recordatorios-header {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: flex-start;
 }
@@ -427,9 +427,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 160px;
-  height: 40px;
+  gap: 6px;
+  min-width: 140px;
+  height: 36px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -443,9 +443,9 @@
 }
 
 .recordatorios-header button mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
   color: white;
   margin: 0;
   display: flex;
@@ -569,7 +569,7 @@
 
 .sin-recordatorios {
   text-align: center;
-  padding: 60px 20px;
+  padding: 40px 20px;
   color: #666;
   display: flex;
   flex-direction: column;
@@ -579,10 +579,10 @@
 }
 
 .sin-recordatorios mat-icon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #ccc;
+  font-size: 112px !important;
+  width: 112px !important;
+  height: 112px !important;
+  color: #ccc !important;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -601,15 +601,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 8px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-height: 48px;
+  min-height: 40px;
   color: white !important;
 }
 
@@ -618,6 +618,24 @@
 .sin-recordatorios .btn-normal,
 .sin-vacunas .btn-normal {
   margin: 0 auto;
+  /* Tamaño más grande para botones de estado vacío */
+  padding: 14px 24px;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.sin-historial .btn-normal .btn-icon,
+.sin-recordatorios .btn-normal .btn-icon,
+.sin-vacunas .btn-normal .btn-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.sin-historial .btn-normal .btn-text,
+.sin-recordatorios .btn-normal .btn-text,
+.sin-vacunas .btn-normal .btn-text {
+  font-size: 14px;
 }
 
 /* Botones de header (arriba a la izquierda) */
@@ -627,20 +645,32 @@
   margin-right: auto;
 }
 
+/* Header específico para historial */
+.historial-header {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.historial-header .btn-normal {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .btn-icon {
-  font-size: 36px;
+  font-size: 20px;
   font-weight: bold;
   color: white !important;
   line-height: 1;
-  width: 36px;
-  height: 36px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .btn-text {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: white !important;
 }
@@ -649,6 +679,20 @@
 .btn-historial {
   background: #3f51b5;
   color: white;
+  /* Tamaño específico para el botón de historial en el header */
+  padding: 10px 20px;
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.btn-historial .btn-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.btn-historial .btn-text {
+  font-size: 13px;
 }
 
 .btn-recordatorio {
@@ -908,10 +952,10 @@
 }
 
 .sin-historial mat-icon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #ccc;
+  font-size: 112px !important;
+  width: 112px !important;
+  height: 112px !important;
+  color: #ccc !important;
   margin-bottom: 20px;
 }
 
@@ -1211,10 +1255,10 @@ mat-icon {
 }
 
 .sin-vacunas mat-icon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #ccc;
+  font-size: 112px !important;
+  width: 112px !important;
+  height: 112px !important;
+  color: #ccc !important;
   margin-bottom: 20px;
 }
 

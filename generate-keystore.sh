@@ -27,3 +27,4 @@ echo "2. Guarda la keystore en un lugar seguro"
 echo "3. Nunca compartas la keystore o contraseñas"
 echo "4. Haz backup de la keystore"
 
+

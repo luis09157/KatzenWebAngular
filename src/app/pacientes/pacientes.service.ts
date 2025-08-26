@@ -112,13 +112,13 @@ export class PacientesService {
     const actividad = {
       tipo: 'historial_clinico',
       titulo: 'Historial Clínico',
-      descripcion: historial.diagnostico || 'Sin diagnóstico',
+      descripcion: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
       icono: 'medical_services',
       color: '#7b2c5c',
       datos: {
-        diagnostico: historial.diagnostico || 'Sin diagnóstico',
-        tratamiento: historial.tratamiento || 'Sin tratamiento',
-        medicamentos: historial.medicamentos || 'Sin medicamentos'
+        diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
+        tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
       }
     };
     
@@ -186,13 +186,13 @@ export class PacientesService {
     return this.agregarLogActividad(pacienteId, {
       tipo: 'historial_clinico_editado',
       titulo: 'Historial Clínico Editado',
-      descripcion: historial.diagnostico,
+      descripcion: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
       icono: 'edit',
       color: '#ff9800',
       datos: {
-        diagnostico: historial.diagnostico,
-        tratamiento: historial.tratamiento,
-        medicamentos: historial.medicamentos
+        diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
+        tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
       }
     });
   }
@@ -239,13 +239,13 @@ export class PacientesService {
     return this.agregarLogActividad(pacienteId, {
       tipo: 'historial_clinico_eliminado',
       titulo: 'Historial Clínico Eliminado',
-      descripcion: historial.diagnostico,
+      descripcion: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
       icono: 'delete',
       color: '#f44336',
       datos: {
-        diagnostico: historial.diagnostico,
-        tratamiento: historial.tratamiento,
-        medicamentos: historial.medicamentos
+        diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
+        tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
       }
     });
   }

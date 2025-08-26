@@ -62,7 +62,7 @@
         <mat-tab label="Historial" [badgeContent]="historialClinico.length">
           <div class="tab-content">
             <h3>Historial Clínico</h3>
-            <div class="recordatorios-header">
+            <div class="historial-header">
               <button class="btn-normal btn-historial" (click)="agregarHistorialClinico()">
                 <span class="btn-icon">+</span>
                 <span class="btn-text">Nuevo Historial</span>
@@ -74,17 +74,17 @@
                   <mat-icon>medical_services</mat-icon>
                 </div>
                 <div class="recordatorio-contenido">
-                  <div class="recordatorio-titulo">{{ historial.diagnostico || 'Sin diagnóstico' }}</div>
+                  <div class="recordatorio-titulo">{{ historial.diagnostico_presuntivo || 'Sin diagnóstico' }}</div>
                   <div class="recordatorio-fecha">{{ historial.fecha_formateada }}</div>
                   <div class="recordatorio-estado" [style.color]="historial.activo !== false ? '#4caf50' : '#f44336'">
                     {{ historial.activo !== false ? 'Activo' : 'Inactivo' }}
                   </div>
                   <div class="recordatorio-tiempo">{{ historial.tiempo_transcurrido }}</div>
-                  <div class="recordatorio-prioridad" *ngIf="historial.tratamiento">
-                    {{ historial.tratamiento }}
+                  <div class="recordatorio-prioridad" *ngIf="historial.manejo_terapeutico">
+                    {{ historial.manejo_terapeutico }}
                   </div>
-                  <div class="recordatorio-prioridad" *ngIf="historial.medicamentos">
-                    {{ historial.medicamentos }}
+                  <div class="recordatorio-prioridad" *ngIf="historial.receta">
+                    {{ historial.receta }}
                   </div>
                 </div>
                 <div class="recordatorio-acciones">
@@ -102,7 +102,7 @@
                 <p>No hay historial clínico registrado</p>
                 <button class="btn-normal btn-historial" (click)="agregarHistorialClinico()">
                   <span class="btn-icon">+</span>
-                  <span class="btn-text">Agregar primer historial</span>
+                  <span class="btn-text">Crear primer historial</span>
                 </button>
               </div>
             </div>
