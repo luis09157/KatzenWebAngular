@@ -18,6 +18,15 @@ export class RecordatoriosComponent implements OnInit {
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
+  
+  // Propiedades para estadísticas y loading
+  loading = false;
+  estadisticas = {
+    total: 0,
+    pendientes: 0,
+    completados: 0,
+    pacientesUnicos: 0
+  };
 
   constructor(
     private recordatoriosService: RecordatoriosService,
@@ -35,16 +44,36 @@ export class RecordatoriosComponent implements OnInit {
   }
 
   cargarRecordatorios() {
+    this.loading = true;
     this.recordatoriosService.getRecordatorios().subscribe(recordatorios => {
-      this.dataSource.data = (recordatorios || []).filter(r => r.activo !== false).map(recordatorio => ({
+      const recordatoriosActivos = (recordatorios || []).filter(r => r.activo !== false);
+      
+      this.dataSource.data = recordatoriosActivos.map(recordatorio => ({
         ...recordatorio,
         paciente: this.pacientesMap[recordatorio.paciente_id] || 'N/P',
         fecha_recordatorio: this.formatearFecha(recordatorio.fecha_recordatorio)
       }));
+      
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
+      
+      this.calcularEstadisticas(recordatoriosActivos);
+      this.loading = false;
+    }, error => {
+      console.error('Error al cargar recordatorios:', error);
+      this.loading = false;
     });
+  }
+
+  calcularEstadisticas(recordatorios: any[]) {
+    this.estadisticas.total = recordatorios.length;
+    this.estadisticas.pendientes = recordatorios.filter(r => r.estado === 'pendiente').length;
+    this.estadisticas.completados = recordatorios.filter(r => r.estado === 'completado').length;
+    
+    // Pacientes únicos
+    const pacientesIds = [...new Set(recordatorios.map(r => r.paciente_id))];
+    this.estadisticas.pacientesUnicos = pacientesIds.length;
   }
 
   formatearFecha(fecha: any): string {

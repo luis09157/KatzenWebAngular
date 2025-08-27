@@ -15,10 +15,19 @@ import { VacunaDetalleComponent } from './vacuna-detalle.component';
   styleUrls: ['./vacunas.component.css']
 })
 export class VacunasComponent implements OnInit {
-  displayedColumns: string[] = ['fecha', 'vacuna', 'dosis', 'estado', 'paciente', 'proximaAplicacion', 'acciones'];
+  displayedColumns: string[] = ['fecha_vacuna', 'paciente', 'tipo_vacuna', 'estado', 'proxima_dosis', 'veterinario', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
+  
+  // Propiedades para estadísticas y loading
+  loading = false;
+  estadisticas = {
+    total: 0,
+    pendientes: 0,
+    aplicadas: 0,
+    pacientesUnicos: 0
+  };
 
   constructor(
     private vacunasService: VacunasService,
@@ -36,19 +45,37 @@ export class VacunasComponent implements OnInit {
   }
 
   cargarVacunas() {
+    this.loading = true;
     this.vacunasService.getVacunas().subscribe(vacunas => {
-      this.dataSource.data = (vacunas || []).filter(v => v.activo !== false).map(vacuna => ({
+      const vacunasActivas = (vacunas || []).filter(v => v.activo !== false);
+      
+      this.dataSource.data = vacunasActivas.map(vacuna => ({
         ...vacuna,
-        paciente: this.pacientesMap[vacuna.idPaciente] || 'N/P',
-        fecha: this.formatearFecha(vacuna.fechaAplicacion || vacuna.fecha),
-        proximaAplicacion: this.formatearFecha(vacuna.proximaAplicacion),
-        diasRestantes: this.vacunasService.getDiasRestantes(vacuna),
-        estaVencida: this.vacunasService.estaVencida(vacuna)
+        paciente: this.pacientesMap[vacuna.paciente_id] || 'N/P',
+        fecha_vacuna: this.formatearFecha(vacuna.fecha_vacuna),
+        proxima_dosis: this.formatearFecha(vacuna.proxima_dosis)
       }));
+      
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
+      
+      this.calcularEstadisticas(vacunasActivas);
+      this.loading = false;
+    }, error => {
+      console.error('Error al cargar vacunas:', error);
+      this.loading = false;
     });
+  }
+
+  calcularEstadisticas(vacunas: any[]) {
+    this.estadisticas.total = vacunas.length;
+    this.estadisticas.pendientes = vacunas.filter(v => v.estado === 'pendiente' || !v.aplicada).length;
+    this.estadisticas.aplicadas = vacunas.filter(v => v.estado === 'aplicada' || v.aplicada).length;
+    
+    // Pacientes únicos
+    const pacientesIds = [...new Set(vacunas.map(v => v.paciente_id))];
+    this.estadisticas.pacientesUnicos = pacientesIds.length;
   }
 
   formatearFecha(fecha: any): string {
