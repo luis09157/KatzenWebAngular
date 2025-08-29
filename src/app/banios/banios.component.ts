@@ -27,6 +27,7 @@ export class BaniosComponent implements OnInit {
   
   // Propiedades para estadísticas y loading
   loading = false;
+  tablaInicializada = false;
   estadisticas = {
     total: 0,
     programados: 0,
@@ -43,52 +44,118 @@ export class BaniosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargarDatosIniciales();
+    // No cargar datos aquí, esperar a que la vista esté lista
+  }
+
+  ngAfterViewInit(): void {
+    // Configurar el paginador después de que la vista esté inicializada
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
+    
+    // Esperar un ciclo completo antes de cargar los datos
+    // Esto evita los errores de onDestroy de Angular Material
+    setTimeout(() => {
+      this.cargarDatosIniciales();
+    }, 100);
   }
 
   cargarDatosIniciales() {
-    // Cargar pacientes
+    console.log('🔄 Iniciando carga de datos iniciales...');
+    
+    // Cargar pacientes y usuarios de manera secuencial
     this.pacientesService.getPacientes().subscribe(pacientes => {
+      console.log('📋 Pacientes cargados:', pacientes?.length || 0);
       (pacientes || []).forEach(p => {
         this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
       });
-    });
-
-    // Cargar usuarios (peluqueros)
-    this.usuariosService.getUsuarios().subscribe(usuarios => {
-      (usuarios || []).forEach(u => {
-        this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
+      
+      // Después de cargar pacientes, cargar usuarios
+      this.usuariosService.getUsuarios().subscribe(usuarios => {
+        console.log('👥 Usuarios cargados:', usuarios?.length || 0);
+        (usuarios || []).forEach(u => {
+          this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
+        });
+        
+        console.log('✅ Datos iniciales cargados, procediendo a cargar baños...');
+        // Solo después de cargar pacientes y usuarios, cargar baños
+        this.cargarBanios();
       });
     });
-
-    // Cargar baños
-    this.cargarBanios();
   }
 
   cargarBanios() {
+    console.log('🔄 Iniciando carga de baños...');
     this.loading = true;
-    this.baniosService.getBanios().subscribe(banios => {
-      const baniosActivos = (banios || []).filter(b => b.activo !== false);
+    
+    this.baniosService.getBanios().subscribe({
+      next: (banios) => {
+        try {
+          console.log('📋 Baños recibidos del servicio:', banios?.length || 0);
+          console.log('🔍 Baños crudos recibidos:', banios);
+          console.log('🔍 Mapa de pacientes:', Object.keys(this.pacientesMap).length);
+          console.log('🔍 Mapa de usuarios:', Object.keys(this.usuariosMap).length);
+          
+          const baniosActivos = (banios || []).filter(b => b.activo !== false);
+          console.log('📋 Baños activos filtrados:', baniosActivos.length);
+          console.log('🔍 Baños activos detallados:', baniosActivos);
+          
+          // Crear una nueva instancia del dataSource para evitar problemas de renderizado
+          const nuevosDatos = baniosActivos.map(banio => ({
+            ...banio,
+            paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
+            cliente: this.clientesMap[banio.cliente_id] || 'N/P',
+            peluquero: this.usuariosMap[banio.peluquero_id] || 'N/P',
+            fecha_banio: this.formatearFecha(banio.fecha_banio),
+            hora_banio: this.formatearHora(banio.hora_banio)
+          }));
+          
+          console.log('🔍 Datos procesados para la tabla:', nuevosDatos.length);
+          console.log('🔍 Primer baño procesado:', nuevosDatos[0]);
+          
+          // Actualizar la tabla de manera segura
+          this.actualizarTablaSegura(nuevosDatos);
+          
+          this.calcularEstadisticas(baniosActivos);
+          this.loading = false;
+          console.log('✅ Carga de baños completada');
+        } catch (error) {
+          console.error('❌ Error al procesar datos de baños:', error);
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar baños:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  private actualizarTablaSegura(nuevosDatos: any[]) {
+    try {
+      console.log('🔄 Actualizando tabla con', nuevosDatos.length, 'baños');
+      console.log('🔍 Estado actual de tablaInicializada:', this.tablaInicializada);
       
-      this.dataSource.data = baniosActivos.map(banio => ({
-        ...banio,
-        paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
-        cliente: this.clientesMap[banio.cliente_id] || 'N/P',
-        peluquero: this.usuariosMap[banio.peluquero_id] || 'N/P',
-        fecha_banio: this.formatearFecha(banio.fecha_banio),
-        hora_banio: this.formatearHora(banio.hora_banio)
-      }));
+      // En lugar de recrear el dataSource, solo actualizar los datos
+      // Esto evita los problemas de ciclo de vida de Angular Material
+      this.dataSource.data = [...nuevosDatos];
       
-      if (this.paginator) {
+      // Reasignar el paginador solo si es necesario
+      if (this.paginator && this.dataSource.paginator !== this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
       
-      this.calcularEstadisticas(baniosActivos);
-      this.loading = false;
-    }, error => {
-      console.error('Error al cargar baños:', error);
-      this.loading = false;
-    });
+      // Marcar la tabla como inicializada
+      this.tablaInicializada = true;
+      console.log('✅ Tabla actualizada y marcada como inicializada');
+      console.log('🔍 Nuevo estado de tablaInicializada:', this.tablaInicializada);
+      console.log('🔍 DataSource actual:', this.dataSource.data.length, 'elementos');
+    } catch (error) {
+      console.error('❌ Error al actualizar tabla:', error);
+      // Fallback: actualizar directamente
+      this.dataSource.data = nuevosDatos;
+      this.tablaInicializada = true;
+    }
   }
 
   calcularEstadisticas(banios: Banio[]) {

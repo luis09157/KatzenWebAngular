@@ -138,7 +138,7 @@
             
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Precio Total</mat-label>
-              <input matInput [value]="banioForm.get('precio_total')?.value" readonly />
+              <input matInput [value]="calcularPrecioTotal()" readonly />
               <mat-icon matSuffix>account_balance_wallet</mat-icon>
             </mat-form-field>
           </div>
@@ -151,12 +151,25 @@
             <div *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index" class="servicio-item">
               <mat-form-field appearance="outline" class="form-field-small">
                 <mat-label>Servicio</mat-label>
-                <input matInput [(ngModel)]="servicio.servicio" [ngModelOptions]="{standalone: true}" placeholder="Descripción del servicio" />
+                <mat-select [(ngModel)]="servicio.servicio" [ngModelOptions]="{standalone: true}" (selectionChange)="actualizarPrecioServicio(servicio, i)">
+                  <mat-option *ngFor="let tipoServicio of serviciosAdicionales" [value]="tipoServicio.value">
+                    {{ tipoServicio.label }} - ${{ tipoServicio.precio }}
+                  </mat-option>
+                  <mat-option value="otro">Otro (especificar)</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>spa</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field *ngIf="servicio.servicio === 'otro'" appearance="outline" class="form-field-small">
+                <mat-label>Servicio Personalizado</mat-label>
+                <input matInput [(ngModel)]="servicio.servicioPersonalizado" [ngModelOptions]="{standalone: true}" placeholder="Descripción del servicio" />
+                <mat-icon matSuffix>edit</mat-icon>
               </mat-form-field>
               
               <mat-form-field appearance="outline" class="form-field-small">
                 <mat-label>Precio</mat-label>
                 <input matInput type="number" [(ngModel)]="servicio.precio" [ngModelOptions]="{standalone: true}" min="0" placeholder="0" />
+                <mat-icon matSuffix>attach_money</mat-icon>
               </mat-form-field>
               
               <button mat-icon-button color="warn" type="button" (click)="removerServicioAdicional(i)">
@@ -181,27 +194,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Productos Utilizados -->
-        <div class="form-section">
-          <h3>Productos Utilizados</h3>
-          <div class="productos-utilizados">
-            <div *ngFor="let producto of banioForm.get('productos_utilizados')?.value; let i = index" class="producto-item">
-              <mat-form-field appearance="outline" class="form-field-medium">
-                <mat-label>Producto</mat-label>
-                <input matInput [(ngModel)]="banioForm.get('productos_utilizados')?.value[i]" [ngModelOptions]="{standalone: true}" placeholder="Nombre del producto" />
-              </mat-form-field>
-              
-              <button mat-icon-button color="warn" type="button" (click)="removerProducto(i)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-            
-            <button mat-stroked-button type="button" (click)="agregarProducto()" class="add-button">
-              <mat-icon>add</mat-icon>
-              Agregar Producto
-            </button>
-          </div>
-        </div>
+
 
         <!-- Alergias Conocidas -->
         <div class="form-section">
@@ -210,7 +203,19 @@
             <div *ngFor="let alergia of banioForm.get('alergias_conocidas')?.value; let i = index" class="alergia-item">
               <mat-form-field appearance="outline" class="form-field-medium">
                 <mat-label>Alergia</mat-label>
-                <input matInput [(ngModel)]="banioForm.get('alergias_conocidas')?.value[i]" [ngModelOptions]="{standalone: true}" placeholder="Tipo de alergia" />
+                <mat-select [(ngModel)]="banioForm.get('alergias_conocidas')?.value[i]" [ngModelOptions]="{standalone: true}">
+                  <mat-option *ngFor="let tipoAlergia of tiposAlergias" [value]="tipoAlergia.value">
+                    {{ tipoAlergia.label }}
+                  </mat-option>
+                  <mat-option value="otra">Otra (especificar)</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>warning</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field *ngIf="banioForm.get('alergias_conocidas')?.value[i] === 'otra'" appearance="outline" class="form-field-medium">
+                <mat-label>Especificar Alergia</mat-label>
+                <input matInput [(ngModel)]="alergiasEspecificas[i]" [ngModelOptions]="{standalone: true}" placeholder="Describir alergia específica" />
+                <mat-icon matSuffix>edit</mat-icon>
               </mat-form-field>
               
               <button mat-icon-button color="warn" type="button" (click)="removerAlergia(i)">

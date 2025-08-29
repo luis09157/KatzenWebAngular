@@ -9,6 +9,7 @@ import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -28,6 +29,7 @@ import { PrivacidadModule } from './landing/privacidad/privacidad.module';
     AngularFirestoreModule,
     AngularFireAuthModule,
     AngularFireStorageModule,
+    AngularFireDatabaseModule,
     DashboardModule,
     LayoutsModule,
     LandingModule,

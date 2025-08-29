@@ -48,6 +48,30 @@ export class BanioDialogComponent implements OnInit {
     { value: 'cooperativo', label: 'Cooperativo' }
   ];
 
+  // Opciones predefinidas para servicios adicionales
+  serviciosAdicionales = [
+    { value: 'corte_uñas', label: 'Corte de Uñas', precio: 50 },
+    { value: 'limpieza_oidos', label: 'Limpieza de Oídos', precio: 80 },
+    { value: 'cepillado_especial', label: 'Cepillado Especial', precio: 60 },
+    { value: 'perfume', label: 'Perfume', precio: 40 },
+    { value: 'lazo_decorativo', label: 'Lazo Decorativo', precio: 30 },
+    { value: 'tratamiento_antipulgas', label: 'Tratamiento Antipulgas', precio: 120 },
+    { value: 'mascarilla_hidratante', label: 'Mascarilla Hidratante', precio: 90 }
+  ];
+
+  // Opciones predefinidas para alergias
+  tiposAlergias = [
+    { value: 'shampoo_comun', label: 'Shampoo Común' },
+    { value: 'perfume', label: 'Perfume' },
+    { value: 'productos_quimicos', label: 'Productos Químicos' },
+    { value: 'alergenos_ambientales', label: 'Alergenos Ambientales' },
+    { value: 'alimentos', label: 'Alimentos' },
+    { value: 'medicamentos', label: 'Medicamentos' }
+  ];
+
+  // Array para almacenar alergias específicas
+  alergiasEspecificas: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<BanioDialogComponent>,
@@ -66,7 +90,6 @@ export class BanioDialogComponent implements OnInit {
       estado: ['programado', Validators.required],
       prioridad: ['media', Validators.required],
       observaciones: [''],
-      productos_utilizados: [[]],
       alergias_conocidas: [[]],
       comportamiento: ['tranquilo'],
       peluquero_id: ['', Validators.required],
@@ -78,7 +101,8 @@ export class BanioDialogComponent implements OnInit {
       duracion_estimada: [60, [Validators.required, Validators.min(15)]],
       tiempo_inicio: [''],
       tiempo_fin: [''],
-      activo: [true]
+      activo: [true],
+      created_by: ['system', Validators.required]
     });
   }
 
@@ -94,7 +118,8 @@ export class BanioDialogComponent implements OnInit {
         paciente_id: this.data.paciente_id,
         paciente: this.data.paciente,
         cliente_id: this.data.cliente_id,
-        cliente: this.data.cliente
+        cliente: this.data.cliente,
+        created_by: 'system' // Valor por defecto para nuevos baños
       });
     }
     
@@ -126,25 +151,50 @@ export class BanioDialogComponent implements OnInit {
     this.banioForm.get('servicios_adicionales')?.valueChanges.subscribe(() => {
       this.calcularPrecioTotal();
     });
+    
+    // Calcular precio inicial
+    setTimeout(() => {
+      this.calcularPrecioTotal();
+    }, 100);
   }
 
-  calcularPrecioTotal() {
+  // Función para actualizar precio automáticamente cuando se selecciona un servicio
+  actualizarPrecioServicio(servicio: any, index: number) {
+    if (servicio.servicio && servicio.servicio !== 'otro') {
+      const servicioPredefinido = this.serviciosAdicionales.find(s => s.value === servicio.servicio);
+      if (servicioPredefinido) {
+        servicio.precio = servicioPredefinido.precio;
+        // Forzar actualización del formulario
+        const serviciosActuales = this.banioForm.get('servicios_adicionales')?.value || [];
+        serviciosActuales[index] = servicio;
+        this.banioForm.patchValue({ servicios_adicionales: serviciosActuales });
+        this.calcularPrecioTotal();
+      }
+    }
+  }
+
+  calcularPrecioTotal(): number {
     const precioBase = this.banioForm.get('precio_base')?.value || 0;
     const serviciosAdicionales = this.banioForm.get('servicios_adicionales')?.value || [];
     
     const totalAdicionales = serviciosAdicionales.reduce((sum: number, servicio: any) => {
-      return sum + (servicio.precio || 0);
+      return sum + (Number(servicio.precio) || 0);
     }, 0);
     
-    const precioTotal = precioBase + totalAdicionales;
-    this.banioForm.patchValue({ precio_total: precioTotal });
+    const precioTotal = Number(precioBase) + totalAdicionales;
+    
+    // Actualizar el campo precio_total en el formulario
+    this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
+    
+    return precioTotal;
   }
 
   agregarServicioAdicional() {
     const serviciosActuales = this.banioForm.get('servicios_adicionales')?.value || [];
     const nuevoServicio = {
       servicio: '',
-      precio: 0
+      precio: 0,
+      servicioPersonalizado: ''
     };
     
     this.banioForm.patchValue({
@@ -166,57 +216,80 @@ export class BanioDialogComponent implements OnInit {
     this.banioForm.patchValue({
       alergias_conocidas: [...alergiasActuales, nuevaAlergia]
     });
+    
+    // Agregar espacio para alergia específica
+    this.alergiasEspecificas.push('');
   }
 
   removerAlergia(index: number) {
     const alergiasActuales = this.banioForm.get('alergias_conocidas')?.value || [];
     alergiasActuales.splice(index, 1);
     this.banioForm.patchValue({ alergias_conocidas: alergiasActuales });
-  }
-
-  agregarProducto() {
-    const productosActuales = this.banioForm.get('productos_utilizados')?.value || [];
-    const nuevoProducto = '';
     
-    this.banioForm.patchValue({
-      productos_utilizados: [...productosActuales, nuevoProducto]
-    });
+    // Remover alergia específica correspondiente
+    this.alergiasEspecificas.splice(index, 1);
   }
 
-  removerProducto(index: number) {
-    const productosActuales = this.banioForm.get('productos_utilizados')?.value || [];
-    productosActuales.splice(index, 1);
-    this.banioForm.patchValue({ productos_utilizados: productosActuales });
-  }
+
 
   onSubmit() {
+    console.log('🔍 Formulario válido:', this.banioForm.valid);
+    console.log('🔍 Errores del formulario:', this.banioForm.errors);
+    console.log('🔍 Estado del formulario:', this.banioForm.status);
+    
     if (this.banioForm.valid) {
       this.loading = true;
       
       const banioData = this.banioForm.value;
+      console.log('🔍 Datos del formulario:', banioData);
+      
+      // Limpiar datos antes de enviar
+      const datosLimpios = {
+        ...banioData,
+        // Asegurar que los arrays estén definidos
+        servicios_adicionales: banioData.servicios_adicionales || [],
+        alergias_conocidas: banioData.alergias_conocidas || [],
+        // Asegurar que el campo created_by esté presente
+        created_by: banioData.created_by || 'system',
+        // Asegurar que productos_utilizados esté definido
+        productos_utilizados: banioData.productos_utilizados || []
+      };
+      
+      // Remover campos undefined para evitar errores de Firebase
+      Object.keys(datosLimpios).forEach(key => {
+        if (datosLimpios[key] === undefined) {
+          delete datosLimpios[key];
+        }
+      });
+      
+      console.log('🔍 Datos limpios a enviar:', datosLimpios);
       
       if (this.esEdicion) {
         // Actualizar baño existente
-        this.baniosService.actualizarBanio(this.data.id, banioData)
+        console.log('🔄 Actualizando baño existente...');
+        this.baniosService.actualizarBanio(this.data.id, datosLimpios)
           .then(() => {
+            console.log('✅ Baño actualizado exitosamente');
             Swal.fire('Actualizado', 'El baño ha sido actualizado exitosamente', 'success');
             this.dialogRef.close(true);
           })
           .catch(error => {
-            console.error('Error al actualizar baño:', error);
-            Swal.fire('Error', 'No se pudo actualizar el baño', 'error');
+            console.error('❌ Error al actualizar baño:', error);
+            Swal.fire('Error', `No se pudo actualizar el baño: ${error.message}`, 'error');
             this.loading = false;
           });
       } else {
         // Crear nuevo baño
-        this.baniosService.crearBanio(banioData)
-          .then(() => {
+        console.log('🔄 Creando nuevo baño...');
+        this.baniosService.crearBanio(datosLimpios)
+          .then((id) => {
+            console.log('✅ Baño creado exitosamente con ID:', id);
             Swal.fire('Creado', 'El baño ha sido creado exitosamente', 'success');
             this.dialogRef.close(true);
           })
           .catch(error => {
-            console.error('Error al crear baño:', error);
-            Swal.fire('Error', 'No se pudo crear el baño', 'error');
+            console.error('❌ Error al crear baño:', error);
+            Swal.fire('Error', `No se pudo crear el baño: ${error.message}`, 'error');
             this.loading = false;
           });
       }

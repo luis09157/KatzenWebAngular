@@ -24,12 +24,14 @@ export class ValidationService {
     const inputDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    // Permitir fecha de hoy o futura
     return inputDate >= today;
   }
 
-  // Validar que un precio sea positivo
+  // Validar que un precio sea válido (>= 0)
   isValidPrice(price: number): boolean {
-    return price > 0;
+    return price >= 0;
   }
 
   // Validar que una cadena no esté vacía
@@ -108,9 +110,12 @@ export class ValidationService {
         if (!data.paciente_id) errors.push('Debe seleccionar un paciente');
         if (!this.isValidDateFormat(data.fecha_banio)) errors.push('La fecha debe tener formato válido');
         if (!this.isValidTimeFormat(data.hora_banio)) errors.push('La hora debe tener formato válido (HH:MM)');
-        if (!this.isValidFutureDate(data.fecha_banio)) errors.push('La fecha no puede ser anterior a hoy');
+        // Para baños, permitir fecha de hoy o futura (no fechas pasadas)
+        if (data.fecha_banio && !this.isValidFutureDate(data.fecha_banio)) {
+          errors.push('La fecha no puede ser anterior a hoy');
+        }
         if (data.precio_total && !this.isValidPrice(data.precio_total)) {
-          errors.push('El precio debe ser mayor a 0');
+          errors.push('El precio debe ser mayor o igual a 0');
         }
         break;
 
@@ -133,6 +138,16 @@ export class ValidationService {
         if (!this.isNotEmpty(data.nombre)) errors.push('El nombre es requerido');
         if (data.correo && !this.isValidEmail(data.correo)) errors.push('El formato del email es inválido');
         if (!this.isNotEmpty(data.perfil)) errors.push('El perfil es requerido');
+        break;
+
+      case 'peluquero':
+        if (!this.isNotEmpty(data.nombre)) errors.push('El nombre es requerido');
+        if (!this.isNotEmpty(data.apellido)) errors.push('El apellido es requerido');
+        if (!this.isValidEmail(data.email)) errors.push('El email es requerido y debe tener formato válido');
+        if (!this.isValidPhoneMX(data.telefono)) errors.push('El teléfono debe tener formato válido');
+        if (!this.isNotEmpty(data.especialidad)) errors.push('La especialidad es requerida');
+        if (!data.experiencia_anos || data.experiencia_anos < 0) errors.push('La experiencia debe ser un número válido');
+        if (!data.tarifa_base || data.tarifa_base < 0) errors.push('La tarifa base debe ser un número válido');
         break;
     }
 

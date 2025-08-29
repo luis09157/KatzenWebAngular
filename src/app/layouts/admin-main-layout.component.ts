@@ -80,6 +80,7 @@ export class AdminMainLayoutComponent implements OnInit {
   }
 
   navegar(ruta: string) {
+    console.log('🚀 Navegando a:', ruta);
     this.router.navigate([ruta]);
     this.closeSidenav();
   }

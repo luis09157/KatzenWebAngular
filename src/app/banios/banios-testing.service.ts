@@ -84,6 +84,7 @@ export class BaniosTestingService {
           paciente_id: 'test-paciente-1',
           cliente_id: 'test-cliente-1',
           fecha_banio: '2025-02-15',
+          // hora_banio: '14:30', // Campo faltante intencionalmente
           tipo_servicio: 'baño_básico',
           estado: 'programado',
           prioridad: 'media',
@@ -403,18 +404,21 @@ export class BaniosTestingService {
   
   private simularValidacionDuplicados(banio: any): string {
     // Simular la lógica de validación de duplicados
+    // Caso 1: Mismo paciente, misma fecha, misma hora = DUPLICADO
     if (banio.paciente_id === 'test-paciente-1' && 
         banio.fecha_banio === '2025-02-15' && 
         banio.hora_banio === '14:30') {
       return 'duplicado';
     }
     
+    // Caso 2: Mismo peluquero, misma fecha, misma hora = CONFLICTO PELUQUERO
     if (banio.peluquero_id === 'test-peluquero-1' && 
         banio.fecha_banio === '2025-02-15' && 
         banio.hora_banio === '14:30') {
       return 'conflicto_peluquero';
     }
     
+    // Caso 3: Cualquier otra combinación = PERMITIDO
     return 'permitido';
   }
   

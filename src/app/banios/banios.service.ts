@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import { Banio, TipoServicio, ProductoPeluqueria } from '../shared/banio.model';
 
 @Injectable({
@@ -42,13 +42,25 @@ export class BaniosService {
   crearBanio(banio: Omit<Banio, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log('🚀 Iniciando creación de baño...');
+        console.log('🔍 Datos recibidos:', banio);
+        
         // Validar campos requeridos
         if (!banio.paciente_id || !banio.fecha_banio || !banio.hora_banio) {
+          console.error('❌ Campos requeridos faltantes:', {
+            paciente_id: banio.paciente_id,
+            fecha_banio: banio.fecha_banio,
+            hora_banio: banio.hora_banio
+          });
           throw new Error('Faltan campos requeridos: paciente_id, fecha_banio, hora_banio');
         }
         
+        console.log('✅ Campos requeridos validados');
+        
         // Verificar duplicados
-        const baniosExistentes = await this.getBanios().toPromise();
+        console.log('🔍 Verificando duplicados...');
+        const baniosExistentes = await firstValueFrom(this.getBanios());
+        console.log('🔍 Baños existentes encontrados:', baniosExistentes?.length || 0);
         
         if (baniosExistentes && baniosExistentes.length > 0) {
           const duplicado = baniosExistentes.find(b => 
@@ -77,17 +89,45 @@ export class BaniosService {
           }
         }
         
+        console.log('✅ Validaciones pasadas, creando baño...');
+        
+        // Limpiar campos undefined antes de enviar a Firebase
+        const banioLimpio = { ...banio };
+        Object.keys(banioLimpio).forEach(key => {
+          if (banioLimpio[key] === undefined) {
+            delete banioLimpio[key];
+          }
+        });
+        
         const banioCompleto: Banio = {
-          ...banio,
+          ...banioLimpio,
           created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+          updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          created_by: banio.created_by || 'system', // Valor por defecto si no se proporciona
+          activo: true, // Asegurar que esté activo por defecto
+          // Asegurar que los arrays estén definidos y no sean undefined
+          productos_utilizados: banio.productos_utilizados || [],
+          servicios_adicionales: banio.servicios_adicionales || [],
+          alergias_conocidas: banio.alergias_conocidas || []
         };
+        
+        console.log('🔍 Baño completo a guardar:', banioCompleto);
+        console.log('🔍 Ruta de Firebase:', this.basePath);
 
-        const ref = await this.db.list<Banio>(this.basePath).push(banioCompleto);
-        console.log('Baño creado exitosamente con ID:', ref.key);
-        resolve(ref.key!);
+        // Usar then/catch en lugar de await para mejor manejo de errores
+        this.db.list<Banio>(this.basePath).push(banioCompleto)
+          .then((ref) => {
+            console.log('✅ Baño creado exitosamente con ID:', ref.key);
+            resolve(ref.key!);
+          })
+          .catch((error) => {
+            console.error('❌ Error de Firebase al crear baño:', error);
+            reject(error);
+          });
+          
       } catch (error) {
-        console.error('Error al crear baño:', error);
+        console.error('❌ Error al crear baño:', error);
+        console.error('❌ Stack trace:', error.stack);
         reject(error);
       }
     });
