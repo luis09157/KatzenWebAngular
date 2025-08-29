@@ -21,14 +21,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 // Componentes
 import { BaniosComponent } from './banios.component';
 import { BanioDialogComponent } from './banio-dialog.component';
 import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
+import { BaniosTestingComponent } from './banios-testing.component';
 
 // Servicios
 import { BaniosService } from './banios.service';
+import { BaniosTestingService } from './banios-testing.service';
 
 // Rutas
 import { baniosRoutes } from './banios-routing.module';
@@ -37,7 +40,8 @@ import { baniosRoutes } from './banios-routing.module';
   declarations: [
     BaniosComponent,
     BanioDialogComponent,
-    SeleccionarClienteBanioDialogComponent
+    SeleccionarClienteBanioDialogComponent,
+    BaniosTestingComponent
   ],
   imports: [
     CommonModule,
@@ -62,10 +66,12 @@ import { baniosRoutes } from './banios-routing.module';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatCheckboxModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatSnackBarModule
   ],
   providers: [
-    BaniosService
+    BaniosService,
+    BaniosTestingService
   ]
 })
 export class BaniosModule { }

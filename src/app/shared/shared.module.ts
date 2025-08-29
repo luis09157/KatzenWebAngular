@@ -5,17 +5,22 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
 import { MedicamentosService } from './medicamentos.service';
 import { MigrationService } from './migration.service';
 import { BaniosService } from '../banios/banios.service';
+import { ValidationService } from './validation.service';
+import { TestingUtilsService } from './testing-utils.service';
 import { AutocompleteFieldComponent } from './autocomplete-field.component';
+import { TestingComponent } from './testing.component';
 
 @NgModule({
   declarations: [
-    AutocompleteFieldComponent
+    AutocompleteFieldComponent,
+    TestingComponent
   ],
   imports: [
     CommonModule,
@@ -24,14 +29,17 @@ import { AutocompleteFieldComponent } from './autocomplete-field.component';
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatButtonModule
   ],
   providers: [
     DiagnosticosService,
     TratamientosService,
     MedicamentosService,
     MigrationService,
-    BaniosService
+    BaniosService,
+    ValidationService,
+    TestingUtilsService
   ],
   exports: [
     CommonModule,
@@ -41,7 +49,9 @@ import { AutocompleteFieldComponent } from './autocomplete-field.component';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    AutocompleteFieldComponent
+    MatButtonModule,
+    AutocompleteFieldComponent,
+    TestingComponent
   ]
 })
 export class SharedModule { }

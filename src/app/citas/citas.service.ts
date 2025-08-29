@@ -31,6 +31,37 @@ export class CitasService {
   async guardarCita(cita: any): Promise<any> {
     cita.activo = true;
     
+    // Validar duplicados solo para citas nuevas
+    if (!cita.id) {
+      // Verificar si ya existe una cita para la misma fecha, hora y paciente
+      const citasExistentes = await this.getCitas().toPromise();
+      
+      if (citasExistentes && citasExistentes.length > 0) {
+        const duplicada = citasExistentes.find(c => 
+          c.fecha === cita.fecha &&
+          c.hora === cita.hora &&
+          c.paciente_id === cita.paciente_id &&
+          c.activo !== false
+        );
+        
+        if (duplicada) {
+          throw new Error(`Ya existe una cita programada para esta fecha y hora con este paciente`);
+        }
+        
+        // Verificar conflictos de horario del médico
+        const conflictoMedico = citasExistentes.find(c => 
+          c.fecha === cita.fecha &&
+          c.hora === cita.hora &&
+          c.medico_id === cita.medico_id &&
+          c.activo !== false
+        );
+        
+        if (conflictoMedico) {
+          throw new Error(`El médico ya tiene una cita programada para esta fecha y hora`);
+        }
+      }
+    }
+    
     // Si tiene id, actualiza; si no, push y captura el ID generado
     if (cita.id) {
       return this.db.object(`Katzen/Citas/${cita.id}`).set(cita);

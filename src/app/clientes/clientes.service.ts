@@ -36,11 +36,43 @@ export class ClientesService {
   }
 
   // Agregar o actualizar un cliente (siempre con activo: true)
-  guardarCliente(cliente: any): any {
+  async guardarCliente(cliente: any): Promise<any> {
     cliente.activo = true;
     
-    // Si es un cliente nuevo (sin ID), usar push() para generar ID automáticamente
+    // Validar duplicados solo para clientes nuevos
     if (!cliente.id || cliente.id.trim() === '') {
+      // Verificar email duplicado
+      if (cliente.correo || cliente.email) {
+        const email = cliente.correo || cliente.email;
+        const clientesExistentes = await this.getClientes().toPromise();
+        
+        if (clientesExistentes && clientesExistentes.length > 0) {
+          const emailDuplicado = clientesExistentes.find(c => 
+            (c.correo === email || c.email === email) && c.activo !== false
+          );
+          
+          if (emailDuplicado) {
+            throw new Error(`Ya existe un cliente registrado con el email: ${email}`);
+          }
+        }
+      }
+      
+      // Verificar teléfono duplicado
+      if (cliente.telefono) {
+        const clientesExistentes = await this.getClientes().toPromise();
+        
+        if (clientesExistentes && clientesExistentes.length > 0) {
+          const telefonoDuplicado = clientesExistentes.find(c => 
+            c.telefono === cliente.telefono && c.activo !== false
+          );
+          
+          if (telefonoDuplicado) {
+            throw new Error(`Ya existe un cliente registrado con el teléfono: ${cliente.telefono}`);
+          }
+        }
+      }
+      
+      // Si es un cliente nuevo (sin ID), usar push() para generar ID automáticamente
       return this.db.list('Katzen/Cliente').push(cliente).then((result) => {
         // Obtener el ID generado por Firebase
         const generatedId = result.key;

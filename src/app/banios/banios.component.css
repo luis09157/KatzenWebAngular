@@ -261,6 +261,22 @@
   margin-right: 8px;
 }
 
+.testing-btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.testing-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4) !important;
+}
+
+.testing-btn mat-icon {
+  margin-right: 8px;
+}
+
 /* Tabla */
 .mat-elevation-z8 {
   border-radius: 12px;

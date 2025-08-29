@@ -59,8 +59,21 @@ export class VacunasService {
         throw new Error('Faltan campos requeridos: idPaciente y vacuna');
       }
       
-      // NO validar duplicados - solo crear la vacuna directamente
-      console.log(`VacunasService [${timestamp}] - Saltando validación de duplicados, creando vacuna directamente...`);
+      // Validar duplicados
+      console.log(`VacunasService [${timestamp}] - Verificando duplicados...`);
+      const vacunasExistentes = await this.getVacunasPorPaciente(vacuna.idPaciente).toPromise();
+      
+      if (vacunasExistentes && vacunasExistentes.length > 0) {
+        const duplicada = vacunasExistentes.find(v => 
+          v.vacuna === vacuna.vacuna &&
+          v.fechaAplicacion === vacuna.fechaAplicacion &&
+          v.activo !== false
+        );
+        
+        if (duplicada) {
+          throw new Error(`Ya existe un registro de la vacuna "${vacuna.vacuna}" para esta fecha en este paciente`);
+        }
+      }
       
       console.log(`VacunasService [${timestamp}] - Preparando datos de nueva vacuna...`);
       const nuevaVacuna = {

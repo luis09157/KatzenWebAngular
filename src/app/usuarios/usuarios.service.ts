@@ -31,8 +31,42 @@ export class UsuariosService {
   }
 
   // Agregar o actualizar un usuario
-  guardarUsuario(usuario: any) {
-    return this.db.object(`Katzen/Usuarios/${usuario.id}`).set(usuario);
+  async guardarUsuario(usuario: any): Promise<any> {
+    // Validar email duplicado para usuarios nuevos
+    if (!usuario.id) {
+      if (usuario.correo || usuario.email) {
+        const email = usuario.correo || usuario.email;
+        const usuariosExistentes = await this.getUsuarios().toPromise();
+        
+        if (usuariosExistentes && usuariosExistentes.length > 0) {
+          const emailDuplicado = usuariosExistentes.find(u => 
+            (u.correo === email || u.email === email) && u.activo !== false
+          );
+          
+          if (emailDuplicado) {
+            throw new Error(`Ya existe un usuario registrado con el email: ${email}`);
+          }
+        }
+      }
+      
+      // Generar ID automático para nuevos usuarios
+      const nuevoUsuario = {
+        ...usuario,
+        activo: true,
+        fecha_registro: new Date().toISOString()
+      };
+      
+      return this.db.list('Katzen/Usuarios').push(nuevoUsuario).then((result) => {
+        const generatedId = result.key;
+        if (generatedId) {
+          return this.db.object(`Katzen/Usuarios/${generatedId}`).update({ id: generatedId });
+        }
+        return Promise.resolve();
+      });
+    } else {
+      // Actualizar usuario existente
+      return this.db.object(`Katzen/Usuarios/${usuario.id}`).set(usuario);
+    }
   }
 
   // Actualizar solo algunos campos de un usuario

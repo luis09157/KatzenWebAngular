@@ -40,22 +40,57 @@ export class BaniosService {
   }
 
   crearBanio(banio: Omit<Banio, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
-    const banioCompleto: Banio = {
-      ...banio,
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
-      updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-    };
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Validar campos requeridos
+        if (!banio.paciente_id || !banio.fecha_banio || !banio.hora_banio) {
+          throw new Error('Faltan campos requeridos: paciente_id, fecha_banio, hora_banio');
+        }
+        
+        // Verificar duplicados
+        const baniosExistentes = await this.getBanios().toPromise();
+        
+        if (baniosExistentes && baniosExistentes.length > 0) {
+          const duplicado = baniosExistentes.find(b => 
+            b.paciente_id === banio.paciente_id &&
+            b.fecha_banio === banio.fecha_banio &&
+            b.hora_banio === banio.hora_banio &&
+            b.activo !== false
+          );
+          
+          if (duplicado) {
+            throw new Error(`Ya existe un baño programado para este paciente en la misma fecha y hora`);
+          }
+          
+          // Verificar conflictos de horario del peluquero
+          if (banio.peluquero_id) {
+            const conflictoPeluquero = baniosExistentes.find(b => 
+              b.peluquero_id === banio.peluquero_id &&
+              b.fecha_banio === banio.fecha_banio &&
+              b.hora_banio === banio.hora_banio &&
+              b.activo !== false
+            );
+            
+            if (conflictoPeluquero) {
+              throw new Error(`El peluquero ya tiene un baño programado para esta fecha y hora`);
+            }
+          }
+        }
+        
+        const banioCompleto: Banio = {
+          ...banio,
+          created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        };
 
-    return this.db.list<Banio>(this.basePath)
-      .push(banioCompleto)
-      .then(ref => {
+        const ref = await this.db.list<Banio>(this.basePath).push(banioCompleto);
         console.log('Baño creado exitosamente con ID:', ref.key);
-        return ref.key!;
-      })
-      .catch(error => {
+        resolve(ref.key!);
+      } catch (error) {
         console.error('Error al crear baño:', error);
-        throw error;
-      });
+        reject(error);
+      }
+    });
   }
 
   actualizarBanio(id: string, banio: Partial<Banio>): Promise<void> {
