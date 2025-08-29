@@ -1,0 +1,273 @@
+.seleccionar-cliente-dialog {
+  min-width: 500px;
+  max-width: 600px;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dialog-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #2196f3;
+}
+
+.dialog-header mat-icon {
+  color: #2196f3;
+}
+
+.seleccion-container {
+  padding: 20px 0;
+}
+
+.seleccion-seccion {
+  margin-bottom: 24px;
+}
+
+.seleccion-seccion h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.buscador-cliente,
+.buscador-paciente {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.lista-clientes,
+.lista-pacientes {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.cliente-item,
+.paciente-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cliente-item:last-child,
+.paciente-item:last-child {
+  border-bottom: none;
+}
+
+.cliente-item:hover,
+.paciente-item:hover {
+  background-color: #e3f2fd;
+}
+
+.cliente-info,
+.paciente-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.cliente-icon,
+.paciente-icon {
+  color: #666;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.cliente-icon.seleccionado,
+.paciente-icon.seleccionado {
+  color: #4caf50;
+}
+
+.cliente-datos,
+.paciente-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cliente-detalles,
+.paciente-detalles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cliente-nombre,
+.paciente-nombre {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.cliente-telefono,
+.cliente-expediente,
+.paciente-especie,
+.paciente-raza,
+.paciente-edad {
+  color: #666;
+  font-size: 12px;
+  padding: 2px 6px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.seleccion-icon {
+  color: #2196f3;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.cliente-seleccionado,
+.paciente-seleccionado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2px solid #2196f3;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.separador {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.separador mat-icon {
+  color: #2196f3;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.mensaje-ayuda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fff3e0;
+  border: 1px solid #ffcc02;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.mensaje-ayuda mat-icon {
+  color: #ff9800;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.mensaje-ayuda p {
+  margin: 0;
+  color: #e65100;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mensaje-ayuda.sin-pacientes {
+  background: #fff3e0;
+  border-color: #ff9800;
+}
+
+.mensaje-ayuda.sin-pacientes mat-icon {
+  color: #ff9800;
+}
+
+.mensaje-ayuda.sin-pacientes p {
+  color: #e65100;
+}
+
+mat-dialog-actions {
+  padding: 16px 0;
+  margin: 0;
+}
+
+mat-dialog-actions button {
+  margin-left: 8px;
+}
+
+mat-dialog-actions button[mat-raised-button] {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+}
+
+mat-dialog-actions button[mat-raised-button]:disabled {
+  background: #ccc;
+  color: #666;
+}
+
+/* Mensaje cuando no hay resultados */
+.sin-resultados {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.sin-resultados mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+  display: block;
+  margin: 0 auto 16px auto;
+}
+
+.sin-resultados p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.sin-resultados .sugerencia {
+  color: #999;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .seleccionar-cliente-dialog {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  
+  .dialog-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .cliente-seleccionado,
+  .paciente-seleccionado {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}

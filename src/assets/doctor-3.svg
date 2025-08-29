@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="doctorGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.1)"/>
+    </filter>
+  </defs>
+  
+  <!-- Fondo circular con gradiente -->
+  <circle cx="100" cy="100" r="90" fill="url(#doctorGradient3)" stroke="#f59e0b" stroke-width="2"/>
+  
+  <!-- Cabeza -->
+  <circle cx="100" cy="80" r="25" fill="#FFE4B5" stroke="#D2691E" stroke-width="1"/>
+  
+  <!-- Cabello rizado -->
+  <path d="M 75 70 Q 100 45 125 70 Q 120 85 115 90 Q 110 95 100 95 Q 90 95 85 90 Q 80 85 75 70 Z" fill="#8B4513"/>
+  <path d="M 75 90 Q 100 105 125 90 Q 120 110 115 120 Q 110 130 100 130 Q 90 130 85 120 Q 80 110 75 90 Z" fill="#8B4513"/>
+  
+  <!-- Ojos -->
+  <ellipse cx="90" cy="75" rx="3" ry="4" fill="#000000"/>
+  <ellipse cx="110" cy="75" rx="3" ry="4" fill="#000000"/>
+  <ellipse cx="90" cy="75" rx="1.5" ry="2" fill="#FFFFFF"/>
+  <ellipse cx="110" cy="75" rx="1.5" ry="2" fill="#FFFFFF"/>
+  
+  <!-- Sonrisa -->
+  <path d="M 90 85 Q 100 95 110 85" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Bata médica -->
+  <rect x="70" y="105" width="60" height="50" fill="#FFFFFF" stroke="#f59e0b" stroke-width="2" rx="5"/>
+  <rect x="75" y="110" width="50" height="40" fill="#FFFBF0" stroke="#f59e0b" stroke-width="1" rx="3"/>
+  
+  <!-- Estetoscopio -->
+  <path d="M 60 120 Q 50 130 60 140 Q 70 130 60 120" fill="none" stroke="#000000" stroke-width="2"/>
+  <path d="M 140 120 Q 150 130 140 140 Q 130 130 140 120" fill="none" stroke="#000000" stroke-width="2"/>
+  <path d="M 60 130 Q 100 135 140 130" fill="none" stroke="#000000" stroke-width="2"/>
+  
+  <!-- Brazos -->
+  <ellipse cx="65" cy="125" rx="8" ry="15" fill="#FFE4B5" stroke="#D2691E" stroke-width="1"/>
+  <ellipse cx="135" cy="125" rx="8" ry="15" fill="#FFE4B5" stroke="#D2691E" stroke-width="1"/>
+  
+  <!-- Sol médico -->
+  <circle cx="100" cy="35" r="15" fill="#FFD700" opacity="0.8"/>
+  <path d="M 100 20 L 100 15 M 100 55 L 100 50 M 85 35 L 80 35 M 120 35 L 115 35 M 85 50 L 80 55 M 120 50 L 115 55 M 85 20 L 80 15 M 120 20 L 115 15" stroke="#FFD700" stroke-width="2" opacity="0.8"/>
+</svg>

@@ -1,320 +1,346 @@
-<!-- Header con navegación fija -->
-<header class="header" [class.scrolled]="isScrolled">
-  <nav class="nav-container">
-    <div class="nav-brand" (click)="scrollToSection('inicio')">
-      <div class="nav-logo-container">
-        <span class="nav-logo-icon">🐕🐱</span>
-      </div>
-      <span class="nav-title">KatzenVet</span>
+<!-- ===== NAVBAR ===== -->
+<mat-toolbar class="navbar" [class.scrolled]="isScrolled">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <mat-icon class="brand-icon">pets</mat-icon>
+      <span class="brand-name">Katzen</span>
     </div>
-    <div class="nav-links">
-      <a (click)="scrollToSection('inicio')" class="nav-link">Inicio</a>
-      <a (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
-      <a (click)="scrollToSection('nosotros')" class="nav-link">Nosotros</a>
-      <a (click)="scrollToSection('testimonios')" class="nav-link">Testimonios</a>
-      <a (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
-      <a href="/admin/inicio" class="nav-link admin-link">Admin</a>
-    </div>
-    <div class="nav-mobile-toggle">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  </nav>
-</header>
+    
+    <nav class="navbar-nav" [class.mobile-hidden]="isMobile">
+      <a mat-button (click)="scrollToSection('inicio')" class="nav-link">Inicio</a>
+      <a mat-button (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
+      <a mat-button (click)="scrollToSection('equipo')" class="nav-link">Equipo</a>
+      <a mat-button (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
+    </nav>
+    
+    <button mat-raised-button color="primary" class="cta-button" (click)="scrollToSection('contacto')">
+      Agenda tu Cita
+    </button>
+    
+    <button mat-icon-button class="mobile-menu-button" [class.mobile-visible]="isMobile" (click)="toggleMobileMenu()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
 
-<!-- Hero Section -->
+<!-- ===== HERO SECTION ===== -->
 <section id="inicio" class="hero">
-  <div class="hero-background">
-    <div class="hero-pattern"></div>
-    <div class="floating-elements">
-      <div class="floating-element" style="--delay: 0s">🐾</div>
-      <div class="floating-element" style="--delay: 2s">❤️</div>
-      <div class="floating-element" style="--delay: 4s">⭐</div>
-      <div class="floating-element" style="--delay: 6s">🏥</div>
-    </div>
-  </div>
-  <div class="hero-content">
-    <div class="hero-text">
+  <div class="hero-container">
+    <div class="hero-content">
       <div class="hero-badge">
-        <span class="badge-icon">🏆</span>
-        <span class="badge-text">Clínica Veterinaria de Excelencia</span>
+        <mat-icon>verified</mat-icon>
+        <span>Clínica de Excelencia 2025</span>
       </div>
+      
       <h1 class="hero-title">
-        <span class="title-line">Clínica Veterinaria</span>
-        <span class="title-highlight">Katzen</span>
+        Cuidamos a tus mascotas con amor y tecnología
       </h1>
-      <p class="hero-subtitle">Cuidamos a tu mejor amigo con amor y profesionalismo</p>
-      <p class="hero-description">
-        Más de <strong>10 años de experiencia</strong> en el cuidado de mascotas. 
-        Ofrecemos servicios veterinarios integrales con <strong>tecnología de vanguardia</strong> 
-        y un equipo comprometido con el bienestar de tu compañero peludo.
+      
+      <p class="hero-subtitle">
+        Más de una década de experiencia en medicina veterinaria, ofreciendo atención integral y personalizada para perros y gatos con la más avanzada tecnología médica.
       </p>
-      <div class="hero-buttons">
-        <button (click)="scrollToSection('contacto')" class="btn btn-primary">
-          <span class="btn-icon">📞</span>
-          <span class="btn-text">Agendar Cita</span>
-          <div class="btn-ripple"></div>
+      
+      <div class="hero-actions">
+        <button mat-raised-button color="primary" class="hero-cta-primary" (click)="scrollToSection('servicios')">
+          <mat-icon>medical_services</mat-icon>
+          Nuestros Servicios
         </button>
-        <button (click)="scrollToSection('servicios')" class="btn btn-secondary">
-          <span class="btn-icon">🐾</span>
-          <span class="btn-text">Ver Servicios</span>
+        <button mat-stroked-button color="primary" class="hero-cta-secondary" (click)="scrollToSection('equipo')">
+          <mat-icon>people</mat-icon>
+          Conoce al Equipo
         </button>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="stat-number">10+</span>
-          <span class="stat-label">Años</span>
-        </div>
-        <div class="hero-stat">
-          <span class="stat-number">1000+</span>
-          <span class="stat-label">Mascotas</span>
-        </div>
-        <div class="hero-stat">
-          <span class="stat-number">24/7</span>
-          <span class="stat-label">Emergencias</span>
-        </div>
       </div>
     </div>
-    <div class="hero-image">
-      <div class="image-container">
-        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&h=600&fit=crop" 
-             alt="Mascotas felices" class="hero-img">
-        <div class="image-overlay">
-          <div class="overlay-content">
-            <span class="overlay-icon">❤️</span>
-            <span class="overlay-text">Cuidado con Amor</span>
-          </div>
+    
+    <div class="hero-visual">
+              <div class="hero-image-container">
+          <div class="hero-image"></div>
+          <div class="hero-image-overlay"></div>
         </div>
-      </div>
-      <div class="hero-image-decoration">
-        <div class="decoration-circle"></div>
-        <div class="decoration-circle"></div>
-        <div class="decoration-circle"></div>
+    </div>
+  </div>
+  
+  <!-- Stats Section -->
+  <div class="stats-section">
+    <div class="stats-container">
+      <div class="stat-card" *ngFor="let stat of stats">
+        <mat-icon [style.color]="stat.color" class="stat-icon">{{stat.materialIcon}}</mat-icon>
+        <div class="stat-content">
+          <div class="stat-number">{{stat.numero}}</div>
+          <div class="stat-label">{{stat.label}}</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Servicios Section -->
-<section id="servicios" class="servicios">
+<!-- ===== SERVICIOS SECTION ===== -->
+<section id="servicios" class="services">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Nuestros Servicios</div>
-      <h2 class="section-title">Cuidado Integral para tu Mascota</h2>
-      <p class="section-subtitle">Ofrecemos una amplia gama de servicios veterinarios con la más alta calidad y tecnología</p>
+      <h2 class="section-title">Nuestros Servicios</h2>
+      <p class="section-subtitle">Ofrecemos una amplia gama de servicios veterinarios para mantener a tu mascota saludable y feliz</p>
     </div>
-    <div class="servicios-grid">
-      <div class="servicio-card" *ngFor="let servicio of servicios; let i = index" 
-           [style.animation-delay]="(i * 0.1) + 's'">
-        <div class="servicio-icon-container" [style.background]="servicio.color + '20'">
-          <span class="servicio-icon" [style.color]="servicio.color">{{ servicio.icon }}</span>
-        </div>
-        <h3 class="servicio-titulo">{{ servicio.titulo }}</h3>
-        <p class="servicio-descripcion">{{ servicio.descripcion }}</p>
-        <div class="servicio-hover">
-          <span class="hover-text">Saber más</span>
-          <span class="hover-arrow">→</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Nosotros Section -->
-<section id="nosotros" class="nosotros">
-  <div class="container">
-    <div class="nosotros-content">
-      <div class="nosotros-text">
-        <div class="section-badge">Sobre Nosotros</div>
-        <h2 class="section-title">Comprometidos con el Bienestar de tu Mascota</h2>
-        <p class="nosotros-descripcion">
-          En la <strong>Clínica Veterinaria Katzen</strong>, entendemos que las mascotas son parte de la familia. 
-          Nuestro equipo de veterinarios altamente calificados se dedica a proporcionar la mejor 
-          atención médica posible para tu compañero peludo.
-        </p>
-        <p class="nosotros-descripcion">
-          Contamos con instalaciones modernas y equipamiento de última generación para 
-          diagnosticar y tratar a tu mascota de manera efectiva y compasiva. 
-          Nuestra misión es mantener a tu mascota saludable y feliz.
-        </p>
-        <div class="nosotros-stats">
-          <div class="stat" *ngFor="let stat of stats">
-            <div class="stat-icon">{{ stat.icon }}</div>
-            <span class="stat-number">{{ stat.numero }}</span>
-            <span class="stat-label">{{ stat.label }}</span>
+    
+    <div class="services-grid">
+      <mat-card class="service-card" *ngFor="let servicio of servicios; let i = index">
+        <div class="service-card-header">
+          <div class="service-icon" [style.background-color]="servicio.color">
+            <mat-icon>{{servicio.materialIcon}}</mat-icon>
           </div>
+          <h3 class="service-title">{{servicio.titulo}}</h3>
         </div>
-      </div>
-      <div class="nosotros-image">
-        <div class="image-container">
-          <img src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=700&h=600&fit=crop" 
-               alt="Veterinario cuidando mascota" class="nosotros-img">
-          <div class="image-overlay">
-            <div class="overlay-content">
-              <span class="overlay-icon">👨‍⚕️</span>
-              <span class="overlay-text">Equipo Profesional</span>
+        
+        <p class="service-description">{{servicio.descripcion}}</p>
+        
+        <div class="service-details">
+          <div class="service-price">
+            <span class="price-amount">${{servicio.precio}}</span>
+            <span class="price-duration">{{servicio.duracion}}</span>
+          </div>
+          
+          <div class="service-features">
+            <div class="feature-item" *ngFor="let feature of servicio.features">
+              <mat-icon class="feature-icon">check_circle</mat-icon>
+              <span>{{feature}}</span>
             </div>
           </div>
         </div>
-        <div class="nosotros-image-decoration">
-          <div class="decoration-dot"></div>
-          <div class="decoration-dot"></div>
-          <div class="decoration-dot"></div>
+        
+        <button mat-button color="primary" class="service-toggle" (click)="toggleService(i)">
+          <span *ngIf="!servicio.expanded">Ver más detalles</span>
+          <span *ngIf="servicio.expanded">Ocultar detalles</span>
+          <mat-icon>{{servicio.expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+        </button>
+        
+        <div class="service-expanded" *ngIf="servicio.expanded">
+          <mat-divider></mat-divider>
+          <div class="expanded-content">
+            <h4>Incluye:</h4>
+            <ul class="includes-list">
+              <li *ngFor="let item of servicio.incluye">{{item}}</li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </mat-card>
     </div>
   </div>
 </section>
 
-<!-- Testimonios Section -->
-<section id="testimonios" class="testimonios">
+<!-- ===== EQUIPO SECTION ===== -->
+<section id="equipo" class="team">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Testimonios</div>
-      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
-      <p class="section-subtitle">Experiencias reales de familias que confían en nosotros</p>
+      <h2 class="section-title">Nuestro Equipo Médico</h2>
+      <p class="section-subtitle">Profesionales altamente calificados comprometidos con la salud y bienestar de tu mascota</p>
     </div>
-    <div class="testimonios-grid">
-      <div class="testimonio-card" *ngFor="let testimonio of testimonios">
-        <div class="testimonio-header">
-          <img [src]="testimonio.imagen" [alt]="testimonio.nombre" class="testimonio-avatar">
-          <div class="testimonio-info">
-            <h4 class="testimonio-nombre">{{ testimonio.nombre }}</h4>
-            <p class="testimonio-mascota">{{ testimonio.mascota }}</p>
-            <div class="testimonio-rating">
-              <span class="star" *ngFor="let star of getRatingStars(testimonio.rating)">⭐</span>
+    
+    <div class="team-grid">
+      <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico">
+        <div class="doctor-image-container">
+          <img [src]="doctor.imagen" [alt]="doctor.altText" class="doctor-image">
+        </div>
+        
+        <div class="doctor-info">
+          <h3 class="doctor-name">{{doctor.nombre}}</h3>
+          <p class="doctor-specialty">{{doctor.especialidad}}</p>
+          <p class="doctor-description">{{doctor.descripcion}}</p>
+          
+          <div class="doctor-credentials">
+            <div class="credential-item">
+              <mat-icon class="credential-icon">schedule</mat-icon>
+              <span>{{doctor.experiencia}}</span>
+            </div>
+            <div class="credential-item" *ngFor="let cert of doctor.certificaciones">
+              <mat-icon class="credential-icon">school</mat-icon>
+              <span>{{cert}}</span>
             </div>
           </div>
         </div>
-        <p class="testimonio-texto">{{ testimonio.texto }}</p>
-        <div class="testimonio-quote">"</div>
-      </div>
+      </mat-card>
     </div>
   </div>
 </section>
 
-<!-- Horarios Section -->
-<section class="horarios">
+<!-- ===== CONTACTO SECTION ===== -->
+<section id="contacto" class="contact">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Horarios</div>
-      <h2 class="section-title">Estamos aquí cuando nos necesites</h2>
-      <p class="section-subtitle">Horarios flexibles para tu comodidad</p>
-    </div>
-    <div class="horarios-grid">
-      <div class="horario-card" *ngFor="let horario of horarios">
-        <div class="horario-icon">{{ horario.icon }}</div>
-        <div class="horario-dia">{{ horario.dia }}</div>
-        <div class="horario-tiempo">{{ horario.horario }}</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Contacto Section -->
-<section id="contacto" class="contacto">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-badge">Contacto</div>
       <h2 class="section-title">Contáctanos</h2>
-      <p class="section-subtitle">Estamos aquí para ayudarte y cuidar de tu mascota</p>
+      <p class="section-subtitle">Estamos aquí para ayudarte. Agenda tu cita o envíanos un mensaje</p>
     </div>
-    <div class="contacto-content">
-      <div class="contacto-info">
-        <div class="contacto-item" *ngFor="let item of [
-          {icon: '📍', title: 'Dirección', content: 'C. Zinc 318, Los Cristales 1er Sector, 67117 Guadalupe, N.L.'},
-          {icon: '📞', title: 'Teléfono', content: '+52 81 3602 4090'},
-          {icon: '💬', title: 'WhatsApp', content: '+52 81 3602 4090', link: 'https://wa.me/528136024090'},
-          {icon: '🕒', title: 'Emergencias', content: '24 horas, 7 días a la semana'}
-        ]">
-          <div class="contacto-icon">{{ item.icon }}</div>
-          <div class="contacto-details">
-            <h4>{{ item.title }}</h4>
-            <p>{{ item.content }}</p>
-            <a *ngIf="item.link" [href]="item.link" target="_blank" class="whatsapp-link">
-              Enviar mensaje
-            </a>
+    
+    <div class="contact-content">
+      <div class="contact-info">
+        <h3 class="contact-info-title">Información de Contacto</h3>
+        
+        <div class="contact-items">
+          <div class="contact-item" *ngFor="let info of contactInfo">
+            <div class="contact-icon" [style.background-color]="info.color">
+              <mat-icon>{{info.icon}}</mat-icon>
+            </div>
+            
+            <div class="contact-details">
+              <h4 class="contact-item-title">{{info.title}}</h4>
+              <p class="contact-item-content">{{info.content}}</p>
+              
+              <a *ngIf="info.link" [href]="info.link" class="contact-link" target="_blank">
+                {{info.linkText}}
+              </a>
+            </div>
           </div>
         </div>
-        <div class="redes-sociales">
-          <h4>Síguenos</h4>
-          <div class="redes-grid">
-            <a *ngFor="let red of redesSociales" 
-               [href]="red.enlace" 
-               target="_blank" 
-               class="red-social-link"
-               [style.background-color]="red.color">
-              <span class="red-icon">{{ red.icon }}</span>
-              <span class="red-nombre">{{ red.nombre }}</span>
-            </a>
+        
+        <div class="schedule-info">
+          <h4>Horarios de Atención</h4>
+          <div class="schedule-list">
+            <div class="schedule-item" *ngFor="let horario of horarios">
+              <span class="schedule-day">{{horario.dia}}</span>
+              <span class="schedule-time">{{horario.horario}}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div class="contacto-map">
-        <h4>Ubicación</h4>
-        <div class="map-container">
-          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3593.5!2d-100.1234!3d25.6789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjXCsDQwJzQ0LjAiTiAxMDDCsDA3JzQyLjQiVw!5e0!3m2!1ses!2smx!4v1234567890"
-            width="100%" 
-            height="300" 
-            style="border:0;" 
-            allowfullscreen="" 
-            loading="lazy" 
-            referrerpolicy="no-referrer-when-downgrade">
-          </iframe>
-        </div>
-        <a href="https://maps.app.goo.gl/iuTW5Q7j4uWT6ftt8" 
-           target="_blank" 
-           class="map-link">
-          <span class="map-icon">🗺️</span>
-          Ver en Google Maps
-        </a>
+      
+      <div class="contact-form-container">
+        <mat-card class="contact-form-card">
+          <h3 class="form-title">Envíanos un Mensaje</h3>
+          
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmitContacto()" class="contact-form">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nombre completo</mat-label>
+              <input matInput formControlName="nombre" placeholder="Tu nombre">
+              <mat-error *ngIf="contactForm.get('nombre')?.hasError('required')">
+                El nombre es requerido
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('nombre')?.hasError('minlength')">
+                Mínimo 2 caracteres
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="tu@email.com">
+              <mat-error *ngIf="contactForm.get('email')?.hasError('required')">
+                El email es requerido
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('email')?.hasError('email')">
+                Ingresa un email válido
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Teléfono</mat-label>
+              <input matInput formControlName="telefono" placeholder="+52 81 1234 5678">
+              <mat-error *ngIf="contactForm.get('telefono')?.hasError('required')">
+                El teléfono es requerido
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('telefono')?.hasError('pattern')">
+                Formato de teléfono inválido
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nombre de tu mascota</mat-label>
+              <input matInput formControlName="mascota" placeholder="Nombre de tu mascota">
+              <mat-error *ngIf="contactForm.get('mascota')?.hasError('required')">
+                El nombre de la mascota es requerido
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Mensaje</mat-label>
+              <textarea matInput formControlName="mensaje" rows="4" placeholder="Cuéntanos sobre tu mascota y cómo podemos ayudarte..."></textarea>
+              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('required')">
+                El mensaje es requerido
+              </mat-error>
+              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('minlength')">
+                Mínimo 10 caracteres
+              </mat-error>
+            </mat-form-field>
+            
+            <button mat-raised-button color="primary" type="submit" class="submit-button" [disabled]="isSubmitting">
+              <mat-icon *ngIf="!isSubmitting">send</mat-icon>
+              <mat-icon *ngIf="isSubmitting" class="loading-icon">hourglass_empty</mat-icon>
+              <span>{{isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}}</span>
+            </button>
+          </form>
+        </mat-card>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Footer -->
+<!-- ===== FOOTER ===== -->
 <footer class="footer">
   <div class="container">
     <div class="footer-content">
       <div class="footer-brand">
-        <div class="footer-logo-container">
-          <span class="footer-logo-icon">🐕🐱</span>
+        <div class="footer-logo">
+          <mat-icon>pets</mat-icon>
+          <span>Katzen</span>
         </div>
-        <div class="footer-brand-text">
-          <h3>Clínica Veterinaria Katzen</h3>
-          <p>Cuidando a tu mejor amigo desde 2014</p>
-          <p class="footer-motto">"Donde el amor por las mascotas se encuentra con la excelencia médica"</p>
-        </div>
+        <p class="footer-description">
+          Clínica veterinaria comprometida con la excelencia en el cuidado de mascotas desde 2015.
+        </p>
       </div>
+      
       <div class="footer-links">
         <div class="footer-section">
           <h4>Servicios</h4>
-          <a (click)="scrollToSection('servicios')">Consultas</a>
-          <a (click)="scrollToSection('servicios')">Vacunación</a>
-          <a (click)="scrollToSection('servicios')">Cirugía</a>
-          <a (click)="scrollToSection('servicios')">Laboratorio</a>
+          <ul>
+            <li><a (click)="scrollToSection('servicios')">Consultas Generales</a></li>
+            <li><a (click)="scrollToSection('servicios')">Vacunas</a></li>
+            <li><a (click)="scrollToSection('servicios')">Cirugías</a></li>
+            <li><a (click)="scrollToSection('servicios')">Emergencias</a></li>
+          </ul>
         </div>
+        
         <div class="footer-section">
-          <h4>Información</h4>
-          <a (click)="scrollToSection('nosotros')">Sobre Nosotros</a>
-          <a (click)="scrollToSection('testimonios')">Testimonios</a>
-          <a (click)="scrollToSection('contacto')">Contacto</a>
-          <a href="/admin/inicio">Panel Admin</a>
+          <h4>Equipo</h4>
+          <ul>
+            <li><a (click)="scrollToSection('equipo')">Dra. Ana María</a></li>
+            <li><a (click)="scrollToSection('equipo')">Dra. Carmen Elena</a></li>
+            <li><a (click)="scrollToSection('equipo')">Dra. Laura Patricia</a></li>
+          </ul>
         </div>
+        
         <div class="footer-section">
           <h4>Contacto</h4>
-          <p>📍 C. Zinc 318, Guadalupe, N.L.</p>
-          <p>📞 +52 81 3602 4090</p>
-          <p>💬 WhatsApp disponible</p>
+          <ul>
+            <li><a (click)="scrollToSection('contacto')">Agendar Cita</a></li>
+            <li><a href="tel:+528136024090">+52 81 3602 4090</a></li>
+            <li><a href="https://wa.me/528136024090">WhatsApp</a></li>
+            <li><a href="mailto:info&#64;katzenvet.com">info&#64;katzenvet.com</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <ul>
+            <li><a routerLink="/privacidad">Aviso de Privacidad</a></li>
+            <li><a href="#">Términos y Condiciones</a></li>
+            <li><a href="#">Política de Cookies</a></li>
+          </ul>
         </div>
       </div>
     </div>
+    
+    <mat-divider class="footer-divider"></mat-divider>
+    
     <div class="footer-bottom">
-      <p>&copy; 2024 Clínica Veterinaria Katzen. Todos los derechos reservados.</p>
-      <p class="footer-heart">❤️ Hecho con amor para las mascotas</p>
+      <p>&copy; 2025 KatzenVet. Todos los derechos reservados.</p>
+      <div class="footer-social">
+        <a href="#" class="social-link">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" class="social-link">
+          <mat-icon>instagram</mat-icon>
+        </a>
+        <a href="#" class="social-link">
+          <mat-icon>youtube</mat-icon>
+        </a>
+      </div>
     </div>
   </div>
 </footer>

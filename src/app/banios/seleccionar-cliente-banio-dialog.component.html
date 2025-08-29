@@ -1,0 +1,159 @@
+<div class="seleccionar-cliente-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>pets</mat-icon>
+      Seleccionar Cliente y Paciente
+    </h2>
+    <button mat-icon-button (click)="cancelar()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="seleccion-container">
+      
+      <!-- Selección de Cliente -->
+      <div class="seleccion-seccion">
+        <h3>1. Seleccionar Cliente</h3>
+        <mat-form-field appearance="outline" class="buscador-cliente">
+          <mat-label>Buscar cliente</mat-label>
+          <input matInput [formControl]="clienteControl" placeholder="Buscar por nombre, apellidos, teléfono o expediente..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div class="lista-clientes" *ngIf="!clienteSeleccionado">
+          <div class="cliente-item" 
+               *ngFor="let cliente of clientesFiltrados | async" 
+               (click)="seleccionarCliente(cliente)">
+            <div class="cliente-info">
+              <mat-icon class="cliente-icon">person</mat-icon>
+                          <div class="cliente-datos">
+              <span class="cliente-nombre">{{ getNombreCompletoCliente(cliente) }}</span>
+              <div class="cliente-detalles">
+                <span class="cliente-telefono">{{ cliente.telefono }}</span>
+                <span class="cliente-expediente" *ngIf="cliente.expediente">Exp: {{ cliente.expediente }}</span>
+              </div>
+            </div>
+            </div>
+            <mat-icon class="seleccion-icon">arrow_forward</mat-icon>
+          </div>
+          
+          <!-- Mensaje cuando no hay resultados -->
+          <div class="sin-resultados" *ngIf="(clientesFiltrados | async)?.length === 0 && clienteControl.value">
+            <mat-icon>search_off</mat-icon>
+            <p>No se encontraron clientes con "{{ clienteControl.value }}"</p>
+            <p class="sugerencia">Intenta buscar por nombre, apellidos, teléfono o expediente</p>
+          </div>
+        </div>
+
+        <div class="cliente-seleccionado" *ngIf="clienteSeleccionado">
+          <div class="cliente-info">
+            <mat-icon class="cliente-icon seleccionado">check_circle</mat-icon>
+            <div class="cliente-datos">
+              <span class="cliente-nombre">{{ getNombreCompletoCliente(clienteSeleccionado) }}</span>
+              <div class="cliente-detalles">
+                <span class="cliente-telefono">{{ clienteSeleccionado.telefono }}</span>
+                <span class="cliente-expediente" *ngIf="clienteSeleccionado.expediente">Exp: {{ clienteSeleccionado.expediente }}</span>
+              </div>
+            </div>
+          </div>
+          <button mat-icon-button color="warn" (click)="clienteSeleccionado = null">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="separador" *ngIf="clienteSeleccionado">
+        <mat-icon>arrow_downward</mat-icon>
+      </div>
+
+      <!-- Selección de Paciente -->
+      <div class="seleccion-seccion" *ngIf="clienteSeleccionado">
+        <h3>2. Seleccionar Paciente</h3>
+        <mat-form-field appearance="outline" class="buscador-paciente">
+          <mat-label>Buscar paciente</mat-label>
+          <input matInput [formControl]="pacienteControl" placeholder="Buscar por nombre, especie o raza..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div class="lista-pacientes" *ngIf="!pacienteSeleccionado">
+          <div class="paciente-item" 
+               *ngFor="let paciente of pacientesFiltrados | async" 
+               (click)="seleccionarPaciente(paciente)">
+            <div class="paciente-info">
+              <mat-icon class="paciente-icon">pets</mat-icon>
+              <div class="paciente-datos">
+                <span class="paciente-nombre">{{ paciente.nombre }}</span>
+                <div class="paciente-detalles">
+                  <span class="paciente-especie">{{ paciente.especie }}</span>
+                  <span class="paciente-raza" *ngIf="paciente.raza">- {{ paciente.raza }}</span>
+                  <span class="paciente-edad" *ngIf="paciente.edad">({{ paciente.edad }})</span>
+                </div>
+              </div>
+            </div>
+            <mat-icon class="seleccion-icon">arrow_forward</mat-icon>
+          </div>
+          
+          <!-- Mensaje cuando no hay resultados -->
+          <div class="sin-resultados" *ngIf="(pacientesFiltrados | async)?.length === 0 && pacienteControl.value">
+            <mat-icon>search_off</mat-icon>
+            <p>No se encontraron pacientes con "{{ pacienteControl.value }}"</p>
+            <p class="sugerencia">Intenta buscar por nombre, especie o raza</p>
+          </div>
+        </div>
+
+        <div class="paciente-seleccionado" *ngIf="pacienteSeleccionado">
+          <div class="paciente-info">
+            <mat-icon class="paciente-icon seleccionado">check_circle</mat-icon>
+            <div class="paciente-datos">
+              <span class="paciente-nombre">{{ pacienteSeleccionado.nombre }}</span>
+              <div class="paciente-detalles">
+                <span class="paciente-especie">{{ pacienteSeleccionado.especie }}</span>
+                <span class="paciente-raza" *ngIf="pacienteSeleccionado.raza">- {{ pacienteSeleccionado.raza }}</span>
+                <span class="paciente-edad" *ngIf="pacienteSeleccionado.edad">({{ pacienteSeleccionado.edad }})</span>
+              </div>
+            </div>
+          </div>
+          <button mat-icon-button color="warn" (click)="pacienteSeleccionado = null">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+                   <!-- Mensaje de ayuda -->
+             <div class="mensaje-ayuda" *ngIf="!clienteSeleccionado">
+               <mat-icon>info</mat-icon>
+               <p>Busca por nombre, apellidos, teléfono o expediente del cliente</p>
+             </div>
+
+              <!-- Mensaje cuando no hay pacientes -->
+        <div class="mensaje-ayuda sin-pacientes" *ngIf="clienteSeleccionado && getPacientesActivos().length === 0">
+          <mat-icon>warning</mat-icon>
+          <p>Este cliente no tiene pacientes activos disponibles</p>
+          <p class="sugerencia">Todos los pacientes están inactivos o fallecidos</p>
+        </div>
+
+        <!-- Mensaje cuando hay pacientes disponibles -->
+        <div class="mensaje-ayuda" *ngIf="clienteSeleccionado && getPacientesActivos().length > 0 && !pacienteSeleccionado">
+          <mat-icon>info</mat-icon>
+          <p>Ahora selecciona el paciente que recibirá el servicio</p>
+        </div>
+
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="cancelar()">
+      <mat-icon>cancel</mat-icon>
+      Cancelar
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            [disabled]="!clienteSeleccionado || !pacienteSeleccionado"
+            (click)="continuar()">
+      <mat-icon>check</mat-icon>
+      Continuar
+    </button>
+  </mat-dialog-actions>
+</div>

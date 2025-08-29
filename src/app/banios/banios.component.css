@@ -1,5 +1,5 @@
 /* Contenedor principal */
-.vacunas-contenedor {
+.banios-contenedor {
   padding: 20px;
   background-color: #f5f5f5;
   min-height: 100vh;
@@ -30,7 +30,7 @@
 }
 
 .stat-icon {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   border-radius: 12px;
   width: 60px;
   height: 60px;
@@ -69,7 +69,7 @@
 
 /* Banner de Administración */
 .admin-banner {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 20px;
@@ -77,7 +77,7 @@
   justify-content: space-between;
   align-items: center;
   color: white;
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
 }
 
 .banner-content {
@@ -117,7 +117,7 @@
 }
 
 /* Tarjeta principal */
-.vacunas-card {
+.banios-card {
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -157,13 +157,13 @@
 }
 
 /* Estado vacío */
-.sin-vacunas {
+.sin-banios {
   text-align: center;
   padding: 60px 24px;
   color: #666;
 }
 
-.sin-vacunas mat-icon {
+.sin-banios mat-icon {
   font-size: 64px;
   width: 64px;
   height: 64px;
@@ -182,20 +182,20 @@
   margin-bottom: 16px;
 }
 
-.sin-vacunas h3 {
+.sin-banios h3 {
   margin: 16px 0 8px 0;
   color: #333;
   font-size: 20px;
 }
 
-.sin-vacunas p {
+.sin-banios p {
   margin: 0 0 24px 0;
   color: #666;
   font-size: 16px;
 }
 
-/* Botón Agregar Primera Vacuna */
-.sin-vacunas button[mat-raised-button] {
+/* Botón Agregar Primer Baño */
+.sin-banios button[mat-raised-button] {
   padding: 12px 24px;
   font-size: 16px;
   font-weight: 500;
@@ -206,26 +206,26 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
   transition: all 0.3s ease;
   line-height: 1.2;
   text-align: center;
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   border: none;
   color: white;
 }
 
-.sin-vacunas button[mat-raised-button]:hover {
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+.sin-banios button[mat-raised-button]:hover {
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
   transform: translateY(-2px);
 }
 
-.sin-vacunas button[mat-raised-button]:active {
+.sin-banios button[mat-raised-button]:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
-.sin-vacunas button[mat-raised-button] mat-icon {
+.sin-banios button[mat-raised-button] mat-icon {
   font-size: 20px;
   width: 20px;
   height: 20px;
@@ -284,21 +284,23 @@
 
 /* Celdas con iconos */
 .fecha-cell,
+.hora-cell,
 .paciente-cell,
 .tipo-cell,
-.proxima-cell,
-.veterinario-cell {
+.peluquero-cell,
+.precio-cell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .fecha-icon,
+.hora-icon,
 .paciente-icon,
 .tipo-icon,
-.proxima-icon,
-.veterinario-icon {
-  color: #4caf50;
+.peluquero-icon,
+.precio-icon {
+  color: #2196f3;
   font-size: 18px;
   width: 18px;
   height: 18px;
@@ -353,4 +355,4 @@
   .banner-text h2 {
     font-size: 20px;
   }
-} 
+}

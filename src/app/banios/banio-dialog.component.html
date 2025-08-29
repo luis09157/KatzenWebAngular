@@ -1,0 +1,268 @@
+<div class="banio-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>spa</mat-icon>
+      {{ esEdicion ? 'Editar Baño' : 'Nuevo Baño' }}
+    </h2>
+    <button mat-icon-button (click)="cancelar()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <div class="form-container">
+        
+        <!-- Información del Paciente y Cliente -->
+        <div class="form-section">
+          <h3>Información del Paciente</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Cliente</mat-label>
+              <input matInput [value]="banioForm.get('cliente')?.value" readonly />
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Paciente</mat-label>
+              <input matInput [value]="banioForm.get('paciente')?.value" readonly />
+              <mat-icon matSuffix>pets</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Fecha y Hora -->
+        <div class="form-section">
+          <h3>Programación</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha del Baño</mat-label>
+              <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required />
+              <mat-datepicker-toggle matSuffix [for]="fechaPicker"></mat-datepicker-toggle>
+              <mat-datepicker #fechaPicker></mat-datepicker>
+              <mat-icon matSuffix>event</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Hora del Baño</mat-label>
+              <input matInput type="time" formControlName="hora_banio" required />
+              <mat-icon matSuffix>schedule</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Tipo de Servicio y Estado -->
+        <div class="form-section">
+          <h3>Servicio</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Tipo de Servicio</mat-label>
+              <mat-select formControlName="tipo_servicio" required>
+                <mat-option *ngFor="let tipo of tiposServicios" [value]="tipo.value">
+                  <mat-icon>{{ tipo.icon }}</mat-icon>
+                  {{ tipo.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>spa</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="estado" required>
+                <mat-option *ngFor="let estado of estados" [value]="estado.value">
+                  <span [style.color]="estado.color">{{ estado.label }}</span>
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>info</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Prioridad y Comportamiento -->
+        <div class="form-section">
+          <h3>Detalles</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Prioridad</mat-label>
+              <mat-select formControlName="prioridad" required>
+                <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.value">
+                  <span [style.color]="prioridad.color">{{ prioridad.label }}</span>
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>priority_high</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Comportamiento</mat-label>
+              <mat-select formControlName="comportamiento" required>
+                <mat-option *ngFor="let comportamiento of comportamientos" [value]="comportamiento.value">
+                  {{ comportamiento.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>psychology</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Peluquero y Duración -->
+        <div class="form-section">
+          <h3>Personal</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Peluquero</mat-label>
+              <mat-select formControlName="peluquero_id" required>
+                <mat-option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                  {{ usuario.nombre }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Duración Estimada (minutos)</mat-label>
+              <input matInput type="number" formControlName="duracion_estimada" min="15" required />
+              <mat-icon matSuffix>timer</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Precios -->
+        <div class="form-section">
+          <h3>Precios</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Precio Base</mat-label>
+              <input matInput type="number" formControlName="precio_base" min="0" required />
+              <mat-icon matSuffix>attach_money</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Precio Total</mat-label>
+              <input matInput [value]="banioForm.get('precio_total')?.value" readonly />
+              <mat-icon matSuffix>account_balance_wallet</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Servicios Adicionales -->
+        <div class="form-section">
+          <h3>Servicios Adicionales</h3>
+          <div class="servicios-adicionales">
+            <div *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index" class="servicio-item">
+              <mat-form-field appearance="outline" class="form-field-small">
+                <mat-label>Servicio</mat-label>
+                <input matInput [(ngModel)]="servicio.servicio" [ngModelOptions]="{standalone: true}" placeholder="Descripción del servicio" />
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="form-field-small">
+                <mat-label>Precio</mat-label>
+                <input matInput type="number" [(ngModel)]="servicio.precio" [ngModelOptions]="{standalone: true}" min="0" placeholder="0" />
+              </mat-form-field>
+              
+              <button mat-icon-button color="warn" type="button" (click)="removerServicioAdicional(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            
+            <button mat-stroked-button type="button" (click)="agregarServicioAdicional()" class="add-button">
+              <mat-icon>add</mat-icon>
+              Agregar Servicio
+            </button>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-section">
+          <h3>Observaciones</h3>
+          <mat-form-field appearance="outline" class="form-field-full">
+            <mat-label>Observaciones</mat-label>
+            <textarea matInput formControlName="observaciones" rows="3" placeholder="Observaciones especiales, alergias, comportamiento, etc."></textarea>
+            <mat-icon matSuffix>note</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Productos Utilizados -->
+        <div class="form-section">
+          <h3>Productos Utilizados</h3>
+          <div class="productos-utilizados">
+            <div *ngFor="let producto of banioForm.get('productos_utilizados')?.value; let i = index" class="producto-item">
+              <mat-form-field appearance="outline" class="form-field-medium">
+                <mat-label>Producto</mat-label>
+                <input matInput [(ngModel)]="banioForm.get('productos_utilizados')?.value[i]" [ngModelOptions]="{standalone: true}" placeholder="Nombre del producto" />
+              </mat-form-field>
+              
+              <button mat-icon-button color="warn" type="button" (click)="removerProducto(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            
+            <button mat-stroked-button type="button" (click)="agregarProducto()" class="add-button">
+              <mat-icon>add</mat-icon>
+              Agregar Producto
+            </button>
+          </div>
+        </div>
+
+        <!-- Alergias Conocidas -->
+        <div class="form-section">
+          <h3>Alergias Conocidas</h3>
+          <div class="alergias-conocidas">
+            <div *ngFor="let alergia of banioForm.get('alergias_conocidas')?.value; let i = index" class="alergia-item">
+              <mat-form-field appearance="outline" class="form-field-medium">
+                <mat-label>Alergia</mat-label>
+                <input matInput [(ngModel)]="banioForm.get('alergias_conocidas')?.value[i]" [ngModelOptions]="{standalone: true}" placeholder="Tipo de alergia" />
+              </mat-form-field>
+              
+              <button mat-icon-button color="warn" type="button" (click)="removerAlergia(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            
+            <button mat-stroked-button type="button" (click)="agregarAlergia()" class="add-button">
+              <mat-icon>add</mat-icon>
+              Agregar Alergia
+            </button>
+          </div>
+        </div>
+
+        <!-- Pago -->
+        <div class="form-section">
+          <h3>Información de Pago</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Método de Pago</mat-label>
+              <mat-select formControlName="metodo_pago">
+                <mat-option value="efectivo">Efectivo</mat-option>
+                <mat-option value="tarjeta">Tarjeta</mat-option>
+                <mat-option value="transferencia">Transferencia</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>payment</mat-icon>
+            </mat-form-field>
+            
+            <div class="checkbox-field">
+              <mat-checkbox formControlName="pagado" color="primary">
+                ¿Ya está pagado?
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="cancelar()">
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              type="submit"
+              [disabled]="!banioForm.valid || loading">
+        <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
+        <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+        {{ esEdicion ? 'Actualizar' : 'Crear' }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

@@ -12,20 +12,13 @@ import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
-import { LandingComponent } from './landing/landing.component';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { LayoutsModule } from './layouts/layouts.module';
+import { LandingModule } from './landing/landing.module';
+import { PrivacidadModule } from './landing/privacidad/privacidad.module';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    AdminMainLayoutComponent,
-    LandingComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
@@ -36,12 +29,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
     AngularFireAuthModule,
     AngularFireStorageModule,
     DashboardModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatMenuModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatSidenavModule
+    LayoutsModule,
+    LandingModule,
+    PrivacidadModule
   ],
   providers: [
     provideAnimationsAsync()

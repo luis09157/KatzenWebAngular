@@ -398,12 +398,14 @@ table {
   margin: 0 0 4px 0;
   font-size: 24px;
   font-weight: 600;
+  color: white;
 }
 
 .banner-text p {
   margin: 0;
   font-size: 14px;
-  opacity: 0.9;
+  color: white;
+  opacity: 1;
 }
 
 .banner-actions {

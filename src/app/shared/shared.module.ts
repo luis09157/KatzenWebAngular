@@ -10,6 +10,7 @@ import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
 import { MedicamentosService } from './medicamentos.service';
 import { MigrationService } from './migration.service';
+import { BaniosService } from '../banios/banios.service';
 import { AutocompleteFieldComponent } from './autocomplete-field.component';
 
 @NgModule({
@@ -29,7 +30,8 @@ import { AutocompleteFieldComponent } from './autocomplete-field.component';
     DiagnosticosService,
     TratamientosService,
     MedicamentosService,
-    MigrationService
+    MigrationService,
+    BaniosService
   ],
   exports: [
     CommonModule,

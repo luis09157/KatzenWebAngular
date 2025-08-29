@@ -1,0 +1,284 @@
+<!-- ===== NAVBAR ===== -->
+<mat-toolbar class="navbar" [class.scrolled]="isScrolled">
+  <div class="navbar-container">
+    <div class="navbar-brand" routerLink="/">
+      <mat-icon class="brand-icon">pets</mat-icon>
+      <span class="brand-name">Katzen</span>
+    </div>
+    
+    <nav class="navbar-nav">
+      <a mat-button routerLink="/" class="nav-link">Inicio</a>
+      <a mat-button routerLink="/" (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
+      <a mat-button routerLink="/" (click)="scrollToSection('equipo')" class="nav-link">Equipo</a>
+      <a mat-button routerLink="/" (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
+      <a mat-button routerLink="/privacidad" class="nav-link active">Privacidad</a>
+    </nav>
+    
+    <button mat-raised-button color="primary" class="cta-button" routerLink="/" (click)="scrollToSection('contacto')">
+      <mat-icon>schedule</mat-icon>
+      Agenda tu Cita
+    </button>
+  </div>
+</mat-toolbar>
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero">
+  <div class="hero-container">
+    <div class="hero-content">
+      <!-- Badge de Seguridad -->
+      <div class="hero-badge">
+        <mat-icon>security</mat-icon>
+        Protección de Datos 2025
+      </div>
+      
+      <!-- Título Principal -->
+      <h1 class="hero-title">
+        Aviso de Privacidad
+      </h1>
+      
+      <!-- Descripción -->
+      <p class="hero-subtitle">
+        En Katzen, nos comprometemos a proteger la privacidad y confidencialidad 
+        de la información personal de nuestros clientes y sus mascotas. 
+        Tu información está segura con nosotros.
+      </p>
+      
+      <!-- Botones de Acción -->
+      <div class="hero-actions">
+        <button mat-raised-button color="primary" class="hero-cta-primary" routerLink="/">
+          <mat-icon>home</mat-icon>
+          Volver al Inicio
+        </button>
+        
+        <button mat-stroked-button class="hero-cta-secondary" routerLink="/" (click)="scrollToSection('contacto')">
+          <mat-icon>phone</mat-icon>
+          Contáctanos
+        </button>
+      </div>
+    </div>
+    
+    <!-- Imagen Visual -->
+    <div class="hero-visual">
+      <div class="hero-image-container">
+        <div class="hero-image privacy-image"></div>
+        <div class="hero-image-overlay"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTENIDO DE PRIVACIDAD ===== -->
+<section class="privacy-content">
+  <div class="container">
+    <div class="privacy-grid">
+      
+      <!-- Información Recopilada -->
+      <mat-card class="privacy-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>data_usage</mat-icon>
+          </div>
+          <h2>Información que Recopilamos</h2>
+        </div>
+        
+        <div class="card-content">
+          <ul class="privacy-list">
+            <li><strong>Información Personal:</strong> Nombre, dirección, teléfono, email</li>
+            <li><strong>Información de Mascotas:</strong> Nombre, especie, raza, edad, historial médico</li>
+            <li><strong>Información Médica:</strong> Diagnósticos, tratamientos, medicamentos</li>
+            <li><strong>Información de Pago:</strong> Métodos de pago y facturación</li>
+          </ul>
+        </div>
+      </mat-card>
+      
+      <!-- Uso de la Información -->
+      <mat-card class="privacy-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>how_to_use</mat-icon>
+          </div>
+          <h2>Cómo Utilizamos tu Información</h2>
+        </div>
+        
+        <div class="card-content">
+          <ul class="privacy-list">
+            <li>Proporcionar servicios veterinarios de calidad</li>
+            <li>Gestionar citas y recordatorios</li>
+            <li>Comunicar resultados de laboratorio</li>
+            <li>Enviar información sobre tratamientos</li>
+            <li>Procesar pagos y facturación</li>
+            <li>Cumplir con obligaciones legales</li>
+          </ul>
+        </div>
+      </mat-card>
+      
+      <!-- Protección de Datos -->
+      <mat-card class="privacy-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>shield</mat-icon>
+          </div>
+          <h2>Protección de tu Información</h2>
+        </div>
+        
+        <div class="card-content">
+          <ul class="privacy-list">
+            <li>Encriptación de datos sensibles</li>
+            <li>Acceso restringido al personal autorizado</li>
+            <li>Auditorías regulares de seguridad</li>
+            <li>Cumplimiento con normativas de protección de datos</li>
+            <li>Backups seguros y redundantes</li>
+          </ul>
+        </div>
+      </mat-card>
+      
+      <!-- Compartir Información -->
+      <mat-card class="privacy-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>share</mat-icon>
+          </div>
+          <h2>Cuándo Compartimos Información</h2>
+        </div>
+        
+        <div class="card-content">
+          <ul class="privacy-list">
+            <li><strong>Con tu Consentimiento:</strong> Solo cuando lo autorices explícitamente</li>
+            <li><strong>Servicios Médicos:</strong> Con laboratorios y especialistas</li>
+            <li><strong>Obligaciones Legales:</strong> Cuando la ley lo requiera</li>
+            <li><strong>Emergencias:</strong> Para proteger la salud de tu mascota</li>
+          </ul>
+        </div>
+      </mat-card>
+      
+      <!-- Tus Derechos -->
+      <mat-card class="privacy-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>gavel</mat-icon>
+          </div>
+          <h2>Tus Derechos ARCO</h2>
+        </div>
+        
+        <div class="card-content">
+          <ul class="privacy-list">
+            <li><strong>Acceso:</strong> Conocer qué información tenemos de ti</li>
+            <li><strong>Rectificación:</strong> Corregir información incorrecta</li>
+            <li><strong>Cancelación:</strong> Eliminar tu información</li>
+            <li><strong>Oposición:</strong> Oponerte al uso de tus datos</li>
+          </ul>
+        </div>
+      </mat-card>
+      
+      <!-- Contacto de Privacidad -->
+      <mat-card class="privacy-card contact-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <mat-icon>contact_support</mat-icon>
+          </div>
+          <h2>Contacto para Privacidad</h2>
+        </div>
+        
+        <div class="card-content">
+          <div class="contact-info">
+            <div class="contact-item">
+              <mat-icon>email</mat-icon>
+              <div>
+                <strong>Email:</strong>
+                <a href="mailto:privacidad&#64;katzenvet.com">privacidad&#64;katzenvet.com</a>
+              </div>
+            </div>
+            
+            <div class="contact-item">
+              <mat-icon>phone</mat-icon>
+              <div>
+                <strong>Teléfono:</strong>
+                <a href="tel:+528112345678">+52 81 1234 5678</a>
+              </div>
+            </div>
+            
+            <div class="contact-item">
+              <mat-icon>location_on</mat-icon>
+              <div>
+                <strong>Dirección:</strong>
+                Av. Principal 123, Col. Centro, Monterrey, N.L.
+              </div>
+            </div>
+          </div>
+          
+          <button mat-raised-button color="primary" class="contact-button" routerLink="/" (click)="scrollToSection('contacto')">
+            <mat-icon>contact_support</mat-icon>
+            Solicitar Información
+          </button>
+        </div>
+      </mat-card>
+      
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <mat-icon>pets</mat-icon>
+          <span>Katzen</span>
+        </div>
+        <p class="footer-description">
+          Cuidamos a tus mascotas con amor y tecnología. 
+          Más de una década de experiencia en medicina veterinaria.
+        </p>
+      </div>
+      
+      <div class="footer-links">
+        <div class="footer-section">
+          <h4>Enlaces Rápidos</h4>
+          <ul>
+            <li><a routerLink="/">Inicio</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('servicios')">Servicios</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('equipo')">Equipo</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('contacto')">Contacto</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Servicios</h4>
+          <ul>
+            <li><a routerLink="/" (click)="scrollToSection('servicios')">Consultas</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('servicios')">Vacunas</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('servicios')">Cirugías</a></li>
+            <li><a routerLink="/" (click)="scrollToSection('servicios')">Emergencias</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <ul>
+            <li><a routerLink="/privacidad">Aviso de Privacidad</a></li>
+            <li><a href="#">Términos y Condiciones</a></li>
+            <li><a href="#">Política de Cookies</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <mat-divider class="footer-divider"></mat-divider>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 KatzenVet. Todos los derechos reservados.</p>
+      <div class="footer-social">
+        <a href="#" class="social-link">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" class="social-link">
+          <mat-icon>instagram</mat-icon>
+        </a>
+        <a href="#" class="social-link">
+          <mat-icon>youtube</mat-icon>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

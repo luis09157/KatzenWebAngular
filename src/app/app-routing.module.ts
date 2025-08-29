@@ -5,12 +5,14 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { AdminLayoutComponent } from './dashboard/admin-layout.component';
 import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
 import { LandingComponent } from './landing/landing.component';
+import { PrivacidadComponent } from './landing/privacidad/privacidad.component';
 
 // Log de depuración para routing
 console.log('🔍 AppRoutingModule cargado');
 
 const routes: Routes = [
   { path: '', component: LandingComponent },
+  { path: 'privacidad', component: PrivacidadComponent },
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
     path: 'admin',
@@ -27,6 +29,7 @@ const routes: Routes = [
       { path: 'historiales', loadChildren: () => import('./historiales/historiales.module').then(m => m.HistorialesModule) },
       { path: 'recordatorios', loadChildren: () => import('./recordatorios/recordatorios.module').then(m => m.RecordatoriosModule) },
       { path: 'vacunas', loadChildren: () => import('./vacunas/vacunas.module').then(m => m.VacunasModule) },
+      { path: 'banios', loadChildren: () => import('./banios/banios.module').then(m => m.BaniosModule) },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },
