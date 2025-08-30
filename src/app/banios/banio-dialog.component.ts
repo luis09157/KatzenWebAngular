@@ -81,9 +81,9 @@ export class BanioDialogComponent implements OnInit {
   ) {
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
-      paciente: ['', Validators.required],
+      paciente: [''],
       cliente_id: ['', Validators.required],
-      cliente: ['', Validators.required],
+      cliente: [''],
       fecha_banio: ['', Validators.required],
       hora_banio: ['', Validators.required],
       tipo_servicio: ['', Validators.required],
@@ -112,6 +112,13 @@ export class BanioDialogComponent implements OnInit {
     if (this.data && this.data.id) {
       this.esEdicion = true;
       this.cargarDatosBanio();
+      // En edición, estos campos son de solo lectura; no deben bloquear el guardado
+      this.banioForm.get('paciente')?.clearValidators();
+      this.banioForm.get('cliente')?.clearValidators();
+      this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
+      this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
+      // Mantener la fecha original de alta (solo lectura en edición)
+      this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
       // Datos del cliente y paciente seleccionados
       this.banioForm.patchValue({
@@ -121,14 +128,44 @@ export class BanioDialogComponent implements OnInit {
         cliente: this.data.cliente,
         created_by: 'system' // Valor por defecto para nuevos baños
       });
+      // En creación, mantener requerido para mostrar consistencia de datos
+      this.banioForm.get('paciente')?.setValidators([Validators.required]);
+      this.banioForm.get('cliente')?.setValidators([Validators.required]);
+      this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
+      this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
     }
     
     this.configurarCalculoPrecio();
+
+    // Reglas de negocio: si el estado no es 'completado', no se puede marcar pagado
+    const estadoCtrl = this.banioForm.get('estado');
+    const pagadoCtrl = this.banioForm.get('pagado');
+    if (estadoCtrl && pagadoCtrl) {
+      estadoCtrl.valueChanges.subscribe((estado) => {
+        if (estado !== 'completado') {
+          pagadoCtrl.patchValue(false, { emitEvent: false });
+          pagadoCtrl.disable({ emitEvent: false });
+        } else {
+          pagadoCtrl.enable({ emitEvent: false });
+        }
+      });
+      // Aplicar regla al iniciar
+      const estadoInicial = estadoCtrl.value;
+      if (estadoInicial !== 'completado') {
+        pagadoCtrl.patchValue(false, { emitEvent: false });
+        pagadoCtrl.disable({ emitEvent: false });
+      }
+    }
   }
 
   cargarUsuarios() {
     this.usuariosService.getUsuarios().subscribe(usuarios => {
       this.usuarios = (usuarios || []).filter(u => u.activo !== false);
+      // Si falta peluquero_id, usar el primero disponible para no bloquear el guardado
+      const peluqueroControl = this.banioForm.get('peluquero_id');
+      if (peluqueroControl && !peluqueroControl.value && this.usuarios.length > 0) {
+        peluqueroControl.patchValue(this.usuarios[0].id);
+      }
     });
   }
 
@@ -136,9 +173,124 @@ export class BanioDialogComponent implements OnInit {
     if (this.data.id) {
       this.baniosService.getBanioById(this.data.id).subscribe(banio => {
         if (banio) {
-          this.banioForm.patchValue(banio);
+          // Normalizar datos para cumplir validaciones requeridas
+          const normalizado: any = { ...banio };
+          if (!normalizado.created_by) normalizado.created_by = 'system';
+          if (normalizado.precio_base === undefined || normalizado.precio_base === null) {
+            normalizado.precio_base = 0;
+          }
+          if (normalizado.precio_total === undefined || normalizado.precio_total === null) {
+            normalizado.precio_total = normalizado.precio_base || 0;
+          }
+          if (!normalizado.duracion_estimada) normalizado.duracion_estimada = 60;
+          // Normalizar hora a formato HH:mm para input type="time"
+          if (normalizado.hora_banio) {
+            normalizado.hora_banio = this.normalizarHora(normalizado.hora_banio);
+          }
+          // Conservar nombres de cliente/paciente del row si el registro no los trae
+          if (!normalizado.paciente && this.data.paciente) normalizado.paciente = this.data.paciente;
+          if (!normalizado.cliente && this.data.cliente) normalizado.cliente = this.data.cliente;
+          if (!normalizado.paciente_id && this.data.paciente_id) normalizado.paciente_id = this.data.paciente_id;
+          if (!normalizado.cliente_id && this.data.cliente_id) normalizado.cliente_id = this.data.cliente_id;
+          if (!normalizado.tipo_servicio) normalizado.tipo_servicio = 'baño_básico';
+          if (!normalizado.estado) normalizado.estado = 'programado';
+          // Asegurar que el datepicker reciba un Date válido y conservar la fecha original
+          if (typeof normalizado.fecha_banio === 'string') {
+            const d = new Date(normalizado.fecha_banio);
+            if (!isNaN(d.getTime())) {
+              // Elimina la parte de hora para evitar desfaces de zona horaria
+              normalizado.fecha_banio = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            }
+          } else if (normalizado.fecha_banio instanceof Date) {
+            const d = normalizado.fecha_banio as Date;
+            normalizado.fecha_banio = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+          } else if (!normalizado.fecha_banio && normalizado.created_at) {
+            // Fallback: usar la fecha de creación si no existe fecha_banio
+            const creada = this.parseCreatedAtToDate(normalizado.created_at);
+            if (creada) normalizado.fecha_banio = creada;
+          }
+          // Fallback: si no hay fecha válida del backend, intentar tomarla del row de la tabla (dd/mm/yyyy)
+          if (!normalizado.fecha_banio && this.data && this.data.fecha_banio) {
+            const f = this.parseFechaLista(this.data.fecha_banio);
+            if (f) normalizado.fecha_banio = f;
+          }
+
+          this.banioForm.patchValue(normalizado);
+          // Recalcular precio por si faltaba precio_total
+          this.calcularPrecioTotal();
+        }
+        // Si por alguna razón no llegó el registro (null), intentar poblar al menos la fecha desde la fila
+        else if (this.data && this.data.fecha_banio) {
+          const f = this.parseFechaLista(this.data.fecha_banio);
+          if (f) {
+            this.banioForm.patchValue({ fecha_banio: f });
+          }
         }
       });
+    }
+  }
+
+  private normalizarHora(hora: any): string {
+    try {
+      if (!hora) return '';
+      const texto = hora.toString().trim();
+      // Si ya está en HH:mm
+      if (/^\d{1,2}:\d{2}$/.test(texto)) return texto;
+      // Variantes con AM/PM en español o inglés
+      const ampmMatch = texto
+        .replace(/\s+/g, ' ')
+        .replace('a. m.', 'AM').replace('p. m.', 'PM')
+        .replace('a.m.', 'AM').replace('p.m.', 'PM')
+        .replace('am', 'AM').replace('pm', 'PM')
+        .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (ampmMatch) {
+        let h = parseInt(ampmMatch[1], 10);
+        const m = ampmMatch[2];
+        const isPM = ampmMatch[3].toUpperCase() === 'PM';
+        if (isPM && h < 12) h += 12;
+        if (!isPM && h === 12) h = 0;
+        return `${h.toString().padStart(2, '0')}:${m}`;
+      }
+      // Último recurso: intentar parsear con Date
+      const d = new Date(`1970-01-01T${texto}`);
+      if (!isNaN(d.getTime())) {
+        const hh = d.getHours().toString().padStart(2, '0');
+        const mm = d.getMinutes().toString().padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+      return texto;
+    } catch {
+      return '';
+    }
+  }
+
+  // Convierte 'dd/mm/yyyy' a Date truncada a día.
+  private parseFechaLista(fechaStr: string): Date | null {
+    try {
+      const m = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) return null;
+      const d = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const y = parseInt(m[3], 10);
+      return new Date(y, mo, d);
+    } catch {
+      return null;
+    }
+  }
+
+  // Convierte 'YYYY-MM-DD HH:mm:ss' o 'YYYY-MM-DD' a Date truncada a día.
+  private parseCreatedAtToDate(createdAt: string): Date | null {
+    try {
+      if (!createdAt) return null;
+      const datePart = createdAt.split(' ')[0];
+      const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return null;
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const d = parseInt(m[3], 10);
+      return new Date(y, mo, d);
+    } catch {
+      return null;
     }
   }
 
@@ -155,6 +307,7 @@ export class BanioDialogComponent implements OnInit {
     // Calcular precio inicial
     setTimeout(() => {
       this.calcularPrecioTotal();
+      this.banioForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
     }, 100);
   }
 
@@ -184,7 +337,8 @@ export class BanioDialogComponent implements OnInit {
     const precioTotal = Number(precioBase) + totalAdicionales;
     
     // Actualizar el campo precio_total en el formulario
-    this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
+    this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: true });
+    this.banioForm.get('precio_total')?.updateValueAndValidity({ onlySelf: true, emitEvent: true });
     
     return precioTotal;
   }
@@ -240,7 +394,9 @@ export class BanioDialogComponent implements OnInit {
     if (this.banioForm.valid) {
       this.loading = true;
       
-      const banioData = this.banioForm.value;
+      const banioData = { ...this.banioForm.value };
+      // Asegurar formato de hora válido antes de enviar
+      banioData.hora_banio = this.normalizarHora(banioData.hora_banio);
       console.log('🔍 Datos del formulario:', banioData);
       
       // Limpiar datos antes de enviar
@@ -265,9 +421,20 @@ export class BanioDialogComponent implements OnInit {
       console.log('🔍 Datos limpios a enviar:', datosLimpios);
       
       if (this.esEdicion) {
-        // Actualizar baño existente
+        // Actualizar baño existente (solo campos permitidos)
         console.log('🔄 Actualizando baño existente...');
-        this.baniosService.actualizarBanio(this.data.id, datosLimpios)
+        const permitidos: (keyof typeof datosLimpios)[] = [
+          'fecha_banio','hora_banio','tipo_servicio','estado','prioridad','observaciones',
+          'alergias_conocidas','comportamiento','peluquero_id','precio_base','servicios_adicionales',
+          'precio_total','pagado','metodo_pago','duracion_estimada','tiempo_inicio','tiempo_fin','activo','updated_at','updated_by'
+        ];
+        const payload: any = {};
+        permitidos.forEach(k => { if (datosLimpios[k] !== undefined) payload[k] = datosLimpios[k]; });
+        // Si el estado no es 'completado', asegurar que pagado sea false para reflejar ingresos
+        if (payload.estado && payload.estado !== 'completado') {
+          payload.pagado = false;
+        }
+        this.baniosService.actualizarBanio(this.data.id, payload)
           .then(() => {
             console.log('✅ Baño actualizado exitosamente');
             Swal.fire('Actualizado', 'El baño ha sido actualizado exitosamente', 'success');

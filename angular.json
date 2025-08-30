@@ -36,13 +36,13 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "katzenvet:build"
+            "buildTarget": "katzenvet:build"
           }
         }
       }
     }
   },
-  "defaultProject": "katzenvet",
+  
   "cli": {
     "analytics": "73d441dc-a067-48f8-9e09-81fe928e422d"
   }

@@ -30,6 +30,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
           <button mat-button (click)="testConexionFirebase()">Test Conexión Firebase</button>
           <button mat-button (click)="testCRUDFirebase()">Test CRUD Firebase</button>
           <button mat-button (click)="testValidacionesTiempoReal()">Test Validaciones Tiempo Real</button>
+          <button mat-raised-button color="accent" (click)="runCrudE2E()">TEST E2E CRUD (Crear→Leer→Actualizar→Eliminar)</button>
         </div>
       </div>
       
@@ -265,6 +266,12 @@ export class BaniosTestingComponent implements OnInit {
     console.log(`${duracionValida ? '✅' : '❌'} Duración válida: ${banioTest.duracion_estimada} minutos`);
     
     this.mostrarMensaje('Test de validaciones en tiempo real ejecutado.');
+  }
+
+  async runCrudE2E() {
+    console.clear();
+    const ok = await this.baniosTestingService.runCrudE2E();
+    this.mostrarMensaje(ok ? 'TEST E2E OK' : 'TEST E2E falló (revisa consola)');
   }
 
   // ===== TESTS DE CASOS EDGE =====

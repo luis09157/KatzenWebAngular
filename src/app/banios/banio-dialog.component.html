@@ -37,10 +37,9 @@
           <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Fecha del Baño</mat-label>
-              <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required />
-              <mat-datepicker-toggle matSuffix [for]="fechaPicker"></mat-datepicker-toggle>
+              <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required [readonly]="esEdicion" />
+              <mat-datepicker-toggle matSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
               <mat-datepicker #fechaPicker></mat-datepicker>
-              <mat-icon matSuffix>event</mat-icon>
             </mat-form-field>
             
             <mat-form-field appearance="outline" class="form-field">

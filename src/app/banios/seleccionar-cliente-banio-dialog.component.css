@@ -1,13 +1,16 @@
 .seleccionar-cliente-dialog {
-  min-width: 500px;
-  max-width: 600px;
+  width: 100%;
+  max-width: none;
+  padding: 16px 20px;
 }
 
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 4px 4px 12px 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .dialog-header h2 {
@@ -23,7 +26,7 @@
 }
 
 .seleccion-container {
-  padding: 20px 0;
+  padding: 8px 0 0 0;
 }
 
 .seleccion-seccion {
@@ -203,8 +206,9 @@
 }
 
 mat-dialog-actions {
-  padding: 16px 0;
+  padding: 12px 4px 4px 4px;
   margin: 0;
+  border-top: 1px solid #e5e7eb;
 }
 
 mat-dialog-actions button {

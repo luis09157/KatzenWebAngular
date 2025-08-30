@@ -187,7 +187,12 @@ export class BaniosService {
   }
 
   cambiarEstadoBanio(id: string, nuevoEstado: Banio['estado']): Promise<void> {
-    return this.actualizarBanio(id, { estado: nuevoEstado });
+    const cambios: Partial<Banio> = { estado: nuevoEstado };
+    // Si se cancela, revertir el pago para que no cuente en ingresos
+    if (nuevoEstado === 'cancelado') {
+      cambios.pagado = false;
+    }
+    return this.actualizarBanio(id, cambios);
   }
 
   marcarComoPagado(id: string): Promise<void> {
@@ -311,7 +316,7 @@ export class BaniosService {
           completados: baniosActivos.filter(b => b.estado === 'completado').length,
           cancelados: baniosActivos.filter(b => b.estado === 'cancelado').length,
           ingresos_totales: baniosActivos
-            .filter(b => b.pagado)
+            .filter(b => b.estado === 'completado' && b.pagado)
             .reduce((sum, b) => sum + (b.precio_total || 0), 0)
         };
       })

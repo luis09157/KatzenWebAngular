@@ -58,10 +58,7 @@
         <mat-icon>add</mat-icon>
         Nuevo Baño
       </button>
-      <button mat-raised-button color="accent" routerLink="testing" class="testing-btn">
-        <mat-icon>science</mat-icon>
-        Testing
-      </button>
+      
     </div>
   </div>
 
@@ -97,53 +94,33 @@
         <!-- Fecha -->
         <ng-container matColumnDef="fecha_banio">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="fecha-cell">
-              <mat-icon class="fecha-icon">event</mat-icon>
-              {{ banio.fecha_banio }}
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">{{ banio.fecha_banio }}</td>
         </ng-container>
 
         <!-- Hora -->
         <ng-container matColumnDef="hora_banio">
           <th mat-header-cell *matHeaderCellDef>Hora</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="hora-cell">
-              <mat-icon class="hora-icon">schedule</mat-icon>
-              {{ banio.hora_banio }}
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">{{ banio.hora_banio }}</td>
         </ng-container>
 
         <!-- Paciente -->
         <ng-container matColumnDef="paciente">
           <th mat-header-cell *matHeaderCellDef>Paciente</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="paciente-cell">
-              <mat-icon class="paciente-icon">pets</mat-icon>
-              {{ banio.paciente }}
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">{{ banio.paciente }}</td>
         </ng-container>
 
         <!-- Tipo de Servicio -->
         <ng-container matColumnDef="tipo_servicio">
           <th mat-header-cell *matHeaderCellDef>Tipo de Servicio</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="tipo-cell">
-              <mat-icon class="tipo-icon">{{ getTipoServicioIcon(banio.tipo_servicio) }}</mat-icon>
-              <span class="tipo-texto">{{ banio.tipo_servicio | titlecase | replace:'_':' ' }}</span>
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">{{ banio.tipo_servicio_texto }}</td>
         </ng-container>
 
-        <!-- Estado -->
+        <!-- Estado (badge con color) -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let banio">
             <span class="estado-badge" [style.background-color]="getEstadoColor(banio.estado)">
-              {{ banio.estado | titlecase | replace:'_':' ' }}
+              {{ banio.estado_texto }}
             </span>
           </td>
         </ng-container>
@@ -151,23 +128,13 @@
         <!-- Peluquero -->
         <ng-container matColumnDef="peluquero">
           <th mat-header-cell *matHeaderCellDef>Peluquero</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="peluquero-cell">
-              <mat-icon class="peluquero-icon">person</mat-icon>
-              {{ banio.peluquero }}
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">{{ banio.peluquero }}</td>
         </ng-container>
 
         <!-- Precio Total -->
         <ng-container matColumnDef="precio_total">
           <th mat-header-cell *matHeaderCellDef>Precio</th>
-          <td mat-cell *matCellDef="let banio">
-            <div class="precio-cell">
-              <mat-icon class="precio-icon">attach_money</mat-icon>
-              ${{ banio.precio_total | number:'1.0-0' }}
-            </div>
-          </td>
+          <td mat-cell *matCellDef="let banio">${{ banio.precio_total | number:'1.0-0' }}</td>
         </ng-container>
 
         <!-- Acciones -->

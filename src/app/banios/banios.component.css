@@ -136,6 +136,8 @@
   min-height: 500px;
   display: flex;
   flex-direction: column;
+  /* Asegurar que no se corten filas y permitir scroll si fuera necesario */
+  overflow: auto;
 }
 
 /* Loading */
@@ -281,6 +283,19 @@
 .mat-elevation-z8 {
   border-radius: 12px;
   overflow: hidden;
+}
+
+/* Salvaguardas para layout de tabla de Angular Material */
+.mat-table {
+  width: 100%;
+  display: table;
+  border-collapse: collapse;
+}
+.mat-header-row, .mat-row {
+  display: table-row;
+}
+.mat-header-cell, .mat-cell {
+  display: table-cell;
 }
 
 .mat-header-cell {

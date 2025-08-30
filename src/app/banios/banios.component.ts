@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { BaniosService } from './banios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { ClientesService } from '../clientes/clientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BanioDialogComponent } from './banio-dialog.component';
@@ -39,12 +40,28 @@ export class BaniosComponent implements OnInit {
   constructor(
     private baniosService: BaniosService,
     private pacientesService: PacientesService,
+    private clientesService: ClientesService,
     private usuariosService: UsuariosService,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     // No cargar datos aquí, esperar a que la vista esté lista
+    // Definir un filtro explícito para evitar resultados parciales inesperados
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const texto = (filter || '').trim().toLowerCase();
+      if (!texto) { return true; }
+      const campos = [
+        data.paciente,
+        data.cliente,
+        data.tipo_servicio,
+        data.estado,
+        data.peluquero,
+        data.fecha_banio,
+        data.hora_banio
+      ];
+      return campos.some(v => (v || '').toString().toLowerCase().includes(texto));
+    };
   }
 
   ngAfterViewInit(): void {
@@ -63,23 +80,30 @@ export class BaniosComponent implements OnInit {
   cargarDatosIniciales() {
     console.log('🔄 Iniciando carga de datos iniciales...');
     
-    // Cargar pacientes y usuarios de manera secuencial
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      console.log('📋 Pacientes cargados:', pacientes?.length || 0);
-      (pacientes || []).forEach(p => {
-        this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+    // Cargar clientes, luego pacientes y usuarios de manera secuencial
+    this.clientesService.getClientes().subscribe(clientes => {
+      console.log('👤 Clientes cargados:', clientes?.length || 0);
+      (clientes || []).forEach(c => {
+        this.clientesMap[c.id] = c.nombre || c.nombreCliente || 'N/P';
       });
-      
-      // Después de cargar pacientes, cargar usuarios
-      this.usuariosService.getUsuarios().subscribe(usuarios => {
-        console.log('👥 Usuarios cargados:', usuarios?.length || 0);
-        (usuarios || []).forEach(u => {
-          this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
+
+      this.pacientesService.getPacientes().subscribe(pacientes => {
+        console.log('📋 Pacientes cargados:', pacientes?.length || 0);
+        (pacientes || []).forEach(p => {
+          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
         });
         
-        console.log('✅ Datos iniciales cargados, procediendo a cargar baños...');
-        // Solo después de cargar pacientes y usuarios, cargar baños
-        this.cargarBanios();
+        // Después de cargar pacientes, cargar usuarios
+        this.usuariosService.getUsuarios().subscribe(usuarios => {
+          console.log('👥 Usuarios cargados:', usuarios?.length || 0);
+          (usuarios || []).forEach(u => {
+            this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
+          });
+          
+          console.log('✅ Datos iniciales cargados, procediendo a cargar baños...');
+          // Solo después de cargar clientes, pacientes y usuarios, cargar baños
+          this.cargarBanios();
+        });
       });
     });
   }
@@ -106,8 +130,11 @@ export class BaniosComponent implements OnInit {
             paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
             cliente: this.clientesMap[banio.cliente_id] || 'N/P',
             peluquero: this.usuariosMap[banio.peluquero_id] || 'N/P',
-            fecha_banio: this.formatearFecha(banio.fecha_banio),
-            hora_banio: this.formatearHora(banio.hora_banio)
+            // Mostrar fecha del baño; si no existe, usar fecha de creación
+            fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
+            hora_banio: this.formatearHora(banio.hora_banio),
+            tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
+            estado_texto: this.formatearTextoSeguro(banio.estado)
           }));
           
           console.log('🔍 Datos procesados para la tabla:', nuevosDatos.length);
@@ -139,10 +166,15 @@ export class BaniosComponent implements OnInit {
       // En lugar de recrear el dataSource, solo actualizar los datos
       // Esto evita los problemas de ciclo de vida de Angular Material
       this.dataSource.data = [...nuevosDatos];
+      // Limpiar filtros previos y resetear paginación para evitar ocultar registros
+      this.dataSource.filter = '';
       
       // Reasignar el paginador solo si es necesario
       if (this.paginator && this.dataSource.paginator !== this.paginator) {
         this.dataSource.paginator = this.paginator;
+      }
+      if (this.paginator) {
+        this.paginator.firstPage();
       }
       
       // Marcar la tabla como inicializada
@@ -182,7 +214,15 @@ export class BaniosComponent implements OnInit {
       }
       
       if (typeof fecha === 'string') {
-        const date = new Date(fecha);
+        // Intentar ISO o 'YYYY-MM-DD HH:mm:ss'
+        let date = new Date(fecha);
+        if (isNaN(date.getTime())) {
+          const onlyDate = fecha.split(' ')[0];
+          const m = onlyDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) {
+            date = new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10));
+          }
+        }
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -216,6 +256,18 @@ export class BaniosComponent implements OnInit {
     }
   }
 
+  // Evitar pipes personalizados inexistentes en template, normalizar texto
+  private formatearTextoSeguro(valor: any): string {
+    try {
+      const texto = (valor || '').toString();
+      // Reemplazar guiones bajos por espacios y capitalizar palabras
+      const limpio = texto.replace(/_/g, ' ');
+      return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+    } catch {
+      return 'N/P';
+    }
+  }
+
   aplicarFiltro(event: Event) {
     const filtro = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filtro.trim().toLowerCase();
@@ -225,9 +277,9 @@ export class BaniosComponent implements OnInit {
     // Si es un baño existente (edición), abrir directamente
     if (banio && banio.id) {
       const dialogRef = this.dialog.open(BanioDialogComponent, {
-        width: '700px',
-        minWidth: '600px',
-        maxWidth: '90vw',
+        width: '95vw',
+        minWidth: '900px',
+        maxWidth: '100vw',
         panelClass: 'banio-dialog-container',
         data: banio
       });
@@ -245,7 +297,9 @@ export class BaniosComponent implements OnInit {
 
   seleccionarClienteParaBanio() {
     const dialogRef = this.dialog.open(SeleccionarClienteBanioDialogComponent, {
-      width: '600px',
+      width: '95vw',
+      minWidth: '800px',
+      maxWidth: '100vw',
       disableClose: true,
       panelClass: 'seleccionar-cliente-banio-dialog-container'
     });
@@ -266,9 +320,9 @@ export class BaniosComponent implements OnInit {
     };
 
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '700px',
-      minWidth: '600px',
-      maxWidth: '90vw',
+      width: '95vw',
+      minWidth: '900px',
+      maxWidth: '100vw',
       panelClass: 'banio-dialog-container',
       data: banioNuevo
     });
@@ -296,15 +350,10 @@ export class BaniosComponent implements OnInit {
     });
     
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Actualizar el baño
-        this.baniosService.actualizarBanio(banio.id, result).then(() => {
-          console.log('✅ Baño actualizado exitosamente desde administración');
-          this.cargarBanios();
-        }).catch(error => {
-          console.error('❌ Error al actualizar baño desde administración:', error);
-          Swal.fire('Error', 'No se pudo actualizar el baño', 'error');
-        });
+      // El diálogo realiza la persistencia internamente y devuelve true si fue exitoso
+      if (result === true) {
+        console.log('✅ Edición confirmada desde diálogo, recargando baños...');
+        this.cargarBanios();
       }
     });
   }
