@@ -44,7 +44,6 @@ import { PacienteDialogComponent } from './paciente-dialog.component';
 import { BaniosPacienteComponent } from './banios-paciente.component';
 import { RecordatoriosModule } from '../recordatorios/recordatorios.module';
 import { VacunasModule } from '../vacunas/vacunas.module';
-import { BaniosModule } from '../banios/banios.module';
 
 @NgModule({
   declarations: [
@@ -59,7 +58,6 @@ import { BaniosModule } from '../banios/banios.module';
     PacientesRoutingModule,
     RecordatoriosModule,
     VacunasModule,
-    BaniosModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

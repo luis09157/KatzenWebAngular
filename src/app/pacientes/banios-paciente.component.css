@@ -76,54 +76,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Banner de Administración */
-.admin-banner {
-  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: white;
-  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.3);
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.banner-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.banner-icon mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-}
-
-.banner-text h2 {
-  margin: 0 0 4px 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-}
-
-.banner-text p {
-  margin: 0;
-  font-size: 14px;
-  color: white;
-  opacity: 1;
-}
 
 /* Header de baños */
 .banios-header {
@@ -175,28 +127,6 @@
   font-weight: bold;
 }
 
-/* Banner actions */
-.banner-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.banner-actions button[mat-raised-button] {
-  margin-left: auto;
-}
-
-.banner-actions button[mat-raised-button] mat-icon {
-  margin-right: 8px;
-}
-
-.banner-actions button[mat-stroked-button] {
-  border-width: 2px;
-}
-
-.banner-actions button[mat-stroked-button] mat-icon {
-  margin-right: 8px;
-}
 
 /* Lista de baños */
 .banios-lista {
