@@ -147,7 +147,8 @@ export class DashboardComponent implements OnInit {
     
     // Abrir modal con las citas del día
     this.dialog.open(CitasDiaDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       maxHeight: '80vh',
       data: {
         citas: citas,

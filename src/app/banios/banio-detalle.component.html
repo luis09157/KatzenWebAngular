@@ -1,0 +1,240 @@
+<div class="banio-detalle-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>spa</mat-icon>
+      Detalles del Baño
+    </h2>
+    <button mat-icon-button (click)="cerrar()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <div class="info-grid">
+      
+      <!-- Información del Paciente y Cliente -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>pets</mat-icon>
+          Información del Paciente
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Paciente</div>
+            <div class="info-value">{{ banio.paciente || 'N/A' }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Cliente</div>
+            <div class="info-value">{{ banio.cliente || 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Servicio -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>spa</mat-icon>
+          Información del Servicio
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Tipo de Servicio</div>
+            <div class="info-value">
+              <mat-icon [style.color]="getEstadoColor(banio.estado)">{{ getTipoServicioIcon(banio.tipo_servicio) }}</mat-icon>
+              {{ banio.tipo_servicio | titlecase }}
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Estado</div>
+            <div class="info-value" [style.color]="getEstadoColor(banio.estado)">
+              <mat-icon>{{ getEstadoIcon(banio.estado) }}</mat-icon>
+              {{ banio.estado | titlecase }}
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Peluquero</div>
+            <div class="info-value">{{ banio.peluquero || 'No asignado' }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Prioridad</div>
+            <div class="info-value" [style.color]="getPrioridadColor(banio.prioridad)">
+              {{ banio.prioridad | titlecase }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Programación -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>schedule</mat-icon>
+          Programación
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Fecha</div>
+            <div class="info-value">{{ getFechaBanio() }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Hora</div>
+            <div class="info-value">{{ formatearHora(banio.hora_banio) }}</div>
+          </div>
+          <div class="info-card" *ngIf="banio.fecha_formateada">
+            <div class="info-label">Fecha Formateada</div>
+            <div class="info-value">{{ banio.fecha_formateada }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de Pago -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>payment</mat-icon>
+          Información de Pago
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Precio Base</div>
+            <div class="info-value">{{ formatearPrecio(banio.precio_base) }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Precio Total</div>
+            <div class="info-value">{{ formatearPrecio(banio.precio_total) }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Estado de Pago</div>
+            <div class="info-value" [style.color]="banio.pagado ? '#4CAF50' : '#F44336'">
+              <mat-icon>{{ banio.pagado ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ banio.pagado ? 'Pagado' : 'Pendiente' }}
+            </div>
+          </div>
+          <div class="info-card" *ngIf="banio.metodo_pago">
+            <div class="info-label">Método de Pago</div>
+            <div class="info-value">{{ banio.metodo_pago | titlecase }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalles del Paciente -->
+      <div class="info-section" *ngIf="banio.comportamiento || banio.alergias_conocidas?.length > 0">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Detalles del Paciente
+        </h3>
+        <div class="info-cards">
+          <div class="info-card" *ngIf="banio.comportamiento">
+            <div class="info-label">Comportamiento</div>
+            <div class="info-value">
+              <mat-icon>{{ getComportamientoIcon(banio.comportamiento) }}</mat-icon>
+              {{ banio.comportamiento | titlecase }}
+            </div>
+          </div>
+          <div class="info-card" *ngIf="banio.alergias_conocidas?.length > 0">
+            <div class="info-label">Alergias Conocidas</div>
+            <div class="info-value">
+              <div class="alergias-list">
+                <span *ngFor="let alergia of banio.alergias_conocidas" class="alergia-tag">
+                  <mat-icon>warning</mat-icon>
+                  {{ alergia }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicios Adicionales -->
+      <div class="info-section" *ngIf="banio.servicios_adicionales?.length > 0">
+        <h3 class="section-title">
+          <mat-icon>add_circle</mat-icon>
+          Servicios Adicionales
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Servicios</div>
+            <div class="info-value">
+              <div class="servicios-list">
+                <span *ngFor="let servicio of banio.servicios_adicionales" class="servicio-tag">
+                  <mat-icon>spa</mat-icon>
+                  {{ getNombreServicio(servicio) }} - {{ formatearPrecio(getPrecioServicio(servicio)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productos Utilizados -->
+      <div class="info-section" *ngIf="banio.productos_utilizados?.length > 0">
+        <h3 class="section-title">
+          <mat-icon>inventory</mat-icon>
+          Productos Utilizados
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Productos</div>
+            <div class="info-value">
+              <div class="productos-list">
+                <span *ngFor="let producto of banio.productos_utilizados" class="producto-tag">
+                  <mat-icon>shampoo</mat-icon>
+                  {{ producto }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="info-section" *ngIf="banio.observaciones">
+        <h3 class="section-title">
+          <mat-icon>notes</mat-icon>
+          Observaciones
+        </h3>
+        <div class="info-cards">
+          <div class="info-card observaciones-card">
+            <div class="info-label">Notas</div>
+            <div class="info-value observaciones-text">{{ banio.observaciones }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Sistema -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <mat-icon>settings</mat-icon>
+          Información del Sistema
+        </h3>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-label">Fecha de Creación</div>
+            <div class="info-value">{{ formatearFecha(banio.created_at) }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Última Actualización</div>
+            <div class="info-value">{{ formatearFecha(banio.updated_at) }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Creado por</div>
+            <div class="info-value">{{ banio.created_by || 'Sistema' }}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Estado del Registro</div>
+            <div class="info-value" [style.color]="banio.activo !== false ? '#4CAF50' : '#F44336'">
+              <mat-icon>{{ banio.activo !== false ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ banio.activo !== false ? 'Activo' : 'Inactivo' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button mat-button (click)="cerrar()" class="btn-close">
+      <mat-icon>close</mat-icon>
+      Cerrar
+    </button>
+  </div>
+</div>

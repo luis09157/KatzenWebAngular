@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map } from 'rxjs';
+import { Observable, map, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -61,7 +61,8 @@ export class VacunasService {
       
       // Validar duplicados
       console.log(`VacunasService [${timestamp}] - Verificando duplicados...`);
-      const vacunasExistentes = await this.getVacunasPorPaciente(vacuna.idPaciente).toPromise();
+      const vacunasExistentes = await firstValueFrom(this.getVacunasPorPaciente(vacuna.idPaciente));
+      console.log(`VacunasService [${timestamp}] - Duplicados verificados, encontradas:`, vacunasExistentes?.length || 0);
       
       if (vacunasExistentes && vacunasExistentes.length > 0) {
         const duplicada = vacunasExistentes.find(v => 
@@ -97,7 +98,9 @@ export class VacunasService {
       console.log(`VacunasService [${timestamp}] - Vacuna creada exitosamente con ID:`, ref.key);
       
       // Retornar el ID generado por Firebase
-      return { key: ref.key, ...nuevaVacuna };
+      const resultado = { key: ref.key, ...nuevaVacuna };
+      console.log(`VacunasService [${timestamp}] - Retornando resultado:`, resultado);
+      return resultado;
     } catch (error) {
       console.error('Error al crear vacuna:', error);
       if (error instanceof Error) {

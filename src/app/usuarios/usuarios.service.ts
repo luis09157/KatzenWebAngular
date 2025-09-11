@@ -92,7 +92,7 @@ export class UsuariosService {
     // Doctora 2: Sthefany Díaz (ya existe, pero la actualizo)
     const doctora2 = {
       id: "04a38a35-9cf6-45d8-9df8-05aa3838bead",
-      nombre: "Sthefany Díaz",
+      nombre: "Nancy Sthefany Díaz Pérez",
       correo: "sthefany.diaz@katzen.mx",
       telefono: "8182708829",
       perfil: "doctor",
@@ -100,15 +100,51 @@ export class UsuariosService {
       activo: true
     };
 
+    // Doctora 3: Veronica Lizbeth Guerra Estrada
+    const doctora3 = {
+      id: "veronica-guerra-estrada",
+      nombre: "Veronica Lizbeth Guerra Estrada",
+      correo: "veronica.guerra@katzen.mx",
+      telefono: "8180000000", // Número temporal, puedes cambiarlo
+      perfil: "doctor",
+      fecha_registro: timestamp,
+      activo: true
+    };
+
     try {
       // Agregar/actualizar las doctoras
       await this.db.object(`Katzen/Usuarios/${doctora1.id}`).set(doctora1);
       await this.db.object(`Katzen/Usuarios/${doctora2.id}`).set(doctora2);
+      await this.db.object(`Katzen/Usuarios/${doctora3.id}`).set(doctora3);
       
       console.log('✅ Doctoras agregadas/actualizadas exitosamente');
       return true;
     } catch (error) {
       console.error('❌ Error al agregar doctoras:', error);
+      return false;
+    }
+  }
+
+  // Método específico para agregar a Veronica Lizbeth Guerra Estrada
+  async agregarVeronicaGuerra() {
+    const timestamp = new Date().toISOString();
+    
+    const veronica = {
+      id: "veronica-guerra-estrada",
+      nombre: "Veronica Lizbeth Guerra Estrada",
+      correo: "veronica.guerra@katzen.mx",
+      telefono: "8180000000", // Número temporal, puedes cambiarlo
+      perfil: "doctor",
+      fecha_registro: timestamp,
+      activo: true
+    };
+
+    try {
+      await this.db.object(`Katzen/Usuarios/${veronica.id}`).set(veronica);
+      console.log('✅ Veronica Lizbeth Guerra Estrada agregada exitosamente');
+      return true;
+    } catch (error) {
+      console.error('❌ Error al agregar Veronica:', error);
       return false;
     }
   }

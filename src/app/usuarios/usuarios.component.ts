@@ -34,7 +34,8 @@ export class UsuariosComponent implements OnInit {
 
   abrirModalUsuario(usuario: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
-      width: '500px',
+      width: '80vw',
+      maxWidth: '90vw',
       data: { usuario, modoVer }
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -66,6 +67,42 @@ export class UsuariosComponent implements OnInit {
       if (result.isConfirmed) {
         this.usuariosService.actualizarUsuario(id, { activo: false }).then(() => {
           Swal.fire('Baja lógica', 'El usuario fue dado de baja correctamente.', 'success');
+        });
+      }
+    });
+  }
+
+  // Método temporal para agregar a Veronica Lizbeth Guerra Estrada
+  agregarVeronica() {
+    Swal.fire({
+      title: '¿Agregar a Veronica?',
+      text: '¿Deseas agregar a Veronica Lizbeth Guerra Estrada como doctora?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, agregar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.usuariosService.agregarVeronicaGuerra().then(success => {
+          if (success) {
+            Swal.fire({
+              title: '¡Éxito!',
+              text: 'Veronica Lizbeth Guerra Estrada ha sido agregada como doctora',
+              icon: 'success',
+              confirmButtonText: 'Aceptar'
+            });
+            // Recargar la lista de usuarios
+            this.ngOnInit();
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo agregar a Veronica',
+              icon: 'error',
+              confirmButtonText: 'Aceptar'
+            });
+          }
         });
       }
     });

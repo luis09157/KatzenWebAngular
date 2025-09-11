@@ -7,7 +7,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "cypress run",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run"
   },
   "private": true,
   "dependencies": {
@@ -32,6 +34,7 @@
     "@angular-devkit/build-angular": "^17.3.12",
     "@angular/cli": "^17.3.12",
     "@angular/compiler-cli": "^17.3.12",
+    "cypress": "^13.13.1",
     "typescript": "~5.4.5"
   }
 }

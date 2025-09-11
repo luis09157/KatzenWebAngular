@@ -1,21 +1,246 @@
-.form-row {
+.usuario-dialog {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.dialog-header {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
   gap: 16px;
+  flex: 1;
 }
-.form-row mat-form-field {
-  flex: 1 1 200px;
-  min-width: 180px;
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
 }
-mat-dialog-content {
-  min-width: 400px;
+
+.header-icon mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: white;
 }
-@media (max-width: 700px) {
-  mat-dialog-content {
-    min-width: 90vw;
+
+.header-text h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+  color: white;
+}
+
+.close-btn {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.form-container {
+  padding: 0 24px 24px 24px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.form-section h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-section h3 mat-icon {
+  color: #667eea;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-field {
+  width: 100%;
+}
+
+.form-field .mat-form-field-wrapper {
+  margin: 0;
+}
+
+.form-field .mat-form-field-outline {
+  color: #e0e0e0;
+}
+
+.form-field .mat-form-field-outline-thick {
+  color: #667eea;
+}
+
+.form-field .mat-form-field-label {
+  color: #666;
+}
+
+.form-field .mat-focused .mat-form-field-label {
+  color: #667eea;
+}
+
+.form-field .mat-form-field-suffix mat-icon {
+  color: #999;
+}
+
+.toggle-label {
+  margin-left: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dialog-actions {
+  padding: 20px 24px;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel {
+  color: #666;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-save:disabled {
+  background: #ccc;
+  color: #666;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-cancel mat-icon,
+.btn-save mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .usuario-dialog {
+    max-width: 95vw;
   }
+  
   .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .dialog-header {
+    padding: 16px;
+  }
+  
+  .header-content {
+    gap: 12px;
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .header-text h2 {
+    font-size: 20px;
+  }
+  
+  .form-container {
+    padding: 0 16px 16px 16px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
+  
+  .dialog-actions {
+    padding: 16px;
     flex-direction: column;
-    gap: 0;
+  }
+  
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
   }
 } 

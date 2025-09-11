@@ -176,7 +176,8 @@ export class ClientesComponent implements OnInit {
 
   abrirModalCliente(cliente: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(ClienteDialogComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { cliente, modoVer }
     });
     dialogRef.afterClosed().subscribe(result => {

@@ -2,6 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
+import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { Banio } from '../shared/banio.model';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -16,6 +17,7 @@ export class BanioDialogComponent implements OnInit {
   usuarios: any[] = [];
   loading = false;
   esEdicion = false;
+  hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
   
   // Opciones para los selects
   tiposServicios = [
@@ -77,6 +79,7 @@ export class BanioDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<BanioDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private baniosService: BaniosService,
+    private baniosPacienteService: BaniosPacienteService,
     private usuariosService: UsuariosService
   ) {
     this.banioForm = this.fb.group({
@@ -109,6 +112,9 @@ export class BanioDialogComponent implements OnInit {
   ngOnInit(): void {
     this.cargarUsuarios();
     
+    // Verificar si se debe ocultar la información del paciente/cliente
+    this.hidePatientInfo = this.data?.hidePatientInfo || false;
+    
     if (this.data && this.data.id) {
       this.esEdicion = true;
       this.cargarDatosBanio();
@@ -117,6 +123,15 @@ export class BanioDialogComponent implements OnInit {
       this.banioForm.get('cliente')?.clearValidators();
       this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
       this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
+      
+      // Si se oculta la información del paciente, también limpiar validaciones de IDs
+      if (this.hidePatientInfo) {
+        this.banioForm.get('paciente_id')?.clearValidators();
+        this.banioForm.get('cliente_id')?.clearValidators();
+        this.banioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
+        this.banioForm.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
+      }
+      
       // Mantener la fecha original de alta (solo lectura en edición)
       this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
@@ -128,14 +143,56 @@ export class BanioDialogComponent implements OnInit {
         cliente: this.data.cliente,
         created_by: 'system' // Valor por defecto para nuevos baños
       });
-      // En creación, mantener requerido para mostrar consistencia de datos
-      this.banioForm.get('paciente')?.setValidators([Validators.required]);
-      this.banioForm.get('cliente')?.setValidators([Validators.required]);
-      this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
-      this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
+      
+      // Si se oculta la información del paciente, no validar estos campos
+      if (this.hidePatientInfo) {
+        this.banioForm.get('paciente')?.clearValidators();
+        this.banioForm.get('cliente')?.clearValidators();
+        this.banioForm.get('paciente_id')?.clearValidators();
+        this.banioForm.get('cliente_id')?.clearValidators();
+        this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
+        this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
+        this.banioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
+        this.banioForm.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
+      } else {
+        // En creación normal, mantener requerido para mostrar consistencia de datos
+        this.banioForm.get('paciente')?.setValidators([Validators.required]);
+        this.banioForm.get('cliente')?.setValidators([Validators.required]);
+        this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
+        this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
+      }
     }
     
     this.configurarCalculoPrecio();
+
+    // Debug: Log del estado del formulario
+    console.log('🔍 Estado del formulario después de inicialización:', {
+      valid: this.banioForm.valid,
+      errors: this.banioForm.errors,
+      hidePatientInfo: this.hidePatientInfo,
+      esEdicion: this.esEdicion
+    });
+
+    // Log de errores de campos específicos
+    Object.keys(this.banioForm.controls).forEach(key => {
+      const control = this.banioForm.get(key);
+      if (control && control.errors) {
+        console.log(`🔍 Error en campo ${key}:`, control.errors);
+      }
+    });
+
+    // Listener para cambios en el formulario
+    this.banioForm.statusChanges.subscribe(status => {
+      console.log('🔍 Estado del formulario cambió:', status);
+      if (status === 'INVALID') {
+        Object.keys(this.banioForm.controls).forEach(key => {
+          const control = this.banioForm.get(key);
+          if (control && control.errors) {
+            console.log(`🔍 Error en campo ${key}:`, control.errors);
+          }
+        });
+      }
+    });
 
     // Reglas de negocio: si el estado no es 'completado', no se puede marcar pagado
     const estadoCtrl = this.banioForm.get('estado');
@@ -434,7 +491,14 @@ export class BanioDialogComponent implements OnInit {
         if (payload.estado && payload.estado !== 'completado') {
           payload.pagado = false;
         }
-        this.baniosService.actualizarBanio(this.data.id, payload)
+        
+        // Usar el servicio correcto dependiendo del contexto
+        const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
+        const metodoActualizar = this.hidePatientInfo ? 'actualizarBanioPaciente' : 'actualizarBanio';
+        
+        console.log('🔍 Usando servicio:', this.hidePatientInfo ? 'BaniosPacienteService' : 'BaniosService');
+        
+        servicioAUsar[metodoActualizar](this.data.id, payload)
           .then(() => {
             console.log('✅ Baño actualizado exitosamente');
             Swal.fire('Actualizado', 'El baño ha sido actualizado exitosamente', 'success');
@@ -448,7 +512,14 @@ export class BanioDialogComponent implements OnInit {
       } else {
         // Crear nuevo baño
         console.log('🔄 Creando nuevo baño...');
-        this.baniosService.crearBanio(datosLimpios)
+        
+        // Usar el servicio correcto dependiendo del contexto
+        const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
+        const metodoCrear = this.hidePatientInfo ? 'crearBanioPaciente' : 'crearBanio';
+        
+        console.log('🔍 Usando servicio:', this.hidePatientInfo ? 'BaniosPacienteService' : 'BaniosService');
+        
+        servicioAUsar[metodoCrear](datosLimpios)
           .then((id) => {
             console.log('✅ Baño creado exitosamente con ID:', id);
             Swal.fire('Creado', 'El baño ha sido creado exitosamente', 'success');

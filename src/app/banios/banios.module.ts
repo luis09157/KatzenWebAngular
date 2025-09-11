@@ -26,6 +26,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 // Componentes
 import { BaniosComponent } from './banios.component';
 import { BanioDialogComponent } from './banio-dialog.component';
+import { BanioDetalleComponent } from './banio-detalle.component';
 import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
 import { BaniosTestingComponent } from './banios-testing.component';
 
@@ -40,6 +41,7 @@ import { baniosRoutes } from './banios-routing.module';
   declarations: [
     BaniosComponent,
     BanioDialogComponent,
+    BanioDetalleComponent,
     SeleccionarClienteBanioDialogComponent,
     BaniosTestingComponent
   ],

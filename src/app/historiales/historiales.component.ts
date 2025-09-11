@@ -238,8 +238,8 @@ export class HistorialesComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90%',
-      maxWidth: '800px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { paciente_id: pacienteId }
     });
 
@@ -255,7 +255,8 @@ export class HistorialesComponent implements OnInit, OnDestroy {
 
   seleccionarClienteParaHistorial() {
     const dialogRef = this.dialog.open(SeleccionarClienteDialogComponent, {
-      width: '600px',
+      width: '80vw',
+      maxWidth: '90vw',
       disableClose: true
     });
 
@@ -275,8 +276,8 @@ export class HistorialesComponent implements OnInit, OnDestroy {
     };
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90%',
-      maxWidth: '800px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { historial: historialNuevo, modoVer: false }
     });
     
@@ -293,16 +294,16 @@ export class HistorialesComponent implements OnInit, OnDestroy {
 
   verHistorialDetalle(historial: any) {
     this.dialog.open(HistorialDetalleComponent, {
-      width: '90%',
-      maxWidth: '800px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: historial
     });
   }
 
   editarHistorial(historial: any) {
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90%',
-      maxWidth: '800px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { historial, modoVer: false }
     });
     

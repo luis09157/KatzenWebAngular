@@ -2,9 +2,8 @@
 
 /* Contenedor principal */
 .recordatorio-dialog {
-  min-width: 500px;
-  max-width: 600px;
   width: 100%;
+  max-width: 95vw;
 }
 
 /* Header del modal */
@@ -62,6 +61,21 @@ mat-dialog-content {
   padding: 24px;
   max-height: 70vh;
   overflow-y: auto;
+}
+
+/* Forzar que las secciones y campos ocupen el ancho disponible */
+.recordatorio-dialog .form-section,
+.recordatorio-dialog .full-width,
+.recordatorio-dialog .form-row,
+.recordatorio-dialog mat-form-field,
+.recordatorio-dialog .paciente-card {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Evitar límites heredados de mat-form-field */
+.recordatorio-dialog mat-form-field {
+  display: block;
 }
 
 /* Secciones del formulario */

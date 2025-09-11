@@ -41,13 +41,16 @@ import { MatTreeModule } from '@angular/material/tree';
 import { PacientesRoutingModule } from './pacientes-routing.module';
 import { PacientesComponent } from './pacientes.component';
 import { PacienteDialogComponent } from './paciente-dialog.component';
+import { BaniosPacienteComponent } from './banios-paciente.component';
 import { RecordatoriosModule } from '../recordatorios/recordatorios.module';
 import { VacunasModule } from '../vacunas/vacunas.module';
+import { BaniosModule } from '../banios/banios.module';
 
 @NgModule({
   declarations: [
     PacientesComponent,
-    PacienteDialogComponent
+    PacienteDialogComponent,
+    BaniosPacienteComponent
   ],
   imports: [
     CommonModule,
@@ -56,6 +59,7 @@ import { VacunasModule } from '../vacunas/vacunas.module';
     PacientesRoutingModule,
     RecordatoriosModule,
     VacunasModule,
+    BaniosModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

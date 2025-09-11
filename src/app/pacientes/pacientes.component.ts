@@ -8,6 +8,7 @@ import { ClientesService } from '../clientes/clientes.service';
 import { HistorialesService } from '../historiales/historiales.service';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { VacunasService } from '../vacunas/vacunas.service';
+import { BaniosPacienteService } from './banios-paciente.service';
 import { PacienteDialogComponent } from './paciente-dialog.component';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -46,6 +47,9 @@ export class PacientesComponent implements OnInit {
   // Propiedades para vacunas
   vacunas: any[] = [];
   logActividades: any[] = [];
+  
+  // Propiedades para baños
+  banios: any[] = [];
   
   // Control de estado
   isCreatingHistorial = false;
@@ -191,6 +195,7 @@ export class PacientesComponent implements OnInit {
     private historialesService: HistorialesService,
     private recordatoriosService: RecordatoriosService,
     private vacunasService: VacunasService,
+    private baniosPacienteService: BaniosPacienteService,
     private dialog: MatDialog,
     private router: Router
   ) {}
@@ -270,6 +275,8 @@ export class PacientesComponent implements OnInit {
     this.cargarRecordatorios(paciente.id);
     // Cargar vacunas del paciente
     this.cargarVacunas(paciente.id);
+    // Cargar baños del paciente
+    this.cargarBanios(paciente.id);
     this.cargarLogActividades(paciente.id);
   }
 
@@ -400,7 +407,8 @@ export class PacientesComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '500px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { 
         paciente_id: this.pacienteSeleccionado.id,
         desdePaciente: true // Flag para indicar que viene desde la página del paciente
@@ -436,7 +444,8 @@ export class PacientesComponent implements OnInit {
 
   editarRecordatorio(recordatorio: any) {
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: recordatorio
     });
 
@@ -548,7 +557,8 @@ export class PacientesComponent implements OnInit {
     this.isCreatingHistorial = true;
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { 
         historial: null, 
         modoVer: false,
@@ -587,7 +597,8 @@ export class PacientesComponent implements OnInit {
 
   editarHistorialClinico(historial: any) {
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { 
         historial: historial, 
         modoVer: false 
@@ -613,7 +624,8 @@ export class PacientesComponent implements OnInit {
   verDetalleHistorial(historial: any) {
     this.historialesService.getHistorial(historial.id).subscribe((historialCompleto) => {
       this.dialog.open(HistorialDetalleComponent, {
-        width: '800px',
+        width: '90vw',
+        maxWidth: '95vw',
         data: historialCompleto
       });
     });
@@ -794,7 +806,8 @@ export class PacientesComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '500px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { paciente_id: this.pacienteSeleccionado.id }
     });
 
@@ -811,7 +824,8 @@ export class PacientesComponent implements OnInit {
 
   editarVacuna(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: vacuna
     });
 
@@ -903,9 +917,17 @@ export class PacientesComponent implements OnInit {
     }
   }
 
+  cargarBanios(pacienteId: string) {
+    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).subscribe(banios => {
+      this.banios = banios;
+      console.log('🛁 Baños cargados para paciente:', pacienteId, banios);
+    });
+  }
+
   verVacunaDetalle(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDetalleComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: vacuna
     });
   }
@@ -997,6 +1019,26 @@ export class PacientesComponent implements OnInit {
       console.error('Error en prueba de log:', error);
       Swal.fire('Error', 'Error en prueba de log: ' + error, 'error');
     });
+  }
+
+  // ===== MÉTODOS PARA BAÑOS =====
+
+  onBanioCreado(banio: any) {
+    console.log('Baño creado:', banio);
+    this.cargarBanios(this.pacienteSeleccionado.id);
+    this.cargarLogActividades(this.pacienteSeleccionado.id);
+  }
+
+  onBanioActualizado(banio: any) {
+    console.log('Baño actualizado:', banio);
+    this.cargarBanios(this.pacienteSeleccionado.id);
+    this.cargarLogActividades(this.pacienteSeleccionado.id);
+  }
+
+  onBanioEliminado(banio: any) {
+    console.log('Baño eliminado:', banio);
+    this.cargarBanios(this.pacienteSeleccionado.id);
+    this.cargarLogActividades(this.pacienteSeleccionado.id);
   }
 
   // Eliminar métodos y referencias viejas

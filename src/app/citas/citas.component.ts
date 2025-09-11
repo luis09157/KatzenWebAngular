@@ -245,7 +245,8 @@ export class CitasComponent implements OnInit {
 
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(CitaDialogComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { cita, modoVer }
     });
     dialogRef.afterClosed().subscribe(result => {

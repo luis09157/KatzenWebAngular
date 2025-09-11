@@ -229,6 +229,17 @@
             </div>
           </div>
         </mat-tab>
+
+        <mat-tab label="Baños" [badgeContent]="banios.length">
+          <app-banios-paciente 
+            [pacienteId]="pacienteSeleccionado?.id"
+            [pacienteNombre]="pacienteSeleccionado?.nombre"
+            [clienteNombre]="getClienteNombreFromPaciente(pacienteSeleccionado)"
+            (banioCreado)="onBanioCreado($event)"
+            (banioActualizado)="onBanioActualizado($event)"
+            (banioEliminado)="onBanioEliminado($event)">
+          </app-banios-paciente>
+        </mat-tab>
       </mat-tab-group>
     </div>
 

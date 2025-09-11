@@ -5,6 +5,7 @@ import { ClientesService } from '../clientes/clientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BanioDialogComponent } from './banio-dialog.component';
+import { BanioDetalleComponent } from './banio-detalle.component';
 import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -342,9 +343,8 @@ export class BaniosComponent implements OnInit {
 
   editarBanio(banio: any) {
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '700px',
-      minWidth: '600px',
-      maxWidth: '90vw',
+      width: '90vw',
+      maxWidth: '95vw',
       panelClass: 'banio-dialog-container',
       data: banio
     });
@@ -429,5 +429,17 @@ export class BaniosComponent implements OnInit {
       case 'tratamiento_especial': return 'healing';
       default: return 'pets';
     }
+  }
+
+  verDetalleBanio(banio: any) {
+    const dialogRef = this.dialog.open(BanioDetalleComponent, {
+      width: '90vw',
+      maxWidth: '95vw',
+      data: banio
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // No se necesita hacer nada después de cerrar el modal de detalle
+    });
   }
 }

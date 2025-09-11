@@ -128,7 +128,8 @@ export class PacientesAdminComponent implements OnInit {
 
   nuevoPaciente() {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { modo: 'crear' }
     });
 
@@ -147,7 +148,8 @@ export class PacientesAdminComponent implements OnInit {
 
   editarPaciente(paciente: any) {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { paciente, modo: 'editar' }
     });
 
@@ -189,7 +191,8 @@ export class PacientesAdminComponent implements OnInit {
 
   verPaciente(paciente: any) {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { paciente, modo: 'ver' }
     });
 

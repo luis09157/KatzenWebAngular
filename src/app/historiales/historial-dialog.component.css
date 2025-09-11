@@ -1,6 +1,6 @@
 .historial-dialog {
-  min-width: 700px;
-  max-width: 800px;
+  width: 100%;
+  max-width: 95vw;
   max-height: 90vh;
   border-radius: 16px;
   overflow: hidden;
@@ -425,8 +425,7 @@ mat-spinner {
 /* Responsive mejorado */
 @media (max-width: 768px) {
   .historial-dialog {
-    min-width: 95vw;
-    max-width: 95vw;
+    max-width: 100vw;
     margin: 10px;
   }
   

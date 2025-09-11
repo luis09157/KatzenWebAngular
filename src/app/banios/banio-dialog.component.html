@@ -13,8 +13,8 @@
     <mat-dialog-content>
       <div class="form-container">
         
-        <!-- Información del Paciente y Cliente -->
-        <div class="form-section">
+        <!-- Información del Paciente y Cliente (solo visible si no se oculta) -->
+        <div class="form-section" *ngIf="!hidePatientInfo">
           <h3>Información del Paciente</h3>
           <div class="form-row">
             <mat-form-field appearance="outline" class="form-field">
@@ -28,6 +28,19 @@
               <input matInput [value]="banioForm.get('paciente')?.value" readonly />
               <mat-icon matSuffix>pets</mat-icon>
             </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Información del Paciente (versión compacta cuando se oculta) -->
+        <div class="form-section" *ngIf="hidePatientInfo">
+          <div class="patient-info-compact">
+            <div class="patient-card">
+              <mat-icon class="patient-icon">pets</mat-icon>
+              <div class="patient-details">
+                <h4>{{ data.paciente_nombre || 'Paciente' }}</h4>
+                <p>{{ data.cliente_nombre || 'Cliente' }}</p>
+              </div>
+            </div>
           </div>
         </div>
 

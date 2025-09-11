@@ -116,7 +116,8 @@ export class VacunasComponent implements OnInit {
     // Si es una vacuna existente (edición), abrir directamente
     if (vacuna && vacuna.id) {
       const dialogRef = this.dialog.open(VacunaDialogComponent, {
-        width: '600px',
+        width: '90vw',
+        maxWidth: '95vw',
         data: vacuna
       });
       
@@ -128,7 +129,8 @@ export class VacunasComponent implements OnInit {
     } else {
       // Si es una nueva vacuna, primero seleccionar cliente y paciente
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteVacunaDialogComponent, {
-        width: '600px',
+        width: '80vw',
+        maxWidth: '90vw',
         data: {}
       });
       
@@ -136,7 +138,8 @@ export class VacunasComponent implements OnInit {
         if (result && result.cliente && result.paciente) {
           // Abrir el modal de vacuna con el cliente y paciente seleccionados
           const vacunaDialogRef = this.dialog.open(VacunaDialogComponent, {
-            width: '600px',
+            width: '90vw',
+            maxWidth: '95vw',
             data: {
               idPaciente: result.paciente.id,
               cliente_id: result.cliente.id,
@@ -161,14 +164,16 @@ export class VacunasComponent implements OnInit {
 
   verVacuna(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '600px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: { ...vacuna, modoSoloLectura: true }
     });
   }
 
   verVacunaDetalle(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDetalleComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '95vw',
       data: vacuna
     });
   }

@@ -1,0 +1,169 @@
+<!-- Contenido del tab de Baños -->
+<div class="tab-content">
+  <!-- Banner de Administración -->
+  <div class="admin-banner">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <mat-icon>spa</mat-icon>
+      </div>
+      <div class="banner-text">
+        <h2>Baños y Peluquería</h2>
+        <p>Gestión de servicios de baño y peluquería para {{ pacienteNombre }}</p>
+      </div>
+    </div>
+    <div class="banner-actions">
+      <button mat-raised-button color="accent" (click)="agregarBanio()">
+        <mat-icon>add</mat-icon>
+        Nuevo Baño
+      </button>
+    </div>
+  </div>
+  
+  <!-- Estadísticas rápidas -->
+  <div class="estadisticas-banios" *ngIf="estadisticas.total > 0">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <mat-icon>shower</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ estadisticas.total }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon programados">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ estadisticas.programados }}</div>
+        <div class="stat-label">Programados</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon completados">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ estadisticas.completados }}</div>
+        <div class="stat-label">Completados</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon ingresos">
+        <mat-icon>attach_money</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">${{ estadisticas.ingresos_totales }}</div>
+        <div class="stat-label">Ingresos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header con búsqueda y botón de nuevo baño -->
+  <div class="banios-header">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar baño</mat-label>
+        <input matInput 
+               [(ngModel)]="searchTerm" 
+               (input)="onSearchInput($event)"
+               placeholder="Buscar por tipo de servicio, peluquero, observaciones...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    <button class="btn-normal btn-banio" (click)="agregarBanio()">
+      <span class="btn-icon">+</span>
+      <span class="btn-text">Nuevo Baño</span>
+    </button>
+  </div>
+
+  <!-- Lista de baños -->
+  <div class="banios-lista" *ngIf="!isLoading">
+    <div *ngFor="let banio of baniosFiltrados" class="banio-item" (dblclick)="verDetalleBanio(banio)">
+      <div class="banio-icono">
+        <mat-icon [style.color]="getEstadoColor(banio.estado)">{{ getTipoServicioIcon(banio.tipo_servicio) }}</mat-icon>
+      </div>
+      <div class="banio-contenido">
+        <div class="banio-titulo">{{ banio.tipo_servicio | titlecase }}</div>
+        <div class="banio-fecha">{{ banio.fecha_formateada }} - {{ banio.hora_banio }}</div>
+        <div class="banio-estado" [style.color]="getEstadoColor(banio.estado)">
+          <mat-icon class="estado-icon">{{ getEstadoIcon(banio.estado) }}</mat-icon>
+          {{ banio.estado | titlecase }}
+        </div>
+        <div class="banio-tiempo">{{ banio.tiempo_transcurrido }}</div>
+        <div class="banio-peluquero" *ngIf="banio.peluquero">
+          <mat-icon>person</mat-icon>
+          {{ banio.peluquero }}
+        </div>
+        <div class="banio-precio" *ngIf="banio.precio_total">
+          <mat-icon>attach_money</mat-icon>
+          ${{ banio.precio_total }}
+        </div>
+        <div class="banio-observaciones" *ngIf="banio.observaciones">
+          {{ banio.observaciones }}
+        </div>
+        <div class="banio-productos" *ngIf="banio.productos_utilizados && banio.productos_utilizados.length > 0">
+          <mat-icon>inventory</mat-icon>
+          {{ banio.productos_utilizados.join(', ') }}
+        </div>
+      </div>
+      <div class="banio-acciones">
+        <button mat-icon-button (click)="verDetalleBanio(banio)" matTooltip="Ver detalles">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button (click)="editarBanio(banio)" matTooltip="Editar">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button (click)="eliminarBanio(banio)" matTooltip="Eliminar">
+          <mat-icon>delete</mat-icon>
+        </button>
+        
+        <!-- Botones de estado -->
+        <button *ngIf="banio.estado === 'programado'" 
+                mat-icon-button 
+                (click)="cambiarEstadoBanio(banio, 'en_proceso')" 
+                matTooltip="Iniciar baño">
+          <mat-icon>play_circle</mat-icon>
+        </button>
+        <button *ngIf="banio.estado === 'en_proceso'" 
+                mat-icon-button 
+                (click)="cambiarEstadoBanio(banio, 'completado')" 
+                matTooltip="Completar baño">
+          <mat-icon>check_circle</mat-icon>
+        </button>
+        <button *ngIf="banio.estado === 'completado' && !banio.pagado" 
+                mat-icon-button 
+                (click)="marcarComoPagado(banio)" 
+                matTooltip="Marcar como pagado">
+          <mat-icon>payment</mat-icon>
+        </button>
+        <button *ngIf="banio.estado !== 'cancelado'" 
+                mat-icon-button 
+                (click)="cambiarEstadoBanio(banio, 'cancelado')" 
+                matTooltip="Cancelar baño">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mensaje cuando no hay baños -->
+    <div *ngIf="baniosFiltrados.length === 0 && !isLoading" class="sin-banios">
+      <div class="empty-icon-container">
+        <mat-icon>shower</mat-icon>
+      </div>
+      <h3 *ngIf="!searchTerm">No hay baños registrados</h3>
+      <p *ngIf="searchTerm">No se encontraron baños que coincidan con la búsqueda</p>
+      <p *ngIf="!searchTerm">No hay baños registrados para este paciente</p>
+      <button mat-raised-button color="primary" (click)="agregarBanio()">
+        <mat-icon>add</mat-icon>
+        Agregar primer baño
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando baños...</p>
+  </div>
+</div>
