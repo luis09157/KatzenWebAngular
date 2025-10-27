@@ -250,10 +250,38 @@ export class CitasComponent implements OnInit {
       data: { cita, modoVer }
     });
     dialogRef.afterClosed().subscribe(result => {
+      console.log('🔍 Resultado del diálogo:', result);
+      console.log('🔍 Modo ver:', modoVer);
+      
       if (result && !modoVer) {
+        console.log('✅ Procesando resultado del diálogo...');
+        console.log('📝 Datos de la cita a guardar:', result);
+        
         this.citasService.guardarCita(result).then(() => {
-          Swal.fire('Éxito', 'Cita guardada correctamente', 'success');
+          console.log('✅ Cita guardada exitosamente en Firebase');
+          Swal.fire({
+            title: '¡Éxito!',
+            text: 'Cita guardada correctamente',
+            icon: 'success',
+            confirmButtonText: 'Entendido'
+          });
           this.ngOnInit(); // Recargar datos
+        }).catch(error => {
+          console.error('❌ Error al guardar cita:', error);
+          console.error('❌ Detalles del error:', error.message);
+          
+          // Mostrar error específico al usuario
+          let mensajeError = 'No se pudo guardar la cita';
+          if (error.message) {
+            mensajeError = error.message;
+          }
+          
+          Swal.fire({
+            title: 'Error al guardar cita',
+            text: mensajeError,
+            icon: 'error',
+            confirmButtonText: 'Entendido'
+          });
         });
       }
     });

@@ -29,50 +29,38 @@ export class CitasService {
 
   // Agregar o actualizar una cita (siempre con activo: true)
   async guardarCita(cita: any): Promise<any> {
-    cita.activo = true;
+    console.log('🔄 [SERVICIO] Iniciando guardado de cita...');
+    console.log('📝 [SERVICIO] Datos de la cita:', cita);
     
-    // Validar duplicados solo para citas nuevas
-    if (!cita.id) {
-      // Verificar si ya existe una cita para la misma fecha, hora y paciente
-      const citasExistentes = await this.getCitas().toPromise();
-      
-      if (citasExistentes && citasExistentes.length > 0) {
-        const duplicada = citasExistentes.find(c => 
-          c.fecha === cita.fecha &&
-          c.hora === cita.hora &&
-          c.paciente_id === cita.paciente_id &&
-          c.activo !== false
-        );
-        
-        if (duplicada) {
-          throw new Error(`Ya existe una cita programada para esta fecha y hora con este paciente`);
-        }
-        
-        // Verificar conflictos de horario del médico
-        const conflictoMedico = citasExistentes.find(c => 
-          c.fecha === cita.fecha &&
-          c.hora === cita.hora &&
-          c.medico_id === cita.medico_id &&
-          c.activo !== false
-        );
-        
-        if (conflictoMedico) {
-          throw new Error(`El médico ya tiene una cita programada para esta fecha y hora`);
-        }
-      }
-    }
+    cita.activo = true;
     
     // Si tiene id, actualiza; si no, push y captura el ID generado
     if (cita.id) {
-      return this.db.object(`Katzen/Citas/${cita.id}`).set(cita);
+      console.log('🔄 [SERVICIO] Actualizando cita existente con ID:', cita.id);
+      return this.db.object(`Katzen/Citas/${cita.id}`).set(cita).then(() => {
+        console.log('✅ [SERVICIO] Cita actualizada exitosamente');
+        return Promise.resolve();
+      }).catch(error => {
+        console.error('❌ [SERVICIO] Error al actualizar cita:', error);
+        throw error;
+      });
     } else {
+      console.log('🔄 [SERVICIO] Creando nueva cita...');
       // Para nuevas citas, usar push y capturar el ID generado
-      const ref = this.db.list('Katzen/Citas').push(cita);
-      return ref.then((result: any) => {
-        // Actualizar el objeto cita con el ID generado
+      return this.db.list('Katzen/Citas').push(cita).then((result: any) => {
+        console.log('✅ [SERVICIO] Cita creada con ID generado:', result.key);
         const citaActualizada = { ...cita, id: result.key };
         // Actualizar el registro con el ID incluido
-        return this.db.object(`Katzen/Citas/${result.key}`).update(citaActualizada);
+        return this.db.object(`Katzen/Citas/${result.key}`).update(citaActualizada).then(() => {
+          console.log('✅ [SERVICIO] ID actualizado en la cita');
+          return Promise.resolve();
+        }).catch(error => {
+          console.error('❌ [SERVICIO] Error al actualizar ID:', error);
+          throw error;
+        });
+      }).catch(error => {
+        console.error('❌ [SERVICIO] Error al crear cita:', error);
+        throw error;
       });
     }
   }

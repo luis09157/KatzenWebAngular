@@ -160,8 +160,20 @@ export class ClienteDialogComponent implements OnInit {
 
   emailUnicoValidator(control: AbstractControl): Observable<ValidationErrors | null> {
     const email = control.value;
-    if (!email) {
+    
+    // Si no hay email o es un valor que indica "no proporcionado", no validar
+    if (!email || 
+        email.toLowerCase().includes('no proporcionado') || 
+        email.toLowerCase().includes('sin email') ||
+        email.toLowerCase().includes('n/a') ||
+        email.trim() === '') {
       return new Observable(observer => observer.next(null));
+    }
+
+    // Validar formato de email antes de verificar duplicados
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Observable(observer => observer.next({ emailInvalido: true }));
     }
 
     return new Observable(observer => {
@@ -184,14 +196,21 @@ export class ClienteDialogComponent implements OnInit {
       console.log('Cliente actual ID:', clienteActual?.id);
       console.log('Total clientes cargados:', this.todosLosClientes.length);
       
-      // Filtrar clientes que no sean el actual
+      // Filtrar clientes que no sean el actual y que tengan emails válidos
       const otrosClientes = this.todosLosClientes.filter(cliente => {
         const noEsActual = cliente.id !== clienteActual?.id;
-        console.log(`Cliente ${cliente.id}: ${cliente.correo} - Es actual: ${!noEsActual}`);
-        return noEsActual;
+        const tieneEmailValido = cliente.correo && 
+                                 !cliente.correo.toLowerCase().includes('no proporcionado') &&
+                                 !cliente.correo.toLowerCase().includes('sin email') &&
+                                 !cliente.correo.toLowerCase().includes('n/a') &&
+                                 cliente.correo.trim() !== '' &&
+                                 emailRegex.test(cliente.correo);
+        
+        console.log(`Cliente ${cliente.id}: ${cliente.correo} - Es actual: ${!noEsActual}, Email válido: ${tieneEmailValido}`);
+        return noEsActual && tieneEmailValido;
       });
       
-      console.log('Clientes a comparar (excluyendo actual):', otrosClientes.length);
+      console.log('Clientes a comparar (excluyendo actual y emails inválidos):', otrosClientes.length);
       
       const emailExiste = otrosClientes.some(cliente => {
         const tieneMismoEmail = cliente.correo && cliente.correo.toLowerCase() === email.toLowerCase();
@@ -213,9 +232,11 @@ export class ClienteDialogComponent implements OnInit {
 
   async guardar() {
     console.log('🚀 Iniciando proceso de guardado...');
-    console.log('📋 Estado del formulario:', {
+    console.log('📋 Estado completo del formulario:', {
       valid: this.clienteForm.valid,
-      invalid: this.clienteForm.invalid
+      invalid: this.clienteForm.invalid,
+      errors: this.clienteForm.errors,
+      value: this.clienteForm.value
     });
     
     // Verificar validación del formulario excluyendo el campo correo si está deshabilitado
@@ -266,6 +287,19 @@ export class ClienteDialogComponent implements OnInit {
     
     console.log('✅ Formulario válido para guardar:', formValidForEdit);
     console.log('🖼️ Tiene cambios de imagen:', hasImageChanges);
+    
+    // Log detallado de todos los campos del formulario
+    console.log('📝 Estado detallado de todos los campos:');
+    Object.keys(this.clienteForm.controls).forEach(key => {
+      const control = this.clienteForm.get(key);
+      console.log(`  ${key}:`, {
+        value: control?.value,
+        valid: control?.valid,
+        invalid: control?.invalid,
+        errors: control?.errors,
+        disabled: control?.disabled
+      });
+    });
 
     if (!formValidForEdit) {
       // Mostrar alerta con campos faltantes
@@ -279,8 +313,9 @@ export class ClienteDialogComponent implements OnInit {
       return;
     }
 
-    // Proceder con el guardado si los campos requeridos están completos
-    if (formValidForEdit) {
+    // Si llegamos aquí, los campos requeridos están completos
+    // Proceder con el guardado incluso si hay validaciones asíncronas pendientes
+    console.log('✅ Campos requeridos completos, procediendo con guardado...');
       // Solo validar email único si NO estamos editando
       const isEditMode = !!this.data?.cliente?.id;
       const email = this.clienteForm.get('correo')?.value;
@@ -420,6 +455,7 @@ export class ClienteDialogComponent implements OnInit {
       case 'correo':
         if (errors['required']) return 'El correo es obligatorio';
         if (errors['email']) return 'Ingrese un correo válido';
+        if (errors['emailInvalido']) return 'Formato de correo inválido';
         if (errors['emailDuplicado']) return 'Este correo ya está registrado';
         break;
       case 'codigoPostal':

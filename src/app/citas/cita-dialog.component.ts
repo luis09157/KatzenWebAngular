@@ -207,7 +207,12 @@ export class CitaDialogComponent implements OnInit {
     );
   }
 
-  private _filterClientes(value: string): any[] {
+  private _filterClientes(value: any): any[] {
+    // Verificar que value sea un string
+    if (!value || typeof value !== 'string') {
+      return this.clientes;
+    }
+    
     const filterValue = value.toLowerCase();
     return this.clientes.filter(cliente => 
       this.getNombreCompleto(cliente).toLowerCase().includes(filterValue)

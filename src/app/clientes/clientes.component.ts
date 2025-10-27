@@ -181,13 +181,43 @@ export class ClientesComponent implements OnInit {
       data: { cliente, modoVer }
     });
     dialogRef.afterClosed().subscribe(result => {
+      console.log('🔍 Resultado del diálogo:', result);
+      console.log('🔍 Modo ver:', modoVer);
+      
       if (result && !modoVer) {
+        console.log('✅ Procesando resultado del diálogo...');
         // Validación adicional de email único
         const email = result.correo;
-        if (email) {
+        console.log('📧 Email a validar:', email);
+        
+        if (email && 
+            !email.toLowerCase().includes('no proporcionado') && 
+            !email.toLowerCase().includes('sin email') &&
+            !email.toLowerCase().includes('n/a') &&
+            email.trim() !== '') {
+          
+          // Validar formato de email
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            Swal.fire({
+              title: 'Error de validación',
+              text: 'Formato de correo electrónico inválido',
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+            });
+            return;
+          }
+          
           const clienteActual = cliente;
           const emailExiste = this.dataSource.data.some(c => {
-            if (c.correo && c.correo.toLowerCase() === email.toLowerCase()) {
+            // Solo considerar emails válidos para la comparación
+            if (c.correo && 
+                !c.correo.toLowerCase().includes('no proporcionado') &&
+                !c.correo.toLowerCase().includes('sin email') &&
+                !c.correo.toLowerCase().includes('n/a') &&
+                c.correo.trim() !== '' &&
+                emailRegex.test(c.correo) &&
+                c.correo.toLowerCase() === email.toLowerCase()) {
               // Si estamos editando, no considerar el cliente actual
               if (clienteActual && c.id === clienteActual.id) {
                 return false;
@@ -198,17 +228,61 @@ export class ClientesComponent implements OnInit {
           });
 
           if (emailExiste) {
-            Swal.fire('Error', 'Este correo electrónico ya está registrado por otro cliente', 'error');
+            Swal.fire({
+              title: 'Email duplicado',
+              text: 'Este correo electrónico ya está registrado por otro cliente',
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+            });
             return;
           }
         }
 
+        console.log('🚀 Llamando al servicio para guardar cliente...');
         this.clientesService.guardarCliente(result).then(() => {
-          Swal.fire('Éxito', 'Cliente guardado correctamente', 'success');
+          console.log('✅ Cliente guardado exitosamente en Firebase');
+          Swal.fire({
+            title: '¡Éxito!',
+            text: 'Cliente guardado correctamente',
+            icon: 'success',
+            confirmButtonText: 'Entendido'
+          });
           this.ngOnInit(); // Recargar datos
         }).catch(error => {
-          console.error('Error al guardar cliente:', error);
-          Swal.fire('Error', 'No se pudo guardar el cliente', 'error');
+          console.error('❌ Error al guardar cliente:', error);
+          console.error('❌ Detalles del error:', error.message);
+          
+          // Mostrar error específico al usuario
+          let mensajeError = 'No se pudo guardar el cliente';
+          if (error.message) {
+            mensajeError = error.message;
+          }
+          
+          Swal.fire({
+            title: 'Error al guardar cliente',
+            text: mensajeError,
+            icon: 'error',
+            confirmButtonText: 'Entendido',
+            showCancelButton: true,
+            cancelButtonText: 'Ver detalles',
+            cancelButtonColor: '#3085d6'
+          }).then((result) => {
+            if (result.dismiss === Swal.DismissReason.cancel) {
+              // Mostrar detalles técnicos
+              Swal.fire({
+                title: 'Detalles técnicos',
+                html: `
+                  <div style="text-align: left;">
+                    <p><strong>Error:</strong> ${error.message || 'Error desconocido'}</p>
+                    <p><strong>Stack:</strong></p>
+                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">${error.stack || 'No disponible'}</pre>
+                  </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Cerrar'
+              });
+            }
+          });
         });
       }
     });

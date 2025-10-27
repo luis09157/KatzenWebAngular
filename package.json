@@ -25,6 +25,8 @@
     "@angular/platform-browser-dynamic": "^17.3.12",
     "@angular/router": "^17.3.12",
     "firebase": "^10.14.1",
+    "firebase-admin": "^13.5.0",
+    "puppeteer": "^24.26.1",
     "rxjs": "^7.8.1",
     "sweetalert2": "^11.22.2",
     "tslib": "^2.6.2",
