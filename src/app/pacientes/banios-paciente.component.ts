@@ -60,8 +60,9 @@ export class BaniosPacienteComponent implements OnInit {
     this.isLoading = true;
     this.baniosPacienteService.getBaniosPorPaciente(this.pacienteId).subscribe({
       next: (banios) => {
-        this.banios = banios;
-        this.baniosFiltrados = banios;
+        // Ordenar baños por fecha (más recientes primero)
+        this.banios = this.ordenarBaniosPorFecha(banios);
+        this.baniosFiltrados = this.banios;
         this.isLoading = false;
       },
       error: (error) => {
@@ -75,6 +76,41 @@ export class BaniosPacienteComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Ordena los baños por fecha, más recientes primero
+   */
+  private ordenarBaniosPorFecha(banios: BanioPaciente[]): BanioPaciente[] {
+    return [...banios].sort((a, b) => {
+      // Intentar parsear fechas
+      const fechaA = this.parsearFechaBanio(a.fecha_banio, a.hora_banio);
+      const fechaB = this.parsearFechaBanio(b.fecha_banio, b.hora_banio);
+      
+      // Ordenar descendente (más recientes primero)
+      return fechaB.getTime() - fechaA.getTime();
+    });
+  }
+
+  /**
+   * Parsea la fecha del baño para ordenamiento
+   */
+  private parsearFechaBanio(fecha: string, hora: string): Date {
+    try {
+      // Si viene en formato YYYY-MM-DD
+      if (fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        const horaCompleta = hora || '00:00';
+        return new Date(`${fecha}T${horaCompleta}`);
+      }
+      // Si viene en formato ISO
+      if (fecha && fecha.includes('T')) {
+        return new Date(fecha);
+      }
+      // Fallback: fecha actual
+      return new Date();
+    } catch {
+      return new Date();
+    }
   }
 
   cargarEstadisticas() {
@@ -106,7 +142,8 @@ export class BaniosPacienteComponent implements OnInit {
 
     this.baniosPacienteService.buscarBaniosPaciente(this.pacienteId, this.searchTerm).subscribe({
       next: (banios) => {
-        this.baniosFiltrados = banios;
+        // Mantener el ordenamiento al filtrar
+        this.baniosFiltrados = this.ordenarBaniosPorFecha(banios);
       },
       error: (error) => {
         console.error('Error al buscar baños:', error);

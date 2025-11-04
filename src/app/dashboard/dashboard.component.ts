@@ -4,6 +4,8 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CitasService } from '../citas/citas.service';
+import { ClientesService } from '../clientes/clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
 
@@ -30,6 +32,8 @@ export class DashboardComponent implements OnInit {
   citasMap: { [key: string]: any[] } = {};
   selectedDayCitas: any[] = [];
   selectedDayDate: Date | null = null;
+  clientesMap: { [id: string]: string } = {};
+  pacientesMap: { [id: string]: string } = {};
   monthNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -40,6 +44,8 @@ export class DashboardComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private citasService: CitasService,
+    private clientesService: ClientesService,
+    private pacientesService: PacientesService,
     private dialog: MatDialog
   ) {}
 
@@ -48,8 +54,25 @@ export class DashboardComponent implements OnInit {
       this.breadcrumbs = this.buildBreadcrumbs(this.route.root);
     });
     
+    this.loadClientesYPacientes();
     this.loadCitas();
     this.generateCalendar();
+  }
+
+  loadClientesYPacientes() {
+    // Cargar clientes
+    this.clientesService.getClientes().subscribe(clientes => {
+      (clientes || []).forEach(c => {
+        this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
+      });
+    });
+    
+    // Cargar pacientes
+    this.pacientesService.getPacientes().subscribe(pacientes => {
+      (pacientes || []).forEach(p => {
+        this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+      });
+    });
   }
 
   loadCitas() {
@@ -145,13 +168,20 @@ export class DashboardComponent implements OnInit {
     const citas = day.citas || [];
     const fecha = day.date;
     
+    // Mapear los IDs de cliente y paciente a nombres
+    const citasConNombres = citas.map((cita: any) => ({
+      ...cita,
+      cliente: this.clientesMap[cita.cliente_id] || 'Cliente no especificado',
+      paciente: this.pacientesMap[cita.paciente_id] || 'Paciente no especificado'
+    }));
+    
     // Abrir modal con las citas del día
     this.dialog.open(CitasDiaDialogComponent, {
       width: '90vw',
       maxWidth: '95vw',
       maxHeight: '80vh',
       data: {
-        citas: citas,
+        citas: citasConNombres,
         fecha: fecha
       }
     });

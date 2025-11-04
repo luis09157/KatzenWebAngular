@@ -132,69 +132,106 @@
 .banios-lista {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .banio-item {
   background: white;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  transition: all 0.2s ease;
+  gap: 20px;
+  transition: all 0.3s ease;
   border-left: 4px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.banio-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.banio-item.en-proceso::before {
+  background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%);
 }
 
 .banio-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-left-color: #9C27B0;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
+.banio-item:hover::before {
+  width: 6px;
+}
+
+/* Ícono del servicio */
 .banio-icono {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.banio-item:hover .banio-icono {
+  transform: scale(1.05);
 }
 
 .banio-icono mat-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
 }
 
+/* Contenido principal */
 .banio-contenido {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Header: Título y Estado */
+.banio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .banio-titulo {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.3;
+  flex: 1;
 }
 
-.banio-fecha {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.banio-estado {
-  display: flex;
+.banio-estado-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .estado-icon {
@@ -203,40 +240,115 @@
   height: 16px;
 }
 
-.banio-tiempo {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 8px;
+/* Filas de información */
+.banio-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.banio-peluquero,
-.banio-precio,
+.banio-fecha-hora {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.banio-tiempo-relativo {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
+.info-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #9C27B0;
+}
+
+.banio-peluquero {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
 .banio-productos {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 13px;
   color: #666;
-  margin-bottom: 4px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #9C27B0;
 }
 
-.banio-peluquero mat-icon,
-.banio-precio mat-icon,
-.banio-productos mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
+/* Estilos mejorados para el precio - más visible y destacado */
+.banio-precio-container {
+  margin: 4px 0;
 }
 
+.banio-precio {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.25);
+  transition: all 0.3s ease;
+}
+
+.banio-precio:hover {
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.35);
+  transform: translateY(-2px);
+}
+
+.precio-simbolo {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.precio-monto {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+/* Observaciones */
 .banio-observaciones {
-  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
   color: #666;
   font-style: italic;
-  margin-top: 8px;
-  padding: 8px;
+  padding: 10px 14px;
   background: #f8f9fa;
-  border-radius: 6px;
+  border-radius: 8px;
   border-left: 3px solid #9C27B0;
+  margin-top: 4px;
+}
+
+.obs-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #9C27B0;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .banio-acciones {

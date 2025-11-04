@@ -60,34 +60,62 @@
 
   <!-- Lista de baños -->
   <div class="banios-lista" *ngIf="!isLoading">
-    <div *ngFor="let banio of baniosFiltrados" class="banio-item" (dblclick)="verDetalleBanio(banio)">
-      <div class="banio-icono">
+    <div *ngFor="let banio of baniosFiltrados" class="banio-item" [class.en-proceso]="banio.estado === 'en_proceso'" (dblclick)="verDetalleBanio(banio)">
+      <!-- Ícono del servicio -->
+      <div class="banio-icono" [style.background-color]="getEstadoColor(banio.estado) + '20'">
         <mat-icon [style.color]="getEstadoColor(banio.estado)">{{ getTipoServicioIcon(banio.tipo_servicio) }}</mat-icon>
       </div>
+      
+      <!-- Contenido principal -->
       <div class="banio-contenido">
-        <div class="banio-titulo">{{ banio.tipo_servicio | titlecase }}</div>
-        <div class="banio-fecha">{{ banio.fecha_formateada }} - {{ banio.hora_banio }}</div>
-        <div class="banio-estado" [style.color]="getEstadoColor(banio.estado)">
-          <mat-icon class="estado-icon">{{ getEstadoIcon(banio.estado) }}</mat-icon>
-          {{ banio.estado | titlecase }}
+        <!-- Header: Título y Estado -->
+        <div class="banio-header">
+          <div class="banio-titulo">{{ banio.tipo_servicio | titlecase }}</div>
+          <div class="banio-estado-badge" [style.background-color]="getEstadoColor(banio.estado) + '15'" [style.color]="getEstadoColor(banio.estado)">
+            <mat-icon class="estado-icon">{{ getEstadoIcon(banio.estado) }}</mat-icon>
+            <span>{{ banio.estado | titlecase }}</span>
+          </div>
         </div>
-        <div class="banio-tiempo">{{ banio.tiempo_transcurrido }}</div>
-        <div class="banio-peluquero" *ngIf="banio.peluquero">
-          <mat-icon>person</mat-icon>
-          {{ banio.peluquero }}
+        
+        <!-- Información de fecha y hora -->
+        <div class="banio-info-row">
+          <div class="banio-fecha-hora">
+            <mat-icon class="info-icon">calendar_today</mat-icon>
+            <span>{{ banio.fecha_formateada }} - {{ banio.hora_banio }}</span>
+          </div>
+          <div class="banio-tiempo-relativo">{{ banio.tiempo_transcurrido }}</div>
         </div>
-        <div class="banio-precio" *ngIf="banio.precio_total">
-          <mat-icon>attach_money</mat-icon>
-          ${{ banio.precio_total }}
+        
+        <!-- Información secundaria -->
+        <div class="banio-info-row" *ngIf="banio.peluquero">
+          <div class="banio-peluquero">
+            <mat-icon class="info-icon">person</mat-icon>
+            <span>{{ banio.peluquero }}</span>
+          </div>
         </div>
+        
+        <!-- Precio destacado -->
+        <div class="banio-precio-container" *ngIf="banio.precio_total">
+          <div class="banio-precio">
+            <span class="precio-simbolo">$</span>
+            <span class="precio-monto">{{ banio.precio_total | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        
+        <!-- Observaciones -->
         <div class="banio-observaciones" *ngIf="banio.observaciones">
-          {{ banio.observaciones }}
+          <mat-icon class="obs-icon">note</mat-icon>
+          <span>{{ banio.observaciones }}</span>
         </div>
+        
+        <!-- Productos utilizados -->
         <div class="banio-productos" *ngIf="banio.productos_utilizados && banio.productos_utilizados.length > 0">
-          <mat-icon>inventory</mat-icon>
-          {{ banio.productos_utilizados.join(', ') }}
+          <mat-icon class="info-icon">inventory</mat-icon>
+          <span>{{ banio.productos_utilizados.join(', ') }}</span>
         </div>
       </div>
+      
+      <!-- Acciones -->
       <div class="banio-acciones">
         <button mat-icon-button (click)="verDetalleBanio(banio)" matTooltip="Ver detalles">
           <mat-icon>visibility</mat-icon>

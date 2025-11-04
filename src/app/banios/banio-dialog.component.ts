@@ -287,6 +287,66 @@ export class BanioDialogComponent implements OnInit {
     }
   }
 
+  /**
+   * Normaliza la fecha a formato YYYY-MM-DD preservando exactamente la fecha seleccionada
+   * sin importar si es pasada o futura. Esto evita problemas de zona horaria.
+   */
+  private normalizarFecha(fecha: any): string {
+    try {
+      if (!fecha) return '';
+      
+      let date: Date;
+      
+      // Si ya es string en formato YYYY-MM-DD, retornarlo directamente
+      if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return fecha;
+      }
+      
+      // Si es un objeto Date, usar los componentes directamente para evitar zona horaria
+      if (fecha instanceof Date) {
+        const year = fecha.getFullYear();
+        const month = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const day = fecha.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Si es string, intentar parsearlo
+      if (typeof fecha === 'string') {
+        // Si viene en formato ISO con hora, extraer solo la fecha
+        if (fecha.includes('T')) {
+          const datePart = fecha.split('T')[0];
+          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+            return datePart;
+          }
+        }
+        
+        // Si viene en formato YYYY-MM-DD HH:mm:ss
+        if (fecha.includes(' ')) {
+          const datePart = fecha.split(' ')[0];
+          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+            return datePart;
+          }
+        }
+        
+        // Intentar crear Date y extraer componentes
+        date = new Date(fecha);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const day = date.getDate().toString().padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      
+      // Si no se pudo parsear, retornar string vacío
+      console.warn('⚠️ No se pudo normalizar la fecha:', fecha);
+      return '';
+    } catch (error) {
+      console.error('❌ Error al normalizar fecha:', error);
+      return '';
+    }
+  }
+
   private normalizarHora(hora: any): string {
     try {
       if (!hora) return '';
@@ -451,10 +511,29 @@ export class BanioDialogComponent implements OnInit {
     if (this.banioForm.valid) {
       this.loading = true;
       
-      const banioData = { ...this.banioForm.value };
+      // Obtener valores del formulario, incluyendo campos disabled
+      const banioData = { 
+        ...this.banioForm.value,
+        // Incluir fecha_banio aunque esté disabled (en modo edición)
+        fecha_banio: this.banioForm.get('fecha_banio')?.value || this.banioForm.value.fecha_banio
+      };
+      
+      // Normalizar fecha a formato YYYY-MM-DD preservando exactamente la fecha seleccionada
+      // Esto es crítico para permitir fechas pasadas sin que se cambien a la fecha actual
+      banioData.fecha_banio = this.normalizarFecha(banioData.fecha_banio);
+      
+      // Validar que la fecha se haya normalizado correctamente
+      if (!banioData.fecha_banio || !/^\d{4}-\d{2}-\d{2}$/.test(banioData.fecha_banio)) {
+        console.error('❌ Error: La fecha no se pudo normalizar correctamente:', banioData.fecha_banio);
+        Swal.fire('Error', 'La fecha seleccionada no es válida. Por favor selecciona una fecha correcta.', 'error');
+        this.loading = false;
+        return;
+      }
+      
       // Asegurar formato de hora válido antes de enviar
       banioData.hora_banio = this.normalizarHora(banioData.hora_banio);
       console.log('🔍 Datos del formulario:', banioData);
+      console.log('🔍 Fecha normalizada (preservada):', banioData.fecha_banio);
       
       // Limpiar datos antes de enviar
       const datosLimpios = {
