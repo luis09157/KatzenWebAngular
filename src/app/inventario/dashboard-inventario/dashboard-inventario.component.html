@@ -1,0 +1,160 @@
+<div class="dashboard-inventario">
+  <div class="header">
+    <h1>
+      <mat-icon>inventory</mat-icon>
+      Dashboard de Inventario
+    </h1>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando datos...</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- KPIs -->
+    <div class="kpis-grid">
+      <mat-card class="kpi-card primary">
+        <mat-icon>inventory_2</mat-icon>
+        <div class="kpi-content">
+          <h3>Total Productos</h3>
+          <p class="kpi-value">{{estadisticas?.total_productos || 0}}</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card success">
+        <mat-icon>attach_money</mat-icon>
+        <div class="kpi-content">
+          <h3>Valor Inventario</h3>
+          <p class="kpi-value">${{estadisticas?.valor_total_inventario || 0 | number:'1.2-2'}}</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card warning" [class.active]="(estadisticas?.productos_bajo_stock || 0) > 0">
+        <mat-icon [matBadge]="estadisticas?.productos_bajo_stock || 0" matBadgeColor="warn" [matBadgeHidden]="(estadisticas?.productos_bajo_stock || 0) === 0">warning</mat-icon>
+        <div class="kpi-content">
+          <h3>Stock Bajo</h3>
+          <p class="kpi-value">{{estadisticas?.productos_bajo_stock || 0}}</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card danger" [class.active]="productosPorCaducar.length > 0">
+        <mat-icon [matBadge]="productosPorCaducar.length" matBadgeColor="warn" [matBadgeHidden]="productosPorCaducar.length === 0">event_busy</mat-icon>
+        <div class="kpi-content">
+          <h3>Por Caducar (30 días)</h3>
+          <p class="kpi-value">{{productosPorCaducar.length}}</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Alertas -->
+    <mat-card class="alertas-section" *ngIf="alertas.length > 0">
+      <h2>
+        <mat-icon>notifications</mat-icon>
+        Alertas Activas ({{alertas.length}})
+      </h2>
+      <div class="alertas-lista">
+        <div class="alerta-item" *ngFor="let alerta of alertas" 
+             [style.border-left-color]="getColorAlerta(alerta.prioridad)">
+          <mat-icon [style.color]="getColorAlerta(alerta.prioridad)">
+            {{getIconoAlerta(alerta.tipo)}}
+          </mat-icon>
+          <div class="alerta-content">
+            <span class="alerta-mensaje">{{alerta.mensaje}}</span>
+            <span class="alerta-fecha">{{alerta.fecha_alerta | date:'short'}}</span>
+          </div>
+          <button mat-icon-button color="primary" 
+                  matTooltip="Marcar como resuelta"
+                  (click)="resolverAlerta(alerta)">
+            <mat-icon>check_circle</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Productos Bajo Stock -->
+    <mat-card class="productos-bajo-stock" *ngIf="productosBajoStock.length > 0">
+      <h2>
+        <mat-icon>inventory</mat-icon>
+        Productos con Stock Bajo ({{productosBajoStock.length}})
+      </h2>
+      <div class="productos-lista">
+        <div class="producto-item" *ngFor="let producto of productosBajoStock">
+          <div class="producto-info">
+            <span class="producto-nombre">{{producto.nombre}}</span>
+            <span class="producto-categoria">{{producto.categoria}}</span>
+          </div>
+          <div class="producto-stock">
+            <mat-chip-listbox>
+              <mat-chip-option color="warn" selected>
+                Stock: {{producto.stock_actual}} {{producto.unidad_medida}}
+              </mat-chip-option>
+              <mat-chip-option>
+                Mínimo: {{producto.stock_minimo}}
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Acciones Rápidas -->
+    <div class="acciones-rapidas">
+      <h2>Acciones Rápidas</h2>
+      <div class="acciones-grid">
+        <button mat-raised-button color="primary" (click)="irAProductos()">
+          <mat-icon>list</mat-icon>
+          Ver Productos
+        </button>
+        <button mat-raised-button color="accent" (click)="registrarEntrada()">
+          <mat-icon>add_circle</mat-icon>
+          Registrar Entrada
+        </button>
+        <button mat-raised-button color="warn" (click)="registrarSalida()">
+          <mat-icon>remove_circle</mat-icon>
+          Registrar Salida
+        </button>
+        <button mat-raised-button style="background-color: #ff9800; color: white;" (click)="registrarAjuste()">
+          <mat-icon>tune</mat-icon>
+          Ajuste de Inventario
+        </button>
+        <button mat-raised-button (click)="verHistorialMovimientos()">
+          <mat-icon>history</mat-icon>
+          Ver Movimientos
+        </button>
+        <button mat-raised-button style="background-color: #9c27b0; color: white;" (click)="verProveedores()">
+          <mat-icon>store</mat-icon>
+          Proveedores
+        </button>
+        <button mat-raised-button style="background-color: #3f51b5; color: white;" (click)="verOrdenes()">
+          <mat-icon>shopping_cart</mat-icon>
+          Órdenes de Compra
+        </button>
+        <button mat-raised-button style="background-color: #f44336; color: white;" (click)="verAlertas()">
+          <mat-icon>notifications_active</mat-icon>
+          Centro de Alertas
+        </button>
+        <button mat-raised-button style="background-color: #009688; color: white;" (click)="verReportes()">
+          <mat-icon>assessment</mat-icon>
+          Reportes e Informes
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumen por Categorías -->
+    <mat-card class="categorias-resumen" *ngIf="estadisticas?.categorias_resumen && estadisticas.categorias_resumen.length > 0">
+      <h2>
+        <mat-icon>category</mat-icon>
+        Resumen por Categorías
+      </h2>
+      <div class="categorias-grid">
+        <div class="categoria-item" *ngFor="let cat of estadisticas.categorias_resumen">
+          <h3>{{cat.categoria}}</h3>
+          <p>Productos: {{cat.cantidad_productos}}</p>
+          <p>Valor: ${{cat.valor_total | number:'1.2-2'}}</p>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>
+

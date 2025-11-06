@@ -1,0 +1,282 @@
+.movimientos-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titulo h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.titulo p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.acciones-header {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Filtros */
+.filtros-card {
+  margin-bottom: 24px;
+  padding: 20px;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.filtro-texto,
+.filtro-tipo,
+.filtro-fecha {
+  margin-bottom: 0;
+}
+
+.btn-limpiar,
+.btn-exportar {
+  height: 56px;
+  min-width: 120px;
+}
+
+/* Tabla */
+.tabla-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 20px;
+}
+
+.resumen-info {
+  padding: 16px 24px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.total-movimientos {
+  color: #666;
+  font-size: 14px;
+}
+
+.total-movimientos strong {
+  color: #333;
+  font-size: 18px;
+}
+
+.tabla-wrapper {
+  overflow-x: auto;
+}
+
+.movimientos-table {
+  width: 100%;
+  background: white;
+}
+
+.movimientos-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 12px;
+  padding: 16px;
+}
+
+.movimientos-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.movimientos-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Celdas */
+.fecha-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.fecha-cell mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #999;
+}
+
+.producto-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.producto-nombre {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.producto-presentacion {
+  font-size: 12px;
+  color: #999;
+}
+
+.tipo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.tipo-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.cantidad-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cantidad-cell strong {
+  font-size: 18px;
+}
+
+.cantidad-cell .unidad {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+}
+
+.motivo-cell {
+  font-size: 12px;
+  color: #666;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usuario-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+.usuario-cell mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* No Data */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #999;
+}
+
+.no-data mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Paginador */
+mat-paginator {
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .filtros-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filtro-texto {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .acciones-header {
+    justify-content: stretch;
+  }
+
+  .acciones-header button {
+    flex: 1;
+  }
+
+  .filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-limpiar,
+  .btn-exportar {
+    width: 100%;
+  }
+
+  .movimientos-table {
+    font-size: 12px;
+  }
+
+  .movimientos-table th,
+  .movimientos-table td {
+    padding: 12px 8px;
+  }
+}
+

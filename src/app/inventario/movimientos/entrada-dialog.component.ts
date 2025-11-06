@@ -1,0 +1,164 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialogRef } from '@angular/material/dialog';
+import { InventarioService } from '../inventario.service';
+import { Producto, Proveedor } from '../../shared/inventario.models';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import Swal from 'sweetalert2';
+
+@Component({
+  selector: 'app-entrada-dialog',
+  templateUrl: './entrada-dialog.component.html',
+  styleUrls: ['./entrada-dialog.component.css']
+})
+export class EntradaDialogComponent implements OnInit {
+  entradaForm: FormGroup;
+  loading = false;
+  
+  productos: Producto[] = [];
+  proveedores: Proveedor[] = [];
+  productosFiltrados: Observable<Producto[]>;
+  productoSeleccionado: Producto | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private inventarioService: InventarioService,
+    public dialogRef: MatDialogRef<EntradaDialogComponent>
+  ) {
+    this.entradaForm = this.fb.group({
+      producto_busqueda: ['', Validators.required],
+      producto_id: ['', Validators.required],
+      cantidad: [1, [Validators.required, Validators.min(1)]],
+      costo_unitario: [0, [Validators.required, Validators.min(0)]],
+      lote_numero: [''],
+      lote_fecha_caducidad: [''],
+      proveedor_id: [''],
+      numero_factura: [''],
+      observaciones: ['']
+    });
+
+    // Inicializar el observable de productos filtrados
+    this.productosFiltrados = this.entradaForm.get('producto_busqueda')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filtrarProductos(value || ''))
+    );
+  }
+
+  ngOnInit(): void {
+    console.log('🚀 Entrada Dialog cargado');
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    // Cargar productos
+    this.inventarioService.getProductos().subscribe({
+      next: (productos) => {
+        this.productos = productos;
+        console.log('✅ Productos cargados:', productos.length);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar productos:', error);
+      }
+    });
+
+    // Cargar proveedores
+    this.inventarioService.getProveedores().subscribe({
+      next: (proveedores) => {
+        this.proveedores = proveedores;
+        console.log('✅ Proveedores cargados:', proveedores.length);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar proveedores:', error);
+      }
+    });
+  }
+
+  private _filtrarProductos(valor: string): Producto[] {
+    if (typeof valor !== 'string') return this.productos;
+    
+    const filtro = valor.toLowerCase();
+    return this.productos.filter(p => 
+      p.nombre.toLowerCase().includes(filtro) ||
+      p.codigo_barras.toLowerCase().includes(filtro) ||
+      p.marca.toLowerCase().includes(filtro)
+    );
+  }
+
+  displayProducto(producto: Producto | null): string {
+    return producto ? `${producto.nombre} - ${producto.presentacion}` : '';
+  }
+
+  onProductoSeleccionado(producto: Producto): void {
+    console.log('🔍 Producto seleccionado:', producto.nombre);
+    this.productoSeleccionado = producto;
+    this.entradaForm.patchValue({
+      producto_id: producto.id,
+      costo_unitario: producto.precio_compra,
+      proveedor_id: producto.proveedor_principal_id
+    });
+  }
+
+  calcularTotal(): number {
+    const cantidad = this.entradaForm.get('cantidad')?.value || 0;
+    const costoUnitario = this.entradaForm.get('costo_unitario')?.value || 0;
+    return cantidad * costoUnitario;
+  }
+
+  async guardar(): Promise<void> {
+    if (this.entradaForm.invalid || !this.productoSeleccionado) {
+      this.entradaForm.markAllAsTouched();
+      Swal.fire('Formulario Incompleto', 'Por favor completa todos los campos requeridos', 'warning');
+      return;
+    }
+
+    this.loading = true;
+
+    try {
+      const formData = this.entradaForm.value;
+      
+      console.log('🔄 Registrando entrada de producto...');
+      console.log('Datos:', formData);
+
+      await this.inventarioService.registrarEntrada(
+        formData.producto_id,
+        formData.cantidad,
+        formData.costo_unitario,
+        `Entrada de producto. ${formData.observaciones || ''}`.trim(),
+        undefined, // orden_compra_id
+        formData.observaciones
+      );
+
+      console.log('✅ Entrada registrada exitosamente');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Entrada Registrada',
+        html: `
+          <strong>${this.productoSeleccionado.nombre}</strong><br>
+          Cantidad: ${formData.cantidad} ${this.productoSeleccionado.unidad_medida}<br>
+          Costo total: $${this.calcularTotal().toFixed(2)}
+        `,
+        timer: 3000,
+        showConfirmButton: false
+      });
+
+      this.dialogRef.close(true);
+    } catch (error: any) {
+      console.error('❌ Error al registrar entrada:', error);
+      Swal.fire('Error', error.message || 'No se pudo registrar la entrada', 'error');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  cancelar(): void {
+    this.dialogRef.close(false);
+  }
+
+  hasError(campo: string, error: string): boolean {
+    const control = this.entradaForm.get(campo);
+    return !!(control && control.hasError(error) && (control.dirty || control.touched));
+  }
+}
+

@@ -1,0 +1,166 @@
+<h2 mat-dialog-title>
+  <mat-icon>remove_circle</mat-icon>
+  Registrar Salida de Productos
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="salidaForm" class="salida-form">
+    <!-- Selección de Producto -->
+    <div class="form-section highlight">
+      <h3>
+        <mat-icon>inventory_2</mat-icon>
+        Producto
+      </h3>
+      
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Buscar producto</mat-label>
+        <input matInput 
+               formControlName="producto_busqueda"
+               [matAutocomplete]="autoProducto"
+               placeholder="Escribe el nombre, código o marca">
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-error *ngIf="hasError('producto_busqueda', 'required')">
+          Selecciona un producto
+        </mat-error>
+      </mat-form-field>
+
+      <mat-autocomplete #autoProducto="matAutocomplete" 
+                        [displayWith]="displayProducto.bind(this)"
+                        (optionSelected)="onProductoSeleccionado($event.option.value)">
+        <mat-option *ngFor="let producto of productosFiltrados | async" [value]="producto">
+          <div class="producto-option">
+            <span class="producto-nombre">{{producto.nombre}}</span>
+            <span class="producto-info">{{producto.marca}} - {{producto.presentacion}}</span>
+            <span class="producto-stock" 
+                  [class.stock-bajo]="producto.stock_actual <= producto.stock_minimo"
+                  [class.sin-stock]="producto.stock_actual === 0">
+              Stock: {{producto.stock_actual}} {{producto.unidad_medida}}
+            </span>
+          </div>
+        </mat-option>
+      </mat-autocomplete>
+
+      <!-- Info del producto seleccionado -->
+      <div class="producto-info-box" *ngIf="productoSeleccionado">
+        <div class="info-row">
+          <span class="label">Código:</span>
+          <span class="value">{{productoSeleccionado.codigo_barras}}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Stock Disponible:</span>
+          <span class="value" 
+                [class.stock-bajo]="productoSeleccionado.stock_actual <= productoSeleccionado.stock_minimo"
+                [class.sin-stock]="productoSeleccionado.stock_actual === 0">
+            {{productoSeleccionado.stock_actual}} {{productoSeleccionado.unidad_medida}}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">Stock Mínimo:</span>
+          <span class="value">{{productoSeleccionado.stock_minimo}} {{productoSeleccionado.unidad_medida}}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Ubicación:</span>
+          <span class="value">{{productoSeleccionado.ubicacion_almacen}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cantidad -->
+    <div class="form-section">
+      <h3>
+        <mat-icon>calculate</mat-icon>
+        Cantidad a Sacar
+      </h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cantidad</mat-label>
+        <input matInput type="number" formControlName="cantidad" min="1" step="1">
+        <span matTextSuffix *ngIf="productoSeleccionado">
+          &nbsp;{{productoSeleccionado.unidad_medida}}
+        </span>
+        <mat-error *ngIf="hasError('cantidad', 'required') || hasError('cantidad', 'min')">
+          Ingresa una cantidad válida
+        </mat-error>
+        <mat-hint *ngIf="isStockInsuficiente()" class="stock-insuficiente">
+          ⚠️ Stock insuficiente. Disponible: {{getStockDisponible()}}
+        </mat-hint>
+      </mat-form-field>
+
+      <!-- Advertencia de stock bajo -->
+      <div class="warning-box" *ngIf="productoSeleccionado && isStockInsuficiente()">
+        <mat-icon>warning</mat-icon>
+        <span>No hay suficiente stock para esta salida</span>
+      </div>
+
+      <!-- Info de stock después de salida -->
+      <div class="stock-info-box" *ngIf="productoSeleccionado && !isStockInsuficiente() && salidaForm.get('cantidad')?.value > 0">
+        <div class="stock-row">
+          <span>Stock actual:</span>
+          <strong>{{productoSeleccionado.stock_actual}} {{productoSeleccionado.unidad_medida}}</strong>
+        </div>
+        <div class="stock-row">
+          <span>Cantidad a sacar:</span>
+          <strong class="salida">-{{salidaForm.get('cantidad')?.value}} {{productoSeleccionado.unidad_medida}}</strong>
+        </div>
+        <div class="stock-row resultado">
+          <span>Stock resultante:</span>
+          <strong [class.stock-bajo]="(productoSeleccionado.stock_actual - salidaForm.get('cantidad')?.value) <= productoSeleccionado.stock_minimo">
+            {{productoSeleccionado.stock_actual - salidaForm.get('cantidad')?.value}} {{productoSeleccionado.unidad_medida}}
+          </strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motivo -->
+    <div class="form-section">
+      <h3>
+        <mat-icon>label</mat-icon>
+        Motivo de Salida
+      </h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Motivo</mat-label>
+        <mat-select formControlName="motivo">
+          <mat-option *ngFor="let motivo of motivosSalida" [value]="motivo.valor">
+            {{motivo.etiqueta}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="hasError('motivo', 'required')">
+          Selecciona un motivo
+        </mat-error>
+      </mat-form-field>
+
+      <div class="motivo-chip" [style.background-color]="getColorMotivo()">
+        <mat-icon>{{getIconoMotivo()}}</mat-icon>
+        <span>{{getTextoMotivo()}}</span>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="form-section">
+      <h3>
+        <mat-icon>notes</mat-icon>
+        Observaciones
+      </h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Observaciones</mat-label>
+        <textarea matInput formControlName="observaciones" rows="3" 
+                  placeholder="Notas adicionales sobre esta salida"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()" [disabled]="loading">
+    Cancelar
+  </button>
+  <button mat-raised-button color="warn" (click)="guardar()" 
+          [disabled]="loading || salidaForm.invalid || !productoSeleccionado || isStockInsuficiente()">
+    <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
+    <mat-icon *ngIf="!loading">remove_circle</mat-icon>
+    {{loading ? 'Registrando...' : 'Registrar Salida'}}
+  </button>
+</mat-dialog-actions>
+

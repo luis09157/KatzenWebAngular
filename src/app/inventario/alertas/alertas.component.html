@@ -1,0 +1,168 @@
+<div class="alertas-container">
+  <div class="header">
+    <div class="titulo">
+      <h1>
+        <mat-icon>notifications_active</mat-icon>
+        Centro de Alertas
+      </h1>
+      <p>Monitoreo y gestión de alertas de inventario</p>
+    </div>
+
+    <div class="acciones-header">
+      <button mat-raised-button color="primary" (click)="generarAlertasAutomaticas()">
+        <mat-icon>auto_fix_high</mat-icon>
+        Generar Alertas
+      </button>
+      <button mat-raised-button color="accent" (click)="resolverTodas()" [disabled]="alertasFiltradas.length === 0">
+        <mat-icon>done_all</mat-icon>
+        Resolver Todas
+      </button>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="estadisticas-grid" *ngIf="!loading">
+    <mat-card class="stat-card total">
+      <mat-icon>notifications</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Total Alertas</span>
+        <span class="stat-value">{{getEstadisticas().total}}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card critica">
+      <mat-icon>error</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Críticas</span>
+        <span class="stat-value">{{getEstadisticas().criticas}}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card alta">
+      <mat-icon>warning</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Altas</span>
+        <span class="stat-value">{{getEstadisticas().altas}}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card media">
+      <mat-icon>info</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Medias</span>
+        <span class="stat-value">{{getEstadisticas().medias}}</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filtros-card">
+    <div class="filtros-grid">
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Tipo de Alerta</mat-label>
+        <mat-select [(ngModel)]="filtroTipo" (ngModelChange)="aplicarFiltros()">
+          <mat-option *ngFor="let tipo of tiposAlerta" [value]="tipo.valor">
+            <mat-icon [style.color]="tipo.color">{{tipo.icono}}</mat-icon>
+            {{tipo.etiqueta}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filtro-field">
+        <mat-label>Prioridad</mat-label>
+        <mat-select [(ngModel)]="filtroPrioridad" (ngModelChange)="aplicarFiltros()">
+          <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.valor">
+            <span [style.color]="prioridad.color">{{prioridad.etiqueta}}</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="limpiarFiltros()">
+        <mat-icon>clear</mat-icon>
+        Limpiar Filtros
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Lista de Alertas -->
+  <div class="alertas-lista" *ngIf="!loading">
+    <div *ngIf="alertasFiltradas.length === 0" class="no-alertas">
+      <mat-icon>check_circle</mat-icon>
+      <h3>¡No hay alertas!</h3>
+      <p>Todo está bajo control en el inventario</p>
+    </div>
+
+    <mat-card *ngFor="let alerta of alertasFiltradas" class="alerta-card"
+              [class.critica]="alerta.prioridad === 'critica'"
+              [class.alta]="alerta.prioridad === 'alta'"
+              [class.media]="alerta.prioridad === 'media'"
+              [class.baja]="alerta.prioridad === 'baja'"
+              [class.resuelta]="alerta.estado === 'resuelta'">
+      
+      <div class="alerta-header">
+        <div class="alerta-icono" [style.background-color]="getColorAlerta(alerta.prioridad)">
+          <mat-icon>{{getIconoAlerta(alerta.tipo)}}</mat-icon>
+        </div>
+
+        <div class="alerta-info">
+          <div class="alerta-titulo">
+            <strong>{{alerta.mensaje}}</strong>
+            <mat-chip [style.background-color]="getColorAlerta(alerta.prioridad)">
+              {{alerta.prioridad}}
+            </mat-chip>
+          </div>
+
+          <div class="alerta-detalles">
+            <div class="detalle-item">
+              <mat-icon>inventory_2</mat-icon>
+              <span>{{getProductoNombre(alerta.producto_id)}}</span>
+            </div>
+            <div class="detalle-item" *ngIf="alerta.tipo === 'stock_bajo'">
+              <mat-icon>straighten</mat-icon>
+              <span>Stock: {{getProductoStock(alerta.producto_id)}} {{getProductoUnidad(alerta.producto_id)}}</span>
+            </div>
+            <div class="detalle-item">
+              <mat-icon>schedule</mat-icon>
+              <span>{{formatearFecha(alerta.fecha_alerta)}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alerta-acciones">
+          <button mat-icon-button [matMenuTriggerFor]="menu" [disabled]="alerta.estado === 'resuelta'">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="verProducto(alerta.producto_id)">
+              <mat-icon>visibility</mat-icon>
+              <span>Ver Producto</span>
+            </button>
+            <button mat-menu-item (click)="resolverAlerta(alerta)" *ngIf="alerta.estado !== 'resuelta'">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span>Resolver</span>
+            </button>
+          </mat-menu>
+
+          <button mat-mini-fab color="primary" 
+                  (click)="resolverAlerta(alerta)"
+                  *ngIf="alerta.estado !== 'resuelta'"
+                  matTooltip="Resolver alerta">
+            <mat-icon>check</mat-icon>
+          </button>
+
+          <div class="badge-resuelta" *ngIf="alerta.estado === 'resuelta'">
+            <mat-icon>check_circle</mat-icon>
+            <span>Resuelta</span>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando alertas...</p>
+  </div>
+</div>
+

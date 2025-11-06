@@ -1,0 +1,245 @@
+.proveedores-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titulo h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.titulo p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Búsqueda */
+.busqueda-card {
+  margin-bottom: 24px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.search-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.btn-exportar {
+  height: 56px;
+  min-width: 140px;
+}
+
+/* Tabla */
+.tabla-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 20px;
+}
+
+.resumen-info {
+  padding: 16px 24px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.total-proveedores {
+  color: #666;
+  font-size: 14px;
+}
+
+.total-proveedores strong {
+  color: #333;
+  font-size: 18px;
+}
+
+.activos-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4caf50;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.activos-info mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.tabla-wrapper {
+  overflow-x: auto;
+}
+
+.proveedores-table {
+  width: 100%;
+  background: white;
+}
+
+.proveedores-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 12px;
+  padding: 16px;
+}
+
+.proveedores-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.proveedores-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Celdas */
+.nombre-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nombre-cell strong {
+  font-size: 14px;
+  color: #333;
+}
+
+.nombre-cell .rfc {
+  font-size: 11px;
+  color: #999;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.contacto-cell,
+.telefono-cell,
+.email-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.contacto-cell mat-icon,
+.telefono-cell mat-icon,
+.email-cell mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #999;
+}
+
+.telefono-cell a,
+.email-cell a {
+  color: #2196f3;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.telefono-cell a:hover,
+.email-cell a:hover {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.productos-cell mat-chip-listbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.productos-cell mat-chip-option {
+  font-size: 11px;
+  min-height: 24px;
+  padding: 4px 8px;
+}
+
+/* No Data */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #999;
+  gap: 16px;
+}
+
+.no-data mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  opacity: 0.3;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Paginador */
+mat-paginator {
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .proveedores-table {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .busqueda-card {
+    flex-direction: column;
+  }
+
+  .btn-exportar {
+    width: 100%;
+  }
+
+  .proveedores-table th,
+  .proveedores-table td {
+    padding: 12px 8px;
+  }
+}
+

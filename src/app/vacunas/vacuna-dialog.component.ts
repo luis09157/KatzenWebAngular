@@ -20,17 +20,20 @@ export class VacunaDialogComponent implements OnInit {
   pacienteInfo: any = null;
   private operationId: string = '';
 
-  // Tipos de vacunas predefinidos
-  tiposVacunas = [
-    { value: 'puppy', label: 'Puppy' },
-    { value: 'quintuple', label: 'Quíntuple' },
-    { value: 'sextuple', label: 'Séxtuple' },
-    { value: 'triple_felina', label: 'Triple Felina' },
-    { value: 'antirrabica', label: 'Antirrábica' },
-    { value: 'bordetella', label: 'Bordetella' },
-    { value: 'leucemia_felina', label: 'Leucemia Felina' },
-    { value: 'giardia', label: 'Giardia' },
-    { value: 'otra', label: 'Otra' }
+  // Tipos de vacunas - Cargados desde Firebase con fallback
+  tiposVacunas: any[] = [];
+  
+  // Tipos de vacunas predefinidos (fallback si Firebase falla)
+  private tiposVacunasFallback = [
+    { value: 'puppy', label: 'Puppy', activo: true },
+    { value: 'quintuple', label: 'Quíntuple', activo: true },
+    { value: 'sextuple', label: 'Séxtuple', activo: true },
+    { value: 'triple_felina', label: 'Triple Felina', activo: true },
+    { value: 'antirrabica', label: 'Antirrábica', activo: true },
+    { value: 'bordetella', label: 'Bordetella', activo: true },
+    { value: 'leucemia_felina', label: 'Leucemia Felina', activo: true },
+    { value: 'giardia', label: 'Giardia', activo: true },
+    { value: 'otra', label: 'Otra', activo: true }
   ];
 
   // Dosis más comunes utilizadas por veterinarios
@@ -127,7 +130,9 @@ export class VacunaDialogComponent implements OnInit {
 
   ngOnInit() {
     console.log('VacunaDialogComponent - Datos recibidos:', this.data);
-    console.log('VacunaDialogComponent - Tipos de vacunas:', this.tiposVacunas);
+    
+    // Cargar tipos de vacunas desde Firebase
+    this.cargarTiposVacunas();
     
     // Cargar doctores
     this.cargarDoctores();
@@ -185,6 +190,17 @@ export class VacunaDialogComponent implements OnInit {
     // Generar ID único para esta operación
     this.operationId = 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     console.log('VacunaDialogComponent - ID de operación:', this.operationId);
+    
+    // Validaciones personalizadas antes de guardar
+    const errorValidacion = this.validarDatosFormulario();
+    if (errorValidacion) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validación Fallida',
+        html: errorValidacion
+      });
+      return;
+    }
     
     if (this.vacunaForm.valid) {
       this.loading = true;
@@ -286,12 +302,89 @@ export class VacunaDialogComponent implements OnInit {
         }
       });
       
+      // Identificar campos faltantes
+      const camposFaltantes: string[] = [];
+      if (!this.vacunaForm.get('vacuna')?.value) camposFaltantes.push('Tipo de Vacuna');
+      if (!this.vacunaForm.get('fechaAplicacion')?.value) camposFaltantes.push('Fecha de Aplicación');
+      if (!this.vacunaForm.get('dosis')?.value) camposFaltantes.push('Dosis');
+      
       Swal.fire({
         icon: 'warning',
-        title: 'Campos requeridos',
-        text: 'Por favor completa los campos obligatorios'
+        title: 'Campos Obligatorios Incompletos',
+        html: `
+          <p>Los siguientes campos son requeridos:</p>
+          <ul style="text-align: left; margin: 10px 40px;">
+            ${camposFaltantes.map(campo => `<li>${campo}</li>`).join('')}
+          </ul>
+        `
       });
     }
+  }
+
+  // Validar datos del formulario con reglas de negocio
+  validarDatosFormulario(): string | null {
+    const formValue = this.vacunaForm.value;
+    
+    // 1. Validar formato de dosis personalizada
+    if (formValue.dosis === 'personalizada') {
+      const dosisPersonalizada = formValue.dosisPersonalizada?.trim();
+      if (!dosisPersonalizada) {
+        return 'Debes especificar la <strong>dosis personalizada</strong>';
+      }
+      
+      // Validar formato (número seguido de unidad)
+      const formatoValido = /^\d+(\.\d+)?\s?(ml|mg|g|cc|UI|IU)$/i.test(dosisPersonalizada);
+      if (!formatoValido) {
+        return `
+          <p>El formato de la dosis personalizada no es válido.</p>
+          <p class="text-muted">Ejemplos válidos: <code>1ml</code>, <code>2.5 mg</code>, <code>500 UI</code></p>
+        `;
+      }
+    }
+    
+    // 2. Validar que la fecha de próxima aplicación sea posterior a fecha de aplicación
+    if (formValue.proximaAplicacion && formValue.fechaAplicacion) {
+      const fechaAplicacion = new Date(formValue.fechaAplicacion);
+      const proximaAplicacion = new Date(formValue.proximaAplicacion);
+      
+      if (proximaAplicacion <= fechaAplicacion) {
+        return `
+          <p>La <strong>Fecha de Próxima Dosis</strong> debe ser <strong>posterior</strong> a la Fecha de Aplicación.</p>
+          <p class="text-muted">Por favor, ajusta las fechas.</p>
+        `;
+      }
+    }
+    
+    // 3. Validar que la fecha de recordatorio sea futura si el recordatorio está activo
+    if (formValue.recordatorio && formValue.fechaRecordatorio) {
+      const fechaRecordatorio = new Date(formValue.fechaRecordatorio);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      if (fechaRecordatorio < hoy) {
+        return `
+          <p>La <strong>Fecha de Recordatorio</strong> debe ser <strong>futura</strong>.</p>
+          <p class="text-muted">No puedes crear recordatorios para fechas pasadas.</p>
+        `;
+      }
+    }
+    
+    // 4. Validar fechas futuras solo para vacunas pendientes
+    if (formValue.estado === 'pendiente' && formValue.fechaAplicacion) {
+      const fechaAplicacion = new Date(formValue.fechaAplicacion);
+      const hoy = new Date();
+      const hace30Dias = new Date(hoy);
+      hace30Dias.setDate(hoy.getDate() - 30);
+      
+      if (fechaAplicacion < hace30Dias) {
+        return `
+          <p>Estás intentando crear una vacuna <strong>pendiente</strong> con una fecha de más de 30 días en el pasado.</p>
+          <p class="text-muted">¿Seguro que el estado debería ser "Pendiente" y no "Aplicada"?</p>
+        `;
+      }
+    }
+    
+    return null; // Sin errores
   }
 
   cancelar() {
@@ -301,10 +394,21 @@ export class VacunaDialogComponent implements OnInit {
   async eliminarVacuna() {
     if (!this.data?.id) return;
 
+    // Obtener información de la vacuna para el mensaje
+    const nombreVacuna = this.getNombreVacunaParaMostrar();
+    const nombrePaciente = this.pacienteInfo?.nombre || 'este paciente';
+    
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'La vacuna será eliminada del sistema.',
+      html: `
+        <p>Estás a punto de <strong>eliminar</strong> la siguiente vacuna:</p>
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+          <p><strong>Vacuna:</strong> ${nombreVacuna}</p>
+          <p><strong>Paciente:</strong> ${nombrePaciente}</p>
+        </div>
+        <p class="text-danger">Esta acción <strong>no se puede deshacer</strong>.</p>
+      `,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
@@ -326,21 +430,47 @@ export class VacunaDialogComponent implements OnInit {
         
         Swal.fire({
           icon: 'success',
-          title: '¡Eliminado!',
-          text: 'Vacuna eliminada correctamente'
+          title: '¡Vacuna Eliminada!',
+          html: `
+            <p>La vacuna ha sido eliminada correctamente.</p>
+            <p class="text-muted">El historial médico ha sido actualizado.</p>
+          `
         });
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar vacuna:', error);
+        
+        let mensajeError = 'No se pudo eliminar la vacuna. Por favor, intenta de nuevo.';
+        if (error instanceof Error && error.message) {
+          mensajeError += `<br><small class="text-muted">Detalle: ${error.message}</small>`;
+        }
+        
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar la vacuna'
+          title: 'Error al Eliminar',
+          html: mensajeError
         });
       } finally {
         this.loading = false;
       }
     }
+  }
+
+  // Obtener nombre de vacuna para mostrar
+  private getNombreVacunaParaMostrar(): string {
+    const vacunaValue = this.data?.vacuna || this.vacunaForm.get('vacuna')?.value;
+    if (!vacunaValue) return 'Vacuna';
+    
+    // Buscar en tipos de vacunas
+    const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaValue);
+    if (tipoVacuna) return tipoVacuna.label;
+    
+    // Si no se encuentra, formatear el valor
+    return vacunaValue
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   async cambiarEstado(estado: string) {
@@ -388,7 +518,47 @@ export class VacunaDialogComponent implements OnInit {
     }
   }
   
+  // Cargar tipos de vacunas desde Firebase con fallback
+  cargarTiposVacunas() {
+    console.log('🔄 Cargando tipos de vacunas desde Firebase...');
+    
+    this.vacunasService.getTiposVacunas().subscribe({
+      next: (tipos) => {
+        console.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
+        
+        if (tipos && tipos.length > 0) {
+          // Filtrar solo los activos
+          this.tiposVacunas = tipos.filter((tipo: any) => tipo.activo !== false);
+          console.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
+        } else {
+          // Si no hay datos en Firebase, usar fallback
+          console.log('⚠️ Firebase vacío, usando tipos predefinidos (fallback)');
+          this.tiposVacunas = [...this.tiposVacunasFallback];
+          this.inicializarTiposEnFirebase();
+        }
+      },
+      error: (error) => {
+        // Si hay error en Firebase, usar fallback
+        console.error('❌ Error al cargar tipos de vacunas desde Firebase:', error);
+        console.log('🔄 Usando tipos predefinidos (fallback)');
+        this.tiposVacunas = [...this.tiposVacunasFallback];
+      }
+    });
+  }
 
+  // Inicializar tipos de vacunas en Firebase si no existen
+  private async inicializarTiposEnFirebase() {
+    try {
+      console.log('🔄 Inicializando tipos de vacunas en Firebase...');
+      
+      // Aquí podrías agregar lógica para poblar Firebase con los datos iniciales
+      // Por ahora solo registramos el intento
+      console.log('ℹ️ Los tipos predefinidos están siendo usados como fallback');
+      console.log('ℹ️ Para persistir en Firebase, el administrador debe configurarlos manualmente');
+    } catch (error) {
+      console.error('❌ Error al inicializar tipos en Firebase:', error);
+    }
+  }
 
   // Cargar lista de doctores
   cargarDoctores() {

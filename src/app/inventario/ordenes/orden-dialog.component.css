@@ -1,0 +1,28 @@
+h2[mat-dialog-title] { display: flex; align-items: center; gap: 10px; color: #333; margin: 0 0 20px 0; }
+mat-dialog-content { padding: 0 24px; max-height: 70vh; overflow-y: auto; }
+.orden-form { display: flex; flex-direction: column; gap: 20px; }
+.form-section { background: #f5f5f5; padding: 16px; border-radius: 8px; }
+.form-section h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 16px 0; font-size: 16px; font-weight: 500; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.section-header h3 { margin: 0; }
+.form-row { display: flex; gap: 16px; }
+.full-width { width: 100%; }
+.half-width { flex: 1; }
+.productos-lista { display: flex; flex-direction: column; gap: 12px; }
+.producto-item { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
+.producto-row { display: flex; gap: 12px; align-items: center; }
+.producto-select { flex: 2; }
+.cantidad-field { width: 100px; }
+.precio-field { width: 120px; }
+.subtotal-display { display: flex; flex-direction: column; align-items: flex-end; min-width: 100px; }
+.subtotal-display .label { font-size: 11px; color: #999; }
+.subtotal-display strong { font-size: 16px; color: #4caf50; }
+.no-productos { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; gap: 16px; color: #999; }
+.no-productos mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.3; }
+.total-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; color: white; }
+.total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 16px; }
+.total-row.total { border-top: 2px solid rgba(255,255,255,0.3); margin-top: 8px; padding-top: 12px; font-size: 20px; }
+.button-spinner { display: inline-block; margin-right: 8px; }
+mat-dialog-actions { padding: 16px 24px; background: #f5f5f5; margin: 20px -24px -24px -24px; }
+@media (max-width: 768px) { .producto-row { flex-direction: column; } .producto-select, .cantidad-field, .precio-field { width: 100%; } }
+

@@ -49,12 +49,35 @@ export class VacunasComponent implements OnInit {
     this.vacunasService.getVacunas().subscribe(vacunas => {
       const vacunasActivas = (vacunas || []).filter(v => v.activo !== false);
       
-      this.dataSource.data = vacunasActivas.map(vacuna => ({
-        ...vacuna,
-        paciente: this.pacientesMap[vacuna.paciente_id] || 'N/P',
-        fecha_vacuna: this.formatearFecha(vacuna.fecha_vacuna),
-        proxima_dosis: this.formatearFecha(vacuna.proxima_dosis)
-      }));
+      this.dataSource.data = vacunasActivas.map(vacuna => {
+        // Normalizar nombres de campos para compatibilidad
+        const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
+        const fechaVacuna = vacuna.fecha_vacuna || vacuna.fechaAplicacion || vacuna.fecha_aplicacion || vacuna.fechaRegistro;
+        const proximaDosis = vacuna.proxima_dosis || vacuna.proximaAplicacion || vacuna.proxima_aplicacion;
+        const tipoVacuna = vacuna.tipo_vacuna || vacuna.vacuna;
+        const veterinario = vacuna.veterinario || vacuna.veterinario_nombre || 'N/A';
+        
+        // Determinar estado (convertir boolean a string si es necesario)
+        let estado = 'pendiente';
+        if (vacuna.estado) {
+          estado = vacuna.estado;
+        } else if (vacuna.aplicada === true) {
+          estado = 'aplicada';
+        } else if (vacuna.aplicada === false) {
+          estado = 'pendiente';
+        }
+        
+        return {
+          ...vacuna,
+          paciente_id: pacienteId,
+          paciente: this.pacientesMap[pacienteId] || 'N/P',
+          fecha_vacuna: this.formatearFecha(fechaVacuna),
+          proxima_dosis: this.formatearFecha(proximaDosis),
+          tipo_vacuna: tipoVacuna,
+          veterinario: veterinario,
+          estado: estado
+        };
+      });
       
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
@@ -65,6 +88,22 @@ export class VacunasComponent implements OnInit {
     }, error => {
       console.error('Error al cargar vacunas:', error);
       this.loading = false;
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al Cargar Vacunas',
+        html: `
+          <p>No se pudieron cargar las vacunas del sistema.</p>
+          <p class="text-muted">Por favor, verifica tu conexión e intenta de nuevo.</p>
+        `,
+        confirmButtonText: 'Reintentar',
+        showCancelButton: true,
+        cancelButtonText: 'Cerrar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.cargarVacunas();
+        }
+      });
     });
   }
 
@@ -179,10 +218,21 @@ export class VacunasComponent implements OnInit {
   }
 
   async eliminarVacuna(vacuna: any) {
+    const nombreVacuna = this.getNombreVacuna(vacuna.tipo_vacuna || vacuna.vacuna);
+    const nombrePaciente = vacuna.paciente || 'N/P';
+    
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'La vacuna será eliminada del sistema.',
+      html: `
+        <p>Estás a punto de <strong>eliminar</strong> la siguiente vacuna:</p>
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+          <p><strong>Vacuna:</strong> ${nombreVacuna}</p>
+          <p><strong>Paciente:</strong> ${nombrePaciente}</p>
+          ${vacuna.fecha_vacuna ? `<p><strong>Fecha:</strong> ${vacuna.fecha_vacuna}</p>` : ''}
+        </div>
+        <p class="text-danger">Esta acción <strong>no se puede deshacer</strong>.</p>
+      `,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
@@ -198,8 +248,11 @@ export class VacunasComponent implements OnInit {
         // Mostrar mensaje de éxito
         Swal.fire({
           icon: 'success',
-          title: '¡Eliminado!',
-          text: 'Vacuna eliminada correctamente'
+          title: '¡Vacuna Eliminada!',
+          html: `
+            <p>La vacuna ha sido eliminada correctamente.</p>
+            <p class="text-muted">El historial médico ha sido actualizado.</p>
+          `
         });
         
         // Recargar la lista de vacunas
@@ -208,15 +261,15 @@ export class VacunasComponent implements OnInit {
         console.error('Error al eliminar vacuna:', error);
         
         // Mostrar mensaje de error específico
-        let mensajeError = 'No se pudo eliminar la vacuna';
-        if (error instanceof Error) {
-          mensajeError = error.message;
+        let mensajeError = 'No se pudo eliminar la vacuna. Por favor, intenta de nuevo.';
+        if (error instanceof Error && error.message) {
+          mensajeError += `<br><small class="text-muted">Detalle: ${error.message}</small>`;
         }
         
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: mensajeError
+          title: 'Error al Eliminar',
+          html: mensajeError
         });
       }
     }
@@ -247,12 +300,46 @@ export class VacunasComponent implements OnInit {
     }
   }
 
-  getEstadoColor(estado: boolean): string {
-    return estado ? '#4caf50' : '#ff9800';
+  getEstadoColor(estado: string | boolean): string {
+    // Normalizar a string
+    const estadoStr = typeof estado === 'boolean' 
+      ? (estado ? 'aplicada' : 'pendiente') 
+      : (estado || 'pendiente').toLowerCase();
+    
+    switch (estadoStr) {
+      case 'aplicada':
+      case 'completada':
+        return '#4caf50'; // Verde
+      case 'pendiente':
+        return '#ff9800'; // Naranja
+      case 'cancelada':
+        return '#f44336'; // Rojo
+      case 'en_proceso':
+        return '#2196f3'; // Azul
+      default:
+        return '#9e9e9e'; // Gris
+    }
   }
 
-  getEstadoText(estado: boolean): string {
-    return estado ? 'Aplicada' : 'Pendiente';
+  getEstadoText(estado: string | boolean): string {
+    // Normalizar a string
+    const estadoStr = typeof estado === 'boolean' 
+      ? (estado ? 'aplicada' : 'pendiente') 
+      : (estado || 'pendiente').toLowerCase();
+    
+    switch (estadoStr) {
+      case 'aplicada':
+      case 'completada':
+        return 'Aplicada';
+      case 'pendiente':
+        return 'Pendiente';
+      case 'cancelada':
+        return 'Cancelada';
+      case 'en_proceso':
+        return 'En Proceso';
+      default:
+        return 'Desconocido';
+    }
   }
 
   getVacunaIcono(tipo: string): string {
@@ -280,11 +367,47 @@ export class VacunasComponent implements OnInit {
     }
   }
 
+  // Mapa de tipos de vacunas para conversión rápida
+  private tiposVacunasMap: { [key: string]: string } = {
+    'puppy': 'Puppy',
+    'quintuple': 'Quíntuple',
+    'sextuple': 'Séxtuple',
+    'triple_felina': 'Triple Felina',
+    'antirrabica': 'Antirrábica',
+    'bordetella': 'Bordetella',
+    'leucemia_felina': 'Leucemia Felina',
+    'giardia': 'Giardia',
+    'coronavirus': 'Coronavirus',
+    'parvovirus': 'Parvovirus',
+    'moquillo': 'Moquillo',
+    'hepatitis': 'Hepatitis',
+    'leucemia': 'Leucemia',
+    'otra': 'Otra'
+  };
+
+  // Convertir valor técnico a nombre formateado
+  getNombreVacuna(value: string): string {
+    if (!value) return 'N/A';
+    
+    // Intentar obtener del mapa
+    if (this.tiposVacunasMap[value]) {
+      return this.tiposVacunasMap[value];
+    }
+    
+    // Si no está en el mapa, formatear el valor
+    // Reemplazar guiones bajos por espacios y capitalizar cada palabra
+    return value
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   getVacunaColor(tipo: string): string {
     switch (tipo) {
       case 'quintuple':
         return '#4caf50';
-      case 'sextule':
+      case 'sextuple':
         return '#2196f3';
       case 'antirrabica':
         return '#ff9800';
@@ -293,6 +416,7 @@ export class VacunasComponent implements OnInit {
       case 'triple_felina':
         return '#9c27b0';
       case 'leucemia':
+      case 'leucemia_felina':
         return '#00bcd4';
       case 'parvovirus':
         return '#795548';
@@ -300,6 +424,12 @@ export class VacunasComponent implements OnInit {
         return '#607d8b';
       case 'hepatitis':
         return '#e91e63';
+      case 'puppy':
+        return '#673ab7';
+      case 'bordetella':
+        return '#009688';
+      case 'giardia':
+        return '#ff5722';
       default:
         return '#666';
     }

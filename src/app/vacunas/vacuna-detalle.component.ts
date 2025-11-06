@@ -7,6 +7,24 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
   styleUrls: ['./vacuna-detalle.component.css']
 })
 export class VacunaDetalleComponent {
+  // Mapa de tipos de vacunas para conversión rápida
+  private tiposVacunasMap: { [key: string]: string } = {
+    'puppy': 'Puppy',
+    'quintuple': 'Quíntuple',
+    'sextuple': 'Séxtuple',
+    'triple_felina': 'Triple Felina',
+    'antirrabica': 'Antirrábica',
+    'bordetella': 'Bordetella',
+    'leucemia_felina': 'Leucemia Felina',
+    'giardia': 'Giardia',
+    'coronavirus': 'Coronavirus',
+    'parvovirus': 'Parvovirus',
+    'moquillo': 'Moquillo',
+    'hepatitis': 'Hepatitis',
+    'leucemia': 'Leucemia',
+    'otra': 'Otra'
+  };
+
   constructor(
     public dialogRef: MatDialogRef<VacunaDetalleComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
@@ -14,6 +32,24 @@ export class VacunaDetalleComponent {
 
   cerrar() {
     this.dialogRef.close();
+  }
+
+  // Convertir valor técnico a nombre formateado
+  getNombreVacuna(value: string): string {
+    if (!value) return 'N/A';
+    
+    // Intentar obtener del mapa
+    if (this.tiposVacunasMap[value]) {
+      return this.tiposVacunasMap[value];
+    }
+    
+    // Si no está en el mapa, formatear el valor
+    // Reemplazar guiones bajos por espacios y capitalizar cada palabra
+    return value
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   getVacunaIcono(tipo: string): string {

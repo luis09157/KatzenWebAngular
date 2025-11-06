@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-seleccionar-cliente-vacuna-dialog',
@@ -39,12 +40,28 @@ export class SeleccionarClienteVacunaDialogComponent implements OnInit {
         this.clientesFiltrados = [...this.clientes];
         console.log('✅ Clientes cargados:', this.clientes.length);
         this.loading = false;
+        
+        if (this.clientes.length === 0) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Sin Clientes',
+            text: 'No hay clientes registrados. Por favor, registra un cliente primero.',
+            confirmButtonText: 'Entendido'
+          });
+        }
       },
       error: (error) => {
         console.error('❌ Error al cargar clientes:', error);
         this.clientes = [];
         this.clientesFiltrados = [];
         this.loading = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al Cargar Clientes',
+          text: 'No se pudieron cargar los clientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }
@@ -64,11 +81,36 @@ export class SeleccionarClienteVacunaDialogComponent implements OnInit {
         );
         console.log('✅ Pacientes activos cargados para cliente', clienteId, ':', this.pacientes.length);
         this.loading = false;
+        
+        if (this.pacientes.length === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sin Pacientes Activos',
+            html: `
+              <p>Este cliente no tiene pacientes activos registrados.</p>
+              <p class="text-muted">Solo se pueden registrar vacunas para pacientes activos.</p>
+            `,
+            confirmButtonText: 'Entendido',
+            showCancelButton: true,
+            cancelButtonText: 'Volver'
+          }).then((result) => {
+            if (result.isDismissed) {
+              this.retroceder();
+            }
+          });
+        }
       },
       error: (error) => {
         console.error('❌ Error al cargar pacientes:', error);
         this.pacientes = [];
         this.loading = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al Cargar Pacientes',
+          text: 'No se pudieron cargar los pacientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }
@@ -111,6 +153,21 @@ export class SeleccionarClienteVacunaDialogComponent implements OnInit {
     // Validar que el paciente esté activo
     if (paciente.activo === false || paciente.estado === 'Fallecido' || paciente.estado === 'fallecido') {
       console.log('❌ No se puede crear vacuna para paciente inactivo o fallecido:', paciente.nombre);
+      
+      const razon = paciente.estado === 'Fallecido' || paciente.estado === 'fallecido' 
+        ? 'ha fallecido' 
+        : 'está inactivo';
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Paciente No Disponible',
+        html: `
+          <p>No se puede registrar una vacuna para <strong>${paciente.nombre}</strong></p>
+          <p class="text-danger">El paciente ${razon}</p>
+          <p class="text-muted">Solo se pueden registrar vacunas para pacientes activos.</p>
+        `,
+        confirmButtonText: 'Entendido'
+      });
       return;
     }
     
@@ -125,6 +182,20 @@ export class SeleccionarClienteVacunaDialogComponent implements OnInit {
           this.pacienteSeleccionado.estado === 'Fallecido' || 
           this.pacienteSeleccionado.estado === 'fallecido') {
         console.log('❌ No se puede crear vacuna para paciente inactivo o fallecido:', this.pacienteSeleccionado.nombre);
+        
+        const razon = this.pacienteSeleccionado.estado === 'Fallecido' || this.pacienteSeleccionado.estado === 'fallecido' 
+          ? 'ha fallecido' 
+          : 'está inactivo';
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Paciente No Disponible',
+          html: `
+            <p>No se puede registrar una vacuna para <strong>${this.pacienteSeleccionado.nombre}</strong></p>
+            <p class="text-danger">El paciente ${razon}</p>
+          `,
+          confirmButtonText: 'Entendido'
+        });
         return;
       }
       

@@ -254,6 +254,7 @@ export class DashboardComponent implements OnInit {
       case 'pacientes': return 'Pacientes';
       case 'citas': return 'Citas';
       case 'historiales': return 'Historiales';
+      case 'inventario': return 'Inventario';
       default: return '';
     }
   }

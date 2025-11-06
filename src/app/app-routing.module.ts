@@ -30,6 +30,7 @@ const routes: Routes = [
       { path: 'recordatorios', loadChildren: () => import('./recordatorios/recordatorios.module').then(m => m.RecordatoriosModule) },
       { path: 'vacunas', loadChildren: () => import('./vacunas/vacunas.module').then(m => m.VacunasModule) },
       { path: 'banios', loadChildren: () => import('./banios/banios.module').then(m => m.BaniosModule) },
+      { path: 'inventario', loadChildren: () => import('./inventario/inventario.module').then(m => m.InventarioModule) },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

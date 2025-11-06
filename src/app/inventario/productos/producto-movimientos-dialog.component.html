@@ -1,0 +1,133 @@
+<h2 mat-dialog-title>
+  <mat-icon>history</mat-icon>
+  Historial de Movimientos
+</h2>
+
+<mat-dialog-content>
+  <!-- Info del Producto -->
+  <div class="producto-header">
+    <div class="producto-info">
+      <h3>{{producto.nombre}}</h3>
+      <p>{{producto.marca}} - {{producto.presentacion}}</p>
+      <p class="codigo">Código: {{producto.codigo_barras}}</p>
+    </div>
+    <div class="stock-actual">
+      <span class="label">Stock Actual</span>
+      <span class="valor">{{producto.stock_actual}} {{producto.unidad_medida}}</span>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Estadísticas -->
+  <div class="estadisticas-grid" *ngIf="!loading && movimientos.length > 0">
+    <div class="stat-card total">
+      <mat-icon>swap_vert</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Total Movimientos</span>
+        <span class="stat-value">{{getEstadisticas().totalMovimientos}}</span>
+      </div>
+    </div>
+
+    <div class="stat-card entrada">
+      <mat-icon>arrow_downward</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Entradas</span>
+        <span class="stat-value">{{getEstadisticas().entradas.cantidad}}</span>
+        <span class="stat-sub">({{getEstadisticas().entradas.unidades}} unidades)</span>
+      </div>
+    </div>
+
+    <div class="stat-card salida">
+      <mat-icon>arrow_upward</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Salidas</span>
+        <span class="stat-value">{{getEstadisticas().salidas.cantidad}}</span>
+        <span class="stat-sub">({{getEstadisticas().salidas.unidades}} unidades)</span>
+      </div>
+    </div>
+
+    <div class="stat-card ajuste">
+      <mat-icon>tune</mat-icon>
+      <div class="stat-content">
+        <span class="stat-label">Ajustes</span>
+        <span class="stat-value">{{getEstadisticas().ajustes.cantidad}}</span>
+        <span class="stat-sub">({{getEstadisticas().ajustes.unidades}} unidades)</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Filtro -->
+  <div class="filtro-section">
+    <mat-form-field appearance="outline">
+      <mat-label>Filtrar por tipo</mat-label>
+      <mat-select [(ngModel)]="filtroTipo">
+        <mat-option *ngFor="let tipo of tiposMovimiento" [value]="tipo.valor">
+          {{tipo.etiqueta}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Tabla de Movimientos -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando movimientos...</p>
+  </div>
+
+  <div *ngIf="!loading && movimientosFiltrados.length > 0" class="movimientos-lista">
+    <div class="movimiento-item" *ngFor="let movimiento of movimientosFiltrados"
+         [style.border-left-color]="getTipoColor(movimiento.tipo)">
+      <div class="movimiento-header">
+        <div class="tipo-badge" [style.background-color]="getTipoColor(movimiento.tipo)">
+          <mat-icon>{{getTipoIcono(movimiento.tipo)}}</mat-icon>
+          <span>{{getTipoTexto(movimiento.tipo)}}</span>
+        </div>
+        <span class="fecha">{{formatearFecha(movimiento.created_at)}}</span>
+      </div>
+
+      <div class="movimiento-body">
+        <div class="cantidad-info">
+          <div class="cantidad-badge" [style.color]="getTipoColor(movimiento.tipo)">
+            <strong>{{movimiento.cantidad}}</strong> {{producto.unidad_medida}}
+          </div>
+          <div class="stock-change">
+            <span class="stock-label">Stock:</span>
+            <span class="stock-valor">{{movimiento.cantidad_anterior}}</span>
+            <mat-icon>arrow_forward</mat-icon>
+            <span class="stock-valor new">{{movimiento.cantidad_nueva}}</span>
+          </div>
+        </div>
+
+        <div class="motivo-info" *ngIf="movimiento.motivo">
+          <mat-icon>label</mat-icon>
+          <span>{{movimiento.motivo}}</span>
+        </div>
+
+        <div class="observaciones-info" *ngIf="movimiento.observaciones">
+          <mat-icon>notes</mat-icon>
+          <span>{{movimiento.observaciones}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && movimientos.length === 0" class="no-data">
+    <mat-icon>inbox</mat-icon>
+    <p>No hay movimientos registrados para este producto</p>
+  </div>
+
+  <div *ngIf="!loading && movimientos.length > 0 && movimientosFiltrados.length === 0" class="no-data">
+    <mat-icon>filter_alt</mat-icon>
+    <p>No hay movimientos del tipo seleccionado</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cerrar()">
+    Cerrar
+  </button>
+</mat-dialog-actions>
+

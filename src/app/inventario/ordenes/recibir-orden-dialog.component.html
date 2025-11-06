@@ -1,0 +1,82 @@
+<h2 mat-dialog-title>
+  <mat-icon>inventory</mat-icon>
+  Recibir Orden: {{orden.folio}}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="recibirForm" class="recibir-form">
+    <!-- Información -->
+    <div class="info-section">
+      <div class="info-item">
+        <span class="label">Fecha:</span>
+        <span class="value">{{orden.fecha_orden | date:'medium'}}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Estado:</span>
+        <span class="value">{{orden.estado}}</span>
+      </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="productos-section">
+      <div class="section-header">
+        <h3>Productos</h3>
+        <button mat-stroked-button type="button" (click)="recibirTodo()">
+          <mat-icon>done_all</mat-icon>
+          Recibir Todo
+        </button>
+      </div>
+
+      <div formArrayName="productos" class="productos-lista">
+        <div *ngFor="let producto of productosArray.controls; let i = index" 
+             [formGroupName]="i" class="producto-item">
+          <div class="producto-header">
+            <strong>{{getProductoNombre(producto.get('producto_id')?.value)}}</strong>
+            <span class="presentacion">{{getProductoPresentacion(producto.get('producto_id')?.value)}}</span>
+          </div>
+
+          <div class="producto-cantidades">
+            <div class="cantidad-info">
+              <span class="label">Solicitado:</span>
+              <span class="valor">{{producto.get('cantidad_solicitada')?.value}}</span>
+            </div>
+            <div class="cantidad-info">
+              <span class="label">Recibido:</span>
+              <span class="valor">{{producto.get('cantidad_recibida')?.value}}</span>
+            </div>
+            <div class="cantidad-info pendiente">
+              <span class="label">Pendiente:</span>
+              <span class="valor">
+                {{producto.get('cantidad_solicitada')?.value - producto.get('cantidad_recibida')?.value}}
+              </span>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="cantidad-recibir">
+            <mat-label>Cantidad a Recibir</mat-label>
+            <input matInput type="number" formControlName="cantidad_a_recibir" 
+                   [max]="producto.get('cantidad_solicitada')?.value - producto.get('cantidad_recibida')?.value"
+                   min="0">
+            <span matTextSuffix>{{getProductoUnidad(producto.get('producto_id')?.value)}}</span>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Observaciones</mat-label>
+      <textarea matInput formControlName="observaciones" rows="2"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading">
+    <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
+    <mat-icon *ngIf="!loading">done</mat-icon>
+    {{loading ? 'Recibiendo...' : 'Confirmar Recepción'}}
+  </button>
+</mat-dialog-actions>
+
