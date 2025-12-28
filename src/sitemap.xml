@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Página Principal / Landing -->
+  <url>
+    <loc>https://katzen-a0e3e.web.app/</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://katzen-a0e3e.web.app/assets/og-image.jpg</image:loc>
+      <image:title>KatzenVet - Clínica Veterinaria en Guadalupe</image:title>
+      <image:caption>Clínica veterinaria con +10 años de experiencia</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Sección de Servicios -->
+  <url>
+    <loc>https://katzen-a0e3e.web.app/#servicios</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Sección de Equipo Médico -->
+  <url>
+    <loc>https://katzen-a0e3e.web.app/#equipo</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Sección de Contacto -->
+  <url>
+    <loc>https://katzen-a0e3e.web.app/#contacto</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Aviso de Privacidad -->
+  <url>
+    <loc>https://katzen-a0e3e.web.app/privacidad</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
+

@@ -33,11 +33,11 @@
       </div>
       
       <h1 class="hero-title">
-        Cuidamos a tus mascotas con amor y tecnología
+        Clínica Veterinaria en Guadalupe, N.L. | Atención 24/7 para tu Mascota
       </h1>
       
       <p class="hero-subtitle">
-        Más de una década de experiencia en medicina veterinaria, ofreciendo atención integral y personalizada para perros y gatos con la más avanzada tecnología médica.
+        <strong>+10 años de experiencia</strong> en medicina veterinaria en Guadalupe, Monterrey. Consultas, vacunas, cirugías, laboratorio y <strong>emergencias veterinarias 24/7</strong>. Tu clínica veterinaria de confianza cerca de ti.
       </p>
       
       <div class="hero-actions">
@@ -74,12 +74,36 @@
   </div>
 </section>
 
-<!-- ===== SERVICIOS SECTION ===== -->
-<section id="servicios" class="services">
+<!-- ===== POR QUÉ ELEGIRNOS SECTION ===== -->
+<section id="por-que-elegirnos" class="why-choose-us" aria-labelledby="why-title">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Nuestros Servicios</h2>
-      <p class="section-subtitle">Ofrecemos una amplia gama de servicios veterinarios para mantener a tu mascota saludable y feliz</p>
+      <h2 id="why-title" class="section-title">¿Por Qué Elegir KatzenVet?</h2>
+      <p class="section-subtitle">Razones por las que somos la mejor opción para el cuidado de tu mascota</p>
+    </div>
+    
+    <div class="why-grid">
+      <mat-card class="why-card" *ngFor="let item of porQueElegirnos">
+        <div class="why-icon-container" [style.background-color]="item.color">
+          <mat-icon class="why-icon">{{item.icon}}</mat-icon>
+        </div>
+        <h3 class="why-title">{{item.titulo}}</h3>
+        <p class="why-description">{{item.descripcion}}</p>
+        <div class="why-stats" [style.color]="item.color">
+          <mat-icon class="stats-icon">check_circle</mat-icon>
+          <span>{{item.stats}}</span>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICIOS SECTION ===== -->
+<section id="servicios" class="services" aria-labelledby="servicios-title">
+  <div class="container">
+    <div class="section-header">
+      <h2 id="servicios-title" class="section-title">Servicios Veterinarios en Guadalupe, Nuevo León</h2>
+      <p class="section-subtitle">Clínica veterinaria integral con consultas, vacunas, cirugías, laboratorio, desparasitación y emergencias 24 horas. Atención médica especializada para perros y gatos.</p>
     </div>
     
     <div class="services-grid">
@@ -127,18 +151,118 @@
   </div>
 </section>
 
-<!-- ===== EQUIPO SECTION ===== -->
-<section id="equipo" class="team">
+<!-- ===== TESTIMONIOS SECTION ===== -->
+<section id="testimonios" class="testimonials" aria-labelledby="testimonios-title">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Nuestro Equipo Médico</h2>
-      <p class="section-subtitle">Profesionales altamente calificados comprometidos con la salud y bienestar de tu mascota</p>
+      <div class="google-badge">
+        <mat-icon class="google-icon">star</mat-icon>
+        <span class="rating-number">4.9</span>
+        <div class="stars">
+          <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star-icon">star</mat-icon>
+        </div>
+        <span class="review-count">24 reseñas en Google</span>
+      </div>
+      
+      <h2 id="testimonios-title" class="section-title">Lo Que Dicen Nuestros Clientes</h2>
+      <p class="section-subtitle">Testimonios reales de clientes satisfechos con el cuidado de sus mascotas en KatzenVet</p>
+    </div>
+    
+    <div class="testimonials-grid">
+      <mat-card class="testimonial-card" *ngFor="let testimonio of testimonios">
+        <div class="testimonial-header">
+          <img [src]="testimonio.avatar" [alt]="testimonio.nombre" class="testimonial-avatar" loading="lazy">
+          <div class="testimonial-info">
+            <h3 class="testimonial-name">{{testimonio.nombre}}</h3>
+            <div class="testimonial-location">
+              <mat-icon class="location-icon">location_on</mat-icon>
+              <span>{{testimonio.ubicacion}}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-rating">
+          <mat-icon *ngFor="let star of [1,2,3,4,5]" class="rating-star">star</mat-icon>
+          <span class="testimonial-date">{{testimonio.fecha}}</span>
+        </div>
+        
+        <p class="testimonial-text">"{{testimonio.testimonio}}"</p>
+        
+        <div class="testimonial-footer">
+          <mat-icon class="google-verified">verified</mat-icon>
+          <span>Verificado en Google</span>
+        </div>
+      </mat-card>
+    </div>
+    
+    <div class="testimonials-cta">
+      <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
+         target="_blank" 
+         rel="noopener noreferrer"
+         class="google-reviews-button"
+         mat-raised-button
+         color="primary">
+        <mat-icon>rate_review</mat-icon>
+        Ver Todas las Reseñas en Google
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ SECTION ===== -->
+<section id="faq" class="faq-section" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="section-header">
+      <mat-icon class="faq-header-icon">help_outline</mat-icon>
+      <h2 id="faq-title" class="section-title">Preguntas Frecuentes</h2>
+      <p class="section-subtitle">Resolvemos tus dudas más comunes sobre nuestros servicios veterinarios</p>
+    </div>
+    
+    <div class="faq-container">
+      <mat-card class="faq-item" *ngFor="let faq of faqs; let i = index" 
+                [class.expanded]="faq.expanded">
+        <div class="faq-question" (click)="toggleFaq(i)">
+          <div class="faq-question-content">
+            <mat-icon class="faq-icon">{{faq.icon}}</mat-icon>
+            <h3>{{faq.pregunta}}</h3>
+          </div>
+          <mat-icon class="faq-toggle-icon" [class.rotated]="faq.expanded">
+            expand_more
+          </mat-icon>
+        </div>
+        <div class="faq-answer" [@expandCollapse]="faq.expanded ? 'expanded' : 'collapsed'">
+          <p>{{faq.respuesta}}</p>
+        </div>
+      </mat-card>
+    </div>
+    
+    <div class="faq-footer">
+      <p class="faq-footer-text">¿No encuentras tu respuesta?</p>
+      <a href="https://wa.me/528136024090?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20sus%20servicios"
+         target="_blank"
+         rel="noopener noreferrer"
+         mat-raised-button
+         color="primary"
+         class="faq-contact-button">
+        <mat-icon>chat</mat-icon>
+        Contáctanos por WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EQUIPO SECTION ===== -->
+<section id="equipo" class="team" aria-labelledby="equipo-title">
+  <div class="container">
+    <div class="section-header">
+      <h2 id="equipo-title" class="section-title">Veterinarios Certificados en Guadalupe | Equipo Médico Especializado</h2>
+      <p class="section-subtitle">Médicos veterinarios con más de 10 años de experiencia, certificados en medicina general, cirugía y emergencias. Especialistas en perros y gatos con tecnología de punta.</p>
     </div>
     
     <div class="team-grid">
-      <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico">
+      <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico" itemscope itemtype="https://schema.org/Person">
         <div class="doctor-image-container">
-          <img [src]="doctor.imagen" [alt]="doctor.altText" class="doctor-image">
+          <img [src]="doctor.imagen" [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'" class="doctor-image" loading="lazy" itemprop="image">
         </div>
         
         <div class="doctor-info">
@@ -162,12 +286,113 @@
   </div>
 </section>
 
-<!-- ===== CONTACTO SECTION ===== -->
-<section id="contacto" class="contact">
+<!-- ===== UBICACIÓN/MAPA SECTION ===== -->
+<section id="ubicacion" class="location-map" aria-labelledby="ubicacion-title">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Contáctanos</h2>
-      <p class="section-subtitle">Estamos aquí para ayudarte. Agenda tu cita o envíanos un mensaje</p>
+      <mat-icon class="location-header-icon">location_on</mat-icon>
+      <h2 id="ubicacion-title" class="section-title">Nuestra Ubicación</h2>
+      <p class="section-subtitle">Clínica Veterinaria en Guadalupe, Nuevo León | Fácil acceso y estacionamiento gratuito</p>
+    </div>
+    
+    <div class="location-content">
+      <div class="location-info-card">
+        <mat-card>
+          <div class="location-details">
+            <div class="location-detail-item">
+              <mat-icon class="detail-icon">place</mat-icon>
+              <div class="detail-content">
+                <h3>Dirección</h3>
+                <p>C. Zinc 318, Los Cristales 1er Sector<br>Guadalupe, Nuevo León, 67117</p>
+              </div>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="location-detail-item">
+              <mat-icon class="detail-icon">schedule</mat-icon>
+              <div class="detail-content">
+                <h3>Horarios de Atención</h3>
+                <div class="horarios-list">
+                  <div class="horario-item" *ngFor="let horario of horarios">
+                    <span class="dia">{{horario.dia}}</span>
+                    <span class="hora">{{horario.horario}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="location-detail-item">
+              <mat-icon class="detail-icon">phone</mat-icon>
+              <div class="detail-content">
+                <h3>Contacto</h3>
+                <a href="tel:+528136024090" class="phone-link">81 3602 4090</a>
+                <a href="https://wa.me/528136024090" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                  <mat-icon>chat</mat-icon>
+                  WhatsApp
+                </a>
+              </div>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="location-detail-item">
+              <mat-icon class="detail-icon">directions_car</mat-icon>
+              <div class="detail-content">
+                <h3>Estacionamiento</h3>
+                <p>Estacionamiento gratuito disponible</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="location-actions">
+            <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               mat-raised-button 
+               color="primary"
+               class="directions-button">
+              <mat-icon>directions</mat-icon>
+              Cómo Llegar
+            </a>
+            
+            <a href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita"
+               target="_blank"
+               rel="noopener noreferrer"
+               mat-stroked-button
+               color="primary"
+               class="appointment-button">
+              <mat-icon>event</mat-icon>
+              Agendar Cita
+            </a>
+          </div>
+        </mat-card>
+      </div>
+      
+      <div class="map-container">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3595.8234567890123!2d-100.258923!3d25.682458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8662954321fedcba%3A0x1234567890abcdef!2sC.%20Zinc%20318%2C%20Los%20Cristales%201er%20Sector%2C%2067117%20Guadalupe%2C%20N.L.!5e0!3m2!1ses!2smx!4v1234567890123!5m2!1ses!2smx"
+          width="100%" 
+          height="100%" 
+          style="border:0;" 
+          allowfullscreen="" 
+          loading="lazy" 
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Ubicación de KatzenVet - Clínica Veterinaria en Guadalupe">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACTO SECTION ===== -->
+<section id="contacto" class="contact" aria-labelledby="contacto-title">
+  <div class="container">
+    <div class="section-header">
+      <h2 id="contacto-title" class="section-title">Contacto | Agenda tu Cita en Clínica Veterinaria Katzen</h2>
+      <p class="section-subtitle">📍 C. Zinc 318, Los Cristales, Guadalupe, N.L. | ☎ 81 3602 4090 | WhatsApp 24/7 | Emergencias veterinarias | Abierto Lunes a Sábado</p>
     </div>
     
     <div class="contact-content">
@@ -270,6 +495,33 @@
     </div>
   </div>
 </section>
+
+<!-- ===== URGENCIA VISUAL (Escasez) ===== -->
+<div class="urgency-banner" *ngIf="showUrgencyBanner">
+  <div class="urgency-content">
+    <mat-icon class="urgency-icon">schedule</mat-icon>
+    <div class="urgency-text">
+      <strong>¡Solo quedan {{citasDisponibles}} citas disponibles hoy!</strong>
+      <span>Agenda antes de que se acaben</span>
+    </div>
+    <button mat-icon-button class="urgency-close" (click)="closeUrgencyBanner()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<!-- ===== WHATSAPP FLOTANTE MEJORADO ===== -->
+<a href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita%20para%20mi%20mascota"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="whatsapp-float"
+   (click)="trackWhatsApp('floating')"
+   aria-label="Contactar por WhatsApp">
+  <mat-icon class="whatsapp-icon">phone</mat-icon>
+  <span class="whatsapp-text">WhatsApp</span>
+  <div class="whatsapp-badge">¡Rápido!</div>
+  <div class="whatsapp-pulse"></div>
+</a>
 
 <!-- ===== FOOTER ===== -->
 <footer class="footer">

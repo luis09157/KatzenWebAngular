@@ -1,0 +1,44 @@
+# KatzenVet - Clínica Veterinaria
+# robots.txt - Optimizado para SEO
+
+User-agent: *
+Allow: /
+
+# Archivos principales
+Allow: /index.html
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.svg
+Allow: /*.jpg
+Allow: /*.png
+Allow: /*.webp
+
+# Bloquear archivos innecesarios
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /private/
+
+# Sitemap
+Sitemap: https://katzen-a0e3e.web.app/sitemap.xml
+
+# Rastreadores específicos
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /assets/
+
+User-agent: Bingbot
+Allow: /
+
+# Frecuencia de rastreo (opcional)
+Crawl-delay: 1
+
+# Meta información
+# Website: https://katzen-a0e3e.web.app
+# Contact: info@katzenvet.com
+# Telephone: +52 81 3602 4090
+# Address: C. Zinc 318, Los Cristales 1er Sector, 67117 Guadalupe, N.L., México
+
