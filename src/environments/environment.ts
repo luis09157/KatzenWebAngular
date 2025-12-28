@@ -9,5 +9,7 @@ export const environment = {
     messagingSenderId: "262209452533",
     appId: "1:262209452533:web:ba8966a907d98bc2d3c8bc",
     measurementId: "G-4PW9MGJ7XS"
-  }
+  },
+  // App Check - reCAPTCHA
+  recaptchaSiteKey: '6LdQ-jgsAAAAAPwzjmTm2U-WyZuL96S3Em4wEACA'
 }; 

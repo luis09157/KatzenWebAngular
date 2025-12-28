@@ -1,0 +1,98 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    
+    "Katzen": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      
+      "Clientes": {
+        "$clienteId": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['nombre', 'telefono'])"
+        }
+      },
+      
+      "Pacientes": {
+        "$pacienteId": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['nombre', 'especie', 'cliente_id'])"
+        }
+      },
+      
+      "Historiales_Clinicos": {
+        "$historialId": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['diagnostico_presuntivo', 'fecha_registro', 'paciente_id'])"
+        }
+      },
+      
+      "Usuarios": {
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "auth != null && (auth.uid == $userId || root.child('Usuarios').child(auth.uid).child('perfil').val() == 'Administrador')"
+        }
+      },
+      
+      "Citas": {
+        "$citaId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      
+      "Recordatorios": {
+        "$recordatorioId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      
+      "Vacunas": {
+        "$vacunaId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      
+      "Banios": {
+        "$banioId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      
+      "Inventario": {
+        "Productos": {
+          "$productoId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        },
+        "Movimientos": {
+          "$movimientoId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        },
+        "Proveedores": {
+          "$proveedorId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        },
+        "Alertas": {
+          "$alertaId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        }
+      }
+    }
+  }
+}
+

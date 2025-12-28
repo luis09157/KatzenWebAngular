@@ -19,5 +19,7 @@ export const environment = {
     enableDebug: false,
     maxFileSize: 10 * 1024 * 1024, // 10MB
     maxFilesPerHistorial: 5
-  }
+  },
+  // App Check - reCAPTCHA
+  recaptchaSiteKey: '6LdQ-jgsAAAAAPwzjmTm2U-WyZuL96S3Em4wEACA'
 }; 

@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Por defecto, denegar todo
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    // Historiales clínicos - solo usuarios autenticados
+    match /historiales_clinicos/{pacienteId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024  // máximo 10MB
+                   && request.resource.contentType.matches('image/.*|application/pdf');
+      allow delete: if request.auth != null;
+    }
+    
+    // Imágenes de pacientes
+    match /pacientes/{pacienteId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024  // máximo 5MB
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
+    }
+    
+    // Documentos de clientes
+    match /clientes/{clienteId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if request.auth != null;
+    }
+  }
+}
+
