@@ -15,9 +15,14 @@ export class HistorialesService {
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
-            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
+            const fechaA = a.fecha_registro || a.created_at || '0';
+            const fechaB = b.fecha_registro || b.created_at || '0';
+            
+            // Orden descendente: más reciente primero
+            if (fechaB > fechaA) return 1;
+            if (fechaB < fechaA) return -1;
+            return 0;
           })
       ),
       catchError(error => {
@@ -37,15 +42,20 @@ export class HistorialesService {
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.paciente_id === pacienteId && h.activo !== false)
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
-            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
+            // Este formato se ordena correctamente alfabéticamente
+            const fechaA = a.fecha_registro || a.created_at || '0';
+            const fechaB = b.fecha_registro || b.created_at || '0';
+            
+            // Orden descendente: más reciente primero
+            if (fechaB > fechaA) return 1;
+            if (fechaB < fechaA) return -1;
+            return 0;
           });
         
-        console.log('📋 Historiales filtrados para paciente:', pacienteId, historiales);
-        
-        historiales.forEach(h => {
-          console.log('🔍 Historial ID:', h.id, 'Diagnóstico:', h.diagnostico_presuntivo);
+        console.log('📋 Historiales ordenados para paciente:', pacienteId);
+        historiales.forEach((h, index) => {
+          console.log(`  ${index + 1}. ${h.fecha_registro} - ${h.diagnostico_presuntivo}`);
         });
         
         return historiales;
@@ -77,7 +87,8 @@ export class HistorialesService {
         ...historial,
         created_at: timestamp,
         updated_at: timestamp,
-        fecha_registro: timestamp,
+        // Usar la fecha_registro que viene del formulario si existe, sino usar el timestamp
+        fecha_registro: historial.fecha_registro || timestamp,
         activo: true
       };
 
@@ -157,9 +168,14 @@ export class HistorialesService {
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.activo !== false)
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
-            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
+            const fechaA = a.fecha_registro || a.created_at || '0';
+            const fechaB = b.fecha_registro || b.created_at || '0';
+            
+            // Orden descendente: más reciente primero
+            if (fechaB > fechaA) return 1;
+            if (fechaB < fechaA) return -1;
+            return 0;
           })
       ),
       catchError(error => {
@@ -177,9 +193,14 @@ export class HistorialesService {
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(h => h.activo === false)
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
-            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
+            const fechaA = a.fecha_registro || a.created_at || '0';
+            const fechaB = b.fecha_registro || b.created_at || '0';
+            
+            // Orden descendente: más reciente primero
+            if (fechaB > fechaA) return 1;
+            if (fechaB < fechaA) return -1;
+            return 0;
           })
       ),
       catchError(error => {
@@ -207,9 +228,14 @@ export class HistorialesService {
             (h.medico_atendio && h.medico_atendio.toLowerCase().includes(texto.toLowerCase()))
           )
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_registro || a.created_at || 0);
-            const fechaB = new Date(b.fecha_registro || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
+            const fechaA = a.fecha_registro || a.created_at || '0';
+            const fechaB = b.fecha_registro || b.created_at || '0';
+            
+            // Orden descendente: más reciente primero
+            if (fechaB > fechaA) return 1;
+            if (fechaB < fechaA) return -1;
+            return 0;
           })
       ),
       catchError(error => {

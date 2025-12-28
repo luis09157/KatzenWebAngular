@@ -804,4 +804,24 @@ mat-option:hover {
 /* Spinner en las opciones */
 mat-option mat-spinner {
   margin-right: 8px;
+}
+
+/* Estilos para los selectores de hora y minuto */
+.mat-form-field-prefix mat-icon {
+  color: #667eea;
+  margin-right: 8px;
+}
+
+/* Ajuste para el mat-select de hora y minuto */
+mat-select[formControlName="hora"],
+mat-select[formControlName="minuto"] {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Opciones del dropdown de hora/minuto */
+.mat-select-panel .mat-option {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
 } 

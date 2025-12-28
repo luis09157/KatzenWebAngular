@@ -28,6 +28,10 @@ export class HistorialDialogComponent implements OnInit {
   // Lista de doctores
   doctores: any[] = [];
   cargandoDoctores = false;
+  
+  // Opciones para hora y minuto
+  horas: number[] = Array.from({ length: 24 }, (_, i) => i);
+  minutos: number[] = Array.from({ length: 60 }, (_, i) => i);
 
   constructor(
     private fb: FormBuilder,
@@ -38,6 +42,7 @@ export class HistorialDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<HistorialDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    const ahora = new Date();
     this.historialForm = this.fb.group({
       // Campos principales (requeridos)
       historia_clinica: ['', Validators.required],
@@ -58,6 +63,11 @@ export class HistorialDialogComponent implements OnInit {
       
       // Información del médico
       medico_atendio: ['', Validators.required],
+      
+      // Fecha y hora del historial (requeridas)
+      fecha_registro: [ahora, Validators.required],
+      hora: [ahora.getHours(), Validators.required],
+      minuto: [ahora.getMinutes(), Validators.required],
       
       // ID del paciente
       paciente_id: ['', Validators.required]
@@ -97,6 +107,39 @@ export class HistorialDialogComponent implements OnInit {
         medico_atendio: this.data.historial?.medico_atendio || '',
         paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || ''
       });
+      
+      // Manejar fecha y hora por separado (sin conversión de zona horaria)
+      if (this.data.historial?.fecha_registro) {
+        // Parsear la fecha string manualmente para evitar conversiones de zona horaria
+        const fechaStr = this.data.historial.fecha_registro; // Formato: "YYYY-MM-DD HH:MM:SS"
+        const partes = fechaStr.split(' ');
+        const fechaPartes = partes[0].split('-');
+        const horaPartes = partes[1] ? partes[1].split(':') : ['0', '0', '0'];
+        
+        const año = parseInt(fechaPartes[0], 10);
+        const mes = parseInt(fechaPartes[1], 10) - 1; // Mes es 0-indexed
+        const dia = parseInt(fechaPartes[2], 10);
+        const hora = parseInt(horaPartes[0], 10);
+        const minuto = parseInt(horaPartes[1], 10);
+        
+        // Crear fecha usando la zona horaria local
+        const fechaLocal = new Date(año, mes, dia);
+        
+        console.log('📅 Fecha cargada:', fechaStr, '-> Fecha:', fechaLocal, 'Hora:', hora, 'Minuto:', minuto);
+        
+        this.historialForm.patchValue({
+          fecha_registro: fechaLocal,
+          hora: hora,
+          minuto: minuto
+        });
+      } else {
+        const ahora = new Date();
+        this.historialForm.patchValue({
+          fecha_registro: ahora,
+          hora: ahora.getHours(),
+          minuto: ahora.getMinutes()
+        });
+      }
     }
   }
 
@@ -155,6 +198,28 @@ export class HistorialDialogComponent implements OnInit {
       
       try {
         const historialData = this.historialForm.value;
+        
+        // Combinar fecha con hora y minuto seleccionados (sin conversión de zona horaria)
+        if (historialData.fecha_registro instanceof Date) {
+          const fecha = historialData.fecha_registro;
+          const hora = historialData.hora || 0;
+          const minuto = historialData.minuto || 0;
+          
+          // Construir fecha string directamente sin conversiones de zona horaria
+          const año = fecha.getFullYear();
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const dia = String(fecha.getDate()).padStart(2, '0');
+          const horaStr = String(hora).padStart(2, '0');
+          const minutoStr = String(minuto).padStart(2, '0');
+          
+          historialData.fecha_registro = `${año}-${mes}-${dia} ${horaStr}:${minutoStr}:00`;
+          
+          console.log('📅 Fecha guardada:', historialData.fecha_registro);
+        }
+        
+        // Eliminar los campos temporales de hora y minuto
+        delete historialData.hora;
+        delete historialData.minuto;
         
         // Subir archivos si hay alguno seleccionado (opcional)
         if (this.archivosSeleccionados.length > 0) {

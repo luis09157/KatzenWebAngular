@@ -56,6 +56,58 @@
   <form [formGroup]="historialForm">
     <div class="dialog-content">
       
+      <!-- Sección de Fecha del Historial -->
+      <div class="form-section">
+        <div class="section-header">
+          <mat-icon class="section-icon">event</mat-icon>
+          <h3>Fecha y Hora del Historial</h3>
+          <span class="required-badge">* Requerido</span>
+        </div>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha de registro</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="fecha_registro" 
+                 placeholder="Selecciona la fecha del historial">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-hint>Selecciona la fecha en que se realizó el historial clínico</mat-hint>
+          <mat-error *ngIf="historialForm.get('fecha_registro')?.hasError('required')">
+            <mat-icon>error</mat-icon>
+            La fecha es requerida
+          </mat-error>
+        </mat-form-field>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Hora</mat-label>
+            <mat-select formControlName="hora" placeholder="Selecciona la hora">
+              <mat-option *ngFor="let h of horas" [value]="h">
+                {{ h.toString().padStart(2, '0') }}:00
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>schedule</mat-icon>
+            <mat-error *ngIf="historialForm.get('hora')?.hasError('required')">
+              <mat-icon>error</mat-icon>
+              La hora es requerida
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Minutos</mat-label>
+            <mat-select formControlName="minuto" placeholder="Selecciona los minutos">
+              <mat-option *ngFor="let m of minutos" [value]="m">
+                {{ m.toString().padStart(2, '0') }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>timer</mat-icon>
+            <mat-error *ngIf="historialForm.get('minuto')?.hasError('required')">
+              <mat-icon>error</mat-icon>
+              Los minutos son requeridos
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      
       <!-- Sección de Historia Clínica -->
       <div class="form-section">
         <div class="section-header">
