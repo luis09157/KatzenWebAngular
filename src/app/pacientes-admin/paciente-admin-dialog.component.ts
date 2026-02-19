@@ -8,6 +8,7 @@ import { ClientesService } from '../clientes/clientes.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -42,7 +43,8 @@ export class PacienteAdminDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private clientesService: ClientesService,
     private storage: AngularFireStorage,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private loadingService: LoadingService
   ) {
               this.pacienteForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -287,7 +289,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     
     if (this.pacienteForm.valid) {
       this.loading = true;
-      Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      this.loadingService.show();
 
       try {
         let imageUrl = this.data?.paciente?.imageUrl || this.defaultImageUrl;
@@ -323,14 +325,12 @@ export class PacienteAdminDialogComponent implements OnInit {
         } else {
           console.log('✅ Paciente creado correctamente');
         }
-        Swal.close();
         this.dialogRef.close(pacienteData);
       } catch (error) {
         console.error('❌ Error al procesar el formulario:', error);
-        Swal.close();
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'procesar formulario'), 'error');
       } finally {
-        Swal.close();
+        this.loadingService.hide();
         this.loading = false;
       }
     } else {
