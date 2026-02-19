@@ -1,6 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .vacuna-detalle-dialog {
-  min-width: 600px;
-  max-width: 800px;
+  width: 100%;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .dialog-header {

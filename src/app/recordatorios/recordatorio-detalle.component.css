@@ -1,8 +1,16 @@
-.recordatorio-detalle-dialog {
-  max-width: 800px;
+:host {
+  display: block;
   width: 100%;
+}
+
+.recordatorio-detalle-dialog {
+  width: 100%;
+  max-width: 95vw;
   max-height: 90vh;
+  overflow: hidden;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .dialog-header {
