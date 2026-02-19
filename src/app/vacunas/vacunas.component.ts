@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
@@ -19,11 +19,12 @@ import { LoadingService } from '../core/loading.service';
   templateUrl: './vacunas.component.html',
   styleUrls: ['./vacunas.component.css']
 })
-export class VacunasComponent implements OnInit, OnDestroy {
+export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_vacuna', 'paciente', 'tipo_vacuna', 'estado', 'proxima_dosis', 'veterinario', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
   loading = false;
   estadisticas = {
@@ -49,6 +50,10 @@ export class VacunasComponent implements OnInit, OnDestroy {
       });
       this.cargarVacunas();
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy() {
@@ -86,11 +91,11 @@ export class VacunasComponent implements OnInit, OnDestroy {
             estado: estado
           };
         });
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
         this.calcularEstadisticas(vacunasActivas);
         this.loading = false;
+        setTimeout(() => {
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+        }, 0);
       },
       error: error => {
         this.logger.error('Error al cargar vacunas:', error);

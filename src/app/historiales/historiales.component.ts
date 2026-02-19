@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
 import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -12,21 +12,22 @@ import { MatPaginator } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-historiales',
   templateUrl: './historiales.component.html',
   styleUrls: ['./historiales.component.css']
 })
-export class HistorialesComponent implements OnInit, OnDestroy {
+export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico_presuntivo', 'manejo_terapeutico', 'medico_atendio', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
   estadisticas: any = { total: 0, activos: 0, inactivos: 0 };
   loading = false;
   necesitaMigracion = false;
-  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -35,7 +36,8 @@ export class HistorialesComponent implements OnInit, OnDestroy {
     private clientesService: ClientesService,
     private migrationService: MigrationService,
     private dialog: MatDialog,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -43,6 +45,10 @@ export class HistorialesComponent implements OnInit, OnDestroy {
     this.cargarDatos();
     this.cargarEstadisticas();
     this.verificarMigracion();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
@@ -56,10 +62,10 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (necesita) => {
           this.necesitaMigracion = necesita;
-          console.log('✅ Verificación de migración completada:', necesita);
+          this.logger.log('Verificación de migración completada:', necesita);
         },
         error: (error) => {
-          console.error('❌ Error al verificar migración:', error);
+          this.logger.error('Error al verificar migración:', error);
           this.necesitaMigracion = false;
         }
       });
@@ -93,7 +99,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
         });
         
       } catch (error) {
-        console.error('❌ Error en migración:', error);
+        this.logger.error('Error en migración:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error en Migración',
@@ -116,7 +122,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
           this.cargarHistoriales();
         },
         error: (error) => {
-          console.error('❌ Error al cargar pacientes:', error);
+          this.logger.error('Error al cargar pacientes:', error);
           this.loading = false;
           Swal.fire({
             icon: 'error',
@@ -138,15 +144,13 @@ export class HistorialesComponent implements OnInit, OnDestroy {
             fecha_registro: this.formatearFecha(historial.fecha_registro)
           }));
           
-          if (this.paginator) {
-            this.dataSource.paginator = this.paginator;
-          }
-          
           this.loading = false;
-          console.log('✅ Historiales cargados:', this.dataSource.data.length);
+          setTimeout(() => {
+            if (this.paginator) this.dataSource.paginator = this.paginator;
+          }, 0);
         },
         error: (error) => {
-          console.error('❌ Error al cargar historiales:', error);
+          this.logger.error('Error al cargar historiales:', error);
           this.loading = false;
           Swal.fire({
             icon: 'error',
@@ -163,10 +167,10 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (stats) => {
           this.estadisticas = stats;
-          console.log('✅ Estadísticas cargadas:', stats);
+          this.logger.log('Estadísticas cargadas:', stats);
         },
         error: (error) => {
-          console.error('❌ Error al cargar estadísticas:', error);
+          this.logger.error('Error al cargar estadísticas:', error);
         }
       });
   }
@@ -222,7 +226,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       
       return 'N/P';
     } catch (error) {
-      console.error('Error al formatear fecha:', error);
+      this.logger.error('Error al formatear fecha:', error);
       return 'N/P';
     }
   }
@@ -456,7 +460,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
           }));
         },
         error: (error) => {
-          console.error('❌ Error en búsqueda:', error);
+          this.logger.error('Error en búsqueda:', error);
           Swal.fire({
             icon: 'error',
             title: 'Error en Búsqueda',

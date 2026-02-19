@@ -154,9 +154,9 @@
         </table>
       </div>
 
-      <mat-paginator 
-        [pageSizeOptions]="[10, 25, 50]"
-        [pageSize]="25"
+      <mat-paginator #paginator
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
         showFirstLastButtons>
       </mat-paginator>
     </div>

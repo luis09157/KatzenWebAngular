@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -14,9 +14,10 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
   templateUrl: './proveedores.component.html',
   styleUrls: ['./proveedores.component.css']
 })
-export class ProveedoresComponent implements OnInit {
+export class ProveedoresComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  readonly pageSize = 50;
 
   displayedColumns: string[] = [
     'nombre',
@@ -41,8 +42,11 @@ export class ProveedoresComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Proveedores Component cargado');
     this.cargarProveedores();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   cargarProveedores(): void {
@@ -51,10 +55,11 @@ export class ProveedoresComponent implements OnInit {
       next: (proveedores) => {
         this.proveedores = proveedores;
         this.dataSource.data = proveedores;
-        this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
-        console.log('✅ Proveedores cargados:', proveedores.length);
         this.loading = false;
+        setTimeout(() => {
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+        }, 0);
       },
       error: (error) => {
         console.error('❌ Error al cargar proveedores:', error);

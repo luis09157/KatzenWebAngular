@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
@@ -8,13 +10,15 @@ import { SalidaDialogComponent } from '../movimientos/salida-dialog.component';
 import { AjusteDialogComponent } from '../movimientos/ajuste-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-dashboard-inventario',
   templateUrl: './dashboard-inventario.component.html',
   styleUrls: ['./dashboard-inventario.component.css']
 })
-export class DashboardInventarioComponent implements OnInit {
+export class DashboardInventarioComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   estadisticas: EstadisticasInventario | null = null;
   alertas: Alerta[] = [];
   productosBajoStock: Producto[] = [];
@@ -25,44 +29,40 @@ export class DashboardInventarioComponent implements OnInit {
     private inventarioService: InventarioService,
     private router: Router,
     private dialog: MatDialog,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 Dashboard de Inventario cargado');
+    this.logger.log('Dashboard de Inventario cargado');
     this.cargarDatos();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async cargarDatos(): Promise<void> {
     try {
       this.loading = true;
-      console.log('📊 Cargando datos del dashboard...');
-
-      // Cargar estadísticas
       this.estadisticas = await this.inventarioService.getEstadisticas();
-      console.log('✅ Estadísticas cargadas:', this.estadisticas);
 
-      // Cargar alertas
-      this.inventarioService.getAlertas().subscribe(alertas => {
+      this.inventarioService.getAlertas().pipe(takeUntil(this.destroy$)).subscribe(alertas => {
         this.alertas = alertas;
-        console.log('✅ Alertas cargadas:', alertas.length);
       });
 
-      // Cargar productos bajo stock
-      this.inventarioService.getProductosBajoStock().subscribe(productos => {
+      this.inventarioService.getProductosBajoStock().pipe(takeUntil(this.destroy$)).subscribe(productos => {
         this.productosBajoStock = productos;
-        console.log('✅ Productos bajo stock:', productos.length);
       });
 
-      // Cargar productos por caducar
-      this.inventarioService.getProductosPorCaducar(30).subscribe(productos => {
+      this.inventarioService.getProductosPorCaducar(30).pipe(takeUntil(this.destroy$)).subscribe(productos => {
         this.productosPorCaducar = productos;
-        console.log('✅ Productos por caducar:', productos.length);
       });
 
       this.loading = false;
     } catch (error) {
-      console.error('❌ Error al cargar datos:', error);
+      this.logger.error('Error al cargar datos:', error);
       this.loading = false;
       Swal.fire({
         icon: 'error',
@@ -98,13 +98,11 @@ export class DashboardInventarioComponent implements OnInit {
 
   async resolverAlerta(alerta: Alerta): Promise<void> {
     if (!alerta.id) return;
-    
     try {
       await this.inventarioService.resolverAlerta(alerta.id);
-      console.log('✅ Alerta resuelta');
       this.cargarDatos();
     } catch (error) {
-      console.error('❌ Error al resolver alerta:', error);
+      this.logger.error('Error al resolver alerta:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -114,47 +112,32 @@ export class DashboardInventarioComponent implements OnInit {
   }
 
   registrarEntrada(): void {
-    console.log('📥 Abriendo diálogo de entrada');
     const dialogRef = this.dialog.open(EntradaDialogComponent, {
       width: '700px',
       disableClose: false
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Entrada registrada, recargando datos...');
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
   registrarSalida(): void {
-    console.log('📤 Abriendo diálogo de salida');
     const dialogRef = this.dialog.open(SalidaDialogComponent, {
       width: '700px',
       disableClose: false
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Salida registrada, recargando datos...');
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
   registrarAjuste(): void {
-    console.log('🔧 Abriendo diálogo de ajuste');
     const dialogRef = this.dialog.open(AjusteDialogComponent, {
       width: '700px',
       disableClose: false
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Ajuste registrado, recargando datos...');
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 

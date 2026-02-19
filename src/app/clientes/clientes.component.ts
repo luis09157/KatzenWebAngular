@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ClientesService } from './clientes.service';
@@ -17,11 +17,12 @@ import { LoadingService } from '../core/loading.service';
   templateUrl: './clientes.component.html',
   styleUrls: ['./clientes.component.css']
 })
-export class ClientesComponent implements OnInit, OnDestroy {
+export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'antiguedad', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly pageSize = 50;
   
   // Estadísticas
   totalClientes: number = 0;
@@ -53,14 +54,23 @@ export class ClientesComponent implements OnInit, OnDestroy {
         this.todosLosClientes = (clientes || []).filter((c: { activo?: boolean }) => c.activo !== false);
         this.clientesFiltrados = [...this.todosLosClientes];
         this.dataSource.data = this.clientesFiltrados;
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
         this.calcularEstadisticas(clientes || []);
         this.loading = false;
+        // Enlazar paginador después de que la vista con *ngIf="!loading" se haya renderizado
+        setTimeout(() => {
+          if (this.paginator) {
+            this.dataSource.paginator = this.paginator;
+          }
+        }, 0);
       },
       error: () => { this.loading = false; }
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
   }
 
   ngOnDestroy() {

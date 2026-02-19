@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { UsuariosService } from './usuarios.service';
@@ -14,11 +14,12 @@ import { LoadingService } from '../core/loading.service';
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.css']
 })
-export class UsuariosComponent implements OnInit, OnDestroy {
+export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['nombre', 'correo', 'perfil', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly pageSize = 50;
   loading = false;
   saving = false;
 
@@ -33,13 +34,17 @@ export class UsuariosComponent implements OnInit, OnDestroy {
     this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
       next: usuarios => {
         this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
         this.loading = false;
+        setTimeout(() => {
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+        }, 0);
       },
       error: () => { this.loading = false; }
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy() {

@@ -1,22 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto, Proveedor } from '../../shared/inventario.models';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-entrada-dialog',
   templateUrl: './entrada-dialog.component.html',
   styleUrls: ['./entrada-dialog.component.css']
 })
-export class EntradaDialogComponent implements OnInit {
+export class EntradaDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   entradaForm: FormGroup;
   loading = false;
-  
   productos: Producto[] = [];
   proveedores: Proveedor[] = [];
   productosFiltrados: Observable<Producto[]>;
@@ -26,7 +28,8 @@ export class EntradaDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<EntradaDialogComponent>,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.entradaForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
@@ -48,31 +51,22 @@ export class EntradaDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Entrada Dialog cargado');
     this.cargarDatos();
   }
 
-  cargarDatos(): void {
-    // Cargar productos
-    this.inventarioService.getProductos().subscribe({
-      next: (productos) => {
-        this.productos = productos;
-        console.log('✅ Productos cargados:', productos.length);
-      },
-      error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
-      }
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-    // Cargar proveedores
-    this.inventarioService.getProveedores().subscribe({
-      next: (proveedores) => {
-        this.proveedores = proveedores;
-        console.log('✅ Proveedores cargados:', proveedores.length);
-      },
-      error: (error) => {
-        console.error('❌ Error al cargar proveedores:', error);
-      }
+  cargarDatos(): void {
+    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (productos) => { this.productos = productos; },
+      error: (error) => { this.logger.error('Error al cargar productos:', error); }
+    });
+    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (proveedores) => { this.proveedores = proveedores; },
+      error: (error) => { this.logger.error('Error al cargar proveedores:', error); }
     });
   }
 

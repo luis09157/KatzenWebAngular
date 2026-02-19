@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 /**
- * Servicio de logging. En producción no escribe en consola para evitar fugas de información.
- * En desarrollo reenvía a console.log / warn / error.
+ * Servicio de logging. En producción no escribe log/warn en consola; los errores sí se registran
+ * para monitoreo. En desarrollo reenvía todo a console.log / warn / error.
  */
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
@@ -26,8 +26,12 @@ export class LoggerService {
     }
   }
 
+  /** En producción también se registran errores para monitoreo. */
   error(message?: string, ...optionalParams: unknown[]): void {
-    if (!this.isProduction) {
+    if (this.isProduction) {
+      // eslint-disable-next-line no-console
+      console.error(message, ...optionalParams);
+    } else {
       // eslint-disable-next-line no-console
       console.error(message, ...optionalParams);
     }

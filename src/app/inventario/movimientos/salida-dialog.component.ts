@@ -1,22 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-salida-dialog',
   templateUrl: './salida-dialog.component.html',
   styleUrls: ['./salida-dialog.component.css']
 })
-export class SalidaDialogComponent implements OnInit {
+export class SalidaDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   salidaForm: FormGroup;
   loading = false;
-  
   productos: Producto[] = [];
   productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
@@ -34,7 +36,8 @@ export class SalidaDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<SalidaDialogComponent>,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.salidaForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
@@ -51,19 +54,18 @@ export class SalidaDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Salida Dialog cargado');
     this.cargarProductos();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarProductos(): void {
-    this.inventarioService.getProductos().subscribe({
-      next: (productos) => {
-        this.productos = productos;
-        console.log('✅ Productos cargados:', productos.length);
-      },
-      error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
-      }
+    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (productos) => { this.productos = productos; },
+      error: (error) => { this.logger.error('Error al cargar productos:', error); }
     });
   }
 

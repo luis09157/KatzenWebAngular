@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -14,7 +14,8 @@ import { AjusteDialogComponent } from './ajuste-dialog.component';
   templateUrl: './movimientos.component.html',
   styleUrls: ['./movimientos.component.css']
 })
-export class MovimientosComponent implements OnInit {
+export class MovimientosComponent implements OnInit, AfterViewInit {
+  readonly pageSize = 50;
   displayedColumns: string[] = [
     'fecha',
     'producto',
@@ -56,8 +57,11 @@ export class MovimientosComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Movimientos Component cargado');
     this.cargarDatos();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   cargarDatos(): void {

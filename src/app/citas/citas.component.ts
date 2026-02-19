@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CitasService } from './citas.service';
@@ -19,12 +19,13 @@ import { LoadingService } from '../core/loading.service';
   templateUrl: './citas.component.html',
   styleUrls: ['./citas.component.css']
 })
-export class CitasComponent implements OnInit, OnDestroy {
+export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_hora', 'cliente', 'paciente', 'motivo', 'estado', 'veterinario', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  readonly pageSize = 50;
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
   loading = false;
@@ -76,22 +77,19 @@ export class CitasComponent implements OnInit, OnDestroy {
               const fechaB = new Date(b.fecha || b.fecha_hora || 0);
               return fechaA.getTime() - fechaB.getTime();
             });
-          if (this.paginator) {
-            this.dataSource.paginator = this.paginator;
-          }
-          
           // Configurar ordenamiento por defecto
           if (this.sort) {
             this.dataSource.sort = this.sort;
-            // Ordenar por fecha_hora descendente por defecto
             this.sort.sort({
               id: 'fecha_hora',
               start: 'desc',
               disableClear: false
             });
           }
-          
           this.loading = false;
+          setTimeout(() => {
+            if (this.paginator) this.dataSource.paginator = this.paginator;
+          }, 0);
         });
       });
     });

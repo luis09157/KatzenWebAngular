@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { InventarioService } from '../inventario.service';
 import { Alerta, Producto } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-alertas',
   templateUrl: './alertas.component.html',
   styleUrls: ['./alertas.component.css']
 })
-export class AlertasComponent implements OnInit {
+export class AlertasComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   alertas: Alerta[] = [];
   alertasFiltradas: Alerta[] = [];
   productos: Map<string, Producto> = new Map();
@@ -36,40 +40,40 @@ export class AlertasComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 Alertas Component cargado');
     this.cargarDatos();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarDatos(): void {
     this.loading = true;
-
-    // Cargar productos
-    this.inventarioService.getProductos().subscribe({
+    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => {
         productos.forEach(p => {
           if (p.id) this.productos.set(p.id, p);
         });
-
-        // Cargar alertas
-        this.inventarioService.getAlertas().subscribe({
+        this.inventarioService.getAlertas().pipe(takeUntil(this.destroy$)).subscribe({
           next: (alertas) => {
             this.alertas = alertas;
             this.aplicarFiltros();
-            console.log('✅ Alertas cargadas:', alertas.length);
             this.loading = false;
           },
           error: (error) => {
-            console.error('❌ Error al cargar alertas:', error);
+            this.logger.error('Error al cargar alertas:', error);
             this.loading = false;
           }
         });
       },
       error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
+        this.logger.error('Error al cargar productos:', error);
         this.loading = false;
       }
     });

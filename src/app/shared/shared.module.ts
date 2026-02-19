@@ -13,14 +13,11 @@ import { MedicamentosService } from './medicamentos.service';
 import { MigrationService } from './migration.service';
 import { BaniosService } from '../banios/banios.service';
 import { ValidationService } from './validation.service';
-import { TestingUtilsService } from './testing-utils.service';
 import { AutocompleteFieldComponent } from './autocomplete-field.component';
-import { TestingComponent } from './testing.component';
 
 @NgModule({
   declarations: [
-    AutocompleteFieldComponent,
-    TestingComponent
+    AutocompleteFieldComponent
   ],
   imports: [
     CommonModule,
@@ -38,8 +35,7 @@ import { TestingComponent } from './testing.component';
     MedicamentosService,
     MigrationService,
     BaniosService,
-    ValidationService,
-    TestingUtilsService
+    ValidationService
   ],
   exports: [
     CommonModule,
@@ -50,8 +46,7 @@ import { TestingComponent } from './testing.component';
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
-    AutocompleteFieldComponent,
-    TestingComponent
+    AutocompleteFieldComponent
   ]
 })
 export class SharedModule { }

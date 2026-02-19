@@ -21,6 +21,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  readonly pageSize = 50;
 
   displayedColumns: string[] = [
     'nombre', 

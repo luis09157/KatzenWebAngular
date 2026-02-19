@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -9,15 +11,18 @@ import { ProductoDialogComponent } from './producto-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-productos',
   templateUrl: './productos.component.html',
   styleUrls: ['./productos.component.css']
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  readonly pageSize = 50;
 
   displayedColumns: string[] = [
     'codigo_barras',
@@ -39,27 +44,37 @@ export class ProductosComponent implements OnInit {
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 Productos Component cargado');
     this.cargarProductos();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarProductos(): void {
     this.loading = true;
-    this.inventarioService.getProductos().subscribe({
+    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => {
-        console.log('✅ Productos cargados:', productos.length);
         this.productos = productos;
         this.dataSource = new MatTableDataSource(productos);
-        this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.loading = false;
+        setTimeout(() => {
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+        }, 0);
       },
       error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
+        this.logger.error('Error al cargar productos:', error);
         Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
         this.loading = false;
       }
@@ -81,11 +96,8 @@ export class ProductosComponent implements OnInit {
       data: { producto: null, modoEdicion: false }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Producto creado, recargando lista...');
-        this.cargarProductos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarProductos();
     });
   }
 
@@ -94,12 +106,8 @@ export class ProductosComponent implements OnInit {
       width: '800px',
       data: { producto: producto, modoEdicion: true }
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Producto actualizado, recargando lista...');
-        this.cargarProductos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarProductos();
     });
   }
 
@@ -121,7 +129,7 @@ export class ProductosComponent implements OnInit {
         Swal.fire('Eliminado', 'El producto ha sido eliminado', 'success');
         this.cargarProductos();
       } catch (error) {
-        console.error('❌ Error al eliminar producto:', error);
+        this.logger.error('Error al eliminar producto:', error);
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'eliminar producto'), 'error');
       }
     }
@@ -140,7 +148,6 @@ export class ProductosComponent implements OnInit {
   }
 
   verHistorial(producto: Producto): void {
-    console.log('📊 Ver historial de:', producto.nombre);
     this.dialog.open(ProductoMovimientosDialogComponent, {
       width: '900px',
       maxHeight: '90vh',

@@ -75,6 +75,10 @@
       <mat-icon>spa</mat-icon>
       <span>Peluquería</span>
     </a>
+    <a *ngIf="isAdmin" class="sidenav-link" routerLink="/admin/usuarios" routerLinkActive="active" (click)="navegar('/admin/usuarios')">
+      <mat-icon>manage_accounts</mat-icon>
+      <span>Usuarios</span>
+    </a>
     <a class="sidenav-link new-feature" routerLink="/admin/inventario" routerLinkActive="active" (click)="navegar('/admin/inventario')" style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border-left: 4px solid #667eea;">
       <mat-icon style="color: #667eea;">inventory</mat-icon>
       <span style="font-weight: 600;">Inventario 🆕</span>

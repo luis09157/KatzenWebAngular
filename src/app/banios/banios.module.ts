@@ -28,11 +28,9 @@ import { BaniosComponent } from './banios.component';
 import { BanioDialogComponent } from './banio-dialog.component';
 import { BanioDetalleComponent } from './banio-detalle.component';
 import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
-import { BaniosTestingComponent } from './banios-testing.component';
 
 // Servicios
 import { BaniosService } from './banios.service';
-import { BaniosTestingService } from './banios-testing.service';
 
 // Rutas
 import { baniosRoutes } from './banios-routing.module';
@@ -42,8 +40,7 @@ import { baniosRoutes } from './banios-routing.module';
     BaniosComponent,
     BanioDialogComponent,
     BanioDetalleComponent,
-    SeleccionarClienteBanioDialogComponent,
-    BaniosTestingComponent
+    SeleccionarClienteBanioDialogComponent
   ],
   imports: [
     CommonModule,
@@ -72,8 +69,7 @@ import { baniosRoutes } from './banios-routing.module';
     MatSnackBarModule
   ],
   providers: [
-    BaniosService,
-    BaniosTestingService
+    BaniosService
   ]
 })
 export class BaniosModule { }

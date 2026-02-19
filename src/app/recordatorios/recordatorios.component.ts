@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { RecordatoriosService } from './recordatorios.service';
@@ -17,11 +17,12 @@ import { LoadingService } from '../core/loading.service';
   templateUrl: './recordatorios.component.html',
   styleUrls: ['./recordatorios.component.css']
 })
-export class RecordatoriosComponent implements OnInit, OnDestroy {
+export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_recordatorio', 'titulo', 'tipo', 'estado', 'prioridad', 'paciente', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
   loading = false;
   estadisticas = {
@@ -48,6 +49,10 @@ export class RecordatoriosComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -63,11 +68,11 @@ export class RecordatoriosComponent implements OnInit, OnDestroy {
           paciente: this.pacientesMap[recordatorio.paciente_id] || 'N/P',
           fecha_recordatorio: this.formatearFecha(recordatorio.fecha_recordatorio)
         }));
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
         this.calcularEstadisticas(recordatoriosActivos);
         this.loading = false;
+        setTimeout(() => {
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+        }, 0);
       },
       error: error => {
         this.logger.error('Error al cargar recordatorios:', error);

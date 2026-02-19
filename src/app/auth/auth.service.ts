@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import type { User } from 'firebase/auth';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -7,7 +8,7 @@ import { LoggerService } from '../core/logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  user$: Observable<unknown>;
+  user$: Observable<User | null>;
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -36,7 +37,7 @@ export class AuthService {
     return this.user$.pipe(map(user => !!user));
   }
 
-  getCurrentUser(): Observable<any> {
+  getCurrentUser(): Observable<User | null> {
     return this.user$;
   }
 } 

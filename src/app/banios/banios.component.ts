@@ -26,7 +26,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['fecha_banio', 'hora_banio', 'paciente', 'tipo_servicio', 'estado', 'peluquero', 'precio_total', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
+  readonly pageSize = 50;
   // Mapeos para nombres
   pacientesMap: { [id: string]: string } = {};
   clientesMap: { [id: string]: string } = {};

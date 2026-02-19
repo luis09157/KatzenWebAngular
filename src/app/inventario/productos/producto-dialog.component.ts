@@ -1,17 +1,21 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { InventarioService } from '../inventario.service';
 import { Producto, ProductoFormData, CategoriaProducto, UnidadMedida, Proveedor } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-producto-dialog',
   templateUrl: './producto-dialog.component.html',
   styleUrls: ['./producto-dialog.component.css']
 })
-export class ProductoDialogComponent implements OnInit {
+export class ProductoDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   productoForm: FormGroup;
   modoEdicion = false;
   loading = false;
@@ -43,7 +47,8 @@ export class ProductoDialogComponent implements OnInit {
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<ProductoDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { producto: Producto | null; modoEdicion: boolean },
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.modoEdicion = data.modoEdicion;
 
@@ -125,40 +130,27 @@ export class ProductoDialogComponent implements OnInit {
         data.producto?.controlado || false
       ]
     });
-
-    // Calcular margen cuando cambien los precios
-    this.productoForm.get('precio_compra')?.valueChanges.subscribe(() => {
-      this.calcularMargen();
-    });
-
-    this.productoForm.get('precio_venta')?.valueChanges.subscribe(() => {
-      this.calcularMargen();
-    });
   }
 
   ngOnInit(): void {
-    console.log('🚀 Producto Dialog cargado');
-    console.log('Modo edición:', this.modoEdicion);
-    console.log('Producto:', this.data.producto);
-
+    this.productoForm.get('precio_compra')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.calcularMargen());
+    this.productoForm.get('precio_venta')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.calcularMargen());
     this.cargarProveedores();
     this.calcularMargen();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarProveedores(): void {
-    this.inventarioService.getProveedores().subscribe({
+    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (proveedores) => {
         this.proveedores = proveedores;
-        console.log('✅ Proveedores cargados:', proveedores.length);
-
-        // Si no hay proveedores, crear uno por defecto
-        if (proveedores.length === 0) {
-          this.crearProveedorPorDefecto();
-        }
+        if (proveedores.length === 0) this.crearProveedorPorDefecto();
       },
-      error: (error) => {
-        console.error('❌ Error al cargar proveedores:', error);
-      }
+      error: (error) => { this.logger.error('Error al cargar proveedores:', error); }
     });
   }
 

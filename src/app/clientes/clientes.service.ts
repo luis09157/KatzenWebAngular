@@ -35,7 +35,9 @@ export class ClientesService {
   }
 
   getCliente(id: string): Observable<Cliente | null> {
-    return this.db.object(`Katzen/Cliente/${id}`).valueChanges() as Observable<Cliente | null>;
+    return this.db.object(`Katzen/Cliente/${id}`).valueChanges().pipe(
+      map(val => (val != null && typeof val === 'object' ? { id, ...(val as Record<string, unknown>) } as Cliente : null))
+    );
   }
 
   async guardarCliente(cliente: Cliente & { id?: string }): Promise<unknown> {

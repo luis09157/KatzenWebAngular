@@ -7,7 +7,7 @@
       ".read": "auth != null",
       ".write": "auth != null",
       
-      "Clientes": {
+      "Cliente": {
         "$clienteId": {
           ".read": "auth != null",
           ".write": "auth != null",
@@ -34,7 +34,7 @@
       "Usuarios": {
         "$userId": {
           ".read": "auth != null",
-          ".write": "auth != null && (auth.uid == $userId || root.child('Usuarios').child(auth.uid).child('perfil').val() == 'Administrador')"
+          ".write": "auth != null && (auth.uid == $userId || root.child('Katzen').child('Usuarios').child(auth.uid).child('perfil').val() == 'Administrador')"
         }
       },
       

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -15,9 +15,10 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
   templateUrl: './ordenes.component.html',
   styleUrls: ['./ordenes.component.css']
 })
-export class OrdenesComponent implements OnInit {
+export class OrdenesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  readonly pageSize = 50;
 
   displayedColumns: string[] = [
     'numero_orden',
@@ -55,8 +56,11 @@ export class OrdenesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Órdenes Component cargado');
     this.cargarDatos();
+  }
+
+  ngAfterViewInit(): void {
+    if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
   cargarDatos(): void {
