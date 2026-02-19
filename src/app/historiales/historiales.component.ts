@@ -321,7 +321,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           this.loadingService.show();
           this.historialesService.actualizarHistorial(historial.id, result)
             .then(() => {
-              this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {}).catch(() => {});
+              this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).catch(err => this.logger.error('Error al registrar edición en historial del paciente', err));
               this.loadingService.hide();
               setTimeout(() => {
                 this.cargarHistoriales();
@@ -357,7 +357,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             this.loadingService.show();
             try {
               await this.historialesService.bajaLogicaHistorial(id);
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar eliminación en historial del paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
@@ -392,7 +392,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             this.loadingService.show();
             try {
               await this.historialesService.eliminarHistorial(id);
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar eliminación en historial del paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
@@ -429,7 +429,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             this.loadingService.show();
             try {
               await this.historialesService.restaurarHistorial(id);
-              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
+              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar historial clínico en paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();

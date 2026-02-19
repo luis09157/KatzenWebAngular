@@ -1,9 +1,12 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { BaniosPacienteService, BanioPaciente } from './banios-paciente.service';
 import { BaniosService } from '../banios/banios.service';
 import { BanioDialogComponent } from '../banios/banio-dialog.component';
 import { BanioDetalleComponent } from '../banios/banio-detalle.component';
+import { LoggerService } from '../core/logger.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -11,7 +14,8 @@ import Swal from 'sweetalert2';
   templateUrl: './banios-paciente.component.html',
   styleUrls: ['./banios-paciente.component.css']
 })
-export class BaniosPacienteComponent implements OnInit {
+export class BaniosPacienteComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @Input() pacienteId: string = '';
   @Input() pacienteNombre: string = '';
   @Input() clienteNombre: string = '';
@@ -37,7 +41,8 @@ export class BaniosPacienteComponent implements OnInit {
   constructor(
     private baniosPacienteService: BaniosPacienteService,
     private baniosService: BaniosService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) {}
 
   ngOnInit() {
@@ -45,6 +50,11 @@ export class BaniosPacienteComponent implements OnInit {
       this.cargarBanios();
       this.cargarEstadisticas();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges() {
@@ -58,7 +68,7 @@ export class BaniosPacienteComponent implements OnInit {
     if (!this.pacienteId) return;
     
     this.isLoading = true;
-    this.baniosPacienteService.getBaniosPorPaciente(this.pacienteId).subscribe({
+    this.baniosPacienteService.getBaniosPorPaciente(this.pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (banios) => {
         // Ordenar baños por fecha (más recientes primero)
         this.banios = this.ordenarBaniosPorFecha(banios);
@@ -66,7 +76,7 @@ export class BaniosPacienteComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error al cargar baños:', error);
+        this.logger.error('Error al cargar baños:', error);
         this.isLoading = false;
         Swal.fire({
           title: 'Error',
@@ -116,15 +126,15 @@ export class BaniosPacienteComponent implements OnInit {
   cargarEstadisticas() {
     if (!this.pacienteId) return;
     
-    console.log('📊 Cargando estadísticas para paciente:', this.pacienteId);
+    this.logger.log('Cargando estadísticas para paciente:', this.pacienteId);
     
-    this.baniosPacienteService.getEstadisticasBaniosPaciente(this.pacienteId).subscribe({
+    this.baniosPacienteService.getEstadisticasBaniosPaciente(this.pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (stats) => {
-        console.log('📊 Estadísticas cargadas:', stats);
+        this.logger.log('Estadísticas cargadas:', stats);
         this.estadisticas = stats;
       },
       error: (error) => {
-        console.error('Error al cargar estadísticas:', error);
+        this.logger.error('Error al cargar estadísticas:', error);
       }
     });
   }
@@ -140,13 +150,13 @@ export class BaniosPacienteComponent implements OnInit {
       return;
     }
 
-    this.baniosPacienteService.buscarBaniosPaciente(this.pacienteId, this.searchTerm).subscribe({
+    this.baniosPacienteService.buscarBaniosPaciente(this.pacienteId, this.searchTerm).pipe(takeUntil(this.destroy$)).subscribe({
       next: (banios) => {
         // Mantener el ordenamiento al filtrar
         this.baniosFiltrados = this.ordenarBaniosPorFecha(banios);
       },
       error: (error) => {
-        console.error('Error al buscar baños:', error);
+        this.logger.error('Error al buscar baños:', error);
       }
     });
   }
@@ -166,7 +176,7 @@ export class BaniosPacienteComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.cargarBanios();
         this.cargarEstadisticas();
@@ -190,7 +200,7 @@ export class BaniosPacienteComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.cargarBanios();
         this.cargarEstadisticas();
@@ -206,9 +216,7 @@ export class BaniosPacienteComponent implements OnInit {
       data: banio
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      // No se necesita hacer nada después de cerrar el modal de detalle
-    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {});
   }
 
   eliminarBanio(banio: BanioPaciente) {
@@ -234,7 +242,7 @@ export class BaniosPacienteComponent implements OnInit {
           this.cargarEstadisticas();
           this.banioEliminado.emit(banio);
         }).catch(error => {
-          console.error('Error al eliminar baño:', error);
+          this.logger.error('Error al eliminar baño:', error);
           Swal.fire({
             title: 'Error',
             text: 'No se pudo eliminar el baño',
@@ -257,7 +265,7 @@ export class BaniosPacienteComponent implements OnInit {
       this.cargarBanios();
       this.cargarEstadisticas();
     }).catch(error => {
-      console.error('Error al cambiar estado:', error);
+      this.logger.error('Error al cambiar estado:', error);
       Swal.fire({
         title: 'Error',
         text: 'No se pudo cambiar el estado del baño',
@@ -278,7 +286,7 @@ export class BaniosPacienteComponent implements OnInit {
       this.cargarBanios();
       this.cargarEstadisticas();
     }).catch(error => {
-      console.error('Error al marcar como pagado:', error);
+      this.logger.error('Error al marcar como pagado:', error);
       Swal.fire({
         title: 'Error',
         text: 'No se pudo marcar como pagado',

@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom, lastValueFrom } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ClientesService } from '../clientes/clientes.service';
@@ -435,14 +435,14 @@ export class PacienteAdminDialogComponent implements OnInit {
     });
 
     try {
-      const snapshot = await uploadTask.snapshotChanges().pipe(
+      await lastValueFrom(uploadTask.snapshotChanges().pipe(
         finalize(() => {
           this.isUploading = false;
           this.uploadProgress = 0;
         })
-      ).toPromise();
+      ));
       
-      const downloadURL = await fileRef.getDownloadURL().toPromise();
+      const downloadURL = await firstValueFrom(fileRef.getDownloadURL());
       return downloadURL;
     } catch (error) {
       console.error('Error al subir imagen:', error);

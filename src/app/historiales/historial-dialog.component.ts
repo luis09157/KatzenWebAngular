@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
@@ -7,15 +7,20 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import Swal from 'sweetalert2';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-historial-dialog',
   templateUrl: './historial-dialog.component.html',
   styleUrls: ['./historial-dialog.component.css']
 })
-export class HistorialDialogComponent implements OnInit {
+export class HistorialDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   historialForm: FormGroup;
   isEditMode = false;
   loading = false;
@@ -44,7 +49,8 @@ export class HistorialDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<HistorialDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private errorMessages: ErrorMessagesService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private logger: LoggerService
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
@@ -129,7 +135,7 @@ export class HistorialDialogComponent implements OnInit {
         // Crear fecha usando la zona horaria local
         const fechaLocal = new Date(año, mes, dia);
         
-        console.log('📅 Fecha cargada:', fechaStr, '-> Fecha:', fechaLocal, 'Hora:', hora, 'Minuto:', minuto);
+        this.logger.log('Fecha cargada:', fechaStr, fechaLocal, hora, minuto);
         
         this.historialForm.patchValue({
           fecha_registro: fechaLocal,
@@ -147,15 +153,20 @@ export class HistorialDialogComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarInformacionPaciente(pacienteId: string) {
-    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+    this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
       this.pacienteInfo = paciente;
     });
   }
 
   cargarDoctores() {
     this.cargandoDoctores = true;
-    this.usuariosService.getUsuarios().subscribe(
+    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe(
       (usuarios) => {
         // Filtrar solo usuarios con perfil de doctor
         this.doctores = usuarios.filter(usuario => 
@@ -165,7 +176,7 @@ export class HistorialDialogComponent implements OnInit {
            usuario.perfil.toLowerCase().includes('veterinario'))
         );
         
-        console.log('✅ Doctores cargados:', this.doctores);
+        this.logger.log('Doctores cargados:', this.doctores.length);
         this.cargandoDoctores = false;
         
         // Si hay un doctor ya seleccionado, verificar que esté en la lista
@@ -173,13 +184,13 @@ export class HistorialDialogComponent implements OnInit {
         if (medicoActual && this.doctores.length > 0) {
           const doctorExiste = this.doctores.find(d => d.nombre === medicoActual);
           if (!doctorExiste) {
-            console.log('⚠️ Doctor no encontrado en la lista, limpiando valor');
+            this.logger.warn('Doctor no encontrado en la lista, limpiando valor');
             this.historialForm.patchValue({ medico_atendio: '' });
           }
         }
       },
       (error) => {
-        console.error('❌ Error al cargar doctores:', error);
+        this.logger.error('Error al cargar doctores:', error);
         this.cargandoDoctores = false;
         Swal.fire({
           icon: 'error',
@@ -193,7 +204,7 @@ export class HistorialDialogComponent implements OnInit {
   async guardarHistorial() {
     // Prevenir múltiples ejecuciones simultáneas
     if (this.loading) {
-      console.log('⚠️ Guardado ya en progreso, ignorando llamada adicional');
+      this.logger.warn('Guardado ya en progreso, ignorando llamada adicional');
       return;
     }
     
@@ -218,7 +229,7 @@ export class HistorialDialogComponent implements OnInit {
           
           historialData.fecha_registro = `${año}-${mes}-${dia} ${horaStr}:${minutoStr}:00`;
           
-          console.log('📅 Fecha guardada:', historialData.fecha_registro);
+          this.logger.log('Fecha guardada:', historialData.fecha_registro);
         }
         
         // Eliminar los campos temporales de hora y minuto
@@ -259,7 +270,7 @@ export class HistorialDialogComponent implements OnInit {
           this.dialogRef.close(historialData);
         }
       } catch (error) {
-        console.error('Error al guardar historial:', error);
+        this.logger.error('Error al guardar historial:', error);
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           icon: 'error',
@@ -312,7 +323,7 @@ export class HistorialDialogComponent implements OnInit {
         this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
-        console.error('Error al eliminar historial:', error);
+        this.logger.error('Error al eliminar historial:', error);
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           icon: 'error',
@@ -393,8 +404,8 @@ export class HistorialDialogComponent implements OnInit {
         const ref = this.storage.ref(rutaArchivo);
         const tarea = this.storage.upload(rutaArchivo, archivo);
         
-        const snapshot = await tarea.snapshotChanges().toPromise();
-        const url = await ref.getDownloadURL().toPromise();
+        await lastValueFrom(tarea.snapshotChanges());
+        const url = await firstValueFrom(ref.getDownloadURL());
         
         urlsArchivos.push(url);
       }
@@ -404,7 +415,7 @@ export class HistorialDialogComponent implements OnInit {
       
       return urlsArchivos;
     } catch (error) {
-      console.error('Error al subir archivos:', error);
+      this.logger.error('Error al subir archivos:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error al subir archivos',
@@ -443,9 +454,9 @@ export class HistorialDialogComponent implements OnInit {
       };
 
       await this.pacientesService.registrarHistorialClinico(historialData.paciente_id, datosLog);
-      console.log(`Historial clínico ${accion} registrado en log exitosamente`);
+      this.logger.log(`Historial clínico ${accion} registrado en log exitosamente`);
     } catch (error) {
-      console.error('Error al registrar historial en log:', error);
+      this.logger.error('Error al registrar historial en log:', error);
     }
   }
 } 

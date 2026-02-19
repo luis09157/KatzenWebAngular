@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -8,13 +10,15 @@ import { Movimiento, Producto } from '../../shared/inventario.models';
 import { EntradaDialogComponent } from './entrada-dialog.component';
 import { SalidaDialogComponent } from './salida-dialog.component';
 import { AjusteDialogComponent } from './ajuste-dialog.component';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-movimientos',
   templateUrl: './movimientos.component.html',
   styleUrls: ['./movimientos.component.css']
 })
-export class MovimientosComponent implements OnInit, AfterViewInit {
+export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   readonly pageSize = 50;
   displayedColumns: string[] = [
     'fecha',
@@ -51,7 +55,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) {
     this.dataSource = new MatTableDataSource<Movimiento>([]);
   }
@@ -64,33 +69,33 @@ export class MovimientosComponent implements OnInit, AfterViewInit {
     if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarDatos(): void {
     this.loading = true;
-
-    // Cargar productos primero
-    this.inventarioService.getProductos().subscribe({
+    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => {
         this.productos.clear();
         productos.forEach(p => {
           if (p.id) this.productos.set(p.id, p);
         });
-
-        // Luego cargar movimientos
-        this.inventarioService.getTodosLosMovimientos().subscribe({
+        this.inventarioService.getTodosLosMovimientos().pipe(takeUntil(this.destroy$)).subscribe({
           next: (movimientos) => {
             this.movimientos = movimientos;
             this.aplicarFiltros();
-            console.log('✅ Movimientos cargados:', movimientos.length);
             this.loading = false;
           },
           error: (error) => {
-            console.error('❌ Error al cargar movimientos:', error);
+            this.logger.error('Error al cargar movimientos:', error);
             this.loading = false;
           }
         });
       },
       error: (error) => {
-        console.error('❌ Error al cargar productos:', error);
+        this.logger.error('Error al cargar productos:', error);
         this.loading = false;
       }
     });
@@ -207,10 +212,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit {
       disableClose: false
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
@@ -220,10 +223,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit {
       disableClose: false
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
@@ -233,20 +234,18 @@ export class MovimientosComponent implements OnInit, AfterViewInit {
       disableClose: false
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
   exportarExcel(): void {
-    console.log('📊 Exportar a Excel - TODO');
+    this.logger.log('Exportar a Excel - TODO');
     // TODO: Implementar exportación a Excel
   }
 
   verDetalle(movimiento: Movimiento): void {
-    console.log('🔍 Ver detalle:', movimiento);
+    this.logger.log('Ver detalle:', movimiento);
     // TODO: Implementar modal de detalle
   }
 }

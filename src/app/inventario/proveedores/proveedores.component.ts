@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -8,13 +10,15 @@ import { Proveedor } from '../../shared/inventario.models';
 import { ProveedorDialogComponent } from './proveedor-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-proveedores',
   templateUrl: './proveedores.component.html',
   styleUrls: ['./proveedores.component.css']
 })
-export class ProveedoresComponent implements OnInit, AfterViewInit {
+export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   readonly pageSize = 50;
@@ -36,7 +40,8 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.dataSource = new MatTableDataSource<Proveedor>([]);
   }
@@ -49,9 +54,14 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
     if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarProveedores(): void {
     this.loading = true;
-    this.inventarioService.getProveedores().subscribe({
+    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (proveedores) => {
         this.proveedores = proveedores;
         this.dataSource.data = proveedores;
@@ -62,7 +72,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
         }, 0);
       },
       error: (error) => {
-        console.error('❌ Error al cargar proveedores:', error);
+        this.logger.error('Error al cargar proveedores:', error);
         this.loading = false;
       }
     });
@@ -78,34 +88,24 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
   }
 
   nuevoProveedor(): void {
-    console.log('➕ Crear nuevo proveedor');
     const dialogRef = this.dialog.open(ProveedorDialogComponent, {
       width: '700px',
       disableClose: true,
       data: { proveedor: null }
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Proveedor creado, recargando...');
-        this.cargarProveedores();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarProveedores();
     });
   }
 
   editarProveedor(proveedor: Proveedor): void {
-    console.log('✏️ Editar proveedor:', proveedor.nombre_comercial);
     const dialogRef = this.dialog.open(ProveedorDialogComponent, {
       width: '700px',
       disableClose: true,
       data: { proveedor }
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Proveedor actualizado, recargando...');
-        this.cargarProveedores();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarProveedores();
     });
   }
 
@@ -140,7 +140,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
         
         this.cargarProveedores();
       } catch (error) {
-        console.error(`❌ Error al ${accion} proveedor:`, error);
+        this.logger.error(`Error al ${accion} proveedor:`, error);
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar proveedor'), 'error');
       }
     }
@@ -167,7 +167,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit {
         Swal.fire('Eliminado', 'El proveedor ha sido eliminado', 'success');
         this.cargarProveedores();
       } catch (error) {
-        console.error('❌ Error al eliminar proveedor:', error);
+        this.logger.error('Error al eliminar proveedor:', error);
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'eliminar proveedor'), 'error');
       }
     }

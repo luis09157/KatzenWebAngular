@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -9,13 +11,15 @@ import { OrdenDialogComponent } from './orden-dialog.component';
 import { RecibirOrdenDialogComponent } from './recibir-orden-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { LoggerService } from '../../core/logger.service';
 
 @Component({
   selector: 'app-ordenes',
   templateUrl: './ordenes.component.html',
   styleUrls: ['./ordenes.component.css']
 })
-export class OrdenesComponent implements OnInit, AfterViewInit {
+export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   readonly pageSize = 50;
@@ -50,7 +54,8 @@ export class OrdenesComponent implements OnInit, AfterViewInit {
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.dataSource = new MatTableDataSource<OrdenCompra>([]);
   }
@@ -63,33 +68,33 @@ export class OrdenesComponent implements OnInit, AfterViewInit {
     if (this.paginator) this.dataSource.paginator = this.paginator;
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarDatos(): void {
     this.loading = true;
-
-    // Cargar proveedores primero
-    this.inventarioService.getProveedores().subscribe({
+    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (proveedores) => {
         this.proveedores.clear();
         proveedores.forEach(p => {
           if (p.id) this.proveedores.set(p.id, p);
         });
-
-        // Luego cargar órdenes
-        this.inventarioService.getOrdenesCompra().subscribe({
+        this.inventarioService.getOrdenesCompra().pipe(takeUntil(this.destroy$)).subscribe({
           next: (ordenes) => {
             this.ordenes = ordenes;
             this.aplicarFiltros();
-            console.log('✅ Órdenes cargadas:', ordenes.length);
             this.loading = false;
           },
           error: (error) => {
-            console.error('❌ Error al cargar órdenes:', error);
+            this.logger.error('Error al cargar órdenes:', error);
             this.loading = false;
           }
         });
       },
       error: (error) => {
-        console.error('❌ Error al cargar proveedores:', error);
+        this.logger.error('Error al cargar proveedores:', error);
         this.loading = false;
       }
     });
@@ -108,35 +113,25 @@ export class OrdenesComponent implements OnInit, AfterViewInit {
   }
 
   nuevaOrden(): void {
-    console.log('➕ Crear nueva orden');
     const dialogRef = this.dialog.open(OrdenDialogComponent, {
       width: '900px',
       maxHeight: '90vh',
       disableClose: true
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Orden creada, recargando...');
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
   recibirOrden(orden: OrdenCompra): void {
-    console.log('📦 Recibir orden:', orden.folio);
     const dialogRef = this.dialog.open(RecibirOrdenDialogComponent, {
       width: '800px',
       maxHeight: '90vh',
       disableClose: true,
       data: { orden }
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('✅ Orden recibida, recargando...');
-        this.cargarDatos();
-      }
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
     });
   }
 
@@ -224,7 +219,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit {
   }
 
   exportarExcel(): void {
-    console.log('📊 Exportar órdenes a Excel');
+    this.logger.log('Exportar órdenes a Excel');
     Swal.fire('Próximamente', 'Exportación en desarrollo', 'info');
   }
 }

@@ -1,14 +1,18 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-historial-detalle',
   templateUrl: './historial-detalle.component.html',
   styleUrls: ['./historial-detalle.component.css']
 })
-export class HistorialDetalleComponent implements OnInit {
+export class HistorialDetalleComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   pacienteInfo: any = null;
   clienteInfo: any = null;
   loading = true;
@@ -17,39 +21,33 @@ export class HistorialDetalleComponent implements OnInit {
     public dialogRef: MatDialogRef<HistorialDetalleComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private pacientesService: PacientesService,
-    private clientesService: ClientesService
-  ) {
-    console.log('DATA RECIBIDA EN MODAL DETALLE:', data);
-  }
+    private clientesService: ClientesService,
+    private logger: LoggerService
+  ) {}
 
   ngOnInit() {
     this.cargarInformacion();
   }
 
-  async cargarInformacion() {
-    try {
-      // Cargar información del paciente
-      if (this.data.paciente_id) {
-        this.pacientesService.getPaciente(this.data.paciente_id).subscribe(paciente => {
-          this.pacienteInfo = paciente;
-          this.loading = false;
-        });
-      }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-      // Cargar información del cliente
-      if (this.data.paciente_id) {
-        this.pacientesService.getPaciente(this.data.paciente_id).subscribe(paciente => {
-          if (paciente && (paciente.idCliente || paciente.cliente_id)) {
-            const clienteId = paciente.idCliente || paciente.cliente_id;
-            this.clientesService.getCliente(clienteId).subscribe(cliente => {
-              this.clienteInfo = cliente;
-              this.loading = false;
-            });
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error al cargar información:', error);
+  cargarInformacion() {
+    if (this.data.paciente_id) {
+      this.pacientesService.getPaciente(this.data.paciente_id).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
+        this.pacienteInfo = paciente;
+        this.loading = false;
+        if (paciente && (paciente.idCliente || paciente.cliente_id)) {
+          const clienteId = paciente.idCliente || paciente.cliente_id;
+          this.clientesService.getCliente(clienteId).pipe(takeUntil(this.destroy$)).subscribe(cliente => {
+            this.clienteInfo = cliente;
+            this.loading = false;
+          });
+        }
+      });
+    } else {
       this.loading = false;
     }
   }

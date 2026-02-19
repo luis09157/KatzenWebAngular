@@ -1,6 +1,8 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
@@ -8,13 +10,15 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-vacuna-dialog',
   templateUrl: './vacuna-dialog.component.html',
   styleUrls: ['./vacuna-dialog.component.css']
 })
-export class VacunaDialogComponent implements OnInit {
+export class VacunaDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   vacunaForm: FormGroup;
   isEditMode = false;
   loading = false;
@@ -68,7 +72,8 @@ export class VacunaDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<VacunaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private errorMessages: ErrorMessagesService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private logger: LoggerService
   ) {
     this.vacunaForm = this.fb.group({
       // Información básica
@@ -106,7 +111,7 @@ export class VacunaDialogComponent implements OnInit {
     });
 
     // Observar cambios en el campo dosis para validar dosis personalizada
-    this.vacunaForm.get('dosis')?.valueChanges.subscribe(value => {
+    this.vacunaForm.get('dosis')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
       const dosisPersonalizadaControl = this.vacunaForm.get('dosisPersonalizada');
       if (value === 'personalizada') {
         dosisPersonalizadaControl?.setValidators([Validators.required]);
@@ -118,8 +123,13 @@ export class VacunaDialogComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarInformacionPaciente(pacienteId: string) {
-    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+    this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
       this.pacienteInfo = paciente;
     });
   }
@@ -133,7 +143,7 @@ export class VacunaDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('VacunaDialogComponent - Datos recibidos:', this.data);
+    this.logger.log('VacunaDialogComponent - Datos recibidos:', this.data);
     
     // Cargar tipos de vacunas desde Firebase
     this.cargarTiposVacunas();
@@ -187,13 +197,13 @@ export class VacunaDialogComponent implements OnInit {
   async guardarVacuna() {
     // Prevenir múltiples ejecuciones
     if (this.loading) {
-      console.log('VacunaDialogComponent - Operación ya en progreso, ignorando llamada');
+      this.logger.log('VacunaDialogComponent - Operación ya en progreso, ignorando llamada');
       return;
     }
     
     // Generar ID único para esta operación
     this.operationId = 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    console.log('VacunaDialogComponent - ID de operación:', this.operationId);
+    this.logger.log('VacunaDialogComponent - ID de operación:', this.operationId);
     
     // Validaciones personalizadas antes de guardar
     const errorValidacion = this.validarDatosFormulario();
@@ -208,7 +218,7 @@ export class VacunaDialogComponent implements OnInit {
     
     if (this.vacunaForm.valid) {
       this.loading = true;
-      console.log('VacunaDialogComponent - Iniciando guardado de vacuna');
+      this.logger.log('VacunaDialogComponent - Iniciando guardado de vacuna');
       
       try {
         const vacunaData = { ...this.vacunaForm.value };
@@ -234,7 +244,7 @@ export class VacunaDialogComponent implements OnInit {
         
         if (this.isEditMode && this.data.id) {
           // Actualizar vacuna existente
-          console.log('VacunaDialogComponent - Actualizando vacuna existente');
+          this.logger.log('VacunaDialogComponent - Actualizando vacuna existente');
           await this.vacunasService.actualizarVacuna(this.data.id, vacunaData);
           
           // Registrar en el log de actividades
@@ -249,26 +259,26 @@ export class VacunaDialogComponent implements OnInit {
           });
         } else {
           // Crear nueva vacuna
-          console.log('VacunaDialogComponent - Creando nueva vacuna - Operación ID:', this.operationId);
+          this.logger.log('VacunaDialogComponent - Creando nueva vacuna - Operación ID:', this.operationId);
           const resultado = await this.vacunasService.crearVacuna(vacunaData);
           const vacunaId = resultado.key;
           vacunaData.id = vacunaId;
           
-          console.log('VacunaDialogComponent - Vacuna creada con ID:', vacunaId, '- Operación ID:', this.operationId);
+          this.logger.log('VacunaDialogComponent - Vacuna creada con ID:', vacunaId, '- Operación ID:', this.operationId);
           
           // Crear recordatorio automático si está marcado
           if (vacunaData.recordatorio && vacunaData.fechaRecordatorio && vacunaData.idPaciente) {
-            console.log('VacunaDialogComponent - Creando recordatorio automático - Operación ID:', this.operationId);
+            this.logger.log('VacunaDialogComponent - Creando recordatorio automático - Operación ID:', this.operationId);
             await this.crearRecordatorioAutomatico(vacunaData);
           }
           
           // Registrar en el log de actividades
           if (vacunaData.idPaciente) {
-            console.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
+            this.logger.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
             await this.registrarVacunaEnLog(vacunaData, 'creada');
           }
           
-          console.log('VacunaDialogComponent - Mostrando mensaje de éxito - Operación ID:', this.operationId);
+          this.logger.log('VacunaDialogComponent - Mostrando mensaje de éxito - Operación ID:', this.operationId);
           Swal.fire({
             icon: 'success',
             title: '¡Éxito!',
@@ -276,11 +286,11 @@ export class VacunaDialogComponent implements OnInit {
           });
         }
         
-        console.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
+        this.logger.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
         this.loadingService.show();
         this.dialogRef.close(vacunaData);
       } catch (error) {
-        console.error('VacunaDialogComponent - Error al guardar vacuna:', error);
+        this.logger.error('VacunaDialogComponent - Error al guardar vacuna:', error);
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           icon: 'error',
@@ -428,7 +438,7 @@ export class VacunaDialogComponent implements OnInit {
         this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
-        console.error('Error al eliminar vacuna:', error);
+        this.logger.error('Error al eliminar vacuna:', error);
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           icon: 'error',
@@ -473,7 +483,7 @@ export class VacunaDialogComponent implements OnInit {
       this.loadingService.show();
       this.dialogRef.close(true);
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
+      this.logger.error('Error al cambiar estado:', error);
       this.loadingService.hide();
       setTimeout(() => Swal.fire({
         icon: 'error',
@@ -501,27 +511,27 @@ export class VacunaDialogComponent implements OnInit {
   
   // Cargar tipos de vacunas desde Firebase con fallback
   cargarTiposVacunas() {
-    console.log('🔄 Cargando tipos de vacunas desde Firebase...');
+    this.logger.log('🔄 Cargando tipos de vacunas desde Firebase...');
     
-    this.vacunasService.getTiposVacunas().subscribe({
+    this.vacunasService.getTiposVacunas().pipe(takeUntil(this.destroy$)).subscribe({
       next: (tipos) => {
-        console.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
+        this.logger.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
         
         if (tipos && tipos.length > 0) {
           // Filtrar solo los activos
           this.tiposVacunas = tipos.filter((tipo: any) => tipo.activo !== false);
-          console.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
+          this.logger.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
         } else {
           // Si no hay datos en Firebase, usar fallback
-          console.log('⚠️ Firebase vacío, usando tipos predefinidos (fallback)');
+          this.logger.log('⚠️ Firebase vacío, usando tipos predefinidos (fallback)');
           this.tiposVacunas = [...this.tiposVacunasFallback];
           this.inicializarTiposEnFirebase();
         }
       },
       error: (error) => {
         // Si hay error en Firebase, usar fallback
-        console.error('❌ Error al cargar tipos de vacunas desde Firebase:', error);
-        console.log('🔄 Usando tipos predefinidos (fallback)');
+        this.logger.error('❌ Error al cargar tipos de vacunas desde Firebase:', error);
+        this.logger.log('🔄 Usando tipos predefinidos (fallback)');
         this.tiposVacunas = [...this.tiposVacunasFallback];
       }
     });
@@ -530,22 +540,22 @@ export class VacunaDialogComponent implements OnInit {
   // Inicializar tipos de vacunas en Firebase si no existen
   private async inicializarTiposEnFirebase() {
     try {
-      console.log('🔄 Inicializando tipos de vacunas en Firebase...');
+      this.logger.log('🔄 Inicializando tipos de vacunas en Firebase...');
       
       // Aquí podrías agregar lógica para poblar Firebase con los datos iniciales
       // Por ahora solo registramos el intento
-      console.log('ℹ️ Los tipos predefinidos están siendo usados como fallback');
-      console.log('ℹ️ Para persistir en Firebase, el administrador debe configurarlos manualmente');
+      this.logger.log('ℹ️ Los tipos predefinidos están siendo usados como fallback');
+      this.logger.log('ℹ️ Para persistir en Firebase, el administrador debe configurarlos manualmente');
     } catch (error) {
-      console.error('❌ Error al inicializar tipos en Firebase:', error);
+      this.logger.error('❌ Error al inicializar tipos en Firebase:', error);
     }
   }
 
   // Cargar lista de doctores
   cargarDoctores() {
-    this.usuariosService.getUsuarios().subscribe({
+    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
       next: (usuarios: any) => {
-        console.log('Usuarios obtenidos:', usuarios);
+        this.logger.log('Usuarios obtenidos:', usuarios);
         
         if (usuarios) {
           // Convertir el objeto de usuarios a array y filtrar doctores
@@ -566,11 +576,11 @@ export class VacunaDialogComponent implements OnInit {
             telefono: doctor.telefono
           }));
           
-          console.log('Doctores filtrados:', this.doctores);
+          this.logger.log('Doctores filtrados:', this.doctores);
         }
       },
       error: (error) => {
-        console.error('Error al cargar doctores:', error);
+        this.logger.error('Error al cargar doctores:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -600,9 +610,9 @@ export class VacunaDialogComponent implements OnInit {
       };
 
       await this.recordatoriosService.crearRecordatorio(recordatorioData);
-      console.log('Recordatorio automático creado exitosamente');
+      this.logger.log('Recordatorio automático creado exitosamente');
     } catch (error) {
-      console.error('Error al crear recordatorio automático:', error);
+      this.logger.error('Error al crear recordatorio automático:', error);
       // No interrumpir el flujo principal si falla el recordatorio
     }
   }
@@ -612,7 +622,7 @@ export class VacunaDialogComponent implements OnInit {
     try {
       // Validar que los datos necesarios estén presentes
       if (!vacunaData || !vacunaData.vacuna || !vacunaData.idPaciente) {
-        console.warn('VacunaDialogComponent - Datos insuficientes para registrar en log:', vacunaData);
+        this.logger.warn('VacunaDialogComponent - Datos insuficientes para registrar en log:', vacunaData);
         return;
       }
 
@@ -623,7 +633,7 @@ export class VacunaDialogComponent implements OnInit {
       let fechaAplicacion = vacunaData.fechaAplicacion;
       if (!fechaAplicacion) {
         fechaAplicacion = new Date().toISOString();
-        console.warn('VacunaDialogComponent - fechaAplicacion undefined, usando fecha actual:', fechaAplicacion);
+        this.logger.warn('VacunaDialogComponent - fechaAplicacion undefined, usando fecha actual:', fechaAplicacion);
       }
       
       const datosLog = {
@@ -636,11 +646,11 @@ export class VacunaDialogComponent implements OnInit {
         observaciones: vacunaData.observaciones || 'Sin observaciones'
       };
 
-      console.log('VacunaDialogComponent - Registrando en log:', datosLog);
+      this.logger.log('VacunaDialogComponent - Registrando en log:', datosLog);
       await this.pacientesService.registrarVacuna(vacunaData.idPaciente, datosLog);
-      console.log(`Vacuna ${accion} registrada en log exitosamente`);
+      this.logger.log(`Vacuna ${accion} registrada en log exitosamente`);
     } catch (error) {
-      console.error('Error al registrar vacuna en log:', error);
+      this.logger.error('Error al registrar vacuna en log:', error);
       // No interrumpir el flujo principal si falla el log
     }
   }
@@ -666,9 +676,9 @@ export class VacunaDialogComponent implements OnInit {
       };
 
       await this.pacientesService.agregarLogActividad(this.data.idPaciente, actividad);
-      console.log('Eliminación de vacuna registrada en log exitosamente');
+      this.logger.log('Eliminación de vacuna registrada en log exitosamente');
     } catch (error) {
-      console.error('Error al registrar eliminación en log:', error);
+      this.logger.error('Error al registrar eliminación en log:', error);
     }
   }
 

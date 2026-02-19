@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Usuario } from './usuario.model';
 
@@ -36,7 +36,7 @@ export class UsuariosService {
     if (!usuario.id) {
       if (usuario.correo || usuario.email) {
         const email = usuario.correo || usuario.email;
-        const usuariosExistentes = await this.getUsuarios().toPromise();
+        const usuariosExistentes = await firstValueFrom(this.getUsuarios());
         
         if (usuariosExistentes && usuariosExistentes.length > 0) {
           const emailDuplicado = usuariosExistentes.find(u => 

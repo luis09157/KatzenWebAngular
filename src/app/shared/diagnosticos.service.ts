@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map } from 'rxjs';
+import { Observable, map, firstValueFrom } from 'rxjs';
+import { LoggerService } from '../core/logger.service';
 import { Diagnostico, DiagnosticoFormData } from './diagnostico.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DiagnosticosService {
-  constructor(private db: AngularFireDatabase) {}
+  constructor(private db: AngularFireDatabase, private logger: LoggerService) {}
 
   // Obtener todos los diagnósticos activos
   getDiagnosticos(): Observable<Diagnostico[]> {
@@ -59,7 +60,7 @@ export class DiagnosticosService {
   // Incrementar contador de uso
   async incrementarUso(id: string): Promise<void> {
     try {
-      const diagnostico = await this.db.object(`Katzen/Diagnosticos/${id}`).valueChanges().toPromise();
+      const diagnostico = await firstValueFrom(this.db.object(`Katzen/Diagnosticos/${id}`).valueChanges());
       if (diagnostico) {
         const usoCount = (diagnostico as any)?.uso_count || 0;
         await this.db.object(`Katzen/Diagnosticos/${id}`).update({ 
@@ -68,7 +69,7 @@ export class DiagnosticosService {
         });
       }
     } catch (error) {
-      console.error('Error al incrementar uso del diagnóstico:', error);
+      this.logger.error('Error al incrementar uso del diagnóstico:', error);
       throw error;
     }
   }

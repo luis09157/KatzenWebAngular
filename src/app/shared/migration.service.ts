@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class MigrationService {
       const historialesRef = this.db.list('Katzen/Historiales_Clinicos');
       
       // Obtener todos los historiales
-      const historialesSnapshot = await historialesRef.snapshotChanges().toPromise();
+      const historialesSnapshot = await firstValueFrom(historialesRef.snapshotChanges());
       
       if (!historialesSnapshot || historialesSnapshot.length === 0) {
         console.log('ℹ️ No hay historiales para migrar');
