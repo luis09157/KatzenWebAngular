@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -24,7 +26,8 @@ import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-deta
   templateUrl: './pacientes.component.html',
   styleUrls: ['./pacientes.component.css']
 })
-export class PacientesComponent implements OnInit {
+export class PacientesComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -53,6 +56,8 @@ export class PacientesComponent implements OnInit {
   
   // Control de estado
   isCreatingHistorial = false;
+  loading = false;
+  private initialLoadCount = 0;
 
   // Historial clínico de ejemplo
   historialClinico = [
@@ -201,14 +206,30 @@ export class PacientesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      // Filtrar solo pacientes activos
-      this.allPacientes = (pacientes || []).filter(p => p.activo !== false);
-      this.filtrarPacientes();
+    this.loading = true;
+    this.initialLoadCount = 0;
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: pacientes => {
+        this.allPacientes = (pacientes || []).filter((p: { activo?: boolean }) => p.activo !== false);
+        this.filtrarPacientes();
+        this.initialLoadCount++;
+        if (this.initialLoadCount >= 2) this.loading = false;
+      },
+      error: () => { this.initialLoadCount++; if (this.initialLoadCount >= 2) this.loading = false; }
     });
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.allClientes = clientes || [];
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        this.allClientes = clientes || [];
+        this.initialLoadCount++;
+        if (this.initialLoadCount >= 2) this.loading = false;
+      },
+      error: () => { this.initialLoadCount++; if (this.initialLoadCount >= 2) this.loading = false; }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSearchInput(event: any) {
@@ -281,8 +302,7 @@ export class PacientesComponent implements OnInit {
   }
 
   cargarHistorialClinico(pacienteId: string) {
-    this.historialesService.getHistorialesPorPaciente(pacienteId).subscribe(historiales => {
-      console.log('📋 Historiales cargados para paciente:', pacienteId, historiales);
+    this.historialesService.getHistorialesPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(historiales => {
       
       this.historialClinico = historiales.map(historial => {
         const historialFormateado = {
@@ -361,7 +381,7 @@ export class PacientesComponent implements OnInit {
 
   // Métodos para recordatorios
   cargarRecordatorios(pacienteId: string) {
-    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).subscribe(recordatorios => {
+    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(recordatorios => {
       this.recordatorios = (recordatorios || []).map(r => {
         // Buscar el campo de fecha correcto
         const fechaRaw = r.fecha_hora_recordatorio || r.fecha_recordatorio || null;
@@ -415,7 +435,7 @@ export class PacientesComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         // El recordatorio ya se creó en el diálogo, solo recargar y registrar en log
         console.log('Recordatorio creado desde diálogo:', result);
@@ -449,7 +469,7 @@ export class PacientesComponent implements OnInit {
       data: recordatorio
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.cargarRecordatorios(this.pacienteSeleccionado.id);
         Swal.fire({
@@ -566,7 +586,7 @@ export class PacientesComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         console.log('✅ Historial creado exitosamente desde diálogo');
         
@@ -605,7 +625,7 @@ export class PacientesComponent implements OnInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.historialesService.actualizarHistorial(historial.id, result).then(() => {
           Swal.fire('Éxito', 'Historial clínico actualizado correctamente', 'success');
@@ -622,7 +642,7 @@ export class PacientesComponent implements OnInit {
   }
 
   verDetalleHistorial(historial: any) {
-    this.historialesService.getHistorial(historial.id).subscribe((historialCompleto) => {
+    this.historialesService.getHistorial(historial.id).pipe(takeUntil(this.destroy$)).subscribe((historialCompleto) => {
       this.dialog.open(HistorialDetalleComponent, {
         width: '90vw',
         maxWidth: '95vw',
@@ -745,7 +765,7 @@ export class PacientesComponent implements OnInit {
 
   // Métodos para vacunas
   cargarVacunas(pacienteId: string) {
-    this.vacunasService.getVacunasPorPaciente(pacienteId).subscribe(vacunas => {
+    this.vacunasService.getVacunasPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(vacunas => {
       this.vacunas = vacunas.map(v => {
         // Usar fechaAplicacion en lugar de fecha, con fallback a fechaRegistro
         const fechaRaw = v.fechaAplicacion || v.fechaRegistro || v.fecha;
@@ -811,7 +831,7 @@ export class PacientesComponent implements OnInit {
       data: { paciente_id: this.pacienteSeleccionado.id }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         // Solo recargar las vacunas y el log - NO crear la vacuna manualmente
         // porque VacunaDialogComponent ya lo hace
@@ -829,7 +849,7 @@ export class PacientesComponent implements OnInit {
       data: vacuna
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
         this.cargarVacunas(this.pacienteSeleccionado.id);
         Swal.fire({
@@ -918,7 +938,7 @@ export class PacientesComponent implements OnInit {
   }
 
   cargarBanios(pacienteId: string) {
-    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).subscribe(banios => {
+    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(banios => {
       this.banios = banios;
       console.log('🛁 Baños cargados para paciente:', pacienteId, banios);
     });
@@ -940,9 +960,7 @@ export class PacientesComponent implements OnInit {
   }
 
   cargarLogActividades(pacienteId: string) {
-    console.log('Cargando log de actividades para paciente:', pacienteId);
-    this.pacientesService.getLogActividades(pacienteId).subscribe(log => {
-      console.log('Log de actividades cargado:', log);
+    this.pacientesService.getLogActividades(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(log => {
       console.log('Número de actividades:', log.length);
       this.logActividades = log;
       console.log('logActividades actualizado:', this.logActividades);

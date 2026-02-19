@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -8,19 +10,21 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoggerService } from '../core/logger.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-vacunas',
   templateUrl: './vacunas.component.html',
   styleUrls: ['./vacunas.component.css']
 })
-export class VacunasComponent implements OnInit {
+export class VacunasComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_vacuna', 'paciente', 'tipo_vacuna', 'estado', 'proxima_dosis', 'veterinario', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
-  
-  // Propiedades para estadísticas y loading
   loading = false;
   estadisticas = {
     total: 0,
@@ -32,78 +36,81 @@ export class VacunasComponent implements OnInit {
   constructor(
     private vacunasService: VacunasService,
     private pacientesService: PacientesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      (pacientes || []).forEach(p => {
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
+      (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
         this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
       });
       this.cargarVacunas();
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarVacunas() {
     this.loading = true;
-    this.vacunasService.getVacunas().subscribe(vacunas => {
-      const vacunasActivas = (vacunas || []).filter(v => v.activo !== false);
-      
-      this.dataSource.data = vacunasActivas.map(vacuna => {
-        // Normalizar nombres de campos para compatibilidad
-        const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
-        const fechaVacuna = vacuna.fecha_vacuna || vacuna.fechaAplicacion || vacuna.fecha_aplicacion || vacuna.fechaRegistro;
-        const proximaDosis = vacuna.proxima_dosis || vacuna.proximaAplicacion || vacuna.proxima_aplicacion;
-        const tipoVacuna = vacuna.tipo_vacuna || vacuna.vacuna;
-        const veterinario = vacuna.veterinario || vacuna.veterinario_nombre || 'N/A';
-        
-        // Determinar estado (convertir boolean a string si es necesario)
-        let estado = 'pendiente';
-        if (vacuna.estado) {
-          estado = vacuna.estado;
-        } else if (vacuna.aplicada === true) {
-          estado = 'aplicada';
-        } else if (vacuna.aplicada === false) {
-          estado = 'pendiente';
+    this.vacunasService.getVacunas().pipe(takeUntil(this.destroy$)).subscribe({
+      next: vacunas => {
+        const vacunasActivas = (vacunas || []).filter((v: { activo?: boolean }) => v.activo !== false);
+        this.dataSource.data = vacunasActivas.map((vacuna: any) => {
+          const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
+          const fechaVacuna = vacuna.fecha_vacuna || vacuna.fechaAplicacion || vacuna.fecha_aplicacion || vacuna.fechaRegistro;
+          const proximaDosis = vacuna.proxima_dosis || vacuna.proximaAplicacion || vacuna.proxima_aplicacion;
+          const tipoVacuna = vacuna.tipo_vacuna || vacuna.vacuna;
+          const veterinario = vacuna.veterinario || vacuna.veterinario_nombre || 'N/A';
+          let estado = 'pendiente';
+          if (vacuna.estado) {
+            estado = vacuna.estado;
+          } else if (vacuna.aplicada === true) {
+            estado = 'aplicada';
+          } else if (vacuna.aplicada === false) {
+            estado = 'pendiente';
+          }
+          return {
+            ...vacuna,
+            paciente_id: pacienteId,
+            paciente: this.pacientesMap[pacienteId] || 'N/P',
+            fecha_vacuna: this.formatearFecha(fechaVacuna),
+            proxima_dosis: this.formatearFecha(proximaDosis),
+            tipo_vacuna: tipoVacuna,
+            veterinario: veterinario,
+            estado: estado
+          };
+        });
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
         }
-        
-        return {
-          ...vacuna,
-          paciente_id: pacienteId,
-          paciente: this.pacientesMap[pacienteId] || 'N/P',
-          fecha_vacuna: this.formatearFecha(fechaVacuna),
-          proxima_dosis: this.formatearFecha(proximaDosis),
-          tipo_vacuna: tipoVacuna,
-          veterinario: veterinario,
-          estado: estado
-        };
-      });
-      
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
+        this.calcularEstadisticas(vacunasActivas);
+        this.loading = false;
+      },
+      error: error => {
+        this.logger.error('Error al cargar vacunas:', error);
+        this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al Cargar Vacunas',
+          html: `
+            <p>No se pudieron cargar las vacunas del sistema.</p>
+            <p class="text-muted">Por favor, verifica tu conexión e intenta de nuevo.</p>
+          `,
+          confirmButtonText: 'Reintentar',
+          showCancelButton: true,
+          cancelButtonText: 'Cerrar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.cargarVacunas();
+          }
+        });
       }
-      
-      this.calcularEstadisticas(vacunasActivas);
-      this.loading = false;
-    }, error => {
-      console.error('Error al cargar vacunas:', error);
-      this.loading = false;
-      
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al Cargar Vacunas',
-        html: `
-          <p>No se pudieron cargar las vacunas del sistema.</p>
-          <p class="text-muted">Por favor, verifica tu conexión e intenta de nuevo.</p>
-        `,
-        confirmButtonText: 'Reintentar',
-        showCancelButton: true,
-        cancelButtonText: 'Cerrar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.cargarVacunas();
-        }
-      });
     });
   }
 
@@ -160,22 +167,20 @@ export class VacunasComponent implements OnInit {
         data: vacuna
       });
       
-      dialogRef.afterClosed().subscribe(result => {
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result) {
+          this.loadingService.hide();
           this.cargarVacunas();
         }
       });
     } else {
-      // Si es una nueva vacuna, primero seleccionar cliente y paciente
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteVacunaDialogComponent, {
         width: '80vw',
         maxWidth: '90vw',
         data: {}
       });
-      
-      seleccionDialogRef.afterClosed().subscribe(result => {
+      seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result && result.cliente && result.paciente) {
-          // Abrir el modal de vacuna con el cliente y paciente seleccionados
           const vacunaDialogRef = this.dialog.open(VacunaDialogComponent, {
             width: '90vw',
             maxWidth: '95vw',
@@ -186,9 +191,9 @@ export class VacunasComponent implements OnInit {
               cliente: result.cliente
             }
           });
-          
-          vacunaDialogRef.afterClosed().subscribe(dialogResult => {
+          vacunaDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(dialogResult => {
             if (dialogResult) {
+              this.loadingService.hide();
               this.cargarVacunas();
             }
           });
@@ -241,62 +246,33 @@ export class VacunasComponent implements OnInit {
     });
 
     if (result.isConfirmed) {
+      this.loadingService.show();
       try {
-        // Usar baja lógica en lugar de eliminación física
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
-        
-        // Mostrar mensaje de éxito
-        Swal.fire({
-          icon: 'success',
-          title: '¡Vacuna Eliminada!',
-          html: `
-            <p>La vacuna ha sido eliminada correctamente.</p>
-            <p class="text-muted">El historial médico ha sido actualizado.</p>
-          `
-        });
-        
-        // Recargar la lista de vacunas
+        Swal.fire({ icon: 'success', title: '¡Vacuna Eliminada!', html: '<p>La vacuna ha sido eliminada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
         this.cargarVacunas();
       } catch (error) {
-        console.error('Error al eliminar vacuna:', error);
-        
-        // Mostrar mensaje de error específico
-        let mensajeError = 'No se pudo eliminar la vacuna. Por favor, intenta de nuevo.';
-        if (error instanceof Error && error.message) {
-          mensajeError += `<br><small class="text-muted">Detalle: ${error.message}</small>`;
-        }
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al Eliminar',
-          html: mensajeError
-        });
+        Swal.fire({ icon: 'error', title: 'Error al Eliminar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') });
+      } finally {
+        this.loadingService.hide();
       }
     }
   }
 
   async cambiarEstado(vacuna: any, nuevoEstado: string) {
+    this.loadingService.show();
     try {
       if (nuevoEstado === 'aplicada') {
         await this.vacunasService.marcarAplicada(vacuna.id);
       } else {
         await this.vacunasService.marcarPendiente(vacuna.id);
       }
-      
-      Swal.fire({
-        icon: 'success',
-        title: '¡Estado actualizado!',
-        text: `Vacuna marcada como ${nuevoEstado}`
-      });
-      
+      Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Vacuna marcada como ${nuevoEstado}` });
       this.cargarVacunas();
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cambiar el estado de la vacuna'
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna') });
+    } finally {
+      this.loadingService.hide();
     }
   }
 

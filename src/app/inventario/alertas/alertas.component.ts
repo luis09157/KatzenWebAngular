@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { InventarioService } from '../inventario.service';
 import { Alerta, Producto } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-alertas',
@@ -33,7 +34,10 @@ export class AlertasComponent implements OnInit {
     { valor: 'baja', etiqueta: 'Baja', color: '#2196f3' }
   ];
 
-  constructor(private inventarioService: InventarioService) {}
+  constructor(
+    private inventarioService: InventarioService,
+    private errorMessages: ErrorMessagesService
+  ) {}
 
   ngOnInit(): void {
     console.log('🚀 Alertas Component cargado');
@@ -148,7 +152,7 @@ export class AlertasComponent implements OnInit {
         this.cargarDatos();
       } catch (error) {
         console.error('❌ Error al resolver alerta:', error);
-        Swal.fire('Error', 'No se pudo resolver la alerta', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'resolver alerta'), 'error');
       }
     }
   }
@@ -187,7 +191,7 @@ export class AlertasComponent implements OnInit {
         this.cargarDatos();
       } catch (error) {
         console.error('❌ Error al resolver alertas:', error);
-        Swal.fire('Error', 'No se pudieron resolver todas las alertas', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'resolver alerta'), 'error');
       }
     }
   }
@@ -247,7 +251,7 @@ export class AlertasComponent implements OnInit {
         this.cargarDatos();
       } catch (error) {
         console.error('❌ Error al generar alertas:', error);
-        Swal.fire('Error', 'No se pudieron generar las alertas', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'generar alertas'), 'error');
       }
     }
   }

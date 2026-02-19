@@ -6,6 +6,7 @@ import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { Banio } from '../shared/banio.model';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -80,7 +81,8 @@ export class BanioDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private baniosService: BaniosService,
     private baniosPacienteService: BaniosPacienteService,
-    private usuariosService: UsuariosService
+    private usuariosService: UsuariosService,
+    private loadingService: LoadingService
   ) {
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
@@ -580,7 +582,7 @@ export class BanioDialogComponent implements OnInit {
         servicioAUsar[metodoActualizar](this.data.id, payload)
           .then(() => {
             console.log('✅ Baño actualizado exitosamente');
-            Swal.fire('Actualizado', 'El baño ha sido actualizado exitosamente', 'success');
+            this.loadingService.show();
             this.dialogRef.close(true);
           })
           .catch(error => {
@@ -601,7 +603,7 @@ export class BanioDialogComponent implements OnInit {
         servicioAUsar[metodoCrear](datosLimpios)
           .then((id) => {
             console.log('✅ Baño creado exitosamente con ID:', id);
-            Swal.fire('Creado', 'El baño ha sido creado exitosamente', 'success');
+            this.loadingService.show();
             this.dialogRef.close(true);
           })
           .catch(error => {

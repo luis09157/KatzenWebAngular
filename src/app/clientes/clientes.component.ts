@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ClientesService } from './clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -6,13 +8,17 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoggerService } from '../core/logger.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-clientes',
   templateUrl: './clientes.component.html',
   styleUrls: ['./clientes.component.css']
 })
-export class ClientesComponent implements OnInit {
+export class ClientesComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'antiguedad', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -28,38 +34,46 @@ export class ClientesComponent implements OnInit {
   clientesFiltrados: any[] = [];
   filtroActual: string = '';
 
+  loading = false;
+  saving = false;
+
   constructor(
-    private clientesService: ClientesService, 
+    private clientesService: ClientesService,
     private pacientesService: PacientesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
-    this.clientesService.getClientes().subscribe(clientes => {
-      console.log('Clientes cargados:', clientes);
-      
-      this.todosLosClientes = (clientes || []).filter(c => c.activo !== false);
-      this.clientesFiltrados = [...this.todosLosClientes];
-      console.log('Clientes activos:', this.todosLosClientes);
-      
-      this.dataSource.data = this.clientesFiltrados;
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
-      }
-      this.calcularEstadisticas(clientes || []);
+    this.loading = true;
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        this.todosLosClientes = (clientes || []).filter((c: { activo?: boolean }) => c.activo !== false);
+        this.clientesFiltrados = [...this.todosLosClientes];
+        this.dataSource.data = this.clientesFiltrados;
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+        }
+        this.calcularEstadisticas(clientes || []);
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   calcularEstadisticas(clientes: any[]) {
-    // Solo contar clientes activos
-    const clientesActivos = clientes.filter(c => c.activo !== false);
-    
+    const clientesActivos = clientes.filter((c: { activo?: boolean }) => c.activo !== false);
     this.totalClientes = clientesActivos.length;
-    this.clientesConCorreo = clientesActivos.filter(c => c.correo && c.correo.trim() !== '').length;
-    this.clientesConExpediente = clientesActivos.filter(c => c.expediente && c.expediente.trim() !== '').length;
-    
-    // Obtener pacientes para calcular relaciones
-    this.pacientesService.getPacientes().subscribe(pacientes => {
+    this.clientesConCorreo = clientesActivos.filter((c: { correo?: string }) => c.correo && c.correo.trim() !== '').length;
+    this.clientesConExpediente = clientesActivos.filter((c: { expediente?: string }) => c.expediente && c.expediente.trim() !== '').length;
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
       const pacientesData = pacientes || [];
       
       // Crear un Set de IDs de clientes que tienen pacientes
@@ -75,11 +89,7 @@ export class ClientesComponent implements OnInit {
 
   aplicarFiltro(event: Event) {
     const filtro = (event.target as HTMLInputElement).value;
-    console.log('Aplicando filtro:', filtro);
-    console.log('Total de clientes antes del filtro:', this.todosLosClientes.length);
-    
     this.filtroActual = filtro.toLowerCase().trim();
-    
     if (!this.filtroActual) {
       this.clientesFiltrados = [...this.todosLosClientes];
     } else {
@@ -91,36 +101,19 @@ export class ClientesComponent implements OnInit {
         const telefono = (cliente.telefono || '').toLowerCase();
         const correo = (cliente.correo || '').toLowerCase();
         const expediente = (cliente.expediente || '').toLowerCase();
-        
-        console.log('Buscando:', this.filtroActual, 'en cliente:', {
-          nombre,
-          apellidoPaterno,
-          apellidoMaterno,
-          nombreCompleto,
-          telefono,
-          correo,
-          expediente
-        });
-        
-        const encontrado = nombre.includes(this.filtroActual) || 
+        return nombre.includes(this.filtroActual) ||
                apellidoPaterno.includes(this.filtroActual) ||
                apellidoMaterno.includes(this.filtroActual) ||
                nombreCompleto.includes(this.filtroActual) ||
-               telefono.includes(this.filtroActual) || 
+               telefono.includes(this.filtroActual) ||
                correo.includes(this.filtroActual) ||
                expediente.includes(this.filtroActual);
-        
-        console.log('Resultado búsqueda:', encontrado);
-        return encontrado;
       });
     }
-    
     this.dataSource.data = this.clientesFiltrados;
-    console.log('Total de clientes después del filtro:', this.clientesFiltrados.length);
   }
 
   limpiarFiltro() {
-    console.log('Limpiando filtro');
     this.filtroActual = '';
     this.clientesFiltrados = [...this.todosLosClientes];
     this.dataSource.data = this.clientesFiltrados;
@@ -163,15 +156,16 @@ export class ClientesComponent implements OnInit {
 
   cambiarEstado(cliente: any, nuevoEstado: boolean) {
     const clienteActualizado = { ...cliente, activo: nuevoEstado };
-    
+    this.saving = true;
+    this.loadingService.show();
     this.clientesService.guardarCliente(clienteActualizado).then(() => {
       const mensaje = nuevoEstado ? 'activado' : 'desactivado';
       Swal.fire('Éxito', `Cliente ${mensaje} correctamente`, 'success');
-      this.ngOnInit(); // Recargar datos
+      this.ngOnInit();
     }).catch(error => {
-      console.error('Error al cambiar estado:', error);
+      this.logger.error('Error al cambiar estado:', error);
       Swal.fire('Error', 'No se pudo cambiar el estado del cliente', 'error');
-    });
+    }).finally(() => { this.saving = false; this.loadingService.hide(); });
   }
 
   abrirModalCliente(cliente: any = null, modoVer: boolean = false) {
@@ -180,15 +174,9 @@ export class ClientesComponent implements OnInit {
       maxWidth: '95vw',
       data: { cliente, modoVer }
     });
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('🔍 Resultado del diálogo:', result);
-      console.log('🔍 Modo ver:', modoVer);
-      
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && !modoVer) {
-        console.log('✅ Procesando resultado del diálogo...');
-        // Validación adicional de email único
         const email = result.correo;
-        console.log('📧 Email a validar:', email);
         
         if (email && 
             !email.toLowerCase().includes('no proporcionado') && 
@@ -238,26 +226,19 @@ export class ClientesComponent implements OnInit {
           }
         }
 
-        console.log('🚀 Llamando al servicio para guardar cliente...');
+        this.saving = true;
+        this.loadingService.show();
         this.clientesService.guardarCliente(result).then(() => {
-          console.log('✅ Cliente guardado exitosamente en Firebase');
           Swal.fire({
             title: '¡Éxito!',
             text: 'Cliente guardado correctamente',
             icon: 'success',
             confirmButtonText: 'Entendido'
           });
-          this.ngOnInit(); // Recargar datos
+          this.ngOnInit();
         }).catch(error => {
-          console.error('❌ Error al guardar cliente:', error);
-          console.error('❌ Detalles del error:', error.message);
-          
-          // Mostrar error específico al usuario
-          let mensajeError = 'No se pudo guardar el cliente';
-          if (error.message) {
-            mensajeError = error.message;
-          }
-          
+          this.logger.error('❌ Error al guardar cliente:', error);
+          const mensajeError = this.errorMessages.getUserMessage(error, 'guardar cliente');
           Swal.fire({
             title: 'Error al guardar cliente',
             text: mensajeError,
@@ -268,7 +249,6 @@ export class ClientesComponent implements OnInit {
             cancelButtonColor: '#3085d6'
           }).then((result) => {
             if (result.dismiss === Swal.DismissReason.cancel) {
-              // Mostrar detalles técnicos
               Swal.fire({
                 title: 'Detalles técnicos',
                 html: `
@@ -283,7 +263,7 @@ export class ClientesComponent implements OnInit {
               });
             }
           });
-        });
+        }).finally(() => { this.saving = false; this.loadingService.hide(); });
       }
     });
   }
@@ -306,18 +286,21 @@ export class ClientesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
+        this.saving = true;
+        this.loadingService.show();
         this.clientesService.bajaLogicaCliente(id).then(() => {
           Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
-          this.ngOnInit(); // Recargar datos
-        });
+          this.ngOnInit();
+        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
       }
     });
   }
 
-  // Función para encontrar clientes sin pacientes
   encontrarClientesSinPacientes() {
-    // Obtener pacientes para comparar
-    this.pacientesService.getPacientes().subscribe(pacientes => {
+    this.saving = true;
+    this.loadingService.show();
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: pacientes => {
       const pacientesData = pacientes || [];
       
       // Crear un Set de IDs de clientes que tienen pacientes
@@ -350,6 +333,10 @@ export class ClientesComponent implements OnInit {
           confirmButtonText: 'Entendido'
         });
       }
+      this.saving = false;
+      this.loadingService.hide();
+      },
+      error: () => { this.saving = false; this.loadingService.hide(); }
     });
   }
 

@@ -1,44 +1,45 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map } from 'rxjs';
+import { Paciente } from '../core/models';
+import { LoggerService } from '../core/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PacientesService {
-  constructor(private db: AngularFireDatabase) {}
+  constructor(
+    private db: AngularFireDatabase,
+    private logger: LoggerService
+  ) {}
 
-  // Obtener todos los pacientes (solo activos)
-  getPacientes(): Observable<any[]> {
+  getPacientes(): Observable<Paciente[]> {
     return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
       map(actions => actions
         .map(a => ({
           id: a.key,
-          ...a.payload.val() as any
-        }))
-        .filter(paciente => paciente.activo !== false) // Solo pacientes activos
+          ...(a.payload.val() as object)
+        } as Paciente))
+        .filter((paciente: Paciente) => paciente.activo !== false)
         .sort((a, b) => {
-          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || a.created_at || 0);
-          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || b.created_at || 0);
-          return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
+          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
+          return fechaB.getTime() - fechaA.getTime();
         })
       )
     );
   }
 
-  // Obtener un paciente por id
-  getPaciente(id: string): Observable<any> {
-    return this.db.object(`Katzen/Mascota/${id}`).valueChanges();
+  getPaciente(id: string): Observable<Paciente | null> {
+    return this.db.object(`Katzen/Mascota/${id}`).valueChanges() as Observable<Paciente | null>;
   }
 
-  // Agregar o actualizar un paciente (siempre con activo: true)
-  guardarPaciente(paciente: any) {
+  guardarPaciente(paciente: Paciente & { id: string }) {
     paciente.activo = true;
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
-  // Crear un nuevo paciente
-  crearPaciente(paciente: any): Promise<any> {
+  crearPaciente(paciente: Paciente): Promise<unknown> {
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
     return this.db.list('Katzen/Mascota').push(paciente).then((ref) => {
@@ -51,8 +52,7 @@ export class PacientesService {
     return this.db.object(`Katzen/Mascota/${id}`).remove();
   }
 
-  // Actualizar solo algunos campos de un paciente
-  actualizarPaciente(id: string, cambios: Partial<any>) {
+  actualizarPaciente(id: string, cambios: Partial<Paciente>) {
     return this.db.object(`Katzen/Mascota/${id}`).update(cambios);
   }
 
@@ -61,13 +61,9 @@ export class PacientesService {
     return this.db.object(`Katzen/Mascota/${id}`).update({ activo: false });
   }
 
-  // Métodos para el Log de Actividades del Paciente
-  agregarLogActividad(pacienteId: string, actividad: any): Promise<void> {
-    console.log('Agregando log de actividad:', { pacienteId, actividad });
-    
-    // Verificar que pacienteId no esté vacío
+  agregarLogActividad(pacienteId: string, actividad: Record<string, unknown>): Promise<void> {
     if (!pacienteId) {
-      console.error('Error: pacienteId está vacío');
+      this.logger.error('Error: pacienteId está vacío');
       return Promise.reject('pacienteId está vacío');
     }
     
@@ -78,20 +74,20 @@ export class PacientesService {
       timestamp: Date.now()
     };
     
-    console.log('Log entry a guardar:', logEntry);
-    console.log('Ruta en Firebase:', `Katzen/Log_Paciente/${pacienteId}`);
+    this.logger.log('Log entry a guardar:', logEntry);
+    this.logger.log('Ruta en Firebase:', `Katzen/Log_Paciente/${pacienteId}`);
     
     return logRef.push(logEntry).then((ref) => {
-      console.log('Log de actividad guardado exitosamente con ID:', ref.key);
+      this.logger.log('Log de actividad guardado exitosamente con ID:', ref.key);
       return Promise.resolve();
     }).catch(error => {
-      console.error('Error al guardar log de actividad:', error);
+      this.logger.error('Error al guardar log de actividad:', error);
       return Promise.reject(error);
     });
   }
 
   getLogActividades(pacienteId: string): Observable<any[]> {
-    console.log('Obteniendo log de actividades para paciente:', pacienteId);
+    this.logger.log('Obteniendo log de actividades para paciente:', pacienteId);
     return this.db.list(`Katzen/Log_Paciente/${pacienteId}`)
       .snapshotChanges()
       .pipe(
@@ -99,7 +95,7 @@ export class PacientesService {
           const log = changes
             .map(c => ({ id: c.payload.key, ...c.payload.val() as any }))
             .sort((a, b) => b.timestamp - a.timestamp); // Más reciente primero
-          console.log('Log obtenido de Firebase:', log);
+          this.logger.log('Log obtenido de Firebase:', log);
           return log;
         })
       );
@@ -107,7 +103,7 @@ export class PacientesService {
 
   // Métodos para registrar diferentes tipos de actividades
   registrarHistorialClinico(pacienteId: string, historial: any): Promise<void> {
-    console.log('Registrando historial clínico en log:', { pacienteId, historial });
+    this.logger.log('Registrando historial clínico en log:', { pacienteId, historial });
     
     const actividad = {
       tipo: 'historial_clinico',
@@ -148,7 +144,7 @@ export class PacientesService {
   }
 
   registrarRecordatorio(pacienteId: string, recordatorio: any): Promise<void> {
-    console.log('Registrando recordatorio en log:', { pacienteId, recordatorio });
+    this.logger.log('Registrando recordatorio en log:', { pacienteId, recordatorio });
     
     const actividad = {
       tipo: 'recordatorio',
@@ -293,7 +289,7 @@ export class PacientesService {
 
   // Método de prueba para verificar la conexión a Firebase
   probarLogActividad(pacienteId: string): Promise<void> {
-    console.log('Probando log de actividad para paciente:', pacienteId);
+    this.logger.log('Probando log de actividad para paciente:', pacienteId);
     
     const actividadPrueba = {
       tipo: 'prueba',

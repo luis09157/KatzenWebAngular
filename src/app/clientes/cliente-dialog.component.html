@@ -10,7 +10,7 @@
     <!-- Sección de Imagen -->
     <div class="image-section">
       <div class="image-preview" *ngIf="imagePreview">
-        <img [src]="imagePreview" alt="Foto del cliente" />
+        <img [src]="imagePreview" alt="Foto del cliente" decoding="async" />
         <button mat-icon-button class="remove-image" (click)="removeImage()" *ngIf="!modoVer">
           <mat-icon>close</mat-icon>
         </button>

@@ -7,6 +7,7 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -75,7 +76,8 @@ export class CitaDialogComponent implements OnInit {
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
     private usuariosService: UsuariosService,
-    private dateAdapter: DateAdapter<any>
+    private dateAdapter: DateAdapter<any>,
+    private loadingService: LoadingService
   ) {
     this.modoVer = data.modoVer;
     
@@ -272,7 +274,7 @@ export class CitaDialogComponent implements OnInit {
       
       // Limpiar campos temporales que no deben guardarse
       delete formValue.nombreCliente;
-      
+      this.loadingService.show();
       this.dialogRef.close(formValue);
     }
   }

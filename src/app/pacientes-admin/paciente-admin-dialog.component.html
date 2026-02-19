@@ -15,7 +15,7 @@
             </div>
             
             <div class="image-preview" *ngIf="imagePreview">
-              <img [src]="imagePreview" alt="Foto del paciente" class="preview-image">
+              <img [src]="imagePreview" alt="Foto del paciente" class="preview-image" decoding="async">
               <button mat-icon-button class="remove-image" (click)="removeImage()">
                 <mat-icon>close</mat-icon>
               </button>

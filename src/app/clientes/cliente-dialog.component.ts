@@ -7,6 +7,8 @@ import { ClientesService } from './clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { Observable, map } from 'rxjs';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -38,7 +40,9 @@ export class ClienteDialogComponent implements OnInit {
     private http: HttpClient,
     private storage: AngularFireStorage,
     private clientesService: ClientesService,
-    private pacientesService: PacientesService
+    private pacientesService: PacientesService,
+    private errorMessages: ErrorMessagesService,
+    private loadingService: LoadingService
   ) {
     this.modoVer = data.modoVer;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
@@ -379,11 +383,11 @@ export class ClienteDialogComponent implements OnInit {
           imageUrl: clienteData.imageUrl,
           imageFileName: clienteData.imageFileName
         });
-        
+        this.loadingService.show();
         this.dialogRef.close(clienteData);
       } catch (error) {
         console.error('❌ Error al procesar la imagen:', error);
-        Swal.fire('Error', 'No se pudo procesar la imagen. Intenta de nuevo.', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'subir imagen'), 'error');
       }
     } else {
       console.log('Formulario inválido:', this.clienteForm.errors);

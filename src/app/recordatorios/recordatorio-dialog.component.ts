@@ -5,6 +5,7 @@ import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-recordatorio-dialog',
@@ -46,7 +47,8 @@ export class RecordatorioDialogComponent implements OnInit {
     private recordatoriosService: RecordatoriosService,
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<RecordatorioDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private loadingService: LoadingService
   ) {
     this.recordatorioForm = this.fb.group({
       titulo: ['', Validators.required],
@@ -147,7 +149,7 @@ export class RecordatorioDialogComponent implements OnInit {
             await this.registrarRecordatorioEnLog(recordatorioData, 'editado');
           }
           
-          Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio actualizado correctamente' });
+          this.loadingService.show();
           this.dialogRef.close(recordatorioData);
         } else {
           console.log('Modo creación');
@@ -164,9 +166,7 @@ export class RecordatorioDialogComponent implements OnInit {
           }
           
           console.log('Recordatorio creado con ID:', recordatorioId);
-          Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Recordatorio creado correctamente' });
-          
-          // Cerrar con los datos completos incluyendo el ID
+          this.loadingService.show();
           this.dialogRef.close(recordatorioData);
         }
       } catch (error) {
@@ -228,11 +228,7 @@ export class RecordatorioDialogComponent implements OnInit {
       
       try {
         await this.recordatoriosService.eliminarRecordatorio(this.data.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Eliminado!',
-          text: 'Recordatorio eliminado correctamente'
-        });
+        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar recordatorio:', error);
@@ -259,12 +255,7 @@ export class RecordatorioDialogComponent implements OnInit {
         await this.recordatoriosService.marcarPendiente(this.data.id);
       }
       
-      Swal.fire({
-        icon: 'success',
-        title: '¡Estado actualizado!',
-        text: `Recordatorio marcado como ${estado}`
-      });
-      
+      this.loadingService.show();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Error al cambiar estado:', error);

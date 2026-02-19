@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto, ProductoFormData, CategoriaProducto, UnidadMedida, Proveedor } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-producto-dialog',
@@ -41,7 +42,8 @@ export class ProductoDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<ProductoDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { producto: Producto | null; modoEdicion: boolean }
+    @Inject(MAT_DIALOG_DATA) public data: { producto: Producto | null; modoEdicion: boolean },
+    private errorMessages: ErrorMessagesService
   ) {
     this.modoEdicion = data.modoEdicion;
 
@@ -250,9 +252,9 @@ export class ProductoDialogComponent implements OnInit {
       }
 
       this.dialogRef.close(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error al guardar producto:', error);
-      Swal.fire('Error', error.message || 'No se pudo guardar el producto', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar producto'), 'error');
     } finally {
       this.loading = false;
     }

@@ -1,11 +1,16 @@
 <div class="usuarios-contenedor">
-  <mat-card class="usuarios-card">
+  <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando usuarios...</p>
+  </div>
+  <mat-card *ngIf="!loading" class="usuarios-card">
     <div class="header-row">
       <span class="titulo">Usuarios</span>
       <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
       <span class="spacer"></span>
-      <button mat-raised-button color="accent" (click)="agregarVeronica()" style="margin-right: 8px;">Agregar Veronica</button>
-      <button mat-raised-button color="primary" (click)="abrirModalUsuario()">Agregar Usuario</button>
+      <button mat-raised-button color="accent" (click)="agregarVeronica()" [disabled]="saving" style="margin-right: 8px;">Agregar Veronica</button>
+      <button mat-raised-button color="primary" (click)="abrirModalUsuario()" [disabled]="saving">Agregar Usuario</button>
     </div>
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar usuario</mat-label>
@@ -32,7 +37,7 @@
           <td mat-cell *matCellDef="let usuario">
             <button mat-icon-button color="accent" (click)="verUsuario(usuario)"><mat-icon>visibility</mat-icon></button>
             <button mat-icon-button color="primary" (click)="editarUsuario(usuario)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="bajaLogicaUsuario(usuario.id)"><mat-icon>delete</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="bajaLogicaUsuario(usuario.id)" [disabled]="saving"><mat-icon>delete</mat-icon></button>
           </td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

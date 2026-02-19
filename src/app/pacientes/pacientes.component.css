@@ -7,6 +7,21 @@
   width: 100vw;
 }
 
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  min-height: 40vh;
+}
+.loading-container p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
 /* Buscador */
 .buscador-container {
   height: 100%;

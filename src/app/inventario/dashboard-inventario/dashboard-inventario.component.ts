@@ -6,6 +6,8 @@ import { EstadisticasInventario, Alerta, Producto } from '../../shared/inventari
 import { EntradaDialogComponent } from '../movimientos/entrada-dialog.component';
 import { SalidaDialogComponent } from '../movimientos/salida-dialog.component';
 import { AjusteDialogComponent } from '../movimientos/ajuste-dialog.component';
+import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-dashboard-inventario',
@@ -22,7 +24,8 @@ export class DashboardInventarioComponent implements OnInit {
   constructor(
     private inventarioService: InventarioService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +64,11 @@ export class DashboardInventarioComponent implements OnInit {
     } catch (error) {
       console.error('❌ Error al cargar datos:', error);
       this.loading = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar',
+        text: this.errorMessages.getUserMessage(error, 'cargar datos')
+      });
     }
   }
 
@@ -97,6 +105,11 @@ export class DashboardInventarioComponent implements OnInit {
       this.cargarDatos();
     } catch (error) {
       console.error('❌ Error al resolver alerta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: this.errorMessages.getUserMessage(error, 'resolver alerta')
+      });
     }
   }
 

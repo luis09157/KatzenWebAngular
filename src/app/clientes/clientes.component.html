@@ -1,4 +1,10 @@
 <div class="clientes-contenedor">
+  <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando clientes...</p>
+  </div>
+  <div *ngIf="!loading">
   <!-- Dashboard de Estadísticas -->
   <div class="dashboard-stats">
     <div class="stat-card">
@@ -54,11 +60,11 @@
       </div>
     </div>
     <div class="banner-actions">
-      <button mat-stroked-button color="accent" (click)="encontrarClientesSinPacientes()" matTooltip="Buscar clientes sin pacientes">
+      <button mat-stroked-button color="accent" (click)="encontrarClientesSinPacientes()" [disabled]="saving" matTooltip="Buscar clientes sin pacientes">
         <mat-icon>search</mat-icon>
         Sin Pacientes
       </button>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()" [disabled]="saving">
         <mat-icon>add</mat-icon>
         Nuevo Cliente
       </button>
@@ -191,10 +197,11 @@
       <mat-icon>people_outline</mat-icon>
       <h3>No hay clientes</h3>
       <p>No se han encontrado clientes registrados.</p>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()">
+      <button mat-raised-button color="primary" (click)="abrirModalCliente()" [disabled]="saving">
         <mat-icon>add</mat-icon>
         Crear primer cliente
       </button>
     </div>
   </mat-card>
+  </div>
 </div>

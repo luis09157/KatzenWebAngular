@@ -7,6 +7,8 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import Swal from 'sweetalert2';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-historial-dialog',
@@ -40,7 +42,9 @@ export class HistorialDialogComponent implements OnInit {
     private usuariosService: UsuariosService,
     private storage: AngularFireStorage,
     private dialogRef: MatDialogRef<HistorialDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private errorMessages: ErrorMessagesService,
+    private loadingService: LoadingService
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
@@ -238,11 +242,7 @@ export class HistorialDialogComponent implements OnInit {
             await this.registrarHistorialEnLog(historialData, 'editado');
           }
           
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Historial clínico actualizado correctamente'
-          });
+          this.loadingService.show();
           this.dialogRef.close(historialData);
         } else {
           // Crear nuevo historial
@@ -255,12 +255,7 @@ export class HistorialDialogComponent implements OnInit {
             await this.registrarHistorialEnLog(historialData, 'creado');
           }
           
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Historial clínico creado correctamente'
-          });
-          
+          this.loadingService.show();
           this.dialogRef.close(historialData);
         }
       } catch (error) {
@@ -268,7 +263,7 @@ export class HistorialDialogComponent implements OnInit {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo guardar el historial clínico'
+          text: this.errorMessages.getUserMessage(error, 'guardar historial')
         });
       } finally {
         this.loading = false;
@@ -313,18 +308,14 @@ export class HistorialDialogComponent implements OnInit {
       
       try {
         await this.historialesService.eliminarHistorial(this.data.historial.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Eliminado!',
-          text: 'Historial clínico eliminado correctamente'
-        });
+        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar historial:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo eliminar el historial clínico'
+          text: this.errorMessages.getUserMessage(error, 'eliminar historial')
         });
       } finally {
         this.loading = false;
@@ -415,7 +406,7 @@ export class HistorialDialogComponent implements OnInit {
       Swal.fire({
         icon: 'error',
         title: 'Error al subir archivos',
-        text: 'No se pudieron subir algunos archivos. Inténtalo de nuevo.'
+        text: this.errorMessages.getUserMessage(error, 'subir archivos')
       });
       return [];
     } finally {

@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -7,19 +9,20 @@ import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cli
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
+import { LoggerService } from '../core/logger.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-recordatorios',
   templateUrl: './recordatorios.component.html',
   styleUrls: ['./recordatorios.component.css']
 })
-export class RecordatoriosComponent implements OnInit {
+export class RecordatoriosComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_recordatorio', 'titulo', 'tipo', 'estado', 'prioridad', 'paciente', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   pacientesMap: { [id: string]: string } = {};
-  
-  // Propiedades para estadísticas y loading
   loading = false;
   estadisticas = {
     total: 0,
@@ -31,38 +34,45 @@ export class RecordatoriosComponent implements OnInit {
   constructor(
     private recordatoriosService: RecordatoriosService,
     private pacientesService: PacientesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      (pacientes || []).forEach(p => {
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
+      (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
         this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
       });
       this.cargarRecordatorios();
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarRecordatorios() {
     this.loading = true;
-    this.recordatoriosService.getRecordatorios().subscribe(recordatorios => {
-      const recordatoriosActivos = (recordatorios || []).filter(r => r.activo !== false);
-      
-      this.dataSource.data = recordatoriosActivos.map(recordatorio => ({
-        ...recordatorio,
-        paciente: this.pacientesMap[recordatorio.paciente_id] || 'N/P',
-        fecha_recordatorio: this.formatearFecha(recordatorio.fecha_recordatorio)
-      }));
-      
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
+    this.recordatoriosService.getRecordatorios().pipe(takeUntil(this.destroy$)).subscribe({
+      next: recordatorios => {
+        const recordatoriosActivos = (recordatorios || []).filter((r: { activo?: boolean }) => r.activo !== false);
+        this.dataSource.data = recordatoriosActivos.map((recordatorio: any) => ({
+          ...recordatorio,
+          paciente: this.pacientesMap[recordatorio.paciente_id] || 'N/P',
+          fecha_recordatorio: this.formatearFecha(recordatorio.fecha_recordatorio)
+        }));
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+        }
+        this.calcularEstadisticas(recordatoriosActivos);
+        this.loading = false;
+      },
+      error: error => {
+        this.logger.error('Error al cargar recordatorios:', error);
+        this.loading = false;
       }
-      
-      this.calcularEstadisticas(recordatoriosActivos);
-      this.loading = false;
-    }, error => {
-      console.error('Error al cargar recordatorios:', error);
-      this.loading = false;
     });
   }
 
@@ -120,23 +130,21 @@ export class RecordatoriosComponent implements OnInit {
         data: recordatorio
       });
       
-      dialogRef.afterClosed().subscribe(result => {
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result) {
+          this.loadingService.hide();
           this.cargarRecordatorios();
         }
       });
     } else {
-      // Si es un nuevo recordatorio, primero seleccionar cliente y paciente
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteRecordatorioDialogComponent, {
         width: '80vw',
         maxWidth: '90vw',
         panelClass: 'seleccionar-cliente-dialog-container',
         data: {}
       });
-      
-      seleccionDialogRef.afterClosed().subscribe(result => {
+      seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result && result.cliente && result.paciente) {
-          // Abrir el modal de recordatorio con el cliente y paciente seleccionados
           const recordatorioDialogRef = this.dialog.open(RecordatorioDialogComponent, {
             width: '90vw',
             maxWidth: '95vw',
@@ -148,9 +156,9 @@ export class RecordatoriosComponent implements OnInit {
               cliente: result.cliente
             }
           });
-          
-          recordatorioDialogRef.afterClosed().subscribe(dialogResult => {
+          recordatorioDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(dialogResult => {
             if (dialogResult) {
+              this.loadingService.hide();
               this.cargarRecordatorios();
             }
           });
@@ -185,47 +193,33 @@ export class RecordatoriosComponent implements OnInit {
     });
 
     if (result.isConfirmed) {
+      this.loadingService.show();
       try {
         await this.recordatoriosService.eliminarRecordatorio(recordatorio.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Eliminado!',
-          text: 'Recordatorio eliminado correctamente'
-        });
+        Swal.fire({ icon: 'success', title: '¡Eliminado!', text: 'Recordatorio eliminado correctamente' });
         this.cargarRecordatorios();
       } catch (error) {
-        console.error('Error al eliminar recordatorio:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar el recordatorio'
-        });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el recordatorio' });
+      } finally {
+        this.loadingService.hide();
       }
     }
   }
 
   async cambiarEstado(recordatorio: any, nuevoEstado: string) {
+    this.loadingService.show();
     try {
       if (nuevoEstado === 'completado') {
         await this.recordatoriosService.marcarCompletado(recordatorio.id);
       } else {
         await this.recordatoriosService.marcarPendiente(recordatorio.id);
       }
-      
-      Swal.fire({
-        icon: 'success',
-        title: '¡Estado actualizado!',
-        text: `Recordatorio marcado como ${nuevoEstado}`
-      });
-      
+      Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Recordatorio marcado como ${nuevoEstado}` });
       this.cargarRecordatorios();
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cambiar el estado del recordatorio'
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar el estado del recordatorio' });
+    } finally {
+      this.loadingService.hide();
     }
   }
 

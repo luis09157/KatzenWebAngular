@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { InventarioService } from '../inventario.service';
 import { Producto, Movimiento } from '../../shared/inventario.models';
 import { firstValueFrom } from 'rxjs';
+import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-reportes',
@@ -39,7 +41,10 @@ export class ReportesComponent implements OnInit {
     { valor: 'stock', nombre: 'Reporte de Stock', icono: 'inventory' }
   ];
 
-  constructor(private inventarioService: InventarioService) {}
+  constructor(
+    private inventarioService: InventarioService,
+    private errorMessages: ErrorMessagesService
+  ) {}
 
   ngOnInit(): void {
     console.log('🚀 Reportes Component cargado');
@@ -61,6 +66,11 @@ export class ReportesComponent implements OnInit {
       console.log('✅ Datos cargados para reportes');
     } catch (error) {
       console.error('❌ Error al cargar datos:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar',
+        text: this.errorMessages.getUserMessage(error, 'cargar datos')
+      });
     } finally {
       this.loading = false;
     }

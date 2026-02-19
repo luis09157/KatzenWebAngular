@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 // Angular Material Components
@@ -20,7 +20,7 @@ import { AdminMainLayoutComponent } from './admin-main-layout.component';
   imports: [
     CommonModule,
     RouterModule,
-    
+    NgOptimizedImage,
     // Angular Material Modules
     MatToolbarModule,
     MatButtonModule,

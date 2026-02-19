@@ -6,6 +6,7 @@ import { Proveedor, Producto, OrdenCompraFormData } from '../../shared/inventari
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-orden-dialog',
@@ -23,7 +24,8 @@ export class OrdenDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private inventarioService: InventarioService,
-    public dialogRef: MatDialogRef<OrdenDialogComponent>
+    public dialogRef: MatDialogRef<OrdenDialogComponent>,
+    private errorMessages: ErrorMessagesService
   ) {
     this.ordenForm = this.fb.group({
       proveedor_id: ['', Validators.required],
@@ -200,9 +202,9 @@ export class OrdenDialogComponent implements OnInit {
       });
 
       this.dialogRef.close(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error al crear orden:', error);
-      Swal.fire('Error', error.message || 'No se pudo crear la orden', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar orden'), 'error');
     } finally {
       this.loading = false;
     }

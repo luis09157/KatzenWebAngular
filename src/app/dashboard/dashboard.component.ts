@@ -1,14 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs/operators';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CitasService } from '../citas/citas.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
-
 
 @Component({
   selector: 'app-dashboard',
@@ -23,7 +23,8 @@ import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
     ])
   ]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   breadcrumbs: Array<{ label: string, url: string }> = [];
   currentDate = new Date();
   selectedDate = new Date();
@@ -38,6 +39,7 @@ export class DashboardComponent implements OnInit {
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
+  loading = false;
 
   constructor(
     private authService: AuthService,
@@ -50,57 +52,62 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
+    this.loading = true;
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.breadcrumbs = this.buildBreadcrumbs(this.route.root);
     });
-    
     this.loadClientesYPacientes();
     this.loadCitas();
     this.generateCalendar();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadClientesYPacientes() {
-    // Cargar clientes
-    this.clientesService.getClientes().subscribe(clientes => {
-      (clientes || []).forEach(c => {
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
+      (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
         this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
       });
     });
-    
-    // Cargar pacientes
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      (pacientes || []).forEach(p => {
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
+      (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
         this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
       });
     });
   }
 
   loadCitas() {
-    this.citasService.getCitas().subscribe(citas => {
-      this.citas = citas || [];
-      this.citasMap = {};
-      
-      this.citas.forEach(cita => {
-        // Usar el campo 'fecha' que es la fecha real de la cita
-        if (cita.fecha) {
-          const fecha = new Date(cita.fecha);
-          const key = this.formatDateKey(fecha);
-          if (!this.citasMap[key]) {
-            this.citasMap[key] = [];
+    this.citasService.getCitas().pipe(takeUntil(this.destroy$)).subscribe({
+      next: citas => {
+        this.citas = citas || [];
+        this.citasMap = {};
+        this.citas.forEach(cita => {
+          if (cita.fecha) {
+            const fecha = new Date(cita.fecha);
+            const key = this.formatDateKey(fecha);
+            if (!this.citasMap[key]) {
+              this.citasMap[key] = [];
+            }
+            this.citasMap[key].push(cita);
+          } else if (cita.fecha_hora) {
+            const fecha = new Date(cita.fecha_hora);
+            const key = this.formatDateKey(fecha);
+            if (!this.citasMap[key]) {
+              this.citasMap[key] = [];
+            }
+            this.citasMap[key].push(cita);
           }
-          this.citasMap[key].push(cita);
-        } else if (cita.fecha_hora) {
-          // Fallback a fecha_hora si no hay fecha
-          const fecha = new Date(cita.fecha_hora);
-          const key = this.formatDateKey(fecha);
-          if (!this.citasMap[key]) {
-            this.citasMap[key] = [];
-          }
-          this.citasMap[key].push(cita);
-        }
-      });
-      
-      this.generateCalendar();
+        });
+        this.generateCalendar();
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
     });
   }
 

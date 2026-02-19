@@ -6,6 +6,7 @@ import { Producto } from '../../shared/inventario.models';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-salida-dialog',
@@ -32,7 +33,8 @@ export class SalidaDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private inventarioService: InventarioService,
-    public dialogRef: MatDialogRef<SalidaDialogComponent>
+    public dialogRef: MatDialogRef<SalidaDialogComponent>,
+    private errorMessages: ErrorMessagesService
   ) {
     this.salidaForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
@@ -197,9 +199,9 @@ export class SalidaDialogComponent implements OnInit {
       });
 
       this.dialogRef.close(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error al registrar salida:', error);
-      Swal.fire('Error', error.message || 'No se pudo registrar la salida', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'registrar salida'), 'error');
     } finally {
       this.loading = false;
     }

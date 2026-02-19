@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -7,13 +9,15 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component';
 import Swal from 'sweetalert2';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-pacientes-admin',
   templateUrl: './pacientes-admin.component.html',
   styleUrls: ['./pacientes-admin.component.css']
 })
-export class PacientesAdminComponent implements OnInit {
+export class PacientesAdminComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -38,7 +42,8 @@ export class PacientesAdminComponent implements OnInit {
   constructor(
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) {}
 
   ngOnInit() {
@@ -59,24 +64,31 @@ export class PacientesAdminComponent implements OnInit {
 
   cargarDatos() {
     this.loading = true;
-    
-    // Cargar pacientes
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.pacientes = pacientes || [];
-      this.prepararDataSource();
-    }, error => {
-      console.error('❌ Error al cargar pacientes:', error);
-      this.loading = false;
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: pacientes => {
+        this.pacientes = pacientes || [];
+        this.prepararDataSource();
+      },
+      error: error => {
+        this.logger.error('❌ Error al cargar pacientes:', error);
+        this.loading = false;
+      }
     });
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        this.clientes = clientes || [];
+        this.prepararDataSource();
+      },
+      error: error => {
+        this.logger.error('❌ Error al cargar clientes:', error);
+        this.loading = false;
+      }
+    });
+  }
 
-    // Cargar clientes para obtener nombres
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.clientes = clientes || [];
-      this.prepararDataSource();
-    }, error => {
-      console.error('❌ Error al cargar clientes:', error);
-      this.loading = false;
-    });
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 
@@ -133,15 +145,20 @@ export class PacientesAdminComponent implements OnInit {
       data: { modo: 'crear' }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.pacientesService.crearPaciente(result).then(() => {
-          Swal.fire('Éxito', 'Paciente creado correctamente', 'success');
-          this.cargarDatos();
-        }).catch(error => {
-          console.error('Error al crear paciente:', error);
-          Swal.fire('Error', 'No se pudo crear el paciente', 'error');
-        });
+        Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        setTimeout(() => {
+          this.pacientesService.crearPaciente(result).then(() => {
+            Swal.close();
+            Swal.fire('Éxito', 'Paciente creado correctamente', 'success');
+            this.cargarDatos();
+          }).catch(error => {
+            this.logger.error('Error al crear paciente:', error);
+            Swal.close();
+            Swal.fire('Error', 'No se pudo crear el paciente', 'error');
+          }).finally(() => Swal.close());
+        }, 0);
       }
     });
   }
@@ -153,15 +170,20 @@ export class PacientesAdminComponent implements OnInit {
       data: { paciente, modo: 'editar' }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
-          Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-          // Firebase se actualiza automáticamente en tiempo real
-        }).catch(error => {
-          console.error('❌ Error al actualizar paciente:', error);
-          Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
-        });
+        Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        setTimeout(() => {
+          this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
+            Swal.close();
+            Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+            this.cargarDatos();
+          }).catch(error => {
+            this.logger.error('❌ Error al actualizar paciente:', error);
+            Swal.close();
+            Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
+          }).finally(() => Swal.close());
+        }, 0);
       }
     });
   }
@@ -178,13 +200,18 @@ export class PacientesAdminComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.pacientesService.eliminarPaciente(paciente.id).then(() => {
-          Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
-          // Firebase se actualiza automáticamente en tiempo real
-        }).catch(error => {
-          console.error('Error al eliminar paciente:', error);
-          Swal.fire('Error', 'No se pudo eliminar el paciente', 'error');
-        });
+        Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        setTimeout(() => {
+          this.pacientesService.eliminarPaciente(paciente.id).then(() => {
+            Swal.close();
+            Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
+            this.cargarDatos();
+          }).catch(error => {
+            this.logger.error('Error al eliminar paciente:', error);
+            Swal.close();
+            Swal.fire('Error', 'No se pudo eliminar el paciente', 'error');
+          }).finally(() => Swal.close());
+        }, 0);
       }
     });
   }
@@ -196,16 +223,20 @@ export class PacientesAdminComponent implements OnInit {
       data: { paciente, modo: 'ver' }
     });
 
-    // Manejar el resultado cuando se edita desde el modo "ver"
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
-          Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-          // Firebase se actualiza automáticamente en tiempo real
-        }).catch(error => {
-          console.error('❌ Error al actualizar paciente desde modo "ver":', error);
-          Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
-        });
+        Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        setTimeout(() => {
+          this.pacientesService.actualizarPaciente(paciente.id, result).then(() => {
+            Swal.close();
+            Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+            this.cargarDatos();
+          }).catch(error => {
+            this.logger.error('❌ Error al actualizar paciente desde modo "ver":', error);
+            Swal.close();
+            Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
+          }).finally(() => Swal.close());
+        }, 0);
       }
     });
   }

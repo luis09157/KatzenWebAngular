@@ -7,6 +7,7 @@ import { InventarioService } from '../inventario.service';
 import { Proveedor } from '../../shared/inventario.models';
 import { ProveedorDialogComponent } from './proveedor-dialog.component';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-proveedores',
@@ -33,7 +34,8 @@ export class ProveedoresComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService
   ) {
     this.dataSource = new MatTableDataSource<Proveedor>([]);
   }
@@ -134,7 +136,7 @@ export class ProveedoresComponent implements OnInit {
         this.cargarProveedores();
       } catch (error) {
         console.error(`❌ Error al ${accion} proveedor:`, error);
-        Swal.fire('Error', `No se pudo ${accion} el proveedor`, 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar proveedor'), 'error');
       }
     }
   }
@@ -161,7 +163,7 @@ export class ProveedoresComponent implements OnInit {
         this.cargarProveedores();
       } catch (error) {
         console.error('❌ Error al eliminar proveedor:', error);
-        Swal.fire('Error', 'No se pudo eliminar el proveedor', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'eliminar proveedor'), 'error');
       }
     }
   }

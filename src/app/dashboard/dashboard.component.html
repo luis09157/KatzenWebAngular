@@ -1,4 +1,8 @@
 <div class="dashboard-container" [@routeAnimations]>
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando calendario...</p>
+  </div>
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
     <div class="welcome-section">
@@ -74,7 +78,7 @@
 
 
   <!-- Calendario de Citas -->
-  <div class="calendar-section">
+  <div *ngIf="!loading" class="calendar-section">
     <div class="calendar-header">
       <h2>Calendario de Citas</h2>
       <div class="calendar-navigation">

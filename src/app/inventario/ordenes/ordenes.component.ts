@@ -8,6 +8,7 @@ import { OrdenCompra, Proveedor } from '../../shared/inventario.models';
 import { OrdenDialogComponent } from './orden-dialog.component';
 import { RecibirOrdenDialogComponent } from './recibir-orden-dialog.component';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-ordenes',
@@ -47,7 +48,8 @@ export class OrdenesComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService
   ) {
     this.dataSource = new MatTableDataSource<OrdenCompra>([]);
   }
@@ -157,7 +159,7 @@ export class OrdenesComponent implements OnInit {
         this.cargarDatos();
       } catch (error) {
         console.error('❌ Error al cancelar orden:', error);
-        Swal.fire('Error', 'No se pudo cancelar la orden', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cancelar orden'), 'error');
       }
     }
   }

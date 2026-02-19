@@ -16,7 +16,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { LandingModule } from './landing/landing.module';
 import { PrivacidadModule } from './landing/privacidad/privacidad.module';
-import { initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -26,6 +26,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    MatProgressSpinnerModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule,

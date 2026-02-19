@@ -171,7 +171,7 @@
     <div class="testimonials-grid">
       <mat-card class="testimonial-card" *ngFor="let testimonio of testimonios">
         <div class="testimonial-header">
-          <img [src]="testimonio.avatar" [alt]="testimonio.nombre" class="testimonial-avatar" loading="lazy">
+          <img [src]="testimonio.avatar" [alt]="testimonio.nombre" class="testimonial-avatar" loading="lazy" decoding="async">
           <div class="testimonial-info">
             <h3 class="testimonial-name">{{testimonio.nombre}}</h3>
             <div class="testimonial-location">
@@ -262,7 +262,7 @@
     <div class="team-grid">
       <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico" itemscope itemtype="https://schema.org/Person">
         <div class="doctor-image-container">
-          <img [src]="doctor.imagen" [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'" class="doctor-image" loading="lazy" itemprop="image">
+          <img [src]="doctor.imagen" [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'" class="doctor-image" loading="lazy" decoding="async" itemprop="image">
         </div>
         
         <div class="doctor-info">

@@ -1,7 +1,11 @@
 <!-- Contenido principal -->
 <div class="main-container">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando pacientes...</p>
+  </div>
   <!-- Buscador (solo visible cuando no hay paciente seleccionado) -->
-  <div *ngIf="!pacienteSeleccionado" class="buscador-container">
+  <div *ngIf="!loading && !pacienteSeleccionado" class="buscador-container">
     <div class="buscador-paciente-wrapper">
       <div class="buscador-header">
         <h2>Buscar Paciente</h2>
@@ -25,12 +29,12 @@
   </div>
 
   <!-- Vista del expediente (solo visible cuando hay paciente seleccionado) -->
-  <div *ngIf="pacienteSeleccionado" class="expediente-vista">
+  <div *ngIf="!loading && pacienteSeleccionado" class="expediente-vista">
     <!-- Panel izquierdo: Perfil del paciente -->
     <div class="panel-izquierdo">
       <!-- Datos del Paciente -->
       <div class="foto-paciente">
-        <img [src]="pacienteSeleccionado.imageUrl || pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente">
+        <img [src]="pacienteSeleccionado.imageUrl || pacienteSeleccionado.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" alt="Foto paciente" loading="lazy" decoding="async">
       </div>
       
       <div class="info-paciente">

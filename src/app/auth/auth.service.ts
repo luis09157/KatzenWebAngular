@@ -3,12 +3,17 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { LoggerService } from '../core/logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  user$: Observable<any>;
+  user$: Observable<unknown>;
 
-  constructor(private afAuth: AngularFireAuth, private router: Router) {
+  constructor(
+    private afAuth: AngularFireAuth,
+    private router: Router,
+    private logger: LoggerService
+  ) {
     this.user$ = this.afAuth.authState;
   }
 
@@ -17,13 +22,12 @@ export class AuthService {
   }
 
   logout() {
-    console.log('AuthService: Iniciando logout...');
+    this.logger.log('AuthService: Iniciando logout...');
     return this.afAuth.signOut().then(() => {
-      console.log('AuthService: Logout exitoso, redirigiendo a /admin/login');
+      this.logger.log('AuthService: Logout exitoso, redirigiendo a /admin/login');
       this.router.navigate(['/admin/login']);
     }).catch(error => {
-      console.error('AuthService: Error en logout:', error);
-      // En caso de error, intentar redirigir de todas formas
+      this.logger.error('AuthService: Error en logout:', error);
       this.router.navigate(['/admin/login']);
     });
   }

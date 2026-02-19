@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { ClientesService } from '../clientes/clientes.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
+import { ErrorMessagesService } from '../core/error-messages.service';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -40,7 +41,8 @@ export class PacienteAdminDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<PacienteAdminDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private clientesService: ClientesService,
-    private storage: AngularFireStorage
+    private storage: AngularFireStorage,
+    private errorMessages: ErrorMessagesService
   ) {
               this.pacienteForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -201,8 +203,13 @@ export class PacienteAdminDialogComponent implements OnInit {
     );
   }
 
-  private _filterClientes(value: string): any[] {
-    const filterValue = value.toLowerCase();
+  private _filterClientes(value: string | any): any[] {
+    const raw = value == null || value === '' ? '' : typeof value === 'string'
+      ? value
+      : (value && typeof value === 'object' && (value.nombre != null || value.apellidoPaterno != null)
+          ? this.getNombreCompleto(value)
+          : String(value ?? ''));
+    const filterValue = raw.toLowerCase();
     return this.clientes.filter(cliente => {
       // Buscar por nombre completo
       const nombreCompleto = this.getNombreCompleto(cliente);
@@ -280,51 +287,50 @@ export class PacienteAdminDialogComponent implements OnInit {
     
     if (this.pacienteForm.valid) {
       this.loading = true;
-      
+      Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
       try {
         let imageUrl = this.data?.paciente?.imageUrl || this.defaultImageUrl;
-        
+
         // Solo subir nueva imagen si se seleccionó una
         if (this.selectedFile) {
           console.log('🔄 Subiendo nueva imagen en modo:', this.isViewMode ? 'ver' : 'editar');
           imageUrl = await this.uploadImage();
         }
-        
+
         // Obtener los valores del formulario
         const formValues = this.pacienteForm.value;
-        
+
         // Convertir la fecha de vuelta al formato string si existe
         if (formValues.edad && formValues.edad instanceof Date) {
           formValues.edad = this.convertirDateAString(formValues.edad);
         }
-        
+
         // Convertir la fecha de fallecimiento si existe
         if (formValues.fechaFallecimiento && formValues.fechaFallecimiento instanceof Date) {
           formValues.fechaFallecimiento = this.convertirDateAString(formValues.fechaFallecimiento);
         }
-        
+
         const pacienteData = {
           ...formValues,
           imageUrl: imageUrl,
           imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.paciente?.imageFileName || ''),
           fecha: new Date().toLocaleString('es-ES')
         };
-        
+
         if (this.isEditMode || this.isViewMode) {
-          // Lógica para editar (tanto en modo editar como ver)
           console.log('✅ Paciente actualizado correctamente en modo:', this.isViewMode ? 'ver' : 'editar');
-          Swal.fire('¡Éxito!', 'Paciente actualizado correctamente', 'success');
         } else {
-          // Lógica para crear
           console.log('✅ Paciente creado correctamente');
-          Swal.fire('¡Éxito!', 'Paciente creado correctamente', 'success');
         }
-        
+        Swal.close();
         this.dialogRef.close(pacienteData);
       } catch (error) {
         console.error('❌ Error al procesar el formulario:', error);
-        Swal.fire('Error', 'Ocurrió un error al procesar el formulario', 'error');
+        Swal.close();
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'procesar formulario'), 'error');
       } finally {
+        Swal.close();
         this.loading = false;
       }
     } else {
@@ -440,7 +446,7 @@ export class PacienteAdminDialogComponent implements OnInit {
       return downloadURL;
     } catch (error) {
       console.error('Error al subir imagen:', error);
-      Swal.fire('Error', 'No se pudo subir la imagen', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'subir imagen'), 'error');
       this.isUploading = false;
       this.uploadProgress = 0;
       throw error;

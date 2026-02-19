@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { OrdenCompra, Producto } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-recibir-orden-dialog',
@@ -20,7 +21,8 @@ export class RecibirOrdenDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<RecibirOrdenDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { orden: OrdenCompra }
+    @Inject(MAT_DIALOG_DATA) public data: { orden: OrdenCompra },
+    private errorMessages: ErrorMessagesService
   ) {
     this.orden = data.orden;
     
@@ -117,9 +119,9 @@ export class RecibirOrdenDialogComponent implements OnInit {
       });
 
       this.dialogRef.close(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error al recibir orden:', error);
-      Swal.fire('Error', error.message || 'No se pudo recibir la orden', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'recibir orden'), 'error');
     } finally {
       this.loading = false;
     }

@@ -8,6 +8,7 @@ import { Producto } from '../../shared/inventario.models';
 import { ProductoDialogComponent } from './producto-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-productos',
@@ -37,7 +38,8 @@ export class ProductosComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -120,7 +122,7 @@ export class ProductosComponent implements OnInit {
         this.cargarProductos();
       } catch (error) {
         console.error('❌ Error al eliminar producto:', error);
-        Swal.fire('Error', 'No se pudo eliminar el producto', 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'eliminar producto'), 'error');
       }
     }
   }

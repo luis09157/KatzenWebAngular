@@ -1,36 +1,46 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { Router } from '@angular/router';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-admin-main-layout',
   templateUrl: './admin-main-layout.component.html',
   styleUrls: ['./admin-main-layout.component.css']
 })
-export class AdminMainLayoutComponent implements OnInit {
+export class AdminMainLayoutComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
+  private resizeHandler = () => this.checkMobile();
   sidenavOpened = false;
   totalPacientes = 0;
   totalClientes = 0;
   citasHoy = 0;
-  usuario: any = { nombre: 'Administrador', rol: 'admin', email: '' };
+  usuario: { nombre: string; rol: string; email: string } = { nombre: 'Administrador', rol: 'admin', email: '' };
   isMobile = false;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private logger: LoggerService
   ) {}
 
   ngOnInit() {
-    // Detectar si es móvil
     this.checkMobile();
-    window.addEventListener('resize', this.checkMobile.bind(this));
-    // Obtener usuario actual
-    this.authService.user$?.subscribe(user => {
+    window.addEventListener('resize', this.resizeHandler);
+    this.authService.user$?.pipe(takeUntil(this.destroy$)).subscribe(user => {
       if (user) {
-        this.usuario = user;
+        const u = user as { email?: string; displayName?: string };
+        this.usuario = { nombre: u?.displayName || 'Administrador', rol: 'admin', email: u?.email || '' };
       }
     });
-    // Aquí puedes cargar los contadores reales si lo deseas
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('resize', this.resizeHandler);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getSaludo(): string {
@@ -68,19 +78,17 @@ export class AdminMainLayoutComponent implements OnInit {
   }
 
   logout() {
-    console.log('Iniciando logout...');
+    this.logger.log('Iniciando logout...');
     this.authService.logout().then(() => {
-      console.log('Logout exitoso, redirigiendo...');
-      // No necesitamos navegar manualmente porque el AuthService ya lo hace
+      this.logger.log('Logout exitoso, redirigiendo...');
     }).catch(error => {
-      console.error('Error en logout:', error);
-      // En caso de error, redirigir manualmente
+      this.logger.error('Error en logout:', error);
       this.router.navigate(['/admin/login']);
     });
   }
 
   navegar(ruta: string) {
-    console.log('🚀 Navegando a:', ruta);
+    this.logger.log('🚀 Navegando a:', ruta);
     this.router.navigate([ruta]);
     this.closeSidenav();
   }

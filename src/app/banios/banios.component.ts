@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BaniosService } from './banios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -11,13 +13,16 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { Banio } from '../shared/banio.model';
+import { LoggerService } from '../core/logger.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-banios',
   templateUrl: './banios.component.html',
   styleUrls: ['./banios.component.css']
 })
-export class BaniosComponent implements OnInit {
+export class BaniosComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_banio', 'hora_banio', 'paciente', 'tipo_servicio', 'estado', 'peluquero', 'precio_total', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -43,7 +48,9 @@ export class BaniosComponent implements OnInit {
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
     private usuariosService: UsuariosService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
@@ -79,81 +86,55 @@ export class BaniosComponent implements OnInit {
   }
 
   cargarDatosIniciales() {
-    console.log('🔄 Iniciando carga de datos iniciales...');
-    
-    // Cargar clientes, luego pacientes y usuarios de manera secuencial
-    this.clientesService.getClientes().subscribe(clientes => {
-      console.log('👤 Clientes cargados:', clientes?.length || 0);
-      (clientes || []).forEach(c => {
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
+      (clientes || []).forEach((c: { id: string; nombre?: string; nombreCliente?: string }) => {
         this.clientesMap[c.id] = c.nombre || c.nombreCliente || 'N/P';
       });
-
-      this.pacientesService.getPacientes().subscribe(pacientes => {
-        console.log('📋 Pacientes cargados:', pacientes?.length || 0);
-        (pacientes || []).forEach(p => {
+      this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
+        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
           this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
         });
-        
-        // Después de cargar pacientes, cargar usuarios
-        this.usuariosService.getUsuarios().subscribe(usuarios => {
-          console.log('👥 Usuarios cargados:', usuarios?.length || 0);
-          (usuarios || []).forEach(u => {
+        this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe(usuarios => {
+          (usuarios || []).forEach((u: { id: string; nombre?: string }) => {
             this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
           });
-          
-          console.log('✅ Datos iniciales cargados, procediendo a cargar baños...');
-          // Solo después de cargar clientes, pacientes y usuarios, cargar baños
           this.cargarBanios();
         });
       });
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarBanios() {
-    console.log('🔄 Iniciando carga de baños...');
     this.loading = true;
-    
-    this.baniosService.getBanios().subscribe({
+    this.baniosService.getBanios().pipe(takeUntil(this.destroy$)).subscribe({
       next: (banios) => {
         try {
-          console.log('📋 Baños recibidos del servicio:', banios?.length || 0);
-          console.log('🔍 Baños crudos recibidos:', banios);
-          console.log('🔍 Mapa de pacientes:', Object.keys(this.pacientesMap).length);
-          console.log('🔍 Mapa de usuarios:', Object.keys(this.usuariosMap).length);
-          
-          const baniosActivos = (banios || []).filter(b => b.activo !== false);
-          console.log('📋 Baños activos filtrados:', baniosActivos.length);
-          console.log('🔍 Baños activos detallados:', baniosActivos);
-          
-          // Crear una nueva instancia del dataSource para evitar problemas de renderizado
-          const nuevosDatos = baniosActivos.map(banio => ({
+          const baniosActivos = (banios || []).filter((b: { activo?: boolean }) => b.activo !== false);
+          const nuevosDatos = baniosActivos.map((banio: any) => ({
             ...banio,
             paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
             cliente: this.clientesMap[banio.cliente_id] || 'N/P',
             peluquero: this.usuariosMap[banio.peluquero_id] || 'N/P',
-            // Mostrar fecha del baño; si no existe, usar fecha de creación
             fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
             hora_banio: this.formatearHora(banio.hora_banio),
             tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
             estado_texto: this.formatearTextoSeguro(banio.estado)
           }));
-          
-          console.log('🔍 Datos procesados para la tabla:', nuevosDatos.length);
-          console.log('🔍 Primer baño procesado:', nuevosDatos[0]);
-          
-          // Actualizar la tabla de manera segura
           this.actualizarTablaSegura(nuevosDatos);
-          
           this.calcularEstadisticas(baniosActivos);
           this.loading = false;
-          console.log('✅ Carga de baños completada');
         } catch (error) {
-          console.error('❌ Error al procesar datos de baños:', error);
+          this.logger.error('❌ Error al procesar datos de baños:', error);
           this.loading = false;
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar baños:', error);
+        this.logger.error('❌ Error al cargar baños:', error);
         this.loading = false;
       }
     });
@@ -161,31 +142,17 @@ export class BaniosComponent implements OnInit {
 
   private actualizarTablaSegura(nuevosDatos: any[]) {
     try {
-      console.log('🔄 Actualizando tabla con', nuevosDatos.length, 'baños');
-      console.log('🔍 Estado actual de tablaInicializada:', this.tablaInicializada);
-      
-      // En lugar de recrear el dataSource, solo actualizar los datos
-      // Esto evita los problemas de ciclo de vida de Angular Material
       this.dataSource.data = [...nuevosDatos];
-      // Limpiar filtros previos y resetear paginación para evitar ocultar registros
       this.dataSource.filter = '';
-      
-      // Reasignar el paginador solo si es necesario
       if (this.paginator && this.dataSource.paginator !== this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
       if (this.paginator) {
         this.paginator.firstPage();
       }
-      
-      // Marcar la tabla como inicializada
       this.tablaInicializada = true;
-      console.log('✅ Tabla actualizada y marcada como inicializada');
-      console.log('🔍 Nuevo estado de tablaInicializada:', this.tablaInicializada);
-      console.log('🔍 DataSource actual:', this.dataSource.data.length, 'elementos');
     } catch (error) {
-      console.error('❌ Error al actualizar tabla:', error);
-      // Fallback: actualizar directamente
+      this.logger.error('❌ Error al actualizar tabla:', error);
       this.dataSource.data = nuevosDatos;
       this.tablaInicializada = true;
     }
@@ -285,13 +252,13 @@ export class BaniosComponent implements OnInit {
         data: banio
       });
       
-      dialogRef.afterClosed().subscribe(result => {
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result) {
+          this.loadingService.hide();
           this.cargarBanios();
         }
       });
     } else {
-      // Si es nuevo, primero seleccionar cliente y paciente
       this.seleccionarClienteParaBanio();
     }
   }
@@ -304,8 +271,7 @@ export class BaniosComponent implements OnInit {
       disableClose: true,
       panelClass: 'seleccionar-cliente-banio-dialog-container'
     });
-
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && result.cliente_id && result.paciente_id) {
         this.abrirModalBanioConPaciente(result);
       }
@@ -319,7 +285,6 @@ export class BaniosComponent implements OnInit {
       cliente_id: datosPaciente.cliente_id,
       cliente: datosPaciente.cliente
     };
-
     const dialogRef = this.dialog.open(BanioDialogComponent, {
       width: '95vw',
       minWidth: '900px',
@@ -327,19 +292,15 @@ export class BaniosComponent implements OnInit {
       panelClass: 'banio-dialog-container',
       data: banioNuevo
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        console.log('✅ Baño creado exitosamente desde administración');
+        this.loadingService.hide();
         this.cargarBanios();
       }
     });
   }
 
-  verBanio(banio: any) {
-    // Aquí puedes abrir un modal de detalle o navegar a una página de detalle
-    console.log('Ver baño:', banio);
-  }
+  verBanio(banio: any) {}
 
   editarBanio(banio: any) {
     const dialogRef = this.dialog.open(BanioDialogComponent, {
@@ -348,11 +309,9 @@ export class BaniosComponent implements OnInit {
       panelClass: 'banio-dialog-container',
       data: banio
     });
-    
-    dialogRef.afterClosed().subscribe(result => {
-      // El diálogo realiza la persistencia internamente y devuelve true si fue exitoso
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result === true) {
-        console.log('✅ Edición confirmada desde diálogo, recargando baños...');
+        this.loadingService.hide();
         this.cargarBanios();
       }
     });
@@ -370,43 +329,47 @@ export class BaniosComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.loading = true;
+        this.loadingService.show();
         this.baniosService.eliminarBanio(banio.id)
           .then(() => {
-                    Swal.fire('Eliminado', 'El baño ha sido eliminado exitosamente', 'success');
-        this.cargarBanios();
+            Swal.fire('Eliminado', 'El baño ha sido eliminado exitosamente', 'success');
+            this.cargarBanios();
           })
           .catch(error => {
-            console.error('Error al eliminar baño:', error);
+            this.logger.error('Error al eliminar baño:', error);
             Swal.fire('Error', 'No se pudo eliminar el baño', 'error');
-            this.loading = false;
-          });
+          })
+          .finally(() => this.loadingService.hide());
       }
     });
   }
 
   cambiarEstado(banio: any, nuevoEstado: string) {
+    this.loadingService.show();
     this.baniosService.cambiarEstadoBanio(banio.id, nuevoEstado as any)
       .then(() => {
         Swal.fire('Estado actualizado', 'El estado del baño ha sido actualizado', 'success');
         this.cargarBanios();
       })
       .catch(error => {
-        console.error('Error al cambiar estado:', error);
+        this.logger.error('Error al cambiar estado:', error);
         Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
-      });
+      })
+      .finally(() => this.loadingService.hide());
   }
 
   marcarComoPagado(banio: any) {
+    this.loadingService.show();
     this.baniosService.marcarComoPagado(banio.id)
       .then(() => {
         Swal.fire('Pagado', 'El baño ha sido marcado como pagado', 'success');
         this.cargarBanios();
       })
       .catch(error => {
-        console.error('Error al marcar como pagado:', error);
+        this.logger.error('Error al marcar como pagado:', error);
         Swal.fire('Error', 'No se pudo marcar como pagado', 'error');
-      });
+      })
+      .finally(() => this.loadingService.hide());
   }
 
   getEstadoColor(estado: string): string {
@@ -438,8 +401,6 @@ export class BaniosComponent implements OnInit {
       data: banio
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      // No se necesita hacer nada después de cerrar el modal de detalle
-    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {});
   }
 }

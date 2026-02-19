@@ -11,6 +11,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-historiales',
@@ -33,7 +34,8 @@ export class HistorialesComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
     private migrationService: MigrationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
@@ -247,6 +249,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result) {
+          this.loadingService.hide();
           this.cargarHistoriales();
           this.cargarEstadisticas();
         }
@@ -285,7 +288,7 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result) {
-          console.log('✅ Historial creado exitosamente desde administración');
+          this.loadingService.hide();
           this.cargarHistoriales();
           this.cargarEstadisticas();
         }
@@ -311,23 +314,14 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result) {
-          // Actualizar el historial
+          this.loadingService.show();
           this.historialesService.actualizarHistorial(historial.id, result).then(() => {
-            console.log('✅ Historial actualizado exitosamente desde administración');
-            
-            // Registrar la edición en el log de actividades del paciente
-            this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {
-              console.log('✅ Edición de historial registrada en log desde administración');
-            }).catch(error => {
-              console.error('❌ Error al registrar edición en log:', error);
-            });
-            
+            this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {}).catch(() => {});
             this.cargarHistoriales();
             this.cargarEstadisticas();
           }).catch(error => {
-            console.error('❌ Error al actualizar historial desde administración:', error);
             Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error');
-          });
+          }).finally(() => this.loadingService.hide());
         }
       });
   }
@@ -350,31 +344,17 @@ export class HistorialesComponent implements OnInit, OnDestroy {
           });
 
           if (result.isConfirmed) {
+            this.loadingService.show();
             try {
               await this.historialesService.bajaLogicaHistorial(id);
-              
-              // Registrar la baja lógica en el log de actividades del paciente
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {
-                console.log('✅ Baja lógica de historial registrada en log desde administración');
-              }).catch(error => {
-                console.error('❌ Error al registrar baja lógica en log:', error);
-              });
-              
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              
-              Swal.fire({
-                icon: 'success',
-                title: '¡Completado!',
-                text: 'El historial ha sido marcado como inactivo'
-              });
+              Swal.fire({ icon: 'success', title: '¡Completado!', text: 'El historial ha sido marcado como inactivo' });
             } catch (error) {
-              console.error('❌ Error al marcar historial como inactivo:', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo marcar el historial como inactivo'
-              });
+              Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo marcar el historial como inactivo' });
+            } finally {
+              this.loadingService.hide();
             }
           }
         }
@@ -399,31 +379,21 @@ export class HistorialesComponent implements OnInit, OnDestroy {
           });
 
           if (result.isConfirmed) {
+            this.loadingService.show();
             try {
               await this.historialesService.eliminarHistorial(id);
-              
-              // Registrar la eliminación en el log de actividades del paciente
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {
-                console.log('✅ Eliminación de historial registrada en log desde administración');
-              }).catch(error => {
-                console.error('❌ Error al registrar eliminación en log:', error);
-              });
-              
+              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              
-              Swal.fire({
-                icon: 'success',
-                title: 'Eliminado',
-                text: 'El historial fue eliminado permanentemente.'
-              });
+              Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El historial fue eliminado permanentemente.' });
             } catch (error) {
-              console.error('❌ Error al eliminar historial:', error);
               Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo eliminar el historial'
               });
+            } finally {
+              this.loadingService.hide();
             }
           }
         }
@@ -446,31 +416,17 @@ export class HistorialesComponent implements OnInit, OnDestroy {
           });
 
           if (result.isConfirmed) {
+            this.loadingService.show();
             try {
               await this.historialesService.restaurarHistorial(id);
-              
-              // Registrar la restauración en el log de actividades del paciente
-              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).then(() => {
-                console.log('✅ Restauración de historial registrada en log desde administración');
-              }).catch(error => {
-                console.error('❌ Error al registrar restauración en log:', error);
-              });
-              
+              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              
-              Swal.fire({
-                icon: 'success',
-                title: 'Restaurado',
-                text: 'El historial fue restaurado correctamente.'
-              });
+              Swal.fire({ icon: 'success', title: 'Restaurado', text: 'El historial fue restaurado correctamente.' });
             } catch (error) {
-              console.error('❌ Error al restaurar historial:', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo restaurar el historial'
-              });
+              Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' });
+            } finally {
+              this.loadingService.hide();
             }
           }
         }

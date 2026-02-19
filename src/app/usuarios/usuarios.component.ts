@@ -1,30 +1,50 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { UsuariosService } from './usuarios.service';
 import { MatDialog } from '@angular/material/dialog';
 import { UsuarioDialogComponent } from './usuario-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-usuarios',
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.css']
 })
-export class UsuariosComponent implements OnInit {
+export class UsuariosComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['nombre', 'correo', 'perfil', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  loading = false;
+  saving = false;
 
-  constructor(private usuariosService: UsuariosService, private dialog: MatDialog) {}
+  constructor(
+    private usuariosService: UsuariosService,
+    private dialog: MatDialog,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit(): void {
-    this.usuariosService.getUsuarios().subscribe(usuarios => {
-      this.dataSource.data = (usuarios || []).filter(u => u.activo !== false);
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
-      }
+    this.loading = true;
+    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
+      next: usuarios => {
+        this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+        }
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   aplicarFiltro(event: Event) {
@@ -38,11 +58,14 @@ export class UsuariosComponent implements OnInit {
       maxWidth: '90vw',
       data: { usuario, modoVer }
     });
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && !modoVer) {
+        this.saving = true;
+        this.loadingService.show();
         this.usuariosService.guardarUsuario(result).then(() => {
           Swal.fire('Éxito', 'Usuario guardado correctamente', 'success');
-        });
+          this.ngOnInit();
+        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
       }
     });
   }
@@ -65,9 +88,12 @@ export class UsuariosComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
+        this.saving = true;
+        this.loadingService.show();
         this.usuariosService.actualizarUsuario(id, { activo: false }).then(() => {
           Swal.fire('Baja lógica', 'El usuario fue dado de baja correctamente.', 'success');
-        });
+          this.ngOnInit();
+        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
       }
     });
   }
@@ -85,6 +111,8 @@ export class UsuariosComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
+        this.saving = true;
+        this.loadingService.show();
         this.usuariosService.agregarVeronicaGuerra().then(success => {
           if (success) {
             Swal.fire({
@@ -93,7 +121,6 @@ export class UsuariosComponent implements OnInit {
               icon: 'success',
               confirmButtonText: 'Aceptar'
             });
-            // Recargar la lista de usuarios
             this.ngOnInit();
           } else {
             Swal.fire({
@@ -103,7 +130,7 @@ export class UsuariosComponent implements OnInit {
               confirmButtonText: 'Aceptar'
             });
           }
-        });
+        }).finally(() => { this.saving = false; this.loadingService.hide(); });
       }
     });
   }

@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Proveedor, ProveedorFormData } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-proveedor-dialog',
@@ -33,7 +34,8 @@ export class ProveedorDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<ProveedorDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { proveedor: Proveedor | null }
+    @Inject(MAT_DIALOG_DATA) public data: { proveedor: Proveedor | null },
+    private errorMessages: ErrorMessagesService
   ) {
     this.proveedor = data.proveedor;
     this.isEditing = !!this.proveedor;
@@ -125,9 +127,9 @@ export class ProveedorDialogComponent implements OnInit {
       }
 
       this.dialogRef.close(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error al guardar proveedor:', error);
-      Swal.fire('Error', error.message || 'No se pudo guardar el proveedor', 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar proveedor'), 'error');
     } finally {
       this.loading = false;
     }

@@ -93,7 +93,9 @@
           <div class="patient-name-cell">
             <img [src]="paciente.imageUrl || paciente.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" 
                  alt="Foto paciente" 
-                 class="patient-avatar">
+                 class="patient-avatar"
+                 loading="lazy"
+                 decoding="async">
             <span>{{ paciente.nombre }}</span>
           </div>
         </td>

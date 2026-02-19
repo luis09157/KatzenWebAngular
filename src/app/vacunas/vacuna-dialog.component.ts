@@ -6,6 +6,8 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-vacuna-dialog',
@@ -64,7 +66,9 @@ export class VacunaDialogComponent implements OnInit {
     private recordatoriosService: RecordatoriosService,
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<VacunaDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private errorMessages: ErrorMessagesService,
+    private loadingService: LoadingService
   ) {
     this.vacunaForm = this.fb.group({
       // Información básica
@@ -273,22 +277,14 @@ export class VacunaDialogComponent implements OnInit {
         }
         
         console.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
-        // Cerrar con los datos del formulario en lugar de true
+        this.loadingService.show();
         this.dialogRef.close(vacunaData);
       } catch (error) {
         console.error('VacunaDialogComponent - Error al guardar vacuna:', error);
-        
-        // Solo mostrar error si realmente falló la creación de la vacuna
-        // No mostrar error si solo falló el log o recordatorio
-        let mensajeError = 'No se pudo guardar la vacuna';
-        if (error instanceof Error) {
-          mensajeError = error.message;
-        }
-        
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: mensajeError
+          text: this.errorMessages.getUserMessage(error, 'guardar vacuna')
         });
       } finally {
         this.loading = false;
@@ -428,27 +424,14 @@ export class VacunaDialogComponent implements OnInit {
           await this.registrarEliminacionEnLog();
         }
         
-        Swal.fire({
-          icon: 'success',
-          title: '¡Vacuna Eliminada!',
-          html: `
-            <p>La vacuna ha sido eliminada correctamente.</p>
-            <p class="text-muted">El historial médico ha sido actualizado.</p>
-          `
-        });
+        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar vacuna:', error);
-        
-        let mensajeError = 'No se pudo eliminar la vacuna. Por favor, intenta de nuevo.';
-        if (error instanceof Error && error.message) {
-          mensajeError += `<br><small class="text-muted">Detalle: ${error.message}</small>`;
-        }
-        
         Swal.fire({
           icon: 'error',
           title: 'Error al Eliminar',
-          html: mensajeError
+          text: this.errorMessages.getUserMessage(error, 'eliminar vacuna')
         });
       } finally {
         this.loading = false;
@@ -485,19 +468,14 @@ export class VacunaDialogComponent implements OnInit {
         await this.vacunasService.marcarPendiente(this.data.id);
       }
       
-      Swal.fire({
-        icon: 'success',
-        title: '¡Estado actualizado!',
-        text: `Vacuna marcada como ${estado}`
-      });
-      
+      this.loadingService.show();
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo cambiar el estado de la vacuna'
+        text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna')
       });
     } finally {
       this.loading = false;
