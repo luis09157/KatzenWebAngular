@@ -1,7 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { LoadingService } from '../core/loading.service';
 
 @Component({
   selector: 'app-usuario-dialog',
@@ -24,8 +23,7 @@ export class UsuarioDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<UsuarioDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private fb: FormBuilder,
-    private loadingService: LoadingService
+    private fb: FormBuilder
   ) {
     this.modoVer = data.modoVer || false;
     this.isEditMode = !!data.usuario?.id;
@@ -49,13 +47,13 @@ export class UsuarioDialogComponent implements OnInit {
   guardar() {
     if (this.usuarioForm.valid) {
       const formData = this.usuarioForm.value;
-      
+
       // Agregar timestamp si es nuevo usuario
       if (!this.isEditMode) {
         formData.fecha_registro = new Date().toISOString();
         formData.created_by = 'system';
       }
-      this.loadingService.show();
+      // El padre muestra el loading al recibir result; no mostrar aquí para evitar doble show
       this.dialogRef.close(formData);
     } else {
       // Marcar todos los campos como tocados para mostrar errores

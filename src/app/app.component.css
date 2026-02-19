@@ -1,3 +1,9 @@
+/* Cuando hay loading, este contenedor queda por encima del cdk-overlay-container (modales Material) */
+.app-content.global-loading-active {
+  position: relative;
+  z-index: 99999;
+}
+
 .global-loading-overlay {
   position: fixed;
   top: 0;

@@ -62,10 +62,19 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       if (result && !modoVer) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.guardarUsuario(result).then(() => {
-          Swal.fire('Éxito', 'Usuario guardado correctamente', 'success');
-          this.ngOnInit();
-        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
+        this.usuariosService.guardarUsuario(result)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Éxito', 'Usuario guardado correctamente', 'success');
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(() => {
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo guardar el usuario', 'error'), 0);
+          })
+          .finally(() => { this.saving = false; });
       }
     });
   }
@@ -90,10 +99,19 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.actualizarUsuario(id, { activo: false }).then(() => {
-          Swal.fire('Baja lógica', 'El usuario fue dado de baja correctamente.', 'success');
-          this.ngOnInit();
-        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
+        this.usuariosService.actualizarUsuario(id, { activo: false })
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Baja lógica', 'El usuario fue dado de baja correctamente.', 'success');
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(() => {
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja al usuario', 'error'), 0);
+          })
+          .finally(() => { this.saving = false; });
       }
     });
   }
@@ -113,24 +131,33 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.agregarVeronicaGuerra().then(success => {
-          if (success) {
-            Swal.fire({
-              title: '¡Éxito!',
-              text: 'Veronica Lizbeth Guerra Estrada ha sido agregada como doctora',
-              icon: 'success',
-              confirmButtonText: 'Aceptar'
-            });
-            this.ngOnInit();
-          } else {
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo agregar a Veronica',
-              icon: 'error',
-              confirmButtonText: 'Aceptar'
-            });
-          }
-        }).finally(() => { this.saving = false; this.loadingService.hide(); });
+        this.usuariosService.agregarVeronicaGuerra()
+          .then(success => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              if (success) {
+                Swal.fire({
+                  title: '¡Éxito!',
+                  text: 'Veronica Lizbeth Guerra Estrada ha sido agregada como doctora',
+                  icon: 'success',
+                  confirmButtonText: 'Aceptar'
+                });
+                this.ngOnInit();
+              } else {
+                Swal.fire({
+                  title: 'Error',
+                  text: 'No se pudo agregar a Veronica',
+                  icon: 'error',
+                  confirmButtonText: 'Aceptar'
+                });
+              }
+            }, 0);
+          })
+          .catch(() => {
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo completar la operación', 'error'), 0);
+          })
+          .finally(() => { this.saving = false; });
       }
     });
   }

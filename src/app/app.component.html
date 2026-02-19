@@ -1,8 +1,11 @@
-<!-- Overlay global de carga: spinner + texto al centro -->
-<div *ngIf="(globalLoading.isLoading | async)" class="global-loading-overlay" aria-live="polite" aria-busy="true">
-  <div class="global-loading-content">
-    <mat-spinner diameter="56" color="primary"></mat-spinner>
-    <p class="global-loading-text">Cargando...</p>
+<!-- Wrapper con z-index alto cuando hay loading para que el overlay quede por encima de los modales Material -->
+<div class="app-content" [class.global-loading-active]="(globalLoading.isLoading | async)">
+  <!-- Overlay global de carga: spinner + texto al centro -->
+  <div *ngIf="(globalLoading.isLoading | async)" class="global-loading-overlay" aria-live="polite" aria-busy="true">
+    <div class="global-loading-content">
+      <mat-spinner diameter="56" color="primary"></mat-spinner>
+      <p class="global-loading-text">Cargando...</p>
+    </div>
   </div>
+  <router-outlet></router-outlet>
 </div>
-<router-outlet></router-outlet>

@@ -152,14 +152,17 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.loadingService.show();
         this.pacientesService.crearPaciente(result)
           .then(() => {
-            Swal.fire('Éxito', 'Paciente creado correctamente', 'success');
-            this.cargarDatos();
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Éxito', 'Paciente creado correctamente', 'success');
+              this.cargarDatos();
+            }, 0);
           })
           .catch(error => {
             this.logger.error('Error al crear paciente:', error);
-            Swal.fire('Error', 'No se pudo crear el paciente', 'error');
-          })
-          .finally(() => this.loadingService.hide());
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo crear el paciente', 'error'), 0);
+          });
       }
     });
   }
@@ -176,14 +179,17 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.loadingService.show();
         this.pacientesService.actualizarPaciente(paciente.id, result)
           .then(() => {
-            Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-            this.cargarDatos();
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+              this.cargarDatos();
+            }, 0);
           })
           .catch(error => {
             this.logger.error('❌ Error al actualizar paciente:', error);
-            Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
-          })
-          .finally(() => this.loadingService.hide());
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el paciente', 'error'), 0);
+          });
       }
     });
   }
@@ -203,14 +209,17 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.loadingService.show();
         this.pacientesService.eliminarPaciente(paciente.id)
           .then(() => {
-            Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
-            this.cargarDatos();
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
+              this.cargarDatos();
+            }, 0);
           })
           .catch(error => {
             this.logger.error('Error al eliminar paciente:', error);
-            Swal.fire('Error', 'No se pudo eliminar el paciente', 'error');
-          })
-          .finally(() => this.loadingService.hide());
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo eliminar el paciente', 'error'), 0);
+          });
       }
     });
   }
@@ -227,14 +236,17 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.loadingService.show();
         this.pacientesService.actualizarPaciente(paciente.id, result)
           .then(() => {
-            Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-            this.cargarDatos();
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+              this.cargarDatos();
+            }, 0);
           })
           .catch(error => {
             this.logger.error('❌ Error al actualizar paciente desde modo "ver":', error);
-            Swal.fire('Error', 'No se pudo actualizar el paciente', 'error');
-          })
-          .finally(() => this.loadingService.hide());
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el paciente', 'error'), 0);
+          });
       }
     });
   }
