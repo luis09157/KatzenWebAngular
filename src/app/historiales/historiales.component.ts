@@ -315,13 +315,19 @@ export class HistorialesComponent implements OnInit, OnDestroy {
       .subscribe(result => {
         if (result) {
           this.loadingService.show();
-          this.historialesService.actualizarHistorial(historial.id, result).then(() => {
-            this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {}).catch(() => {});
-            this.cargarHistoriales();
-            this.cargarEstadisticas();
-          }).catch(error => {
-            Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error');
-          }).finally(() => this.loadingService.hide());
+          this.historialesService.actualizarHistorial(historial.id, result)
+            .then(() => {
+              this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).then(() => {}).catch(() => {});
+              this.loadingService.hide();
+              setTimeout(() => {
+                this.cargarHistoriales();
+                this.cargarEstadisticas();
+              }, 0);
+            })
+            .catch(error => {
+              this.loadingService.hide();
+              setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error'), 0);
+            });
         }
       });
   }
@@ -350,11 +356,11 @@ export class HistorialesComponent implements OnInit, OnDestroy {
               this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              Swal.fire({ icon: 'success', title: '¡Completado!', text: 'El historial ha sido marcado como inactivo' });
-            } catch (error) {
-              Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo marcar el historial como inactivo' });
-            } finally {
               this.loadingService.hide();
+              setTimeout(() => Swal.fire({ icon: 'success', title: '¡Completado!', text: 'El historial ha sido marcado como inactivo' }), 0);
+            } catch (error) {
+              this.loadingService.hide();
+              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo marcar el historial como inactivo' }), 0);
             }
           }
         }
@@ -385,15 +391,15 @@ export class HistorialesComponent implements OnInit, OnDestroy {
               this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El historial fue eliminado permanentemente.' });
+              this.loadingService.hide();
+              setTimeout(() => Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El historial fue eliminado permanentemente.' }), 0);
             } catch (error) {
-              Swal.fire({
+              this.loadingService.hide();
+              setTimeout(() => Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'No se pudo eliminar el historial'
-              });
-            } finally {
-              this.loadingService.hide();
+              }), 0);
             }
           }
         }
@@ -422,11 +428,11 @@ export class HistorialesComponent implements OnInit, OnDestroy {
               this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).then(() => {}).catch(() => {});
               this.cargarHistoriales();
               this.cargarEstadisticas();
-              Swal.fire({ icon: 'success', title: 'Restaurado', text: 'El historial fue restaurado correctamente.' });
-            } catch (error) {
-              Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' });
-            } finally {
               this.loadingService.hide();
+              setTimeout(() => Swal.fire({ icon: 'success', title: 'Restaurado', text: 'El historial fue restaurado correctamente.' }), 0);
+            } catch (error) {
+              this.loadingService.hide();
+              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' }), 0);
             }
           }
         }

@@ -281,11 +281,12 @@ export class VacunaDialogComponent implements OnInit {
         this.dialogRef.close(vacunaData);
       } catch (error) {
         console.error('VacunaDialogComponent - Error al guardar vacuna:', error);
-        Swal.fire({
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error',
           text: this.errorMessages.getUserMessage(error, 'guardar vacuna')
-        });
+        }), 0);
       } finally {
         this.loading = false;
       }
@@ -428,11 +429,12 @@ export class VacunaDialogComponent implements OnInit {
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar vacuna:', error);
-        Swal.fire({
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error al Eliminar',
           text: this.errorMessages.getUserMessage(error, 'eliminar vacuna')
-        });
+        }), 0);
       } finally {
         this.loading = false;
       }
@@ -472,11 +474,12 @@ export class VacunaDialogComponent implements OnInit {
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
-      Swal.fire({
+      this.loadingService.hide();
+      setTimeout(() => Swal.fire({
         icon: 'error',
         title: 'Error',
         text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna')
-      });
+      }), 0);
     } finally {
       this.loading = false;
     }

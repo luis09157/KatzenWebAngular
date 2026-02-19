@@ -332,14 +332,17 @@ export class BaniosComponent implements OnInit, OnDestroy {
         this.loadingService.show();
         this.baniosService.eliminarBanio(banio.id)
           .then(() => {
-            Swal.fire('Eliminado', 'El baño ha sido eliminado exitosamente', 'success');
-            this.cargarBanios();
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Eliminado', 'El baño ha sido eliminado exitosamente', 'success');
+              this.cargarBanios();
+            }, 0);
           })
           .catch(error => {
             this.logger.error('Error al eliminar baño:', error);
-            Swal.fire('Error', 'No se pudo eliminar el baño', 'error');
-          })
-          .finally(() => this.loadingService.hide());
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo eliminar el baño', 'error'), 0);
+          });
       }
     });
   }
@@ -348,28 +351,34 @@ export class BaniosComponent implements OnInit, OnDestroy {
     this.loadingService.show();
     this.baniosService.cambiarEstadoBanio(banio.id, nuevoEstado as any)
       .then(() => {
-        Swal.fire('Estado actualizado', 'El estado del baño ha sido actualizado', 'success');
-        this.cargarBanios();
+        this.loadingService.hide();
+        setTimeout(() => {
+          Swal.fire('Estado actualizado', 'El estado del baño ha sido actualizado', 'success');
+          this.cargarBanios();
+        }, 0);
       })
       .catch(error => {
         this.logger.error('Error al cambiar estado:', error);
-        Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
-      })
-      .finally(() => this.loadingService.hide());
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el estado', 'error'), 0);
+      });
   }
 
   marcarComoPagado(banio: any) {
     this.loadingService.show();
     this.baniosService.marcarComoPagado(banio.id)
       .then(() => {
-        Swal.fire('Pagado', 'El baño ha sido marcado como pagado', 'success');
-        this.cargarBanios();
+        this.loadingService.hide();
+        setTimeout(() => {
+          Swal.fire('Pagado', 'El baño ha sido marcado como pagado', 'success');
+          this.cargarBanios();
+        }, 0);
       })
       .catch(error => {
         this.logger.error('Error al marcar como pagado:', error);
-        Swal.fire('Error', 'No se pudo marcar como pagado', 'error');
-      })
-      .finally(() => this.loadingService.hide());
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire('Error', 'No se pudo marcar como pagado', 'error'), 0);
+      });
   }
 
   getEstadoColor(estado: string): string {

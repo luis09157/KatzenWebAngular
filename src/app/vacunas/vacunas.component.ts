@@ -249,12 +249,14 @@ export class VacunasComponent implements OnInit, OnDestroy {
       this.loadingService.show();
       try {
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
-        Swal.fire({ icon: 'success', title: '¡Vacuna Eliminada!', html: '<p>La vacuna ha sido eliminada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
-        this.cargarVacunas();
-      } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Error al Eliminar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') });
-      } finally {
         this.loadingService.hide();
+        setTimeout(() => {
+          Swal.fire({ icon: 'success', title: '¡Vacuna Eliminada!', html: '<p>La vacuna ha sido eliminada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
+          this.cargarVacunas();
+        }, 0);
+      } catch (error) {
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error al Eliminar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') }), 0);
       }
     }
   }
@@ -267,12 +269,14 @@ export class VacunasComponent implements OnInit, OnDestroy {
       } else {
         await this.vacunasService.marcarPendiente(vacuna.id);
       }
-      Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Vacuna marcada como ${nuevoEstado}` });
-      this.cargarVacunas();
-    } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Error', text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna') });
-    } finally {
       this.loadingService.hide();
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Vacuna marcada como ${nuevoEstado}` });
+        this.cargarVacunas();
+      }, 0);
+    } catch (error) {
+      this.loadingService.hide();
+      setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna') }), 0);
     }
   }
 

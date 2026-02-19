@@ -587,7 +587,8 @@ export class BanioDialogComponent implements OnInit {
           })
           .catch(error => {
             console.error('❌ Error al actualizar baño:', error);
-            Swal.fire('Error', `No se pudo actualizar el baño: ${error.message}`, 'error');
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', `No se pudo actualizar el baño: ${error.message}`, 'error'), 0);
             this.loading = false;
           });
       } else {
@@ -608,7 +609,8 @@ export class BanioDialogComponent implements OnInit {
           })
           .catch(error => {
             console.error('❌ Error al crear baño:', error);
-            Swal.fire('Error', `No se pudo crear el baño: ${error.message}`, 'error');
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', `No se pudo crear el baño: ${error.message}`, 'error'), 0);
             this.loading = false;
           });
       }

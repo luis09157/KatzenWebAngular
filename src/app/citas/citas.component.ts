@@ -200,23 +200,29 @@ export class CitasComponent implements OnInit, OnDestroy {
       fecha_actualizacion: new Date().toISOString()
     };
     this.loadingService.show();
-    this.citasService.guardarCita(citaActualizada).then(() => {
-      Swal.fire({
-        title: '¡Éxito!',
-        text: `Cita marcada como ${nuevoEstado.toUpperCase()}`,
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
+    this.citasService.guardarCita(citaActualizada)
+      .then(() => {
+        this.loadingService.hide();
+        setTimeout(() => {
+          Swal.fire({
+            title: '¡Éxito!',
+            text: `Cita marcada como ${nuevoEstado.toUpperCase()}`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.ngOnInit();
+        }, 0);
+      })
+      .catch(error => {
+        this.logger.error('❌ Error al cambiar estado:', error);
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cambiar el estado de la cita',
+          icon: 'error'
+        }), 0);
       });
-      this.ngOnInit();
-    }).catch(error => {
-      this.logger.error('❌ Error al cambiar estado:', error);
-      Swal.fire({
-        title: 'Error',
-        text: 'No se pudo cambiar el estado de la cita',
-        icon: 'error'
-      });
-    }).finally(() => this.loadingService.hide());
   }
 
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
@@ -228,23 +234,29 @@ export class CitasComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && !modoVer) {
         this.loadingService.show();
-        this.citasService.guardarCita(result).then(() => {
-          Swal.fire({
-            title: '¡Éxito!',
-            text: 'Cita guardada correctamente',
-            icon: 'success',
-            confirmButtonText: 'Entendido'
+        this.citasService.guardarCita(result)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire({
+                title: '¡Éxito!',
+                text: 'Cita guardada correctamente',
+                icon: 'success',
+                confirmButtonText: 'Entendido'
+              });
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(error => {
+            this.logger.error('❌ Error al guardar cita:', error);
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire({
+              title: 'Error al guardar cita',
+              text: this.errorMessages.getUserMessage(error, 'guardar cita'),
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+            }), 0);
           });
-          this.ngOnInit();
-        }).catch(error => {
-          this.logger.error('❌ Error al guardar cita:', error);
-          Swal.fire({
-            title: 'Error al guardar cita',
-            text: this.errorMessages.getUserMessage(error, 'guardar cita'),
-            icon: 'error',
-            confirmButtonText: 'Entendido'
-          });
-        }).finally(() => this.loadingService.hide());
       }
     });
   }
@@ -289,23 +301,29 @@ export class CitasComponent implements OnInit, OnDestroy {
     }).then((result) => {
       if (result.isConfirmed) {
         this.loadingService.show();
-        this.citasService.bajaLogicaCita(id).then(() => {
-          Swal.fire({
-            title: '¡Eliminado!',
-            text: 'Cita eliminada correctamente',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
+        this.citasService.bajaLogicaCita(id)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire({
+                title: '¡Eliminado!',
+                text: 'Cita eliminada correctamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+              });
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(error => {
+            this.logger.error('❌ Error al eliminar cita:', error);
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire({
+              title: 'Error',
+              text: 'No se pudo eliminar la cita. Inténtalo de nuevo.',
+              icon: 'error'
+            }), 0);
           });
-          this.ngOnInit();
-        }).catch(error => {
-          this.logger.error('❌ Error al eliminar cita:', error);
-          Swal.fire({
-            title: 'Error',
-            text: 'No se pudo eliminar la cita. Inténtalo de nuevo.',
-            icon: 'error'
-          });
-        }).finally(() => this.loadingService.hide());
       }
     });
   }

@@ -158,14 +158,21 @@ export class ClientesComponent implements OnInit, OnDestroy {
     const clienteActualizado = { ...cliente, activo: nuevoEstado };
     this.saving = true;
     this.loadingService.show();
-    this.clientesService.guardarCliente(clienteActualizado).then(() => {
-      const mensaje = nuevoEstado ? 'activado' : 'desactivado';
-      Swal.fire('Éxito', `Cliente ${mensaje} correctamente`, 'success');
-      this.ngOnInit();
-    }).catch(error => {
-      this.logger.error('Error al cambiar estado:', error);
-      Swal.fire('Error', 'No se pudo cambiar el estado del cliente', 'error');
-    }).finally(() => { this.saving = false; this.loadingService.hide(); });
+    this.clientesService.guardarCliente(clienteActualizado)
+      .then(() => {
+        this.loadingService.hide();
+        const mensaje = nuevoEstado ? 'activado' : 'desactivado';
+        setTimeout(() => {
+          Swal.fire('Éxito', `Cliente ${mensaje} correctamente`, 'success');
+          this.ngOnInit();
+        }, 0);
+      })
+      .catch(error => {
+        this.logger.error('Error al cambiar estado:', error);
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire('Error', 'No se pudo cambiar el estado del cliente', 'error'), 0);
+      })
+      .finally(() => { this.saving = false; });
   }
 
   abrirModalCliente(cliente: any = null, modoVer: boolean = false) {
@@ -228,42 +235,51 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
         this.saving = true;
         this.loadingService.show();
-        this.clientesService.guardarCliente(result).then(() => {
-          Swal.fire({
-            title: '¡Éxito!',
-            text: 'Cliente guardado correctamente',
-            icon: 'success',
-            confirmButtonText: 'Entendido'
-          });
-          this.ngOnInit();
-        }).catch(error => {
-          this.logger.error('❌ Error al guardar cliente:', error);
-          const mensajeError = this.errorMessages.getUserMessage(error, 'guardar cliente');
-          Swal.fire({
-            title: 'Error al guardar cliente',
-            text: mensajeError,
-            icon: 'error',
-            confirmButtonText: 'Entendido',
-            showCancelButton: true,
-            cancelButtonText: 'Ver detalles',
-            cancelButtonColor: '#3085d6'
-          }).then((result) => {
-            if (result.dismiss === Swal.DismissReason.cancel) {
+        this.clientesService.guardarCliente(result)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
               Swal.fire({
-                title: 'Detalles técnicos',
-                html: `
-                  <div style="text-align: left;">
-                    <p><strong>Error:</strong> ${error.message || 'Error desconocido'}</p>
-                    <p><strong>Stack:</strong></p>
-                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">${error.stack || 'No disponible'}</pre>
-                  </div>
-                `,
-                icon: 'info',
-                confirmButtonText: 'Cerrar'
+                title: '¡Éxito!',
+                text: 'Cliente guardado correctamente',
+                icon: 'success',
+                confirmButtonText: 'Entendido'
               });
-            }
-          });
-        }).finally(() => { this.saving = false; this.loadingService.hide(); });
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(error => {
+            this.logger.error('❌ Error al guardar cliente:', error);
+            this.loadingService.hide();
+            const mensajeError = this.errorMessages.getUserMessage(error, 'guardar cliente');
+            setTimeout(() => {
+              Swal.fire({
+                title: 'Error al guardar cliente',
+                text: mensajeError,
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                showCancelButton: true,
+                cancelButtonText: 'Ver detalles',
+                cancelButtonColor: '#3085d6'
+              }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                  Swal.fire({
+                    title: 'Detalles técnicos',
+                    html: `
+                      <div style="text-align: left;">
+                        <p><strong>Error:</strong> ${error.message || 'Error desconocido'}</p>
+                        <p><strong>Stack:</strong></p>
+                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px; max-height: 200px; overflow-y: auto;">${error.stack || 'No disponible'}</pre>
+                      </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonText: 'Cerrar'
+                  });
+                }
+              });
+            }, 0);
+          })
+          .finally(() => { this.saving = false; });
       }
     });
   }
@@ -288,10 +304,19 @@ export class ClientesComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.saving = true;
         this.loadingService.show();
-        this.clientesService.bajaLogicaCliente(id).then(() => {
-          Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
-          this.ngOnInit();
-        }).catch(() => {}).finally(() => { this.saving = false; this.loadingService.hide(); });
+        this.clientesService.bajaLogicaCliente(id)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
+              this.ngOnInit();
+            }, 0);
+          })
+          .catch(() => {
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja al cliente', 'error'), 0);
+          })
+          .finally(() => { this.saving = false; });
       }
     });
   }
@@ -313,15 +338,15 @@ export class ClientesComponent implements OnInit, OnDestroy {
         !clientesConPacientesSet.has(cliente.id)
       );
       
+      this.loadingService.hide();
       if (clientesSinPacientes.length === 0) {
-        Swal.fire('Información', 'Todos los clientes tienen pacientes registrados.', 'info');
+        setTimeout(() => Swal.fire('Información', 'Todos los clientes tienen pacientes registrados.', 'info'), 0);
       } else {
         const nombres = clientesSinPacientes.map(cliente => {
           const nombreCompleto = `${cliente.nombre || ''} ${cliente.apellidoPaterno || ''} ${cliente.apellidoMaterno || ''}`.trim();
           return nombreCompleto || 'Sin nombre';
         });
-        
-        Swal.fire({
+        setTimeout(() => Swal.fire({
           title: 'Clientes Sin Pacientes',
           html: `
             <p><strong>Total: ${clientesSinPacientes.length} cliente(s)</strong></p>
@@ -331,10 +356,9 @@ export class ClientesComponent implements OnInit, OnDestroy {
           `,
           icon: 'info',
           confirmButtonText: 'Entendido'
-        });
+        }), 0);
       }
       this.saving = false;
-      this.loadingService.hide();
       },
       error: () => { this.saving = false; this.loadingService.hide(); }
     });

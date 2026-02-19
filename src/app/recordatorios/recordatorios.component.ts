@@ -196,12 +196,14 @@ export class RecordatoriosComponent implements OnInit, OnDestroy {
       this.loadingService.show();
       try {
         await this.recordatoriosService.eliminarRecordatorio(recordatorio.id);
-        Swal.fire({ icon: 'success', title: '¡Eliminado!', text: 'Recordatorio eliminado correctamente' });
-        this.cargarRecordatorios();
-      } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el recordatorio' });
-      } finally {
         this.loadingService.hide();
+        setTimeout(() => {
+          Swal.fire({ icon: 'success', title: '¡Eliminado!', text: 'Recordatorio eliminado correctamente' });
+          this.cargarRecordatorios();
+        }, 0);
+      } catch (error) {
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el recordatorio' }), 0);
       }
     }
   }
@@ -214,12 +216,14 @@ export class RecordatoriosComponent implements OnInit, OnDestroy {
       } else {
         await this.recordatoriosService.marcarPendiente(recordatorio.id);
       }
-      Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Recordatorio marcado como ${nuevoEstado}` });
-      this.cargarRecordatorios();
-    } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar el estado del recordatorio' });
-    } finally {
       this.loadingService.hide();
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Recordatorio marcado como ${nuevoEstado}` });
+        this.cargarRecordatorios();
+      }, 0);
+    } catch (error) {
+      this.loadingService.hide();
+      setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar el estado del recordatorio' }), 0);
     }
   }
 

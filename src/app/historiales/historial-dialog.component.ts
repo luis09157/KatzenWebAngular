@@ -260,11 +260,12 @@ export class HistorialDialogComponent implements OnInit {
         }
       } catch (error) {
         console.error('Error al guardar historial:', error);
-        Swal.fire({
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error',
           text: this.errorMessages.getUserMessage(error, 'guardar historial')
-        });
+        }), 0);
       } finally {
         this.loading = false;
       }
@@ -312,11 +313,12 @@ export class HistorialDialogComponent implements OnInit {
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar historial:', error);
-        Swal.fire({
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error',
           text: this.errorMessages.getUserMessage(error, 'eliminar historial')
-        });
+        }), 0);
       } finally {
         this.loading = false;
       }

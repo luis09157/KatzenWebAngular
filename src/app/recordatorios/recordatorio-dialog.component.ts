@@ -172,14 +172,13 @@ export class RecordatorioDialogComponent implements OnInit {
       } catch (error) {
         console.error('Error al guardar recordatorio:', error);
         let mensajeError = 'No se pudo guardar el recordatorio';
-        
         if (error instanceof Error) {
           if (error.message.includes('Ya existe un recordatorio similar')) {
             mensajeError = 'Ya existe un recordatorio similar para este paciente';
           }
         }
-        
-        Swal.fire({ icon: 'error', title: 'Error', text: mensajeError });
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: mensajeError }), 0);
       } finally {
         console.log('Loading finalizado');
         this.loading = false;
@@ -232,11 +231,12 @@ export class RecordatorioDialogComponent implements OnInit {
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar recordatorio:', error);
-        Swal.fire({
+        this.loadingService.hide();
+        setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error',
           text: 'No se pudo eliminar el recordatorio'
-        });
+        }), 0);
       } finally {
         this.loading = false;
       }
@@ -259,11 +259,12 @@ export class RecordatorioDialogComponent implements OnInit {
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
-      Swal.fire({
+      this.loadingService.hide();
+      setTimeout(() => Swal.fire({
         icon: 'error',
         title: 'Error',
         text: 'No se pudo cambiar el estado del recordatorio'
-      });
+      }), 0);
     } finally {
       this.loading = false;
     }
