@@ -13,9 +13,19 @@
       <a mat-button (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
     </nav>
     
-    <button mat-raised-button color="primary" class="cta-button" (click)="scrollToSection('contacto')">
-      Agenda tu Cita
-    </button>
+    <div class="navbar-contact">
+      <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="nav-contact-link nav-whatsapp" (click)="trackWhatsApp('navbar')" aria-label="WhatsApp">
+        <mat-icon>chat</mat-icon>
+        <span>WhatsApp</span>
+      </a>
+      <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="nav-contact-link nav-facebook" (click)="trackFacebook('navbar')" aria-label="Facebook">
+        <mat-icon>facebook</mat-icon>
+        <span>Facebook</span>
+      </a>
+      <button mat-raised-button color="primary" class="cta-button" (click)="scrollToSection('contacto')">
+        Agenda tu Cita
+      </button>
+    </div>
     
     <button mat-icon-button class="mobile-menu-button" [class.mobile-visible]="isMobile" (click)="toggleMobileMenu()">
       <mat-icon>menu</mat-icon>
@@ -41,15 +51,23 @@
       </p>
       
       <div class="hero-actions">
-        <button mat-raised-button color="primary" class="hero-cta-primary" (click)="scrollToSection('servicios')">
+        <a [href]="whatsappFullUrl" 
+           target="_blank" rel="noopener noreferrer" 
+           class="hero-cta-whatsapp" (click)="trackWhatsApp('hero')">
+          <mat-icon>chat</mat-icon>
+          Escribir por WhatsApp
+        </a>
+        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" 
+           class="hero-cta-facebook" (click)="trackFacebook('hero')">
+          <mat-icon>facebook</mat-icon>
+          Visitar Facebook
+        </a>
+        <button mat-stroked-button color="primary" class="hero-cta-secondary" (click)="scrollToSection('servicios')">
           <mat-icon>medical_services</mat-icon>
-          Nuestros Servicios
-        </button>
-        <button mat-stroked-button color="primary" class="hero-cta-secondary" (click)="scrollToSection('equipo')">
-          <mat-icon>people</mat-icon>
-          Conoce al Equipo
+          Ver Servicios
         </button>
       </div>
+      <p class="hero-contact-hint">Respuesta rápida por WhatsApp y Facebook · Horario de atención extendido</p>
     </div>
     
     <div class="hero-visual">
@@ -238,12 +256,13 @@
     
     <div class="faq-footer">
       <p class="faq-footer-text">¿No encuentras tu respuesta?</p>
-      <a href="https://wa.me/528136024090?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20sus%20servicios"
+      <a [href]="whatsappFullUrl"
          target="_blank"
          rel="noopener noreferrer"
          mat-raised-button
          color="primary"
-         class="faq-contact-button">
+         class="faq-contact-button"
+         (click)="trackWhatsApp('faq')">
         <mat-icon>chat</mat-icon>
         Contáctanos por WhatsApp
       </a>
@@ -394,6 +413,23 @@
       <h2 id="contacto-title" class="section-title">Contacto | Agenda tu Cita en Clínica Veterinaria Katzen</h2>
       <p class="section-subtitle">📍 C. Zinc 318, Los Cristales, Guadalupe, N.L. | ☎ 81 3602 4090 | WhatsApp 24/7 | Emergencias veterinarias | Abierto Lunes a Sábado</p>
     </div>
+
+    <!-- Redes de comunicación principales -->
+    <div class="contact-redes-destacadas">
+      <p class="contact-redes-titulo">Respuesta rápida por WhatsApp o Facebook</p>
+      <div class="contact-redes-buttons">
+        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="contact-redes-btn contact-redes-whatsapp" (click)="trackWhatsApp('contacto')">
+          <mat-icon>chat</mat-icon>
+          <span>Escribir por WhatsApp</span>
+          <small>Respuesta en minutos</small>
+        </a>
+        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="contact-redes-btn contact-redes-facebook" (click)="trackFacebook('contacto')">
+          <mat-icon>facebook</mat-icon>
+          <span>Visitar Facebook</span>
+          <small>Publicaciones y horarios</small>
+        </a>
+      </div>
+    </div>
     
     <div class="contact-content">
       <div class="contact-info">
@@ -510,18 +546,29 @@
   </div>
 </div>
 
-<!-- ===== WHATSAPP FLOTANTE MEJORADO ===== -->
-<a href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita%20para%20mi%20mascota"
-   target="_blank"
-   rel="noopener noreferrer"
-   class="whatsapp-float"
-   (click)="trackWhatsApp('floating')"
-   aria-label="Contactar por WhatsApp">
-  <mat-icon class="whatsapp-icon">phone</mat-icon>
-  <span class="whatsapp-text">WhatsApp</span>
-  <div class="whatsapp-badge">¡Rápido!</div>
-  <div class="whatsapp-pulse"></div>
-</a>
+<!-- ===== CONTACTO RÁPIDO FLOTANTE (WhatsApp + Facebook) ===== -->
+<div class="float-contact-wrap">
+  <a [href]="facebookUrl"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="float-contact float-facebook"
+     (click)="trackFacebook('floating')"
+     aria-label="Visitar Facebook">
+    <mat-icon>facebook</mat-icon>
+    <span class="float-contact-text">Facebook</span>
+  </a>
+  <a [href]="whatsappFullUrl"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="whatsapp-float"
+     (click)="trackWhatsApp('floating')"
+     aria-label="Contactar por WhatsApp">
+    <mat-icon class="whatsapp-icon">chat</mat-icon>
+    <span class="whatsapp-text">WhatsApp</span>
+    <div class="whatsapp-badge">¡Rápido!</div>
+    <div class="whatsapp-pulse"></div>
+  </a>
+</div>
 
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
@@ -580,17 +627,29 @@
     
     <mat-divider class="footer-divider"></mat-divider>
     
+    <!-- Redes de contacto destacadas -->
+    <div class="footer-contact-cta">
+      <p class="footer-contact-title">Comunícate con nosotros</p>
+      <div class="footer-contact-buttons">
+        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="footer-cta-btn footer-cta-whatsapp" (click)="trackWhatsApp('footer')">
+          <mat-icon>chat</mat-icon>
+          WhatsApp
+        </a>
+        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="footer-cta-btn footer-cta-facebook" (click)="trackFacebook('footer')">
+          <mat-icon>facebook</mat-icon>
+          Visitar Facebook
+        </a>
+      </div>
+    </div>
+    <mat-divider class="footer-divider"></mat-divider>
     <div class="footer-bottom">
       <p>&copy; 2025 KatzenVet. Todos los derechos reservados.</p>
       <div class="footer-social">
-        <a href="#" class="social-link">
+        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="social-link" (click)="trackFacebook('footer_social')" aria-label="Facebook">
           <mat-icon>facebook</mat-icon>
         </a>
-        <a href="#" class="social-link">
-          <mat-icon>instagram</mat-icon>
-        </a>
-        <a href="#" class="social-link">
-          <mat-icon>youtube</mat-icon>
+        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="social-link" (click)="trackWhatsApp('footer_social')" aria-label="WhatsApp">
+          <mat-icon>chat</mat-icon>
         </a>
       </div>
     </div>

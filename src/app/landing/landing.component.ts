@@ -26,6 +26,12 @@ import { AnalyticsService } from '../shared/services/analytics.service';
   ]
 })
 export class LandingComponent implements OnInit, OnDestroy {
+  // URLs de redes de comunicación (configurables)
+  readonly whatsappUrl = 'https://wa.me/528136024090';
+  readonly whatsappMessage = 'Hola, quisiera información sobre sus servicios para mi mascota';
+  readonly whatsappFullUrl = 'https://wa.me/528136024090?text=' + encodeURIComponent('Hola, quisiera información sobre sus servicios para mi mascota');
+  readonly facebookUrl = 'https://www.facebook.com/katzenvet'; // Actualiza con tu página de FB real
+
   // Tracking de tiempo en página
   private startTime: number = Date.now();
   private scrollDepthTracked: { [key: number]: boolean } = {};
@@ -446,13 +452,13 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.checkScreenSize();
   }
 
-  @HostListener('window:scroll', ['$event'])
-  onWindowScroll() {
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
     this.checkScroll();
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize() {
+  @HostListener('window:resize')
+  onResize(): void {
     this.checkScreenSize();
   }
 
@@ -562,6 +568,14 @@ export class LandingComponent implements OnInit, OnDestroy {
   trackWhatsApp(ubicacion: string): void {
     this.analytics.trackWhatsAppClick(ubicacion);
     this.analytics.trackConversion('whatsapp', 500);
+  }
+
+  trackFacebook(ubicacion: string): void {
+    this.analytics.trackEvent('facebook_click', {
+      event_category: 'engagement',
+      event_label: ubicacion,
+      value: 1
+    });
   }
 
   trackPhone(ubicacion: string): void {

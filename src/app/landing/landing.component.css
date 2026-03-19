@@ -120,6 +120,37 @@
   box-shadow: var(--shadow-xl);
 }
 
+.navbar-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.nav-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+.nav-contact-link mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.nav-whatsapp:hover {
+  background: rgba(37, 211, 102, 0.15);
+  color: #128c7e;
+}
+.nav-facebook:hover {
+  background: rgba(24, 119, 242, 0.15);
+  color: #1877f2;
+}
+
 .mobile-menu-button {
   display: none;
   color: var(--primary-color);
@@ -264,6 +295,54 @@
   color: white;
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+/* Hero CTAs WhatsApp y Facebook */
+.hero-cta-whatsapp,
+.hero-cta-facebook {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.75rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: var(--transition);
+  border: 2px solid transparent;
+  box-shadow: var(--shadow-md);
+}
+.hero-cta-whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  color: white;
+  border-color: #128c7e;
+}
+.hero-cta-whatsapp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(37, 211, 102, 0.4);
+  color: white;
+}
+.hero-cta-facebook {
+  background: linear-gradient(135deg, #1877f2 0%, #0d5bb5 100%);
+  color: white;
+  border-color: #0d5bb5;
+}
+.hero-cta-facebook:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(24, 119, 242, 0.4);
+  color: white;
+}
+.hero-cta-whatsapp mat-icon,
+.hero-cta-facebook mat-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.hero-contact-hint {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .hero-visual {
@@ -1062,6 +1141,70 @@
   font-size: 1rem;
 }
 
+/* Sección contacto - redes destacadas */
+.contact-redes-destacadas {
+  margin-bottom: 3rem;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid rgba(2, 132, 199, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+.contact-redes-titulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.contact-redes-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.contact-redes-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  text-decoration: none;
+  color: white;
+  transition: var(--transition);
+  border: 2px solid transparent;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.contact-redes-btn mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.contact-redes-btn small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+.contact-redes-whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+.contact-redes-whatsapp:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 211, 102, 0.35);
+  color: white;
+}
+.contact-redes-facebook {
+  background: linear-gradient(135deg, #1877f2 0%, #0d5bb5 100%);
+}
+.contact-redes-facebook:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(24, 119, 242, 0.35);
+  color: white;
+}
+
 .contact-form-container {
   background: white;
 }
@@ -1133,12 +1276,61 @@
   to { transform: rotate(360deg); }
 }
 
-/* ===== WHATSAPP FLOTANTE ===== */
-.whatsapp-float {
+/* ===== CONTACTO FLOTANTE (WhatsApp + Facebook) ===== */
+.float-contact-wrap {
   position: fixed;
   bottom: 30px;
   right: 30px;
   z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+.float-contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.float-contact mat-icon {
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.float-contact-text {
+  display: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+.float-facebook {
+  background: linear-gradient(135deg, #1877f2 0%, #0d5bb5 100%);
+}
+.float-facebook:hover {
+  transform: scale(1.1) translateY(-3px);
+  box-shadow: 0 10px 32px rgba(24, 119, 242, 0.5);
+  width: auto;
+  padding: 0 20px;
+  border-radius: 50px;
+}
+.float-facebook:hover .float-contact-text {
+  display: block;
+}
+
+.whatsapp-float {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  z-index: 1;
   background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
   color: white;
   width: 70px;
@@ -1323,6 +1515,60 @@
   padding: 0.25rem 0.5rem;
 }
 
+/* Footer redes de contacto destacadas */
+.footer-contact-cta {
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+.footer-contact-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1.25rem;
+}
+.footer-contact-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+.footer-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 700;
+  text-decoration: none;
+  color: white;
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+.footer-cta-btn mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.footer-cta-whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+.footer-cta-whatsapp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+  color: white;
+}
+.footer-cta-facebook {
+  background: linear-gradient(135deg, #1877f2 0%, #0d5bb5 100%);
+}
+.footer-cta-facebook:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(24, 119, 242, 0.4);
+  color: white;
+}
+
 .footer-divider {
   margin: 2rem 0;
   border-color: #404040;
@@ -1366,6 +1612,13 @@
   }
   
   .navbar-nav.mobile-hidden {
+    display: none;
+  }
+
+  .navbar-contact .nav-contact-link {
+    padding: 0.5rem;
+  }
+  .navbar-contact .nav-contact-link span {
     display: none;
   }
   
