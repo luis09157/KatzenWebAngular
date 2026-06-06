@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -10,16 +11,21 @@ import Swal from 'sweetalert2';
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })
-export class AuthComponent {
+export class AuthComponent implements OnInit {
   email = '';
   password = '';
 
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private appCheck: AppCheckService,
     private firebaseFunctions: FirebaseFunctionsService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.appCheck.ensureInitialized();
+  }
 
   async login() {
     if (!this.email || !this.password) {

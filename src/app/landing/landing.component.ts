@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { AnalyticsService } from '../shared/services/analytics.service';
 import { PortalAuthService } from '../portal/services/portal-auth.service';
+import { AppCheckService } from '../core/app-check.service';
 import { ContactoWebService } from './services/contacto-web.service';
 import Swal from 'sweetalert2';
 
@@ -456,6 +457,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     private analytics: AnalyticsService,
     private portalAuth: PortalAuthService,
     private contactoWeb: ContactoWebService,
+    private appCheck: AppCheckService,
     private el: ElementRef<HTMLElement>
   ) {
     this.contactForm = this.fb.group({
@@ -680,6 +682,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña de cliente.' });
       return;
     }
+    this.appCheck.ensureInitialized();
     this.portalLoading = true;
     try {
       const result = await this.portalAuth.login(this.portalEmail, this.portalPassword);

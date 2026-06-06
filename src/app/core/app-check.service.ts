@@ -1,32 +1,41 @@
 import { Injectable } from '@angular/core';
-import { initializeApp } from '@angular/fire/app';
-import { initializeAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
+import { getApp, getApps } from 'firebase/app';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AppCheckService {
-  constructor(private logger: LoggerService) {
-    this.initializeAppCheck();
-  }
+  private initialized = false;
 
-  private initializeAppCheck() {
-    if (environment.production && environment.recaptchaSiteKey !== 'TU_CLAVE_DEL_SITIO_AQUI') {
-      try {
-        const app = initializeApp(environment.firebase);
-        initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(environment.recaptchaSiteKey),
-          isTokenAutoRefreshEnabled: true
-        });
-        this.logger.log('✅ App Check inicializado correctamente');
-      } catch (error) {
-        this.logger.error('❌ Error al inicializar App Check:', error);
+  constructor(private logger: LoggerService) {}
+
+  /** Inicializa reCAPTCHA/App Check solo en pantallas de login (no en landing pública). */
+  ensureInitialized(): void {
+    if (this.initialized) {
+      return;
+    }
+
+    if (!environment.production || !environment.recaptchaSiteKey) {
+      this.logger.log('App Check omitido (desarrollo o sin clave configurada)');
+      return;
+    }
+
+    try {
+      if (!getApps().length) {
+        this.logger.warn('App Check: Firebase aún no está listo');
+        return;
       }
-    } else {
-      this.logger.log('⚠️ App Check no inicializado (desarrollo o clave no configurada)');
+
+      initializeAppCheck(getApp(), {
+        provider: new ReCaptchaV3Provider(environment.recaptchaSiteKey),
+        isTokenAutoRefreshEnabled: true
+      });
+
+      this.initialized = true;
+      this.logger.log('App Check inicializado en login');
+    } catch (error) {
+      this.logger.error('Error al inicializar App Check:', error);
     }
   }
 }
-

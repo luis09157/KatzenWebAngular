@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AppCheckService } from '../../core/app-check.service';
 import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalSessionService, PortalSession } from '../services/portal-session.service';
 import Swal from 'sweetalert2';
@@ -19,10 +20,12 @@ export class PortalLoginComponent implements OnInit {
   constructor(
     private portalAuth: PortalAuthService,
     private portalSession: PortalSessionService,
+    private appCheck: AppCheckService,
     private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
+    this.appCheck.ensureInitialized();
     this.activeSession = await this.portalSession.resolveSession();
     if (this.activeSession?.email) {
       this.email = this.activeSession.email;
