@@ -63,7 +63,22 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }, 0);
       },
-      error: () => { this.loading = false; }
+      error: (error) => {
+        this.logger.error('Error al cargar clientes:', error);
+        this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los clientes.',
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.ngOnInit();
+          }
+        });
+      }
     });
   }
 

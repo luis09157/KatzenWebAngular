@@ -12,6 +12,7 @@ import {
   EstadisticasInventario,
   TipoMovimiento
 } from '../shared/inventario.models';
+import { CurrentStaffService } from '../core/services/current-staff.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,10 @@ export class InventarioService {
   private readonly proveedoresPath = 'Katzen/Inventario/Proveedores';
   private readonly alertasPath = 'Katzen/Inventario/Alertas';
 
-  constructor(private db: AngularFireDatabase) {
+  constructor(
+    private db: AngularFireDatabase,
+    private currentStaff: CurrentStaffService
+  ) {
     console.log('✅ InventarioService inicializado');
   }
 
@@ -174,6 +178,7 @@ export class InventarioService {
     observaciones?: string
   ): Promise<void> {
     console.log('🔄 Registrando entrada de producto...');
+    const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
       tipo: 'entrada',
       producto_id: productoId,
@@ -183,7 +188,7 @@ export class InventarioService {
       motivo: motivo,
       orden_compra_id: ordenCompraId,
       observaciones: observaciones || '',
-      usuario_responsable_id: 'admin', // TODO: Obtener usuario actual
+      usuario_responsable_id: usuarioId,
       cantidad_anterior: 0,
       cantidad_nueva: 0,
       created_at: new Date().toISOString()
@@ -200,6 +205,7 @@ export class InventarioService {
     observaciones?: string
   ): Promise<void> {
     console.log('🔄 Registrando salida de producto...');
+    const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
       tipo: 'salida',
       producto_id: productoId,
@@ -210,7 +216,7 @@ export class InventarioService {
       paciente_id: pacienteId,
       historial_clinico_id: historialId,
       venta_id: ventaId,
-      usuario_responsable_id: 'admin',
+      usuario_responsable_id: usuarioId,
       observaciones: observaciones || '',
       cantidad_anterior: 0,
       cantidad_nueva: 0,
@@ -225,6 +231,7 @@ export class InventarioService {
     observaciones?: string
   ): Promise<void> {
     console.log('🔄 Registrando ajuste de inventario...');
+    const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
       tipo: 'ajuste',
       producto_id: productoId,
@@ -232,7 +239,7 @@ export class InventarioService {
       costo_unitario: 0,
       costo_total: 0,
       motivo: motivo,
-      usuario_responsable_id: 'admin',
+      usuario_responsable_id: usuarioId,
       observaciones: observaciones || '',
       cantidad_anterior: 0,
       cantidad_nueva: 0,

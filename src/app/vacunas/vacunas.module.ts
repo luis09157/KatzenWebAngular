@@ -22,12 +22,15 @@ import { VacunaDialogComponent } from './vacuna-dialog.component';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-vacuna-dialog.component';
 
+import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
+
 @NgModule({
   declarations: [
     VacunasComponent,
     VacunaDialogComponent,
     VacunaDetalleComponent,
-    SeleccionarClienteVacunaDialogComponent
+    SeleccionarClienteVacunaDialogComponent,
+    ConfirmarEliminacionVacunaDialogComponent
   ],
   imports: [
     CommonModule,

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import { Peluquero, PeluqueroFormData } from './peluquero.model';
-import { ValidationService } from './validation.service';
+import { CurrentStaffService } from '../core/services/current-staff.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,8 @@ export class PeluqueroService {
 
   constructor(
     private db: AngularFireDatabase,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private currentStaff: CurrentStaffService
   ) { }
 
   // ===== OPERACIONES CRUD =====
@@ -42,7 +43,7 @@ export class PeluqueroService {
         activo: true,
         created_at: new Date(),
         updated_at: new Date(),
-        created_by: 'admin' // TODO: Obtener del usuario actual
+        created_by: await this.currentStaff.getStaffId()
       };
 
       // Generar ID único

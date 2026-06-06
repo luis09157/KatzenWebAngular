@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, FormBuilder } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Observable, Subject, forkJoin } from 'rxjs';
+import { map, startWith, takeUntil, take } from 'rxjs/operators';
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { ClientesService } from '../../clientes/clientes.service';
 import { CitasService } from '../../citas/citas.service';
@@ -14,7 +14,8 @@ import { Router } from '@angular/router';
   templateUrl: './expediente-paciente.component.html',
   styleUrls: ['./expediente-paciente.component.css']
 })
-export class ExpedientePacienteComponent implements OnInit {
+export class ExpedientePacienteComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   // Menú lateral
   sidenavOpened = true;
 
@@ -39,117 +40,35 @@ export class ExpedientePacienteComponent implements OnInit {
   ingresosHoy = 0;
 
   // Datos de citas próximas
-  citasProximas = [
-    {
-      hora: '09:00',
-      fecha: 'Hoy',
-      paciente: 'Luna',
-      cliente: 'María González',
-      tipo: 'Consulta',
-      estado: 'confirmada'
-    },
-    {
-      hora: '11:30',
-      fecha: 'Hoy',
-      paciente: 'Max',
-      cliente: 'Carlos Rodríguez',
-      tipo: 'Vacuna',
-      estado: 'pendiente'
-    },
-    {
-      hora: '14:00',
-      fecha: 'Hoy',
-      paciente: 'Bella',
-      cliente: 'Ana Martínez',
-      tipo: 'Cirugía',
-      estado: 'confirmada'
-    },
-    {
-      hora: '16:30',
-      fecha: 'Hoy',
-      paciente: 'Rocky',
-      cliente: 'Luis Pérez',
-      tipo: 'Consulta',
-      estado: 'pendiente'
-    }
-  ];
+  citasProximas: Array<{
+    hora: string;
+    fecha: string;
+    paciente: string;
+    cliente: string;
+    tipo: string;
+    estado: string;
+  }> = [];
 
-  // Pacientes recientes
-  pacientesRecientes = [
-    {
-      nombre: 'Luna',
-      raza: 'Golden Retriever',
-      propietario: 'María González'
-    },
-    {
-      nombre: 'Max',
-      raza: 'Pastor Alemán',
-      propietario: 'Carlos Rodríguez'
-    },
-    {
-      nombre: 'Bella',
-      raza: 'Persa',
-      propietario: 'Ana Martínez'
-    },
-    {
-      nombre: 'Rocky',
-      raza: 'Bulldog',
-      propietario: 'Luis Pérez'
-    }
-  ];
+  pacientesRecientes: Array<{
+    nombre: string;
+    raza: string;
+    propietario: string;
+  }> = [];
 
-  // Actividades recientes
-  actividadesRecientes = [
-    {
-      tipo: 'cita',
-      icono: 'event',
-      descripcion: 'Nueva cita programada para Luna',
-      tiempo: 'Hace 5 minutos'
-    },
-    {
-      tipo: 'paciente',
-      icono: 'pets',
-      descripcion: 'Nuevo paciente registrado: Max',
-      tiempo: 'Hace 15 minutos'
-    },
-    {
-      tipo: 'vacuna',
-      icono: 'medical_services',
-      descripcion: 'Vacuna aplicada a Bella',
-      tiempo: 'Hace 1 hora'
-    },
-    {
-      tipo: 'consulta',
-      icono: 'stethoscope',
-      descripcion: 'Consulta completada para Rocky',
-      tiempo: 'Hace 2 horas'
-    }
-  ];
+  actividadesRecientes: Array<{
+    tipo: string;
+    icono: string;
+    descripcion: string;
+    tiempo: string;
+  }> = [];
 
-  // Recordatorios
-  recordatorios = [
-    {
-      icono: 'vaccines',
-      titulo: 'Vacuna Pendiente',
-      descripcion: 'Luna necesita su vacuna anual',
-      fecha: 'Mañana 10:00',
-      prioridad: 'alta'
-    },
-    {
-      icono: 'event',
-      titulo: 'Cita de Seguimiento',
-      descripcion: 'Max - Revisión post-cirugía',
-      fecha: '15/01/2024',
-      prioridad: 'media'
-    },
-    {
-      icono: 'medication',
-      titulo: 'Medicamento',
-      descripcion: 'Bella - Continuar tratamiento',
-      fecha: 'Cada 8 horas',
-      prioridad: 'alta'
-    }
-  ];
+  recordatorios: Array<{
+    icono: string;
+    titulo: string;
+    descripcion: string;
+    fecha: string;
+    prioridad: string;
+  }> = [];
 
   constructor(
     private fb: FormBuilder,
@@ -170,6 +89,11 @@ export class ExpedientePacienteComponent implements OnInit {
   ngOnInit() {
     this.cargarDatos();
     this.cargarEstadisticas();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Inicializar formularios reactivos
@@ -296,31 +220,133 @@ export class ExpedientePacienteComponent implements OnInit {
 
   // Cargar datos
   cargarDatos() {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
       this.pacientes = pacientes || [];
       this.pacientes = this.pacientes.map(paciente => ({
         ...paciente,
-        nombreCliente: this.getClienteInfo(paciente.cliente_id)?.nombre || 'N/A'
+        nombreCliente: this.getClienteInfo(paciente.cliente_id || paciente.idCliente)?.nombre || 'N/A'
       }));
     });
 
-    this.clientesService.getClientes().subscribe(clientes => {
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
       this.clientes = clientes || [];
     });
   }
 
   cargarEstadisticas() {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.totalPacientes = pacientes?.length || 0;
+    forkJoin({
+      pacientes: this.pacientesService.getPacientes().pipe(take(1)),
+      clientes: this.clientesService.getClientes().pipe(take(1)),
+      citas: this.citasService.getCitas().pipe(take(1)),
+      historiales: this.historialesService.getHistorialesActivos().pipe(take(1))
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ pacientes, clientes, citas, historiales }) => {
+        const pacientesActivos = (pacientes || []).filter((p: { activo?: boolean }) => p.activo !== false);
+        const clientesActivos = (clientes || []).filter((c: { activo?: boolean }) => c.activo !== false);
+        this.totalPacientes = pacientesActivos.length;
+        this.totalClientes = clientesActivos.length;
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const manana = new Date(hoy);
+        manana.setDate(manana.getDate() + 1);
+
+        const citasActivas = citas || [];
+        this.citasHoy = citasActivas.filter(c => this.parseCitaDate(c)?.getTime() === hoy.getTime()).length;
+
+        const hace7Dias = new Date(hoy);
+        hace7Dias.setDate(hace7Dias.getDate() - 7);
+        this.historialesRecientes = (historiales || []).filter(h => {
+          const fecha = this.parseFlexibleDate(h.fecha_registro || h.created_at);
+          return fecha && fecha >= hace7Dias;
+        }).length;
+
+        this.ingresosHoy = 0;
+        this.cargarCitasProximas(citasActivas, pacientesActivos, clientesActivos);
+        this.cargarPacientesRecientes(pacientesActivos, clientesActivos);
+      }
+    });
+  }
+
+  private cargarCitasProximas(citas: any[], pacientes: any[], clientes: any[]) {
+    const pacientesMap: Record<string, string> = {};
+    const clientesMap: Record<string, string> = {};
+    pacientes.forEach(p => { pacientesMap[p.id] = p.nombre || 'N/P'; });
+    clientes.forEach(c => {
+      clientesMap[c.id] = [c.nombre, c.apellidoPaterno].filter(Boolean).join(' ') || 'N/P';
     });
 
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.totalClientes = clientes?.length || 0;
-    });
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
 
-    this.citasHoy = 5;
-    this.historialesRecientes = 3;
-    this.ingresosHoy = 1250;
+    this.citasProximas = citas
+      .map(cita => {
+        const fecha = this.parseCitaDate(cita);
+        if (!fecha) {
+          return null;
+        }
+        const pacienteId = cita.paciente_id || cita.idPaciente;
+        const clienteId = cita.cliente_id || cita.idCliente;
+        return {
+          hora: cita.hora || cita.hora_cita || '--:--',
+          fecha: this.formatFechaRelativa(fecha, hoy),
+          paciente: pacientesMap[pacienteId] || 'N/P',
+          cliente: clientesMap[clienteId] || 'N/P',
+          tipo: cita.tipo || cita.motivo || 'Consulta',
+          estado: cita.estado || 'pendiente',
+          _sort: fecha.getTime()
+        };
+      })
+      .filter((c): c is NonNullable<typeof c> => !!c && c._sort >= hoy.getTime())
+      .sort((a, b) => a._sort - b._sort)
+      .slice(0, 8)
+      .map(({ _sort, ...cita }) => cita);
+  }
+
+  private cargarPacientesRecientes(pacientes: any[], clientes: any[]) {
+    this.pacientesRecientes = [...pacientes]
+      .reverse()
+      .slice(0, 4)
+      .map(p => {
+        const cliente = clientes.find(c => c.id === (p.cliente_id || p.idCliente));
+        return {
+          nombre: p.nombre || 'N/P',
+          raza: p.raza || 'N/P',
+          propietario: cliente?.nombre || 'N/P'
+        };
+      });
+  }
+
+  private parseCitaDate(cita: any): Date | null {
+    const raw = cita.fecha || cita.fecha_cita || cita.fecha_hora;
+    if (!raw) {
+      return null;
+    }
+    const fecha = new Date(raw);
+    return Number.isNaN(fecha.getTime()) ? null : fecha;
+  }
+
+  private parseFlexibleDate(value: string | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+    const fecha = new Date(normalized);
+    return Number.isNaN(fecha.getTime()) ? null : fecha;
+  }
+
+  private formatFechaRelativa(fecha: Date, hoy: Date): string {
+    const comparar = new Date(fecha);
+    comparar.setHours(0, 0, 0, 0);
+    if (comparar.getTime() === hoy.getTime()) {
+      return 'Hoy';
+    }
+    const manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
+    if (comparar.getTime() === manana.getTime()) {
+      return 'Mañana';
+    }
+    return fecha.toLocaleDateString('es-MX');
   }
 
   getClienteInfo(clienteId: string) {

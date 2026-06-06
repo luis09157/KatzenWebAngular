@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { Observable, map } from 'rxjs';
 
 export interface ContactoWebPayload {
   nombre: string;
@@ -7,6 +8,14 @@ export interface ContactoWebPayload {
   telefono: string;
   mascota: string;
   mensaje: string;
+}
+
+export interface ContactoWebRecord extends ContactoWebPayload {
+  id: string;
+  fecha: string;
+  origen: string;
+  leido: boolean;
+  activo: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,6 +52,24 @@ export class ContactoWebService {
       throw new Error('No se pudo guardar el mensaje');
     }
     return ref.key;
+  }
+
+  getContactos(): Observable<ContactoWebRecord[]> {
+    return this.db.list(this.basePath).snapshotChanges().pipe(
+      map(changes =>
+        changes
+          .map(c => ({
+            id: c.payload.key as string,
+            ...(c.payload.val() as Omit<ContactoWebRecord, 'id'>)
+          }))
+          .filter(c => c.activo !== false)
+          .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))
+      )
+    );
+  }
+
+  async marcarLeido(id: string, leido: boolean): Promise<void> {
+    await this.db.object(`${this.basePath}/${id}`).update({ leido });
   }
 
   private clip(value: string, max: number): string {

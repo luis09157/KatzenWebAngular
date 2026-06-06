@@ -13,6 +13,7 @@ import { takeUntil } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { CurrentStaffService } from '../core/services/current-staff.service';
 
 @Component({
   selector: 'app-historial-dialog',
@@ -50,7 +51,8 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private currentStaff: CurrentStaffService
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
@@ -453,7 +455,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           // Archivos
           archivos: historialData.archivos
         },
-        usuario: 'Sistema', // TODO: Obtener usuario actual
+        usuario: await this.currentStaff.getStaffLabel(),
         paciente_id: historialData.paciente_id
       };
 

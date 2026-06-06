@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, take } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -67,24 +67,30 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   cargarDatos() {
     this.loading = true;
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: pacientes => {
+    forkJoin({
+      pacientes: this.pacientesService.getPacientes().pipe(take(1)),
+      clientes: this.clientesService.getClientes().pipe(take(1))
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ pacientes, clientes }) => {
         this.pacientes = pacientes || [];
-        this.prepararDataSource();
-      },
-      error: error => {
-        this.logger.error('❌ Error al cargar pacientes:', error);
-        this.loading = false;
-      }
-    });
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: clientes => {
         this.clientes = clientes || [];
         this.prepararDataSource();
       },
       error: error => {
-        this.logger.error('❌ Error al cargar clientes:', error);
+        this.logger.error('Error al cargar pacientes admin:', error);
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los pacientes.',
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.cargarDatos();
+          }
+        });
       }
     });
   }

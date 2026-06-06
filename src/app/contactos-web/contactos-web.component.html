@@ -1,0 +1,98 @@
+<div class="contactos-contenedor">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando mensajes...</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <div class="admin-banner">
+      <div class="banner-content">
+        <div class="banner-icon">
+          <mat-icon>mail</mat-icon>
+        </div>
+        <div class="banner-text">
+          <h2>Contactos web</h2>
+          <p>Mensajes enviados desde la landing page</p>
+        </div>
+      </div>
+      <div class="banner-actions">
+        <span class="pendientes-badge" *ngIf="totalPendientes > 0">{{ totalPendientes }} pendientes</span>
+        <button mat-stroked-button (click)="cargarContactos()">
+          <mat-icon>refresh</mat-icon>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <mat-card>
+      <div class="filtros-row">
+        <mat-form-field appearance="outline" class="buscador">
+          <mat-label>Buscar</mat-label>
+          <input matInput (keyup)="aplicarFiltro($event)" placeholder="Nombre, email, teléfono, mascota..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-button-toggle-group [value]="filtroLeido" (change)="cambiarFiltroLeido($event.value)">
+          <mat-button-toggle value="todos">Todos</mat-button-toggle>
+          <mat-button-toggle value="pendientes">Pendientes</mat-button-toggle>
+          <mat-button-toggle value="leidos">Leídos</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z1 contactos-table">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let row">{{ formatearFecha(row.fecha) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let row">{{ row.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="telefono">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let row">{{ row.telefono || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="mascota">
+          <th mat-header-cell *matHeaderCellDef>Mascota</th>
+          <td mat-cell *matCellDef="let row">{{ row.mascota || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="leido">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span [class]="row.leido ? 'estado-leido' : 'estado-pendiente'">
+              {{ row.leido ? 'Leído' : 'Pendiente' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button matTooltip="Ver mensaje" (click)="verDetalle(row)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button [matTooltip]="row.leido ? 'Marcar pendiente' : 'Marcar leído'" (click)="alternarLeido(row)">
+              <mat-icon>{{ row.leido ? 'mark_email_unread' : 'mark_email_read' }}</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.fila-pendiente]="!row.leido"></tr>
+      </table>
+
+      <p *ngIf="dataSource.data.length === 0" class="sin-datos">No hay mensajes de contacto.</p>
+
+      <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="[25, 50, 100]" showFirstLastButtons></mat-paginator>
+    </mat-card>
+  </div>
+</div>

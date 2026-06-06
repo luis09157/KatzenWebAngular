@@ -18,6 +18,7 @@ const routes: Routes = [
       { path: 'inicio', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule) },
       { path: 'usuarios', loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule) },
       { path: 'clientes', loadChildren: () => import('./clientes/clientes.module').then(m => m.ClientesModule) },
+      { path: 'contactos-web', loadChildren: () => import('./contactos-web/contactos-web.module').then(m => m.ContactosWebModule) },
       { path: 'paciente', loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule) },
       { path: 'pacientes-admin', loadChildren: () => import('./pacientes-admin/pacientes-admin.module').then(m => m.PacientesAdminModule) },
       { path: 'citas', loadChildren: () => import('./citas/citas.module').then(m => m.CitasModule) },

@@ -59,53 +59,16 @@ export class PacientesComponent implements OnInit, OnDestroy {
   loading = false;
   private initialLoadCount = 0;
 
-  // Historial clínico de ejemplo
-  historialClinico = [
-    {
-      fecha: '11/12/2024',
-      hora: '09:58',
-      descripcion: 'aquí podemos usar la...',
-      tiempoAtras: 'Hace 4 semanas y 2 días',
-      usuario: 'Martin Soporte'
-    },
-    {
-      fecha: '29/10/2024',
-      hora: '11:19',
-      descripcion: 'hola',
-      tiempoAtras: 'Hace 2 meses y 2 semanas',
-      usuario: 'Prueba MyVete Sucursal De Prueba'
-    },
-    {
-      fecha: '29/10/2024',
-      hora: '11:18',
-      descripcion: 'hola',
-      tiempoAtras: 'Hace 2 meses y 2 semanas',
-      usuario: 'SysAdmin'
-    },
-    {
-      fecha: '24/01/2024',
-      hora: '09:00',
-      descripcion: 'ANTIPARASITARIOS F...',
-      tiempoAtras: 'Hace 11 meses y 2 semanas',
-      usuario: 'SysAdmin'
-    }
-  ];
+  historialClinico: any[] = [];
 
   // Propiedades originales
   displayedColumns: string[] = ['nombre', 'especie', 'raza', 'sexo', 'edad', 'color', 'peso', 'nombreCliente', 'acciones'];
   dataSource!: MatTableDataSource<any>;
 
   duenioEditable: any = { nombre: '', email: '', telefono: '' };
-  historialEjemplo: any[] = [
-    { fecha: '11/12/2024', descripcion: 'Consulta general, sin novedades.' },
-    { fecha: '29/10/2024', descripcion: 'Vacunación anual.' }
-  ];
-  vacunasEjemplo: any[] = [
-    { nombre: 'Quíntuple', fecha: '10/10/2024', observaciones: 'Sin reacción.' }
-  ];
-  recordatoriosEjemplo: any[] = [
-    { tipo: 'Desparasitación', fecha: '01/11/2024', estado: 'Pendiente' }
-  ];
+  historialEjemplo: any[] = [];
+  vacunasEjemplo: any[] = [];
+  recordatoriosEjemplo: any[] = [];
   busquedaHistorial: string = '';
 
   onFotoChange(event: any) {

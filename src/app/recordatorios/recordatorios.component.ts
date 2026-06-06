@@ -41,11 +41,28 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
-      (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-        this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
-      });
-      this.cargarRecordatorios();
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: pacientes => {
+        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+        });
+        this.cargarRecordatorios();
+      },
+      error: error => {
+        this.logger.error('Error al cargar pacientes para recordatorios:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los datos de pacientes.',
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.ngOnInit();
+          }
+        });
+      }
     });
   }
 
@@ -77,6 +94,18 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       error: error => {
         this.logger.error('Error al cargar recordatorios:', error);
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los recordatorios.',
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.cargarRecordatorios();
+          }
+        });
       }
     });
   }

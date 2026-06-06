@@ -8,6 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
+import { LoggerService } from '../core/logger.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -26,7 +27,8 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private usuariosService: UsuariosService,
     private dialog: MatDialog,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -39,7 +41,22 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
           if (this.paginator) this.dataSource.paginator = this.paginator;
         }, 0);
       },
-      error: () => { this.loading = false; }
+      error: (error) => {
+        this.logger.error('Error al cargar usuarios:', error);
+        this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los usuarios.',
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.ngOnInit();
+          }
+        });
+      }
     });
   }
 

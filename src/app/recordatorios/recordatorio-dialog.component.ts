@@ -6,6 +6,7 @@ import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
+import { CurrentStaffService } from '../core/services/current-staff.service';
 
 @Component({
   selector: 'app-recordatorio-dialog',
@@ -48,7 +49,8 @@ export class RecordatorioDialogComponent implements OnInit {
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<RecordatorioDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private currentStaff: CurrentStaffService
   ) {
     this.recordatorioForm = this.fb.group({
       titulo: ['', Validators.required],
@@ -295,7 +297,7 @@ export class RecordatorioDialogComponent implements OnInit {
           prioridad: recordatorioData.prioridad,
           notas: recordatorioData.notas
         },
-        usuario: 'Sistema', // TODO: Obtener usuario actual
+        usuario: await this.currentStaff.getStaffLabel(),
         paciente_id: recordatorioData.paciente_id
       };
 
