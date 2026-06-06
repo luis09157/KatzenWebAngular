@@ -318,20 +318,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result) {
-          this.loadingService.show();
-          this.historialesService.actualizarHistorial(historial.id, result)
-            .then(() => {
-              this.pacientesService.registrarEdicionHistorialClinico(historial.paciente_id, result).catch(err => this.logger.error('Error al registrar edición en historial del paciente', err));
-              this.loadingService.hide();
-              setTimeout(() => {
-                this.cargarHistoriales();
-                this.cargarEstadisticas();
-              }, 0);
-            })
-            .catch(error => {
-              this.loadingService.hide();
-              setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el historial clínico', 'error'), 0);
-            });
+          this.cargarHistoriales();
+          this.cargarEstadisticas();
         }
       });
   }

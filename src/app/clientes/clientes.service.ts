@@ -5,17 +5,43 @@ import { map } from 'rxjs/operators';
 import { Cliente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-paged-list.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClientesService {
+  private readonly pageSizeDefault = 100;
+
   constructor(
     private db: AngularFireDatabase,
     private logger: LoggerService,
-    private sucursalContext: SucursalContextService
+    private sucursalContext: SucursalContextService,
+    private pagedList: RtdbPagedListService
   ) {}
+
+  /** Carga paginada (más recientes primero). */
+  getClientesPage(
+    pageSize = this.pageSizeDefault,
+    endBeforeKey?: string | null
+  ): Observable<RtdbPageResult<Cliente>> {
+    return this.pagedList.fetchPage<Cliente>(
+      'Katzen/Cliente',
+      pageSize,
+      endBeforeKey,
+      (c) => c.activo !== false
+    ).pipe(
+      map(page => ({
+        ...page,
+        items: [...page.items].sort((a, b) => {
+          const fechaA = new Date((a as any).fecha_registro || (a as any).fecha_creacion || (a as any).created_at || 0);
+          const fechaB = new Date((b as any).fecha_registro || (b as any).fecha_creacion || (b as any).created_at || 0);
+          return fechaB.getTime() - fechaA.getTime();
+        })
+      }))
+    );
+  }
 
   getClientes(): Observable<Cliente[]> {
     return this.db.list('Katzen/Cliente').snapshotChanges().pipe(
@@ -45,8 +71,11 @@ export class ClientesService {
 
   async guardarCliente(cliente: Cliente & { id?: string }): Promise<unknown> {
     cliente = this.sucursalContext.stamp(cliente as Record<string, unknown>) as Cliente & { id?: string };
-    cliente.activo = true;
-    if (!cliente.id || String(cliente.id).trim() === '') {
+    const isNew = !cliente.id || String(cliente.id).trim() === '';
+    if (isNew) {
+      cliente.activo = true;
+    }
+    if (isNew) {
       return this.db.list('Katzen/Cliente').push(cliente).then((result) => {
         const generatedId = result.key;
         if (generatedId) {

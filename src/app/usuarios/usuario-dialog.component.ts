@@ -1,6 +1,15 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+
+function passwordsMatch(group: AbstractControl): ValidationErrors | null {
+  const password = group.get('password')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  if (!password && !confirm) {
+    return null;
+  }
+  return password === confirm ? null : { passwordMismatch: true };
+}
 
 @Component({
   selector: 'app-usuario-dialog',
@@ -36,8 +45,10 @@ export class UsuarioDialogComponent implements OnInit {
       correo: [this.data.usuario?.correo || '', [Validators.required, Validators.email]],
       telefono: [this.data.usuario?.telefono || '', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       perfil: [this.data.usuario?.perfil || 'doctor', Validators.required],
-      activo: [this.data.usuario?.activo !== false ? true : false]
-    });
+      activo: [this.data.usuario?.activo !== false ? true : false],
+      password: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['']
+    }, { validators: passwordsMatch });
 
     if (this.modoVer) {
       this.usuarioForm.disable();
@@ -77,11 +88,18 @@ export class UsuarioDialogComponent implements OnInit {
         return 'Formato de correo inválido';
       }
       if (field.errors['minlength']) {
+        const min = field.errors['minlength'].requiredLength;
+        if (fieldName === 'password') {
+          return `La contraseña debe tener al menos ${min} caracteres`;
+        }
         return `${this.getFieldLabel(fieldName)} debe tener al menos 2 caracteres`;
       }
       if (field.errors['pattern']) {
         return 'El teléfono debe tener 10 dígitos';
       }
+    }
+    if (fieldName === 'confirmPassword' && this.usuarioForm.errors?.['passwordMismatch'] && field?.touched) {
+      return 'Las contraseñas no coinciden';
     }
     return '';
   }

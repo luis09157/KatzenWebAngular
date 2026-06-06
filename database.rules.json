@@ -25,19 +25,19 @@
       },
       "AuthPerfiles": {
         ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".write": false,
         "$uid": {
           ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
         }
       },
       "Usuarios": {
         ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')",
         ".indexOn": ["correo", "activo", "perfil"],
         "$uid": {
           ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
         }
       },
       "Vacunas": {

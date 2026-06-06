@@ -9,6 +9,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -28,7 +29,8 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     private usuariosService: UsuariosService,
     private dialog: MatDialog,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -84,17 +86,41 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       if (result && !modoVer) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.guardarUsuario(result)
+        const op = result.id
+          ? this.usuariosService.actualizarUsuarioStaff(result.id, {
+              uid: result.id,
+              nombre: result.nombre,
+              telefono: result.telefono,
+              perfil: result.perfil,
+              activo: result.activo,
+              email: result.correo
+            })
+          : this.usuariosService.provisionarUsuarioStaff({
+              email: result.correo,
+              password: result.password,
+              nombre: result.nombre,
+              telefono: result.telefono,
+              perfil: result.perfil
+            });
+
+        op
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Éxito', 'Usuario guardado correctamente', 'success');
+              Swal.fire(
+                'Éxito',
+                result.id ? 'Usuario actualizado correctamente' : 'Usuario creado con acceso al sistema',
+                'success'
+              );
               this.ngOnInit();
             }, 0);
           })
-          .catch(() => {
+          .catch((error) => {
+            this.logger.error('Error al guardar usuario:', error);
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo guardar el usuario', 'error'), 0);
+            setTimeout(() => {
+              Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar usuario'), 'error');
+            }, 0);
           })
           .finally(() => { this.saving = false; });
       }
@@ -112,7 +138,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   bajaLogicaUsuario(id: string) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'El usuario será dado de baja (baja lógica).',
+      text: 'El usuario será dado de baja y no podrá iniciar sesión.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, dar de baja',
@@ -121,7 +147,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       if (result.isConfirmed) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.actualizarUsuario(id, { activo: false })
+        this.usuariosService.actualizarUsuarioStaff(id, { uid: id, activo: false })
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
@@ -129,55 +155,12 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
               this.ngOnInit();
             }, 0);
           })
-          .catch(() => {
-            this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja al usuario', 'error'), 0);
-          })
-          .finally(() => { this.saving = false; });
-      }
-    });
-  }
-
-  // Método temporal para agregar a Veronica Lizbeth Guerra Estrada
-  agregarVeronica() {
-    Swal.fire({
-      title: '¿Agregar a Veronica?',
-      text: '¿Deseas agregar a Veronica Lizbeth Guerra Estrada como doctora?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, agregar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.saving = true;
-        this.loadingService.show();
-        this.usuariosService.agregarVeronicaGuerra()
-          .then(success => {
+          .catch((error) => {
+            this.logger.error('Error al dar de baja usuario:', error);
             this.loadingService.hide();
             setTimeout(() => {
-              if (success) {
-                Swal.fire({
-                  title: '¡Éxito!',
-                  text: 'Veronica Lizbeth Guerra Estrada ha sido agregada como doctora',
-                  icon: 'success',
-                  confirmButtonText: 'Aceptar'
-                });
-                this.ngOnInit();
-              } else {
-                Swal.fire({
-                  title: 'Error',
-                  text: 'No se pudo agregar a Veronica',
-                  icon: 'error',
-                  confirmButtonText: 'Aceptar'
-                });
-              }
+              Swal.fire('Error', this.errorMessages.getUserMessage(error, 'dar de baja usuario'), 'error');
             }, 0);
-          })
-          .catch(() => {
-            this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo completar la operación', 'error'), 0);
           })
           .finally(() => { this.saving = false; });
       }

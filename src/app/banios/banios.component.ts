@@ -320,29 +320,29 @@ export class BaniosComponent implements OnInit, OnDestroy {
 
   eliminarBanio(banio: any) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar el baño de ${banio.paciente}?`,
+      title: '¿Dar de baja?',
+      text: `El baño de ${banio.paciente} se archivará. Los datos se conservan.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, dar de baja',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
         this.loadingService.show();
-        this.baniosService.eliminarBanio(banio.id)
+        this.baniosService.bajaLogicaBanio(banio.id)
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Eliminado', 'El baño ha sido eliminado exitosamente', 'success');
+              Swal.fire('Baja lógica', 'El baño ha sido dado de baja correctamente', 'success');
               this.cargarBanios();
             }, 0);
           })
           .catch(error => {
-            this.logger.error('Error al eliminar baño:', error);
+            this.logger.error('Error al dar de baja baño:', error);
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo eliminar el baño', 'error'), 0);
+            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja el baño', 'error'), 0);
           });
       }
     });

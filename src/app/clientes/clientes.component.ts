@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, take } from 'rxjs/operators';
 import { ClientesService } from './clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,6 +40,10 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   saving = false;
+  hasMoreClientes = false;
+  loadingMore = false;
+  private oldestClienteKey: string | null = null;
+  readonly rtdbPageSize = 100;
 
   constructor(
     private clientesService: ClientesService,
@@ -62,11 +66,14 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private cargarClientes(): void {
     this.loading = true;
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: clientes => {
-        this.todosLosClientes = (clientes || []).filter((c: { activo?: boolean }) => c.activo !== false);
+    this.oldestClienteKey = null;
+    this.clientesService.getClientesPage(this.rtdbPageSize).pipe(takeUntil(this.destroy$)).subscribe({
+      next: page => {
+        this.todosLosClientes = page.items;
+        this.hasMoreClientes = page.hasMore;
+        this.oldestClienteKey = page.oldestKey;
         this.aplicarFiltroSucursal();
-        this.calcularEstadisticas(clientes || []);
+        this.calcularEstadisticas(this.todosLosClientes);
         this.loading = false;
         setTimeout(() => {
           if (this.paginator) {
@@ -91,6 +98,30 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
+  }
+
+  cargarMasClientes(): void {
+    if (!this.hasMoreClientes || this.loadingMore || !this.oldestClienteKey) {
+      return;
+    }
+    this.loadingMore = true;
+    this.clientesService.getClientesPage(this.rtdbPageSize, this.oldestClienteKey)
+      .pipe(take(1))
+      .subscribe({
+        next: page => {
+          this.todosLosClientes = [...this.todosLosClientes, ...page.items];
+          this.hasMoreClientes = page.hasMore;
+          this.oldestClienteKey = page.oldestKey;
+          this.aplicarFiltroSucursal();
+          this.calcularEstadisticas(this.todosLosClientes);
+          this.loadingMore = false;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar más clientes:', error);
+          this.loadingMore = false;
+          Swal.fire('Error', 'No se pudieron cargar más clientes', 'error');
+        }
+      });
   }
 
   private aplicarFiltroSucursal(): void {
@@ -199,10 +230,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cambiarEstado(cliente: any, nuevoEstado: boolean) {
-    const clienteActualizado = { ...cliente, activo: nuevoEstado };
     this.saving = true;
     this.loadingService.show();
-    this.clientesService.guardarCliente(clienteActualizado)
+    const operacion = nuevoEstado
+      ? this.clientesService.reactivarCliente(cliente.id)
+      : this.clientesService.bajaLogicaCliente(cliente.id);
+    operacion
       .then(() => {
         this.loadingService.hide();
         const mensaje = nuevoEstado ? 'activado' : 'desactivado';

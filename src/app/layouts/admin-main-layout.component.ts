@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { StaffModule } from '../core/config/staff-role.config';
 import { Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
 
@@ -23,6 +24,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   usuario: { nombre: string; rol: string; email: string } = { nombre: 'Administrador', rol: 'admin', email: '' };
   isMobile = false;
   isAdmin = false;
+  accessibleModules = new Set<StaffModule>();
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
 
@@ -44,8 +46,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       switchMap(user => {
         if (!user?.uid) return of(null);
         this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
-        return this.authProfileService.isAdministrator().then(isAdmin => {
-          this.isAdmin = isAdmin;
+        return this.authProfileService.getAccessibleModules().then(modules => {
+          this.accessibleModules = new Set(modules);
+          this.isAdmin = modules.includes('usuarios');
           return null;
         });
       })
@@ -112,5 +115,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   irAlInicio() {
     this.router.navigate(['/admin/inicio']);
+  }
+
+  canShow(module: StaffModule): boolean {
+    return this.accessibleModules.has(module);
   }
 } 

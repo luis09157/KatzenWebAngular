@@ -42,6 +42,10 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   pacientes: any[] = [];
   clientes: any[] = [];
   loading = false;
+  hasMorePacientes = false;
+  loadingMore = false;
+  private oldestPacienteKey: string | null = null;
+  readonly rtdbPageSize = 100;
 
   constructor(
     private pacientesService: PacientesService,
@@ -75,12 +79,15 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   cargarDatos() {
     this.loading = true;
+    this.oldestPacienteKey = null;
     forkJoin({
-      pacientes: this.pacientesService.getPacientes().pipe(take(1)),
+      pacientes: this.pacientesService.getPacientesPage(this.rtdbPageSize).pipe(take(1)),
       clientes: this.clientesService.getClientes().pipe(take(1))
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ pacientes, clientes }) => {
-        this.pacientes = pacientes || [];
+        this.pacientes = pacientes.items;
+        this.hasMorePacientes = pacientes.hasMore;
+        this.oldestPacienteKey = pacientes.oldestKey;
         this.clientes = clientes || [];
         this.prepararDataSource();
       },
@@ -101,6 +108,29 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  cargarMasPacientes(): void {
+    if (!this.hasMorePacientes || this.loadingMore || !this.oldestPacienteKey) {
+      return;
+    }
+    this.loadingMore = true;
+    this.pacientesService.getPacientesPage(this.rtdbPageSize, this.oldestPacienteKey)
+      .pipe(take(1))
+      .subscribe({
+        next: page => {
+          this.pacientes = [...this.pacientes, ...page.items];
+          this.hasMorePacientes = page.hasMore;
+          this.oldestPacienteKey = page.oldestKey;
+          this.prepararDataSource();
+          this.loadingMore = false;
+        },
+        error: error => {
+          this.logger.error('Error al cargar más pacientes:', error);
+          this.loadingMore = false;
+          Swal.fire('Error', 'No se pudieron cargar más pacientes', 'error');
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -242,29 +272,10 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   }
 
   verPaciente(paciente: any) {
-    const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
+    this.dialog.open(PacienteAdminDialogComponent, {
       width: '90vw',
       maxWidth: '95vw',
       data: { paciente, modo: 'ver' }
-    });
-
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) {
-        this.loadingService.show();
-        this.pacientesService.actualizarPaciente(paciente.id, result)
-          .then(() => {
-            this.loadingService.hide();
-            setTimeout(() => {
-              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-              this.cargarDatos();
-            }, 0);
-          })
-          .catch(error => {
-            this.logger.error('❌ Error al actualizar paciente desde modo "ver":', error);
-            this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el paciente', 'error'), 0);
-          });
-      }
     });
   }
 

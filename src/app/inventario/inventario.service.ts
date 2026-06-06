@@ -251,57 +251,52 @@ export class InventarioService {
     try {
       console.log('🔄 Registrando movimiento:', movimiento.tipo);
 
-      // Obtener producto actual
-      const producto = await firstValueFrom(this.getProductoById(movimiento.producto_id));
-      if (!producto) {
-        throw new Error('Producto no encontrado');
+      const productoPath = `${this.productosPath}/${movimiento.producto_id}`;
+      let stockError: string | null = null;
+
+      const txResult = await this.db.database.ref(productoPath).transaction((producto) => {
+        if (!producto) {
+          stockError = 'Producto no encontrado';
+          return undefined;
+        }
+
+        const cantidadAnterior = producto.stock_actual ?? 0;
+        let nuevoStock = cantidadAnterior;
+
+        switch (movimiento.tipo) {
+          case 'entrada':
+            nuevoStock += movimiento.cantidad;
+            break;
+          case 'salida':
+            if (cantidadAnterior < movimiento.cantidad) {
+              stockError = `Stock insuficiente. Disponible: ${cantidadAnterior}, Solicitado: ${movimiento.cantidad}`;
+              return undefined;
+            }
+            nuevoStock -= movimiento.cantidad;
+            break;
+          case 'ajuste':
+            nuevoStock = movimiento.cantidad;
+            break;
+          case 'merma':
+            nuevoStock -= movimiento.cantidad;
+            break;
+        }
+
+        movimiento.cantidad_anterior = cantidadAnterior;
+        movimiento.cantidad_nueva = nuevoStock;
+        return { ...producto, stock_actual: nuevoStock };
+      });
+
+      if (stockError) {
+        throw new Error(stockError);
+      }
+      if (!txResult.committed) {
+        throw new Error('No se pudo actualizar el stock del producto');
       }
 
-      movimiento.cantidad_anterior = producto.stock_actual;
-
-      // Calcular nuevo stock según tipo de movimiento
-      let nuevoStock = producto.stock_actual;
-      
-      switch (movimiento.tipo) {
-        case 'entrada':
-          nuevoStock += movimiento.cantidad;
-          console.log(`📦 Entrada: ${movimiento.cantidad_anterior} + ${movimiento.cantidad} = ${nuevoStock}`);
-          break;
-          
-        case 'salida':
-          if (nuevoStock < movimiento.cantidad) {
-            throw new Error(`Stock insuficiente. Disponible: ${nuevoStock}, Solicitado: ${movimiento.cantidad}`);
-          }
-          nuevoStock -= movimiento.cantidad;
-          console.log(`📤 Salida: ${movimiento.cantidad_anterior} - ${movimiento.cantidad} = ${nuevoStock}`);
-          break;
-          
-        case 'ajuste':
-          nuevoStock = movimiento.cantidad; // La cantidad ES el nuevo stock
-          console.log(`🔧 Ajuste: ${movimiento.cantidad_anterior} → ${nuevoStock}`);
-          break;
-          
-        case 'merma':
-          nuevoStock -= movimiento.cantidad;
-          console.log(`⚠️ Merma: ${movimiento.cantidad_anterior} - ${movimiento.cantidad} = ${nuevoStock}`);
-          break;
-      }
-
-      movimiento.cantidad_nueva = nuevoStock;
-
-      // Registrar movimiento en Firebase
       await this.db.list(this.movimientosPath).push(movimiento);
       console.log('✅ Movimiento registrado en Firebase');
-
-      // Actualizar stock del producto
-      await this.actualizarProducto(movimiento.producto_id, {
-        stock_actual: nuevoStock
-      });
-      console.log('✅ Stock actualizado');
-
-      // Verificar y crear alertas si es necesario
       await this.verificarYCrearAlertas(movimiento.producto_id);
-
       console.log('✅ Movimiento completado exitosamente');
     } catch (error) {
       console.error('❌ Error al registrar movimiento:', error);
@@ -507,11 +502,19 @@ export class InventarioService {
   // ==================== ÓRDENES DE COMPRA ====================
   
   getOrdenesCompra(): Observable<OrdenCompra[]> {
-    return this.db.list<OrdenCompra>('Katzen/Inventario/OrdenesCompra').valueChanges();
+    return this.db.list<OrdenCompra>('Katzen/Inventario/OrdenesCompra')
+      .snapshotChanges()
+      .pipe(
+        map(changes => changes.map(c => ({
+          id: c.payload.key!,
+          ...(c.payload.val() as OrdenCompra)
+        })))
+      );
   }
 
   async crearOrdenCompra(ordenData: any): Promise<void> {
     const folio = `OC-${Date.now()}`;
+    const usuarioId = await this.currentStaff.getStaffId();
     const orden: OrdenCompra = {
       folio,
       proveedor_id: ordenData.proveedor_id,
@@ -524,12 +527,15 @@ export class InventarioService {
       total: ordenData.total,
       forma_pago: 'contado',
       pagada: false,
-      usuario_solicita_id: 'current_user',
+      usuario_solicita_id: usuarioId,
       observaciones: ordenData.observaciones,
       created_at: new Date().toISOString()
     };
 
-    await this.db.list('Katzen/Inventario/OrdenesCompra').push(orden);
+    const ref = await this.db.list('Katzen/Inventario/OrdenesCompra').push(orden);
+    if (ref.key) {
+      await this.db.object(`Katzen/Inventario/OrdenesCompra/${ref.key}`).update({ id: ref.key });
+    }
   }
 
   async recibirOrdenCompra(ordenId: string, productos: any[], observaciones: string): Promise<void> {
@@ -583,7 +589,10 @@ export class InventarioService {
   }
 
   async eliminarProveedor(proveedorId: string): Promise<void> {
-    await this.db.object(`Katzen/Inventario/Proveedores/${proveedorId}`).remove();
+    await this.db.object(`Katzen/Inventario/Proveedores/${proveedorId}`).update({
+      activo: false,
+      updated_at: new Date().toISOString()
+    });
   }
 
   // ==================== ALERTAS AUTOMÁTICAS ====================

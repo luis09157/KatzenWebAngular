@@ -144,6 +144,10 @@ export class PacienteAdminDialogComponent implements OnInit {
       if (this.data.paciente.imageUrl && this.data.paciente.imageUrl !== this.defaultImageUrl) {
         this.imagePreview = this.data.paciente.imageUrl;
       }
+
+      if (this.isViewMode) {
+        this.pacienteForm.disable();
+      }
     } else {
       console.log('⚠️ No se recibieron datos del paciente');
     }
@@ -268,6 +272,10 @@ export class PacienteAdminDialogComponent implements OnInit {
   }
 
   async onSubmit() {
+    if (this.isViewMode) {
+      return;
+    }
+
     // Marcar todos los campos como touched para mostrar errores
     Object.keys(this.pacienteForm.controls).forEach(key => {
       const control = this.pacienteForm.get(key);
@@ -315,6 +323,8 @@ export class PacienteAdminDialogComponent implements OnInit {
 
         const pacienteData = {
           ...formValues,
+          idCliente: formValues.idCliente,
+          cliente_id: formValues.idCliente,
           imageUrl: imageUrl,
           imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.paciente?.imageFileName || ''),
           fecha: new Date().toLocaleString('es-ES')

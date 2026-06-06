@@ -190,6 +190,12 @@
       </table>
 
       <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+
+      <div *ngIf="hasMoreClientes" class="load-more-row">
+        <button mat-stroked-button color="primary" (click)="cargarMasClientes()" [disabled]="loadingMore">
+          {{ loadingMore ? 'Cargando...' : 'Cargar más clientes' }}
+        </button>
+      </div>
     </div>
 
     <!-- Estado vacío -->

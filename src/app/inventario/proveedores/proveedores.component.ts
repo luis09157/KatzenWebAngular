@@ -151,23 +151,23 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async eliminarProveedor(proveedor: Proveedor): Promise<void> {
     const result = await Swal.fire({
-      title: '¿Eliminar proveedor?',
+      title: '¿Dar de baja proveedor?',
       html: `
         <strong>${proveedor.nombre_comercial}</strong><br>
-        <span style="color: #f44336;">Esta acción no se puede deshacer</span>
+        <span>Se marcará como inactivo. Los datos se conservan.</span>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, dar de baja',
       cancelButtonText: 'Cancelar'
     });
 
     if (result.isConfirmed && proveedor.id) {
       try {
         await this.inventarioService.eliminarProveedor(proveedor.id);
-        Swal.fire('Eliminado', 'El proveedor ha sido eliminado', 'success');
+        Swal.fire('Baja lógica', 'El proveedor ha sido dado de baja', 'success');
         this.cargarProveedores();
       } catch (error) {
         this.logger.error('Error al eliminar proveedor:', error);

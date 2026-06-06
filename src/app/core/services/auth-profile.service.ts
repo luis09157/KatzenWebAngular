@@ -3,6 +3,13 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+import {
+  mapUsuarioPerfilToStaffRole,
+  modulesForStaffRole,
+  normalizeStaffRole,
+  staffRoleCanAccessModule,
+  StaffModule
+} from '../config/staff-role.config';
 
 export interface AuthPerfil {
   authUid?: string;
@@ -131,22 +138,45 @@ export class AuthProfileService {
   }
 
   async isAdministrator(): Promise<boolean> {
+    const staffRole = await this.getEffectiveStaffRole();
+    return staffRole === 'administrador';
+  }
+
+  /** Rol operativo normalizado (AuthPerfiles → claims → Katzen/Usuarios). */
+  async getEffectiveStaffRole(): Promise<string> {
     const access = await this.resolveAccess();
-    const staffRole = String(access.staffRole || access.perfil?.staffRole || '').toLowerCase();
-    if (staffRole === 'administrador' || staffRole === 'admin') {
-      return true;
+    const fromProfile = normalizeStaffRole(access.staffRole || access.perfil?.staffRole);
+    if (fromProfile) {
+      return fromProfile;
     }
 
     const user = await this.afAuth.currentUser;
     if (!user?.uid) {
-      return false;
+      return 'doctor';
     }
 
     const usuario = await firstValueFrom(
       this.db.object<{ perfil?: string }>(`Katzen/Usuarios/${user.uid}`).valueChanges().pipe(take(1))
     );
-    const perfil = String(usuario?.perfil || '').toLowerCase();
-    return perfil === 'administrador' || perfil === 'admin';
+    return mapUsuarioPerfilToStaffRole(usuario?.perfil);
+  }
+
+  async canAccessModule(module: StaffModule): Promise<boolean> {
+    const access = await this.resolveAccess();
+    if (!access.staffAccess) {
+      return false;
+    }
+    const staffRole = await this.getEffectiveStaffRole();
+    return staffRoleCanAccessModule(staffRole, module);
+  }
+
+  async getAccessibleModules(): Promise<StaffModule[]> {
+    const access = await this.resolveAccess();
+    if (!access.staffAccess) {
+      return [];
+    }
+    const staffRole = await this.getEffectiveStaffRole();
+    return modulesForStaffRole(staffRole);
   }
 
   /** @deprecated Usar hasStaffAccess() */

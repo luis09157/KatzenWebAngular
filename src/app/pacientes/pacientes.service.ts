@@ -4,17 +4,42 @@ import { Observable, map } from 'rxjs';
 import { Paciente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-paged-list.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PacientesService {
+  private readonly pageSizeDefault = 100;
+
   constructor(
     private db: AngularFireDatabase,
     private logger: LoggerService,
-    private sucursalContext: SucursalContextService
+    private sucursalContext: SucursalContextService,
+    private pagedList: RtdbPagedListService
   ) {}
+
+  getPacientesPage(
+    pageSize = this.pageSizeDefault,
+    endBeforeKey?: string | null
+  ): Observable<RtdbPageResult<Paciente>> {
+    return this.pagedList.fetchPage<Paciente>(
+      'Katzen/Mascota',
+      pageSize,
+      endBeforeKey,
+      (p) => p.activo !== false
+    ).pipe(
+      map(page => ({
+        ...page,
+        items: [...page.items].sort((a, b) => {
+          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
+          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
+          return fechaB.getTime() - fechaA.getTime();
+        })
+      }))
+    );
+  }
 
   getPacientes(): Observable<Paciente[]> {
     return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
@@ -39,7 +64,9 @@ export class PacientesService {
 
   guardarPaciente(paciente: Paciente & { id: string }) {
     paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente & { id: string };
-    paciente.activo = true;
+    if (paciente.activo === undefined) {
+      paciente.activo = true;
+    }
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
@@ -47,8 +74,10 @@ export class PacientesService {
     paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente;
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
-    return this.db.list('Katzen/Mascota').push(paciente).then((ref) => {
-      return Promise.resolve(ref);
+    return this.db.list('Katzen/Mascota').push(paciente).then(async (ref) => {
+      if (ref.key) {
+        await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key });
+      }
     });
   }
 
