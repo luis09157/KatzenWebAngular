@@ -8,6 +8,7 @@ import { PrivacidadComponent } from './landing/privacidad/privacidad.component';
 const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'privacidad', component: PrivacidadComponent },
+  { path: 'portal', loadChildren: () => import('./portal/portal.module').then(m => m.PortalModule) },
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
     path: 'admin',

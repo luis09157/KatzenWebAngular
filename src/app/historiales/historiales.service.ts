@@ -87,9 +87,9 @@ export class HistorialesService {
         ...historial,
         created_at: timestamp,
         updated_at: timestamp,
-        // Usar la fecha_registro que viene del formulario si existe, sino usar el timestamp
         fecha_registro: historial.fecha_registro || timestamp,
-        activo: true
+        activo: historial.activo !== false,
+        oculto_portal: historial.oculto_portal === true
       };
 
       const ref = await this.db.list('Katzen/Historiales_Clinicos').push(nuevoHistorial);
@@ -119,18 +119,23 @@ export class HistorialesService {
     }
   }
 
-  // Eliminar historial (eliminación física)
+  /** Archiva historial en admin y oculta del portal mobile (update parcial — no remove). */
   async eliminarHistorial(id: string): Promise<void> {
     try {
-      await this.db.object(`Katzen/Historiales_Clinicos/${id}`).remove();
-      console.log('✅ Historial eliminado exitosamente:', id);
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      await this.db.object(`Katzen/Historiales_Clinicos/${id}`).update({
+        activo: false,
+        oculto_portal: true,
+        updated_at: timestamp
+      });
+      console.log('✅ Historial archivado (datos preservados):', id);
     } catch (error) {
-      console.error('❌ Error al eliminar historial:', error);
-      throw new Error('No se pudo eliminar el historial');
+      console.error('❌ Error al archivar historial:', error);
+      throw new Error('No se pudo archivar el historial');
     }
   }
 
-  // Baja lógica: marcar como inactivo
+  // Baja lógica admin: oculta en panel staff; NO afecta portal mobile
   async bajaLogicaHistorial(id: string): Promise<void> {
     try {
       const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -142,6 +147,19 @@ export class HistorialesService {
     } catch (error) {
       console.error('❌ Error al marcar historial como inactivo:', error);
       throw new Error('No se pudo marcar el historial como inactivo');
+    }
+  }
+
+  async ocultarDelPortal(id: string, oculto = true): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      await this.db.object(`Katzen/Historiales_Clinicos/${id}`).update({
+        oculto_portal: oculto,
+        updated_at: timestamp
+      });
+    } catch (error) {
+      console.error('❌ Error al actualizar visibilidad portal:', error);
+      throw new Error('No se pudo actualizar la visibilidad en portal');
     }
   }
 

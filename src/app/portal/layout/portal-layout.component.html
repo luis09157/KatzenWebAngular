@@ -1,0 +1,36 @@
+<div class="portal-shell">
+  <header class="portal-header">
+    <button *ngIf="showBack" mat-icon-button class="portal-header-btn" (click)="goBack()" aria-label="Regresar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="portal-header-brand" [class.with-back]="showBack">
+      <div class="portal-header-logo"><mat-icon>pets</mat-icon></div>
+      <div>
+        <span class="portal-header-kicker">KatzenVet</span>
+        <span class="portal-header-title">{{ pageTitle }}</span>
+      </div>
+    </div>
+    <button mat-icon-button class="portal-header-btn" (click)="logout()" aria-label="Cerrar sesión">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </header>
+
+  <main class="portal-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <nav class="portal-bottom-nav" aria-label="Navegación portal">
+    <a routerLink="/portal/mascotas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+      <mat-icon>pets</mat-icon>
+      <span>Mascotas</span>
+    </a>
+    <a routerLink="/portal/notificaciones" routerLinkActive="active">
+      <mat-icon>notifications</mat-icon>
+      <span>Avisos</span>
+    </a>
+    <a routerLink="/portal/perfil" routerLinkActive="active">
+      <mat-icon>person_outline</mat-icon>
+      <span>Mi cuenta</span>
+    </a>
+  </nav>
+</div>

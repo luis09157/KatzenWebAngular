@@ -197,22 +197,22 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   eliminarPaciente(paciente: any) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar al paciente "${paciente.nombre}"? Esta acción no se puede deshacer.`,
+      title: '¿Dar de baja?',
+      text: `El paciente "${paciente.nombre}" se marcará como inactivo. Los datos se conservan y puede reactivarse desde la app staff.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, dar de baja',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
         this.loadingService.show();
-        this.pacientesService.eliminarPaciente(paciente.id)
+        this.pacientesService.bajaLogicaPaciente(paciente.id)
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Eliminado', 'Paciente eliminado correctamente', 'success');
+              Swal.fire('Baja lógica', 'Paciente dado de baja correctamente.', 'success');
               this.cargarDatos();
             }, 0);
           })

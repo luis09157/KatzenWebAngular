@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { AuthService } from './auth.service';
+import { AuthProfileService } from '../core/services/auth-profile.service';
+import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 
@@ -12,9 +14,14 @@ export class AuthComponent {
   email = '';
   password = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private authProfileService: AuthProfileService,
+    private firebaseFunctions: FirebaseFunctionsService,
+    private router: Router
+  ) {}
 
-  login() {
+  async login() {
     if (!this.email || !this.password) {
       Swal.fire({
         icon: 'warning',
@@ -23,21 +30,34 @@ export class AuthComponent {
       });
       return;
     }
-    this.authService.login(this.email, this.password)
-      .then(() => {
-        // Login exitoso - redirigir directamente sin mostrar SweetAlert
-        this.router.navigate(['/admin/inicio']);
-      })
-      .catch(() => {
+    try {
+      await this.authService.login(this.email, this.password);
+      await this.firebaseFunctions.syncMyClaims();
+      const isStaff = await this.authProfileService.isStaff();
+      if (!isStaff) {
+        await this.authService.logout();
         Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Correo o contraseña incorrectos.'
+          icon: 'warning',
+          title: 'Sin acceso admin',
+          text: 'Tu cuenta no tiene perfil de staff. Si eres cliente, inicia sesión en el portal del dueño.'
         });
+        return;
+      }
+      await this.router.navigate(['/admin/inicio']);
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Correo o contraseña incorrectos.'
       });
+    }
   }
 
-  irAlInicio() {
-    this.router.navigate(['/admin/inicio']);
+  irAlPortal(): void {
+    this.router.navigate(['/portal/login']);
+  }
+
+  irAlInicio(): void {
+    this.router.navigate(['/']);
   }
 }

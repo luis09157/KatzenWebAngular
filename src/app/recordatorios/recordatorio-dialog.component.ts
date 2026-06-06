@@ -213,12 +213,12 @@ export class RecordatorioDialogComponent implements OnInit {
 
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      title: '¿Archivar recordatorio?',
+      text: 'Se marcará como inactivo. Los datos se conservan en RTDB.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, archivar',
       cancelButtonText: 'Cancelar'
     });
 

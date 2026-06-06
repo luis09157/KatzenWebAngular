@@ -344,12 +344,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         if (historial) {
           const result = await Swal.fire({
             icon: 'warning',
-            title: '¿Estás seguro?',
-            text: 'Esta acción marcará el historial como inactivo',
+            title: '¿Archivar historial?',
+            text: 'Se ocultará solo en el panel admin. El dueño seguirá viéndolo en la app a menos que marques "Ocultar del portal" al editar.',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, marcar como inactivo',
+            confirmButtonText: 'Sí, archivar en admin',
             cancelButtonText: 'Cancelar'
           });
 
@@ -378,13 +378,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe(async (historial) => {
         if (historial) {
           const result = await Swal.fire({
-            title: '¿Estás seguro?',
-            text: 'Esta acción eliminará permanentemente el historial. No se puede deshacer.',
+            title: '¿Archivar historial?',
+            text: 'Se ocultará en admin y en el portal del dueño. Los datos se conservan en RTDB.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonText: 'Sí, archivar',
             cancelButtonText: 'Cancelar'
           });
 
@@ -396,7 +396,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El historial fue eliminado permanentemente.' }), 0);
+              setTimeout(() => Swal.fire({ icon: 'success', title: 'Archivado', text: 'Historial archivado correctamente.' }), 0);
             } catch (error) {
               this.loadingService.hide();
               setTimeout(() => Swal.fire({

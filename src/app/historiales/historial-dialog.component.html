@@ -335,6 +335,16 @@
         </mat-form-field>
       </div>
 
+      <!-- Visibilidad portal -->
+      <div class="form-section">
+        <mat-checkbox formControlName="oculto_portal" color="warn">
+          Ocultar del portal del dueño (app móvil)
+        </mat-checkbox>
+        <p class="hint-text">
+          Si está marcado, el dueño no verá este historial en la app. La baja en listados admin usa el campo <em>activo</em>.
+        </p>
+      </div>
+
       <!-- ID del Paciente (oculto, se establece automáticamente) -->
       <input type="hidden" formControlName="paciente_id">
     </div>
@@ -347,10 +357,10 @@
                 color="warn" 
                 (click)="eliminarHistorial()"
                 [disabled]="loading"
-                matTooltip="Eliminar historial"
+                matTooltip="Archivar historial (conserva datos)"
                 class="delete-btn">
-          <mat-icon>delete</mat-icon>
-          Eliminar
+          <mat-icon>archive</mat-icon>
+          Archivar
         </button>
       </div>
       

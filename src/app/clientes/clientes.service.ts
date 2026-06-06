@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Cliente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
+import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
   providedIn: 'root'
@@ -72,9 +73,20 @@ export class ClientesService {
     return this.db.object(`Katzen/Cliente/${id}`).update(cambios);
   }
 
-  // Baja lógica: marcar como inactivo
+  // Baja lógica: marcar como inactivo (update parcial — no borra datos)
   bajaLogicaCliente(id: string) {
-    return this.db.object(`Katzen/Cliente/${id}`).update({ activo: false });
+    return this.db.object(`Katzen/Cliente/${id}`).update({
+      activo: false,
+      portalActivo: false,
+      fechaBaja: rtdbFechaAhora()
+    });
+  }
+
+  reactivarCliente(id: string) {
+    return this.db.object(`Katzen/Cliente/${id}`).update({
+      activo: true,
+      fechaBaja: ''
+    });
   }
 
 

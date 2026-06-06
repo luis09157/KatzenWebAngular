@@ -10,6 +10,7 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
+import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -32,6 +33,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     AngularFireAuthModule,
     AngularFireStorageModule,
     AngularFireDatabaseModule,
+    AngularFireFunctionsModule,
     DashboardModule,
     LayoutsModule,
     LandingModule,

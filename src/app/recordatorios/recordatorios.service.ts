@@ -14,6 +14,7 @@ export class RecordatoriosService {
       map(changes => 
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+          .filter(r => r.activo !== false)
           .sort((a, b) => {
             const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
             const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
@@ -29,7 +30,7 @@ export class RecordatoriosService {
       map(changes => 
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(r => r.paciente_id === pacienteId)
+          .filter(r => r.paciente_id === pacienteId && r.activo !== false)
           .sort((a, b) => {
             const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
             const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
@@ -98,9 +99,9 @@ export class RecordatoriosService {
     return this.db.object(`Katzen/Recordatorios/${id}`).update(datosActualizados);
   }
 
-  // Eliminar recordatorio (baja lógica)
+  /** Archiva recordatorio (baja lógica). No borra el nodo RTDB. */
   eliminarRecordatorio(id: string): Promise<void> {
-    return this.db.object(`Katzen/Recordatorios/${id}`).remove();
+    return this.bajaLogicaRecordatorio(id);
   }
 
   // Baja lógica: marcar como inactivo

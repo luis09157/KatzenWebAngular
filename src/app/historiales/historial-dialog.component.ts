@@ -80,7 +80,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       minuto: [ahora.getMinutes(), Validators.required],
       
       // ID del paciente
-      paciente_id: ['', Validators.required]
+      paciente_id: ['', Validators.required],
+
+      // Visible en portal del dueño (app mobile)
+      oculto_portal: [false]
     });
   }
 
@@ -115,7 +118,8 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         estudios_solicitados: this.data.historial?.estudios_solicitados || '',
         receta: this.data.historial?.receta || '',
         medico_atendio: this.data.historial?.medico_atendio || '',
-        paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || ''
+        paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || '',
+        oculto_portal: this.data.historial?.oculto_portal === true
       });
       
       // Manejar fecha y hora por separado (sin conversión de zona horaria)
@@ -306,12 +310,12 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      title: '¿Archivar historial?',
+      text: 'Se ocultará en el panel admin y en el portal del dueño. Los datos se conservan en RTDB.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, archivar',
       cancelButtonText: 'Cancelar'
     });
 

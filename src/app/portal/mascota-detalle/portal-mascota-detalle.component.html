@@ -1,0 +1,35 @@
+<div class="portal-page">
+  <div *ngIf="loading" class="portal-loading"><mat-spinner diameter="36"></mat-spinner></div>
+
+  <ng-container *ngIf="!loading && mascota">
+    <div class="hero-card portal-surface-card">
+      <div class="hero-icon"><mat-icon>pets</mat-icon></div>
+      <h2 class="portal-page-title">{{ mascota.nombre }}</h2>
+      <p class="hero-meta">{{ mascota.especie }}<span *ngIf="mascota.raza"> · {{ mascota.raza }}</span><span *ngIf="mascota.sexo"> · {{ mascota.sexo }}</span></p>
+      <div class="hero-stats">
+        <div><strong>{{ counts.vacunas }}</strong><span>Vacunas</span></div>
+        <div><strong>{{ counts.citas }}</strong><span>Citas</span></div>
+        <div><strong>{{ counts.historiales }}</strong><span>Historial</span></div>
+      </div>
+    </div>
+
+    <p class="section-label">Expediente</p>
+    <div class="hub-list portal-list-gap">
+      <button type="button" class="hub-tile portal-surface-card theme-vacunas" (click)="ir('vacunas')">
+        <mat-icon>vaccines</mat-icon>
+        <div><strong>Vacunas</strong><span>{{ subtitulo(counts.vacunas, 'vacunas') }}</span></div>
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button type="button" class="hub-tile portal-surface-card theme-citas" (click)="ir('citas')">
+        <mat-icon>event</mat-icon>
+        <div><strong>Citas</strong><span>{{ subtitulo(counts.citas, 'citas') }}</span></div>
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button type="button" class="hub-tile portal-surface-card theme-historial" (click)="ir('historial')">
+        <mat-icon>medical_services</mat-icon>
+        <div><strong>Historial clínico</strong><span>{{ subtitulo(counts.historiales, 'historial') }}</span></div>
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </ng-container>
+</div>

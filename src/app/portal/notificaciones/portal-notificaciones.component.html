@@ -1,0 +1,40 @@
+<div class="portal-page">
+  <div class="page-head">
+    <div>
+      <h2 class="portal-page-title">Avisos</h2>
+      <p class="portal-page-subtitle" *ngIf="!loading">
+        <ng-container *ngIf="sinLeer > 0">{{ sinLeer }} sin leer</ng-container>
+        <ng-container *ngIf="sinLeer === 0 && notificaciones.length">Todo al día</ng-container>
+        <ng-container *ngIf="!notificaciones.length">Sin avisos por ahora</ng-container>
+      </p>
+    </div>
+    <span *ngIf="sinLeer > 0" class="unread-badge">{{ sinLeer }}</span>
+  </div>
+
+  <div *ngIf="loading" class="portal-loading"><mat-spinner diameter="36"></mat-spinner></div>
+
+  <div *ngIf="!loading && notificaciones.length === 0" class="portal-empty-state portal-surface-card">
+    <mat-icon>notifications_none</mat-icon>
+    <p>No tienes notificaciones</p>
+  </div>
+
+  <div class="portal-list-gap">
+    <button *ngFor="let n of notificaciones"
+            type="button"
+            class="notif-tile portal-surface-card"
+            [class.unread]="!n.leida"
+            (click)="abrir(n)">
+      <div class="notif-icon" [ngClass]="'cat-' + categoria(n.tipo, n.titulo)">
+        <mat-icon>{{ icono(categoria(n.tipo, n.titulo)) }}</mat-icon>
+      </div>
+      <div class="notif-body">
+        <div class="notif-top">
+          <strong>{{ n.titulo }}</strong>
+          <span>{{ formatTime(n.fecha) }}</span>
+        </div>
+        <p>{{ n.mensaje }}</p>
+        <span *ngIf="!n.leida" class="chip-nueva">Nueva</span>
+      </div>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+/* Tema compartido del portal del dueño */
+:root {
+  --portal-brand: #0c7ab8;
+  --portal-brand-dark: #075985;
+  --portal-brand-soft: #e0f2fe;
+  --portal-accent: #059669;
+  --portal-surface: #ffffff;
+  --portal-bg: #f4f7fb;
+  --portal-text: #0f172a;
+  --portal-muted: #64748b;
+  --portal-border: #e2e8f0;
+  --portal-radius: 16px;
+  --portal-radius-lg: 24px;
+  --portal-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  --portal-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.portal-page {
+  animation: portalFadeIn 0.35s ease;
+}
+
+@keyframes portalFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.portal-loading,
+.portal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--portal-muted);
+}
+
+.portal-empty-state mat-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  opacity: 0.35;
+}
+
+.portal-page-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--portal-text);
+  letter-spacing: -0.02em;
+}
+
+.portal-page-subtitle {
+  margin: 0 0 1.25rem;
+  color: var(--portal-muted);
+  font-size: 0.95rem;
+}
+
+.portal-surface-card {
+  background: var(--portal-surface);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.portal-list-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.portal-chip-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--portal-brand-soft);
+  color: var(--portal-brand-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

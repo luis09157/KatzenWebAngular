@@ -11,6 +11,10 @@
       <a mat-button (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
       <a mat-button (click)="scrollToSection('equipo')" class="nav-link">Equipo</a>
       <a mat-button (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
+      <button mat-stroked-button class="nav-portal-btn" (click)="irAMiPortal()">
+        <mat-icon>account_circle</mat-icon>
+        Iniciar sesión
+      </button>
     </nav>
     
     <div class="navbar-contact">
@@ -86,6 +90,81 @@
         <div class="stat-content">
           <div class="stat-number">{{stat.numero}}</div>
           <div class="stat-label">{{stat.label}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PORTAL DEL DUEÑO ===== -->
+<section id="portal-duenos" class="portal-duenos-section" aria-labelledby="portal-duenos-title">
+  <div class="container">
+    <div class="portal-duenos-wrapper">
+      <div class="portal-duenos-intro">
+        <span class="portal-eyebrow">Para clientes registrados</span>
+        <h2 id="portal-duenos-title">Tu expediente veterinario en línea</h2>
+        <p class="portal-duenos-lead">
+          Revisa vacunas, citas e historial clínico de tus mascotas. Misma información que en la app Katzen, desde tu navegador.
+        </p>
+        <div class="portal-feature-grid">
+          <div class="portal-feature">
+            <mat-icon>vaccines</mat-icon>
+            <div>
+              <strong>Vacunas</strong>
+              <span>Esquemas y fechas aplicadas</span>
+            </div>
+          </div>
+          <div class="portal-feature">
+            <mat-icon>event</mat-icon>
+            <div>
+              <strong>Citas</strong>
+              <span>Próximas y pasadas</span>
+            </div>
+          </div>
+          <div class="portal-feature">
+            <mat-icon>medical_information</mat-icon>
+            <div>
+              <strong>Historial</strong>
+              <span>Consultas y tratamientos</span>
+            </div>
+          </div>
+          <div class="portal-feature">
+            <mat-icon>notifications</mat-icon>
+            <div>
+              <strong>Avisos</strong>
+              <span>Alertas de la clínica</span>
+            </div>
+          </div>
+        </div>
+        <p class="portal-staff-note">
+          ¿Eres personal de la clínica?
+          <a routerLink="/admin/login">Acceso staff</a>
+        </p>
+      </div>
+
+      <div class="portal-access-card">
+        <div class="portal-access-header">
+          <mat-icon>login</mat-icon>
+          <div>
+            <h3>Iniciar sesión</h3>
+            <p>Paso 1 — ingresa con el correo que registramos en la clínica</p>
+          </div>
+        </div>
+        <form (ngSubmit)="loginPortal()" class="portal-access-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Correo electrónico</mat-label>
+            <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email" #portalEmailInput>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Contraseña</mat-label>
+            <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password">
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" class="portal-access-submit" [disabled]="portalLoading">
+            {{ portalLoading ? 'Verificando…' : 'Iniciar sesión en el portal' }}
+          </button>
+        </form>
+        <div class="portal-access-footer">
+          <a routerLink="/portal/login">Abrir en pantalla completa</a>
         </div>
       </div>
     </div>

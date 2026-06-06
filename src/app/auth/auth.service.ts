@@ -37,6 +37,11 @@ export class AuthService {
     return this.user$.pipe(map(user => !!user));
   }
 
+  async isAuthenticatedOnce(): Promise<boolean> {
+    const user = await this.afAuth.currentUser;
+    return !!user;
+  }
+
   getCurrentUser(): Observable<User | null> {
     return this.user$;
   }

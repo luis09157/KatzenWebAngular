@@ -4,6 +4,7 @@
   </div>
   <h2>Bienvenido a KatzenVet</h2>
   <p class="bienvenida">Por favor inicia sesión para acceder al sistema administrativo.</p>
+  <p class="portal-link"><a routerLink="/portal/login">¿Eres cliente? Inicia sesión en el portal del dueño</a></p>
   <form (ngSubmit)="login()">
     <input type="email" [(ngModel)]="email" name="email" placeholder="Correo" required>
     <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required>

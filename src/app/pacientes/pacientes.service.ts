@@ -3,6 +3,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map } from 'rxjs';
 import { Paciente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
+import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
   providedIn: 'root'
@@ -47,18 +48,28 @@ export class PacientesService {
     });
   }
 
-  // Eliminar un paciente permanentemente
+  /** @deprecated Usar bajaLogicaPaciente — preserva datos en RTDB */
   eliminarPaciente(id: string): Promise<void> {
-    return this.db.object(`Katzen/Mascota/${id}`).remove();
+    return this.bajaLogicaPaciente(id).then(() => undefined);
   }
 
   actualizarPaciente(id: string, cambios: Partial<Paciente>) {
     return this.db.object(`Katzen/Mascota/${id}`).update(cambios);
   }
 
-  // Baja lógica: marcar como inactivo
+  // Baja lógica: marcar como inactivo (update parcial — no borra datos)
   bajaLogicaPaciente(id: string) {
-    return this.db.object(`Katzen/Mascota/${id}`).update({ activo: false });
+    return this.db.object(`Katzen/Mascota/${id}`).update({
+      activo: false,
+      fechaBaja: rtdbFechaAhora()
+    });
+  }
+
+  reactivarPaciente(id: string) {
+    return this.db.object(`Katzen/Mascota/${id}`).update({
+      activo: true,
+      fechaBaja: ''
+    });
   }
 
   agregarLogActividad(pacienteId: string, actividad: Record<string, unknown>): Promise<void> {

@@ -305,7 +305,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   bajaLogicaCliente(id: string) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: 'El cliente será dado de baja (baja lógica).',
+      text: 'El cliente será dado de baja (baja lógica). Se desactivará también el acceso al portal del dueño. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, dar de baja',

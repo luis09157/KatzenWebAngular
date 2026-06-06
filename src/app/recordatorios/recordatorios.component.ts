@@ -189,11 +189,11 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      text: 'Se archivará el recordatorio (baja lógica). Los datos se conservan en RTDB.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, archivar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -203,7 +203,7 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
         await this.recordatoriosService.eliminarRecordatorio(recordatorio.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: '¡Eliminado!', text: 'Recordatorio eliminado correctamente' });
+          Swal.fire({ icon: 'success', title: 'Archivado', text: 'Recordatorio dado de baja correctamente' });
           this.cargarRecordatorios();
         }, 0);
       } catch (error) {

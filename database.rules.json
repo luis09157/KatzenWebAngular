@@ -1,98 +1,152 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false,
-    
+    "peluqueros": {
+      ".read": "auth != null && auth.token.role != 'client'",
+      ".write": "auth != null && auth.token.role != 'client'"
+    },
     "Katzen": {
-      ".read": "auth != null",
-      ".write": "auth != null",
-      
       "Cliente": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["authUid", "correo", "activo", "portalActivo"],
         "$clienteId": {
-          ".read": "auth != null",
-          ".write": "auth != null",
-          ".validate": "newData.hasChildren(['nombre', 'telefono'])"
+          ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
-      
-      "Pacientes": {
-        "$pacienteId": {
-          ".read": "auth != null",
-          ".write": "auth != null",
-          ".validate": "newData.hasChildren(['nombre', 'especie', 'cliente_id'])"
+      "Mascota": {
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["idCliente", "activo"],
+        "$mascotaId": {
+          ".read": "auth != null && (auth.token.role != 'client' || data.child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
-      
-      "Historiales_Clinicos": {
-        "$historialId": {
-          ".read": "auth != null",
-          ".write": "auth != null",
-          ".validate": "newData.hasChildren(['diagnostico_presuntivo', 'fecha_registro', 'paciente_id'])"
+      "AuthPerfiles": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "$uid": {
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
-      
       "Usuarios": {
-        "$userId": {
-          ".read": "auth != null",
-          ".write": "auth != null && (auth.uid == $userId || root.child('Katzen').child('Usuarios').child(auth.uid).child('perfil').val() == 'Administrador')"
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["correo", "activo", "perfil"],
+        "$uid": {
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
-      
-      "Citas": {
-        "$citaId": {
-          ".read": "auth != null",
-          ".write": "auth != null"
-        }
-      },
-      
-      "Recordatorios": {
-        "$recordatorioId": {
-          ".read": "auth != null",
-          ".write": "auth != null"
-        }
-      },
-      
       "Vacunas": {
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idPaciente' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["idPaciente", "fechaRecordatorio"],
         "$vacunaId": {
-          ".read": "auth != null",
-          ".write": "auth != null"
+          ".read": "auth != null && (auth.token.role != 'client' || root.child('Katzen/Mascota').child(data.child('idPaciente').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
-      
+      "Citas": {
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["cliente_id", "paciente_id", "activo"],
+        "$citaId": {
+          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
+        }
+      },
+      "Historiales_Clinicos": {
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["paciente_id", "activo"],
+        "$historialId": {
+          ".read": "auth != null && (auth.token.role != 'client' || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
+        }
+      },
+      "Recordatorios": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["paciente_id", "activo"]
+      },
+      "Notificaciones": {
+        "$clienteId": {
+          ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'",
+          "$notifId": {
+            ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
+            ".write": "auth != null && auth.token.role != 'client'",
+            "leida": {
+              ".write": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && newData.isBoolean() && newData.val() == true && (!data.exists() || data.val() == false)))"
+            }
+          }
+        }
+      },
       "Banios": {
-        "$banioId": {
-          ".read": "auth != null",
-          ".write": "auth != null"
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "TiposVacunas": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "TiposServiciosPeluqueria": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "ProductosPeluqueria": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Medicamentos": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Diagnosticos": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Tratamientos": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Log_Paciente": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "$pacienteId": {
+          ".indexOn": ["fecha_creacion", "tipo"]
         }
       },
-      
-      "Inventario": {
-        "Productos": {
-          "$productoId": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
-        },
-        "Movimientos": {
-          "$movimientoId": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
-        },
-        "Proveedores": {
-          "$proveedorId": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
-        },
-        "Alertas": {
-          "$alertaId": {
-            ".read": "auth != null",
-            ".write": "auth != null"
-          }
+      "Campaña": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Venta": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "registro": {
+          ".indexOn": ["fecha"]
         }
+      },
+      "Inventario": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Gasolina": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Producto": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
+      },
+      "Productos": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'"
       }
     }
   }
 }
-

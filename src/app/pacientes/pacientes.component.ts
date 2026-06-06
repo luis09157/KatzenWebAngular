@@ -484,21 +484,21 @@ export class PacientesComponent implements OnInit, OnDestroy {
   eliminarRecordatorio(recordatorio: any) {
     Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
-      text: 'Esta acción no se puede deshacer',
+      title: '¿Archivar recordatorio?',
+      text: 'Se marcará como inactivo. Los datos se conservan en RTDB.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, archivar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.recordatoriosService.eliminarRecordatorio(recordatorio.id).then(() => {
+        this.recordatoriosService.bajaLogicaRecordatorio(recordatorio.id).then(() => {
           this.cargarRecordatorios(this.pacienteSeleccionado.id);
           Swal.fire({
             icon: 'success',
-            title: '¡Eliminado!',
-            text: 'Recordatorio eliminado correctamente'
+            title: 'Archivado',
+            text: 'Recordatorio dado de baja correctamente'
           });
         }).catch(error => {
           console.error('Error al eliminar recordatorio:', error);
@@ -653,8 +653,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   eliminarHistorialClinico(historial: any) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'El historial será dado de baja (baja lógica).',
+      title: '¿Archivar historial?',
+      text: 'Baja lógica en admin. Para ocultarlo del portal del dueño, edítalo y marca "Ocultar del portal".',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, dar de baja',

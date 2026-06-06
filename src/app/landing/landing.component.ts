@@ -2,6 +2,8 @@ import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { AnalyticsService } from '../shared/services/analytics.service';
+import { PortalAuthService } from '../portal/services/portal-auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-landing',
@@ -434,9 +436,14 @@ export class LandingComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   isMobileMenuOpen = false;
 
+  portalEmail = '';
+  portalPassword = '';
+  portalLoading = false;
+
   constructor(
     private fb: FormBuilder,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private portalAuth: PortalAuthService
   ) {
     this.contactForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2)]],
@@ -602,11 +609,46 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   closeUrgencyBanner(): void {
     this.showUrgencyBanner = false;
-    // Track que el usuario cerró el banner
     this.analytics.trackEvent('urgency_banner_closed', {
       event_category: 'user_interaction',
       event_label: 'banner_dismissed'
     });
+  }
+
+  async loginPortal(): Promise<void> {
+    if (!this.portalEmail || !this.portalPassword) {
+      Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña de cliente.' });
+      return;
+    }
+    this.portalLoading = true;
+    try {
+      const result = await this.portalAuth.login(this.portalEmail, this.portalPassword);
+      if (result === 'none') {
+        await this.portalAuth.logout();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sin acceso al portal',
+          text: 'Tu cuenta no está registrada como cliente. Si eres personal, usa acceso staff.'
+        });
+        return;
+      }
+      if (result === 'staff') {
+        Swal.fire({ icon: 'info', title: 'Cuenta de staff', text: 'Te redirigimos al panel administrativo.', timer: 1800, showConfirmButton: false });
+      }
+      await this.portalAuth.navigateAfterLogin(result);
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Correo o contraseña incorrectos.' });
+    } finally {
+      this.portalLoading = false;
+    }
+  }
+
+  irAMiPortal(): void {
+    this.scrollToSection('portal-duenos');
+    setTimeout(() => {
+      const el = document.querySelector('#portal-duenos input[type="email"]') as HTMLInputElement | null;
+      el?.focus();
+    }, 450);
   }
 
   ngOnDestroy() {
