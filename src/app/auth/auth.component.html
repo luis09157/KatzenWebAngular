@@ -1,13 +1,29 @@
-<div class="login-container">
-  <div class="logo-container" (click)="irAlInicio()" style="cursor: pointer;">
-    <img ngSrc="assets/katzen-logo.jpg" alt="Logo KatzenVet" width="120" height="120" class="logo" />
-  </div>
-  <h2>Bienvenido a KatzenVet</h2>
-  <p class="bienvenida">Por favor inicia sesión para acceder al sistema administrativo.</p>
-  <p class="portal-link"><a routerLink="/portal/login">¿Eres cliente? Inicia sesión en el portal del dueño</a></p>
-  <form (ngSubmit)="login()">
-    <input type="email" [(ngModel)]="email" name="email" placeholder="Correo" required>
-    <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required>
-    <button type="submit">Entrar</button>
-  </form>
+<div class="portal-login-wrap">
+  <mat-card appearance="outlined" class="portal-login-card">
+    <mat-card-header>
+      <img mat-card-avatar ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="40" height="40">
+      <mat-card-title>Panel administrativo</mat-card-title>
+      <mat-card-subtitle>Acceso staff KatzenVet</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="login()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo</mat-label>
+          <mat-icon matPrefix>mail</mat-icon>
+          <input matInput type="email" [(ngModel)]="email" name="email" required>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" [(ngModel)]="password" name="password" required>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" class="full-width">Entrar</button>
+      </form>
+    </mat-card-content>
+    <mat-divider></mat-divider>
+    <mat-card-actions>
+      <button mat-button (click)="irAlInicio()">Inicio</button>
+      <button mat-button routerLink="/portal/login">Portal del dueño</button>
+    </mat-card-actions>
+  </mat-card>
 </div>

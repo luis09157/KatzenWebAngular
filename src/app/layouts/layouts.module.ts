@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatDividerModule } from '@angular/material/divider';
 
 // Layout Components
 import { AdminMainLayoutComponent } from './admin-main-layout.component';
@@ -27,7 +28,8 @@ import { AdminMainLayoutComponent } from './admin-main-layout.component';
     MatIconModule,
     MatMenuModule,
     MatSidenavModule,
-    MatListModule
+    MatListModule,
+    MatDividerModule
   ],
   exports: [
     AdminMainLayoutComponent

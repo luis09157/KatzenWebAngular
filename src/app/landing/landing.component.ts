@@ -1,8 +1,9 @@
-import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { AnalyticsService } from '../shared/services/analytics.service';
 import { PortalAuthService } from '../portal/services/portal-auth.service';
+import { ContactoWebService } from './services/contacto-web.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -27,23 +28,33 @@ import Swal from 'sweetalert2';
     ])
   ]
 })
-export class LandingComponent implements OnInit, OnDestroy {
+export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   // URLs de redes de comunicación (configurables)
   readonly whatsappUrl = 'https://wa.me/528136024090';
   readonly whatsappMessage = 'Hola, quisiera información sobre sus servicios para mi mascota';
   readonly whatsappFullUrl = 'https://wa.me/528136024090?text=' + encodeURIComponent('Hola, quisiera información sobre sus servicios para mi mascota');
   readonly facebookUrl = 'https://www.facebook.com/katzenvet'; // Actualiza con tu página de FB real
 
+  portalFeatures = [
+    { icon: 'vaccines', title: 'Vacunas', description: 'Esquemas completos y fechas de próxima dosis' },
+    { icon: 'event', title: 'Citas', description: 'Próximas citas y historial de consultas' },
+    { icon: 'medical_information', title: 'Historial', description: 'Expediente clínico de cada mascota' },
+    { icon: 'notifications', title: 'Avisos', description: 'Alertas y recordatorios de la clínica' }
+  ];
+
   // Tracking de tiempo en página
   private startTime: number = Date.now();
   private scrollDepthTracked: { [key: number]: boolean } = {};
+  private revealObserver?: IntersectionObserver;
   
   // Propiedad para detectar si es móvil
   isMobile = false;
   
-  // Banner de urgencia (CRO)
+  // Banner de urgencia (solo en sección contacto, no flotante)
   showUrgencyBanner = true;
-  citasDisponibles = 3; // Número dinámico de citas disponibles
+  citasDisponibles = 3;
+
+  showPortalLoginModal = false;
   
   // Formulario de contacto
   contactForm: FormGroup;
@@ -443,20 +454,50 @@ export class LandingComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private analytics: AnalyticsService,
-    private portalAuth: PortalAuthService
+    private portalAuth: PortalAuthService,
+    private contactoWeb: ContactoWebService,
+    private el: ElementRef<HTMLElement>
   ) {
     this.contactForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      telefono: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-\(\)]+$/)]],
-      mascota: ['', Validators.required],
-      mensaje: ['', [Validators.required, Validators.minLength(10)]]
+      nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+      telefono: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
+      mascota: ['', [Validators.required, Validators.maxLength(80)]],
+      mensaje: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
     });
   }
 
   ngOnInit() {
     this.checkScroll();
     this.checkScreenSize();
+  }
+
+  ngAfterViewInit(): void {
+    this.setupScrollReveal();
+  }
+
+  private setupScrollReveal(): void {
+    const host = this.el.nativeElement;
+    const targets = host.querySelectorAll<HTMLElement>('.reveal, .reveal-stagger');
+
+    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      targets.forEach(el => el.classList.add('is-visible'));
+      return;
+    }
+
+    this.revealObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            this.revealObserver?.unobserve(entry.target);
+          }
+        });
+      },
+      { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.1 }
+    );
+
+    targets.forEach(el => this.revealObserver!.observe(el));
   }
 
   @HostListener('window:scroll')
@@ -525,25 +566,41 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
-  onSubmitContacto() {
-    if (this.contactForm.valid) {
-      this.isSubmitting = true;
-      console.log('Formulario de contacto enviado:', this.contactForm.value);
-      
-      // Track analytics del envío
-      this.analytics.trackContactFormSubmit(true);
-      this.analytics.trackConversion('formulario_contacto', 500);
-      
-      // Simular envío del formulario
-      setTimeout(() => {
-        alert('¡Gracias por tu mensaje! Te contactaremos pronto.');
-        this.contactForm.reset();
-        this.isSubmitting = false;
-      }, 2000);
-    } else {
-      // Track error en formulario
+  async onSubmitContacto(): Promise<void> {
+    if (!this.contactForm.valid) {
       this.analytics.trackContactFormSubmit(false);
       this.markFormGroupTouched();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Revisa el formulario',
+        text: 'Completa todos los campos correctamente antes de enviar.',
+        confirmButtonColor: '#3b9a9c'
+      });
+      return;
+    }
+
+    this.isSubmitting = true;
+    try {
+      await this.contactoWeb.enviar(this.contactForm.getRawValue());
+      this.analytics.trackContactFormSubmit(true);
+      this.analytics.trackConversion('formulario_contacto', 500);
+      Swal.fire({
+        icon: 'success',
+        title: '¡Mensaje enviado!',
+        text: 'Gracias por contactarnos. Te responderemos pronto por correo o teléfono.',
+        confirmButtonColor: '#3b9a9c'
+      });
+      this.contactForm.reset();
+    } catch {
+      this.analytics.trackContactFormSubmit(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo enviar',
+        text: 'Intenta de nuevo en unos minutos o escríbenos por WhatsApp.',
+        confirmButtonColor: '#3b9a9c'
+      });
+    } finally {
+      this.isSubmitting = false;
     }
   }
 
@@ -567,6 +624,9 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
     if (control?.hasError('pattern')) {
       return 'Formato de teléfono inválido';
+    }
+    if (control?.hasError('maxlength')) {
+      return `Máximo ${control.errors?.['maxlength'].requiredLength} caracteres`;
     }
     return '';
   }
@@ -623,12 +683,19 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.portalLoading = true;
     try {
       const result = await this.portalAuth.login(this.portalEmail, this.portalPassword);
+      if (result === 'inactive') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Portal no activo',
+          text: 'Tu acceso al portal no está activo. Comunícate con la clínica para activarlo.'
+        });
+        return;
+      }
       if (result === 'none') {
-        await this.portalAuth.logout();
         Swal.fire({
           icon: 'warning',
           title: 'Sin acceso al portal',
-          text: 'Tu cuenta no está registrada como cliente. Si eres personal, usa acceso staff.'
+          text: 'No encontramos una cuenta de cliente con esas credenciales.'
         });
         return;
       }
@@ -643,16 +710,27 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
   }
 
+  openPortalLogin(): void {
+    this.showPortalLoginModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closePortalLogin(): void {
+    this.showPortalLoginModal = false;
+    document.body.style.overflow = '';
+  }
+
   irAMiPortal(): void {
-    this.scrollToSection('portal-duenos');
-    setTimeout(() => {
-      const el = document.querySelector('#portal-duenos input[type="email"]') as HTMLInputElement | null;
-      el?.focus();
-    }, 450);
+    this.openPortalLogin();
+  }
+
+  agendarCita(ubicacion: string): void {
+    this.trackAgendarCita(ubicacion);
+    this.scrollToSection('contacto');
   }
 
   ngOnDestroy() {
-    // Track tiempo en página antes de salir
+    this.revealObserver?.disconnect();
     const timeOnPage = Math.round((Date.now() - this.startTime) / 1000);
     this.analytics.trackTimeOnPage(timeOnPage);
   }

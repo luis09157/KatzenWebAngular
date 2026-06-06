@@ -1,212 +1,193 @@
 <!-- ===== NAVBAR ===== -->
-<mat-toolbar class="navbar" [class.scrolled]="isScrolled">
-  <div class="navbar-container">
-    <div class="navbar-brand">
-      <mat-icon class="brand-icon">pets</mat-icon>
-      <span class="brand-name">Katzen</span>
-    </div>
-    
-    <nav class="navbar-nav" [class.mobile-hidden]="isMobile">
-      <a mat-button (click)="scrollToSection('inicio')" class="nav-link">Inicio</a>
-      <a mat-button (click)="scrollToSection('servicios')" class="nav-link">Servicios</a>
-      <a mat-button (click)="scrollToSection('equipo')" class="nav-link">Equipo</a>
-      <a mat-button (click)="scrollToSection('contacto')" class="nav-link">Contacto</a>
-      <button mat-stroked-button class="nav-portal-btn" (click)="irAMiPortal()">
-        <mat-icon>account_circle</mat-icon>
-        Iniciar sesión
-      </button>
+<mat-toolbar class="landing-toolbar" [class.scrolled]="isScrolled">
+  <div class="toolbar-inner">
+    <a class="brand-block" (click)="scrollToSection('inicio')" role="button" tabindex="0">
+      <img src="assets/katzen-logo.png" alt="KatzenVet" class="brand-logo" width="40" height="40">
+      <span class="brand-name">KatzenVet</span>
+    </a>
+
+    <nav class="nav-links mobile-hidden" aria-label="Navegación principal">
+      <button mat-button (click)="scrollToSection('inicio')">Inicio</button>
+      <button mat-button (click)="scrollToSection('servicios')">Servicios</button>
+      <button mat-button (click)="scrollToSection('nosotros')">Nosotros</button>
+      <button mat-button (click)="scrollToSection('contacto')">Contacto</button>
     </nav>
-    
-    <div class="navbar-contact">
-      <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="nav-contact-link nav-whatsapp" (click)="trackWhatsApp('navbar')" aria-label="WhatsApp">
-        <mat-icon>chat</mat-icon>
-        <span>WhatsApp</span>
-      </a>
-      <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="nav-contact-link nav-facebook" (click)="trackFacebook('navbar')" aria-label="Facebook">
-        <mat-icon>facebook</mat-icon>
-        <span>Facebook</span>
-      </a>
-      <button mat-raised-button color="primary" class="cta-button" (click)="scrollToSection('contacto')">
-        Agenda tu Cita
+
+    <div class="nav-actions">
+      <button mat-button class="hide-mobile nav-portal-btn" (click)="openPortalLogin()">
+        Portal Clientes
       </button>
+      <button type="button" class="btn-premium btn-premium-primary btn-premium-sm hide-mobile" (click)="agendarCita('navbar')">
+        Agendar Cita
+      </button>
+      <button mat-icon-button class="mobile-menu-button mobile-visible" [matMenuTriggerFor]="mobileMenu" aria-label="Menú">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <mat-menu #mobileMenu="matMenu">
+        <button mat-menu-item (click)="scrollToSection('inicio')">Inicio</button>
+        <button mat-menu-item (click)="scrollToSection('servicios')">Servicios</button>
+        <button mat-menu-item (click)="scrollToSection('nosotros')">Nosotros</button>
+        <button mat-menu-item (click)="scrollToSection('contacto')">Contacto</button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="openPortalLogin()">Portal Clientes</button>
+        <button mat-menu-item (click)="agendarCita('navbar_mobile')">Agendar Cita</button>
+      </mat-menu>
     </div>
-    
-    <button mat-icon-button class="mobile-menu-button" [class.mobile-visible]="isMobile" (click)="toggleMobileMenu()">
-      <mat-icon>menu</mat-icon>
-    </button>
   </div>
 </mat-toolbar>
 
-<!-- ===== HERO SECTION ===== -->
-<section id="inicio" class="hero">
-  <div class="hero-container">
-    <div class="hero-content">
-      <div class="hero-badge">
-        <mat-icon>verified</mat-icon>
-        <span>Clínica de Excelencia 2025</span>
+<!-- ===== HERO ===== -->
+<section id="inicio" class="landing-hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="hero-meta-row">
+        <span class="hero-eyebrow">Clínica veterinaria · Guadalupe, N.L.</span>
+        <span class="hero-google-chip">
+          <mat-icon>star</mat-icon>
+          4.9 · Google
+        </span>
       </div>
-      
-      <h1 class="hero-title">
-        Clínica Veterinaria en Guadalupe, N.L. | Atención 24/7 para tu Mascota
-      </h1>
-      
-      <p class="hero-subtitle">
-        <strong>+10 años de experiencia</strong> en medicina veterinaria en Guadalupe, Monterrey. Consultas, vacunas, cirugías, laboratorio y <strong>emergencias veterinarias 24/7</strong>. Tu clínica veterinaria de confianza cerca de ti.
+      <h1 class="hero-title">El cuidado médico que tu mascota merece, <span class="hero-accent">24/7</span></h1>
+      <p class="hero-lead">
+        Más de <strong>10 años</strong> cuidando perros y gatos en Guadalupe. Consultas, vacunas, cirugías,
+        laboratorio y emergencias con un equipo que trata a tu mascota como familia.
       </p>
-      
-      <div class="hero-actions">
-        <a [href]="whatsappFullUrl" 
-           target="_blank" rel="noopener noreferrer" 
-           class="hero-cta-whatsapp" (click)="trackWhatsApp('hero')">
-          <mat-icon>chat</mat-icon>
-          Escribir por WhatsApp
-        </a>
-        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" 
-           class="hero-cta-facebook" (click)="trackFacebook('hero')">
-          <mat-icon>facebook</mat-icon>
-          Visitar Facebook
-        </a>
-        <button mat-stroked-button color="primary" class="hero-cta-secondary" (click)="scrollToSection('servicios')">
-          <mat-icon>medical_services</mat-icon>
-          Ver Servicios
+      <div class="hero-cta-row">
+        <button type="button" class="btn-premium btn-premium-primary" (click)="agendarCita('hero')">
+          <mat-icon>event_available</mat-icon>
+          Agendar Cita en Línea
         </button>
+        <a class="btn-premium btn-premium-secondary" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('hero')">
+          <mat-icon>chat</mat-icon>
+          Hablar por WhatsApp
+        </a>
       </div>
-      <p class="hero-contact-hint">Respuesta rápida por WhatsApp y Facebook · Horario de atención extendido</p>
-    </div>
-    
-    <div class="hero-visual">
-              <div class="hero-image-container">
-          <div class="hero-image"></div>
-          <div class="hero-image-overlay"></div>
-        </div>
-    </div>
-  </div>
-  
-  <!-- Stats Section -->
-  <div class="stats-section">
-    <div class="stats-container">
-      <div class="stat-card" *ngFor="let stat of stats">
-        <mat-icon [style.color]="stat.color" class="stat-icon">{{stat.materialIcon}}</mat-icon>
-        <div class="stat-content">
-          <div class="stat-number">{{stat.numero}}</div>
-          <div class="stat-label">{{stat.label}}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PORTAL DEL DUEÑO ===== -->
-<section id="portal-duenos" class="portal-duenos-section" aria-labelledby="portal-duenos-title">
-  <div class="container">
-    <div class="portal-duenos-wrapper">
-      <div class="portal-duenos-intro">
-        <span class="portal-eyebrow">Para clientes registrados</span>
-        <h2 id="portal-duenos-title">Tu expediente veterinario en línea</h2>
-        <p class="portal-duenos-lead">
-          Revisa vacunas, citas e historial clínico de tus mascotas. Misma información que en la app Katzen, desde tu navegador.
-        </p>
-        <div class="portal-feature-grid">
-          <div class="portal-feature">
-            <mat-icon>vaccines</mat-icon>
-            <div>
-              <strong>Vacunas</strong>
-              <span>Esquemas y fechas aplicadas</span>
-            </div>
+      <div class="hero-trust-badges reveal-stagger" aria-label="Prueba social">
+        <div class="trust-badge" *ngFor="let stat of stats">
+          <div class="trust-badge-icon">
+            <mat-icon>{{ stat.materialIcon }}</mat-icon>
           </div>
-          <div class="portal-feature">
-            <mat-icon>event</mat-icon>
-            <div>
-              <strong>Citas</strong>
-              <span>Próximas y pasadas</span>
-            </div>
-          </div>
-          <div class="portal-feature">
-            <mat-icon>medical_information</mat-icon>
-            <div>
-              <strong>Historial</strong>
-              <span>Consultas y tratamientos</span>
-            </div>
-          </div>
-          <div class="portal-feature">
-            <mat-icon>notifications</mat-icon>
-            <div>
-              <strong>Avisos</strong>
-              <span>Alertas de la clínica</span>
-            </div>
-          </div>
-        </div>
-        <p class="portal-staff-note">
-          ¿Eres personal de la clínica?
-          <a routerLink="/admin/login">Acceso staff</a>
-        </p>
-      </div>
-
-      <div class="portal-access-card">
-        <div class="portal-access-header">
-          <mat-icon>login</mat-icon>
           <div>
-            <h3>Iniciar sesión</h3>
-            <p>Paso 1 — ingresa con el correo que registramos en la clínica</p>
+            <span class="trust-num">{{ stat.numero }}</span>
+            <span class="trust-label">{{ stat.label }}</span>
           </div>
         </div>
-        <form (ngSubmit)="loginPortal()" class="portal-access-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Correo electrónico</mat-label>
-            <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email" #portalEmailInput>
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Contraseña</mat-label>
-            <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password">
-          </mat-form-field>
-          <button mat-flat-button color="primary" type="submit" class="portal-access-submit" [disabled]="portalLoading">
-            {{ portalLoading ? 'Verificando…' : 'Iniciar sesión en el portal' }}
-          </button>
-        </form>
-        <div class="portal-access-footer">
-          <a routerLink="/portal/login">Abrir en pantalla completa</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-visual-glow" aria-hidden="true"></div>
+      <div class="hero-visual-float">
+        <img src="assets/pets-hero.svg" alt="Veterinaria cuidando mascotas con cariño" class="hero-visual-img" width="420" height="420">
+        <div class="hero-visual-badge">
+          <mat-icon>favorite</mat-icon>
+          <span>Mascotas felices</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== POR QUÉ ELEGIRNOS SECTION ===== -->
-<section id="por-que-elegirnos" class="why-choose-us" aria-labelledby="why-title">
+<!-- ===== SERVICIOS RÁPIDOS ===== -->
+<section class="quick-services reveal" aria-label="Servicios principales">
   <div class="container">
-    <div class="section-header">
-      <h2 id="why-title" class="section-title">¿Por Qué Elegir KatzenVet?</h2>
-      <p class="section-subtitle">Razones por las que somos la mejor opción para el cuidado de tu mascota</p>
+    <div class="quick-services-header reveal">
+      <span class="section-eyebrow">Atención integral</span>
+      <p class="quick-services-lead">Todo lo que tu mascota necesita, en un solo lugar</p>
     </div>
-    
-    <div class="why-grid">
-      <mat-card class="why-card" *ngFor="let item of porQueElegirnos">
-        <div class="why-icon-container" [style.background-color]="item.color">
-          <mat-icon class="why-icon">{{item.icon}}</mat-icon>
+    <div class="quick-services-grid reveal-stagger">
+      <button type="button" class="premium-card quick-service-item" *ngFor="let s of servicios | slice:0:6" (click)="scrollToSection('servicios')">
+        <span class="premium-icon-wrap premium-icon-wrap-sm quick-service-icon">
+          <mat-icon>{{ s.materialIcon }}</mat-icon>
+        </span>
+        <span class="quick-service-label">{{ s.titulo }}</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PORTAL DIGITAL (sin login embebido) ===== -->
+<section id="portal-duenos" class="landing-portal reveal" aria-labelledby="portal-duenos-title">
+  <div class="container">
+    <div class="portal-header reveal">
+      <span class="section-eyebrow">Portal clínico</span>
+      <h2 id="portal-duenos-title">Tu expediente veterinario digital</h2>
+      <p class="section-lead">
+        Vacunas, citas, historial clínico y avisos de la clínica — la misma información que en la app Katzen,
+        disponible cuando la necesites.
+      </p>
+    </div>
+
+    <div class="portal-features-grid reveal-stagger">
+      <article class="premium-card portal-feature-card" *ngFor="let feat of portalFeatures">
+        <div class="premium-icon-wrap portal-feature-icon">
+          <mat-icon>{{ feat.icon }}</mat-icon>
         </div>
-        <h3 class="why-title">{{item.titulo}}</h3>
-        <p class="why-description">{{item.descripcion}}</p>
-        <div class="why-stats" [style.color]="item.color">
+        <h3>{{ feat.title }}</h3>
+        <p>{{ feat.description }}</p>
+      </article>
+    </div>
+
+    <div class="premium-card portal-access-bar reveal">
+      <div class="portal-access-text">
+        <div class="premium-icon-wrap premium-icon-wrap-sm">
+          <mat-icon>smartphone</mat-icon>
+        </div>
+        <div>
+          <strong>¿Ya eres cliente?</strong>
+          <span>Consulta vacunas, citas e historial de tu mascota</span>
+        </div>
+      </div>
+      <div class="portal-access-actions">
+        <button type="button" class="btn-premium btn-premium-secondary btn-premium-sm" (click)="openPortalLogin()">
+          <mat-icon>login</mat-icon>
+          Acceder al portal
+        </button>
+        <a class="btn-premium-ghost" routerLink="/portal/login">Pantalla completa</a>
+      </div>
+    </div>
+    <p class="portal-staff-line">¿Eres personal? <a routerLink="/admin/login">Acceso staff</a></p>
+  </div>
+</section>
+
+<!-- ===== POR QUÉ ELEGIRNOS ===== -->
+<section id="por-que-elegirnos" class="why-choose-us reveal" aria-labelledby="why-title">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Confianza y calidad</span>
+      <h2 id="why-title" class="section-title">¿Por qué elegir KatzenVet?</h2>
+      <p class="section-subtitle">Empatía, experiencia y tecnología al servicio de tu compañero de vida</p>
+    </div>
+
+    <div class="why-grid reveal-stagger">
+      <article class="premium-card why-card" *ngFor="let item of porQueElegirnos | slice:0:6">
+        <div class="premium-icon-wrap why-icon-container">
+          <mat-icon class="why-icon">{{ item.icon }}</mat-icon>
+        </div>
+        <h3 class="why-card-title">{{ item.titulo }}</h3>
+        <p class="why-description">{{ item.descripcion }}</p>
+        <div class="why-stats">
           <mat-icon class="stats-icon">check_circle</mat-icon>
-          <span>{{item.stats}}</span>
+          <span>{{ item.stats }}</span>
         </div>
-      </mat-card>
+      </article>
     </div>
   </div>
 </section>
 
 <!-- ===== SERVICIOS SECTION ===== -->
-<section id="servicios" class="services" aria-labelledby="servicios-title">
+<section id="servicios" class="services landing-section reveal" aria-labelledby="servicios-title">
   <div class="container">
-    <div class="section-header">
-      <h2 id="servicios-title" class="section-title">Servicios Veterinarios en Guadalupe, Nuevo León</h2>
-      <p class="section-subtitle">Clínica veterinaria integral con consultas, vacunas, cirugías, laboratorio, desparasitación y emergencias 24 horas. Atención médica especializada para perros y gatos.</p>
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Nuestros servicios</span>
+      <h2 id="servicios-title" class="section-title">Cuidado veterinario completo en Guadalupe</h2>
+      <p class="section-subtitle">Consultas, vacunas, cirugías, laboratorio y emergencias 24 horas para perros y gatos.</p>
     </div>
     
-    <div class="services-grid">
-      <mat-card class="service-card" *ngFor="let servicio of servicios; let i = index">
+    <div class="services-grid reveal-stagger">
+      <mat-card appearance="elevated" class="service-card" *ngFor="let servicio of servicios; let i = index">
         <div class="service-card-header">
-          <div class="service-icon" [style.background-color]="servicio.color">
+          <div class="premium-icon-wrap premium-icon-wrap-sm service-icon">
             <mat-icon>{{servicio.materialIcon}}</mat-icon>
           </div>
           <h3 class="service-title">{{servicio.titulo}}</h3>
@@ -228,7 +209,12 @@
           </div>
         </div>
         
-        <button mat-button color="primary" class="service-toggle" (click)="toggleService(i)">
+        <button mat-stroked-button color="primary" class="service-cta" (click)="agendarCita('servicio_' + i)">
+          <mat-icon>event</mat-icon>
+          Agendar
+        </button>
+        
+        <button mat-button class="service-toggle" (click)="toggleService(i)">
           <span *ngIf="!servicio.expanded">Ver más detalles</span>
           <span *ngIf="servicio.expanded">Ocultar detalles</span>
           <mat-icon>{{servicio.expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
@@ -249,23 +235,20 @@
 </section>
 
 <!-- ===== TESTIMONIOS SECTION ===== -->
-<section id="testimonios" class="testimonials" aria-labelledby="testimonios-title">
+<section id="testimonios" class="testimonials reveal" aria-labelledby="testimonios-title">
   <div class="container">
-    <div class="section-header">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Reseñas verificadas</span>
       <div class="google-badge">
         <mat-icon class="google-icon">star</mat-icon>
         <span class="rating-number">4.9</span>
-        <div class="stars">
-          <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star-icon">star</mat-icon>
-        </div>
-        <span class="review-count">24 reseñas en Google</span>
+        <span class="review-count">· 24 reseñas en Google</span>
       </div>
-      
-      <h2 id="testimonios-title" class="section-title">Lo Que Dicen Nuestros Clientes</h2>
-      <p class="section-subtitle">Testimonios reales de clientes satisfechos con el cuidado de sus mascotas en KatzenVet</p>
+      <h2 id="testimonios-title" class="section-title">Lo que dicen nuestros clientes</h2>
+      <p class="section-subtitle">Familias de Guadalupe que confían en nosotros para el cuidado de sus mascotas</p>
     </div>
     
-    <div class="testimonials-grid">
+    <div class="testimonials-grid reveal-stagger">
       <mat-card class="testimonial-card" *ngFor="let testimonio of testimonios">
         <div class="testimonial-header">
           <img [src]="testimonio.avatar" [alt]="testimonio.nombre" class="testimonial-avatar" loading="lazy" decoding="async">
@@ -296,26 +279,25 @@
       <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
          target="_blank" 
          rel="noopener noreferrer"
-         class="google-reviews-button"
-         mat-raised-button
+         mat-flat-button
          color="primary">
         <mat-icon>rate_review</mat-icon>
-        Ver Todas las Reseñas en Google
+        Ver reseñas en Google
       </a>
     </div>
   </div>
 </section>
 
 <!-- ===== FAQ SECTION ===== -->
-<section id="faq" class="faq-section" aria-labelledby="faq-title">
+<section id="faq" class="faq-section reveal" aria-labelledby="faq-title">
   <div class="container">
-    <div class="section-header">
-      <mat-icon class="faq-header-icon">help_outline</mat-icon>
-      <h2 id="faq-title" class="section-title">Preguntas Frecuentes</h2>
-      <p class="section-subtitle">Resolvemos tus dudas más comunes sobre nuestros servicios veterinarios</p>
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Dudas frecuentes</span>
+      <h2 id="faq-title" class="section-title">Preguntas frecuentes</h2>
+      <p class="section-subtitle">Resolvemos las dudas más comunes sobre nuestros servicios veterinarios</p>
     </div>
     
-    <div class="faq-container">
+    <div class="faq-container reveal-stagger">
       <mat-card class="faq-item" *ngFor="let faq of faqs; let i = index" 
                 [class.expanded]="faq.expanded">
         <div class="faq-question" (click)="toggleFaq(i)">
@@ -338,9 +320,8 @@
       <a [href]="whatsappFullUrl"
          target="_blank"
          rel="noopener noreferrer"
-         mat-raised-button
+         mat-flat-button
          color="primary"
-         class="faq-contact-button"
          (click)="trackWhatsApp('faq')">
         <mat-icon>chat</mat-icon>
         Contáctanos por WhatsApp
@@ -350,14 +331,15 @@
 </section>
 
 <!-- ===== EQUIPO SECTION ===== -->
-<section id="equipo" class="team" aria-labelledby="equipo-title">
+<section id="nosotros" class="team reveal" aria-labelledby="equipo-title">
   <div class="container">
-    <div class="section-header">
-      <h2 id="equipo-title" class="section-title">Veterinarios Certificados en Guadalupe | Equipo Médico Especializado</h2>
-      <p class="section-subtitle">Médicos veterinarios con más de 10 años de experiencia, certificados en medicina general, cirugía y emergencias. Especialistas en perros y gatos con tecnología de punta.</p>
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Nuestro equipo</span>
+      <h2 id="equipo-title" class="section-title">Veterinarios certificados en Guadalupe</h2>
+      <p class="section-subtitle">Médicos con más de 10 años de experiencia en medicina general, cirugía y emergencias</p>
     </div>
     
-    <div class="team-grid">
+    <div class="team-grid reveal-stagger">
       <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico" itemscope itemtype="https://schema.org/Person">
         <div class="doctor-image-container">
           <img [src]="doctor.imagen" [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'" class="doctor-image" loading="lazy" decoding="async" itemprop="image">
@@ -385,15 +367,15 @@
 </section>
 
 <!-- ===== UBICACIÓN/MAPA SECTION ===== -->
-<section id="ubicacion" class="location-map" aria-labelledby="ubicacion-title">
+<section id="ubicacion" class="location-map reveal" aria-labelledby="ubicacion-title">
   <div class="container">
-    <div class="section-header">
-      <mat-icon class="location-header-icon">location_on</mat-icon>
-      <h2 id="ubicacion-title" class="section-title">Nuestra Ubicación</h2>
-      <p class="section-subtitle">Clínica Veterinaria en Guadalupe, Nuevo León | Fácil acceso y estacionamiento gratuito</p>
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Visítanos</span>
+      <h2 id="ubicacion-title" class="section-title">Nuestra ubicación</h2>
+      <p class="section-subtitle">C. Zinc 318, Los Cristales — Guadalupe, N.L. · Estacionamiento gratuito</p>
     </div>
     
-    <div class="location-content">
+    <div class="location-content reveal-stagger">
       <div class="location-info-card">
         <mat-card>
           <div class="location-details">
@@ -449,21 +431,18 @@
             <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
                target="_blank" 
                rel="noopener noreferrer"
-               mat-raised-button 
-               color="primary"
-               class="directions-button">
+               mat-flat-button 
+               color="primary">
               <mat-icon>directions</mat-icon>
-              Cómo Llegar
+              Cómo llegar
             </a>
             
             <a href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita"
                target="_blank"
                rel="noopener noreferrer"
-               mat-stroked-button
-               color="primary"
-               class="appointment-button">
+               mat-stroked-button>
               <mat-icon>event</mat-icon>
-              Agendar Cita
+              Agendar cita
             </a>
           </div>
         </mat-card>
@@ -486,37 +465,49 @@
 </section>
 
 <!-- ===== CONTACTO SECTION ===== -->
-<section id="contacto" class="contact" aria-labelledby="contacto-title">
+<section id="contacto" class="contact reveal" aria-labelledby="contacto-title">
   <div class="container">
-    <div class="section-header">
-      <h2 id="contacto-title" class="section-title">Contacto | Agenda tu Cita en Clínica Veterinaria Katzen</h2>
-      <p class="section-subtitle">📍 C. Zinc 318, Los Cristales, Guadalupe, N.L. | ☎ 81 3602 4090 | WhatsApp 24/7 | Emergencias veterinarias | Abierto Lunes a Sábado</p>
+    <mat-card appearance="filled" class="urgency-inline" *ngIf="showUrgencyBanner">
+      <div class="urgency-content">
+        <mat-icon class="urgency-icon">schedule</mat-icon>
+        <div class="urgency-text">
+          <strong>¡Solo quedan {{ citasDisponibles }} citas disponibles hoy!</strong>
+          <span>Agenda antes de que se acaben</span>
+        </div>
+        <button mat-icon-button class="urgency-close" (click)="closeUrgencyBanner()" aria-label="Cerrar aviso">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-card>
+
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Agenda tu cita</span>
+      <h2 id="contacto-title" class="section-title">Contáctanos hoy</h2>
+      <p class="section-subtitle">C. Zinc 318, Guadalupe · 81 3602 4090 · WhatsApp 24/7 · Lunes a sábado</p>
     </div>
 
     <!-- Redes de comunicación principales -->
     <div class="contact-redes-destacadas">
       <p class="contact-redes-titulo">Respuesta rápida por WhatsApp o Facebook</p>
       <div class="contact-redes-buttons">
-        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="contact-redes-btn contact-redes-whatsapp" (click)="trackWhatsApp('contacto')">
+        <a mat-flat-button color="primary" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('contacto')">
           <mat-icon>chat</mat-icon>
-          <span>Escribir por WhatsApp</span>
-          <small>Respuesta en minutos</small>
+          Escribir por WhatsApp
         </a>
-        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="contact-redes-btn contact-redes-facebook" (click)="trackFacebook('contacto')">
+        <a mat-stroked-button [href]="facebookUrl" target="_blank" rel="noopener noreferrer" (click)="trackFacebook('contacto')">
           <mat-icon>facebook</mat-icon>
-          <span>Visitar Facebook</span>
-          <small>Publicaciones y horarios</small>
+          Visitar Facebook
         </a>
       </div>
     </div>
     
-    <div class="contact-content">
+    <div class="contact-content reveal-stagger">
       <div class="contact-info">
         <h3 class="contact-info-title">Información de Contacto</h3>
         
         <div class="contact-items">
           <div class="contact-item" *ngFor="let info of contactInfo">
-            <div class="contact-icon" [style.background-color]="info.color">
+            <div class="contact-icon">
               <mat-icon>{{info.icon}}</mat-icon>
             </div>
             
@@ -599,10 +590,10 @@
               </mat-error>
             </mat-form-field>
             
-            <button mat-raised-button color="primary" type="submit" class="submit-button" [disabled]="isSubmitting">
+            <button mat-flat-button color="primary" type="submit" class="full-width" [disabled]="isSubmitting">
               <mat-icon *ngIf="!isSubmitting">send</mat-icon>
               <mat-icon *ngIf="isSubmitting" class="loading-icon">hourglass_empty</mat-icon>
-              <span>{{isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}}</span>
+              <span>{{isSubmitting ? 'Enviando…' : 'Enviar mensaje'}}</span>
             </button>
           </form>
         </mat-card>
@@ -611,43 +602,67 @@
   </div>
 </section>
 
-<!-- ===== URGENCIA VISUAL (Escasez) ===== -->
-<div class="urgency-banner" *ngIf="showUrgencyBanner">
-  <div class="urgency-content">
-    <mat-icon class="urgency-icon">schedule</mat-icon>
-    <div class="urgency-text">
-      <strong>¡Solo quedan {{citasDisponibles}} citas disponibles hoy!</strong>
-      <span>Agenda antes de que se acaben</span>
+<!-- FAB WhatsApp (único, sin solapamiento) -->
+<a mat-fab color="primary" class="float-whatsapp-fab fab-pulse"
+   [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer"
+   (click)="trackWhatsApp('floating')" aria-label="Contactar por WhatsApp">
+  <mat-icon>chat</mat-icon>
+</a>
+
+<!-- Modal login portal -->
+<div class="portal-modal-backdrop modal-enter" *ngIf="showPortalLoginModal" (click)="closePortalLogin()" role="presentation">
+  <mat-card appearance="elevated" class="portal-modal modal-enter-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="portal-modal-title" aria-modal="true">
+    <div class="portal-modal-header">
+      <div>
+        <h2 id="portal-modal-title">Portal de clientes</h2>
+        <p>Ingresa con el correo registrado en la clínica</p>
+      </div>
+      <button mat-icon-button (click)="closePortalLogin()" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-    <button mat-icon-button class="urgency-close" (click)="closeUrgencyBanner()" aria-label="Cerrar">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
+    <mat-divider></mat-divider>
+    <div class="portal-modal-body">
+      <form (ngSubmit)="loginPortal()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo electrónico</mat-label>
+          <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password">
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" class="full-width" [disabled]="portalLoading">
+          {{ portalLoading ? 'Verificando…' : 'Entrar al portal' }}
+        </button>
+      </form>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="portal-modal-footer">
+      <a mat-button routerLink="/portal/login" (click)="closePortalLogin()">Abrir pantalla completa</a>
+    </div>
+  </mat-card>
 </div>
 
-<!-- ===== CONTACTO RÁPIDO FLOTANTE (WhatsApp + Facebook) ===== -->
-<div class="float-contact-wrap">
-  <a [href]="facebookUrl"
-     target="_blank"
-     rel="noopener noreferrer"
-     class="float-contact float-facebook"
-     (click)="trackFacebook('floating')"
-     aria-label="Visitar Facebook">
-    <mat-icon>facebook</mat-icon>
-    <span class="float-contact-text">Facebook</span>
-  </a>
-  <a [href]="whatsappFullUrl"
-     target="_blank"
-     rel="noopener noreferrer"
-     class="whatsapp-float"
-     (click)="trackWhatsApp('floating')"
-     aria-label="Contactar por WhatsApp">
-    <mat-icon class="whatsapp-icon">chat</mat-icon>
-    <span class="whatsapp-text">WhatsApp</span>
-    <div class="whatsapp-badge">¡Rápido!</div>
-    <div class="whatsapp-pulse"></div>
-  </a>
-</div>
+<!-- ===== CTA CONVERSIÓN ===== -->
+<section class="conversion-band reveal" aria-label="Agendar cita">
+  <div class="container conversion-band-inner">
+    <div class="conversion-band-copy">
+      <h2>¿Tu mascota necesita atención?</h2>
+      <p>Agenda hoy. Te respondemos en minutos por WhatsApp o en nuestro formulario.</p>
+    </div>
+    <div class="conversion-band-actions">
+      <button mat-flat-button class="conversion-btn-light" (click)="agendarCita('band')">
+        <mat-icon>event_available</mat-icon>
+        Agendar cita
+      </button>
+      <a mat-stroked-button class="conversion-btn-outline" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('band')">
+        <mat-icon>chat</mat-icon>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
@@ -655,7 +670,7 @@
     <div class="footer-content">
       <div class="footer-brand">
         <div class="footer-logo">
-          <mat-icon>pets</mat-icon>
+          <img src="assets/katzen-logo.png" alt="KatzenVet" class="footer-logo-img" width="36" height="36">
           <span>Katzen</span>
         </div>
         <p class="footer-description">
@@ -677,9 +692,9 @@
         <div class="footer-section">
           <h4>Equipo</h4>
           <ul>
-            <li><a (click)="scrollToSection('equipo')">Dra. Ana María</a></li>
-            <li><a (click)="scrollToSection('equipo')">Dra. Carmen Elena</a></li>
-            <li><a (click)="scrollToSection('equipo')">Dra. Laura Patricia</a></li>
+            <li><a (click)="scrollToSection('nosotros')">Dra. Ana María</a></li>
+            <li><a (click)="scrollToSection('nosotros')">Dra. Carmen Elena</a></li>
+            <li><a (click)="scrollToSection('nosotros')">Dra. Laura Patricia</a></li>
           </ul>
         </div>
         
@@ -710,13 +725,13 @@
     <div class="footer-contact-cta">
       <p class="footer-contact-title">Comunícate con nosotros</p>
       <div class="footer-contact-buttons">
-        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="footer-cta-btn footer-cta-whatsapp" (click)="trackWhatsApp('footer')">
+        <a mat-stroked-button [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('footer')">
           <mat-icon>chat</mat-icon>
           WhatsApp
         </a>
-        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="footer-cta-btn footer-cta-facebook" (click)="trackFacebook('footer')">
+        <a mat-stroked-button [href]="facebookUrl" target="_blank" rel="noopener noreferrer" (click)="trackFacebook('footer')">
           <mat-icon>facebook</mat-icon>
-          Visitar Facebook
+          Facebook
         </a>
       </div>
     </div>

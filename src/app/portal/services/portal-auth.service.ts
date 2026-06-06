@@ -4,8 +4,10 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AuthService } from '../../auth/auth.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
+import { PortalDataService } from './portal-data.service';
+import { isPortalClienteActive } from '../utils/portal-client-access.util';
 
-export type PortalLoginResult = 'client' | 'staff' | 'none';
+export type PortalLoginResult = 'client' | 'staff' | 'none' | 'inactive';
 
 @Injectable({ providedIn: 'root' })
 export class PortalAuthService {
@@ -14,6 +16,7 @@ export class PortalAuthService {
     private authService: AuthService,
     private authProfileService: AuthProfileService,
     private firebaseFunctions: FirebaseFunctionsService,
+    private portalData: PortalDataService,
     private router: Router
   ) {}
 
@@ -21,12 +24,21 @@ export class PortalAuthService {
     await this.authService.login(email, password);
     await this.firebaseFunctions.syncMyClaims();
 
-    if (await this.authProfileService.isStaff()) {
-      return 'staff';
-    }
-    if (await this.authProfileService.isClient()) {
+    if (await this.authProfileService.hasClientAccess()) {
+      const clienteId = await this.authProfileService.getClienteId();
+      if (clienteId) {
+        const cliente = await this.portalData.getCliente(clienteId);
+        if (!isPortalClienteActive(cliente)) {
+          await this.authService.logout();
+          return 'inactive';
+        }
+      }
       return 'client';
     }
+    if (await this.authProfileService.hasStaffAccess()) {
+      return 'staff';
+    }
+    await this.authService.logout();
     return 'none';
   }
 
@@ -44,6 +56,6 @@ export class PortalAuthService {
       await this.router.navigate(['/admin/inicio']);
       return;
     }
-    await this.authService.logout();
+    await this.router.navigate(['/portal/login']);
   }
 }

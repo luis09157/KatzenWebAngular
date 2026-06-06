@@ -33,8 +33,8 @@ export class AuthComponent {
     try {
       await this.authService.login(this.email, this.password);
       await this.firebaseFunctions.syncMyClaims();
-      const isStaff = await this.authProfileService.isStaff();
-      if (!isStaff) {
+      const hasStaff = await this.authProfileService.hasStaffAccess();
+      if (!hasStaff) {
         await this.authService.logout();
         Swal.fire({
           icon: 'warning',

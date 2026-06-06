@@ -1,35 +1,51 @@
-<div class="portal-page">
-  <div *ngIf="loading" class="portal-loading">
-    <mat-spinner diameter="36"></mat-spinner>
-    <p>Cargando tus mascotas…</p>
+<div *ngIf="loading" class="center-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+  <span>Cargando tus mascotas…</span>
+</div>
+
+<div class="portal-error" *ngIf="!loading && errorMessage" role="alert">
+  <mat-icon>error_outline</mat-icon>
+  <span>{{ errorMessage }}</span>
+</div>
+
+<div class="portal-page" *ngIf="!loading && !errorMessage">
+  <div class="portal-banner">
+    <div class="portal-banner-icon">
+      <mat-icon>pets</mat-icon>
+    </div>
+    <div class="portal-banner-body">
+      <h2>{{ saludo }}</h2>
+      <p>Selecciona una mascota para consultar vacunas, citas e historial clínico.</p>
+      <span class="portal-badge" *ngIf="mascotas.length > 0">
+        {{ mascotas.length }} mascota{{ mascotas.length === 1 ? '' : 's' }} activa{{ mascotas.length === 1 ? '' : 's' }}
+      </span>
+    </div>
   </div>
 
-  <ng-container *ngIf="!loading">
-    <div class="welcome-banner portal-surface-card">
-      <div>
-        <p class="welcome-label">Bienvenido</p>
-        <h2 class="portal-page-title">{{ saludo }}</h2>
-        <p class="portal-page-subtitle">Selecciona una mascota para ver su expediente</p>
+  <div class="portal-empty" *ngIf="mascotas.length === 0">
+    <div class="portal-empty-icon"><mat-icon>pets</mat-icon></div>
+    <h3>No hay mascotas registradas</h3>
+    <p>Comunícate con la clínica si falta alguna en tu cuenta.</p>
+  </div>
+
+  <div class="portal-pet-grid" *ngIf="mascotas.length > 0">
+    <button
+      type="button"
+      class="portal-pet-card"
+      *ngFor="let m of mascotas"
+      (click)="verMascota(m.id)">
+      <div class="portal-pet-avatar" [ngClass]="avatarClass(m.especie)">
+        <span *ngIf="iniciales(m.nombre)">{{ iniciales(m.nombre) }}</span>
+        <mat-icon *ngIf="!iniciales(m.nombre)">pets</mat-icon>
       </div>
-      <span class="portal-chip-count">{{ mascotas.length }} activa{{ mascotas.length === 1 ? '' : 's' }}</span>
-    </div>
-
-    <div *ngIf="mascotas.length === 0" class="portal-empty-state portal-surface-card">
-      <mat-icon>pets</mat-icon>
-      <p>No hay mascotas activas en tu expediente</p>
-      <small>Comunícate con la clínica si falta alguna mascota registrada</small>
-    </div>
-
-    <div class="portal-list-gap">
-      <button *ngFor="let m of mascotas" type="button" class="mascota-tile portal-surface-card" (click)="verMascota(m.id)">
-        <div class="mascota-tile-icon"><mat-icon>pets</mat-icon></div>
-        <div class="mascota-tile-body">
-          <strong>{{ m.nombre }}</strong>
-          <span>{{ m.especie }}<ng-container *ngIf="m.raza"> · {{ m.raza }}</ng-container></span>
-          <small *ngIf="m.edad">Edad: {{ m.edad }}</small>
-        </div>
-        <mat-icon class="mascota-tile-chevron">chevron_right</mat-icon>
-      </button>
-    </div>
-  </ng-container>
+      <div>
+        <div class="portal-pet-name">{{ m.nombre }}</div>
+        <div class="portal-pet-meta">{{ metaMascota(m) }}</div>
+      </div>
+      <span class="portal-pet-action">
+        Ver expediente
+        <mat-icon>arrow_forward</mat-icon>
+      </span>
+    </button>
+  </div>
 </div>

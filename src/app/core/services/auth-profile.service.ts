@@ -2,15 +2,46 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { firstValueFrom } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 
 export interface AuthPerfil {
   authUid?: string;
   email?: string;
-  role?: 'staff' | 'client' | string;
+  role?: 'staff' | 'client' | 'dual' | string;
+  roles?: string[];
   staffRole?: string;
   clienteId?: string;
   activo?: boolean;
+}
+
+export interface AuthAccess {
+  staffAccess: boolean;
+  clientAccess: boolean;
+  perfil: AuthPerfil | null;
+  clienteId?: string;
+  staffRole?: string;
+}
+
+function normalizedRoles(perfil: AuthPerfil | null): Set<string> {
+  const list = Array.isArray(perfil?.roles) ? perfil!.roles! : [];
+  const legacy = perfil?.role ? [perfil.role] : [];
+  return new Set([...list, ...legacy].map(r => String(r).toLowerCase()));
+}
+
+export function hasStaffAccess(perfil: AuthPerfil | null): boolean {
+  if (!perfil || perfil.activo === false) return false;
+  const r = normalizedRoles(perfil);
+  return r.has('staff') || perfil.role === 'staff' || perfil.role === 'dual';
+}
+
+export function hasClientAccess(perfil: AuthPerfil | null): boolean {
+  if (!perfil || perfil.activo === false || !perfil.clienteId) return false;
+  const r = normalizedRoles(perfil);
+  return r.has('client') || perfil.role === 'client' || perfil.role === 'dual';
+}
+
+export function isDual(perfil: AuthPerfil | null): boolean {
+  return hasStaffAccess(perfil) && hasClientAccess(perfil);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,13 +61,82 @@ export class AuthProfileService {
     return perfil || null;
   }
 
-  async isStaff(): Promise<boolean> {
-    const perfil = await this.getMyProfile();
-    return !!perfil && perfil.activo !== false && perfil.role === 'staff';
+  /** Fallback desde custom claims (paridad AuthRoleHelper.kt sessionFromClaims). */
+  async getAccessFromClaims(): Promise<Omit<AuthAccess, 'perfil'>> {
+    const user = await this.afAuth.currentUser;
+    if (!user) {
+      return { staffAccess: false, clientAccess: false };
+    }
+
+    const token = await user.getIdTokenResult();
+    const roleClaim = token.claims['role'] as string | undefined;
+    const clienteId = token.claims['clienteId'] as string | undefined;
+    const staffRole = token.claims['staffRole'] as string | undefined;
+    const dualAccess = token.claims['dualAccess'] === true;
+
+    const staffAccess = roleClaim === 'staff' || dualAccess;
+    const clientAccess =
+      roleClaim === 'client' ||
+      (dualAccess && !!clienteId);
+
+    return { staffAccess, clientAccess, clienteId, staffRole };
   }
 
-  async isClient(): Promise<boolean> {
+  /** Perfil RTDB primero; claims solo si no hay perfil en RTDB. */
+  async resolveAccess(): Promise<AuthAccess> {
     const perfil = await this.getMyProfile();
-    return !!perfil && perfil.activo !== false && perfil.role === 'client' && !!perfil.clienteId;
+
+    if (perfil) {
+      if (perfil.activo === false) {
+        return { staffAccess: false, clientAccess: false, perfil };
+      }
+
+      const staffAccess = hasStaffAccess(perfil);
+      const clientAccess = hasClientAccess(perfil);
+      return {
+        staffAccess,
+        clientAccess,
+        perfil,
+        clienteId: perfil.clienteId,
+        staffRole: perfil.staffRole
+      };
+    }
+
+    const claims = await this.getAccessFromClaims();
+    return {
+      ...claims,
+      perfil: null
+    };
+  }
+
+  async hasStaffAccess(): Promise<boolean> {
+    const access = await this.resolveAccess();
+    return access.staffAccess;
+  }
+
+  async hasClientAccess(): Promise<boolean> {
+    const access = await this.resolveAccess();
+    return access.clientAccess;
+  }
+
+  async isDual(): Promise<boolean> {
+    const access = await this.resolveAccess();
+    return access.staffAccess && access.clientAccess;
+  }
+
+  async getClienteId(): Promise<string | null> {
+    const access = await this.resolveAccess();
+    if (!access.clientAccess) return null;
+    return access.clienteId || access.perfil?.clienteId || null;
+  }
+
+  /** @deprecated Usar hasStaffAccess() */
+  async isStaff(): Promise<boolean> {
+    return this.hasStaffAccess();
+  }
+
+  /** @deprecated Usar hasClientAccess() */
+  async isClient(): Promise<boolean> {
+    return this.hasClientAccess();
   }
 }

@@ -1,0 +1,144 @@
+/* Landing — overrides alineados a tokens Katzen (carga global) */
+
+app-landing .navbar,
+app-landing .navbar.scrolled {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom: 1px solid var(--border) !important;
+  backdrop-filter: blur(16px);
+}
+
+app-landing .brand-icon {
+  color: var(--katzen-verde-fuerte) !important;
+  background: var(--katzen-verde-soft) !important;
+  border-color: rgba(10, 150, 155, 0.25) !important;
+}
+
+app-landing .brand-name {
+  font-family: var(--font-sans) !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+app-landing .nav-link,
+app-landing .nav-portal-btn {
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+}
+
+app-landing .nav-portal-btn {
+  border-color: var(--katzen-verde) !important;
+  color: var(--katzen-verde-fuerte) !important;
+  border-radius: 999px !important;
+}
+
+app-landing .cta-button,
+app-landing .mat-mdc-raised-button.mat-primary {
+  background: linear-gradient(135deg, var(--katzen-verde-claro), var(--katzen-verde-fuerte)) !important;
+  border-radius: 999px !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 6px 20px var(--katzen-verde-glow) !important;
+}
+
+app-landing .hero {
+  background: linear-gradient(165deg, #eefafa 0%, var(--background) 40%, #e5f5f5 100%) !important;
+  font-family: var(--font-sans);
+}
+
+app-landing .hero-badge {
+  background: var(--katzen-verde-soft) !important;
+  color: var(--katzen-verde-fuerte) !important;
+  border: 1px solid rgba(10, 150, 155, 0.2) !important;
+  border-radius: 999px !important;
+}
+
+app-landing .hero-title {
+  font-family: var(--font-sans) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--text-primary) !important;
+}
+
+app-landing .hero-subtitle {
+  color: var(--text-secondary) !important;
+  line-height: 1.65 !important;
+}
+
+app-landing .hero-cta-whatsapp {
+  background: #25d366 !important;
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+}
+
+app-landing .hero-cta-secondary {
+  border-color: var(--katzen-verde) !important;
+  color: var(--katzen-verde-fuerte) !important;
+  border-radius: 14px !important;
+}
+
+app-landing .stats-section .stat-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+app-landing .portal-duenos-section {
+  background: linear-gradient(180deg, var(--katzen-verde-fuerte) 0%, #043638 100%) !important;
+  color: #fff !important;
+}
+
+app-landing .portal-duenos-section::before {
+  display: none !important;
+}
+
+app-landing .portal-duenos-intro h2,
+app-landing .portal-duenos-lead,
+app-landing .portal-eyebrow {
+  color: #fff !important;
+}
+
+app-landing .portal-eyebrow {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 999px !important;
+  padding: 0.35rem 0.85rem !important;
+}
+
+app-landing .portal-login-panel {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+app-landing .portal-feature {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+app-landing .section-title,
+app-landing h2,
+app-landing h3 {
+  font-family: var(--font-sans) !important;
+}
+
+app-landing .footer {
+  background: #043638 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+app-landing .service-card,
+app-landing .team-card,
+app-landing .contact-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out) !important;
+}
+
+app-landing .service-card:hover,
+app-landing .team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md) !important;
+}

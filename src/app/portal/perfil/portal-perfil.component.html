@@ -1,40 +1,59 @@
-<div class="portal-page">
-  <div *ngIf="loading" class="portal-loading"><mat-spinner diameter="36"></mat-spinner></div>
+<div *ngIf="loading" class="center-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
 
-  <ng-container *ngIf="!loading && cliente">
-    <div class="profile-hero portal-surface-card">
-      <div class="profile-avatar"><mat-icon>person</mat-icon></div>
-      <h2 class="portal-page-title">{{ nombreCompleto() }}</h2>
-      <div class="profile-badges">
-        <span *ngIf="cliente['expediente']" class="portal-chip-count">Exp. {{ cliente['expediente'] }}</span>
-        <span class="status-badge" [class.active]="portalActivo()">{{ portalActivo() ? 'Portal activo' : 'Portal pendiente' }}</span>
+<div class="portal-error" *ngIf="!loading && errorMessage" role="alert">
+  <mat-icon>error_outline</mat-icon>
+  <span>{{ errorMessage }}</span>
+</div>
+
+<div class="portal-profile-layout" *ngIf="!loading && !errorMessage && cliente">
+  <aside class="portal-profile-card">
+    <div class="portal-profile-avatar">{{ iniciales() }}</div>
+    <h2 class="portal-profile-name">{{ nombreCompleto() }}</h2>
+    <p class="portal-profile-email">{{ email }}</p>
+    <div class="portal-profile-chips">
+      <span class="portal-profile-chip" *ngIf="cliente['expediente']">Exp. {{ cliente['expediente'] }}</span>
+      <span class="portal-profile-chip" [class.active]="portalActivo()">
+        {{ portalActivo() ? 'Portal activo' : 'Portal pendiente' }}
+      </span>
+    </div>
+  </aside>
+
+  <div>
+    <div class="portal-info-panel">
+      <div class="portal-info-row">
+        <div class="portal-info-icon"><mat-icon>phone</mat-icon></div>
+        <div>
+          <span class="portal-info-label">Teléfono</span>
+          <span class="portal-info-value">{{ cliente['telefono'] || '—' }}</span>
+        </div>
+      </div>
+      <div class="portal-info-row">
+        <div class="portal-info-icon"><mat-icon>mail</mat-icon></div>
+        <div>
+          <span class="portal-info-label">Correo</span>
+          <span class="portal-info-value">{{ cliente['correo'] || email || '—' }}</span>
+        </div>
+      </div>
+      <div class="portal-info-row">
+        <div class="portal-info-icon"><mat-icon>home</mat-icon></div>
+        <div>
+          <span class="portal-info-label">Dirección</span>
+          <span class="portal-info-value">{{ direccion() }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="info-list portal-surface-card">
-      <div class="info-item">
-        <mat-icon>phone</mat-icon>
-        <div><small>Teléfono</small><p>{{ cliente['telefono'] || '—' }}</p></div>
-      </div>
-      <div class="info-item">
-        <mat-icon>mail_outline</mat-icon>
-        <div><small>Correo</small><p>{{ cliente['correo'] || email || '—' }}</p></div>
-      </div>
-      <div class="info-item">
-        <mat-icon>home</mat-icon>
-        <div><small>Dirección</small><p>{{ direccion() }}</p></div>
-      </div>
-    </div>
-
-    <div class="profile-actions">
-      <button mat-stroked-button color="primary" class="action-btn" (click)="resetPassword()">
+    <div class="portal-actions">
+      <button type="button" class="portal-btn portal-btn-outline" (click)="resetPassword()">
         <mat-icon>lock_reset</mat-icon>
         Restablecer contraseña
       </button>
-      <button mat-stroked-button color="warn" class="action-btn" (click)="logout()">
+      <button type="button" class="portal-btn portal-btn-danger" (click)="logout()">
         <mat-icon>logout</mat-icon>
         Cerrar sesión
       </button>
     </div>
-  </ng-container>
+  </div>
 </div>

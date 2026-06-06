@@ -44,6 +44,14 @@ export class PortalDataService {
     return mapped.activo ? mapped : null;
   }
 
+  async getMascotaForCliente(mascotaId: string, clienteId: string) {
+    const mascota = await this.getMascota(mascotaId);
+    if (!mascota || String(mascota.idCliente) !== String(clienteId)) {
+      return null;
+    }
+    return mascota;
+  }
+
   async getVacunasPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
       this.db.list('Katzen/Vacunas', ref =>

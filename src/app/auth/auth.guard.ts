@@ -25,9 +25,9 @@ export class AuthGuard implements CanActivate {
 
     await this.firebaseFunctions.syncMyClaims();
 
-    const isStaff = await this.authProfileService.isStaff();
-    if (!isStaff) {
-      this.logger.log('AuthGuard: sin perfil staff');
+    const hasStaff = await this.authProfileService.hasStaffAccess();
+    if (!hasStaff) {
+      this.logger.log('AuthGuard: sin acceso staff');
       await this.authService.logout();
       return false;
     }

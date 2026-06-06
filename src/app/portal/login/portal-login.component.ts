@@ -31,20 +31,28 @@ export class PortalLoginComponent implements OnInit {
   }
 
   async login(): Promise<void> {
-    if (!this.email || !this.password) {
-      Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña de cliente.' });
+    const email = this.email.trim();
+    if (!email || !this.password) {
+      Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña.' });
       return;
     }
 
     this.loading = true;
     try {
-      const result = await this.portalAuth.login(this.email, this.password);
+      const result = await this.portalAuth.login(email, this.password);
+      if (result === 'inactive') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Portal no activo',
+          text: 'Tu acceso al portal no está activo. Comunícate con la clínica para activarlo.'
+        });
+        return;
+      }
       if (result === 'none') {
-        await this.portalAuth.logout();
         Swal.fire({
           icon: 'warning',
           title: 'Sin acceso al portal',
-          html: 'Tu cuenta no está registrada como <strong>cliente</strong>.<br>Si eres personal, usa el acceso staff.'
+          text: 'No encontramos una cuenta de cliente con esas credenciales. Si eres personal, usa el acceso staff.'
         });
         return;
       }
@@ -53,9 +61,11 @@ export class PortalLoginComponent implements OnInit {
           icon: 'info',
           title: 'Cuenta de staff',
           text: 'Te redirigimos al panel administrativo.',
-          timer: 1800,
+          timer: 2200,
           showConfirmButton: false
         });
+        await this.portalAuth.navigateAfterLogin(result);
+        return;
       }
       await this.portalAuth.navigateAfterLogin(result);
     } catch {

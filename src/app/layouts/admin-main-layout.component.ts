@@ -74,10 +74,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   checkMobile() {
     this.isMobile = window.innerWidth < 900;
-    // En móvil, cerrar el menú automáticamente
-    if (this.isMobile && this.sidenavOpened) {
-      this.sidenavOpened = false;
-    }
+    this.sidenavOpened = !this.isMobile;
   }
 
   toggleSidenav() {

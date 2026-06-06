@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { formatNotificationTime, notificacionCategoria } from '../utils/portal-display.util';
+import { PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 
 @Component({
   selector: 'app-portal-notificaciones',
@@ -11,6 +12,7 @@ import { formatNotificationTime, notificacionCategoria } from '../utils/portal-d
 })
 export class PortalNotificacionesComponent implements OnInit {
   loading = true;
+  errorMessage = '';
   notificaciones: any[] = [];
   sinLeer = 0;
   clienteId = '';
@@ -36,30 +38,46 @@ export class PortalNotificacionesComponent implements OnInit {
 
   async cargar(): Promise<void> {
     this.loading = true;
-    this.notificaciones = await this.portalData.getNotificaciones(this.clienteId);
-    this.sinLeer = this.notificaciones.filter(n => !n.leida).length;
-    this.loading = false;
+    this.errorMessage = '';
+
+    try {
+      this.notificaciones = await this.portalData.getNotificaciones(this.clienteId);
+      this.sinLeer = this.notificaciones.filter(n => !n.leida).length;
+    } catch {
+      this.errorMessage = PORTAL_LOAD_ERROR;
+      this.notificaciones = [];
+      this.sinLeer = 0;
+    } finally {
+      this.loading = false;
+    }
   }
 
   async abrir(notif: any): Promise<void> {
-    if (!notif.leida) {
-      await this.portalData.marcarNotificacionLeida(this.clienteId, notif.id);
-      notif.leida = true;
-      this.sinLeer = Math.max(0, this.sinLeer - 1);
-    }
+    try {
+      if (!notif.leida) {
+        await this.portalData.marcarNotificacionLeida(this.clienteId, notif.id);
+        notif.leida = true;
+        this.sinLeer = Math.max(0, this.sinLeer - 1);
+      }
 
-    const tipo = String(notif.tipo || '').toLowerCase();
-    const mascotaId = notif.mascotaId;
-    if (!mascotaId) return;
+      const tipo = String(notif.tipo || '').toLowerCase();
+      const mascotaId = notif.mascotaId;
+      if (!mascotaId) return;
 
-    if (tipo.includes('vacuna')) {
-      await this.router.navigate(['/portal/mascotas', mascotaId, 'vacunas']);
-    } else if (tipo.includes('cita')) {
-      await this.router.navigate(['/portal/mascotas', mascotaId, 'citas']);
-    } else if (tipo.includes('historial') || tipo.includes('consulta')) {
-      await this.router.navigate(['/portal/mascotas', mascotaId, 'historial']);
-    } else {
-      await this.router.navigate(['/portal/mascotas', mascotaId]);
+      const mascota = await this.portalData.getMascotaForCliente(mascotaId, this.clienteId);
+      if (!mascota) return;
+
+      if (tipo.includes('vacuna')) {
+        await this.router.navigate(['/portal/mascotas', mascotaId, 'vacunas']);
+      } else if (tipo.includes('cita')) {
+        await this.router.navigate(['/portal/mascotas', mascotaId, 'citas']);
+      } else if (tipo.includes('historial') || tipo.includes('consulta')) {
+        await this.router.navigate(['/portal/mascotas', mascotaId, 'historial']);
+      } else {
+        await this.router.navigate(['/portal/mascotas', mascotaId]);
+      }
+    } catch {
+      this.errorMessage = PORTAL_LOAD_ERROR;
     }
   }
 

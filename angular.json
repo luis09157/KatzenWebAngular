@@ -26,9 +26,10 @@
               "src/sitemap.xml"
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/styles/material-katzen-theme.scss",
+              "src/styles/m3-katzen-system.scss",
               "src/styles.css",
-              "src/app/portal/portal-theme.css"
+              "src/app/portal/portal-shell.scss"
             ],
             "scripts": [],
             "allowedCommonJsDependencies": [

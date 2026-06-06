@@ -1,43 +1,85 @@
-<div class="portal-page">
-  <p class="section-label">{{ titulo }}</p>
+<div *ngIf="loading" class="center-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
 
-  <div *ngIf="loading" class="portal-loading"><mat-spinner diameter="36"></mat-spinner></div>
+<div class="portal-error" *ngIf="!loading && errorMessage" role="alert">
+  <mat-icon>error_outline</mat-icon>
+  <span>{{ errorMessage }}</span>
+</div>
 
-  <div *ngIf="!loading && items.length === 0" class="portal-empty-state portal-surface-card">
-    <mat-icon>inbox</mat-icon>
-    <p>Sin registros en esta sección</p>
-  </div>
-
-  <div *ngIf="!loading && seccion === 'vacunas'" class="portal-list-gap">
-    <article *ngFor="let item of items" class="record-card portal-surface-card theme-vacunas">
-      <h3>{{ item.vacuna }}</h3>
-      <p class="record-date">{{ formatDate(item.fecha) }}</p>
-      <p *ngIf="item.dosis" class="record-line"><span>Dosis</span> {{ item.dosis }}</p>
-      <p *ngIf="item.veterinario" class="record-line"><span>Veterinario</span> {{ item.veterinario }}</p>
-      <p *ngIf="item.observaciones" class="record-notes">{{ item.observaciones }}</p>
-    </article>
-  </div>
-
-  <div *ngIf="!loading && seccion === 'citas'" class="portal-list-gap">
-    <article *ngFor="let item of items" class="record-card portal-surface-card theme-citas">
-      <div class="record-top">
-        <h3>{{ item.motivo }}</h3>
-        <span class="estado-chip" [ngClass]="chipClass(item.estado)">{{ item.estado }}</span>
+<div class="portal-page section-{{ seccion }}" *ngIf="!loading && !errorMessage">
+  <div class="portal-data-panel">
+    <div class="portal-data-panel-head">
+      <mat-icon>{{ iconoSeccion }}</mat-icon>
+      <div>
+        <h2>{{ titulo }}</h2>
+        <p>Más reciente primero · {{ items.length }} registro{{ items.length === 1 ? '' : 's' }}</p>
       </div>
-      <p class="record-date">{{ formatDate(item.fecha_hora) }}</p>
-      <p *ngIf="item.veterinario" class="record-line"><span>Veterinario</span> {{ item.veterinario }}</p>
-      <p *ngIf="item.observaciones" class="record-notes">{{ item.observaciones }}</p>
-    </article>
-  </div>
+      <span class="portal-data-count">{{ items.length }}</span>
+    </div>
 
-  <div *ngIf="!loading && seccion === 'historial'" class="portal-list-gap">
-    <article *ngFor="let item of items" class="record-card portal-surface-card theme-historial">
-      <h3>{{ item.diagnostico }}</h3>
-      <p class="record-date">{{ formatDate(item.fecha_registro) }}</p>
-      <p *ngIf="item.tratamiento" class="record-line"><span>Tratamiento</span> {{ item.tratamiento }}</p>
-      <p *ngIf="item.medicamentos" class="record-line"><span>Medicamentos</span> {{ item.medicamentos }}</p>
-      <p *ngIf="item.medico_atendio" class="record-line"><span>Médico</span> {{ item.medico_atendio }}</p>
-      <p *ngIf="item.notas" class="record-notes">{{ item.notas }}</p>
-    </article>
+    <div class="portal-empty" *ngIf="items.length === 0" style="border:none;box-shadow:none">
+      <div class="portal-empty-icon"><mat-icon>inbox</mat-icon></div>
+      <h3>{{ emptyMessage }}</h3>
+      <p>Cuando haya registros aparecerán aquí en orden cronológico.</p>
+    </div>
+
+    <div class="portal-data-table" *ngIf="items.length > 0">
+      <article class="portal-data-row" *ngFor="let item of items">
+        <time class="portal-data-date">{{ itemDate(item) }}</time>
+        <div class="portal-data-main">
+          <h3>{{ itemTitle(item) }}</h3>
+          <span *ngIf="itemEstado(item)" class="portal-data-chip" [ngClass]="chipClass(itemEstado(item)!)">
+            {{ itemEstado(item) }}
+          </span>
+          <div class="portal-data-fields">
+            <ng-container *ngIf="seccion === 'vacunas'">
+              <div class="portal-data-field" *ngIf="item.dosis">
+                <strong>Dosis</strong>
+                {{ item.dosis }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.veterinario">
+                <strong>Veterinario</strong>
+                {{ item.veterinario }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.observaciones">
+                <strong>Notas</strong>
+                {{ item.observaciones }}
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="seccion === 'citas'">
+              <div class="portal-data-field" *ngIf="item.veterinario">
+                <strong>Veterinario</strong>
+                {{ item.veterinario }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.observaciones">
+                <strong>Notas</strong>
+                {{ item.observaciones }}
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="seccion === 'historial'">
+              <div class="portal-data-field" *ngIf="item.tratamiento">
+                <strong>Tratamiento</strong>
+                {{ item.tratamiento }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.medicamentos">
+                <strong>Medicamentos</strong>
+                {{ item.medicamentos }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.medico_atendio">
+                <strong>Médico</strong>
+                {{ item.medico_atendio }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.notas">
+                <strong>Notas</strong>
+                {{ item.notas }}
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </div>

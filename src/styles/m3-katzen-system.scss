@@ -1,0 +1,180 @@
+/* KatzenVet — Material Design 3 system tokens
+   https://m3.material.io/styles/color/system/overview
+   Primary source: #0A969B (marca Katzen) */
+
+:root {
+  color-scheme: light;
+
+  /* Primary */
+  --md-sys-color-primary: #006a6a;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #6ff7f6;
+  --md-sys-color-on-primary-container: #002020;
+
+  /* Secondary / tertiary */
+  --md-sys-color-secondary: #4a6363;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #cce8e7;
+  --md-sys-color-on-secondary-container: #051f1f;
+
+  --md-sys-color-tertiary: #456179;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #cce5ff;
+  --md-sys-color-on-tertiary-container: #001e31;
+
+  /* Surfaces */
+  --md-sys-color-surface: #f4fbfa;
+  --md-sys-color-on-surface: #191c1c;
+  --md-sys-color-on-surface-variant: #3f4948;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #eff5f4;
+  --md-sys-color-surface-container: #e9efee;
+  --md-sys-color-surface-container-high: #e3e9e8;
+  --md-sys-color-surface-container-highest: #dee4e3;
+
+  /* Outline & error */
+  --md-sys-color-outline: #6f7979;
+  --md-sys-color-outline-variant: #bec9c8;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+
+  /* Section accents (expediente) */
+  --katzen-vacunas: #00897b;
+  --katzen-citas: #1565c0;
+  --katzen-historial: #7b1fa2;
+
+  /* Shape — M3 rounded */
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: 'Poppins', Roboto, sans-serif;
+}
+
+/* Puente M3 → Angular Material MDC tokens */
+:root {
+  --mat-app-background-color: var(--md-sys-color-surface);
+  --mat-toolbar-container-background-color: var(--md-sys-color-surface-container-lowest);
+  --mat-toolbar-container-text-color: var(--md-sys-color-on-surface);
+
+  --mdc-filled-button-container-color: var(--md-sys-color-primary);
+  --mdc-filled-button-label-text-color: var(--md-sys-color-on-primary);
+  --mdc-filled-button-container-shape: var(--md-sys-shape-corner-full);
+  --mdc-filled-button-container-height: 40px;
+
+  --mdc-protected-button-container-color: var(--md-sys-color-primary);
+  --mdc-protected-button-label-text-color: var(--md-sys-color-on-primary);
+  --mdc-protected-button-container-shape: var(--md-sys-shape-corner-full);
+
+  --mdc-outlined-button-outline-color: var(--md-sys-color-outline);
+  --mdc-outlined-button-label-text-color: var(--md-sys-color-primary);
+  --mdc-outlined-button-container-shape: var(--md-sys-shape-corner-full);
+  --mdc-outlined-button-container-height: 40px;
+
+  --mdc-text-button-label-text-color: var(--md-sys-color-primary);
+  --mdc-text-button-container-shape: var(--md-sys-shape-corner-full);
+
+  --mdc-fab-container-shape: var(--md-sys-shape-corner-large);
+  --mdc-fab-small-container-shape: var(--md-sys-shape-corner-medium);
+  --mdc-fab-container-color: var(--md-sys-color-primary-container);
+  --mdc-fab-icon-color: var(--md-sys-color-on-primary-container);
+
+  --mdc-outlined-text-field-container-shape: var(--md-sys-shape-corner-small);
+  --mdc-outlined-text-field-outline-color: var(--md-sys-color-outline);
+  --mdc-outlined-text-field-focus-outline-color: var(--md-sys-color-primary);
+  --mdc-outlined-text-field-label-text-color: var(--md-sys-color-on-surface-variant);
+  --mdc-outlined-text-field-input-text-color: var(--md-sys-color-on-surface);
+
+  --mdc-chip-container-shape-radius: var(--md-sys-shape-corner-small);
+  --mdc-chip-elevated-container-color: var(--md-sys-color-surface-container-high);
+  --mdc-chip-label-text-color: var(--md-sys-color-on-surface);
+
+  --mdc-outlined-card-container-color: var(--md-sys-color-surface-container-lowest);
+  --mdc-outlined-card-container-shape: var(--md-sys-shape-corner-large);
+  --mdc-outlined-card-outline-color: var(--md-sys-color-outline-variant);
+
+  --mdc-elevated-card-container-color: var(--md-sys-color-surface-container-lowest);
+  --mdc-elevated-card-container-shape: var(--md-sys-shape-corner-extra-large);
+  --mdc-elevated-card-container-elevation: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  --mat-form-field-container-text-font: 'Poppins', sans-serif;
+  --mat-list-list-item-label-text-font: 'Poppins', sans-serif;
+}
+
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-fab.mat-primary {
+  --mdc-filled-button-container-color: var(--md-sys-color-primary);
+}
+
+.mat-mdc-outlined-card,
+.mat-mdc-elevated-card {
+  margin-bottom: 16px;
+}
+
+.mat-mdc-tab-header {
+  --mat-tab-header-active-label-text-color: var(--md-sys-color-primary);
+  --mat-tab-header-active-ripple-color: var(--md-sys-color-primary-container);
+  --mdc-tab-indicator-active-indicator-color: var(--md-sys-color-primary);
+}
+
+.mat-mdc-chip.mat-mdc-standard-chip.mat-primary,
+.mat-mdc-chip.mat-mdc-standard-chip[highlighted] {
+  --mdc-chip-elevated-container-color: var(--md-sys-color-primary-container);
+  --mdc-chip-label-text-color: var(--md-sys-color-on-primary-container);
+}
+
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-card {
+  --mdc-elevated-card-container-shape: var(--md-sys-shape-corner-extra-large);
+  --mdc-outlined-card-container-shape: var(--md-sys-shape-corner-large);
+}
+
+/* Tipografía M3 */
+.mat-headline-small, .m3-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.mat-title-medium, .m3-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.mat-body-medium, .m3-body {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.mat-label-large, .m3-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}

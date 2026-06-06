@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$katzen-primary: mat.define-palette(mat.$teal-palette, 600, 100, 900);
+$katzen-accent: mat.define-palette(mat.$cyan-palette, 50);
+$katzen-warn: mat.define-palette(mat.$red-palette);
+
+$katzen-theme: mat.define-light-theme((
+  color: (
+    primary: $katzen-primary,
+    accent: $katzen-accent,
+    warn: $katzen-warn,
+  ),
+  typography: mat.define-typography-config(
+    $font-family: 'Poppins, Roboto, sans-serif',
+  ),
+  density: 0,
+));
+
+@include mat.all-component-themes($katzen-theme);
+
+@include mat.typography-hierarchy($katzen-theme);

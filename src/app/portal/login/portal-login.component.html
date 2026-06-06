@@ -1,71 +1,45 @@
-<div class="portal-login-page">
-  <div class="portal-login-bg"></div>
-
-  <div class="portal-login-shell">
-    <button mat-icon-button class="portal-back" (click)="irALanding()" aria-label="Volver al inicio">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-
-    <div *ngIf="checkingSession" class="portal-login-loading">
-      <mat-spinner diameter="36"></mat-spinner>
+<div class="portal-login-wrap">
+  <div class="portal-login-card">
+    <div class="portal-login-brand">
+      <img src="assets/katzen-logo.png" alt="KatzenVet" class="portal-login-logo" width="72" height="72">
+      <h1>Portal del dueño</h1>
+      <p>Consulta el expediente de tus mascotas en línea</p>
     </div>
 
-    <div *ngIf="!checkingSession" class="portal-login-card">
-      <div class="portal-brand-block">
-        <div class="portal-brand-icon"><mat-icon>pets</mat-icon></div>
-        <span class="portal-brand-tag">KatzenVet</span>
-        <h1>Iniciar sesión</h1>
-        <p>Portal del dueño — consulta el expediente de tus mascotas</p>
-      </div>
-
-      <!-- Sesión activa: pedir confirmación antes de entrar -->
-      <div *ngIf="activeSession" class="portal-session-banner">
-        <mat-icon>account_circle</mat-icon>
-        <div>
-          <strong>Ya tienes una sesión activa</strong>
-          <span>{{ activeSession.email }}</span>
-        </div>
-      </div>
-
-      <div *ngIf="activeSession" class="portal-session-actions">
-        <button mat-flat-button color="primary" class="portal-btn-primary" (click)="continuarSesion()">
-          Continuar al portal
-        </button>
-        <button mat-stroked-button class="portal-btn-secondary" (click)="cerrarSesion()">
-          Cerrar sesión e ingresar con otra cuenta
-        </button>
-      </div>
-
-      <!-- Formulario: siempre visible si no hay sesión, o como alternativa -->
-      <ng-container *ngIf="!activeSession">
-        <form (ngSubmit)="login()" class="portal-login-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Correo electrónico</mat-label>
-            <mat-icon matPrefix>mail_outline</mat-icon>
-            <input matInput type="email" [(ngModel)]="email" name="email" required autocomplete="email" placeholder="tu@correo.com">
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Contraseña</mat-label>
-            <mat-icon matPrefix>lock_outline</mat-icon>
-            <input matInput type="password" [(ngModel)]="password" name="password" required autocomplete="current-password" placeholder="••••••••">
-          </mat-form-field>
-          <button mat-flat-button color="primary" type="submit" class="portal-btn-primary" [disabled]="loading">
-            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-            <span *ngIf="!loading">Iniciar sesión</span>
-          </button>
-        </form>
-      </ng-container>
-
-      <div class="portal-login-steps">
-        <div class="step"><span>1</span> Inicia sesión</div>
-        <div class="step"><span>2</span> Elige tu mascota</div>
-        <div class="step"><span>3</span> Consulta vacunas, citas e historial</div>
-      </div>
-
-      <p class="portal-staff-hint">
-        ¿Trabajas en la clínica?
-        <a routerLink="/admin/login">Acceso staff</a>
-      </p>
+    <div *ngIf="checkingSession" class="center-loading">
+      <mat-spinner diameter="40"></mat-spinner>
     </div>
+
+    <ng-container *ngIf="!checkingSession">
+      <div *ngIf="activeSession" style="margin-bottom:20px;padding:20px;background:#f4f7f9;border-radius:16px">
+        <p class="m3-body" style="margin:0 0 16px">
+          <strong>Sesión activa</strong><br>{{ activeSession.email }}
+        </p>
+        <button type="button" class="portal-btn portal-btn-primary full-width section-gap" (click)="continuarSesion()">Continuar</button>
+        <button type="button" class="portal-btn portal-btn-outline full-width section-gap" (click)="cerrarSesion()">Cerrar sesión</button>
+      </div>
+
+      <form *ngIf="!activeSession" (ngSubmit)="login()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo electrónico</mat-label>
+          <mat-icon matPrefix>mail</mat-icon>
+          <input matInput type="email" [(ngModel)]="email" name="email" required>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" [(ngModel)]="password" name="password" required>
+        </mat-form-field>
+        <button type="submit" class="portal-btn portal-btn-primary full-width" [disabled]="loading">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">Iniciar sesión</span>
+        </button>
+      </form>
+
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(15,23,42,0.08)">
+        <button mat-button type="button" (click)="irALanding()">Ir al sitio web</button>
+        <button mat-button type="button" routerLink="/admin/login">Acceso staff</button>
+      </div>
+    </ng-container>
   </div>
 </div>

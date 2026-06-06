@@ -1,35 +1,71 @@
-<div class="portal-page">
-  <div *ngIf="loading" class="portal-loading"><mat-spinner diameter="36"></mat-spinner></div>
+<div *ngIf="loading" class="center-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
 
-  <ng-container *ngIf="!loading && mascota">
-    <div class="hero-card portal-surface-card">
-      <div class="hero-icon"><mat-icon>pets</mat-icon></div>
-      <h2 class="portal-page-title">{{ mascota.nombre }}</h2>
-      <p class="hero-meta">{{ mascota.especie }}<span *ngIf="mascota.raza"> · {{ mascota.raza }}</span><span *ngIf="mascota.sexo"> · {{ mascota.sexo }}</span></p>
-      <div class="hero-stats">
-        <div><strong>{{ counts.vacunas }}</strong><span>Vacunas</span></div>
-        <div><strong>{{ counts.citas }}</strong><span>Citas</span></div>
-        <div><strong>{{ counts.historiales }}</strong><span>Historial</span></div>
+<div class="portal-error" *ngIf="!loading && errorMessage" role="alert">
+  <mat-icon>error_outline</mat-icon>
+  <span>{{ errorMessage }}</span>
+</div>
+
+<div class="portal-expediente-layout" *ngIf="!loading && !errorMessage && mascota">
+  <aside class="portal-expediente-profile">
+    <div class="portal-expediente-band"></div>
+    <div class="portal-expediente-body">
+      <div class="portal-expediente-avatar">
+        <mat-icon>pets</mat-icon>
+      </div>
+      <h2 class="portal-expediente-name">{{ mascota.nombre }}</h2>
+      <p class="portal-expediente-meta">{{ metaLine }}</p>
+      <div class="portal-stats">
+        <div class="portal-stat portal-stat--vacunas">
+          <strong>{{ counts.vacunas }}</strong>
+          <span>Vacunas</span>
+        </div>
+        <div class="portal-stat portal-stat--citas">
+          <strong>{{ counts.citas }}</strong>
+          <span>Citas</span>
+        </div>
+        <div class="portal-stat portal-stat--historial">
+          <strong>{{ counts.historiales }}</strong>
+          <span>Historial</span>
+        </div>
       </div>
     </div>
+  </aside>
 
-    <p class="section-label">Expediente</p>
-    <div class="hub-list portal-list-gap">
-      <button type="button" class="hub-tile portal-surface-card theme-vacunas" (click)="ir('vacunas')">
-        <mat-icon>vaccines</mat-icon>
-        <div><strong>Vacunas</strong><span>{{ subtitulo(counts.vacunas, 'vacunas') }}</span></div>
-        <mat-icon>chevron_right</mat-icon>
+  <div>
+    <h2 style="margin:0 0 8px;font-size:1.125rem;font-weight:700">Secciones del expediente</h2>
+    <p style="margin:0 0 20px;color:var(--portal-muted);font-size:0.9375rem">
+      Selecciona una sección para ver el detalle completo.
+    </p>
+
+    <div class="portal-section-grid">
+      <button type="button" class="portal-section-card" (click)="ir('vacunas')">
+        <div class="portal-section-icon portal-section-icon--vacunas">
+          <mat-icon>vaccines</mat-icon>
+        </div>
+        <h3>Vacunas</h3>
+        <p>{{ subtitulo(counts.vacunas, 'vacunas') }}</p>
+        <span class="portal-section-count badge-vacunas">{{ counts.vacunas }} registro{{ counts.vacunas === 1 ? '' : 's' }}</span>
       </button>
-      <button type="button" class="hub-tile portal-surface-card theme-citas" (click)="ir('citas')">
-        <mat-icon>event</mat-icon>
-        <div><strong>Citas</strong><span>{{ subtitulo(counts.citas, 'citas') }}</span></div>
-        <mat-icon>chevron_right</mat-icon>
+
+      <button type="button" class="portal-section-card" (click)="ir('citas')">
+        <div class="portal-section-icon portal-section-icon--citas">
+          <mat-icon>event</mat-icon>
+        </div>
+        <h3>Citas</h3>
+        <p>{{ subtitulo(counts.citas, 'citas') }}</p>
+        <span class="portal-section-count badge-citas">{{ counts.citas }} registro{{ counts.citas === 1 ? '' : 's' }}</span>
       </button>
-      <button type="button" class="hub-tile portal-surface-card theme-historial" (click)="ir('historial')">
-        <mat-icon>medical_services</mat-icon>
-        <div><strong>Historial clínico</strong><span>{{ subtitulo(counts.historiales, 'historial') }}</span></div>
-        <mat-icon>chevron_right</mat-icon>
+
+      <button type="button" class="portal-section-card" (click)="ir('historial')">
+        <div class="portal-section-icon portal-section-icon--historial">
+          <mat-icon>medical_services</mat-icon>
+        </div>
+        <h3>Historial clínico</h3>
+        <p>{{ subtitulo(counts.historiales, 'historial') }}</p>
+        <span class="portal-section-count badge-historial">{{ counts.historiales }} registro{{ counts.historiales === 1 ? '' : 's' }}</span>
       </button>
     </div>
-  </ng-container>
+  </div>
 </div>

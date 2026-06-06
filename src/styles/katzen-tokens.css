@@ -1,0 +1,73 @@
+/* KatzenVet — Design tokens unificados (portal + admin + landing) */
+:root {
+  /* Marca */
+  --katzen-verde: #0A969B;
+  --katzen-verde-claro: #09C1CD;
+  --katzen-verde-fuerte: #065D60;
+  --katzen-verde-soft: #E0F7F8;
+  --katzen-verde-glow: rgba(10, 150, 155, 0.18);
+
+  /* Superficies */
+  --background: #F8FBFB;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #E0EAEA;
+  --divider: #E0EAEA;
+
+  /* Texto */
+  --text-primary: #1A2E2E;
+  --text-secondary: #5A6E6E;
+  --text-hint: #9EABAB;
+  --text-on-brand: #FFFFFF;
+
+  /* Portal — secciones expediente */
+  --portal-vacunas-accent: #00897B;
+  --portal-vacunas-surface: #E0F2F1;
+  --portal-citas-accent: #1E88E5;
+  --portal-citas-surface: #E3F2FD;
+  --portal-historial-accent: #7B1FA2;
+  --portal-historial-surface: #EDE7F6;
+  --portal-notif-accent: #AD067E;
+  --portal-notif-surface: #F5E6F0;
+  --portal-timeline-line: #C5D5D5;
+
+  /* Alias portal (compatibilidad) */
+  --portal-brand: var(--katzen-verde);
+  --portal-brand-dark: var(--katzen-verde-fuerte);
+  --portal-brand-soft: var(--katzen-verde-soft);
+  --portal-accent: var(--katzen-verde-claro);
+  --portal-surface: var(--surface);
+  --portal-bg: var(--background);
+  --portal-text: var(--text-primary);
+  --portal-muted: var(--text-secondary);
+  --portal-border: var(--border);
+
+  /* Admin sidebar */
+  --admin-sidebar-bg: linear-gradient(180deg, #065D60 0%, #043638 100%);
+  --admin-sidebar-width: 268px;
+  --admin-header-height: 64px;
+
+  /* Radios y sombras */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --portal-radius: var(--radius-md);
+  --portal-radius-lg: var(--radius-lg);
+  --shadow-sm: 0 2px 8px rgba(26, 46, 46, 0.06);
+  --shadow-md: 0 8px 24px rgba(26, 46, 46, 0.08);
+  --shadow-lg: 0 16px 48px rgba(26, 46, 46, 0.12);
+  --portal-shadow-sm: var(--shadow-sm);
+  --portal-shadow: var(--shadow-md);
+
+  /* Tipografía */
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Bottom nav active (paridad app) */
+  --portal-nav-active-bg: #FCE4EC;
+  --portal-nav-active-text: #AD067E;
+  --portal-header-bg: linear-gradient(135deg, #0A969B 0%, #065D60 100%);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+}

@@ -10,7 +10,7 @@
         ".write": "auth != null && auth.token.role != 'client'",
         ".indexOn": ["authUid", "correo", "activo", "portalActivo"],
         "$clienteId": {
-          ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
+          ".read": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && data.child('portalActivo').val() == true && data.child('activo').val() != false))",
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },
@@ -19,7 +19,7 @@
         ".write": "auth != null && auth.token.role != 'client'",
         ".indexOn": ["idCliente", "activo"],
         "$mascotaId": {
-          ".read": "auth != null && (auth.token.role != 'client' || data.child('idCliente').val() == auth.token.clienteId)",
+          ".read": "auth != null && (auth.token.role != 'client' || (data.child('idCliente').val() == auth.token.clienteId && data.child('activo').val() != false))",
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },
@@ -63,7 +63,7 @@
         ".write": "auth != null && auth.token.role != 'client'",
         ".indexOn": ["paciente_id", "activo"],
         "$historialId": {
-          ".read": "auth != null && (auth.token.role != 'client' || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".read": "auth != null && (auth.token.role != 'client' || (root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId && data.child('oculto_portal').val() != true && data.child('ocultoPortal').val() != true))",
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },
@@ -83,6 +83,15 @@
               ".write": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && newData.isBoolean() && newData.val() == true && (!data.exists() || data.val() == false)))"
             }
           }
+        }
+      },
+      "ContactosWeb": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": false,
+        ".indexOn": ["fecha", "leido", "activo"],
+        "$contactoId": {
+          ".read": "auth != null && auth.token.role != 'client'",
+          ".write": "!data.exists() && newData.hasChildren(['nombre','email','telefono','mascota','mensaje','fecha','origen','leido','activo']) && newData.child('nombre').isString() && newData.child('nombre').val().length >= 2 && newData.child('nombre').val().length <= 100 && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\.[^@]+$/) && newData.child('telefono').isString() && newData.child('telefono').val().length >= 7 && newData.child('telefono').val().length <= 20 && newData.child('mascota').isString() && newData.child('mascota').val().length >= 1 && newData.child('mascota').val().length <= 80 && newData.child('mensaje').isString() && newData.child('mensaje').val().length >= 10 && newData.child('mensaje').val().length <= 2000 && newData.child('fecha').isString() && newData.child('origen').val() == 'landing' && newData.child('leido').val() == false && newData.child('activo').val() == true || (auth != null && auth.token.role != 'client' && data.exists())"
         }
       },
       "Banios": {

@@ -19,7 +19,10 @@ export class PortalAuthGuard implements CanActivate {
     const session = await this.portalSession.resolveSession();
     if (session) return true;
 
-    if (await this.authProfileService.isStaff()) {
+    const hasStaff = await this.authProfileService.hasStaffAccess();
+    const hasClient = await this.authProfileService.hasClientAccess();
+
+    if (hasStaff && !hasClient) {
       await this.router.navigate(['/admin/inicio']);
       return false;
     }
