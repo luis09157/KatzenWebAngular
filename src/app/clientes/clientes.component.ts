@@ -319,8 +319,15 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.saving = true;
         this.loadingService.show();
         this.clientesService.guardarCliente(result)
-          .then(() => {
+          .then((id) => {
             this.loadingService.hide();
+            const saved = { ...result, id };
+            this.todosLosClientes = [
+              saved,
+              ...this.todosLosClientes.filter(c => c.id !== id)
+            ];
+            this.aplicarFiltroSucursal();
+            this.cargarEstadisticas();
             setTimeout(() => {
               Swal.fire({
                 title: '¡Éxito!',
@@ -328,7 +335,6 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
                 icon: 'success',
                 confirmButtonText: 'Entendido'
               });
-              this.ngOnInit();
             }, 0);
           })
           .catch(error => {
@@ -390,9 +396,11 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.clientesService.bajaLogicaCliente(id)
           .then(() => {
             this.loadingService.hide();
+            this.todosLosClientes = this.todosLosClientes.filter(c => c.id !== id);
+            this.aplicarFiltroSucursal();
+            this.cargarEstadisticas();
             setTimeout(() => {
               Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
-              this.ngOnInit();
             }, 0);
           })
           .catch(() => {

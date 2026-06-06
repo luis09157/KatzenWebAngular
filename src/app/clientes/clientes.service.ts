@@ -77,35 +77,29 @@ export class ClientesService {
     );
   }
 
-  async guardarCliente(cliente: Cliente & { id?: string }): Promise<unknown> {
+  async guardarCliente(cliente: Cliente & { id?: string }): Promise<string> {
     cliente = this.sucursalContext.stamp(cliente as Record<string, unknown>) as Cliente & { id?: string };
     const isNew = !cliente.id || String(cliente.id).trim() === '';
     if (isNew) {
+      const id = crypto.randomUUID();
+      cliente.id = id;
       cliente.activo = true;
-    }
-    if (isNew) {
-      return this.db.list('Katzen/Cliente').push(cliente).then((result) => {
-        const generatedId = result.key;
-        if (generatedId) {
-          return this.db.object(`Katzen/Cliente/${generatedId}`).update({ id: generatedId }).then(() => {
-            return Promise.resolve();
-          }).catch(error => {
-            this.logger.error('❌ [SERVICIO] Error al actualizar ID:', error);
-            throw error;
-          });
-        }
-        return Promise.resolve();
-      }).catch(error => {
+      cliente.fecha_registro = rtdbFechaAhora();
+      try {
+        await this.db.object(`Katzen/Cliente/${id}`).set(cliente);
+        return id;
+      } catch (error) {
         this.logger.error('❌ [SERVICIO] Error al crear cliente en Firebase:', error);
         throw error;
-      });
-    } else {
-      return this.db.object(`Katzen/Cliente/${cliente.id}`).set(cliente).then(() => {
-        return Promise.resolve();
-      }).catch(error => {
-        this.logger.error('❌ [SERVICIO] Error al actualizar cliente:', error);
-        throw error;
-      });
+      }
+    }
+
+    try {
+      await this.db.object(`Katzen/Cliente/${cliente.id}`).set(cliente);
+      return String(cliente.id);
+    } catch (error) {
+      this.logger.error('❌ [SERVICIO] Error al actualizar cliente:', error);
+      throw error;
     }
   }
 

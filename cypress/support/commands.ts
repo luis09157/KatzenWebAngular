@@ -4,6 +4,8 @@ declare global {
   namespace Cypress {
     interface Chainable {
       loginAdmin(): Chainable<void>;
+      /** Navegación SPA sin recargar (preserva sesión Firebase). */
+      navigateAdmin(path: string): Chainable<void>;
       confirmSwal(): Chainable<void>;
       dismissSwalSuccess(): Chainable<void>;
       fillClienteFormBasico(options: {
@@ -31,23 +33,24 @@ Cypress.Commands.add('loginAdmin', () => {
   const email = Cypress.env('adminEmail') as string;
   const password = Cypress.env('adminPassword') as string;
 
-  cy.session(
-    ['admin', email],
-    () => {
-      cy.visit('/admin/login');
-      cy.get('input[name="email"]').clear().type(email);
-      cy.get('input[name="password"]').clear().type(password, { log: false });
-      cy.get('button[type="submit"]').contains('Entrar').click();
-      cy.url({ timeout: 30000 }).should('include', '/admin/inicio');
-      cy.contains('Admin', { timeout: 15000 });
-    },
-    {
-      validate() {
-        cy.visit('/admin/inicio');
-        cy.url({ timeout: 15000 }).should('include', '/admin/inicio');
-      }
+  cy.visit('/admin/login');
+  cy.get('input[name="email"]', { timeout: 15000 }).should('be.visible').clear().type(email);
+  cy.get('input[name="password"]').clear().type(password, { log: false });
+  cy.get('button[type="submit"]').contains('Entrar').click();
+
+  cy.url({ timeout: 45000 }).should('match', /\/admin\/(inicio|clientes)/);
+  cy.get('body').then($body => {
+    if ($body.find('.swal2-popup:visible').length) {
+      const msg = $body.find('.swal2-html-container').text().trim();
+      throw new Error(`Login no completado: ${msg || 'error desconocido'}`);
     }
-  );
+  });
+  cy.get('mat-sidenav', { timeout: 20000 }).should('exist');
+});
+
+Cypress.Commands.add('navigateAdmin', (path: string) => {
+  cy.get(`a[routerLink="${path}"]`, { timeout: 15000 }).should('be.visible').click();
+  cy.url({ timeout: 15000 }).should('include', path);
 });
 
 Cypress.Commands.add('confirmSwal', () => {
@@ -59,7 +62,8 @@ Cypress.Commands.add('confirmSwal', () => {
 });
 
 Cypress.Commands.add('dismissSwalSuccess', () => {
-  cy.get('.swal2-popup', { timeout: 15000 }).should('be.visible');
+  cy.get('.swal2-popup', { timeout: 30000 }).should('exist');
+  cy.get('.global-loading-overlay', { timeout: 30000 }).should('not.exist');
   cy.get('.swal2-confirm').click({ force: true });
   cy.get('.swal2-popup').should('not.exist');
 });

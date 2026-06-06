@@ -383,7 +383,6 @@ export class ClienteDialogComponent implements OnInit {
           imageUrl: clienteData.imageUrl,
           imageFileName: clienteData.imageFileName
         });
-        this.loadingService.show();
         this.dialogRef.close(clienteData);
       } catch (error) {
         console.error('❌ Error al procesar la imagen:', error);

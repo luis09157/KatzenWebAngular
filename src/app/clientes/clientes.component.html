@@ -75,7 +75,7 @@
     
     <mat-form-field appearance="outline" class="buscador">
       <mat-label>Buscar cliente</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, expediente, teléfono, dirección..." />
+      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Buscar por nombre, expediente, teléfono, dirección..." />
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
     

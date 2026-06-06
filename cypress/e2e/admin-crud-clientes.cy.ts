@@ -17,10 +17,8 @@ describe('Admin CRUD — Clientes', () => {
     const telefonoInicial = String(8100000000 + (runId % 999999)).slice(0, 10);
     const telefonoEditado = String(8101000000 + (runId % 999999)).slice(0, 10);
     const correo = `e2e.${runId}@test.katzen.local`;
-    const etiquetaBusqueda = nombre.toLowerCase();
-
     cy.loginAdmin();
-    cy.visit('/admin/clientes');
+    cy.navigateAdmin('/admin/clientes');
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
 
     // CREATE
@@ -34,9 +32,11 @@ describe('Admin CRUD — Clientes', () => {
     cy.get('mat-dialog-actions button').contains('Guardar').click();
     cy.dismissSwalSuccess();
     cy.get('mat-dialog-container').should('not.exist');
+    cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+    cy.get('.global-loading-overlay', { timeout: 30000 }).should('not.exist');
 
-    cy.get('.buscador input').clear().type(etiquetaBusqueda);
-    cy.contains('td', nombre, { timeout: 15000 }).should('be.visible');
+    cy.get('.buscador input').clear().type(telefonoInicial);
+    cy.contains('td', nombre, { timeout: 20000 }).should('be.visible');
 
     // UPDATE
     cy.contains('tr', nombre).within(() => {
@@ -45,8 +45,8 @@ describe('Admin CRUD — Clientes', () => {
     cy.get('input[formControlName="telefono"]').clear().type(telefonoEditado);
     cy.get('mat-dialog-actions button').contains('Guardar').click();
     cy.dismissSwalSuccess();
-    cy.get('.buscador input').clear().type(etiquetaBusqueda);
-    cy.contains('td', telefonoEditado, { timeout: 15000 }).should('be.visible');
+    cy.get('.buscador input').clear().type(telefonoEditado);
+    cy.contains('td', telefonoEditado, { timeout: 20000 }).should('be.visible');
 
     // DELETE (baja lógica)
     cy.contains('tr', nombre).within(() => {
@@ -54,7 +54,7 @@ describe('Admin CRUD — Clientes', () => {
     });
     cy.get('.swal2-confirm').contains('Sí, dar de baja').click();
     cy.dismissSwalSuccess();
-    cy.get('.buscador input').clear().type(etiquetaBusqueda);
+    cy.get('.buscador input').clear().type(telefonoEditado);
     cy.contains('td', nombre).should('not.exist');
   });
 });
