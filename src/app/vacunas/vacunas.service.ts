@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -26,15 +27,22 @@ export class VacunasService {
 
   // Obtener vacunas por paciente_id
   getVacunasPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Vacunas').snapshotChanges().pipe(
-      map(changes => 
+    return this.db.list('Katzen/Vacunas', ref =>
+      ref.orderByChild('idPaciente').equalTo(pacienteId)
+    ).snapshotChanges().pipe(
+      take(1),
+      map(changes =>
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(v => v.idPaciente === pacienteId && v.activo !== false && v.activo !== 0) // Solo mostrar vacunas activas
+          .filter(v =>
+            (v.idPaciente === pacienteId || v.paciente_id === pacienteId) &&
+            v.activo !== false &&
+            v.activo !== 0
+          )
           .sort((a, b) => {
             const fechaA = new Date(a.fechaRegistro || a.fecha_aplicacion || a.created_at || 0);
             const fechaB = new Date(b.fechaRegistro || b.fecha_aplicacion || b.created_at || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            return fechaB.getTime() - fechaA.getTime();
           })
       )
     );

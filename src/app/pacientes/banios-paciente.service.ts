@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { Banio } from '../shared/banio.model';
 
 export interface BanioPaciente extends Omit<Banio, 'created_at' | 'updated_at'> {
@@ -24,17 +25,18 @@ export class BaniosPacienteService {
   // ===== CRUD PARA BAÑOS DE PACIENTE =====
   
   getBaniosPorPaciente(pacienteId: string): Observable<BanioPaciente[]> {
-    return this.db.list<Banio>(this.basePath)
-      .snapshotChanges()
-      .pipe(
-        map(changes => changes.map(c => ({ id: c.payload.key, ...c.payload.val() }))),
-        map(banios => banios.filter(b => b.paciente_id === pacienteId && b.activo !== false)),
-        map(banios => banios.map(banio => this.formatearBanioPaciente(banio))),
-        catchError(error => {
-          console.error('Error al obtener baños del paciente:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.db.list<Banio>(this.basePath, ref =>
+      ref.orderByChild('paciente_id').equalTo(pacienteId)
+    ).snapshotChanges().pipe(
+      take(1),
+      map(changes => changes.map(c => ({ id: c.payload.key, ...c.payload.val() }))),
+      map(banios => banios.filter(b => b.activo !== false)),
+      map(banios => banios.map(banio => this.formatearBanioPaciente(banio))),
+      catchError(error => {
+        console.error('Error al obtener baños del paciente:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   getBanioById(id: string): Observable<BanioPaciente | null> {

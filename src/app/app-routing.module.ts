@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './auth/auth.guard';
+import { AdminRoleGuard } from './auth/admin-role.guard';
 import { AdminMainLayoutComponent } from './layouts/admin-main-layout.component';
 import { LandingComponent } from './landing/landing.component';
 import { PrivacidadComponent } from './landing/privacidad/privacidad.component';
@@ -16,7 +17,7 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: 'inicio', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule) },
-      { path: 'usuarios', loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule) },
+      { path: 'usuarios', loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule), canActivate: [AdminRoleGuard] },
       { path: 'clientes', loadChildren: () => import('./clientes/clientes.module').then(m => m.ClientesModule) },
       { path: 'contactos-web', loadChildren: () => import('./contactos-web/contactos-web.module').then(m => m.ContactosWebModule) },
       { path: 'paciente', loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule) },

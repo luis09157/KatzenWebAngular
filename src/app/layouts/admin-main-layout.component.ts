@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, switchMap, take } from 'rxjs/operators';
+import { takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
+import { AuthProfileService } from '../core/services/auth-profile.service';
 import { Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
 
@@ -25,7 +25,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private usuariosService: UsuariosService,
+    private authProfileService: AuthProfileService,
     private router: Router,
     private logger: LoggerService
   ) {}
@@ -38,14 +38,12 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       switchMap(user => {
         if (!user?.uid) return of(null);
         this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
-        return this.usuariosService.getUsuario(user.uid).pipe(take(1));
+        return this.authProfileService.isAdministrator().then(isAdmin => {
+          this.isAdmin = isAdmin;
+          return null;
+        });
       })
-    ).subscribe(usr => {
-      if (usr && (usr as { perfil?: string }).perfil) {
-        const perfil = ((usr as { perfil?: string }).perfil || '').toLowerCase();
-        this.isAdmin = perfil === 'administrador' || perfil === 'admin';
-      }
-    });
+    ).subscribe();
   }
 
   ngOnDestroy() {

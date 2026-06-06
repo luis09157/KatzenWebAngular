@@ -130,6 +130,25 @@ export class AuthProfileService {
     return access.clienteId || access.perfil?.clienteId || null;
   }
 
+  async isAdministrator(): Promise<boolean> {
+    const access = await this.resolveAccess();
+    const staffRole = String(access.staffRole || access.perfil?.staffRole || '').toLowerCase();
+    if (staffRole === 'administrador' || staffRole === 'admin') {
+      return true;
+    }
+
+    const user = await this.afAuth.currentUser;
+    if (!user?.uid) {
+      return false;
+    }
+
+    const usuario = await firstValueFrom(
+      this.db.object<{ perfil?: string }>(`Katzen/Usuarios/${user.uid}`).valueChanges().pipe(take(1))
+    );
+    const perfil = String(usuario?.perfil || '').toLowerCase();
+    return perfil === 'administrador' || perfil === 'admin';
+  }
+
   /** @deprecated Usar hasStaffAccess() */
   async isStaff(): Promise<boolean> {
     return this.hasStaffAccess();

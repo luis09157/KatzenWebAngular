@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -26,15 +27,18 @@ export class RecordatoriosService {
 
   // Obtener recordatorios por paciente_id
   getRecordatoriosPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Recordatorios').snapshotChanges().pipe(
-      map(changes => 
+    return this.db.list('Katzen/Recordatorios', ref =>
+      ref.orderByChild('paciente_id').equalTo(pacienteId)
+    ).snapshotChanges().pipe(
+      take(1),
+      map(changes =>
         changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
           .filter(r => r.paciente_id === pacienteId && r.activo !== false)
           .sort((a, b) => {
             const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
             const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
-            return fechaB.getTime() - fechaA.getTime(); // Más nuevo arriba
+            return fechaB.getTime() - fechaA.getTime();
           })
       )
     );

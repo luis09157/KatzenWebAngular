@@ -43,7 +43,7 @@
       "Vacunas": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idPaciente' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["idPaciente", "fechaRecordatorio"],
+        ".indexOn": ["idPaciente", "paciente_id", "fechaRecordatorio", "activo"],
         "$vacunaId": {
           ".read": "auth != null && (auth.token.role != 'client' || root.child('Katzen/Mascota').child(data.child('idPaciente').val()).child('idCliente').val() == auth.token.clienteId)",
           ".write": "auth != null && auth.token.role != 'client'"
@@ -52,7 +52,7 @@
       "Citas": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["cliente_id", "paciente_id", "activo"],
+        ".indexOn": ["cliente_id", "paciente_id", "activo", "fecha"],
         "$citaId": {
           ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
           ".write": "auth != null && auth.token.role != 'client'"
@@ -68,9 +68,9 @@
         }
       },
       "Recordatorios": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["paciente_id", "activo"]
+        ".indexOn": ["paciente_id", "activo", "estado"]
       },
       "Notificaciones": {
         "$clienteId": {
@@ -96,7 +96,13 @@
       },
       "Banios": {
         ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["paciente_id", "activo", "fecha_banio", "estado"]
+      },
+      "Peluqueros": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["activo", "email", "telefono"]
       },
       "TiposVacunas": {
         ".read": "auth != null && auth.token.role != 'client'",
@@ -142,7 +148,22 @@
       },
       "Inventario": {
         ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".write": "auth != null && auth.token.role != 'client'",
+        "Productos": {
+          ".indexOn": ["activo", "nombre", "codigo_barras"]
+        },
+        "Movimientos": {
+          ".indexOn": ["producto_id", "tipo", "created_at"]
+        },
+        "Proveedores": {
+          ".indexOn": ["activo", "nombre"]
+        },
+        "Alertas": {
+          ".indexOn": ["producto_id", "activo", "tipo"]
+        },
+        "OrdenesCompra": {
+          ".indexOn": ["estado", "proveedor_id", "created_at"]
+        }
       },
       "Gasolina": {
         ".read": "auth != null && auth.token.role != 'client'",

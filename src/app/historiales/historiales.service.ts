@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -34,30 +35,21 @@ export class HistorialesService {
 
   // Obtener historiales por paciente_id
   getHistorialesPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Historiales_Clinicos').snapshotChanges().pipe(
+    return this.db.list('Katzen/Historiales_Clinicos', ref =>
+      ref.orderByChild('paciente_id').equalTo(pacienteId)
+    ).snapshotChanges().pipe(
+      take(1),
       map(changes => {
-        console.log('🔄 Cambios en Firebase para historiales:', changes);
-        
         const historiales = changes
           .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(h => h.paciente_id === pacienteId && h.activo !== false)
+          .filter(h => h.activo !== false)
           .sort((a, b) => {
-            // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
-            // Este formato se ordena correctamente alfabéticamente
             const fechaA = a.fecha_registro || a.created_at || '0';
             const fechaB = b.fecha_registro || b.created_at || '0';
-            
-            // Orden descendente: más reciente primero
             if (fechaB > fechaA) return 1;
             if (fechaB < fechaA) return -1;
             return 0;
           });
-        
-        console.log('📋 Historiales ordenados para paciente:', pacienteId);
-        historiales.forEach((h, index) => {
-          console.log(`  ${index + 1}. ${h.fecha_registro} - ${h.diagnostico_presuntivo}`);
-        });
-        
         return historiales;
       }),
       catchError(error => {

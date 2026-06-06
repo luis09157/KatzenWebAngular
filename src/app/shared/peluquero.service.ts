@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
+import { Observable, map, catchError, throwError, firstValueFrom, combineLatest, of } from 'rxjs';
+import { switchMap, take } from 'rxjs/operators';
 import { Peluquero, PeluqueroFormData } from './peluquero.model';
+import { ValidationService } from './validation.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 
 @Injectable({
@@ -9,7 +11,8 @@ import { CurrentStaffService } from '../core/services/current-staff.service';
 })
 export class PeluqueroService {
 
-  private readonly COLLECTION = 'peluqueros';
+  private readonly LEGACY_COLLECTION = 'peluqueros';
+  private readonly COLLECTION = 'Katzen/Peluqueros';
 
   constructor(
     private db: AngularFireDatabase,
@@ -64,28 +67,54 @@ export class PeluqueroService {
 
   // Obtener todos los peluqueros activos
   obtenerPeluqueros(): Observable<Peluquero[]> {
-    return this.db.list<Peluquero>(this.COLLECTION)
-      .valueChanges()
-      .pipe(
-        map(peluqueros => peluqueros.filter(p => p.activo)),
-        catchError(error => {
-          console.error('Error al obtener peluqueros:', error);
-          return throwError(() => error);
-        })
-      );
+    const activos = (list: Peluquero[] | null | undefined) =>
+      (list || []).filter(p => p && p.activo !== false);
+
+    const primary$ = this.db.list<Peluquero>(this.COLLECTION).valueChanges().pipe(
+      map(activos),
+      catchError(() => of([] as Peluquero[]))
+    );
+    const legacy$ = this.db.list<Peluquero>(this.LEGACY_COLLECTION).valueChanges().pipe(
+      map(activos),
+      catchError(() => of([] as Peluquero[]))
+    );
+
+    return combineLatest([primary$, legacy$]).pipe(
+      map(([primary, legacy]) => {
+        const byId = new Map<string, Peluquero>();
+        legacy.forEach(p => {
+          if (p?.id) {
+            byId.set(p.id, p);
+          }
+        });
+        primary.forEach(p => {
+          if (p?.id) {
+            byId.set(p.id, p);
+          }
+        });
+        return Array.from(byId.values());
+      }),
+      catchError(error => {
+        console.error('Error al obtener peluqueros:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
-  // Obtener peluquero por ID
   obtenerPeluqueroPorId(id: string): Observable<Peluquero | null> {
-    return this.db.object<Peluquero>(`${this.COLLECTION}/${id}`)
-      .valueChanges()
-      .pipe(
-        map(peluquero => peluquero || null),
-        catchError(error => {
-          console.error('Error al obtener peluquero:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.db.object<Peluquero>(`${this.COLLECTION}/${id}`).valueChanges().pipe(
+      take(1),
+      switchMap(peluquero => {
+        if (peluquero) {
+          return of(peluquero);
+        }
+        return this.db.object<Peluquero>(`${this.LEGACY_COLLECTION}/${id}`).valueChanges().pipe(take(1));
+      }),
+      catchError(error => {
+        console.error('Error al obtener peluquero:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   // Actualizar peluquero
