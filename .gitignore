@@ -157,5 +157,8 @@ Thumbs.db
 firebase-debug.log
 firebase-debug.*.log
 
+# Cypress secrets (no commitear)
+cypress.env.json
+
 # Angular specific
 .angular/ 
