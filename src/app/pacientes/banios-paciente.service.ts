@@ -3,6 +3,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Banio } from '../shared/banio.model';
+import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
 export interface BanioPaciente extends Omit<Banio, 'created_at' | 'updated_at'> {
   id?: string;
@@ -125,7 +126,8 @@ export class BaniosPacienteService {
 
         // Usar then/catch en lugar de await para mejor manejo de errores
         this.db.list<Banio>(this.basePath).push(banioCompleto)
-          .then((ref) => {
+          .then(async (ref) => {
+            await stampRtdbIdAfterPush(this.db, this.basePath, ref.key);
             console.log('✅ Baño creado exitosamente con ID:', ref.key);
             resolve(ref.key!);
           })

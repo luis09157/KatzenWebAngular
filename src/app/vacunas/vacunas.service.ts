@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
 @Injectable({
   providedIn: 'root'
@@ -101,6 +102,7 @@ export class VacunasService {
       console.log(`VacunasService [${timestamp}] - Ruta Firebase: Katzen/Vacunas`);
       
       const ref = await this.db.list('Katzen/Vacunas').push(nuevaVacuna);
+      await stampRtdbIdAfterPush(this.db, 'Katzen/Vacunas', ref.key);
       
       console.log(`VacunasService [${timestamp}] - Push() completado, ID generado:`, ref.key);
       console.log(`VacunasService [${timestamp}] - Vacuna creada exitosamente con ID:`, ref.key);

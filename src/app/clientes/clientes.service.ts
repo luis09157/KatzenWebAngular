@@ -7,6 +7,7 @@ import { LoggerService } from '../core/logger.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-paged-list.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
+import { calcularClienteEstadisticas, calcularClientesConPacientes, ClienteEstadisticas } from '../core/utils/entity-stats.util';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +61,13 @@ export class ClientesService {
           return fechaB.getTime() - fechaA.getTime();
         })
       )
+    );
+  }
+
+  /** Totales reales en RTDB (toda la colección activa), independiente de la paginación de la tabla. */
+  getEstadisticas(sucursalId: string): Observable<ClienteEstadisticas> {
+    return this.getClientes().pipe(
+      map(clientes => calcularClienteEstadisticas(clientes, sucursalId))
     );
   }
 

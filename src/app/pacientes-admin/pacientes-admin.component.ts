@@ -46,6 +46,12 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   loadingMore = false;
   private oldestPacienteKey: string | null = null;
   readonly rtdbPageSize = 100;
+  stats = {
+    total: 0,
+    duenosUnicos: 0,
+    perros: 0,
+    gatos: 0
+  };
 
   constructor(
     private pacientesService: PacientesService,
@@ -61,8 +67,26 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
       if (this.pacientes.length) {
         this.prepararDataSource();
       }
+      this.cargarEstadisticas();
     });
     this.cargarDatos();
+  }
+
+  private cargarEstadisticas(): void {
+    this.pacientesService
+      .getEstadisticas(this.sucursalContext.getSelectedId())
+      .pipe(take(1), takeUntil(this.destroy$))
+      .subscribe({
+        next: stats => {
+          this.stats = {
+            total: stats.total,
+            duenosUnicos: stats.duenosUnicos,
+            perros: stats.perros,
+            gatos: stats.gatos
+          };
+        },
+        error: err => this.logger.error('Error al cargar estadísticas de pacientes:', err)
+      });
   }
 
   ngAfterViewInit() {
@@ -90,6 +114,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.oldestPacienteKey = pacientes.oldestKey;
         this.clientes = clientes || [];
         this.prepararDataSource();
+        this.cargarEstadisticas();
       },
       error: error => {
         this.logger.error('Error al cargar pacientes admin:', error);
@@ -313,25 +338,5 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Métodos para estadísticas
-  getUniqueOwners(): number {
-    const owners = this.dataSource.data.map(p => p.cliente_id || p.idCliente).filter(Boolean);
-    return new Set(owners).size;
-  }
-
-  getDogsCount(): number {
-    return this.dataSource.data.filter(p => 
-      p.especie && p.especie.toLowerCase().includes('perro') || 
-      p.especie && p.especie.toLowerCase().includes('canino') ||
-      p.especie && p.especie.toLowerCase().includes('dog')
-    ).length;
-  }
-
-  getCatsCount(): number {
-    return this.dataSource.data.filter(p => 
-      p.especie && p.especie.toLowerCase().includes('gato') || 
-      p.especie && p.especie.toLowerCase().includes('felino') ||
-      p.especie && p.especie.toLowerCase().includes('cat')
-    ).length;
-  }
+  // Métodos para estadísticas (totales globales en RTDB, no solo la página visible)
 } 

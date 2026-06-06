@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
 @Injectable({
   providedIn: 'root'
@@ -85,6 +86,7 @@ export class HistorialesService {
       };
 
       const ref = await this.db.list('Katzen/Historiales_Clinicos').push(nuevoHistorial);
+      await stampRtdbIdAfterPush(this.db, 'Katzen/Historiales_Clinicos', ref.key);
       console.log('✅ Historial creado exitosamente:', ref.key);
       return ref;
     } catch (error) {

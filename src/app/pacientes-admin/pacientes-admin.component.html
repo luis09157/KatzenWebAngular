@@ -6,7 +6,7 @@
         <mat-icon>pets</mat-icon>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{{ dataSource.data.length }}</div>
+        <div class="stat-number">{{ stats.total }}</div>
         <div class="stat-label">Total de Pacientes</div>
       </div>
     </div>
@@ -16,7 +16,7 @@
         <mat-icon>person</mat-icon>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{{ getUniqueOwners() }}</div>
+        <div class="stat-number">{{ stats.duenosUnicos }}</div>
         <div class="stat-label">Dueños Únicos</div>
       </div>
     </div>
@@ -26,7 +26,7 @@
         <mat-icon>pets</mat-icon>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{{ getDogsCount() }}</div>
+        <div class="stat-number">{{ stats.perros }}</div>
         <div class="stat-label">Perros</div>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <mat-icon>pets</mat-icon>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{{ getCatsCount() }}</div>
+        <div class="stat-number">{{ stats.gatos }}</div>
         <div class="stat-label">Gatos</div>
       </div>
     </div>

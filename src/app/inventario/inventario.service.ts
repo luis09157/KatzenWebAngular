@@ -13,6 +13,7 @@ import {
   TipoMovimiento
 } from '../shared/inventario.models';
 import { CurrentStaffService } from '../core/services/current-staff.service';
+import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
 @Injectable({
   providedIn: 'root'
@@ -117,6 +118,7 @@ export class InventarioService {
       };
 
       const ref = await this.db.list<Producto>(this.productosPath).push(producto);
+      await stampRtdbIdAfterPush(this.db, this.productosPath, ref.key);
       console.log('✅ Producto creado exitosamente con ID:', ref.key);
       return ref.key!;
     } catch (error) {
@@ -294,7 +296,8 @@ export class InventarioService {
         throw new Error('No se pudo actualizar el stock del producto');
       }
 
-      await this.db.list(this.movimientosPath).push(movimiento);
+      const ref = await this.db.list(this.movimientosPath).push(movimiento);
+      await stampRtdbIdAfterPush(this.db, this.movimientosPath, ref.key);
       console.log('✅ Movimiento registrado en Firebase');
       await this.verificarYCrearAlertas(movimiento.producto_id);
       console.log('✅ Movimiento completado exitosamente');
@@ -357,6 +360,7 @@ export class InventarioService {
       };
 
       const ref = await this.db.list<Proveedor>(this.proveedoresPath).push(proveedor);
+      await stampRtdbIdAfterPush(this.db, this.proveedoresPath, ref.key);
       console.log('✅ Proveedor creado con ID:', ref.key);
       return ref.key!;
     } catch (error) {

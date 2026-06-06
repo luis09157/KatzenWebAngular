@@ -36,7 +36,10 @@ export class CitasService {
     console.log('🔄 [SERVICIO] Iniciando guardado de cita...');
     console.log('📝 [SERVICIO] Datos de la cita:', cita);
     
-    cita.activo = true;
+    const isNew = !cita.id;
+    if (isNew) {
+      cita.activo = true;
+    }
     cita = this.sucursalContext.stamp(cita);
     
     // Si tiene id, actualiza; si no, push y captura el ID generado
@@ -52,17 +55,10 @@ export class CitasService {
     } else {
       console.log('🔄 [SERVICIO] Creando nueva cita...');
       // Para nuevas citas, usar push y capturar el ID generado
-      return this.db.list('Katzen/Citas').push(cita).then((result: any) => {
+      return this.db.list('Katzen/Citas').push(cita).then(async (result: any) => {
         console.log('✅ [SERVICIO] Cita creada con ID generado:', result.key);
-        const citaActualizada = { ...cita, id: result.key };
-        // Actualizar el registro con el ID incluido
-        return this.db.object(`Katzen/Citas/${result.key}`).update(citaActualizada).then(() => {
-          console.log('✅ [SERVICIO] ID actualizado en la cita');
-          return Promise.resolve();
-        }).catch(error => {
-          console.error('❌ [SERVICIO] Error al actualizar ID:', error);
-          throw error;
-        });
+        await this.db.object(`Katzen/Citas/${result.key}`).update({ ...cita, id: result.key });
+        console.log('✅ [SERVICIO] ID actualizado en la cita');
       }).catch(error => {
         console.error('❌ [SERVICIO] Error al crear cita:', error);
         throw error;

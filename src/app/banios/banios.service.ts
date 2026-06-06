@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import { Banio, TipoServicio, ProductoPeluqueria } from '../shared/banio.model';
+import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
 @Injectable({
   providedIn: 'root'
@@ -116,7 +117,8 @@ export class BaniosService {
 
         // Usar then/catch en lugar de await para mejor manejo de errores
         this.db.list<Banio>(this.basePath).push(banioCompleto)
-          .then((ref) => {
+          .then(async (ref) => {
+            await stampRtdbIdAfterPush(this.db, this.basePath, ref.key);
             console.log('✅ Baño creado exitosamente con ID:', ref.key);
             resolve(ref.key!);
           })

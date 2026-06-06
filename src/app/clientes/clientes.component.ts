@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 import { ClientesService } from './clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -13,6 +13,10 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
+import {
+  calcularClienteEstadisticas,
+  calcularClientesConPacientes
+} from '../core/utils/entity-stats.util';
 
 @Component({
   selector: 'app-clientes',
@@ -60,8 +64,10 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.todosLosClientes.length) {
         this.aplicarFiltroSucursal();
       }
+      this.cargarEstadisticas();
     });
     this.cargarClientes();
+    this.cargarEstadisticas();
   }
 
   private cargarClientes(): void {
@@ -73,7 +79,6 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.hasMoreClientes = page.hasMore;
         this.oldestClienteKey = page.oldestKey;
         this.aplicarFiltroSucursal();
-        this.calcularEstadisticas(this.todosLosClientes);
         this.loading = false;
         setTimeout(() => {
           if (this.paginator) {
@@ -113,7 +118,6 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           this.hasMoreClientes = page.hasMore;
           this.oldestClienteKey = page.oldestKey;
           this.aplicarFiltroSucursal();
-          this.calcularEstadisticas(this.todosLosClientes);
           this.loadingMore = false;
         },
         error: (error) => {
@@ -164,22 +168,24 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroy$.complete();
   }
 
-  calcularEstadisticas(clientes: any[]) {
-    const clientesActivos = clientes.filter((c: { activo?: boolean }) => c.activo !== false);
-    this.totalClientes = clientesActivos.length;
-    this.clientesConCorreo = clientesActivos.filter((c: { correo?: string }) => c.correo && c.correo.trim() !== '').length;
-    this.clientesConExpediente = clientesActivos.filter((c: { expediente?: string }) => c.expediente && c.expediente.trim() !== '').length;
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
-      const pacientesData = pacientes || [];
-      
-      // Crear un Set de IDs de clientes que tienen pacientes
-      const clientesConPacientesSet = new Set(
-        pacientesData.map(paciente => paciente.idCliente).filter(id => id)
-      );
-      
-      this.clientesConPacientes = clientesActivos.filter(cliente => 
-        clientesConPacientesSet.has(cliente.id)
-      ).length;
+  private cargarEstadisticas(): void {
+    const sucursalId = this.sucursalContext.getSelectedId();
+    forkJoin({
+      clientes: this.clientesService.getClientes().pipe(take(1)),
+      pacientes: this.pacientesService.getEstadisticas(sucursalId).pipe(take(1))
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ clientes, pacientes }) => {
+        const stats = calcularClienteEstadisticas(clientes, sucursalId);
+        this.totalClientes = stats.total;
+        this.clientesConCorreo = stats.conCorreo;
+        this.clientesConExpediente = stats.conExpediente;
+        this.clientesConPacientes = calcularClientesConPacientes(
+          clientes,
+          pacientes.clienteIdsConPaciente,
+          sucursalId
+        );
+      },
+      error: err => this.logger.error('Error al cargar estadísticas de clientes:', err)
     });
   }
 
