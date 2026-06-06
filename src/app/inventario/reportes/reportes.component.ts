@@ -4,6 +4,7 @@ import { Producto, Movimiento } from '../../shared/inventario.models';
 import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { exportToCsv } from '../../core/utils/csv-export.util';
 
 @Component({
   selector: 'app-reportes',
@@ -143,40 +144,34 @@ export class ReportesComponent implements OnInit {
   }
 
   exportarExcel(): void {
-    console.log('📊 Exportar reporte a Excel');
-    
-    // Crear datos para exportar
-    let csvData = '';
-    
     if (this.reporteActual === 'valoracion') {
-      csvData = 'Categoría,Productos,Stock Total,Valor\n';
-      this.categorias.forEach(cat => {
-        csvData += `${cat.nombre},${cat.cantidad},${cat.stock},$${cat.valor.toFixed(2)}\n`;
-      });
+      exportToCsv(`reporte_valoracion_${Date.now()}`, this.categorias, [
+        { header: 'Categoría', value: row => row.nombre },
+        { header: 'Productos', value: row => row.cantidad },
+        { header: 'Stock Total', value: row => row.stock },
+        { header: 'Valor', value: row => row.valor.toFixed(2) }
+      ]);
     } else if (this.reporteActual === 'topProductos') {
-      csvData = 'Posición,Producto,Unidades Vendidas\n';
-      this.topVendidos.forEach((item, i) => {
-        csvData += `${i + 1},${item.producto?.nombre},${item.cantidad}\n`;
-      });
+      const rows = this.topVendidos.map((item, index) => ({ ...item, posicion: index + 1 }));
+      exportToCsv(`reporte_top_productos_${Date.now()}`, rows, [
+        { header: 'Posición', value: row => row.posicion },
+        { header: 'Producto', value: row => row.producto?.nombre || '' },
+        { header: 'Unidades vendidas', value: row => row.cantidad }
+      ]);
     } else if (this.reporteActual === 'stock') {
-      csvData = 'Producto,Stock,Unidad\n';
-      this.topStockBajo.forEach(p => {
-        csvData += `${p.nombre},${p.stock_actual},${p.unidad_medida}\n`;
-      });
+      exportToCsv(`reporte_stock_${Date.now()}`, this.topStockBajo, [
+        { header: 'Producto', value: row => row.nombre },
+        { header: 'Stock', value: row => row.stock_actual },
+        { header: 'Unidad', value: row => row.unidad_medida }
+      ]);
+    } else if (this.reporteActual === 'movimientos') {
+      exportToCsv(`reporte_movimientos_${Date.now()}`, this.getMovimientosPeriodo(), [
+        { header: 'Fecha', value: row => row.created_at },
+        { header: 'Tipo', value: row => row.tipo },
+        { header: 'Producto', value: row => row.producto_id },
+        { header: 'Cantidad', value: row => row.cantidad }
+      ]);
     }
-    
-    // Descargar archivo
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `reporte_${this.reporteActual}_${Date.now()}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    console.log('✅ Reporte exportado a CSV');
   }
 
   exportarPDF(): void {

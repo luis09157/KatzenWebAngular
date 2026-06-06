@@ -11,6 +11,8 @@ import { ProveedorDialogComponent } from './proveedor-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { exportToCsv } from '../../core/utils/csv-export.util';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-proveedores',
@@ -40,6 +42,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
+    private router: Router,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService
   ) {
@@ -174,15 +177,26 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   verProductos(proveedor: Proveedor): void {
-    console.log('📦 Ver productos de:', proveedor.nombre_comercial);
-    // TODO: Implementar vista de productos por proveedor
-    Swal.fire('Próximamente', 'Vista de productos por proveedor', 'info');
+    if (!proveedor.id) {
+      return;
+    }
+    this.router.navigate(['/admin/inventario/productos'], {
+      queryParams: { proveedorId: proveedor.id }
+    });
   }
 
   exportarExcel(): void {
-    console.log('📊 Exportar proveedores a Excel');
-    // TODO: Implementar exportación
-    Swal.fire('Próximamente', 'Exportación en desarrollo', 'info');
+    if (!this.proveedores.length) {
+      Swal.fire('Sin datos', 'No hay proveedores para exportar.', 'info');
+      return;
+    }
+    exportToCsv(`proveedores_${Date.now()}`, this.proveedores, [
+      { header: 'Nombre', value: row => row.nombre_comercial },
+      { header: 'Contacto', value: row => row.contacto_nombre },
+      { header: 'Teléfono', value: row => row.contacto_telefono },
+      { header: 'Email', value: row => row.contacto_email },
+      { header: 'Activo', value: row => row.activo ? 'Sí' : 'No' }
+    ]);
   }
 }
 

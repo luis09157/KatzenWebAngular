@@ -15,6 +15,7 @@ import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { Banio } from '../shared/banio.model';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { exportToCsv } from '../core/utils/csv-export.util';
 
 @Component({
   selector: 'app-banios',
@@ -411,5 +412,22 @@ export class BaniosComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {});
+  }
+
+  exportarCsv(): void {
+    const rows = this.dataSource?.data || [];
+    if (!rows.length) {
+      Swal.fire('Sin datos', 'No hay baños para exportar.', 'info');
+      return;
+    }
+    exportToCsv(`banios_${Date.now()}`, rows, [
+      { header: 'Fecha', value: row => row.fecha_banio || '' },
+      { header: 'Hora', value: row => row.hora_banio || '' },
+      { header: 'Paciente', value: row => row.paciente || '' },
+      { header: 'Tipo servicio', value: row => row.tipo_servicio || '' },
+      { header: 'Estado', value: row => row.estado || '' },
+      { header: 'Peluquero', value: row => row.peluquero || '' },
+      { header: 'Precio', value: row => row.precio_total || 0 }
+    ]);
   }
 }

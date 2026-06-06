@@ -13,6 +13,8 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 
 @Component({
   selector: 'app-citas',
@@ -37,10 +39,18 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private sucursalContext: SucursalContextService
   ) {}
 
   ngOnInit(): void {
+    this.sucursalContext.selectedId$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.cargarCitas();
+    });
+    this.cargarCitas();
+  }
+
+  private cargarCitas(): void {
     this.loading = true;
     this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
       (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
@@ -51,8 +61,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
           this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
         });
         this.citasService.getCitas().pipe(takeUntil(this.destroy$)).subscribe(citas => {
-          const citasInactivas = citas?.filter((c: { activo?: boolean }) => c.activo === false) || [];
-          this.dataSource.data = (citas || [])
+          const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
+          this.dataSource.data = citasFiltradas
             .filter(c => c.activo !== false)
             .map(cita => ({
               ...cita,

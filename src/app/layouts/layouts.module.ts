@@ -10,6 +10,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 // Layout Components
 import { AdminMainLayoutComponent } from './admin-main-layout.component';
@@ -29,7 +31,9 @@ import { AdminMainLayoutComponent } from './admin-main-layout.component';
     MatMenuModule,
     MatSidenavModule,
     MatListModule,
-    MatDividerModule
+    MatDividerModule,
+    MatFormFieldModule,
+    MatSelectModule
   ],
   exports: [
     AdminMainLayoutComponent

@@ -73,6 +73,12 @@
       <button mat-icon-button (click)="toggleSidenav()"><mat-icon>menu</mat-icon></button>
       <span class="mat-title-medium">Admin</span>
       <span class="portal-spacer"></span>
+      <mat-form-field *ngIf="sucursales.length > 1" appearance="outline" class="sucursal-select hide-mobile">
+        <mat-label>Sucursal</mat-label>
+        <mat-select [value]="sucursalSeleccionada" (selectionChange)="onSucursalChange($event.value)">
+          <mat-option *ngFor="let sucursal of sucursales" [value]="sucursal.id">{{ sucursal.nombre }}</mat-option>
+        </mat-select>
+      </mat-form-field>
       <span class="m3-body hide-mobile">{{ getNombreUsuario() }}</span>
     </mat-toolbar>
     <div class="admin-content">

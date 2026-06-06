@@ -11,6 +11,9 @@ import { EntradaDialogComponent } from './entrada-dialog.component';
 import { SalidaDialogComponent } from './salida-dialog.component';
 import { AjusteDialogComponent } from './ajuste-dialog.component';
 import { LoggerService } from '../../core/logger.service';
+import { exportToCsv } from '../../core/utils/csv-export.util';
+import { MovimientoDetalleDialogComponent } from './movimiento-detalle-dialog.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-movimientos',
@@ -240,13 +243,31 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   exportarExcel(): void {
-    this.logger.log('Exportar a Excel - TODO');
-    // TODO: Implementar exportación a Excel
+    const rows = this.dataSource.data;
+    if (!rows.length) {
+      Swal.fire('Sin datos', 'No hay movimientos para exportar.', 'info');
+      return;
+    }
+    exportToCsv(`movimientos_${Date.now()}`, rows, [
+      { header: 'Fecha', value: row => this.formatearFecha(row.created_at) },
+      { header: 'Producto', value: row => this.getProductoNombre(row.producto_id) },
+      { header: 'Tipo', value: row => row.tipo },
+      { header: 'Cantidad', value: row => row.cantidad },
+      { header: 'Stock anterior', value: row => row.cantidad_anterior },
+      { header: 'Stock nuevo', value: row => row.cantidad_nueva },
+      { header: 'Motivo', value: row => row.motivo },
+      { header: 'Usuario', value: row => row.usuario_responsable_id || '' }
+    ]);
   }
 
   verDetalle(movimiento: Movimiento): void {
-    this.logger.log('Ver detalle:', movimiento);
-    // TODO: Implementar modal de detalle
+    this.dialog.open(MovimientoDetalleDialogComponent, {
+      width: '560px',
+      data: {
+        movimiento,
+        producto: this.productos.get(movimiento.producto_id)
+      }
+    });
   }
 }
 

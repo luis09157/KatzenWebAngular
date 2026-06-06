@@ -2,12 +2,16 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CitasService {
-  constructor(private db: AngularFireDatabase) {}
+  constructor(
+    private db: AngularFireDatabase,
+    private sucursalContext: SucursalContextService
+  ) {}
 
   // Obtener todas las citas (solo activas)
   getCitas(): Observable<any[]> {
@@ -33,6 +37,7 @@ export class CitasService {
     console.log('📝 [SERVICIO] Datos de la cita:', cita);
     
     cita.activo = true;
+    cita = this.sucursalContext.stamp(cita);
     
     // Si tiene id, actualiza; si no, push y captura el ID generado
     if (cita.id) {

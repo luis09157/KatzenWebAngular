@@ -8,7 +8,7 @@
       "Cliente": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["authUid", "correo", "activo", "portalActivo"],
+        ".indexOn": ["authUid", "correo", "activo", "portalActivo", "sucursalId"],
         "$clienteId": {
           ".read": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && data.child('portalActivo').val() == true && data.child('activo').val() != false))",
           ".write": "auth != null && auth.token.role != 'client'"
@@ -17,7 +17,7 @@
       "Mascota": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["idCliente", "activo"],
+        ".indexOn": ["idCliente", "activo", "sucursalId"],
         "$mascotaId": {
           ".read": "auth != null && (auth.token.role != 'client' || (data.child('idCliente').val() == auth.token.clienteId && data.child('activo').val() != false))",
           ".write": "auth != null && auth.token.role != 'client'"
@@ -52,7 +52,7 @@
       "Citas": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["cliente_id", "paciente_id", "activo", "fecha"],
+        ".indexOn": ["cliente_id", "paciente_id", "activo", "fecha", "sucursalId"],
         "$citaId": {
           ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
           ".write": "auth != null && auth.token.role != 'client'"

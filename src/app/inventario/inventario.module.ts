@@ -35,6 +35,7 @@ import { EntradaDialogComponent } from './movimientos/entrada-dialog.component';
 import { SalidaDialogComponent } from './movimientos/salida-dialog.component';
 import { AjusteDialogComponent } from './movimientos/ajuste-dialog.component';
 import { MovimientosComponent } from './movimientos/movimientos.component';
+import { MovimientoDetalleDialogComponent } from './movimientos/movimiento-detalle-dialog.component';
 import { ProveedoresComponent } from './proveedores/proveedores.component';
 import { ProveedorDialogComponent } from './proveedores/proveedor-dialog.component';
 import { OrdenesComponent } from './ordenes/ordenes.component';
@@ -53,6 +54,7 @@ import { ReportesComponent } from './reportes/reportes.component';
     SalidaDialogComponent,
     AjusteDialogComponent,
     MovimientosComponent,
+    MovimientoDetalleDialogComponent,
     ProveedoresComponent,
     ProveedorDialogComponent,
     OrdenesComponent,

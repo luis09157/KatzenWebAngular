@@ -21,5 +21,9 @@ export const environment = {
     maxFilesPerHistorial: 5
   },
   // App Check - reCAPTCHA
-  recaptchaSiteKey: '6LdQ-jgsAAAAAPwzjmTm2U-WyZuL96S3Em4wEACA'
+  recaptchaSiteKey: '6LdQ-jgsAAAAAPwzjmTm2U-WyZuL96S3Em4wEACA',
+  defaultSucursalId: 'principal',
+  sucursales: [
+    { id: 'principal', nombre: 'Katzen Principal' }
+  ]
 }; 

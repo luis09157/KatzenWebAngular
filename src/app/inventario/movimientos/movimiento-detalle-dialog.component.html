@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>Detalle del movimiento</h2>
+<mat-dialog-content class="detalle-grid">
+  <div><strong>Producto:</strong> {{ data.producto?.nombre || 'N/P' }}</div>
+  <div><strong>Código:</strong> {{ data.producto?.codigo_barras || 'N/P' }}</div>
+  <div><strong>Tipo:</strong> {{ data.movimiento.tipo }}</div>
+  <div><strong>Cantidad:</strong> {{ data.movimiento.cantidad }}</div>
+  <div><strong>Stock anterior:</strong> {{ data.movimiento.cantidad_anterior }}</div>
+  <div><strong>Stock nuevo:</strong> {{ data.movimiento.cantidad_nueva }}</div>
+  <div><strong>Motivo:</strong> {{ data.movimiento.motivo }}</div>
+  <div><strong>Usuario:</strong> {{ data.movimiento.usuario_responsable_id || 'N/P' }}</div>
+  <div><strong>Fecha:</strong> {{ formatearFecha(data.movimiento.created_at) }}</div>
+  <div *ngIf="data.movimiento.costo_total"><strong>Costo total:</strong> ${{ data.movimiento.costo_total }}</div>
+  <div *ngIf="data.movimiento.observaciones" class="full-width">
+    <strong>Observaciones:</strong>
+    <p>{{ data.movimiento.observaciones }}</p>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

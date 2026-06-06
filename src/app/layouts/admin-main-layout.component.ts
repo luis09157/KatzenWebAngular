@@ -4,6 +4,7 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
 
@@ -22,16 +23,21 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   usuario: { nombre: string; rol: string; email: string } = { nombre: 'Administrador', rol: 'admin', email: '' };
   isMobile = false;
   isAdmin = false;
+  sucursales: { id: string; nombre: string }[] = [];
+  sucursalSeleccionada = 'principal';
 
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private sucursalContext: SucursalContextService,
     private router: Router,
     private logger: LoggerService
   ) {}
 
   ngOnInit() {
     this.checkMobile();
+    this.sucursales = this.sucursalContext.sucursales;
+    this.sucursalSeleccionada = this.sucursalContext.getSelectedId();
     window.addEventListener('resize', this.resizeHandler);
     this.authService.user$.pipe(
       takeUntil(this.destroy$),
@@ -68,6 +74,11 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       return this.usuario.email;
     }
     return 'Administrador';
+  }
+
+  onSucursalChange(sucursalId: string): void {
+    this.sucursalContext.setSelectedId(sucursalId);
+    this.sucursalSeleccionada = sucursalId;
   }
 
   checkMobile() {

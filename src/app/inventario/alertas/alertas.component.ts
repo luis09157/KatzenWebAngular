@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { InventarioService } from '../inventario.service';
 import { Alerta, Producto } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
@@ -40,6 +41,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
 
   constructor(
     private inventarioService: InventarioService,
+    private router: Router,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService
   ) {}
@@ -201,8 +203,9 @@ export class AlertasComponent implements OnInit, OnDestroy {
   }
 
   verProducto(productoId: string): void {
-    console.log('🔍 Ver producto:', productoId);
-    // TODO: Navegar al detalle del producto
+    this.router.navigate(['/admin/inventario/productos'], {
+      queryParams: { productoId }
+    });
   }
 
   getEstadisticas() {

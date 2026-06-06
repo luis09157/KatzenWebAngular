@@ -11,6 +11,8 @@ import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component'
 import Swal from 'sweetalert2';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 
 @Component({
   selector: 'app-pacientes-admin',
@@ -46,10 +48,16 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     private clientesService: ClientesService,
     private dialog: MatDialog,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private sucursalContext: SucursalContextService
   ) {}
 
   ngOnInit() {
+    this.sucursalContext.selectedId$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      if (this.pacientes.length) {
+        this.prepararDataSource();
+      }
+    });
     this.cargarDatos();
   }
 
@@ -103,8 +111,10 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
 
   prepararDataSource() {
-    // Filtrar solo pacientes activos
-    const pacientesActivos = this.pacientes.filter(p => p.activo !== false);
+    const pacientesActivos = filterBySucursal(
+      this.pacientes.filter(p => p.activo !== false),
+      this.sucursalContext.getSelectedId()
+    );
     
     // Combinar datos de pacientes con nombres de clientes
     const pacientesConCliente = pacientesActivos.map(paciente => {

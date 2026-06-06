@@ -11,6 +11,8 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
+import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 
 @Component({
   selector: 'app-clientes',
@@ -32,6 +34,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Datos originales y filtrados
   todosLosClientes: any[] = [];
+  clientesBase: any[] = [];
   clientesFiltrados: any[] = [];
   filtroActual: string = '';
 
@@ -44,19 +47,27 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private sucursalContext: SucursalContextService
   ) {}
 
   ngOnInit(): void {
+    this.sucursalContext.selectedId$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      if (this.todosLosClientes.length) {
+        this.aplicarFiltroSucursal();
+      }
+    });
+    this.cargarClientes();
+  }
+
+  private cargarClientes(): void {
     this.loading = true;
     this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: clientes => {
         this.todosLosClientes = (clientes || []).filter((c: { activo?: boolean }) => c.activo !== false);
-        this.clientesFiltrados = [...this.todosLosClientes];
-        this.dataSource.data = this.clientesFiltrados;
+        this.aplicarFiltroSucursal();
         this.calcularEstadisticas(clientes || []);
         this.loading = false;
-        // Enlazar paginador después de que la vista con *ngIf="!loading" se haya renderizado
         setTimeout(() => {
           if (this.paginator) {
             this.dataSource.paginator = this.paginator;
@@ -75,11 +86,40 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           cancelButtonText: 'Cerrar'
         }).then(result => {
           if (result.isConfirmed) {
-            this.ngOnInit();
+            this.cargarClientes();
           }
         });
       }
     });
+  }
+
+  private aplicarFiltroSucursal(): void {
+    this.clientesBase = filterBySucursal(this.todosLosClientes, this.sucursalContext.getSelectedId());
+    this.refrescarFiltroTexto();
+  }
+
+  private refrescarFiltroTexto(): void {
+    if (!this.filtroActual) {
+      this.clientesFiltrados = [...this.clientesBase];
+    } else {
+      this.clientesFiltrados = this.clientesBase.filter(cliente => {
+        const nombre = (cliente.nombre || '').toLowerCase();
+        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
+        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
+        const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+        const telefono = (cliente.telefono || '').toLowerCase();
+        const correo = (cliente.correo || '').toLowerCase();
+        const expediente = (cliente.expediente || '').toLowerCase();
+        return nombre.includes(this.filtroActual) ||
+               apellidoPaterno.includes(this.filtroActual) ||
+               apellidoMaterno.includes(this.filtroActual) ||
+               nombreCompleto.includes(this.filtroActual) ||
+               telefono.includes(this.filtroActual) ||
+               correo.includes(this.filtroActual) ||
+               expediente.includes(this.filtroActual);
+      });
+    }
+    this.dataSource.data = this.clientesFiltrados;
   }
 
   ngAfterViewInit(): void {
@@ -115,33 +155,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   aplicarFiltro(event: Event) {
     const filtro = (event.target as HTMLInputElement).value;
     this.filtroActual = filtro.toLowerCase().trim();
-    if (!this.filtroActual) {
-      this.clientesFiltrados = [...this.todosLosClientes];
-    } else {
-      this.clientesFiltrados = this.todosLosClientes.filter(cliente => {
-        const nombre = (cliente.nombre || '').toLowerCase();
-        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
-        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
-        const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-        const telefono = (cliente.telefono || '').toLowerCase();
-        const correo = (cliente.correo || '').toLowerCase();
-        const expediente = (cliente.expediente || '').toLowerCase();
-        return nombre.includes(this.filtroActual) ||
-               apellidoPaterno.includes(this.filtroActual) ||
-               apellidoMaterno.includes(this.filtroActual) ||
-               nombreCompleto.includes(this.filtroActual) ||
-               telefono.includes(this.filtroActual) ||
-               correo.includes(this.filtroActual) ||
-               expediente.includes(this.filtroActual);
-      });
-    }
-    this.dataSource.data = this.clientesFiltrados;
+    this.refrescarFiltroTexto();
   }
 
   limpiarFiltro() {
     this.filtroActual = '';
-    this.clientesFiltrados = [...this.todosLosClientes];
-    this.dataSource.data = this.clientesFiltrados;
+    this.refrescarFiltroTexto();
   }
 
   getEstadoColor(activo: boolean): string {

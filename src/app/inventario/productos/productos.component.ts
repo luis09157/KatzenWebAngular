@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -12,6 +13,7 @@ import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialo
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { exportToCsv } from '../../core/utils/csv-export.util';
 
 @Component({
   selector: 'app-productos',
@@ -40,16 +42,22 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   dataSource!: MatTableDataSource<Producto>;
   productos: Producto[] = [];
   loading = true;
+  filtroProveedorId = '';
 
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
+    private route: ActivatedRoute,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
-    this.cargarProductos();
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.filtroProveedorId = params.get('proveedorId') || '';
+      const productoId = params.get('productoId');
+      this.cargarProductos(productoId);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -61,17 +69,30 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroy$.complete();
   }
 
-  cargarProductos(): void {
+  cargarProductos(openProductoId: string | null = null): void {
     this.loading = true;
     this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => {
-        this.productos = productos;
-        this.dataSource = new MatTableDataSource(productos);
+        let filtrados = productos;
+        if (this.filtroProveedorId) {
+          filtrados = productos.filter(p =>
+            p.proveedor_principal_id === this.filtroProveedorId ||
+            (p.proveedores_alternos || []).includes(this.filtroProveedorId)
+          );
+        }
+        this.productos = filtrados;
+        this.dataSource = new MatTableDataSource(filtrados);
         this.dataSource.sort = this.sort;
         this.loading = false;
         setTimeout(() => {
           if (this.paginator) this.dataSource.paginator = this.paginator;
         }, 0);
+        if (openProductoId) {
+          const producto = filtrados.find(p => p.id === openProductoId);
+          if (producto) {
+            this.editarProducto(producto);
+          }
+        }
       },
       error: (error) => {
         this.logger.error('Error al cargar productos:', error);
@@ -143,8 +164,20 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   exportarExcel(): void {
-    // TODO: Implementar exportación a Excel
-    Swal.fire('Próximamente', 'Función de exportación en desarrollo', 'info');
+    if (!this.productos.length) {
+      Swal.fire('Sin datos', 'No hay productos para exportar.', 'info');
+      return;
+    }
+    exportToCsv(`productos_${Date.now()}`, this.productos, [
+      { header: 'Código', value: row => row.codigo_barras },
+      { header: 'Nombre', value: row => row.nombre },
+      { header: 'Categoría', value: row => row.categoria },
+      { header: 'Marca', value: row => row.marca },
+      { header: 'Stock', value: row => row.stock_actual },
+      { header: 'Stock mínimo', value: row => row.stock_minimo },
+      { header: 'Precio compra', value: row => row.precio_compra },
+      { header: 'Precio venta', value: row => row.precio_venta }
+    ]);
   }
 
   verHistorial(producto: Producto): void {

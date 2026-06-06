@@ -1,0 +1,14 @@
+.sucursal-select {
+  width: 180px;
+  margin-right: 12px;
+}
+
+.sucursal-select ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}

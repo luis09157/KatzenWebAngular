@@ -3,6 +3,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map } from 'rxjs';
 import { Paciente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
@@ -11,7 +12,8 @@ import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 export class PacientesService {
   constructor(
     private db: AngularFireDatabase,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private sucursalContext: SucursalContextService
   ) {}
 
   getPacientes(): Observable<Paciente[]> {
@@ -36,11 +38,13 @@ export class PacientesService {
   }
 
   guardarPaciente(paciente: Paciente & { id: string }) {
+    paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente & { id: string };
     paciente.activo = true;
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
   crearPaciente(paciente: Paciente): Promise<unknown> {
+    paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente;
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
     return this.db.list('Katzen/Mascota').push(paciente).then((ref) => {

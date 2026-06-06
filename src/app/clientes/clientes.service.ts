@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Cliente } from '../core/models';
 import { LoggerService } from '../core/logger.service';
+import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 
 @Injectable({
@@ -12,7 +13,8 @@ import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 export class ClientesService {
   constructor(
     private db: AngularFireDatabase,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private sucursalContext: SucursalContextService
   ) {}
 
   getClientes(): Observable<Cliente[]> {
@@ -42,6 +44,7 @@ export class ClientesService {
   }
 
   async guardarCliente(cliente: Cliente & { id?: string }): Promise<unknown> {
+    cliente = this.sucursalContext.stamp(cliente as Record<string, unknown>) as Cliente & { id?: string };
     cliente.activo = true;
     if (!cliente.id || String(cliente.id).trim() === '') {
       return this.db.list('Katzen/Cliente').push(cliente).then((result) => {
