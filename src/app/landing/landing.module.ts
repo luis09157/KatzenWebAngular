@@ -16,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRippleModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Landing Component
 import { LandingComponent } from './landing.component';
@@ -42,7 +43,8 @@ import { LandingComponent } from './landing.component';
     MatDividerModule,
     MatSelectModule,
     MatRippleModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatProgressSpinnerModule
   ],
   exports: [
     LandingComponent

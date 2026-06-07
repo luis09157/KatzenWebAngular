@@ -678,6 +678,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async loginPortal(): Promise<void> {
+    if (this.portalLoading) {
+      return;
+    }
     if (!this.portalEmail || !this.portalPassword) {
       Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña de cliente.' });
       return;

@@ -34,6 +34,9 @@ export class PortalLoginComponent implements OnInit {
   }
 
   async login(): Promise<void> {
+    if (this.loading) {
+      return;
+    }
     const email = this.email.trim();
     if (!email || !this.password) {
       Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña.' });

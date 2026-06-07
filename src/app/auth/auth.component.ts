@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 export class AuthComponent implements OnInit {
   email = '';
   password = '';
+  loading = false;
 
   constructor(
     private authService: AuthService,
@@ -28,6 +29,9 @@ export class AuthComponent implements OnInit {
   }
 
   async login() {
+    if (this.loading) {
+      return;
+    }
     if (!this.email || !this.password) {
       Swal.fire({
         icon: 'warning',
@@ -36,6 +40,7 @@ export class AuthComponent implements OnInit {
       });
       return;
     }
+    this.loading = true;
     try {
       await this.authService.login(this.email, this.password);
       await this.firebaseFunctions.syncMyClaims();
@@ -56,6 +61,8 @@ export class AuthComponent implements OnInit {
         title: 'Error',
         text: 'Correo o contraseña incorrectos.'
       });
+    } finally {
+      this.loading = false;
     }
   }
 

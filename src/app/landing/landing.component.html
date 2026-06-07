@@ -622,18 +622,23 @@
       </button>
     </div>
     <mat-divider></mat-divider>
-    <div class="portal-modal-body">
+    <div class="portal-modal-body" [class.portal-modal-body--loading]="portalLoading">
+      <div class="auth-loading-state auth-loading-state--modal" *ngIf="portalLoading" aria-live="polite" aria-busy="true">
+        <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
+        <p class="auth-loading-state__title">Verificando credenciales</p>
+        <p class="auth-loading-state__hint">Conectando con el servidor…</p>
+      </div>
       <form (ngSubmit)="loginPortal()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
-          <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email">
+          <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email" [disabled]="portalLoading">
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Contraseña</mat-label>
-          <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password">
+          <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password" [disabled]="portalLoading">
         </mat-form-field>
-        <button mat-flat-button color="primary" type="submit" class="full-width" [disabled]="portalLoading">
-          {{ portalLoading ? 'Verificando…' : 'Entrar al portal' }}
+        <button mat-flat-button color="primary" type="submit" class="full-width portal-modal-submit" [disabled]="portalLoading">
+          Entrar al portal
         </button>
       </form>
     </div>

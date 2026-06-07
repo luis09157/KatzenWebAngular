@@ -1697,8 +1697,60 @@
   color: var(--text-muted);
 }
 
+.auth-loading-state {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(10, 150, 155, 0.2);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.auth-loading-state mat-spinner {
+  --mdc-circular-progress-active-indicator-color: #0a969b;
+}
+
+.auth-loading-state__title {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #065d60;
+}
+
+.auth-loading-state__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #5a6e6e;
+}
+
 .portal-modal-body {
+  position: relative;
   padding: 16px 28px 12px;
+  min-height: 220px;
+}
+
+.portal-modal-body--loading form {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.35;
+}
+
+.auth-loading-state--modal {
+  inset: 8px 12px;
+  border-radius: 12px;
+}
+
+.portal-modal-submit {
+  min-height: 48px;
 }
 
 .portal-modal-footer {
