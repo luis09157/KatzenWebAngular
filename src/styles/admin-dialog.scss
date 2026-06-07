@@ -1,28 +1,50 @@
 /* KatzenVet — Diálogos admin (formularios + detalle) */
 
+/* Una sola “tarjeta”: el container MDC es transparente; el chrome va en .mat-mdc-dialog-surface */
 .admin-dialog-panel .mat-mdc-dialog-container,
 .admin-dialog-panel .mat-dialog-container {
   display: flex !important;
   flex-direction: column !important;
-  border-radius: 16px !important;
+  align-items: stretch !important;
   padding: 0 !important;
-  overflow: hidden !important;
-  max-height: 88vh !important;
-  box-shadow: 0 20px 48px rgba(17, 24, 39, 0.14) !important;
-  background: #fff;
-  border-top: 5px solid #0a969b;
+  margin: 0 !important;
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  --mdc-dialog-container-color: transparent;
 }
 
-.admin-dialog-panel .mat-mdc-dialog-surface {
+.admin-dialog-panel .mat-mdc-dialog-surface,
+.admin-dialog-panel .mdc-dialog__surface {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
+  align-self: stretch !important;
+  width: 100% !important;
   min-height: 0 !important;
   max-height: 88vh !important;
   overflow: hidden !important;
   padding: 0 !important;
+  margin: 0 !important;
   border-radius: 16px !important;
   background: #fff !important;
+  box-shadow: 0 20px 48px rgba(17, 24, 39, 0.14) !important;
+  border-top: 5px solid #0a969b !important;
+  --mdc-dialog-container-color: #fff;
+}
+
+.admin-dialog-panel .mat-mdc-dialog-surface > *,
+.admin-dialog-panel .mdc-dialog__surface > * {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  max-height: 88vh !important;
 }
 
 .admin-dialog-shell,
@@ -41,7 +63,9 @@
   min-height: 0;
   max-height: 88vh;
   width: 100%;
-  background: #fff;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 /* ── Header ── */

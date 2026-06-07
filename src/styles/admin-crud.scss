@@ -295,11 +295,12 @@
   margin-bottom: 24px;
 }
 
-/* Dialogs — estilos base en admin-dialog.scss */
+/* Dialogs — chrome en admin-dialog.scss (.mat-mdc-dialog-surface) */
 .admin-dialog-panel .mat-mdc-dialog-container {
-  border-radius: 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
   padding: 0 !important;
-  overflow: hidden;
+  overflow: visible !important;
 }
 
 @media (max-width: 1100px) {

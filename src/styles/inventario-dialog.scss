@@ -1,6 +1,6 @@
 /* Inventario — diálogos admin (formularios + detalle) */
 
-/* Refuerzo shell: no depende del selector del componente */
+/* Refuerzo shell: el chrome visual vive en .mat-mdc-dialog-surface (admin-dialog.scss) */
 .admin-dialog-panel .admin-dialog-shell {
   display: flex !important;
   flex-direction: column !important;
@@ -8,6 +8,9 @@
   min-height: 0 !important;
   max-height: 88vh !important;
   width: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 .admin-dialog-panel .admin-dialog-shell > .admin-dialog-header {
