@@ -11,7 +11,7 @@
     </div>
 
     <ng-container *ngIf="!checkingSession">
-      <div *ngIf="activeSession" style="margin-bottom:20px;padding:20px;background:#f4f7f9;border-radius:16px">
+      <div *ngIf="showSessionPrompt" style="margin-bottom:20px;padding:20px;background:#f4f7f9;border-radius:16px">
         <p class="m3-body" style="margin:0 0 16px">
           <strong>Sesión activa</strong><br>{{ activeSession.email }}
         </p>
@@ -19,7 +19,7 @@
         <button type="button" class="portal-btn portal-btn-outline full-width section-gap" (click)="cerrarSesion()">Cerrar sesión</button>
       </div>
 
-      <div class="portal-login-form-wrap" [class.portal-login-form-wrap--loading]="loading" *ngIf="!activeSession">
+      <div class="portal-login-form-wrap" [class.portal-login-form-wrap--loading]="loading" *ngIf="!showSessionPrompt">
         <div class="auth-loading-state" *ngIf="loading" aria-live="polite" aria-busy="true">
           <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
           <p class="auth-loading-state__title">Verificando credenciales</p>
@@ -50,7 +50,7 @@
         </form>
       </div>
 
-      <div class="portal-login-footer" *ngIf="!activeSession">
+      <div class="portal-login-footer" *ngIf="!showSessionPrompt">
         <button mat-button type="button" (click)="irALanding()" [disabled]="loading">Ir al sitio web</button>
         <button mat-button type="button" routerLink="/admin/login" [disabled]="loading">Acceso staff</button>
       </div>

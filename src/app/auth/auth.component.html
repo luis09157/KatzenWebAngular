@@ -8,6 +8,11 @@
       <p>Panel de gestión para personal autorizado</p>
     </div>
 
+    <div *ngIf="checkingSession" class="admin-auth-checking">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!checkingSession">
     <div class="admin-auth-form-wrap" [class.admin-auth-form-wrap--loading]="loading">
       <div class="auth-loading-state" *ngIf="loading" aria-live="polite" aria-busy="true">
         <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
@@ -57,5 +62,6 @@
         Portal del dueño
       </button>
     </div>
+    </ng-container>
   </mat-card>
 </div>

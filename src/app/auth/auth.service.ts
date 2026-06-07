@@ -3,8 +3,8 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
 import type { User } from 'firebase/auth';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, firstValueFrom, race, timer } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
 import { LoggerService } from '../core/logger.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import Swal from 'sweetalert2';
@@ -51,6 +51,43 @@ export class AuthService {
   async signOutOnly(): Promise<void> {
     this.authSession.clearSession();
     await this.afAuth.signOut();
+  }
+
+  async waitForAuthUser(timeoutMs = 4000): Promise<User | null> {
+    const current = await this.afAuth.currentUser;
+    if (current) {
+      return current;
+    }
+
+    return firstValueFrom(
+      race(
+        this.afAuth.authState.pipe(
+          filter(user => !!user),
+          take(1),
+          map(user => user!)
+        ),
+        timer(timeoutMs).pipe(map(() => null))
+      )
+    );
+  }
+
+  /** Usuario Firebase con sesión guardada ("Mantener sesión activa") aún vigente. */
+  async getRememberedAuthUser(): Promise<User | null> {
+    const remembered = this.authSession.getRememberedSession();
+    if (!remembered) {
+      return null;
+    }
+
+    const user = await this.waitForAuthUser();
+    if (!user || user.uid !== remembered.uid) {
+      return null;
+    }
+
+    if (!(await this.ensureActiveSession())) {
+      return null;
+    }
+
+    return user;
   }
 
   async ensureActiveSession(options?: { bootstrapIfMissing?: boolean }): Promise<boolean> {

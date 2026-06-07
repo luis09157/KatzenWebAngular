@@ -16,6 +16,7 @@ export class AuthComponent implements OnInit {
   password = '';
   keepSessionActive = false;
   loading = false;
+  checkingSession = true;
 
   constructor(
     private authService: AuthService,
@@ -25,8 +26,20 @@ export class AuthComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.appCheck.ensureInitialized();
+    try {
+      const user = await this.authService.getRememberedAuthUser();
+      if (user) {
+        await this.firebaseFunctions.syncMyClaims();
+        if (await this.authProfileService.hasStaffAccess()) {
+          await this.router.navigate(['/admin/inicio']);
+          return;
+        }
+      }
+    } finally {
+      this.checkingSession = false;
+    }
   }
 
   async login() {

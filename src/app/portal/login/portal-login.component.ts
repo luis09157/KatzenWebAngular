@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AppCheckService } from '../../core/app-check.service';
 import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalSessionService, PortalSession } from '../services/portal-session.service';
+import { AuthSessionService } from '../../core/services/auth-session.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -17,21 +18,31 @@ export class PortalLoginComponent implements OnInit {
   loading = false;
   checkingSession = true;
   activeSession: PortalSession | null = null;
+  showSessionPrompt = false;
 
   constructor(
     private portalAuth: PortalAuthService,
     private portalSession: PortalSessionService,
+    private authSession: AuthSessionService,
     private appCheck: AppCheckService,
     private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.appCheck.ensureInitialized();
-    this.activeSession = await this.portalSession.resolveSession();
-    if (this.activeSession?.email) {
-      this.email = this.activeSession.email;
+    try {
+      if (await this.portalAuth.enterIfRememberedSession()) {
+        return;
+      }
+
+      this.activeSession = await this.portalSession.resolveSession();
+      this.showSessionPrompt = !!this.activeSession && !this.authSession.isRememberedSessionActive();
+      if (this.activeSession?.email) {
+        this.email = this.activeSession.email;
+      }
+    } finally {
+      this.checkingSession = false;
     }
-    this.checkingSession = false;
   }
 
   async login(): Promise<void> {

@@ -42,6 +42,18 @@ export class AuthSessionService {
     );
   }
 
+  getRememberedSession(): StoredAuthSession | null {
+    const session = this.readSession(localStorage, AUTH_SESSION_LOCAL_KEY);
+    if (!session?.remember || this.isExpired(session)) {
+      return null;
+    }
+    return session;
+  }
+
+  isRememberedSessionActive(): boolean {
+    return this.getRememberedSession() !== null;
+  }
+
   isExpired(session: StoredAuthSession | null = this.getSession()): boolean {
     if (!session || !session.remember) {
       return false;

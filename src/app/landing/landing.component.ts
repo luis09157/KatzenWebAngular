@@ -717,7 +717,10 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  openPortalLogin(): void {
+  async openPortalLogin(): Promise<void> {
+    if (await this.portalAuth.enterIfRememberedSession()) {
+      return;
+    }
     this.showPortalLoginModal = true;
     document.body.style.overflow = 'hidden';
   }
@@ -728,7 +731,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   irAMiPortal(): void {
-    this.openPortalLogin();
+    void this.openPortalLogin();
   }
 
   agendarCita(ubicacion: string): void {

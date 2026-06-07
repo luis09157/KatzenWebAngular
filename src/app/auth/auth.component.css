@@ -75,6 +75,12 @@
   color: #5a6e6e;
 }
 
+.admin-auth-checking {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0 56px;
+}
+
 .admin-auth-form-wrap {
   position: relative;
   min-height: 220px;
