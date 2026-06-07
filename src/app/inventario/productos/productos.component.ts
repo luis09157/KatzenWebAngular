@@ -13,6 +13,7 @@ import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialo
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 
 @Component({
@@ -43,6 +44,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   productos: Producto[] = [];
   loading = true;
   filtroProveedorId = '';
+  menuContext: Producto | null = null;
 
   constructor(
     private inventarioService: InventarioService,
@@ -113,7 +115,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   abrirDialogoNuevoProducto(): void {
     const dialogRef = this.dialog.open(ProductoDialogComponent, {
-      width: '800px',
+      ...ADMIN_DIALOG_CONFIG,
       data: { producto: null, modoEdicion: false }
     });
 
@@ -124,7 +126,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   editarProducto(producto: Producto): void {
     const dialogRef = this.dialog.open(ProductoDialogComponent, {
-      width: '800px',
+      ...ADMIN_DIALOG_CONFIG,
       data: { producto: producto, modoEdicion: true }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -182,8 +184,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   verHistorial(producto: Producto): void {
     this.dialog.open(ProductoMovimientosDialogComponent, {
-      width: '900px',
-      maxHeight: '90vh',
+      ...ADMIN_DIALOG_FORM,
       data: { producto }
     });
   }

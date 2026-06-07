@@ -1,20 +1,70 @@
-<h2 mat-dialog-title>Detalle del movimiento</h2>
-<mat-dialog-content class="detalle-grid">
-  <div><strong>Producto:</strong> {{ data.producto?.nombre || 'N/P' }}</div>
-  <div><strong>Código:</strong> {{ data.producto?.codigo_barras || 'N/P' }}</div>
-  <div><strong>Tipo:</strong> {{ data.movimiento.tipo }}</div>
-  <div><strong>Cantidad:</strong> {{ data.movimiento.cantidad }}</div>
-  <div><strong>Stock anterior:</strong> {{ data.movimiento.cantidad_anterior }}</div>
-  <div><strong>Stock nuevo:</strong> {{ data.movimiento.cantidad_nueva }}</div>
-  <div><strong>Motivo:</strong> {{ data.movimiento.motivo }}</div>
-  <div><strong>Usuario:</strong> {{ data.movimiento.usuario_responsable_id || 'N/P' }}</div>
-  <div><strong>Fecha:</strong> {{ formatearFecha(data.movimiento.created_at) }}</div>
-  <div *ngIf="data.movimiento.costo_total"><strong>Costo total:</strong> ${{ data.movimiento.costo_total }}</div>
-  <div *ngIf="data.movimiento.observaciones" class="full-width">
-    <strong>Observaciones:</strong>
-    <p>{{ data.movimiento.observaciones }}</p>
-  </div>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cerrar</button>
-</mat-dialog-actions>
+<div class="admin-dialog-shell admin-dialog-shell--readonly">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly">Solo lectura</span>
+      <h2 class="admin-dialog-title">Detalle del movimiento</h2>
+      <p class="admin-dialog-subtitle">Entrada, salida o ajuste registrado en inventario.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" mat-dialog-close aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="admin-dialog-form admin-dialog-form--padded">
+      <section class="detail-section">
+        <h4 class="detail-section__title">Información del movimiento</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-item__label">Producto</span>
+            <p class="detail-item__value">{{ data.producto?.nombre || 'N/P' }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Código</span>
+            <p class="detail-item__value">{{ data.producto?.codigo_barras || 'N/P' }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Tipo</span>
+            <p class="detail-item__value">{{ data.movimiento.tipo }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Cantidad</span>
+            <p class="detail-item__value">{{ data.movimiento.cantidad }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Stock anterior</span>
+            <p class="detail-item__value">{{ data.movimiento.cantidad_anterior }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Stock nuevo</span>
+            <p class="detail-item__value">{{ data.movimiento.cantidad_nueva }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Motivo</span>
+            <p class="detail-item__value">{{ data.movimiento.motivo }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Usuario</span>
+            <p class="detail-item__value">{{ data.movimiento.usuario_responsable_id || 'N/P' }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Fecha</span>
+            <p class="detail-item__value">{{ formatearFecha(data.movimiento.created_at) }}</p>
+          </div>
+          <div class="detail-item" *ngIf="data.movimiento.costo_total">
+            <span class="detail-item__label">Costo total</span>
+            <p class="detail-item__value">${{ data.movimiento.costo_total }}</p>
+          </div>
+          <div class="detail-item detail-item--wide" *ngIf="data.movimiento.observaciones">
+            <span class="detail-item__label">Observaciones</span>
+            <p class="detail-item__value">{{ data.movimiento.observaciones }}</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
+</div>

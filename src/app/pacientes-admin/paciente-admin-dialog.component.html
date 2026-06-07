@@ -1,174 +1,212 @@
-<div class="dialog-container">
-  <h2 mat-dialog-title>{{ isViewMode ? 'Ver Paciente' : (isEditMode ? 'Editar Paciente' : 'Nuevo Paciente') }}</h2>
-  
-      <form [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
-      <mat-dialog-content>
-        <!-- Sección de imagen - PRIMERA -->
-        <div class="image-section">
-          <h4>Foto del Paciente</h4>
-          <div class="image-container">
-            <div class="upload-section" *ngIf="!imagePreview">
-              <div class="upload-placeholder">
-                <mat-icon>pets</mat-icon>
-                <p>Sin foto</p>
-              </div>
-            </div>
-            
-            <div class="image-preview" *ngIf="imagePreview">
-              <img [src]="imagePreview" alt="Foto del paciente" class="preview-image" decoding="async">
-              <button mat-icon-button class="remove-image" (click)="removeImage()">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-            
-            <div class="upload-controls">
-              <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-              <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
-                <mat-icon>photo_camera</mat-icon>
-                {{ imagePreview ? 'Cambiar Foto' : 'Agregar Foto' }}
-              </button>
-            </div>
-            
-            <div class="upload-progress" *ngIf="isUploading">
-              <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
-              <p>Subiendo imagen... {{ uploadProgress | number:'1.0-0' }}%</p>
+<div class="admin-dialog-shell" [class.admin-dialog-shell--readonly]="isViewMode">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="isViewMode">Solo lectura</span>
+      <span class="admin-dialog-badge" *ngIf="!isViewMode && !isEditMode">Nuevo registro</span>
+      <h2 class="admin-dialog-title">{{ dialogTitle }}</h2>
+      <p class="admin-dialog-subtitle">{{ dialogSubtitle }}</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="onCancel()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <!-- Vista solo lectura -->
+  <ng-container *ngIf="isViewMode">
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="admin-dialog-layout admin-dialog-layout--readonly">
+        <aside class="admin-dialog-aside">
+          <div class="admin-dialog-photo">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="" decoding="async">
+            <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+              <mat-icon>pets</mat-icon>
+              <span>Sin foto</span>
             </div>
           </div>
-        </div>
+          <span class="estado-badge" [ngClass]="getDisplayValue('estado') | adminEstadoClass">
+            {{ getDisplayValue('estado') }}
+          </span>
+        </aside>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="nombre" placeholder="Nombre del paciente" [disabled]="isViewMode">
-            <mat-error *ngIf="isFieldInvalid('nombre')">
-              {{ getErrorMessage('nombre') }}
-            </mat-error>
-          </mat-form-field>
-          
-          <mat-form-field appearance="outline">
-            <mat-label>Especie</mat-label>
-            <mat-select formControlName="especie" [disabled]="isViewMode">
-              <mat-option *ngFor="let especie of especies" [value]="especie">
-                {{ especie }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="isFieldInvalid('especie')">
-              {{ getErrorMessage('especie') }}
-            </mat-error>
-          </mat-form-field>
-        </div>
-      
-                    <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Raza</mat-label>
-                  <input matInput formControlName="raza" placeholder="Raza del paciente" [disabled]="isViewMode">
-                  <mat-error *ngIf="isFieldInvalid('raza')">
-                    {{ getErrorMessage('raza') }}
-                  </mat-error>
-                </mat-form-field>
-                
-                <mat-form-field appearance="outline">
-                  <mat-label>Sexo</mat-label>
-                  <mat-select formControlName="sexo" [disabled]="isViewMode">
-                    <mat-option *ngFor="let sexo of sexos" [value]="sexo">
-                      {{ sexo }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-error *ngIf="isFieldInvalid('sexo')">
-                    {{ getErrorMessage('sexo') }}
-                  </mat-error>
-                </mat-form-field>
-              </div>
-      
-              <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Estado</mat-label>
-                  <mat-select formControlName="estado" [disabled]="isViewMode">
-                    <mat-option *ngFor="let estado of estados" [value]="estado">
-                      {{ estado }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-error *ngIf="isFieldInvalid('estado')">
-                    {{ getErrorMessage('estado') }}
-                  </mat-error>
-                </mat-form-field>
-              </div>
+        <div class="admin-dialog-form">
+          <div class="entity-summary">
+            <h3 class="entity-summary__name">{{ getDisplayValue('nombre') }}</h3>
+            <p class="entity-summary__meta">{{ getDisplayValue('especie') }} · {{ getDisplayValue('raza') }}</p>
+          </div>
 
-              <!-- Campo de fecha de fallecimiento (solo visible cuando estado es Fallecido) -->
-              <div class="form-row" *ngIf="pacienteForm.get('estado')?.value === 'Fallecido'">
-                <mat-form-field appearance="outline">
-                  <mat-label>Fecha de Fallecimiento</mat-label>
-                  <input matInput [matDatepicker]="fallecimientoPicker" formControlName="fechaFallecimiento" placeholder="Seleccionar fecha" [max]="maxDate" [disabled]="isViewMode">
-                  <mat-datepicker-toggle matSuffix [for]="fallecimientoPicker" [disabled]="isViewMode"></mat-datepicker-toggle>
-                  <mat-datepicker #fallecimientoPicker></mat-datepicker>
-                  <mat-error *ngIf="isFieldInvalid('fechaFallecimiento')">
-                    {{ getErrorMessage('fechaFallecimiento') }}
-                  </mat-error>
-                </mat-form-field>
-                
-                <!-- Campo de edad al fallecimiento (solo lectura) -->
-                <mat-form-field appearance="outline">
-                  <mat-label>Edad al Fallecimiento</mat-label>
-                  <input matInput [value]="getEdadAlFallecimiento()" readonly placeholder="Se calculará automáticamente" [style.color]="getEdadAlFallecimiento() !== 'Selecciona ambas fechas' ? '#4CAF50' : '#666'">
-                  <mat-icon matSuffix [style.color]="getEdadAlFallecimiento() !== 'Selecciona ambas fechas' ? '#4CAF50' : '#666'">info</mat-icon>
-                  <mat-hint *ngIf="getEdadAlFallecimiento() === 'Selecciona ambas fechas'">Selecciona fecha de nacimiento y fallecimiento</mat-hint>
-                </mat-form-field>
+          <section class="detail-section">
+            <h4 class="detail-section__title">Datos clínicos</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Sexo</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('sexo') === '—'">{{ getDisplayValue('sexo') }}</p>
               </div>
-      
-                    <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Fecha de Nacimiento</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="edad" placeholder="Seleccionar fecha" [max]="maxDate" [disabled]="isViewMode">
-                  <mat-datepicker-toggle matSuffix [for]="picker" [disabled]="isViewMode"></mat-datepicker-toggle>
-                  <mat-datepicker #picker></mat-datepicker>
-                  <mat-error *ngIf="pacienteForm.get('edad')?.hasError('futureDate')">
-                    La fecha no puede ser posterior a hoy
-                  </mat-error>
-                </mat-form-field>
-                
-                <mat-form-field appearance="outline">
-                  <mat-label>Color</mat-label>
-                  <input matInput formControlName="color" placeholder="Color del paciente" [disabled]="isViewMode">
-                  <mat-error *ngIf="isFieldInvalid('color')">
-                    {{ getErrorMessage('color') }}
-                  </mat-error>
-                </mat-form-field>
+              <div class="detail-item">
+                <span class="detail-item__label">Peso</span>
+                <p class="detail-item__value">{{ getDisplayValue('peso') !== '—' ? getDisplayValue('peso') + ' kg' : '—' }}</p>
               </div>
-      
-              <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Peso (kg)</mat-label>
-                  <input matInput formControlName="peso" placeholder="Peso en kilogramos" [disabled]="isViewMode">
-                  <mat-error *ngIf="isFieldInvalid('peso')">
-                    {{ getErrorMessage('peso') }}
-                  </mat-error>
-                </mat-form-field>
+              <div class="detail-item">
+                <span class="detail-item__label">Color</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('color') === '—'">{{ getDisplayValue('color') }}</p>
               </div>
-      
-                    <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Nombre del Cliente</mat-label>
-                  <input matInput formControlName="nombreCliente" placeholder="Buscar cliente..." [matAutocomplete]="auto" [disabled]="isViewMode">
-                  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
-                    <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
-                      {{ getNombreCompleto(cliente) }}
-                    </mat-option>
-                  </mat-autocomplete>
-                  <mat-error *ngIf="isFieldInvalid('nombreCliente')">
-                    {{ getErrorMessage('nombreCliente') }}
-                  </mat-error>
-                </mat-form-field>
+              <div class="detail-item">
+                <span class="detail-item__label">Fecha de nacimiento</span>
+                <p class="detail-item__value">{{ getDisplayFecha('edad') }}</p>
               </div>
+              <div class="detail-item detail-item--wide" *ngIf="getDisplayValue('estado') === 'Fallecido'">
+                <span class="detail-item__label">Fallecimiento</span>
+                <p class="detail-item__value">{{ getDisplayFecha('fechaFallecimiento') }} · {{ getEdadAlFallecimiento() }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h4 class="detail-section__title">Dueño</h4>
+            <div class="detail-grid">
+              <div class="detail-item detail-item--wide">
+                <span class="detail-item__label">Cliente / dueño</span>
+                <p class="detail-item__value">{{ getDisplayValue('nombreCliente') }}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
     </mat-dialog-content>
-    
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="onCancel()">{{ isViewMode ? 'Cerrar' : 'Cancelar' }}</button>
-      <button *ngIf="!isViewMode" mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
-        {{ isEditMode ? 'Actualizar' : 'Crear' }}
+
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button mat-button type="button" (click)="onCancel()">Cerrar</button>
+      <button mat-raised-button type="button" class="btn-primary-teal" (click)="onEditFromView()">
+        <mat-icon>edit</mat-icon>
+        Editar
       </button>
-      <button *ngIf="isViewMode" mat-raised-button color="primary" type="submit" [disabled]="!pacienteForm.valid || loading">
-        Guardar Cambios
+    </mat-dialog-actions>
+  </ng-container>
+
+  <!-- Modo crear / editar -->
+  <form *ngIf="!isViewMode" [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="admin-dialog-layout">
+        <aside class="admin-dialog-aside">
+          <div class="admin-dialog-photo">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del paciente" decoding="async">
+            <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+              <mat-icon>pets</mat-icon>
+              <span>Sin foto</span>
+            </div>
+            <button
+              *ngIf="imagePreview"
+              mat-icon-button
+              type="button"
+              class="admin-dialog-photo__remove"
+              (click)="removeImage()"
+              aria-label="Quitar foto">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+          <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
+            <mat-icon>photo_camera</mat-icon>
+            {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
+          </button>
+          <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+        </aside>
+
+        <div class="admin-dialog-form">
+          <section class="form-section">
+            <h3 class="form-section__title">Identificación</h3>
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="nombre">
+                <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Especie</mat-label>
+                <mat-select formControlName="especie">
+                  <mat-option *ngFor="let especie of especies" [value]="especie">{{ especie }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="isFieldInvalid('especie')">{{ getErrorMessage('especie') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Raza</mat-label>
+                <input matInput formControlName="raza">
+                <mat-error *ngIf="isFieldInvalid('raza')">{{ getErrorMessage('raza') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Color</mat-label>
+                <input matInput formControlName="color">
+                <mat-error *ngIf="isFieldInvalid('color')">{{ getErrorMessage('color') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Datos clínicos</h3>
+            <div class="form-grid form-grid--3">
+              <mat-form-field appearance="outline">
+                <mat-label>Sexo</mat-label>
+                <mat-select formControlName="sexo">
+                  <mat-option *ngFor="let sexo of sexos" [value]="sexo">{{ sexo }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="isFieldInvalid('sexo')">{{ getErrorMessage('sexo') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="estado">
+                  <mat-option *ngFor="let estado of estados" [value]="estado">{{ estado }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Peso (kg)</mat-label>
+                <input matInput formControlName="peso">
+                <mat-error *ngIf="isFieldInvalid('peso')">{{ getErrorMessage('peso') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de nacimiento</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="edad" [max]="maxDate">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+              <ng-container *ngIf="pacienteForm.get('estado')?.value === 'Fallecido'">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha de fallecimiento</mat-label>
+                  <input matInput [matDatepicker]="fallecimientoPicker" formControlName="fechaFallecimiento" [max]="maxDate">
+                  <mat-datepicker-toggle matSuffix [for]="fallecimientoPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #fallecimientoPicker></mat-datepicker>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Edad al fallecimiento</mat-label>
+                  <input matInput [value]="getEdadAlFallecimiento()" readonly>
+                </mat-form-field>
+              </ng-container>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Dueño</h3>
+            <div class="form-grid">
+              <mat-form-field appearance="outline" class="full-span">
+                <mat-label>Cliente / dueño</mat-label>
+                <input matInput formControlName="nombreCliente" [matAutocomplete]="auto">
+                <mat-icon matPrefix>person_search</mat-icon>
+                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
+                  <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+                    {{ getNombreCompleto(cliente) }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="isFieldInvalid('nombreCliente')">{{ getErrorMessage('nombreCliente') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      <button mat-raised-button color="primary" class="btn-primary-teal" type="submit" [disabled]="!pacienteForm.valid || loading || isUploading">
+        {{ isEditMode ? 'Guardar cambios' : 'Crear paciente' }}
       </button>
     </mat-dialog-actions>
   </form>
-</div> 
+</div>

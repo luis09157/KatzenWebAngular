@@ -1,0 +1,88 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 220px;
+  padding: 28px 28px 24px;
+  border: 1px solid #e5e7eb;
+  border-top-width: 6px;
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06);
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.1);
+}
+
+.feature-card:focus-visible {
+  outline: 2px solid #0a969b;
+  outline-offset: 2px;
+}
+
+.feature-card__title {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #032d60;
+}
+
+.feature-card__desc {
+  margin: 0;
+  flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.feature-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #032d60;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.feature-card__cta mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.feature-card:hover .feature-card__cta mat-icon {
+  transform: translateX(3px);
+}
+
+.feature-card--teal { border-top-color: #0a969b; }
+.feature-card--blue { border-top-color: #1e88e5; }
+.feature-card--purple { border-top-color: #7b1fa2; }
+.feature-card--pink { border-top-color: #ad067e; }
+.feature-card--green { border-top-color: #00897b; }
+.feature-card--orange { border-top-color: #f57c00; }
+
+.feature-card--teal:hover { border-color: #0a969b; }
+.feature-card--blue:hover { border-color: #1e88e5; }
+.feature-card--purple:hover { border-color: #7b1fa2; }
+.feature-card--pink:hover { border-color: #ad067e; }
+.feature-card--green:hover { border-color: #00897b; }
+.feature-card--orange:hover { border-color: #f57c00; }

@@ -1,127 +1,89 @@
-<div class="recordatorio-dialog">
-  <h2 mat-dialog-title class="dialog-header">
-    <span class="title-content">
-      <mat-icon>notifications</mat-icon>
-      {{ isEditMode ? 'Editar' : 'Nuevo' }} Recordatorio
-    </span>
-    <button mat-icon-button (click)="cancelar()" class="close-btn">
+<div class="admin-dialog-shell recordatorio-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ isEditMode ? 'Editar recordatorio' : 'Nuevo recordatorio' }}</h2>
+      <p class="admin-dialog-subtitle">Programación, prioridad y seguimiento del recordatorio.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </h2>
+  </header>
 
   <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()" id="recordatorioForm">
-    <mat-dialog-content class="dialog-content">
-      
-      <!-- Información del Paciente (versión compacta como historial) -->
-      <div *ngIf="(data.cliente && data.paciente) || (pacienteInfo && !data.cliente)" class="paciente-info">
-        <div class="paciente-card">
-          <div class="paciente-avatar">
-            <mat-icon class="paciente-icon">pets</mat-icon>
-          </div>
-          <div class="paciente-details">
-            <h3 class="paciente-nombre">{{ (data.paciente?.nombre || pacienteInfo?.nombre) || 'Sin nombre' }}</h3>
-            <div class="paciente-stats">
-              <span class="stat-item" *ngIf="data.paciente?.especie || pacienteInfo?.especie">
-                <mat-icon>category</mat-icon>
-                {{ data.paciente?.especie || pacienteInfo?.especie }}
-              </span>
-              <span class="stat-item" *ngIf="data.paciente?.raza || pacienteInfo?.raza">
-                <mat-icon>pets</mat-icon>
-                {{ data.paciente?.raza || pacienteInfo?.raza }}
-              </span>
-              <span class="stat-item" *ngIf="data.paciente?.edad || pacienteInfo?.edad">
-                <mat-icon>schedule</mat-icon>
-                {{ data.paciente?.edad || pacienteInfo?.edad }} años
-              </span>
-              <span class="stat-item" *ngIf="data.paciente?.peso || pacienteInfo?.peso">
-                <mat-icon>monitor_weight</mat-icon>
-                {{ data.paciente?.peso || pacienteInfo?.peso }} kg
-              </span>
-              <span class="stat-item" *ngIf="data.paciente?.sexo || pacienteInfo?.sexo">
-                <mat-icon>wc</mat-icon>
-                {{ data.paciente?.sexo || pacienteInfo?.sexo }}
-              </span>
-            </div>
-            <div class="paciente-cliente" *ngIf="data.cliente || pacienteInfo?.cliente">
-              <mat-icon>person</mat-icon>
-              <span>Propietario: {{ data.cliente ? getNombreCompletoCliente(data.cliente) : pacienteInfo?.cliente }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Sección: Información Básica -->
-      <div class="form-section">
-        <div class="section-title">
-          <mat-icon>info</mat-icon>
-          <h3>Información Básica</h3>
-        </div>
-        
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Título *</mat-label>
-          <input matInput formControlName="titulo" 
-                 placeholder="Ej: Vacuna anual, Desparasitación...">
-          <mat-error *ngIf="recordatorioForm.get('titulo')?.hasError('required')">
-            El título es requerido
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Descripción</mat-label>
-          <textarea matInput formControlName="descripcion" 
-                    placeholder="Descripción detallada del recordatorio"
-                    rows="3"></textarea>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Tipo de recordatorio *</mat-label>
-          <mat-select formControlName="tipo">
-            <mat-option *ngFor="let tipo of tiposRecordatorio" [value]="tipo.value">
-              {{ tipo.label }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="recordatorioForm.get('tipo')?.hasError('required')">
-            El tipo es requerido
-          </mat-error>
-        </mat-form-field>
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="entity-summary entity-summary--compact" *ngIf="(data.cliente && data.paciente) || (pacienteInfo && !data.cliente)">
+        <h3 class="entity-summary__name">{{ (data.paciente?.nombre || pacienteInfo?.nombre) || 'Sin nombre' }}</h3>
+        <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
+        <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="data.cliente || pacienteInfo?.cliente">
+          Dueño: {{ data.cliente ? getNombreCompletoCliente(data.cliente) : pacienteInfo?.cliente }}
+        </p>
       </div>
 
-      <!-- Sección: Fecha y Hora -->
-      <div class="form-section">
-        <div class="section-title">
-          <mat-icon>schedule</mat-icon>
-          <h3>Fecha y Hora</h3>
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Información básica
+          <span class="form-section__badge">Requerido</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="titulo" placeholder="Ej: Vacuna anual, desparasitación…">
+            <mat-error *ngIf="recordatorioForm.get('titulo')?.hasError('required')">
+              El título es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="descripcion"
+              placeholder="Descripción detallada del recordatorio"
+              rows="3"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Tipo de recordatorio</mat-label>
+            <mat-select formControlName="tipo">
+              <mat-option *ngFor="let tipo of tiposRecordatorio" [value]="tipo.value">
+                {{ tipo.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="recordatorioForm.get('tipo')?.hasError('required')">
+              El tipo es requerido
+            </mat-error>
+          </mat-form-field>
         </div>
-        
-        <div class="form-row">
-          <mat-form-field appearance="fill" class="half-width">
-            <mat-label>Fecha *</mat-label>
+      </section>
+
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Fecha y hora
+          <span class="form-section__badge">Requerido</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha</mat-label>
             <input matInput [matDatepicker]="picker" formControlName="fecha_material">
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="recordatorioForm.get('fecha_material')?.hasError('required')">
               La fecha es requerida
             </mat-error>
           </mat-form-field>
-          <mat-form-field appearance="fill" class="half-width">
-            <mat-label>Hora *</mat-label>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Hora</mat-label>
             <input matInput type="time" formControlName="hora_material">
             <mat-error *ngIf="recordatorioForm.get('hora_material')?.hasError('required')">
               La hora es requerida
             </mat-error>
           </mat-form-field>
         </div>
-      </div>
+      </section>
 
-      <!-- Sección: Estado y Prioridad -->
-      <div class="form-section">
-        <div class="section-title">
-          <mat-icon>flag</mat-icon>
-          <h3>Estado y Prioridad</h3>
-        </div>
-        
-        <div class="form-row">
-          <mat-form-field appearance="fill" class="half-width">
+      <section class="form-section">
+        <h3 class="form-section__title">Estado y prioridad</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
             <mat-label>Estado</mat-label>
             <mat-select formControlName="estado">
               <mat-option *ngFor="let estado of estados" [value]="estado.value">
@@ -130,7 +92,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="fill" class="half-width">
+          <mat-form-field appearance="outline">
             <mat-label>Prioridad</mat-label>
             <mat-select formControlName="prioridad">
               <mat-option value="baja">Baja</mat-option>
@@ -140,69 +102,65 @@
             </mat-select>
           </mat-form-field>
         </div>
-      </div>
+      </section>
 
-      <!-- Sección: Notas Adicionales -->
-      <div class="form-section">
-        <div class="section-title">
-          <mat-icon>notes</mat-icon>
-          <h3>Notas Adicionales</h3>
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Notas adicionales
+          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Notas</mat-label>
+            <textarea matInput formControlName="notas"
+              placeholder="Notas o comentarios adicionales"
+              rows="3"></textarea>
+          </mat-form-field>
         </div>
-        
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Notas adicionales</mat-label>
-          <textarea matInput formControlName="notas" 
-                    placeholder="Notas o comentarios adicionales"
-                    rows="3"></textarea>
-        </mat-form-field>
-      </div>
+      </section>
 
-      <!-- ID del Paciente (oculto, se establece automáticamente) -->
       <input type="hidden" formControlName="paciente_id">
     </mat-dialog-content>
 
-    <mat-dialog-actions class="dialog-actions">
-      <div class="actions-left">
-        <button *ngIf="isEditMode" 
-                type="button" 
-                mat-stroked-button 
-                color="warn" 
+    <mat-dialog-actions class="admin-dialog-actions">
+      <div class="admin-dialog-actions__left">
+        <button *ngIf="isEditMode"
+                type="button"
+                mat-stroked-button
+                color="warn"
                 (click)="eliminarRecordatorio()"
                 [disabled]="loading">
           <mat-icon>delete</mat-icon>
           Eliminar
         </button>
-        
-        <button *ngIf="isEditMode && data.estado === 'pendiente'" 
-                type="button" 
-                mat-stroked-button 
-                color="accent" 
+
+        <button *ngIf="isEditMode && data.estado === 'pendiente'"
+                type="button"
+                mat-stroked-button
+                color="accent"
                 (click)="cambiarEstado('completado')"
                 [disabled]="loading">
           <mat-icon>check</mat-icon>
           Marcar completado
         </button>
-        
-        <button *ngIf="isEditMode && data.estado === 'completado'" 
-                type="button" 
-                mat-stroked-button 
-                color="primary" 
+
+        <button *ngIf="isEditMode && data.estado === 'completado'"
+                type="button"
+                mat-stroked-button
+                color="primary"
                 (click)="cambiarEstado('pendiente')"
                 [disabled]="loading">
           <mat-icon>schedule</mat-icon>
           Marcar pendiente
         </button>
       </div>
-      
-      <div class="actions-right">
-        <button type="button" 
-                mat-button 
-                (click)="cancelar()"
-                [disabled]="loading">
+
+      <div class="admin-dialog-actions__right">
+        <button type="button" mat-button (click)="cancelar()" [disabled]="loading">
           Cancelar
         </button>
-        <button type="submit" 
-                mat-raised-button 
+        <button type="submit"
+                mat-raised-button
                 color="primary"
                 form="recordatorioForm"
                 [disabled]="recordatorioForm.invalid || loading">
@@ -213,4 +171,4 @@
       </div>
     </mat-dialog-actions>
   </form>
-</div> 
+</div>

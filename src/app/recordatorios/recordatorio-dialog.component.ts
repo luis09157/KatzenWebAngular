@@ -1,7 +1,6 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
@@ -11,13 +10,8 @@ import { CurrentStaffService } from '../core/services/current-staff.service';
 @Component({
   selector: 'app-recordatorio-dialog',
   templateUrl: './recordatorio-dialog.component.html',
-  styleUrls: ['./recordatorio-dialog.component.css'],
-  providers: [
-    {
-      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: { appearance: 'fill' }
-    }
-  ]
+  styleUrls: ['./recordatorio-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class RecordatorioDialogComponent implements OnInit {
   recordatorioForm: FormGroup;
@@ -278,6 +272,18 @@ export class RecordatorioDialogComponent implements OnInit {
     const apellidoMaterno = cliente.apellidoMaterno || '';
     
     return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+  }
+
+  getPacienteMeta(): string {
+    const p = this.data?.paciente || this.pacienteInfo;
+    if (!p) return '';
+    const parts: string[] = [];
+    if (p.especie) parts.push(p.especie);
+    if (p.raza) parts.push(p.raza);
+    if (p.edad) parts.push(`${p.edad} años`);
+    if (p.peso) parts.push(`${p.peso} kg`);
+    if (p.sexo) parts.push(p.sexo);
+    return parts.join(' · ');
   }
 
   // Registrar recordatorio en log de actividades

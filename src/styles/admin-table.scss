@@ -1,0 +1,368 @@
+/* KatzenVet Admin — Tablas premium (espaciado, badges, columnas) */
+
+/* ── Contenedor de tabla dentro del data panel ── */
+.admin-content .table-scroll {
+  margin: 0 28px 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.admin-content .table-scroll table {
+  width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+/* ── Celdas: padding generoso ── */
+.admin-content .table-scroll .mat-mdc-header-cell,
+.admin-content .table-scroll .mat-mdc-cell,
+.admin-content .table-shell .mat-mdc-header-cell,
+.admin-content .table-shell .mat-mdc-cell {
+  padding: 14px 18px !important;
+  vertical-align: middle !important;
+  box-sizing: border-box;
+}
+
+.admin-content .table-scroll .mat-mdc-header-cell:first-of-type,
+.admin-content .table-scroll .mat-mdc-cell:first-of-type,
+.admin-content .table-shell .mat-mdc-header-cell:first-of-type,
+.admin-content .table-shell .mat-mdc-cell:first-of-type {
+  padding-left: 22px !important;
+}
+
+.admin-content .table-scroll .mat-mdc-header-cell:last-of-type,
+.admin-content .table-scroll .mat-mdc-cell:last-of-type,
+.admin-content .table-shell .mat-mdc-header-cell:last-of-type,
+.admin-content .table-shell .mat-mdc-cell:last-of-type {
+  padding-right: 18px !important;
+}
+
+.admin-content .table-scroll .mat-mdc-header-row,
+.admin-content .table-shell .mat-mdc-header-row {
+  min-height: 48px !important;
+  background: #f9fafb;
+}
+
+.admin-content .table-scroll .mat-mdc-row,
+.admin-content .table-shell .mat-mdc-row {
+  min-height: 68px !important;
+  transition: background 0.15s ease;
+}
+
+.admin-content .table-scroll .mat-mdc-row:hover,
+.admin-content .table-shell .mat-mdc-row:hover,
+.admin-content .data-row:hover {
+  background: #f9fafb !important;
+}
+
+.admin-content .table-scroll .mat-mdc-header-cell {
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.admin-content .table-scroll .mat-mdc-cell {
+  color: #111827;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #f3f4f6 !important;
+}
+
+.admin-content .table-scroll .mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: none !important;
+}
+
+/* ── Búsqueda dentro del panel ── */
+.admin-content .panel-search,
+.admin-content .buscador.panel-search {
+  display: block;
+  margin: 8px 28px 22px !important;
+  width: calc(100% - 56px) !important;
+  max-width: 420px;
+}
+
+.admin-content .panel-search .mat-mdc-text-field-wrapper,
+.admin-content .buscador.panel-search .mat-mdc-text-field-wrapper {
+  background: #fff;
+  border-radius: 10px;
+}
+
+.admin-content .panel-search .mdc-notched-outline__leading,
+.admin-content .panel-search .mdc-notched-outline__notch,
+.admin-content .panel-search .mdc-notched-outline__trailing,
+.admin-content .buscador.panel-search .mdc-notched-outline__leading,
+.admin-content .buscador.panel-search .mdc-notched-outline__notch,
+.admin-content .buscador.panel-search .mdc-notched-outline__trailing {
+  border-color: #d1d5db !important;
+}
+
+/* ── Columnas proporcionales (evita tabla “estirada”) ── */
+.admin-content .mat-column-paciente,
+.admin-content .mat-mdc-column-paciente {
+  min-width: 240px;
+  width: 30%;
+}
+
+.admin-content .mat-column-dueno,
+.admin-content .mat-mdc-column-dueno {
+  min-width: 140px;
+  width: 18%;
+}
+
+.admin-content .mat-column-resumen,
+.admin-content .mat-mdc-column-resumen {
+  min-width: 200px;
+  width: 26%;
+}
+
+.admin-content .mat-column-estado,
+.admin-content .mat-mdc-column-estado {
+  width: 108px !important;
+  min-width: 108px !important;
+  max-width: 108px !important;
+}
+
+.admin-content .mat-column-consulta,
+.admin-content .mat-mdc-column-consulta {
+  min-width: 180px;
+  width: 22%;
+}
+
+.admin-content .mat-column-nombre,
+.admin-content .mat-mdc-column-nombre {
+  min-width: 160px;
+  width: 20%;
+}
+
+/* ── Celda paciente ── */
+.admin-content .cell-paciente {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.admin-content .cell-paciente strong,
+.admin-content .cell-primary strong {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #032d60;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.admin-content .cell-dueno {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.admin-content .patient-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  display: block;
+}
+
+/* ── Tags en celdas ── */
+.admin-content .cell-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.admin-content .tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.admin-content .tag-muted {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-content .tag-sex,
+.admin-content .tag-accent {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+}
+
+/* ── Badges de estado (referencia Vacunas — sólidos, texto blanco) ── */
+.admin-content .estado-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  border: none;
+}
+
+.admin-content .estado-badge--success,
+.admin-content .estado-badge--vivo {
+  background: #4caf50;
+}
+
+.admin-content .estado-badge--pending {
+  background: #ff9800;
+}
+
+.admin-content .estado-badge--info {
+  background: #2196f3;
+}
+
+.admin-content .estado-badge--danger {
+  background: #f44336;
+}
+
+.admin-content .estado-badge--neutral {
+  background: #9e9e9e;
+}
+
+.admin-content .estado-badge--fallecido {
+  background: #78909c;
+}
+
+.admin-content .admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.admin-content .admin-badge--success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #bbf7d0;
+}
+
+/* ── Acciones en fila (horizontal, no apiladas) ── */
+.admin-content .row-actions,
+.admin-content .row-actions.hide-mobile {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.admin-content td.mat-column-acciones,
+.admin-content .mat-mdc-cell.mat-column-acciones {
+  text-align: right;
+  white-space: nowrap;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 2px !important;
+  padding-left: 6px !important;
+  padding-right: 10px !important;
+}
+
+/* ── Paginador pegado al panel ── */
+.admin-content app-admin-data-panel mat-paginator,
+.admin-content app-admin-data-panel .mat-mdc-paginator {
+  margin: 0 28px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.admin-content .load-more-row {
+  padding: 8px 28px 24px;
+}
+
+.admin-content tr.data-row.fila-pendiente {
+  background: #fffbeb !important;
+}
+
+.admin-content tr.data-row.fila-pendiente:hover {
+  background: #fef3c7 !important;
+}
+
+@media (max-width: 900px) {
+  .admin-content .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Historiales — columnas legibles */
+.admin-content .historiales-table .mat-column-diagnostico_presuntivo,
+.admin-content .historiales-table .mat-mdc-column-diagnostico_presuntivo {
+  max-width: 240px;
+}
+
+.admin-content .historiales-table .cell-truncate {
+  display: block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #3d5252;
+}
+
+.admin-content .historiales-table .mat-column-paciente,
+.admin-content .historiales-table .mat-mdc-column-paciente {
+  min-width: 120px;
+}
+
+.admin-content .historiales-table th.mat-column-acciones,
+.admin-content .historiales-table td.mat-column-acciones,
+.admin-content .historiales-table .mat-mdc-header-cell.mat-column-acciones,
+.admin-content .historiales-table .mat-mdc-cell.mat-column-acciones {
+  width: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+}
+
+.admin-content .historiales-table .mat-column-estado,
+.admin-content .historiales-table .mat-mdc-column-estado {
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 110px !important;
+}

@@ -1,131 +1,94 @@
-<div class="dashboard-container" [@routeAnimations]>
+<div class="admin-page dashboard-container" [@routeAnimations]>
   <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando calendario...</p>
-  </div>
-  <!-- Header del Dashboard -->
-  <div class="dashboard-header">
-    <div class="welcome-section">
-      <h1 class="welcome-title">{{ getSaludo() }}</h1>
-      <p class="welcome-subtitle">Bienvenido al Sistema de Gestión Veterinaria KatzenVet</p>
-      <p class="current-date">{{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</p>
-    </div>
-    
-    <div class="quick-stats">
-      <div class="stat-card" (click)="navegarA('pacientes-admin')" style="cursor: pointer;">
-        <div class="stat-icon">
-          <mat-icon>pets</mat-icon>
-        </div>
-        <div class="stat-content">
-          <h3>Pacientes</h3>
-          <p>Gestiona la información de tus pacientes</p>
-        </div>
-        <div class="stat-arrow">
-          <mat-icon>arrow_forward</mat-icon>
-        </div>
-      </div>
-      <div class="stat-card" (click)="navegarA('clientes')" style="cursor: pointer;">
-        <div class="stat-icon">
-          <mat-icon>people</mat-icon>
-        </div>
-        <div class="stat-content">
-          <h3>Clientes</h3>
-          <p>Administra los datos de tus clientes</p>
-        </div>
-        <div class="stat-arrow">
-          <mat-icon>arrow_forward</mat-icon>
-        </div>
-      </div>
-      <div class="stat-card" (click)="navegarA('citas')" style="cursor: pointer;">
-        <div class="stat-icon">
-          <mat-icon>event</mat-icon>
-        </div>
-        <div class="stat-content">
-          <h3>Citas</h3>
-          <p>Organiza y programa las citas</p>
-        </div>
-        <div class="stat-arrow">
-          <mat-icon>arrow_forward</mat-icon>
-        </div>
-      </div>
-      <div class="stat-card" (click)="navegarA('historiales')" style="cursor: pointer;">
-        <div class="stat-icon">
-          <mat-icon>medical_services</mat-icon>
-        </div>
-        <div class="stat-content">
-          <h3>Historiales</h3>
-          <p>Consulta el historial clínico</p>
-        </div>
-        <div class="stat-arrow">
-          <mat-icon>arrow_forward</mat-icon>
-        </div>
-      </div>
-      <div class="stat-card" (click)="navegarA('inventario')" style="cursor: pointer; border: 2px solid #4caf50;">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <mat-icon>inventory</mat-icon>
-        </div>
-        <div class="stat-content">
-          <h3>Inventario 🆕</h3>
-          <p>Sistema completo de inventario</p>
-        </div>
-        <div class="stat-arrow">
-          <mat-icon>arrow_forward</mat-icon>
-        </div>
-      </div>
-    </div>
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando panel...</p>
   </div>
 
+  <ng-container *ngIf="!loading">
+    <section class="dashboard-hero">
+      <p class="dashboard-hero__eyebrow">KatzenVet · Panel administrativo</p>
+      <h1 class="dashboard-hero__title">{{ getSaludo() }}</h1>
+      <p class="dashboard-hero__lead">
+        Haz la gestión veterinaria más fácil con herramientas claras para tu clínica.
+      </p>
+      <p class="dashboard-hero__date">
+        {{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}
+      </p>
+    </section>
 
+    <section class="dashboard-modules">
+      <h2 class="dashboard-modules__heading">
+        Encuentra la herramienta adecuada para cada tarea
+      </h2>
 
-  <!-- Calendario de Citas -->
-  <div *ngIf="!loading" class="calendar-section">
-    <div class="calendar-header">
-      <h2>Calendario de Citas</h2>
-      <div class="calendar-navigation">
-        <button mat-icon-button (click)="previousMonth()" class="nav-btn">
+      <div class="admin-feature-grid">
+        <app-admin-module-card
+          *ngFor="let module of visibleModules"
+          [title]="module.title"
+          [description]="module.description"
+          [route]="module.route"
+          [accent]="module.accent">
+        </app-admin-module-card>
+      </div>
+
+      <div class="dashboard-modules__actions" *ngIf="allModules.length > primaryModuleCount">
+        <button
+          mat-stroked-button
+          type="button"
+          class="dashboard-modules__toggle"
+          (click)="toggleModules()">
+          {{ showAllModules ? 'Ver menos módulos' : 'Ver todos los módulos' }}
+        </button>
+      </div>
+    </section>
+
+    <app-admin-data-panel
+      accent="teal"
+      id="calendario-citas"
+      title="Calendario de citas"
+      description="Doble clic en un día con citas para ver el detalle del día."
+      [showLegend]="false">
+
+      <div class="calendar-toolbar">
+        <button mat-icon-button type="button" (click)="previousMonth()" aria-label="Mes anterior">
           <mat-icon>chevron_left</mat-icon>
         </button>
         <h3 class="month-year">{{ getMonthYearString() }}</h3>
-        <button mat-icon-button (click)="nextMonth()" class="nav-btn">
+        <button mat-icon-button type="button" (click)="nextMonth()" aria-label="Mes siguiente">
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
-    </div>
 
-    <div class="calendar-container">
-      <!-- Días de la semana -->
-      <div class="calendar-weekdays">
-        <div class="weekday">Dom</div>
-        <div class="weekday">Lun</div>
-        <div class="weekday">Mar</div>
-        <div class="weekday">Mié</div>
-        <div class="weekday">Jue</div>
-        <div class="weekday">Vie</div>
-        <div class="weekday">Sáb</div>
-      </div>
+      <div class="calendar-container">
+        <div class="calendar-weekdays">
+          <div class="weekday">Dom</div>
+          <div class="weekday">Lun</div>
+          <div class="weekday">Mar</div>
+          <div class="weekday">Mié</div>
+          <div class="weekday">Jue</div>
+          <div class="weekday">Vie</div>
+          <div class="weekday">Sáb</div>
+        </div>
 
-      <!-- Días del calendario -->
-      <div class="calendar-grid">
-        <div 
-          *ngFor="let day of calendarDays" 
-          class="calendar-day"
-          [class.current-month]="day.isCurrentMonth"
-          [class.today]="day.isToday"
-          [class.has-citas]="day.hasCitas"
-          (dblclick)="showCitasForDay(day)"
-          [style.cursor]="day.hasCitas ? 'pointer' : 'default'"
-          [matTooltip]="day.hasCitas ? 'Doble clic para ver citas' : ''"
-          matTooltipPosition="above"
-        >
-          <div class="day-number">{{ day.day }}</div>
-          <div *ngIf="day.hasCitas" class="citas-indicator">
-            <div class="citas-dot"></div>
-            <span class="citas-count">{{ day.citas.length }}</span>
+        <div class="calendar-grid">
+          <div
+            *ngFor="let day of calendarDays"
+            class="calendar-day"
+            [class.current-month]="day.isCurrentMonth"
+            [class.today]="day.isToday"
+            [class.has-citas]="day.hasCitas"
+            (dblclick)="showCitasForDay(day)"
+            [style.cursor]="day.hasCitas ? 'pointer' : 'default'"
+            [matTooltip]="day.hasCitas ? 'Doble clic para ver citas' : ''"
+            matTooltipPosition="above">
+            <div class="day-number">{{ day.day }}</div>
+            <div *ngIf="day.hasCitas" class="citas-indicator">
+              <div class="citas-dot"></div>
+              <span class="citas-count">{{ day.citas.length }}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-
-  </div>
+    </app-admin-data-panel>
+  </ng-container>
 </div>

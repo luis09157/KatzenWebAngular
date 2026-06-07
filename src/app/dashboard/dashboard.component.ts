@@ -9,6 +9,15 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
+import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { AdminModuleAccent } from '../shared/admin/admin-module-card.component';
+
+interface DashboardModule {
+  title: string;
+  description: string;
+  route: string;
+  accent: AdminModuleAccent;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +49,71 @@ export class DashboardComponent implements OnInit, OnDestroy {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
   loading = false;
+  showAllModules = false;
+  readonly primaryModuleCount = 6;
+
+  readonly allModules: DashboardModule[] = [
+    {
+      title: 'Pacientes',
+      description: 'Registra mascotas, historial clínico y datos del expediente en un solo lugar.',
+      route: 'pacientes-admin',
+      accent: 'teal'
+    },
+    {
+      title: 'Clientes',
+      description: 'Administra dueños, contacto, dirección y expedientes vinculados a sus mascotas.',
+      route: 'clientes',
+      accent: 'blue'
+    },
+    {
+      title: 'Citas',
+      description: 'Programa consultas, controla la agenda diaria y da seguimiento a cada cita.',
+      route: 'citas',
+      accent: 'purple'
+    },
+    {
+      title: 'Historiales clínicos',
+      description: 'Consulta diagnósticos, tratamientos y evolución médica de cada paciente.',
+      route: 'historiales',
+      accent: 'pink'
+    },
+    {
+      title: 'Vacunas',
+      description: 'Lleva el control de esquemas, fechas de aplicación y recordatorios de refuerzo.',
+      route: 'vacunas',
+      accent: 'green'
+    },
+    {
+      title: 'Inventario',
+      description: 'Gestiona productos, movimientos, órdenes de compra y alertas de stock bajo.',
+      route: 'inventario',
+      accent: 'orange'
+    },
+    {
+      title: 'Baños y estética',
+      description: 'Agenda servicios de baño, peluquería y cuidado estético por paciente.',
+      route: 'banios',
+      accent: 'teal'
+    },
+    {
+      title: 'Recordatorios',
+      description: 'Crea avisos para vacunas, citas de seguimiento y tareas pendientes del equipo.',
+      route: 'recordatorios',
+      accent: 'blue'
+    },
+    {
+      title: 'Usuarios',
+      description: 'Administra accesos del personal, perfiles y permisos del sistema.',
+      route: 'usuarios',
+      accent: 'purple'
+    }
+  ];
+
+  get visibleModules(): DashboardModule[] {
+    return this.showAllModules
+      ? this.allModules
+      : this.allModules.slice(0, this.primaryModuleCount);
+  }
 
   constructor(
     private authService: AuthService,
@@ -184,9 +258,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     // Abrir modal con las citas del día
     this.dialog.open(CitasDiaDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
-      maxHeight: '80vh',
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
       data: {
         citas: citasConNombres,
         fecha: fecha
@@ -224,8 +297,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   navegarA(ruta: string) {
-    console.log(`🚀 Navegando a: /admin/${ruta}`);
     this.router.navigate([`/admin/${ruta}`]);
+  }
+
+  toggleModules(): void {
+    this.showAllModules = !this.showAllModules;
   }
 
   logout() {

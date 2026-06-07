@@ -1,0 +1,5 @@
+<div class="kpi-card" [ngClass]="'kpi-card--' + accent">
+  <span class="kpi-label">{{ label }}</span>
+  <div class="kpi-value">{{ value | number }}</div>
+  <div class="kpi-hint" *ngIf="hint">{{ hint }}</div>
+</div>

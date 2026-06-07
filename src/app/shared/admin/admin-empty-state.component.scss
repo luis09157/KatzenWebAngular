@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+.admin-empty {
+  text-align: center;
+  padding: 56px 28px 48px;
+  margin: 8px 20px 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 14px;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.admin-empty mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #0a969b;
+  opacity: 0.4;
+  margin-bottom: 12px;
+}
+
+.admin-empty h3 {
+  margin: 8px 0 6px;
+  color: #032d60;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.admin-empty p {
+  margin: 0 0 20px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.admin-empty button {
+  border-radius: 10px !important;
+  font-weight: 600;
+  --mdc-protected-button-container-color: #0a969b;
+  --mdc-protected-button-label-text-color: #fff;
+}

@@ -1,117 +1,70 @@
-<div class="recordatorios-contenedor">
-  <!-- Dashboard de Estadísticas -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>notifications</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.total }}</div>
-        <div class="stat-label">Total de Recordatorios</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>schedule</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.pendientes }}</div>
-        <div class="stat-label">Pendientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.completados }}</div>
-        <div class="stat-label">Completados</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.pacientesUnicos }}</div>
-        <div class="stat-label">Pacientes Únicos</div>
-      </div>
-    </div>
-  </div>
+<div class="admin-page recordatorios-contenedor">
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="blue" icon="notifications" [value]="estadisticas.total" label="Total recordatorios" hint="En el sistema"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" icon="schedule" [value]="estadisticas.pendientes" label="Pendientes" hint="Por atender"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.completados" label="Completados" hint="Finalizados"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" icon="pets" [value]="estadisticas.pacientesUnicos" label="Pacientes únicos" hint="Con recordatorio"></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
-  <!-- Banner de Administración -->
-  <div class="admin-banner">
-    <div class="banner-content">
-      <div class="banner-icon">
-        <mat-icon>notifications</mat-icon>
-      </div>
-      <div class="banner-text">
-        <h2>Administración de Recordatorios</h2>
-        <p>Gestiona todos los recordatorios y alertas del sistema</p>
-      </div>
-    </div>
-    <div class="banner-actions">
-      <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
+  <app-admin-page-banner
+    accent="blue"
+    icon="notifications"
+    title="Administración de Recordatorios"
+    subtitle="Gestiona todos los recordatorios y alertas del sistema.">
+    <div bannerActions>
+      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalRecordatorio()">
         <mat-icon>add</mat-icon>
-        Nuevo Recordatorio
+        Nuevo recordatorio
       </button>
     </div>
-  </div>
+  </app-admin-page-banner>
 
-  <mat-card class="recordatorios-card">
-    
-    <mat-form-field appearance="outline" class="buscador">
+  <app-admin-data-panel
+    accent="blue"
+    title="Listado de recordatorios"
+    description="Busca por título, paciente, tipo o prioridad."
+    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
+    [showLegend]="!loading && !!dataSource?.data?.length">
+
+    <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar recordatorio</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por título, paciente, tipo..." />
-      <mat-icon matSuffix>search</mat-icon>
+      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Título, paciente, tipo..." />
+      <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
-    
-    <div class="tabla-contenedor">
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando recordatorios...</p>
-      </div>
 
-      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-recordatorios">
-        <div class="empty-icon-container">
-          <mat-icon>notifications_off</mat-icon>
-        </div>
-        <h3>No hay recordatorios</h3>
-        <p>No se han encontrado recordatorios registrados.</p>
-        <button mat-raised-button color="primary" (click)="abrirModalRecordatorio()">
-          <mat-icon>add</mat-icon>
-          Crear primer recordatorio
-        </button>
-      </div>
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando recordatorios…</p>
+    </div>
 
-      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        
-        <!-- Fecha -->
+    <app-admin-empty-state
+      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
+      icon="notifications_off"
+      title="No hay recordatorios"
+      message="No se han encontrado recordatorios registrados."
+      actionLabel="Agregar primer recordatorio"
+      (action)="abrirModalRecordatorio()">
+    </app-admin-empty-state>
+
+    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
+      <table mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="fecha_recordatorio">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let recordatorio">
-            <div class="fecha-cell">
-              <mat-icon class="fecha-icon">event</mat-icon>
-              {{ recordatorio.fecha_recordatorio }}
-            </div>
+            <span class="fecha-compact">{{ recordatorio.fecha_recordatorio }}</span>
           </td>
         </ng-container>
 
-        <!-- Título -->
         <ng-container matColumnDef="titulo">
           <th mat-header-cell *matHeaderCellDef>Título</th>
           <td mat-cell *matCellDef="let recordatorio">
-            <div class="titulo-cell">
-              <mat-icon [class]="'tipo-icon ' + recordatorio.tipo">{{ getTipoIcono(recordatorio.tipo) }}</mat-icon>
-              <span class="titulo-texto">{{ recordatorio.titulo }}</span>
+            <div class="cell-primary">
+              <strong>{{ recordatorio.titulo }}</strong>
             </div>
           </td>
         </ng-container>
 
-        <!-- Tipo -->
         <ng-container matColumnDef="tipo">
           <th mat-header-cell *matHeaderCellDef>Tipo</th>
           <td mat-cell *matCellDef="let recordatorio">
@@ -119,76 +72,56 @@
           </td>
         </ng-container>
 
-        <!-- Estado -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let recordatorio">
-            <span class="estado-badge" [style.background-color]="getEstadoColor(recordatorio.estado)">
+            <span class="estado-badge" [ngClass]="recordatorio.estado | adminEstadoClass">
               {{ recordatorio.estado | titlecase }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Prioridad -->
         <ng-container matColumnDef="prioridad">
           <th mat-header-cell *matHeaderCellDef>Prioridad</th>
           <td mat-cell *matCellDef="let recordatorio">
-            <span class="estado-badge" [style.background-color]="getPrioridadColor(recordatorio.prioridad)">
+            <span class="estado-badge" [ngClass]="recordatorio.prioridad | adminPrioridadClass">
               {{ recordatorio.prioridad | titlecase }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Paciente -->
         <ng-container matColumnDef="paciente">
           <th mat-header-cell *matHeaderCellDef>Paciente</th>
           <td mat-cell *matCellDef="let recordatorio">
-            <div class="paciente-cell">
-              <mat-icon class="paciente-icon">pets</mat-icon>
-              {{ recordatorio.paciente }}
-            </div>
+            <span class="tag tag-muted">{{ recordatorio.paciente }}</span>
           </td>
         </ng-container>
 
-        <!-- Acciones -->
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef style="text-align: center;">Acciones</th>
-          <td mat-cell *matCellDef="let recordatorio" style="text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
-              <button mat-icon-button color="primary" (click)="verRecordatorio(recordatorio)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
-              </button>
-              <button mat-icon-button color="accent" (click)="editarRecordatorio(recordatorio)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="eliminarRecordatorio(recordatorio)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-              </button>
-              <button *ngIf="recordatorio.estado === 'pendiente'" 
-                      mat-icon-button color="primary" 
-                      (click)="cambiarEstado(recordatorio, 'completado')" 
-                      matTooltip="Marcar como completado"
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">check</mat-icon>
-              </button>
-              <button *ngIf="recordatorio.estado === 'completado'" 
-                      mat-icon-button color="accent" 
-                      (click)="cambiarEstado(recordatorio, 'pendiente')" 
-                      matTooltip="Marcar como pendiente"
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">schedule</mat-icon>
-              </button>
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let recordatorio">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verRecordatorio(recordatorio)"><mat-icon>visibility</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarRecordatorio(recordatorio)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Más acciones" [matMenuTriggerFor]="recordatorioMenu" (click)="menuContext = recordatorio"><mat-icon>more_vert</mat-icon></button>
             </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="recordatorioMenu" (click)="menuContext = recordatorio"><mat-icon>more_vert</mat-icon></button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-            (dblclick)="verRecordatorio(row)"
-            class="recordatorio-row"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" (dblclick)="verRecordatorio(row)"></tr>
       </table>
-
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </div>
-  </mat-card>
-</div> 
+
+    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+  </app-admin-data-panel>
+
+  <mat-menu #recordatorioMenu="matMenu">
+    <button mat-menu-item (click)="verRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="eliminarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item *ngIf="menuContext?.estado === 'pendiente'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
+    <button mat-menu-item *ngIf="menuContext?.estado === 'completado'" (click)="cambiarEstado(menuContext, 'pendiente')"><mat-icon>schedule</mat-icon> Marcar pendiente</button>
+  </mat-menu>
+</div>

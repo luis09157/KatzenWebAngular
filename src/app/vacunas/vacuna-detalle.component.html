@@ -1,244 +1,110 @@
-<div class="vacuna-detalle-dialog">
-  <div class="dialog-header">
-    <div class="header-content">
-      <div class="vacuna-icon">
-        <mat-icon [style.color]="getVacunaColor(data.vacuna)">{{ getVacunaIcono(data.vacuna) }}</mat-icon>
-      </div>
-      <div class="header-info">
-        <h2 mat-dialog-title>{{ getNombreVacuna(data.vacuna) }}</h2>
-        <p class="vacuna-subtitle">Detalles de la vacuna</p>
-      </div>
+<div class="admin-dialog-shell admin-dialog-shell--readonly vacuna-detalle-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly">Solo lectura</span>
+      <h2 class="admin-dialog-title">Detalle de vacuna</h2>
+      <p class="admin-dialog-subtitle">Consulta aplicación, calendario y observaciones clínicas.</p>
     </div>
-    <button mat-icon-button (click)="cerrar()" class="close-btn">
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <div class="dialog-content">
-    <div class="info-grid">
-      
-      <!-- Información Principal -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>info</mat-icon>
-          Información Principal
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>vaccines</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Tipo de Vacuna</span>
-              <span class="card-value">{{ getNombreVacuna(data.vacuna) }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>straighten</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Dosis</span>
-              <span class="card-value">{{ data.dosis }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>event</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Fecha de Aplicación</span>
-              <span class="card-value">{{ formatearFecha(data.fecha) }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>schedule</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Estado</span>
-              <span class="card-value" [style.color]="getEstadoColor(data.aplicada)">
-                {{ getEstadoText(data.aplicada) }}
-              </span>
-            </div>
-          </div>
-        </div>
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="admin-dialog-form admin-dialog-form--padded">
+      <div class="entity-summary">
+        <span class="vacuna-estado-badge" [class.vacuna-estado-badge--pendiente]="!data.aplicada">
+          {{ getEstadoText(data.aplicada) }}
+        </span>
+        <h3 class="entity-summary__name">{{ getNombreVacuna(data.vacuna) }}</h3>
+        <p class="entity-summary__meta" *ngIf="data.paciente">Paciente: {{ data.paciente }}</p>
       </div>
 
-      <!-- Información del Paciente -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>pets</mat-icon>
-          Paciente
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>person</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Paciente</span>
-              <span class="card-value">{{ data.paciente }}</span>
-            </div>
+      <section class="detail-section">
+        <h4 class="detail-section__title">Información principal</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-item__label">Tipo de vacuna</span>
+            <p class="detail-item__value">{{ getNombreVacuna(data.vacuna) }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Dosis</span>
+            <p class="detail-item__value">{{ data.dosis || '—' }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Fecha de aplicación</span>
+            <p class="detail-item__value">{{ formatearFecha(data.fecha || data.fechaAplicacion) }}</p>
+          </div>
+          <div class="detail-item">
+            <span class="detail-item__label">Estado</span>
+            <p class="detail-item__value">{{ getEstadoText(data.aplicada) }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Información de Recordatorios -->
-      <div class="info-section" *ngIf="data.fechaRecordatorio || data.recordatorio">
-        <h3 class="section-title">
-          <mat-icon>notifications</mat-icon>
-          Recordatorios
-        </h3>
-        <div class="info-cards">
-          <div class="info-card" *ngIf="data.fechaRecordatorio">
-            <div class="card-icon">
-              <mat-icon>schedule</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Fecha de Recordatorio</span>
-              <span class="card-value">{{ formatearFecha(data.fechaRecordatorio) }}</span>
-            </div>
+      <section class="detail-section" *ngIf="data.lote || data.veterinario || data.intervalo || data.proximaAplicacion">
+        <h4 class="detail-section__title">Información adicional</h4>
+        <div class="detail-grid">
+          <div class="detail-item" *ngIf="data.lote">
+            <span class="detail-item__label">Número de lote</span>
+            <p class="detail-item__value">{{ data.lote }}</p>
           </div>
-          
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>notifications_active</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Recordatorio Activo</span>
-              <span class="card-value">{{ data.recordatorio ? 'Sí' : 'No' }}</span>
-            </div>
+          <div class="detail-item" *ngIf="data.veterinario">
+            <span class="detail-item__label">Veterinario</span>
+            <p class="detail-item__value">{{ data.veterinario }}</p>
+          </div>
+          <div class="detail-item" *ngIf="data.intervalo">
+            <span class="detail-item__label">Intervalo (días)</span>
+            <p class="detail-item__value">{{ data.intervalo }}</p>
+          </div>
+          <div class="detail-item" *ngIf="data.proximaAplicacion">
+            <span class="detail-item__label">Próxima aplicación</span>
+            <p class="detail-item__value">{{ formatearFecha(data.proximaAplicacion) }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Información Adicional -->
-      <div class="info-section" *ngIf="data.lote || data.veterinario || data.intervalo || data.proximaAplicacion">
-        <h3 class="section-title">
-          <mat-icon>medical_services</mat-icon>
-          Información Adicional
-        </h3>
-        <div class="info-cards">
-          <div class="info-card" *ngIf="data.lote">
-            <div class="card-icon">
-              <mat-icon>inventory</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Número de Lote</span>
-              <span class="card-value">{{ data.lote }}</span>
-            </div>
+      <section class="detail-section" *ngIf="data.fechaRecordatorio || data.recordatorio !== undefined">
+        <h4 class="detail-section__title">Recordatorios</h4>
+        <div class="detail-grid">
+          <div class="detail-item" *ngIf="data.fechaRecordatorio">
+            <span class="detail-item__label">Fecha de recordatorio</span>
+            <p class="detail-item__value">{{ formatearFecha(data.fechaRecordatorio) }}</p>
           </div>
-          
-          <div class="info-card" *ngIf="data.veterinario">
-            <div class="card-icon">
-              <mat-icon>person_pin</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Veterinario</span>
-              <span class="card-value">{{ data.veterinario }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card" *ngIf="data.intervalo">
-            <div class="card-icon">
-              <mat-icon>update</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Intervalo (días)</span>
-              <span class="card-value">{{ data.intervalo }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card" *ngIf="data.proximaAplicacion">
-            <div class="card-icon">
-              <mat-icon>event_available</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Próxima Aplicación</span>
-              <span class="card-value">{{ formatearFecha(data.proximaAplicacion) }}</span>
-            </div>
+          <div class="detail-item" *ngIf="data.recordatorio !== undefined">
+            <span class="detail-item__label">Recordatorio activo</span>
+            <p class="detail-item__value">{{ data.recordatorio ? 'Sí' : 'No' }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Reacciones Adversas -->
-      <div class="info-section" *ngIf="data.reaccion">
-        <h3 class="section-title">
-          <mat-icon>warning</mat-icon>
-          Reacciones Adversas
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-icon warning">
-              <mat-icon>report_problem</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Observaciones</span>
-              <span class="card-value">{{ data.reaccion }}</span>
-            </div>
+      <section class="detail-section" *ngIf="data.reaccion">
+        <h4 class="detail-section__title">Reacciones adversas</h4>
+        <div class="detail-text-block">{{ data.reaccion }}</div>
+      </section>
+
+      <section class="detail-section" *ngIf="data.observaciones">
+        <h4 class="detail-section__title">Observaciones</h4>
+        <div class="detail-text-block">{{ data.observaciones }}</div>
+      </section>
+
+      <section class="detail-section" *ngIf="data.fechaRegistro || data.fechaAplicacion">
+        <h4 class="detail-section__title">Información de registro</h4>
+        <div class="detail-grid">
+          <div class="detail-item" *ngIf="data.fechaRegistro">
+            <span class="detail-item__label">Fecha de registro</span>
+            <p class="detail-item__value">{{ formatearFecha(data.fechaRegistro) }}</p>
+          </div>
+          <div class="detail-item" *ngIf="data.fechaAplicacion">
+            <span class="detail-item__label">Fecha de aplicación real</span>
+            <p class="detail-item__value">{{ formatearFecha(data.fechaAplicacion) }}</p>
           </div>
         </div>
-      </div>
-
-      <!-- Observaciones -->
-      <div class="info-section" *ngIf="data.observaciones">
-        <h3 class="section-title">
-          <mat-icon>note</mat-icon>
-          Observaciones
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="card-icon">
-              <mat-icon>description</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Notas</span>
-              <span class="card-value">{{ data.observaciones }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Información de Registro -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>history</mat-icon>
-          Información de Registro
-        </h3>
-        <div class="info-cards">
-          <div class="info-card" *ngIf="data.fechaRegistro">
-            <div class="card-icon">
-              <mat-icon>schedule</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Fecha de Registro</span>
-              <span class="card-value">{{ formatearFecha(data.fechaRegistro) }}</span>
-            </div>
-          </div>
-          
-          <div class="info-card" *ngIf="data.fechaAplicacion">
-            <div class="card-icon">
-              <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="card-content">
-              <span class="card-label">Fecha de Aplicación Real</span>
-              <span class="card-value">{{ formatearFecha(data.fechaAplicacion) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      </section>
     </div>
-  </div>
+  </mat-dialog-content>
 
-  <div class="dialog-actions">
-    <button mat-button (click)="cerrar()">
-      <mat-icon>close</mat-icon>
-      Cerrar
-    </button>
-  </div>
-</div> 
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+  </mat-dialog-actions>
+</div>

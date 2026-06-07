@@ -1,219 +1,193 @@
-<div class="banio-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>spa</mat-icon>
-      {{ esEdicion ? 'Editar Baño' : 'Nuevo Baño' }}
-    </h2>
-    <button mat-icon-button (click)="cancelar()">
+<div class="admin-dialog-shell banio-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar baño' : 'Nuevo baño' }}</h2>
+      <p class="admin-dialog-subtitle">Programación, servicio, precios y observaciones clínicas.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
   <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
-    <mat-dialog-content>
-      <div class="form-container">
-        
-        <!-- Información del Paciente y Cliente (solo visible si no se oculta) -->
-        <div class="form-section" *ngIf="!hidePatientInfo">
-          <h3>Información del Paciente</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Cliente</mat-label>
-              <input matInput [value]="banioForm.get('cliente')?.value" readonly />
-              <mat-icon matSuffix>person</mat-icon>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Paciente</mat-label>
-              <input matInput [value]="banioForm.get('paciente')?.value" readonly />
-              <mat-icon matSuffix>pets</mat-icon>
-            </mat-form-field>
-          </div>
-        </div>
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="entity-summary entity-summary--compact"
+           *ngIf="banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre">
+        <h3 class="entity-summary__name">
+          {{ data?.paciente_nombre || banioForm.get('paciente')?.value || 'Paciente' }}
+        </h3>
+        <p class="entity-summary__meta">
+          Cliente: {{ data?.cliente_nombre || banioForm.get('cliente')?.value || '—' }}
+        </p>
+      </div>
 
-        <!-- Información del Paciente (versión compacta cuando se oculta) -->
-        <div class="form-section" *ngIf="hidePatientInfo">
-          <div class="patient-info-compact">
-            <div class="patient-card">
-              <mat-icon class="patient-icon">pets</mat-icon>
-              <div class="patient-details">
-                <h4>{{ data.paciente_nombre || 'Paciente' }}</h4>
-                <p>{{ data.cliente_nombre || 'Cliente' }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Programación
+          <span class="form-section__badge">Requerido</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha del baño</mat-label>
+            <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required [readonly]="esEdicion">
+            <mat-datepicker-toggle matIconSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
+            <mat-datepicker #fechaPicker></mat-datepicker>
+          </mat-form-field>
 
-        <!-- Fecha y Hora -->
-        <div class="form-section">
-          <h3>Programación</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Fecha del Baño</mat-label>
-              <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required [readonly]="esEdicion" />
-              <mat-datepicker-toggle matSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
-              <mat-datepicker #fechaPicker></mat-datepicker>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Hora del Baño</mat-label>
-              <input matInput type="time" formControlName="hora_banio" required />
-              <mat-icon matSuffix>schedule</mat-icon>
-            </mat-form-field>
-          </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Hora del baño</mat-label>
+            <input matInput type="time" formControlName="hora_banio" required>
+          </mat-form-field>
         </div>
+      </section>
 
-        <!-- Tipo de Servicio y Estado -->
-        <div class="form-section">
-          <h3>Servicio</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Tipo de Servicio</mat-label>
-              <mat-select formControlName="tipo_servicio" required>
-                <mat-option *ngFor="let tipo of tiposServicios" [value]="tipo.value">
-                  <mat-icon>{{ tipo.icon }}</mat-icon>
-                  {{ tipo.label }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>spa</mat-icon>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Estado</mat-label>
-              <mat-select formControlName="estado" required>
-                <mat-option *ngFor="let estado of estados" [value]="estado.value">
-                  <span [style.color]="estado.color">{{ estado.label }}</span>
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>info</mat-icon>
-            </mat-form-field>
-          </div>
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Servicio
+          <span class="form-section__badge">Requerido</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo de servicio</mat-label>
+            <mat-select formControlName="tipo_servicio" required>
+              <mat-option *ngFor="let tipo of tiposServicios" [value]="tipo.value">
+                {{ tipo.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="estado" required>
+              <mat-option *ngFor="let estado of estados" [value]="estado.value">
+                {{ estado.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
+      </section>
 
-        <!-- Prioridad y Comportamiento -->
-        <div class="form-section">
-          <h3>Detalles</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Prioridad</mat-label>
-              <mat-select formControlName="prioridad" required>
-                <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.value">
-                  <span [style.color]="prioridad.color">{{ prioridad.label }}</span>
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>priority_high</mat-icon>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Comportamiento</mat-label>
-              <mat-select formControlName="comportamiento" required>
-                <mat-option *ngFor="let comportamiento of comportamientos" [value]="comportamiento.value">
-                  {{ comportamiento.label }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>psychology</mat-icon>
-            </mat-form-field>
-          </div>
+      <section class="form-section">
+        <h3 class="form-section__title">Detalles del paciente</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Prioridad</mat-label>
+            <mat-select formControlName="prioridad" required>
+              <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.value">
+                {{ prioridad.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Comportamiento</mat-label>
+            <mat-select formControlName="comportamiento" required>
+              <mat-option *ngFor="let comportamiento of comportamientos" [value]="comportamiento.value">
+                {{ comportamiento.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
+      </section>
 
-        <!-- Peluquero y Duración -->
-        <div class="form-section">
-          <h3>Personal</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Peluquero</mat-label>
-              <mat-select formControlName="peluquero_id" required>
-                <mat-option *ngFor="let usuario of usuarios" [value]="usuario.id">
-                  {{ usuario.nombre }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>person</mat-icon>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Duración Estimada (minutos)</mat-label>
-              <input matInput type="number" formControlName="duracion_estimada" min="15" required />
-              <mat-icon matSuffix>timer</mat-icon>
-            </mat-form-field>
-          </div>
+      <section class="form-section">
+        <h3 class="form-section__title">Personal</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Peluquero</mat-label>
+            <mat-select formControlName="peluquero_id" required>
+              <mat-option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                {{ usuario.nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Duración estimada (min)</mat-label>
+            <input matInput type="number" formControlName="duracion_estimada" min="15" required>
+          </mat-form-field>
         </div>
+      </section>
 
-        <!-- Precios -->
-        <div class="form-section">
-          <h3>Precios</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Precio Base</mat-label>
-              <input matInput type="number" formControlName="precio_base" min="0" required />
-              <mat-icon matSuffix>attach_money</mat-icon>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Precio Total</mat-label>
-              <input matInput [value]="calcularPrecioTotal()" readonly />
-              <mat-icon matSuffix>account_balance_wallet</mat-icon>
-            </mat-form-field>
-          </div>
+      <section class="form-section">
+        <h3 class="form-section__title">Precios</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Precio base</mat-label>
+            <input matInput type="number" formControlName="precio_base" min="0" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Precio total</mat-label>
+            <input matInput [value]="calcularPrecioTotal()" readonly>
+          </mat-form-field>
         </div>
+      </section>
 
-        <!-- Servicios Adicionales -->
-        <div class="form-section">
-          <h3>Servicios Adicionales</h3>
-          <div class="servicios-adicionales">
-            <div *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index" class="servicio-item">
-              <mat-form-field appearance="outline" class="form-field-small">
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Servicios adicionales
+          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+        </h3>
+        <div class="dynamic-list">
+          <div class="dynamic-list__row"
+               *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index">
+            <div class="form-grid form-grid--compact">
+              <mat-form-field appearance="outline">
                 <mat-label>Servicio</mat-label>
                 <mat-select [(ngModel)]="servicio.servicio" [ngModelOptions]="{standalone: true}" (selectionChange)="actualizarPrecioServicio(servicio, i)">
                   <mat-option *ngFor="let tipoServicio of serviciosAdicionales" [value]="tipoServicio.value">
-                    {{ tipoServicio.label }} - ${{ tipoServicio.precio }}
+                    {{ tipoServicio.label }} — ${{ tipoServicio.precio }}
                   </mat-option>
                   <mat-option value="otro">Otro (especificar)</mat-option>
                 </mat-select>
-                <mat-icon matSuffix>spa</mat-icon>
               </mat-form-field>
-              
-              <mat-form-field *ngIf="servicio.servicio === 'otro'" appearance="outline" class="form-field-small">
-                <mat-label>Servicio Personalizado</mat-label>
-                <input matInput [(ngModel)]="servicio.servicioPersonalizado" [ngModelOptions]="{standalone: true}" placeholder="Descripción del servicio" />
-                <mat-icon matSuffix>edit</mat-icon>
+
+              <mat-form-field appearance="outline" *ngIf="servicio.servicio === 'otro'">
+                <mat-label>Servicio personalizado</mat-label>
+                <input matInput [(ngModel)]="servicio.servicioPersonalizado" [ngModelOptions]="{standalone: true}" placeholder="Descripción">
               </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="form-field-small">
+
+              <mat-form-field appearance="outline">
                 <mat-label>Precio</mat-label>
-                <input matInput type="number" [(ngModel)]="servicio.precio" [ngModelOptions]="{standalone: true}" min="0" placeholder="0" />
-                <mat-icon matSuffix>attach_money</mat-icon>
+                <input matInput type="number" [(ngModel)]="servicio.precio" [ngModelOptions]="{standalone: true}" min="0">
               </mat-form-field>
-              
-              <button mat-icon-button color="warn" type="button" (click)="removerServicioAdicional(i)">
-                <mat-icon>delete</mat-icon>
-              </button>
             </div>
-            
-            <button mat-stroked-button type="button" (click)="agregarServicioAdicional()" class="add-button">
-              <mat-icon>add</mat-icon>
-              Agregar Servicio
+            <button mat-icon-button type="button" color="warn" (click)="removerServicioAdicional(i)" aria-label="Quitar servicio">
+              <mat-icon>delete</mat-icon>
             </button>
           </div>
+          <button mat-stroked-button type="button" (click)="agregarServicioAdicional()" class="dynamic-list__add">
+            <mat-icon>add</mat-icon>
+            Agregar servicio
+          </button>
         </div>
+      </section>
 
-        <!-- Observaciones -->
-        <div class="form-section">
-          <h3>Observaciones</h3>
-          <mat-form-field appearance="outline" class="form-field-full">
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Observaciones
+          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
             <mat-label>Observaciones</mat-label>
-            <textarea matInput formControlName="observaciones" rows="3" placeholder="Observaciones especiales, alergias, comportamiento, etc."></textarea>
-            <mat-icon matSuffix>note</mat-icon>
+            <textarea matInput formControlName="observaciones" rows="3"
+              placeholder="Alergias, comportamiento, instrucciones especiales…"></textarea>
           </mat-form-field>
         </div>
+      </section>
 
-
-
-        <!-- Alergias Conocidas -->
-        <div class="form-section">
-          <h3>Alergias Conocidas</h3>
-          <div class="alergias-conocidas">
-            <div *ngFor="let alergia of banioForm.get('alergias_conocidas')?.value; let i = index" class="alergia-item">
-              <mat-form-field appearance="outline" class="form-field-medium">
+      <section class="form-section">
+        <h3 class="form-section__title">
+          Alergias conocidas
+          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+        </h3>
+        <div class="dynamic-list">
+          <div class="dynamic-list__row"
+               *ngFor="let alergia of banioForm.get('alergias_conocidas')?.value; let i = index">
+            <div class="form-grid form-grid--compact">
+              <mat-form-field appearance="outline">
                 <mat-label>Alergia</mat-label>
                 <mat-select [(ngModel)]="banioForm.get('alergias_conocidas')?.value[i]" [ngModelOptions]="{standalone: true}">
                   <mat-option *ngFor="let tipoAlergia of tiposAlergias" [value]="tipoAlergia.value">
@@ -221,65 +195,54 @@
                   </mat-option>
                   <mat-option value="otra">Otra (especificar)</mat-option>
                 </mat-select>
-                <mat-icon matSuffix>warning</mat-icon>
               </mat-form-field>
-              
-              <mat-form-field *ngIf="banioForm.get('alergias_conocidas')?.value[i] === 'otra'" appearance="outline" class="form-field-medium">
-                <mat-label>Especificar Alergia</mat-label>
-                <input matInput [(ngModel)]="alergiasEspecificas[i]" [ngModelOptions]="{standalone: true}" placeholder="Describir alergia específica" />
-                <mat-icon matSuffix>edit</mat-icon>
+
+              <mat-form-field appearance="outline" *ngIf="banioForm.get('alergias_conocidas')?.value[i] === 'otra'">
+                <mat-label>Especificar alergia</mat-label>
+                <input matInput [(ngModel)]="alergiasEspecificas[i]" [ngModelOptions]="{standalone: true}" placeholder="Describir alergia">
               </mat-form-field>
-              
-              <button mat-icon-button color="warn" type="button" (click)="removerAlergia(i)">
-                <mat-icon>delete</mat-icon>
-              </button>
             </div>
-            
-            <button mat-stroked-button type="button" (click)="agregarAlergia()" class="add-button">
-              <mat-icon>add</mat-icon>
-              Agregar Alergia
+            <button mat-icon-button type="button" color="warn" (click)="removerAlergia(i)" aria-label="Quitar alergia">
+              <mat-icon>delete</mat-icon>
             </button>
           </div>
+          <button mat-stroked-button type="button" (click)="agregarAlergia()" class="dynamic-list__add">
+            <mat-icon>add</mat-icon>
+            Agregar alergia
+          </button>
         </div>
+      </section>
 
-        <!-- Pago -->
-        <div class="form-section">
-          <h3>Información de Pago</h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Método de Pago</mat-label>
-              <mat-select formControlName="metodo_pago">
-                <mat-option value="efectivo">Efectivo</mat-option>
-                <mat-option value="tarjeta">Tarjeta</mat-option>
-                <mat-option value="transferencia">Transferencia</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>payment</mat-icon>
-            </mat-form-field>
-            
-            <div class="checkbox-field">
-              <mat-checkbox formControlName="pagado" color="primary">
-                ¿Ya está pagado?
-              </mat-checkbox>
-            </div>
+      <section class="form-section">
+        <h3 class="form-section__title">Información de pago</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Método de pago</mat-label>
+            <mat-select formControlName="metodo_pago">
+              <mat-option value="efectivo">Efectivo</mat-option>
+              <mat-option value="tarjeta">Tarjeta</mat-option>
+              <mat-option value="transferencia">Transferencia</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="form-section__checkbox">
+            <mat-checkbox formControlName="pagado" color="primary">
+              ¿Ya está pagado?
+            </mat-checkbox>
           </div>
         </div>
-
-      </div>
+      </section>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="cancelar()">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
-      <button mat-raised-button 
-              color="primary" 
-              type="submit"
-              [disabled]="!banioForm.valid || loading">
-        <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
-        <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-        {{ esEdicion ? 'Actualizar' : 'Crear' }}
-      </button>
+    <mat-dialog-actions class="admin-dialog-actions">
+      <div class="admin-dialog-actions__right">
+        <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!banioForm.valid || loading">
+          <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          {{ esEdicion ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
     </mat-dialog-actions>
   </form>
 </div>

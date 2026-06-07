@@ -1,0 +1,60 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.kpi-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-top-width: 5px;
+  border-radius: 14px;
+  padding: 20px 22px 18px;
+  min-height: 112px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+}
+
+.kpi-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.kpi-value {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #032d60;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.kpi-hint {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+.kpi-card--teal { border-top-color: #0a969b; }
+.kpi-card--blue { border-top-color: #1e88e5; }
+.kpi-card--purple { border-top-color: #7b1fa2; }
+.kpi-card--pink { border-top-color: #ad067e; }
+.kpi-card--green { border-top-color: #00897b; }
+.kpi-card--orange { border-top-color: #f57c00; }
+
+.kpi-card--teal:hover { border-color: #0a969b; }
+.kpi-card--blue:hover { border-color: #1e88e5; }
+.kpi-card--purple:hover { border-color: #7b1fa2; }
+.kpi-card--pink:hover { border-color: #ad067e; }
+.kpi-card--green:hover { border-color: #00897b; }
+.kpi-card--orange:hover { border-color: #f57c00; }

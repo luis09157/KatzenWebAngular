@@ -1,209 +1,178 @@
-<div class="movimientos-container">
-  <div class="header">
-    <div class="titulo">
-      <h1>
-        <mat-icon>history</mat-icon>
-        Historial de Movimientos
-      </h1>
-      <p>Registro completo de entradas, salidas y ajustes de inventario</p>
-    </div>
-    
-    <div class="acciones-header">
-      <button mat-raised-button color="primary" (click)="registrarEntrada()">
+<div class="admin-page movimientos-container">
+  <app-admin-page-banner
+    accent="blue"
+    icon="history"
+    title="Historial de movimientos"
+    subtitle="Registro de entradas, salidas y ajustes de inventario.">
+    <div bannerActions>
+      <button mat-stroked-button type="button" (click)="registrarEntrada()">
         <mat-icon>add_circle</mat-icon>
         Entrada
       </button>
-      <button mat-raised-button color="warn" (click)="registrarSalida()">
+      <button mat-stroked-button type="button" color="warn" (click)="registrarSalida()">
         <mat-icon>remove_circle</mat-icon>
         Salida
       </button>
-      <button mat-raised-button color="accent" (click)="registrarAjuste()">
+      <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="registrarAjuste()">
         <mat-icon>tune</mat-icon>
         Ajuste
       </button>
     </div>
-  </div>
+  </app-admin-page-banner>
 
-  <!-- Filtros -->
-  <mat-card class="filtros-card">
-    <div class="filtros-grid">
-      <mat-form-field appearance="outline" class="filtro-texto">
+  <app-admin-data-panel
+    accent="blue"
+    title="Movimientos registrados"
+    description="Filtra por tipo, fechas o texto libre."
+    [showLegend]="false">
+
+    <div class="panel-filters filtros-grid">
+      <mat-form-field appearance="outline" class="filtro-texto panel-search">
         <mat-label>Buscar</mat-label>
-        <input matInput [(ngModel)]="filtroTexto" (ngModelChange)="aplicarFiltros()" 
-               placeholder="Producto, motivo, usuario...">
-        <mat-icon matSuffix>search</mat-icon>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [(ngModel)]="filtroTexto" (ngModelChange)="aplicarFiltros()"
+               placeholder="Producto, motivo, usuario…" />
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filtro-tipo">
         <mat-label>Tipo</mat-label>
         <mat-select [(ngModel)]="filtroTipo" (ngModelChange)="aplicarFiltros()">
           <mat-option *ngFor="let tipo of tiposMovimiento" [value]="tipo.valor">
-            {{tipo.etiqueta}}
+            {{ tipo.etiqueta }}
           </mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filtro-fecha">
         <mat-label>Desde</mat-label>
-        <input matInput [matDatepicker]="pickerInicio" [(ngModel)]="filtroFechaInicio" 
-               (ngModelChange)="aplicarFiltros()">
+        <input matInput [matDatepicker]="pickerInicio" [(ngModel)]="filtroFechaInicio"
+               (ngModelChange)="aplicarFiltros()" />
         <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
         <mat-datepicker #pickerInicio></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filtro-fecha">
         <mat-label>Hasta</mat-label>
-        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="filtroFechaFin" 
-               (ngModelChange)="aplicarFiltros()">
+        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="filtroFechaFin"
+               (ngModelChange)="aplicarFiltros()" />
         <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
         <mat-datepicker #pickerFin></mat-datepicker>
       </mat-form-field>
 
-      <button mat-stroked-button (click)="limpiarFiltros()" class="btn-limpiar">
-        <mat-icon>clear</mat-icon>
-        Limpiar
-      </button>
-
-      <button mat-stroked-button (click)="exportarExcel()" class="btn-exportar">
-        <mat-icon>file_download</mat-icon>
-        Exportar
-      </button>
+      <div class="filter-actions">
+        <button mat-stroked-button type="button" (click)="limpiarFiltros()">
+          <mat-icon>clear</mat-icon>
+          Limpiar
+        </button>
+        <button mat-stroked-button type="button" (click)="exportarExcel()">
+          <mat-icon>file_download</mat-icon>
+          Exportar
+        </button>
+      </div>
     </div>
-  </mat-card>
 
-  <!-- Tabla de Movimientos -->
-  <mat-card class="tabla-card">
     <div *ngIf="loading" class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Cargando movimientos...</p>
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando movimientos…</p>
     </div>
 
-    <div *ngIf="!loading">
-      <div class="resumen-info">
-        <span class="total-movimientos">
-          <strong>{{dataSource.data.length}}</strong> movimientos
-        </span>
-      </div>
+    <div class="table-scroll" *ngIf="!loading">
+      <table mat-table [dataSource]="dataSource" matSort class="movimientos-table">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
+          <td mat-cell *matCellDef="let movimiento">{{ formatearFecha(movimiento.created_at) }}</td>
+        </ng-container>
 
-      <div class="tabla-wrapper">
-        <table mat-table [dataSource]="dataSource" matSort class="movimientos-table">
-          <!-- Fecha -->
-          <ng-container matColumnDef="fecha">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="fecha-cell">
-                <mat-icon>event</mat-icon>
-                <span>{{formatearFecha(movimiento.created_at)}}</span>
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="producto">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Producto</th>
+          <td mat-cell *matCellDef="let movimiento">
+            <div class="cell-primary">
+              <strong>{{ getProductoNombre(movimiento.producto_id) }}</strong>
+              <span class="cell-sub">{{ getProductoPresentacion(movimiento.producto_id) }}</span>
+            </div>
+          </td>
+        </ng-container>
 
-          <!-- Producto -->
-          <ng-container matColumnDef="producto">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Producto</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="producto-cell">
-                <span class="producto-nombre">{{getProductoNombre(movimiento.producto_id)}}</span>
-                <span class="producto-presentacion">{{getProductoPresentacion(movimiento.producto_id)}}</span>
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+          <td mat-cell *matCellDef="let movimiento">
+            <span class="tag" [style.background-color]="getTipoColor(movimiento.tipo)">
+              {{ getTipoTexto(movimiento.tipo) }}
+            </span>
+          </td>
+        </ng-container>
 
-          <!-- Tipo -->
-          <ng-container matColumnDef="tipo">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="tipo-chip" [style.background-color]="getTipoColor(movimiento.tipo)">
-                <mat-icon>{{getTipoIcono(movimiento.tipo)}}</mat-icon>
-                <span>{{getTipoTexto(movimiento.tipo)}}</span>
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="cantidad">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Cantidad</th>
+          <td mat-cell *matCellDef="let movimiento">
+            <strong [style.color]="getTipoColor(movimiento.tipo)">
+              {{ movimiento.cantidad }} {{ getProductoUnidad(movimiento.producto_id) }}
+            </strong>
+          </td>
+        </ng-container>
 
-          <!-- Cantidad -->
-          <ng-container matColumnDef="cantidad">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Cantidad</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="cantidad-cell" [style.color]="getTipoColor(movimiento.tipo)">
-                <strong>{{movimiento.cantidad}}</strong>
-                <span class="unidad">{{getProductoUnidad(movimiento.producto_id)}}</span>
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="stock_anterior">
+          <th mat-header-cell *matHeaderCellDef>Stock anterior</th>
+          <td mat-cell *matCellDef="let movimiento">{{ movimiento.cantidad_anterior }}</td>
+        </ng-container>
 
-          <!-- Stock Anterior -->
-          <ng-container matColumnDef="stock_anterior">
-            <th mat-header-cell *matHeaderCellDef>Stock Anterior</th>
-            <td mat-cell *matCellDef="let movimiento">
-              {{movimiento.cantidad_anterior}}
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="stock_nuevo">
+          <th mat-header-cell *matHeaderCellDef>Stock nuevo</th>
+          <td mat-cell *matCellDef="let movimiento"><strong>{{ movimiento.cantidad_nueva }}</strong></td>
+        </ng-container>
 
-          <!-- Stock Nuevo -->
-          <ng-container matColumnDef="stock_nuevo">
-            <th mat-header-cell *matHeaderCellDef>Stock Nuevo</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <strong>{{movimiento.cantidad_nueva}}</strong>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="motivo">
+          <th mat-header-cell *matHeaderCellDef>Motivo</th>
+          <td mat-cell *matCellDef="let movimiento">{{ movimiento.motivo || '—' }}</td>
+        </ng-container>
 
-          <!-- Motivo -->
-          <ng-container matColumnDef="motivo">
-            <th mat-header-cell *matHeaderCellDef>Motivo</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="motivo-cell">
-                {{movimiento.motivo || '-'}}
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="usuario">
+          <th mat-header-cell *matHeaderCellDef>Usuario</th>
+          <td mat-cell *matCellDef="let movimiento">{{ movimiento.usuario_responsable_id || 'Sistema' }}</td>
+        </ng-container>
 
-          <!-- Usuario -->
-          <ng-container matColumnDef="usuario">
-            <th mat-header-cell *matHeaderCellDef>Usuario</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <div class="usuario-cell">
-                <mat-icon>person</mat-icon>
-                <span>{{movimiento.usuario_responsable_id || 'Sistema'}}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Acciones -->
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let movimiento">
-              <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Opciones">
-                <mat-icon>more_vert</mat-icon>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let movimiento">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verDetalle(movimiento)">
+                <mat-icon>visibility</mat-icon>
               </button>
-              <mat-menu #menu="matMenu">
-                <button mat-menu-item (click)="verDetalle(movimiento)">
-                  <mat-icon>visibility</mat-icon>
-                  <span>Ver Detalle</span>
-                </button>
-              </mat-menu>
-            </td>
-          </ng-container>
+            </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones"
+                    [matMenuTriggerFor]="movimientoMenu" (click)="menuContext = movimiento">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
 
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-              <div class="no-data">
-                <mat-icon>inbox</mat-icon>
-                <p>No hay movimientos registrados</p>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </div>
-
-      <mat-paginator #paginator
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[10, 25, 50, 100]"
-        showFirstLastButtons>
-      </mat-paginator>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            <app-admin-empty-state
+              icon="history"
+              title="No hay movimientos registrados"
+              message="Registra una entrada, salida o ajuste para ver el historial.">
+            </app-admin-empty-state>
+          </td>
+        </tr>
+      </table>
     </div>
-  </mat-card>
-</div>
 
+    <mat-paginator
+      *ngIf="!loading"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons>
+    </mat-paginator>
+  </app-admin-data-panel>
+
+  <mat-menu #movimientoMenu="matMenu">
+    <button mat-menu-item (click)="verDetalle(menuContext!)" [disabled]="!menuContext">
+      <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+  </mat-menu>
+</div>

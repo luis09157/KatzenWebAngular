@@ -1,55 +1,6 @@
-.contactos-contenedor {
-  padding: 16px;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 240px;
-  gap: 12px;
-}
-
-.admin-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #3b9a9c 0%, #2d7a7c 100%);
-  color: #fff;
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.banner-text h2 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-.banner-text p {
-  margin: 4px 0 0;
-  opacity: 0.9;
-}
-
-.banner-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pendientes-badge {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.875rem;
+/* Estilos específicos del módulo — layout global en admin-page-layout.scss / admin-table.scss */
+:host {
+  display: block;
 }
 
 .filtros-row {
@@ -57,40 +8,10 @@
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
 }
 
-.buscador {
+.filtros-row .panel-search {
   flex: 1;
   min-width: 240px;
-}
-
-.contactos-table {
-  width: 100%;
-}
-
-.fila-pendiente {
-  background: #fff8e1;
-}
-
-.estado-pendiente {
-  color: #e65100;
-  font-weight: 600;
-}
-
-.estado-leido {
-  color: #2e7d32;
-}
-
-.sin-datos {
-  text-align: center;
-  padding: 24px;
-  color: #666;
-}
-
-@media (max-width: 768px) {
-  .admin-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 }

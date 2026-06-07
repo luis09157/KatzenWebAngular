@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-citas-dia-dialog',
   templateUrl: './citas-dia-dialog.component.html',
-  styleUrls: ['./citas-dia-dialog.component.css']
+  styleUrls: ['./citas-dia-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class CitasDiaDialogComponent {
   constructor(

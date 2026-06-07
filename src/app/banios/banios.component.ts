@@ -16,6 +16,7 @@ import { Banio } from '../shared/banio.model';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { exportToCsv } from '../core/utils/csv-export.util';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-banios',
@@ -25,6 +26,7 @@ import { exportToCsv } from '../core/utils/csv-export.util';
 export class BaniosComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_banio', 'hora_banio', 'paciente', 'tipo_servicio', 'estado', 'peluquero', 'precio_total', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -246,10 +248,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
     // Si es un baño existente (edición), abrir directamente
     if (banio && banio.id) {
       const dialogRef = this.dialog.open(BanioDialogComponent, {
-        width: '95vw',
-        minWidth: '900px',
-        maxWidth: '100vw',
-        panelClass: 'banio-dialog-container',
+        ...ADMIN_DIALOG_FORM,
+        panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
         data: banio
       });
       
@@ -266,11 +266,9 @@ export class BaniosComponent implements OnInit, OnDestroy {
 
   seleccionarClienteParaBanio() {
     const dialogRef = this.dialog.open(SeleccionarClienteBanioDialogComponent, {
-      width: '95vw',
-      minWidth: '800px',
-      maxWidth: '100vw',
+      ...ADMIN_DIALOG_CONFIG,
       disableClose: true,
-      panelClass: 'seleccionar-cliente-banio-dialog-container'
+      panelClass: ['admin-dialog-panel', 'seleccionar-cliente-banio-dialog-container']
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && result.cliente_id && result.paciente_id) {
@@ -287,10 +285,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
       cliente: datosPaciente.cliente
     };
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '95vw',
-      minWidth: '900px',
-      maxWidth: '100vw',
-      panelClass: 'banio-dialog-container',
+      ...ADMIN_DIALOG_FORM,
+      panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
       data: banioNuevo
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -301,13 +297,14 @@ export class BaniosComponent implements OnInit, OnDestroy {
     });
   }
 
-  verBanio(banio: any) {}
+  verBanio(banio: any) {
+    this.verDetalleBanio(banio);
+  }
 
   editarBanio(banio: any) {
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
-      panelClass: 'banio-dialog-container',
+      ...ADMIN_DIALOG_FORM,
+      panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
       data: banio
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -406,8 +403,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
 
   verDetalleBanio(banio: any) {
     const dialogRef = this.dialog.open(BanioDetalleComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_DETAIL,
       data: banio
     });
 

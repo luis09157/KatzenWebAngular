@@ -1,16 +1,22 @@
-<h2 mat-dialog-title>
-  <mat-icon>add_shopping_cart</mat-icon>
-  Nueva Orden de Compra
-</h2>
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Nueva orden de compra</h2>
+      <p class="admin-dialog-subtitle">Genera pedido a proveedor con productos y cantidades.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
+  <mat-dialog-content class="admin-dialog-body">
   <form [formGroup]="ordenForm" class="orden-form">
     <!-- Información General -->
     <div class="form-section">
-      <h3><mat-icon>info</mat-icon> Información General</h3>
+      <h3 class="form-section__title">Información general</h3>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
           <mat-label>Proveedor *</mat-label>
           <mat-select formControlName="proveedor_id">
             <mat-option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
@@ -22,7 +28,7 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Fecha de Entrega Esperada *</mat-label>
           <input matInput [matDatepicker]="picker" formControlName="fecha_entrega_esperada">
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -121,7 +127,7 @@
   </form>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+  <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
   <button mat-raised-button color="primary" (click)="guardar()" 
           [disabled]="loading || ordenForm.invalid || productosArray.length === 0">
@@ -129,5 +135,5 @@
     <mat-icon *ngIf="!loading">save</mat-icon>
     {{loading ? 'Creando...' : 'Crear Orden'}}
   </button>
-</mat-dialog-actions>
-
+  </mat-dialog-actions>
+</div>

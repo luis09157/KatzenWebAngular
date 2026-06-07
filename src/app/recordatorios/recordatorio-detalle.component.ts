@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-recordatorio-detalle',
   templateUrl: './recordatorio-detalle.component.html',
-  styleUrls: ['./recordatorio-detalle.component.css']
+  styleUrls: ['./recordatorio-detalle.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class RecordatorioDetalleComponent {
   constructor(

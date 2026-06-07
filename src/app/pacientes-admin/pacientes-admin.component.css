@@ -1,408 +1,45 @@
-.pacientes-contenedor {
-  padding: 24px;
-  background: #f5f5f5;
-  min-height: 100vh;
-}
-
-.pacientes-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.buscador {
-  margin: 24px;
-  width: calc(100% - 48px);
-}
-
-.tabla-titulo {
-  padding: 16px 24px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  background: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.tabla-contenedor {
-  padding: 0 24px 24px 24px;
-}
-
-table {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.mat-header-cell {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #333;
-  padding: 16px 8px;
-}
-
-.mat-cell {
-  padding: 12px 8px;
-  border-bottom: 1px solid #f0f0f0;
-  vertical-align: middle;
-}
-
-/* Ancho fijo para la columna de acciones */
-.mat-column-acciones {
-  width: 160px !important;
-  text-align: center !important;
-}
-
-/* Celdas específicas */
-.patient-name-cell {
+/* Refuerzo local — garantiza layout de fila aunque falle el selector global */
+.cell-paciente {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cell-paciente .cell-primary {
+  min-width: 0;
+}
+
+.cell-paciente .cell-primary strong,
+.cell-paciente .cell-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .patient-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  border-radius: 10px;
   object-fit: cover;
-  border: 2px solid #e0e0e0;
-}
-
-.owner-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.owner-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #666;
-}
-
-.sex-badge {
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
-  display: inline-block;
-  min-width: 60px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.sex-badge.male {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-}
-
-.sex-badge.female {
-  background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
-}
-
-/* Estilo para N/P */
-.sex-badge:not(.male):not(.female) {
-  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
-  color: white;
-}
-
-/* Estilos para badges de estado */
-.estado-badge {
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
-  display: inline-block;
-  min-width: 60px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.estado-badge.vivo {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-}
-
-.estado-badge.fallecido {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-}
-
-/* Estilo por defecto para estado */
-.estado-badge:not(.vivo):not(.fallecido) {
-  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-  color: white;
-}
-
-.actions-cell {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  width: 100%;
-}
-
-.actions-cell button {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid #e5e7eb;
   flex-shrink: 0;
-  margin: 0 2px;
+  background: #f3f4f6;
+  display: block;
 }
 
-/* Estado vacío */
-.sin-pacientes {
-  text-align: center;
-  padding: 60px 24px;
-  color: #666;
-}
-
-.sin-pacientes mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  color: #ccc;
-  margin-bottom: 16px;
-}
-
-.sin-pacientes h3 {
-  margin: 16px 0 8px 0;
-  color: #333;
-  font-size: 20px;
-}
-
-.sin-pacientes p {
-  margin: 0 0 24px 0;
-  color: #666;
-  font-size: 16px;
-}
-
-.sin-pacientes button {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
+.cell-tags {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  gap: 6px;
 }
 
-.sin-pacientes button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+.cell-dueno {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .pacientes-contenedor {
-    padding: 16px;
-  }
-  
-  .buscador {
-    margin: 16px;
-    width: calc(100% - 32px);
-  }
-  
-  .tabla-contenedor {
-    padding: 0 16px 16px 16px;
-    overflow-x: auto;
-  }
-  
-  table {
-    min-width: 800px;
-  }
-}
-
-/* Filas clickeables */
-.paciente-row {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.paciente-row:hover {
-  background-color: #f5f5f5;
-  transform: scale(1.01);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.paciente-row:active {
-  transform: scale(0.99);
-}
-
-/* Dashboard de Estadísticas */
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-  color: white;
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 32px;
-  font-weight: 700;
-  color: #333;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-}
-
-/* Banner de Administración */
-.admin-banner {
-  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 4px 20px rgba(156, 39, 176, 0.3);
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.banner-icon {
-  background: rgba(255, 255, 255, 0.2);
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.banner-icon mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-}
-
-.banner-text h2 {
-  margin: 0 0 4px 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-}
-
-.banner-text p {
-  margin: 0;
-  font-size: 14px;
-  color: white;
-  opacity: 1;
-}
-
-.admin-banner button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.admin-banner button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Responsive para dashboard */
-@media (max-width: 768px) {
-  .dashboard-stats {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-  }
-  
-  .stat-card {
-    padding: 16px;
-  }
-  
-  .stat-icon {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .stat-icon mat-icon {
-    font-size: 24px;
-    width: 24px;
-    height: 24px;
-  }
-  
-  .stat-number {
-    font-size: 24px;
-  }
-  
-  .admin-banner {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-  
-  .banner-content {
-    flex-direction: column;
-    gap: 12px;
-  }
-} 

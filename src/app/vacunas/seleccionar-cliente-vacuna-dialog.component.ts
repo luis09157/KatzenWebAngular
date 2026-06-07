@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -7,7 +7,8 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-seleccionar-cliente-vacuna-dialog',
   templateUrl: './seleccionar-cliente-vacuna-dialog.component.html',
-  styleUrls: ['./seleccionar-cliente-vacuna-dialog.component.css']
+  styleUrls: ['./seleccionar-cliente-vacuna-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SeleccionarClienteVacunaDialogComponent implements OnInit {
   clientes: any[] = [];

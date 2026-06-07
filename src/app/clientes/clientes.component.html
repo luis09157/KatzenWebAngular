@@ -1,213 +1,164 @@
-<div class="clientes-contenedor">
+<div class="admin-page clientes-contenedor">
   <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+
   <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando clientes...</p>
-  </div>
-  <div *ngIf="!loading">
-  <!-- Dashboard de Estadísticas -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>people</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ totalClientes }}</div>
-        <div class="stat-label">Total de Clientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ clientesConPacientes }}</div>
-        <div class="stat-label">Con Pacientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>email</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ clientesConCorreo }}</div>
-        <div class="stat-label">Con Correo Electrónico</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>folder</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ clientesConExpediente }}</div>
-        <div class="stat-label">Con Expediente</div>
-      </div>
-    </div>
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando clientes…</p>
   </div>
 
-  <!-- Banner de Administración -->
-  <div class="admin-banner">
-    <div class="banner-content">
-      <div class="banner-icon">
-        <mat-icon>people</mat-icon>
+  <ng-container *ngIf="!loading">
+    <p class="section-eyebrow">Resumen del módulo</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="blue" [value]="totalClientes" label="Total clientes" hint="Activos en sistema"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" [value]="clientesConPacientes" label="Con pacientes" hint="Mascota vinculada"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="clientesSinCorreo" label="Sin correo" hint="Requieren actualización"></app-admin-stat-card>
+      <app-admin-stat-card accent="green" [value]="clientesConExpediente" label="Con expediente" hint="Ficha completa"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="blue"
+      icon="people"
+      title="Administración de Clientes"
+      subtitle="Administra fichas, contacto y expedientes. La baja lógica conserva el historial clínico vinculado.">
+      <div bannerActions>
+        <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="encontrarClientesSinPacientes()">
+          Sin pacientes
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" [disabled]="saving" (click)="abrirModalCliente()">
+          <mat-icon>add</mat-icon>
+          Nuevo cliente
+        </button>
       </div>
-      <div class="banner-text">
-        <h2>Administración de Clientes</h2>
-        <p>Gestiona todos los clientes registrados en el sistema</p>
-      </div>
-    </div>
-    <div class="banner-actions">
-      <button mat-stroked-button color="accent" (click)="encontrarClientesSinPacientes()" [disabled]="saving" matTooltip="Buscar clientes sin pacientes">
-        <mat-icon>search</mat-icon>
-        Sin Pacientes
-      </button>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()" [disabled]="saving">
-        <mat-icon>add</mat-icon>
-        Nuevo Cliente
-      </button>
-    </div>
-  </div>
+    </app-admin-page-banner>
 
-  <mat-card class="clientes-card">
-    
-    <mat-form-field appearance="outline" class="buscador">
-      <mat-label>Buscar cliente</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Buscar por nombre, expediente, teléfono, dirección..." />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-    
-    <div class="tabla-contenedor">
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        
-        <!-- Nombre -->
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef>Nombre</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="nombre-cell">
-              <mat-icon class="nombre-icon">person</mat-icon>
-              {{ (cliente.nombre ? cliente.nombre : 'N/P') }} {{ (cliente.apellidoPaterno ? cliente.apellidoPaterno : '') }} {{ cliente.apellidoMaterno ? cliente.apellidoMaterno : '' }}
-            </div>
-          </td>
-        </ng-container>
+    <app-admin-data-panel
+      accent="blue"
+      title="Listado de clientes"
+      description="Busca por nombre, teléfono, correo o número de expediente."
+      [meta]="dataSource.data.length ? (dataSource.filteredData.length + ' en pantalla · ' + totalClientes + ' totales') : ''"
+      [showLegend]="!!dataSource.data.length">
 
-        <!-- Expediente -->
-        <ng-container matColumnDef="expediente">
-          <th mat-header-cell *matHeaderCellDef>Expediente</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="expediente-cell">
-              <mat-icon class="expediente-icon">folder</mat-icon>
-              {{ cliente.expediente ? cliente.expediente : 'N/P' }}
-            </div>
-          </td>
-        </ng-container>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="buscador panel-search">
+        <mat-label>Buscar cliente</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [value]="filtroActual"
+          (keyup)="aplicarFiltro($event)"
+          (input)="aplicarFiltro($event)"
+          placeholder="Nombre, teléfono, correo, expediente…" />
+        <button
+          *ngIf="filtroActual"
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Limpiar búsqueda"
+          (click)="limpiarFiltro()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
 
-        <!-- Teléfono -->
-        <ng-container matColumnDef="telefono">
-          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="telefono-cell">
-              <mat-icon class="telefono-icon">phone</mat-icon>
-              {{ cliente.telefono ? cliente.telefono : 'N/P' }}
-            </div>
-          </td>
-        </ng-container>
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="people_outline"
+        title="No hay clientes"
+        message="No se han encontrado clientes registrados."
+        actionLabel="Agregar primer cliente"
+        [actionDisabled]="saving"
+        (action)="abrirModalCliente()">
+      </app-admin-empty-state>
 
-        <!-- Correo -->
-        <ng-container matColumnDef="correo">
-          <th mat-header-cell *matHeaderCellDef>Correo</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="correo-cell">
-              <mat-icon class="correo-icon">email</mat-icon>
-              {{ cliente.correo ? cliente.correo : 'N/P' }}
-            </div>
-          </td>
-        </ng-container>
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" class="clientes-table">
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let c">
+              <span class="cell-nombre">{{ getNombreCompleto(c) }}</span>
+            </td>
+          </ng-container>
 
-        <!-- Dirección -->
-        <ng-container matColumnDef="direccion">
-          <th mat-header-cell *matHeaderCellDef>Dirección</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="direccion-cell">
-              <mat-icon class="direccion-icon">location_on</mat-icon>
-              <div class="direccion-texto">
-                <div class="direccion-principal">
-                  {{ cliente.calle ? cliente.calle : '' }} {{ cliente.numero ? cliente.numero : '' }}
-                </div>
-                <div class="direccion-secundaria">
-                  {{ cliente.colonia ? cliente.colonia : '' }}, {{ cliente.municipio ? cliente.municipio : '' }}
-                  <span *ngIf="cliente.codigoPostal" class="codigo-postal">CP: {{ cliente.codigoPostal }}</span>
-                </div>
+          <ng-container matColumnDef="expediente">
+            <th mat-header-cell *matHeaderCellDef>Expediente</th>
+            <td mat-cell *matCellDef="let c">
+              <span class="badge-expediente" *ngIf="c.expediente; else sinExpediente">{{ c.expediente }}</span>
+              <ng-template #sinExpediente><span class="text-muted">—</span></ng-template>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="telefono">
+            <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+            <td mat-cell *matCellDef="let c">
+              <span [class.text-muted]="isDatoFaltante(c.telefono)">{{ getTelefono(c) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="correo">
+            <th mat-header-cell *matHeaderCellDef>Correo</th>
+            <td mat-cell *matCellDef="let c">
+              <span [class.text-muted]="isCorreoFaltante(c.correo)">{{ getCorreo(c) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="ubicacion">
+            <th mat-header-cell *matHeaderCellDef>Ubicación</th>
+            <td mat-cell *matCellDef="let c">
+              <span [class.text-muted]="!getUbicacion(c)">{{ getUbicacion(c) || 'N/P' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let c">
+              <span class="estado-badge" [ngClass]="(c.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
+                {{ c.activo !== false ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let c">
+              <div class="row-actions hide-mobile">
+                <button mat-icon-button color="primary" type="button" matTooltip="Ver detalles" (click)="verCliente(c)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCliente(c)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="bajaLogicaCliente(c.id)" [disabled]="saving">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
               </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Antigüedad -->
-        <ng-container matColumnDef="antiguedad">
-          <th mat-header-cell *matHeaderCellDef>Antigüedad</th>
-          <td mat-cell *matCellDef="let cliente">
-            <div class="antiguedad-cell">
-              <mat-icon class="antiguedad-icon">schedule</mat-icon>
-              <span class="antiguedad-texto">{{ calcularAntiguedad(cliente.fecha) }}</span>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Estado -->
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let cliente">
-            <span class="estado-badge" [style.background-color]="getEstadoColor(cliente.activo)">
-              {{ cliente.activo !== false ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Acciones -->
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef style="text-align: center;">Acciones</th>
-          <td mat-cell *matCellDef="let cliente" style="text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
-              <button mat-icon-button color="primary" (click)="verCliente(cliente)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
+              <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="rowMenu" (click)="clienteMenuContext = c">
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button color="accent" (click)="editarCliente(cliente)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="bajaLogicaCliente(cliente.id)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-              </button>
-            </div>
-          </td>
-        </ng-container>
+            </td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-            class="cliente-row"></tr>
-      </table>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+        </table>
+      </div>
 
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+      <mat-paginator
+        *ngIf="dataSource.data.length"
+        #paginator
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons>
+      </mat-paginator>
 
       <div *ngIf="hasMoreClientes" class="load-more-row">
         <button mat-stroked-button color="primary" (click)="cargarMasClientes()" [disabled]="loadingMore">
-          {{ loadingMore ? 'Cargando...' : 'Cargar más clientes' }}
+          {{ loadingMore ? 'Cargando…' : 'Cargar más clientes' }}
         </button>
       </div>
-    </div>
+    </app-admin-data-panel>
+  </ng-container>
 
-    <!-- Estado vacío -->
-    <div *ngIf="dataSource.data.length === 0" class="sin-clientes">
-      <mat-icon>people_outline</mat-icon>
-      <h3>No hay clientes</h3>
-      <p>No se han encontrado clientes registrados.</p>
-      <button mat-raised-button color="primary" (click)="abrirModalCliente()" [disabled]="saving">
-        <mat-icon>add</mat-icon>
-        Crear primer cliente
-      </button>
-    </div>
-  </mat-card>
-  </div>
+  <mat-menu #rowMenu="matMenu">
+    <button mat-menu-item (click)="verCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="bajaLogicaCliente(clienteMenuContext?.id)" [disabled]="!clienteMenuContext || saving"><mat-icon>delete_outline</mat-icon> Dar de baja</button>
+  </mat-menu>
 </div>

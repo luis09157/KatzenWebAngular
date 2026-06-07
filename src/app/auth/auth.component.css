@@ -1,0 +1,125 @@
+.admin-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  position: relative;
+  overflow: hidden;
+  background: #f4f9f9;
+}
+
+.admin-auth-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(10, 150, 155, 0.14) 0%, transparent 42%),
+    radial-gradient(circle at 85% 80%, rgba(6, 93, 96, 0.1) 0%, transparent 40%),
+    linear-gradient(165deg, #f8fbfb 0%, #eef6f6 100%);
+  animation: authBgPulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes authBgPulse {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+.admin-auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px 28px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(10, 150, 155, 0.12) !important;
+  box-shadow:
+    0 4px 6px rgba(26, 46, 46, 0.04),
+    0 24px 48px rgba(10, 150, 155, 0.1) !important;
+  animation: authCardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes authCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-auth-brand {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.admin-auth-logo {
+  border-radius: 18px;
+  object-fit: cover;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(10, 150, 155, 0.18);
+}
+
+.admin-auth-brand h1 {
+  margin: 0 0 6px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1a2e2e;
+  letter-spacing: -0.02em;
+}
+
+.admin-auth-brand p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #5a6e6e;
+}
+
+.admin-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.admin-auth-submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  border-radius: 12px !important;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.admin-auth-submit mat-icon {
+  margin-right: 6px;
+}
+
+.admin-auth-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-auth-links button {
+  color: #5a6e6e;
+  font-size: 0.8125rem;
+}
+
+.admin-auth-links mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+}
+
+@media (max-width: 480px) {
+  .admin-auth-card {
+    padding: 28px 20px 22px !important;
+  }
+}

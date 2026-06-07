@@ -1,0 +1,212 @@
+/* KatzenVet Admin — Layout unificado estilo Salesforce/Linear */
+
+.admin-content .admin-page,
+.admin-content [class$='-contenedor'],
+.admin-content .clientes-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 4px;
+}
+
+.admin-content .section-eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a969b;
+}
+
+/* Toolbar CRUD (búsqueda + acciones) */
+.admin-content .admin-toolbar,
+.admin-content .toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+}
+
+.admin-content .admin-toolbar__search,
+.admin-content .toolbar__search {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 !important;
+}
+
+.admin-content .admin-toolbar__actions,
+.admin-content .toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.admin-content .admin-toolbar__meta,
+.admin-content .toolbar__meta {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* Botón primario teal (MDC) */
+.admin-content .btn-primary-teal {
+  --mdc-protected-button-container-color: #0a969b;
+  --mdc-protected-button-label-text-color: #fff;
+}
+
+.admin-content .btn-primary-teal:hover:not([disabled]) {
+  --mdc-protected-button-container-color: #065d60;
+}
+
+.admin-content app-admin-page-banner + app-admin-data-panel,
+.admin-content app-admin-page-banner + .admin-toolbar,
+.admin-content app-admin-kpi-grid + app-admin-page-banner {
+  margin-top: 0;
+}
+
+.admin-content app-admin-kpi-grid {
+  margin-bottom: 24px;
+}
+
+.admin-content .pendientes-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Badges y estados */
+.admin-content .badge-expediente {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.admin-content .badge-estado,
+.admin-content .badge-estado--activo {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-content .badge-estado--inactivo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-content .text-muted {
+  color: #9ca3af;
+}
+
+/* Tabla premium */
+.admin-content .table-shell {
+  border-radius: 16px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06) !important;
+}
+
+.admin-content .table-shell mat-card-content {
+  padding: 0 !important;
+}
+
+.admin-content .table-wrap {
+  overflow-x: auto;
+}
+
+.admin-content .mat-mdc-paginator,
+.admin-content mat-paginator {
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.admin-content .load-more,
+.admin-content .load-more-row {
+  display: flex;
+  justify-content: center;
+  padding: 16px 20px 20px;
+}
+
+.admin-content .dashboard-modules__heading {
+  margin: 0 auto 24px;
+  max-width: 720px;
+  text-align: center;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #032d60;
+}
+
+.admin-content .dashboard-modules {
+  margin-bottom: 32px;
+}
+
+.admin-content .cell-nombre {
+  font-weight: 600;
+  color: #032d60;
+}
+
+/* Empty inline (legacy table-shell) */
+.admin-content .empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  color: #6b7280;
+}
+
+.admin-content .empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #0a969b;
+  opacity: 0.35;
+  margin-bottom: 12px;
+}
+
+.admin-content .empty-state h2 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #032d60;
+}
+
+.admin-content .empty-state p {
+  margin: 0 0 20px;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 768px) {
+  .admin-content .admin-toolbar,
+  .admin-content .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-content .admin-toolbar__actions,
+  .admin-content .toolbar__actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

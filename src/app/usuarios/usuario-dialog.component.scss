@@ -1,0 +1,237 @@
+/* Scope overlay CDK — encapsulation: None */
+
+.admin-dialog-panel app-usuario-dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 88vh !important;
+  width: 100% !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-shell {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 88vh !important;
+  width: 100% !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-header__text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-close {
+  flex: 0 0 40px !important;
+  align-self: flex-start !important;
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0 !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-title {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-subtitle {
+  margin: 6px 0 0 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-badge {
+  display: inline-flex !important;
+  margin: 0 0 10px !important;
+}
+
+.admin-dialog-panel app-usuario-dialog form {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog mat-dialog-content.admin-dialog-body {
+  padding: 0 !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-form--padded {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .entity-summary {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-dialog-panel app-usuario-dialog .entity-summary__name {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #032d60;
+  letter-spacing: -0.02em;
+}
+
+.admin-dialog-panel app-usuario-dialog .entity-summary__meta {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-usuario-dialog .entity-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #4caf50;
+}
+
+.admin-dialog-panel app-usuario-dialog .entity-status--inactive {
+  background: #78909c;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-section {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-section__title {
+  margin: 0 0 12px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-item {
+  padding: 14px 16px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-item__label {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .detail-item__value {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.45 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .form-section {
+  margin-bottom: 20px !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .form-section:last-child {
+  margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .form-section__title {
+  margin: 0 0 14px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .section-hint {
+  margin: -6px 0 14px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-usuario-dialog .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 16px !important;
+  row-gap: 20px !important;
+  align-items: start !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .form-grid mat-form-field {
+  width: 100% !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  min-height: 18px !important;
+}
+
+.admin-dialog-panel app-usuario-dialog .admin-dialog-actions,
+.admin-dialog-panel app-usuario-dialog .mat-mdc-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-usuario-dialog .form-grid,
+  .admin-dialog-panel app-usuario-dialog .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

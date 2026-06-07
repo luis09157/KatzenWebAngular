@@ -1,0 +1,563 @@
+/* Inventario — diálogos admin (formularios + detalle) */
+
+/* Refuerzo shell: no depende del selector del componente */
+.admin-dialog-panel .admin-dialog-shell {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 88vh !important;
+  width: 100% !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell > .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell > .admin-dialog-header .admin-dialog-header__text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell > .admin-dialog-header .admin-dialog-close {
+  flex: 0 0 40px !important;
+  align-self: flex-start !important;
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0 !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell form {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell .admin-dialog-actions,
+.admin-dialog-panel .admin-dialog-shell mat-dialog-actions.admin-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-dialog-panel app-producto-dialog,
+.admin-dialog-panel app-proveedor-dialog,
+.admin-dialog-panel app-entrada-dialog,
+.admin-dialog-panel app-salida-dialog,
+.admin-dialog-panel app-ajuste-dialog,
+.admin-dialog-panel app-movimiento-detalle-dialog,
+.admin-dialog-panel app-orden-dialog,
+.admin-dialog-panel app-recibir-orden-dialog,
+.admin-dialog-panel app-producto-movimientos-dialog {
+  display: block;
+}
+
+.admin-dialog-panel app-producto-dialog .admin-dialog-header,
+.admin-dialog-panel app-proveedor-dialog .admin-dialog-header,
+.admin-dialog-panel app-entrada-dialog .admin-dialog-header,
+.admin-dialog-panel app-salida-dialog .admin-dialog-header,
+.admin-dialog-panel app-ajuste-dialog .admin-dialog-header,
+.admin-dialog-panel app-movimiento-detalle-dialog .admin-dialog-header,
+.admin-dialog-panel app-orden-dialog .admin-dialog-header,
+.admin-dialog-panel app-recibir-orden-dialog .admin-dialog-header,
+.admin-dialog-panel app-producto-movimientos-dialog .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel app-producto-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-proveedor-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-entrada-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-salida-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-ajuste-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-movimiento-detalle-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-orden-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-recibir-orden-dialog .admin-dialog-header__text,
+.admin-dialog-panel app-producto-movimientos-dialog .admin-dialog-header__text {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel app-producto-dialog .admin-dialog-close,
+.admin-dialog-panel app-proveedor-dialog .admin-dialog-close,
+.admin-dialog-panel app-entrada-dialog .admin-dialog-close,
+.admin-dialog-panel app-salida-dialog .admin-dialog-close,
+.admin-dialog-panel app-ajuste-dialog .admin-dialog-close,
+.admin-dialog-panel app-movimiento-detalle-dialog .admin-dialog-close,
+.admin-dialog-panel app-orden-dialog .admin-dialog-close,
+.admin-dialog-panel app-recibir-orden-dialog .admin-dialog-close,
+.admin-dialog-panel app-producto-movimientos-dialog .admin-dialog-close {
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+  overflow: hidden !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-producto-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-proveedor-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-entrada-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-salida-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-ajuste-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-movimiento-detalle-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-orden-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-recibir-orden-dialog mat-dialog-content.admin-dialog-body,
+.admin-dialog-panel app-producto-movimientos-dialog mat-dialog-content.admin-dialog-body {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-section,
+.admin-dialog-panel app-proveedor-dialog .form-section,
+.admin-dialog-panel app-entrada-dialog .form-section,
+.admin-dialog-panel app-salida-dialog .form-section,
+.admin-dialog-panel app-ajuste-dialog .form-section,
+.admin-dialog-panel app-orden-dialog .form-section,
+.admin-dialog-panel app-recibir-orden-dialog .form-section {
+  margin-bottom: 22px !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-section:last-child,
+.admin-dialog-panel app-proveedor-dialog .form-section:last-child,
+.admin-dialog-panel app-entrada-dialog .form-section:last-child,
+.admin-dialog-panel app-salida-dialog .form-section:last-child,
+.admin-dialog-panel app-ajuste-dialog .form-section:last-child,
+.admin-dialog-panel app-orden-dialog .form-section:last-child {
+  margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-section__title,
+.admin-dialog-panel app-proveedor-dialog .form-section__title,
+.admin-dialog-panel app-entrada-dialog .form-section__title,
+.admin-dialog-panel app-salida-dialog .form-section__title,
+.admin-dialog-panel app-ajuste-dialog .form-section__title,
+.admin-dialog-panel app-orden-dialog .form-section__title,
+.admin-dialog-panel app-recibir-orden-dialog .form-section__title,
+.admin-dialog-panel app-producto-dialog .form-section > h3,
+.admin-dialog-panel app-proveedor-dialog .form-section > h3,
+.admin-dialog-panel app-entrada-dialog .form-section > h3,
+.admin-dialog-panel app-salida-dialog .form-section > h3,
+.admin-dialog-panel app-ajuste-dialog .form-section > h3,
+.admin-dialog-panel app-orden-dialog .form-section > h3 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 0 14px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-section > h3 mat-icon,
+.admin-dialog-panel app-proveedor-dialog .form-section > h3 mat-icon,
+.admin-dialog-panel app-entrada-dialog .form-section > h3 mat-icon,
+.admin-dialog-panel app-salida-dialog .form-section > h3 mat-icon,
+.admin-dialog-panel app-ajuste-dialog .form-section > h3 mat-icon,
+.admin-dialog-panel app-orden-dialog .form-section > h3 mat-icon {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+}
+
+.admin-dialog-panel .admin-dialog-shell .form-grid,
+.admin-dialog-panel app-producto-dialog .form-grid,
+.admin-dialog-panel app-proveedor-dialog .form-grid,
+.admin-dialog-panel app-entrada-dialog .form-grid,
+.admin-dialog-panel app-salida-dialog .form-grid,
+.admin-dialog-panel app-ajuste-dialog .form-grid,
+.admin-dialog-panel app-orden-dialog .form-grid,
+.admin-dialog-panel app-producto-dialog .form-row.two-col,
+.admin-dialog-panel app-proveedor-dialog .form-row,
+.admin-dialog-panel app-entrada-dialog .form-row.two-col,
+.admin-dialog-panel app-salida-dialog .form-row.two-col,
+.admin-dialog-panel app-orden-dialog .form-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 16px !important;
+  row-gap: 20px !important;
+  align-items: start !important;
+  margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-grid--3,
+.admin-dialog-panel app-producto-dialog .form-row.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-grid mat-form-field,
+.admin-dialog-panel app-proveedor-dialog .form-grid mat-form-field,
+.admin-dialog-panel app-entrada-dialog .form-grid mat-form-field,
+.admin-dialog-panel app-proveedor-dialog .form-row mat-form-field,
+.admin-dialog-panel app-entrada-dialog .form-row mat-form-field,
+.admin-dialog-panel app-orden-dialog .form-row mat-form-field {
+  width: 100% !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+.admin-dialog-panel app-producto-dialog .form-grid .full-span,
+.admin-dialog-panel app-proveedor-dialog .form-grid .full-span,
+.admin-dialog-panel app-producto-dialog .form-row .full-width,
+.admin-dialog-panel app-proveedor-dialog .form-row .full-width {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel app-producto-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper,
+.admin-dialog-panel app-proveedor-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper,
+.admin-dialog-panel app-entrada-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper,
+.admin-dialog-panel app-salida-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper,
+.admin-dialog-panel app-ajuste-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper,
+.admin-dialog-panel app-orden-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  min-height: 18px !important;
+}
+
+.admin-dialog-panel app-producto-dialog .admin-dialog-actions,
+.admin-dialog-panel app-proveedor-dialog .admin-dialog-actions,
+.admin-dialog-panel app-entrada-dialog .admin-dialog-actions,
+.admin-dialog-panel app-salida-dialog .admin-dialog-actions,
+.admin-dialog-panel app-ajuste-dialog .admin-dialog-actions,
+.admin-dialog-panel app-movimiento-detalle-dialog .admin-dialog-actions,
+.admin-dialog-panel app-orden-dialog .admin-dialog-actions,
+.admin-dialog-panel app-recibir-orden-dialog .admin-dialog-actions,
+.admin-dialog-panel app-producto-movimientos-dialog .admin-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+/* Detalle movimiento */
+.admin-dialog-panel app-movimiento-detalle-dialog .admin-dialog-form--padded {
+  padding: 0 !important;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-section__title {
+  margin: 0 0 12px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-item {
+  padding: 14px 16px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-item__label {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-item__value {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.45 !important;
+  word-break: break-word;
+}
+
+.admin-dialog-panel app-movimiento-detalle-dialog .detail-item--wide {
+  grid-column: 1 / -1 !important;
+}
+
+/* Bloques informativos (entradas/salidas/ajustes) */
+.admin-dialog-panel app-entrada-dialog .form-section.highlight,
+.admin-dialog-panel app-salida-dialog .form-section.highlight,
+.admin-dialog-panel app-ajuste-dialog .form-section.highlight {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-entrada-dialog .producto-info-box,
+.admin-dialog-panel app-salida-dialog .producto-info-box,
+.admin-dialog-panel app-ajuste-dialog .producto-info-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-dialog-panel app-entrada-dialog .info-row,
+.admin-dialog-panel app-salida-dialog .info-row,
+.admin-dialog-panel app-ajuste-dialog .info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel app-entrada-dialog .info-row .label,
+.admin-dialog-panel app-salida-dialog .info-row .label,
+.admin-dialog-panel app-ajuste-dialog .info-row .label {
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-entrada-dialog .total-box,
+.admin-dialog-panel app-producto-dialog .margen-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel app-salida-dialog .warning-box,
+.admin-dialog-panel app-salida-dialog .stock-info-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.admin-dialog-panel app-salida-dialog .stock-info-box {
+  border-color: #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.admin-dialog-panel app-ajuste-dialog .comparacion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-dialog-panel app-ajuste-dialog .stock-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-dialog-panel app-ajuste-dialog .diferencia-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-dialog-panel app-producto-dialog .checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+/* Orden de compra */
+.admin-dialog-panel app-orden-dialog .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-dialog-panel app-orden-dialog .producto-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.admin-dialog-panel app-orden-dialog .total-section {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-orden-dialog .total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel app-orden-dialog .total-row.total {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 1rem;
+}
+
+/* Recibir orden */
+.admin-dialog-panel app-recibir-orden-dialog .info-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-dialog-panel app-recibir-orden-dialog .info-item {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-recibir-orden-dialog .producto-item {
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* Historial producto */
+.admin-dialog-panel app-producto-movimientos-dialog .producto-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-producto-movimientos-dialog .producto-header h3 {
+  margin: 0 0 6px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #032d60;
+}
+
+.admin-dialog-panel app-producto-movimientos-dialog .stock-actual {
+  text-align: right;
+}
+
+.admin-dialog-panel app-producto-movimientos-dialog .stock-actual .valor {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #065d60;
+}
+
+.admin-dialog-panel app-producto-movimientos-dialog .estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.admin-dialog-panel app-producto-movimientos-dialog .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .admin-dialog-panel app-producto-dialog .form-grid--3,
+  .admin-dialog-panel app-producto-dialog .form-row.three-col,
+  .admin-dialog-panel app-producto-movimientos-dialog .estadisticas-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-dialog-panel app-orden-dialog .producto-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel .admin-dialog-shell .form-grid,
+  .admin-dialog-panel app-producto-dialog .form-grid,
+  .admin-dialog-panel app-proveedor-dialog .form-grid,
+  .admin-dialog-panel app-entrada-dialog .form-grid,
+  .admin-dialog-panel app-salida-dialog .form-grid,
+  .admin-dialog-panel app-ajuste-dialog .form-grid,
+  .admin-dialog-panel app-proveedor-dialog .form-row,
+  .admin-dialog-panel app-entrada-dialog .form-row.two-col,
+  .admin-dialog-panel app-salida-dialog .form-row.two-col,
+  .admin-dialog-panel app-orden-dialog .form-row,
+  .admin-dialog-panel app-producto-dialog .form-grid--3,
+  .admin-dialog-panel app-producto-dialog .form-row.three-col,
+  .admin-dialog-panel app-ajuste-dialog .comparacion-grid,
+  .admin-dialog-panel app-movimiento-detalle-dialog .detail-grid,
+  .admin-dialog-panel app-recibir-orden-dialog .info-section,
+  .admin-dialog-panel app-producto-dialog .checkboxes,
+  .admin-dialog-panel app-producto-movimientos-dialog .estadisticas-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dialog-panel app-orden-dialog .producto-row {
+    grid-template-columns: 1fr;
+  }
+}

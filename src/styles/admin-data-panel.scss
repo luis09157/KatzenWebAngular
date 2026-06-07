@@ -1,0 +1,168 @@
+/* Acciones de tabla admin — iconos compactos con tooltip */
+.admin-content .row-actions,
+.admin-content .row-actions-icons {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.admin-content .row-actions .hide-mobile {
+  display: inline-flex;
+}
+
+.admin-content button.mat-mdc-icon-button.show-mobile-only,
+.admin-content .show-mobile-only {
+  display: none !important;
+}
+
+.admin-content .row-actions .mat-mdc-icon-button,
+.admin-content .row-actions-icons .mat-mdc-icon-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  padding: 0;
+  color: #5a6e6e;
+}
+
+.admin-content .row-actions .mat-mdc-icon-button[color='primary'],
+.admin-content .row-actions-icons .mat-mdc-icon-button[color='primary'] {
+  color: #0a969b;
+}
+
+.admin-content .row-actions .mat-mdc-icon-button:hover,
+.admin-content .row-actions-icons .mat-mdc-icon-button:hover {
+  background: rgba(10, 150, 155, 0.1);
+}
+
+.admin-content th.mat-column-acciones,
+.admin-content td.mat-column-acciones,
+.admin-content .mat-mdc-header-cell.mat-column-acciones,
+.admin-content .mat-mdc-cell.mat-column-acciones,
+.admin-content .mat-mdc-column-acciones {
+  width: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+  text-align: right !important;
+}
+
+.admin-content td.mat-column-acciones,
+.admin-content .mat-mdc-cell.mat-column-acciones {
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 2px !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  padding-left: 6px !important;
+  padding-right: 10px !important;
+}
+
+.admin-content td.mat-column-acciones .row-actions,
+.admin-content .mat-mdc-cell.mat-column-acciones .row-actions {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.admin-content td.mat-column-acciones > .mat-mdc-icon-button,
+.admin-content .mat-mdc-cell.mat-column-acciones > .mat-mdc-icon-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  padding: 0;
+  color: #5a6e6e;
+}
+
+.admin-content td.mat-column-acciones > .mat-mdc-icon-button:hover,
+.admin-content .mat-mdc-cell.mat-column-acciones > .mat-mdc-icon-button:hover {
+  background: rgba(10, 150, 155, 0.1);
+}
+
+/* Botones con texto — solo si se necesitan en módulos legacy */
+.admin-content .row-actions-labeled {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.admin-content .row-actions-labeled button {
+  min-height: 34px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 10px !important;
+  padding: 0 12px !important;
+}
+
+@media (max-width: 900px) {
+  .admin-content .row-actions .hide-mobile,
+  .admin-content .hide-mobile {
+    display: none !important;
+  }
+
+  .admin-content button.mat-mdc-icon-button.show-mobile-only,
+  .admin-content .show-mobile-only {
+    display: inline-flex !important;
+  }
+
+  .admin-content th.mat-column-acciones,
+  .admin-content td.mat-column-acciones,
+  .admin-content .mat-mdc-header-cell.mat-column-acciones,
+  .admin-content .mat-mdc-cell.mat-column-acciones,
+  .admin-content .mat-mdc-column-acciones {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+
+.admin-content .table-scroll {
+  overflow-x: auto;
+}
+
+.admin-content .data-row:hover {
+  background: #f9fafb !important;
+}
+
+.admin-content .cell-sub {
+  display: block;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.admin-content .section-eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #065d60;
+}
+
+.admin-content .fecha-compact {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a2e2e;
+}
+
+.admin-content .fecha-compact small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #5a6e6e;
+}

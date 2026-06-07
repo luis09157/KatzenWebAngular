@@ -1,157 +1,157 @@
-<div class="productos-container">
-  <div class="header">
-    <h1>
-      <mat-icon>inventory_2</mat-icon>
-      Productos
-    </h1>
-    <div class="header-actions">
-      <button mat-raised-button color="accent" (click)="exportarExcel()">
+<div class="admin-page productos-container">
+  <app-admin-page-banner
+    accent="orange"
+    icon="inventory_2"
+    title="Catálogo de Productos"
+    subtitle="Administra stock, precios, categorías y códigos de barras.">
+    <div bannerActions>
+      <button mat-stroked-button type="button" (click)="exportarExcel()">
         <mat-icon>file_download</mat-icon>
         Exportar
       </button>
-      <button mat-raised-button color="primary" (click)="abrirDialogoNuevoProducto()">
+      <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirDialogoNuevoProducto()">
         <mat-icon>add</mat-icon>
-        Nuevo Producto
+        Nuevo producto
       </button>
     </div>
-  </div>
+  </app-admin-page-banner>
 
-  <mat-card>
-    <div class="table-container">
-      <mat-form-field class="filter-field" appearance="outline">
-        <mat-label>Buscar producto</mat-label>
-        <input matInput (keyup)="aplicarFiltro($event)" placeholder="Código, nombre, marca...">
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
+  <app-admin-data-panel
+    accent="orange"
+    title="Listado de productos"
+    description="Busca por código, nombre, marca o categoría."
+    [showLegend]="false">
 
-      <div *ngIf="loading" class="loading">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando productos...</p>
-      </div>
+    <mat-form-field appearance="outline" class="buscador panel-search">
+      <mat-label>Buscar producto</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Código, nombre, marca…" />
+    </mat-form-field>
 
-      <div *ngIf="!loading" class="table-wrapper">
-        <table mat-table [dataSource]="dataSource" matSort class="productos-table">
-          <!-- Código de Barras -->
-          <ng-container matColumnDef="codigo_barras">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Código</th>
-            <td mat-cell *matCellDef="let producto">{{producto.codigo_barras}}</td>
-          </ng-container>
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando productos…</p>
+    </div>
 
-          <!-- Nombre -->
-          <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
-            <td mat-cell *matCellDef="let producto">
-              <div class="producto-nombre">
-                <strong>{{producto.nombre}}</strong>
-                <small>{{producto.presentacion}}</small>
-              </div>
-            </td>
-          </ng-container>
+    <div class="table-scroll" *ngIf="!loading">
+      <table mat-table [dataSource]="dataSource" matSort class="productos-table">
+        <ng-container matColumnDef="codigo_barras">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Código</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.codigo_barras }}</td>
+        </ng-container>
 
-          <!-- Categoría -->
-          <ng-container matColumnDef="categoria">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Categoría</th>
-            <td mat-cell *matCellDef="let producto">
-              <mat-chip-listbox>
-                <mat-chip-option class="categoria-chip">
-                  {{producto.categoria}}
-                </mat-chip-option>
-              </mat-chip-listbox>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+          <td mat-cell *matCellDef="let producto">
+            <div class="cell-primary">
+              <strong>{{ producto.nombre }}</strong>
+              <span class="cell-sub">{{ producto.presentacion }}</span>
+            </div>
+          </td>
+        </ng-container>
 
-          <!-- Marca -->
-          <ng-container matColumnDef="marca">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Marca</th>
-            <td mat-cell *matCellDef="let producto">{{producto.marca}}</td>
-          </ng-container>
+        <ng-container matColumnDef="categoria">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Categoría</th>
+          <td mat-cell *matCellDef="let producto">
+            <span class="tag tag-muted">{{ producto.categoria }}</span>
+          </td>
+        </ng-container>
 
-          <!-- Stock Actual -->
-          <ng-container matColumnDef="stock_actual">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
-            <td mat-cell *matCellDef="let producto">
-              <mat-chip-listbox>
-                <mat-chip-option [class]="getStockClass(producto)">
-                  {{producto.stock_actual}} {{producto.unidad_medida}}
-                </mat-chip-option>
-              </mat-chip-listbox>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="marca">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Marca</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.marca }}</td>
+        </ng-container>
 
-          <!-- Stock Mínimo -->
-          <ng-container matColumnDef="stock_minimo">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock Mín</th>
-            <td mat-cell *matCellDef="let producto">{{producto.stock_minimo}}</td>
-          </ng-container>
+        <ng-container matColumnDef="stock_actual">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+          <td mat-cell *matCellDef="let producto">
+            <span class="tag" [ngClass]="getStockClass(producto)">
+              {{ producto.stock_actual }} {{ producto.unidad_medida }}
+            </span>
+          </td>
+        </ng-container>
 
-          <!-- Precio Compra -->
-          <ng-container matColumnDef="precio_compra">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>P. Compra</th>
-            <td mat-cell *matCellDef="let producto">${{producto.precio_compra | number:'1.2-2'}}</td>
-          </ng-container>
+        <ng-container matColumnDef="stock_minimo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock mín.</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.stock_minimo }}</td>
+        </ng-container>
 
-          <!-- Precio Venta -->
-          <ng-container matColumnDef="precio_venta">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>P. Venta</th>
-            <td mat-cell *matCellDef="let producto">${{producto.precio_venta | number:'1.2-2'}}</td>
-          </ng-container>
+        <ng-container matColumnDef="precio_compra">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>P. compra</th>
+          <td mat-cell *matCellDef="let producto">${{ producto.precio_compra | number:'1.2-2' }}</td>
+        </ng-container>
 
-          <!-- Margen -->
-          <ng-container matColumnDef="margen">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Margen</th>
-            <td mat-cell *matCellDef="let producto">
-              <span [class.margen-bueno]="producto.margen_ganancia > 30"
-                    [class.margen-regular]="producto.margen_ganancia >= 15 && producto.margen_ganancia <= 30"
-                    [class.margen-bajo]="producto.margen_ganancia < 15">
-                {{producto.margen_ganancia | number:'1.1-1'}}%
-              </span>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="precio_venta">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>P. venta</th>
+          <td mat-cell *matCellDef="let producto">${{ producto.precio_venta | number:'1.2-2' }}</td>
+        </ng-container>
 
-          <!-- Acciones -->
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let producto">
-              <button mat-icon-button color="accent" 
-                      matTooltip="Ver historial"
-                      (click)="verHistorial(producto)">
+        <ng-container matColumnDef="margen">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Margen</th>
+          <td mat-cell *matCellDef="let producto">
+            <span [class.margen-bueno]="producto.margen_ganancia > 30"
+                  [class.margen-regular]="producto.margen_ganancia >= 15 && producto.margen_ganancia <= 30"
+                  [class.margen-bajo]="producto.margen_ganancia < 15">
+              {{ producto.margen_ganancia | number:'1.1-1' }}%
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let producto">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver historial" (click)="verHistorial(producto)">
                 <mat-icon>history</mat-icon>
               </button>
-              <button mat-icon-button color="primary" 
-                      matTooltip="Editar"
-                      (click)="editarProducto(producto)">
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarProducto(producto)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" 
-                      matTooltip="Eliminar"
-                      (click)="eliminarProducto(producto)">
-                <mat-icon>delete</mat-icon>
+              <button mat-icon-button type="button" matTooltip="Eliminar" (click)="eliminarProducto(producto)">
+                <mat-icon>delete_outline</mat-icon>
               </button>
-            </td>
-          </ng-container>
+            </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="productoMenu" (click)="menuContext = producto">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
 
-          <!-- Mensaje cuando no hay datos -->
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-              <div class="no-data">
-                <mat-icon>inventory</mat-icon>
-                <p>No se encontraron productos</p>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <mat-paginator #paginator
-          [pageSize]="pageSize"
-          [pageSizeOptions]="[10, 25, 50, 100]" 
-          showFirstLastButtons
-          aria-label="Seleccionar página">
-        </mat-paginator>
-      </div>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            <app-admin-empty-state
+              icon="inventory"
+              title="No se encontraron productos"
+              message="Ajusta el filtro o registra un nuevo producto."
+              actionLabel="Nuevo producto"
+              (action)="abrirDialogoNuevoProducto()">
+            </app-admin-empty-state>
+          </td>
+        </tr>
+      </table>
     </div>
-  </mat-card>
-</div>
 
+    <mat-paginator
+      *ngIf="!loading"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons>
+    </mat-paginator>
+  </app-admin-data-panel>
+
+  <mat-menu #productoMenu="matMenu">
+    <button mat-menu-item (click)="verHistorial(menuContext!)" [disabled]="!menuContext">
+      <mat-icon>history</mat-icon> Ver historial
+    </button>
+    <button mat-menu-item (click)="editarProducto(menuContext!)" [disabled]="!menuContext">
+      <mat-icon>edit</mat-icon> Editar
+    </button>
+    <button mat-menu-item (click)="eliminarProducto(menuContext!)" [disabled]="!menuContext">
+      <mat-icon>delete_outline</mat-icon> Eliminar
+    </button>
+  </mat-menu>
+</div>

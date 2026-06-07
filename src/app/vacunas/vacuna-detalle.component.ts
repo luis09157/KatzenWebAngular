@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-vacuna-detalle',
   templateUrl: './vacuna-detalle.component.html',
-  styleUrls: ['./vacuna-detalle.component.css']
+  styleUrls: ['./vacuna-detalle.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class VacunaDetalleComponent {
   // Mapa de tipos de vacunas para conversión rápida

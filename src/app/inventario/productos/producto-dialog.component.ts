@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
@@ -12,7 +12,8 @@ import { LoggerService } from '../../core/logger.service';
 @Component({
   selector: 'app-producto-dialog',
   templateUrl: './producto-dialog.component.html',
-  styleUrls: ['./producto-dialog.component.css']
+  styleUrls: ['./producto-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProductoDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();

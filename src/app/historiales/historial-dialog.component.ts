@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
@@ -18,7 +18,8 @@ import { CurrentStaffService } from '../core/services/current-staff.service';
 @Component({
   selector: 'app-historial-dialog',
   templateUrl: './historial-dialog.component.html',
-  styleUrls: ['./historial-dialog.component.css']
+  styleUrls: ['./historial-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class HistorialDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -168,6 +169,19 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
       this.pacienteInfo = paciente;
     });
+  }
+
+  getPacienteMeta(): string {
+    if (!this.pacienteInfo) {
+      return '—';
+    }
+    const partes: string[] = [];
+    if (this.pacienteInfo.especie) partes.push(this.pacienteInfo.especie);
+    if (this.pacienteInfo.raza) partes.push(this.pacienteInfo.raza);
+    if (this.pacienteInfo.sexo) partes.push(this.pacienteInfo.sexo);
+    if (this.pacienteInfo.peso) partes.push(`${this.pacienteInfo.peso} kg`);
+    if (this.pacienteInfo.edad) partes.push(String(this.pacienteInfo.edad));
+    return partes.length ? partes.join(' · ') : '—';
   }
 
   cargarDoctores() {

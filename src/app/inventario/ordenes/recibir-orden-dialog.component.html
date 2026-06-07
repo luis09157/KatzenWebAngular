@@ -1,9 +1,15 @@
-<h2 mat-dialog-title>
-  <mat-icon>inventory</mat-icon>
-  Recibir Orden: {{orden.folio}}
-</h2>
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Recibir orden {{ orden.folio }}</h2>
+      <p class="admin-dialog-subtitle">Confirma cantidades recibidas del proveedor.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
+  <mat-dialog-content class="admin-dialog-body">
   <form [formGroup]="recibirForm" class="recibir-form">
     <!-- Información -->
     <div class="info-section">
@@ -71,12 +77,12 @@
   </form>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+  <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
   <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">done</mat-icon>
     {{loading ? 'Recibiendo...' : 'Confirmar Recepción'}}
   </button>
-</mat-dialog-actions>
-
+  </mat-dialog-actions>
+</div>

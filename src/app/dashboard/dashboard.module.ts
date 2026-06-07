@@ -18,6 +18,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { CitasService } from '../citas/citas.service';
+import { SharedModule } from '../shared/shared.module';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -39,6 +41,8 @@ import { CitasService } from '../citas/citas.service';
     MatListModule,
     MatDialogModule,
     MatTooltipModule,
+    MatProgressSpinnerModule,
+    SharedModule,
     RouterModule
   ],
   providers: [CitasService]

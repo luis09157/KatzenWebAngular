@@ -13,6 +13,7 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 import { Router } from '@angular/router';
+import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-proveedores',
@@ -38,6 +39,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<Proveedor>;
   proveedores: Proveedor[] = [];
   loading = true;
+  menuContext: Proveedor | null = null;
 
   constructor(
     private inventarioService: InventarioService,
@@ -92,7 +94,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   nuevoProveedor(): void {
     const dialogRef = this.dialog.open(ProveedorDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_CONFIG,
       disableClose: true,
       data: { proveedor: null }
     });
@@ -103,7 +105,7 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
 
   editarProveedor(proveedor: Proveedor): void {
     const dialogRef = this.dialog.open(ProveedorDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_CONFIG,
       disableClose: true,
       data: { proveedor }
     });

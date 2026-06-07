@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
@@ -13,7 +13,8 @@ import { LoggerService } from '../../core/logger.service';
 @Component({
   selector: 'app-entrada-dialog',
   templateUrl: './entrada-dialog.component.html',
-  styleUrls: ['./entrada-dialog.component.css']
+  styleUrls: ['./entrada-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class EntradaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();

@@ -1,176 +1,20 @@
-.productos-container {
-  padding: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
+:host {
+  display: block;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
+.stock-critico { background: #fee2e2; color: #b91c1c; }
+.stock-bajo { background: #ffedd5; color: #c2410c; }
+.stock-alto { background: #dbeafe; color: #1d4ed8; }
+.stock-normal { background: #ecfdf5; color: #047857; }
 
-.header h1 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 28px;
-  color: #333;
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.table-container {
-  padding: 20px;
-}
-
-.filter-field {
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 20px;
-}
-
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-}
-
-.loading p {
-  margin-top: 16px;
-  color: #666;
-  font-size: 14px;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-}
-
-.productos-table {
-  width: 100%;
-  background: white;
-}
-
-.productos-table th {
-  font-weight: 600;
-  color: #333;
-  background: #f5f5f5;
-}
-
-.productos-table td {
-  padding: 12px 8px;
-}
-
-.producto-nombre {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.producto-nombre strong {
-  font-size: 14px;
-  color: #333;
-}
-
-.producto-nombre small {
-  font-size: 12px;
-  color: #666;
-}
-
-.categoria-chip {
-  text-transform: capitalize;
-  font-size: 12px;
-}
-
-/* Clases de Stock */
-.stock-critico {
-  background-color: #f44336 !important;
-  color: white !important;
-}
-
-.stock-bajo {
-  background-color: #ff9800 !important;
-  color: white !important;
-}
-
-.stock-normal {
-  background-color: #4caf50 !important;
-  color: white !important;
-}
-
-.stock-alto {
-  background-color: #2196f3 !important;
-  color: white !important;
-}
-
-/* Clases de Margen */
-.margen-bueno {
-  color: #4caf50;
+.productos-table .tag {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.margen-regular {
-  color: #ff9800;
-  font-weight: 600;
-}
-
-.margen-bajo {
-  color: #f44336;
-  font-weight: 600;
-}
-
-.no-data {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  color: #999;
-}
-
-.no-data mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-.no-data p {
-  font-size: 16px;
-  margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .productos-container {
-    padding: 12px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .header-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .header-actions button {
-    width: 100%;
-  }
-
-  .filter-field {
-    max-width: 100%;
-  }
-}
-
+.margen-bueno { color: #047857; font-weight: 600; }
+.margen-regular { color: #c2410c; font-weight: 600; }
+.margen-bajo { color: #b91c1c; font-weight: 600; }

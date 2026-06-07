@@ -13,6 +13,7 @@ import { AjusteDialogComponent } from './ajuste-dialog.component';
 import { LoggerService } from '../../core/logger.service';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 import { MovimientoDetalleDialogComponent } from './movimiento-detalle-dialog.component';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -39,6 +40,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   movimientos: Movimiento[] = [];
   productos: Map<string, Producto> = new Map();
   loading = true;
+  menuContext: Movimiento | null = null;
 
   // Filtros
   filtroTexto = '';
@@ -211,7 +213,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   registrarEntrada(): void {
     const dialogRef = this.dialog.open(EntradaDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
 
@@ -222,7 +224,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   registrarSalida(): void {
     const dialogRef = this.dialog.open(SalidaDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
 
@@ -233,7 +235,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   registrarAjuste(): void {
     const dialogRef = this.dialog.open(AjusteDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
 
@@ -262,7 +264,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   verDetalle(movimiento: Movimiento): void {
     this.dialog.open(MovimientoDetalleDialogComponent, {
-      width: '560px',
+      ...ADMIN_DIALOG_DETAIL,
       data: {
         movimiento,
         producto: this.productos.get(movimiento.producto_id)

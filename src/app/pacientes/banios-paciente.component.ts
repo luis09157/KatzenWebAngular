@@ -7,6 +7,7 @@ import { BaniosService } from '../banios/banios.service';
 import { BanioDialogComponent } from '../banios/banio-dialog.component';
 import { BanioDetalleComponent } from '../banios/banio-detalle.component';
 import { LoggerService } from '../core/logger.service';
+import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -163,8 +164,8 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
 
   agregarBanio() {
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
+      panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
       data: {
         paciente_id: this.pacienteId,
         paciente: this.pacienteNombre,
@@ -187,8 +188,8 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
 
   editarBanio(banio: BanioPaciente) {
     const dialogRef = this.dialog.open(BanioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
+      panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
       data: {
         ...banio,
         paciente: this.pacienteNombre,
@@ -211,8 +212,7 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
 
   verDetalleBanio(banio: BanioPaciente) {
     const dialogRef = this.dialog.open(BanioDetalleComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_DETAIL,
       data: banio
     });
 

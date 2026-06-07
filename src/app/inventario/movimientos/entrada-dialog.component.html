@@ -1,170 +1,153 @@
-<h2 mat-dialog-title>
-  <mat-icon>add_circle</mat-icon>
-  Registrar Entrada de Productos
-</h2>
+<div class="admin-dialog-shell entrada-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Registrar entrada de productos</h2>
+      <p class="admin-dialog-subtitle">Agrega unidades al inventario con costo y lote.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
   <form [formGroup]="entradaForm" class="entrada-form">
-    <!-- Selección de Producto -->
-    <div class="form-section highlight">
-      <h3>
-        <mat-icon>inventory_2</mat-icon>
-        Producto
-      </h3>
-      
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Buscar producto</mat-label>
-        <input matInput 
-               formControlName="producto_busqueda"
-               [matAutocomplete]="autoProducto"
-               placeholder="Escribe el nombre, código o marca">
-        <mat-icon matSuffix>search</mat-icon>
-        <mat-error *ngIf="hasError('producto_busqueda', 'required')">
-          Selecciona un producto
-        </mat-error>
-      </mat-form-field>
+    <mat-dialog-content class="admin-dialog-body">
+      <section class="form-section highlight">
+        <h3 class="form-section__title">Producto</h3>
 
-      <mat-autocomplete #autoProducto="matAutocomplete" 
-                        [displayWith]="displayProducto.bind(this)"
-                        (optionSelected)="onProductoSeleccionado($event.option.value)">
-        <mat-option *ngFor="let producto of productosFiltrados | async" [value]="producto">
-          <div class="producto-option">
-            <span class="producto-nombre">{{producto.nombre}}</span>
-            <span class="producto-info">{{producto.marca}} - {{producto.presentacion}}</span>
-            <span class="producto-stock" [class.stock-bajo]="producto.stock_actual <= producto.stock_minimo">
-              Stock: {{producto.stock_actual}} {{producto.unidad_medida}}
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Buscar producto</mat-label>
+            <input matInput
+                   formControlName="producto_busqueda"
+                   [matAutocomplete]="autoProducto"
+                   placeholder="Escribe el nombre, código o marca">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-error *ngIf="hasError('producto_busqueda', 'required')">
+              Selecciona un producto
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-autocomplete #autoProducto="matAutocomplete"
+                          [displayWith]="displayProducto.bind(this)"
+                          (optionSelected)="onProductoSeleccionado($event.option.value)">
+          <mat-option *ngFor="let producto of productosFiltrados | async" [value]="producto">
+            <div class="producto-option">
+              <span class="producto-nombre">{{ producto.nombre }}</span>
+              <span class="producto-info">{{ producto.marca }} - {{ producto.presentacion }}</span>
+              <span class="producto-stock" [class.stock-bajo]="producto.stock_actual <= producto.stock_minimo">
+                Stock: {{ producto.stock_actual }} {{ producto.unidad_medida }}
+              </span>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+
+        <div class="producto-info-box" *ngIf="productoSeleccionado">
+          <div class="info-row">
+            <span class="label">Código:</span>
+            <span class="value">{{ productoSeleccionado.codigo_barras }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Stock actual:</span>
+            <span class="value" [class.stock-bajo]="productoSeleccionado.stock_actual <= productoSeleccionado.stock_minimo">
+              {{ productoSeleccionado.stock_actual }} {{ productoSeleccionado.unidad_medida }}
             </span>
           </div>
-        </mat-option>
-      </mat-autocomplete>
-
-      <!-- Info del producto seleccionado -->
-      <div class="producto-info-box" *ngIf="productoSeleccionado">
-        <div class="info-row">
-          <span class="label">Código:</span>
-          <span class="value">{{productoSeleccionado.codigo_barras}}</span>
+          <div class="info-row">
+            <span class="label">Ubicación:</span>
+            <span class="value">{{ productoSeleccionado.ubicacion_almacen }}</span>
+          </div>
         </div>
-        <div class="info-row">
-          <span class="label">Stock Actual:</span>
-          <span class="value" [class.stock-bajo]="productoSeleccionado.stock_actual <= productoSeleccionado.stock_minimo">
-            {{productoSeleccionado.stock_actual}} {{productoSeleccionado.unidad_medida}}
-          </span>
+      </section>
+
+      <section class="form-section">
+        <h3 class="form-section__title">Cantidad y costo</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Cantidad</mat-label>
+            <input matInput type="number" formControlName="cantidad" min="1" step="1">
+            <span matTextSuffix *ngIf="productoSeleccionado">
+              &nbsp;{{ productoSeleccionado.unidad_medida }}
+            </span>
+            <mat-error *ngIf="hasError('cantidad', 'required') || hasError('cantidad', 'min')">
+              Ingresa una cantidad válida
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Costo unitario</mat-label>
+            <input matInput type="number" formControlName="costo_unitario" min="0" step="0.01">
+            <span matTextPrefix>$ &nbsp;</span>
+            <mat-error *ngIf="hasError('costo_unitario', 'required') || hasError('costo_unitario', 'min')">
+              Ingresa un costo válido
+            </mat-error>
+          </mat-form-field>
         </div>
-        <div class="info-row">
-          <span class="label">Ubicación:</span>
-          <span class="value">{{productoSeleccionado.ubicacion_almacen}}</span>
+
+        <div class="total-box" *ngIf="entradaForm.get('cantidad')?.value > 0">
+          <mat-icon>attach_money</mat-icon>
+          <span>Costo total: <strong>${{ calcularTotal() | number:'1.2-2' }}</strong></span>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Cantidad y Costo -->
-    <div class="form-section">
-      <h3>
-        <mat-icon>calculate</mat-icon>
-        Cantidad y Costo
-      </h3>
+      <section class="form-section">
+        <h3 class="form-section__title">Información del lote (opcional)</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Número de lote</mat-label>
+            <input matInput formControlName="lote_numero" placeholder="Ej: LOT-2024-001">
+            <mat-hint>Número del lote o serie</mat-hint>
+          </mat-form-field>
 
-      <div class="form-row two-col">
-        <mat-form-field appearance="outline">
-          <mat-label>Cantidad</mat-label>
-          <input matInput type="number" formControlName="cantidad" min="1" step="1">
-          <span matTextSuffix *ngIf="productoSeleccionado">
-            &nbsp;{{productoSeleccionado.unidad_medida}}
-          </span>
-          <mat-error *ngIf="hasError('cantidad', 'required') || hasError('cantidad', 'min')">
-            Ingresa una cantidad válida
-          </mat-error>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de caducidad</mat-label>
+            <input matInput type="date" formControlName="lote_fecha_caducidad">
+            <mat-hint>Fecha de vencimiento del lote</mat-hint>
+          </mat-form-field>
+        </div>
+      </section>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Costo Unitario</mat-label>
-          <input matInput type="number" formControlName="costo_unitario" min="0" step="0.01">
-          <span matTextPrefix>$ &nbsp;</span>
-          <mat-error *ngIf="hasError('costo_unitario', 'required') || hasError('costo_unitario', 'min')">
-            Ingresa un costo válido
-          </mat-error>
-        </mat-form-field>
-      </div>
+      <section class="form-section">
+        <h3 class="form-section__title">Proveedor y documento</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Proveedor</mat-label>
+            <mat-select formControlName="proveedor_id">
+              <mat-option *ngFor="let prov of proveedores" [value]="prov.id">
+                {{ prov.nombre_comercial }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>Selecciona el proveedor</mat-hint>
+          </mat-form-field>
 
-      <div class="total-box" *ngIf="entradaForm.get('cantidad')?.value > 0">
-        <mat-icon>attach_money</mat-icon>
-        <span>Costo Total: <strong>${{calcularTotal() | number:'1.2-2'}}</strong></span>
-      </div>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Número de factura</mat-label>
+            <input matInput formControlName="numero_factura" placeholder="Ej: FAC-12345">
+            <mat-icon matSuffix>receipt</mat-icon>
+          </mat-form-field>
+        </div>
+      </section>
 
-    <!-- Información del Lote (Opcional) -->
-    <div class="form-section">
-      <h3>
-        <mat-icon>qr_code</mat-icon>
-        Información del Lote (Opcional)
-      </h3>
+      <section class="form-section">
+        <h3 class="form-section__title">Observaciones</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Observaciones</mat-label>
+            <textarea matInput formControlName="observaciones" rows="3"
+                      placeholder="Notas adicionales sobre esta entrada"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+    </mat-dialog-content>
 
-      <div class="form-row two-col">
-        <mat-form-field appearance="outline">
-          <mat-label>Número de Lote</mat-label>
-          <input matInput formControlName="lote_numero" placeholder="Ej: LOT-2024-001">
-          <mat-hint>Número del lote o serie</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Fecha de Caducidad</mat-label>
-          <input matInput type="date" formControlName="lote_fecha_caducidad">
-          <mat-hint>Fecha de vencimiento del lote</mat-hint>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- Proveedor y Factura -->
-    <div class="form-section">
-      <h3>
-        <mat-icon>local_shipping</mat-icon>
-        Proveedor y Documento
-      </h3>
-
-      <div class="form-row two-col">
-        <mat-form-field appearance="outline">
-          <mat-label>Proveedor</mat-label>
-          <mat-select formControlName="proveedor_id">
-            <mat-option *ngFor="let prov of proveedores" [value]="prov.id">
-              {{prov.nombre_comercial}}
-            </mat-option>
-          </mat-select>
-          <mat-hint>Selecciona el proveedor</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Número de Factura</mat-label>
-          <input matInput formControlName="numero_factura" placeholder="Ej: FAC-12345">
-          <mat-icon matSuffix>receipt</mat-icon>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- Observaciones -->
-    <div class="form-section">
-      <h3>
-        <mat-icon>notes</mat-icon>
-        Observaciones
-      </h3>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Observaciones</mat-label>
-        <textarea matInput formControlName="observaciones" rows="3" 
-                  placeholder="Notas adicionales sobre esta entrada"></textarea>
-      </mat-form-field>
-    </div>
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+      <button mat-raised-button color="primary" type="button" (click)="guardar()"
+              [disabled]="loading || entradaForm.invalid || !productoSeleccionado">
+        <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
+        <mat-icon *ngIf="!loading">save</mat-icon>
+        {{ loading ? 'Registrando…' : 'Registrar entrada' }}
+      </button>
+    </mat-dialog-actions>
   </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancelar()" [disabled]="loading">
-    Cancelar
-  </button>
-  <button mat-raised-button color="primary" (click)="guardar()" 
-          [disabled]="loading || entradaForm.invalid || !productoSeleccionado">
-    <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
-    <mat-icon *ngIf="!loading">save</mat-icon>
-    {{loading ? 'Registrando...' : 'Registrar Entrada'}}
-  </button>
-</mat-dialog-actions>
-
+</div>

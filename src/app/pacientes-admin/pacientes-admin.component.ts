@@ -13,6 +13,7 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
+import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-pacientes-admin',
@@ -26,15 +27,10 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   readonly pageSize = 50;
 
   displayedColumns: string[] = [
-    'nombre', 
-    'especie', 
-    'raza', 
-    'sexo', 
+    'paciente',
+    'dueno',
+    'resumen',
     'estado',
-    'edad', 
-    'color', 
-    'peso', 
-    'nombreCliente', 
     'acciones'
   ];
   
@@ -52,6 +48,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     perros: 0,
     gatos: 0
   };
+  pacienteMenuContext: any = null;
 
   constructor(
     private pacientesService: PacientesService,
@@ -214,8 +211,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   nuevoPaciente() {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_CONFIG,
       data: { modo: 'crear' }
     });
 
@@ -241,8 +237,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   editarPaciente(paciente: any) {
     const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_CONFIG,
       data: { paciente, modo: 'editar' }
     });
 
@@ -297,10 +292,28 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   }
 
   verPaciente(paciente: any) {
-    this.dialog.open(PacienteAdminDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+    const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
       data: { paciente, modo: 'ver' }
+    });
+
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) {
+        this.loadingService.show();
+        this.pacientesService.actualizarPaciente(paciente.id, result)
+          .then(() => {
+            this.loadingService.hide();
+            setTimeout(() => {
+              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
+              this.cargarDatos();
+            }, 0);
+          })
+          .catch(error => {
+            this.logger.error('Error al actualizar paciente:', error);
+            this.loadingService.hide();
+            setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el paciente', 'error'), 0);
+          });
+      }
     });
   }
 

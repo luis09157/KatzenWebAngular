@@ -1,11 +1,12 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Banio } from '../shared/banio.model';
 
 @Component({
   selector: 'app-banio-detalle',
   templateUrl: './banio-detalle.component.html',
-  styleUrls: ['./banio-detalle.component.css']
+  styleUrls: ['./banio-detalle.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class BanioDetalleComponent {
   banio: any;

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -9,7 +9,8 @@ import { LoggerService } from '../core/logger.service';
 @Component({
   selector: 'app-historial-detalle',
   templateUrl: './historial-detalle.component.html',
-  styleUrls: ['./historial-detalle.component.css']
+  styleUrls: ['./historial-detalle.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class HistorialDetalleComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -87,6 +88,10 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     } catch (error) {
       return 'No disponible';
     }
+  }
+
+  isActivo(): boolean {
+    return !(this.data.activo === false || this.data.activo === 'inactivo' || this.data.activo === 'false');
   }
 
   getEstadoColor(estado: any): string {

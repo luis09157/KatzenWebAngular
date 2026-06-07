@@ -28,7 +28,14 @@
             "styles": [
               "src/styles/material-katzen-theme.scss",
               "src/styles/m3-katzen-system.scss",
+              "src/styles/katzen-tokens.css",
               "src/styles.css",
+              "src/styles/admin-crud.scss",
+              "src/styles/admin-data-panel.scss",
+              "src/styles/admin-page-layout.scss",
+              "src/styles/admin-table.scss",
+              "src/styles/admin-dialog.scss",
+              "src/styles/inventario-dialog.scss",
               "src/app/portal/portal-shell.scss"
             ],
             "scripts": [],

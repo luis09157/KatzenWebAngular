@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Movimiento, Producto } from '../../shared/inventario.models';
@@ -6,7 +6,8 @@ import { Movimiento, Producto } from '../../shared/inventario.models';
 @Component({
   selector: 'app-producto-movimientos-dialog',
   templateUrl: './producto-movimientos-dialog.component.html',
-  styleUrls: ['./producto-movimientos-dialog.component.css']
+  styleUrls: ['./producto-movimientos-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProductoMovimientosDialogComponent implements OnInit {
   movimientos: Movimiento[] = [];

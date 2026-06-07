@@ -1,112 +1,152 @@
-<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cita' : (data.cita ? 'Editar Cita' : 'Agregar Cita') }}</h2>
-<mat-dialog-content>
-  <form [formGroup]="citaForm">
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Cliente</mat-label>
-        <input matInput formControlName="nombreCliente" placeholder="Buscar cliente..." [matAutocomplete]="auto" [disabled]="modoVer">
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
-          <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
-            {{ getNombreCompleto(cliente) }}
-          </mat-option>
-        </mat-autocomplete>
-        <mat-error *ngIf="citaForm.get('nombreCliente')?.hasError('required')">
-          El cliente es requerido
-        </mat-error>
-      </mat-form-field>
+<div class="admin-dialog-shell" [class.admin-dialog-shell--readonly]="modoVer">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de cita' : (data.cita ? 'Editar cita' : 'Nueva cita') }}</h2>
+      <p class="admin-dialog-subtitle">Programación de consulta veterinaria.</p>
     </div>
-    
-    <!-- Campo oculto para el cliente_id -->
-    <input type="hidden" formControlName="cliente_id">
-    
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Paciente</mat-label>
-        <mat-select formControlName="paciente_id" [disabled]="!clienteSeleccionado || modoVer" required>
-          <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
-            {{ paciente.nombre }} - {{ paciente.especie || 'Sin especie' }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="citaForm.get('paciente_id')?.hasError('required')">
-          El paciente es requerido
-        </mat-error>
-      </mat-form-field>
-    </div>
-    
-    <!-- Campo oculto para el paciente_id -->
-    <input type="hidden" formControlName="paciente_id">
-    
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="fecha" placeholder="Seleccionar fecha" required />
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">
-          La fecha es requerida
-        </mat-error>
-        <mat-error *ngIf="citaForm.get('fecha')?.hasError('fechaPasada')">
-          La fecha no puede ser anterior a hoy
-        </mat-error>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline">
-        <mat-label>Hora</mat-label>
-        <input matInput formControlName="hora" type="time" required />
-        <mat-error *ngIf="citaForm.get('hora')?.hasError('required')">
-          La hora es requerida
-        </mat-error>
-        <mat-error *ngIf="citaForm.get('hora')?.hasError('formatoInvalido')">
-          Formato de hora inválido
-        </mat-error>
-      </mat-form-field>
-    </div>
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Motivo</mat-label>
-        <mat-select formControlName="motivo" required>
-          <mat-option value="">Seleccionar motivo</mat-option>
-          <mat-option *ngFor="let motivo of motivos" [value]="motivo">
-            {{ motivo }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="citaForm.get('motivo')?.hasError('required')">
-          El motivo es requerido
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Estado</mat-label>
-        <mat-select formControlName="estado" required>
-          <mat-option value="pendiente">Pendiente</mat-option>
-          <mat-option value="confirmada">Confirmada</mat-option>
-          <mat-option value="completada">Completada</mat-option>
-          <mat-option value="cancelada">Cancelada</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Veterinario</mat-label>
-        <mat-select formControlName="veterinario">
-          <mat-option value="">Seleccionar veterinario</mat-option>
-          <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">
-            {{ doctor.nombre }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Observaciones</mat-label>
-        <textarea matInput formControlName="observaciones" rows="3" 
-                  placeholder="Ej: Síntomas observados, antecedentes importantes, medicamentos actuales, alergias conocidas, comportamiento reciente, etc."></textarea>
-      </mat-form-field>
-    </div>
-  </form>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" 
-          [disabled]="!esFormularioValido()" 
-          (click)="guardar()">
-    Guardar
-  </button>
-</mat-dialog-actions> 
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <ng-container *ngIf="modoVer">
+      <div class="admin-dialog-form admin-dialog-form--padded">
+        <div class="entity-summary">
+          <span class="cita-estado-badge" [ngClass]="'cita-estado-badge--' + (data.cita?.estado || 'pendiente')">
+            {{ getDisplayEstado() }}
+          </span>
+          <h3 class="entity-summary__name">{{ getDisplayCliente() }}</h3>
+          <p class="entity-summary__meta">{{ getDisplayPaciente() }}</p>
+          <p class="entity-summary__meta entity-summary__meta--secondary">
+            {{ getDisplayFecha() }} · {{ getDisplayValue('hora') }}
+          </p>
+        </div>
+
+        <section class="detail-section">
+          <h4 class="detail-section__title">Agenda</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-item__label">Motivo</span>
+              <p class="detail-item__value">{{ getDisplayValue('motivo') }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Veterinario</span>
+              <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('veterinario') === '—'">{{ getDisplayValue('veterinario') }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Fecha</span>
+              <p class="detail-item__value">{{ getDisplayFecha() }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Hora</span>
+              <p class="detail-item__value">{{ getDisplayValue('hora') }}</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-section" *ngIf="getDisplayValue('observaciones') !== '—'">
+          <h4 class="detail-section__title">Observaciones</h4>
+          <div class="detail-text-block">{{ getDisplayValue('observaciones') }}</div>
+        </section>
+      </div>
+    </ng-container>
+
+    <form *ngIf="!modoVer" [formGroup]="citaForm" class="admin-dialog-form admin-dialog-form--padded cita-dialog-form">
+      <section class="form-section">
+        <h3 class="form-section__title">Paciente y dueño</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Cliente</mat-label>
+            <input matInput formControlName="nombreCliente" placeholder="Buscar cliente…" [matAutocomplete]="auto">
+            <mat-icon matPrefix>person_search</mat-icon>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
+              <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+                {{ getNombreCompleto(cliente) }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="citaForm.get('nombreCliente')?.hasError('required')">El cliente es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Paciente</mat-label>
+            <mat-select formControlName="paciente_id" [disabled]="!clienteSeleccionado" required>
+              <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
+                {{ paciente.nombre }} — {{ paciente.especie || 'Sin especie' }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="citaForm.get('paciente_id')?.hasError('required')">El paciente es requerido</mat-error>
+          </mat-form-field>
+        </div>
+        <input type="hidden" formControlName="cliente_id">
+      </section>
+
+      <section class="form-section">
+        <h3 class="form-section__title">Agenda</h3>
+        <div class="form-grid form-grid--3">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="fecha" required>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">La fecha es requerida</mat-error>
+            <mat-error *ngIf="citaForm.get('fecha')?.hasError('fechaPasada')">La fecha no puede ser anterior a hoy</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Hora</mat-label>
+            <input matInput formControlName="hora" type="time" required>
+            <mat-error *ngIf="citaForm.get('hora')?.hasError('required')">La hora es requerida</mat-error>
+            <mat-error *ngIf="citaForm.get('hora')?.hasError('formatoInvalido')">Formato de hora inválido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="estado" required>
+              <mat-option value="pendiente">Pendiente</mat-option>
+              <mat-option value="confirmada">Confirmada</mat-option>
+              <mat-option value="completada">Completada</mat-option>
+              <mat-option value="cancelada">Cancelada</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Motivo</mat-label>
+            <mat-select formControlName="motivo" required>
+              <mat-option value="">Seleccionar motivo</mat-option>
+              <mat-option *ngFor="let motivo of motivos" [value]="motivo">{{ motivo }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="citaForm.get('motivo')?.hasError('required')">El motivo es requerido</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Veterinario</mat-label>
+            <mat-select formControlName="veterinario">
+              <mat-option value="">Seleccionar veterinario</mat-option>
+              <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">{{ doctor.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3 class="form-section__title">Notas</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Observaciones</mat-label>
+            <textarea matInput formControlName="observaciones" rows="3"
+              placeholder="Síntomas, antecedentes, medicamentos, alergias…"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button mat-raised-button color="primary" *ngIf="!modoVer" [disabled]="!esFormularioValido()" (click)="guardar()">
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</div>

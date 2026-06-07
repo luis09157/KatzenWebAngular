@@ -20,6 +20,7 @@ import { VacunaDialogComponent } from '../vacunas/vacuna-dialog.component';
 import { VacunaDetalleComponent } from '../vacunas/vacuna-detalle.component';
 import { HistorialDetalleComponent } from '../historiales/historial-detalle.component';
 import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-detalle.component';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-pacientes',
@@ -390,8 +391,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { 
         paciente_id: this.pacienteSeleccionado.id,
         desdePaciente: true // Flag para indicar que viene desde la página del paciente
@@ -427,8 +427,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   editarRecordatorio(recordatorio: any) {
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: recordatorio
     });
 
@@ -540,8 +539,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.isCreatingHistorial = true;
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { 
         historial: null, 
         modoVer: false,
@@ -580,8 +578,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   editarHistorialClinico(historial: any) {
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { 
         historial: historial, 
         modoVer: false 
@@ -607,8 +604,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
   verDetalleHistorial(historial: any) {
     this.historialesService.getHistorial(historial.id).pipe(takeUntil(this.destroy$)).subscribe((historialCompleto) => {
       this.dialog.open(HistorialDetalleComponent, {
-        width: '90vw',
-        maxWidth: '95vw',
+        ...ADMIN_DIALOG_DETAIL,
         data: historialCompleto
       });
     });
@@ -789,8 +785,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { paciente_id: this.pacienteSeleccionado.id }
     });
 
@@ -807,8 +802,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   editarVacuna(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: vacuna
     });
 
@@ -908,16 +902,15 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   verVacunaDetalle(vacuna: any) {
-    const dialogRef = this.dialog.open(VacunaDetalleComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+    this.dialog.open(VacunaDetalleComponent, {
+      ...ADMIN_DIALOG_DETAIL,
       data: vacuna
     });
   }
 
   verDetalleRecordatorio(recordatorio: any) {
     this.dialog.open(RecordatorioDetalleComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_DETAIL,
       data: recordatorio
     });
   }

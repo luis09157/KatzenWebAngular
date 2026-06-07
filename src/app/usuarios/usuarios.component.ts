@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-usuarios',
@@ -19,6 +20,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['nombre', 'correo', 'perfil', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -76,10 +78,27 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     this.dataSource.filter = filtro.trim().toLowerCase();
   }
 
+  getTotalUsuarios(): number {
+    return this.dataSource?.data?.length ?? 0;
+  }
+
+  getCountPerfil(perfil: string): number {
+    return (this.dataSource?.data ?? []).filter(u => u.perfil === perfil).length;
+  }
+
+  getPerfilLabel(perfil: string | undefined): string {
+    const labels: Record<string, string> = {
+      admin: 'Administrador',
+      doctor: 'Doctor/Veterinario',
+      peluquero: 'Peluquero',
+      recepcionista: 'Recepcionista'
+    };
+    return perfil ? (labels[perfil] ?? perfil) : 'N/P';
+  }
+
   abrirModalUsuario(usuario: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
-      width: '80vw',
-      maxWidth: '90vw',
+      ...(modoVer ? ADMIN_DIALOG_DETAIL : ADMIN_DIALOG_FORM),
       data: { usuario, modoVer }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {

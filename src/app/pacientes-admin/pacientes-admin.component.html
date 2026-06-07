@@ -1,198 +1,139 @@
-<div class="pacientes-contenedor">
-  <!-- Dashboard de Estadísticas -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ stats.total }}</div>
-        <div class="stat-label">Total de Pacientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>person</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ stats.duenosUnicos }}</div>
-        <div class="stat-label">Dueños Únicos</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ stats.perros }}</div>
-        <div class="stat-label">Perros</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ stats.gatos }}</div>
-        <div class="stat-label">Gatos</div>
-      </div>
-    </div>
-  </div>
+<div class="admin-page pacientes-contenedor">
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="teal" icon="pets" [value]="stats.total" label="Total pacientes" hint="Registrados activos"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" icon="group" [value]="stats.duenosUnicos" label="Dueños únicos" hint="Clientes con mascota"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" emoji="🐕" [value]="stats.perros" label="Perros" hint="Pacientes caninos"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" emoji="🐈" [value]="stats.gatos" label="Gatos" hint="Pacientes felinos"></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
-  <!-- Banner de Administración -->
-  <div class="admin-banner">
-    <div class="banner-content">
-      <div class="banner-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="banner-text">
-        <h2>Administración de Pacientes</h2>
-        <p>Gestiona todos los pacientes registrados en el sistema</p>
-      </div>
+  <app-admin-page-banner
+    accent="teal"
+    icon="pets"
+    title="Administración de Pacientes"
+    subtitle="Consulta, edita y da de baja lógica a las mascotas registradas. Los datos clínicos se conservan en historial.">
+    <div bannerActions>
+      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="nuevoPaciente()">
+        <mat-icon>add</mat-icon>
+        Nuevo paciente
+      </button>
     </div>
-    <button mat-raised-button color="primary" (click)="nuevoPaciente()">
-      <mat-icon>add</mat-icon>
-      Nuevo Paciente
-    </button>
-  </div>
+  </app-admin-page-banner>
 
-  <mat-card class="pacientes-card">
-    
-    <mat-form-field appearance="outline" class="buscador">
+  <app-admin-data-panel
+    accent="teal"
+    title="Listado de pacientes"
+    description="Busca por nombre, especie, raza o dueño."
+    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + stats.total + ' totales') : ''"
+    [showLegend]="!loading && !!dataSource?.data?.length">
+
+    <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar paciente</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, especie, raza, dueño..." />
-      <mat-icon matSuffix>search</mat-icon>
+      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Nombre, especie, raza, dueño..." />
+      <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
-    
-    <div class="tabla-contenedor">
-   
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando pacientes...</p>
-      </div>
 
-      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-pacientes">
-        <mat-icon>pets</mat-icon>
-        <h3>No hay pacientes</h3>
-        <p>No se han encontrado pacientes registrados.</p>
-        <button mat-raised-button color="primary" (click)="nuevoPaciente()">
-          <mat-icon>add</mat-icon>
-          Crear primer paciente
-        </button>
-      </div>
-
-      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-      
-      <!-- Columna Nombre -->
-      <ng-container matColumnDef="nombre">
-        <th mat-header-cell *matHeaderCellDef> Nombre </th>
-        <td mat-cell *matCellDef="let paciente"> 
-          <div class="patient-name-cell">
-            <img [src]="paciente.imageUrl || paciente.foto || 'https://i.imgur.com/1Q9Z1Zm.png'" 
-                 alt="Foto paciente" 
-                 class="patient-avatar"
-                 loading="lazy"
-                 decoding="async">
-            <span>{{ paciente.nombre }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Columna Especie -->
-      <ng-container matColumnDef="especie">
-        <th mat-header-cell *matHeaderCellDef> Especie </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.especie || 'N/P' }} </td>
-      </ng-container>
-
-      <!-- Columna Raza -->
-      <ng-container matColumnDef="raza">
-        <th mat-header-cell *matHeaderCellDef> Raza </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.raza || 'N/P' }} </td>
-      </ng-container>
-
-      <!-- Columna Sexo -->
-      <ng-container matColumnDef="sexo">
-        <th mat-header-cell *matHeaderCellDef> Sexo </th>
-        <td mat-cell *matCellDef="let paciente"> 
-          <span class="sex-badge" [class.male]="paciente.sexo === 'Macho'" [class.female]="paciente.sexo === 'Hembra'">
-            {{ paciente.sexo || 'N/P' }}
-          </span>
-        </td>
-      </ng-container>
-
-      <!-- Columna Estado -->
-      <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef> Estado </th>
-        <td mat-cell *matCellDef="let paciente"> 
-          <span class="estado-badge" [class.vivo]="paciente.estado === 'Vivo'" [class.fallecido]="paciente.estado === 'Fallecido'">
-            {{ paciente.estado || 'Vivo' }}
-          </span>
-        </td>
-      </ng-container>
-
-      <!-- Columna Edad -->
-      <ng-container matColumnDef="edad">
-        <th mat-header-cell *matHeaderCellDef> Edad </th>
-        <td mat-cell *matCellDef="let paciente"> {{ calcularEdad(paciente.edad) || 'N/P' }} </td>
-      </ng-container>
-
-      <!-- Columna Color -->
-      <ng-container matColumnDef="color">
-        <th mat-header-cell *matHeaderCellDef> Color </th>
-        <td mat-cell *matCellDef="let paciente"> {{ paciente.color || 'N/P' }} </td>
-      </ng-container>
-
-      <!-- Columna Peso -->
-      <ng-container matColumnDef="peso">
-        <th mat-header-cell *matHeaderCellDef> Peso </th>
-        <td mat-cell *matCellDef="let paciente"> 
-          {{ paciente.peso ? paciente.peso + ' kg' : 'N/P' }} 
-        </td>
-      </ng-container>
-
-      <!-- Columna Dueño -->
-      <ng-container matColumnDef="nombreCliente">
-        <th mat-header-cell *matHeaderCellDef> Dueño </th>
-        <td mat-cell *matCellDef="let paciente"> 
-          <div class="owner-cell">
-            <mat-icon class="owner-icon">person</mat-icon>
-            <span>{{ paciente.nombreCliente || 'N/P' }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Columna Acciones -->
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Acciones </th>
-        <td mat-cell *matCellDef="let paciente" style="text-align: center;">
-          <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
-            <button mat-icon-button color="primary" (click)="verPaciente(paciente)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-              <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
-            </button>
-            <button mat-icon-button color="accent" (click)="editarPaciente(paciente)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-              <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="eliminarPaciente(paciente)" matTooltip="Dar de baja (conserva datos)" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-              <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
-
-      <div *ngIf="hasMorePacientes" class="load-more-row">
-        <button mat-stroked-button color="primary" (click)="cargarMasPacientes()" [disabled]="loadingMore">
-          {{ loadingMore ? 'Cargando...' : 'Cargar más pacientes' }}
-        </button>
-      </div>
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando pacientes…</p>
     </div>
-  </mat-card>
-</div> 
+
+    <app-admin-empty-state
+      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
+      icon="pets"
+      title="No hay pacientes"
+      message="No se han encontrado pacientes registrados."
+      actionLabel="Agregar primer paciente"
+      (action)="nuevoPaciente()">
+    </app-admin-empty-state>
+
+    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
+      <table mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="paciente">
+          <th mat-header-cell *matHeaderCellDef>Paciente</th>
+          <td mat-cell *matCellDef="let paciente">
+            <div class="cell-paciente">
+              <img [src]="paciente.imageUrl || paciente.foto || 'assets/katzen-logo.jpg'"
+                   alt=""
+                   class="patient-avatar"
+                   loading="lazy">
+              <div class="cell-primary">
+                <strong>{{ paciente.nombre || 'Sin nombre' }}</strong>
+                <span class="cell-sub">{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="dueno">
+          <th mat-header-cell *matHeaderCellDef>Dueño</th>
+          <td mat-cell *matCellDef="let paciente">
+            <span class="cell-dueno">{{ paciente.nombreCliente || 'Sin dueño' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="resumen">
+          <th mat-header-cell *matHeaderCellDef>Datos clave</th>
+          <td mat-cell *matCellDef="let paciente">
+            <div class="cell-tags">
+              <span class="tag tag-muted">{{ calcularEdad(paciente.edad) || 'Edad N/P' }}</span>
+              <span class="tag tag-muted" *ngIf="paciente.peso">{{ paciente.peso }} kg</span>
+              <span class="tag tag-sex" *ngIf="paciente.sexo">{{ paciente.sexo }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let paciente">
+            <span class="estado-badge" [ngClass]="paciente.estado | adminEstadoClass">
+              {{ (paciente.estado || 'Vivo') | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let paciente">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verPaciente(paciente)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarPaciente(paciente)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="eliminarPaciente(paciente)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="rowMenu" (click)="pacienteMenuContext = paciente">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+      </table>
+    </div>
+
+    <mat-paginator *ngIf="!loading && dataSource?.data?.length"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons>
+    </mat-paginator>
+
+    <div *ngIf="hasMorePacientes" class="load-more-row">
+      <button mat-stroked-button color="primary" (click)="cargarMasPacientes()" [disabled]="loadingMore">
+        {{ loadingMore ? 'Cargando...' : 'Cargar más pacientes del servidor' }}
+      </button>
+    </div>
+  </app-admin-data-panel>
+
+  <mat-menu #rowMenu="matMenu">
+    <button mat-menu-item (click)="verPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>edit</mat-icon> Editar paciente</button>
+    <button mat-menu-item (click)="eliminarPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>delete_outline</mat-icon> Dar de baja lógica</button>
+  </mat-menu>
+</div>

@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
@@ -11,7 +11,8 @@ import { LoadingService } from '../core/loading.service';
 @Component({
   selector: 'app-banio-dialog',
   templateUrl: './banio-dialog.component.html',
-  styleUrls: ['./banio-dialog.component.css']
+  styleUrls: ['./banio-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class BanioDialogComponent implements OnInit {
   banioForm: FormGroup;

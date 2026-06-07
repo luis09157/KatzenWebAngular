@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [ContactosWebComponent],
@@ -27,7 +28,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
     MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    SharedModule
   ]
 })
 export class ContactosWebModule {}

@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-confirmar-eliminacion-vacuna-dialog',
   templateUrl: './confirmar-eliminacion-vacuna-dialog.component.html',
-  styleUrls: ['./confirmar-eliminacion-vacuna-dialog.component.css']
+  styleUrls: ['./confirmar-eliminacion-vacuna-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ConfirmarEliminacionVacunaDialogComponent {
   constructor(

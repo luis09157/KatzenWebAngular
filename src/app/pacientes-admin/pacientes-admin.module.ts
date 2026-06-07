@@ -20,6 +20,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatMenuModule } from '@angular/material/menu';
 
 // Components
 import { PacientesAdminComponent } from './pacientes-admin.component';
@@ -28,6 +29,7 @@ import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component'
 // Services
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
+import { SharedModule } from '../shared/shared.module';
 
 // Log de depuración para módulo
 console.log('🔍 PacientesAdminModule cargado');
@@ -65,7 +67,9 @@ const routes: Routes = [
     MatAutocompleteModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatMenuModule,
+    SharedModule
   ],
   providers: [
     PacientesService,

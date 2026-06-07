@@ -1,0 +1,330 @@
+/* KatzenVet — Admin UI (Material, minimal, alto contraste) */
+
+.admin-content {
+  --admin-brand: var(--katzen-verde, #0a969b);
+  --admin-brand-dark: var(--katzen-verde-fuerte, #065d60);
+  --admin-brand-soft: var(--katzen-verde-soft, #e0f7f8);
+  --admin-surface: #ffffff;
+  --admin-bg: #f3f4f6;
+  --admin-text: #111827;
+  --admin-muted: #6b7280;
+  --admin-border: #e5e7eb;
+  --admin-page-gutter: 36px;
+  min-height: calc(100vh - 64px);
+  background: var(--admin-bg) !important;
+  padding: 28px var(--admin-page-gutter) 44px !important;
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+}
+
+.admin-content .admin-page,
+.admin-content [class$='-contenedor'] {
+  animation: adminPageIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes adminPageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stats grid — 4 columnas en desktop */
+.admin-content .dashboard-stats,
+.admin-content .admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-content .admin-stats app-admin-stat-card {
+  display: block;
+  min-width: 0;
+  animation: adminStatIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes adminStatIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-content .admin-stats app-admin-stat-card:nth-child(1) { animation-delay: 0.04s; }
+.admin-content .admin-stats app-admin-stat-card:nth-child(2) { animation-delay: 0.08s; }
+.admin-content .admin-stats app-admin-stat-card:nth-child(3) { animation-delay: 0.12s; }
+.admin-content .admin-stats app-admin-stat-card:nth-child(4) { animation-delay: 0.16s; }
+
+.admin-content app-admin-page-banner {
+  display: block;
+  margin-bottom: 20px;
+}
+
+/* Data card */
+.admin-content mat-card,
+.admin-content [class$='-card'] {
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(26, 46, 46, 0.05) !important;
+}
+
+.admin-content .buscador,
+.admin-content .admin-search {
+  margin: 20px 20px 4px;
+  width: calc(100% - 40px);
+}
+
+.admin-content .buscador .mat-mdc-text-field-wrapper,
+.admin-content .admin-search .mat-mdc-text-field-wrapper {
+  background: #fafcfc;
+}
+
+.admin-content .tabla-contenedor,
+.admin-content .admin-table-wrap {
+  padding: 8px 20px 20px;
+}
+
+/* Material table */
+.admin-content table.mat-mdc-table,
+.admin-content table[mat-table] {
+  width: 100%;
+  table-layout: fixed;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  overflow: hidden;
+}
+
+.admin-content .mat-mdc-header-row,
+.admin-content .mat-header-row {
+  background: #f0f8f8 !important;
+  min-height: 48px;
+}
+
+.admin-content .mat-mdc-header-cell,
+.admin-content .mat-header-cell {
+  color: #6b7280 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.admin-content .mat-mdc-cell,
+.admin-content .mat-cell {
+  color: #111827;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #f3f4f6 !important;
+}
+
+.admin-content .mat-mdc-row:hover,
+.admin-content .mat-row:hover,
+.admin-content .data-row:hover {
+  background: #f9fafb !important;
+}
+
+.admin-content th.mat-column-acciones,
+.admin-content td.mat-column-acciones,
+.admin-content .mat-mdc-header-cell.mat-column-acciones,
+.admin-content .mat-mdc-cell.mat-column-acciones,
+.admin-content .mat-mdc-column-acciones {
+  width: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+  text-align: right !important;
+}
+
+.admin-content .mat-mdc-row,
+.admin-content .mat-row {
+  min-height: 52px !important;
+}
+
+.admin-content .mat-mdc-header-row,
+.admin-content .mat-header-row {
+  min-height: 44px !important;
+}
+
+.admin-content .panel-search,
+.admin-content .buscador.panel-search {
+  display: block;
+  margin: 8px 28px 22px !important;
+  width: calc(100% - 56px) !important;
+  max-width: 420px;
+}
+
+.admin-content .buscador .mat-mdc-text-field-wrapper,
+.admin-content .panel-search .mat-mdc-text-field-wrapper {
+  background: #fafcfc;
+  border-radius: 12px;
+}
+
+.admin-content app-admin-data-panel {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.admin-content app-admin-kpi-grid {
+  display: block;
+  margin-bottom: 20px;
+}
+
+/* Utilidades globales admin (CRUD pages) */
+.admin-content .btn-primary-teal {
+  --mdc-protected-button-container-color: var(--katzen-verde, #0a969b);
+  --mdc-protected-button-label-text-color: #fff;
+}
+
+.admin-content .btn-primary-teal:hover:not([disabled]) {
+  --mdc-protected-button-container-color: var(--katzen-verde-fuerte, #065d60);
+}
+
+.admin-content .table-shell {
+  border-radius: var(--admin-radius-md, 12px) !important;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  background: var(--admin-surface, #fff);
+  overflow: hidden;
+}
+
+.admin-content .table-shell mat-card-content {
+  padding: 0 !important;
+}
+
+.admin-content .table-wrap {
+  overflow-x: auto;
+}
+
+/* Grid de tarjetas tipo Salesforce (hub de módulos) */
+.admin-content .admin-feature-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.admin-content .admin-feature-grid app-admin-module-card {
+  flex: 0 1 calc(33.333% - 16px);
+  min-width: 280px;
+  max-width: 340px;
+}
+
+@media (max-width: 900px) {
+  .admin-content .admin-feature-grid app-admin-module-card {
+    flex: 0 1 calc(50% - 12px);
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-content .admin-feature-grid app-admin-module-card {
+    flex: 1 1 100%;
+  }
+}
+
+.admin-content .hide-mobile {
+  display: flex;
+}
+
+@media (max-width: 900px) {
+  .admin-content .hide-mobile {
+    display: none !important;
+  }
+}
+
+.admin-content .admin-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.admin-content .admin-row-actions .mat-mdc-icon-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: var(--admin-brand-dark);
+}
+
+.admin-content .admin-row-actions .mat-mdc-icon-button:hover {
+  background: rgba(10, 150, 155, 0.12);
+}
+
+/* Badges — estilos completos en admin-table.scss */
+
+.admin-content .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  gap: 16px;
+  color: var(--admin-muted);
+}
+
+.admin-content .load-more-row {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 4px;
+}
+
+.admin-content .mat-mdc-paginator {
+  border-top: 1px solid var(--admin-border);
+  background: #fafcfc;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Dashboard home */
+.admin-content .welcome-section {
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-content .welcome-title {
+  color: var(--admin-brand-dark);
+  font-weight: 700;
+}
+
+.admin-content .quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Dialogs — estilos base en admin-dialog.scss */
+.admin-dialog-panel .mat-mdc-dialog-container {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .admin-content .dashboard-stats,
+  .admin-content .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    --admin-page-gutter: 18px;
+    padding: 16px var(--admin-page-gutter) 32px !important;
+  }
+
+  .admin-content .dashboard-stats,
+  .admin-content .admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-content .tabla-contenedor {
+    overflow-x: auto;
+  }
+
+  .admin-content table {
+    min-width: 680px;
+  }
+}

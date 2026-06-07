@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="feature-card"
+  [ngClass]="'feature-card--' + accent"
+  (click)="navigate()"
+  [attr.aria-label]="title + ' — ' + ctaLabel">
+  <h3 class="feature-card__title">{{ title }}</h3>
+  <p class="feature-card__desc">{{ description }}</p>
+  <span class="feature-card__cta">
+    {{ ctaLabel }}
+    <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+  </span>
+</button>

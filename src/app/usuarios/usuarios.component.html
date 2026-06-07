@@ -1,48 +1,105 @@
-<div class="usuarios-contenedor">
+<div class="admin-page usuarios-contenedor">
   <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+
   <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando usuarios...</p>
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando usuarios…</p>
   </div>
-  <mat-card *ngIf="!loading" class="usuarios-card">
-    <div class="header-row">
-      <span class="titulo">Usuarios</span>
-      <span class="contador">Total: {{ dataSource.filteredData.length }}</span>
-      <span class="spacer"></span>
-      <button mat-raised-button color="primary" (click)="abrirModalUsuario()" [disabled]="saving">Agregar Usuario</button>
-    </div>
-    <mat-form-field appearance="outline" class="buscador">
-      <mat-label>Buscar usuario</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por nombre, correo, etc." />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-    <div class="tabla-titulo">Lista de Usuarios</div>
-    <div class="tabla-contenedor">
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef>Nombre</th>
-          <td mat-cell *matCellDef="let usuario">{{ usuario.nombre ? usuario.nombre : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="correo">
-          <th mat-header-cell *matHeaderCellDef>Correo</th>
-          <td mat-cell *matCellDef="let usuario">{{ usuario.correo ? usuario.correo : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="perfil">
-          <th mat-header-cell *matHeaderCellDef>Perfil</th>
-          <td mat-cell *matCellDef="let usuario">{{ usuario.perfil ? usuario.perfil : 'N/P' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let usuario">
-            <button mat-icon-button color="accent" (click)="verUsuario(usuario)"><mat-icon>visibility</mat-icon></button>
-            <button mat-icon-button color="primary" (click)="editarUsuario(usuario)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="bajaLogicaUsuario(usuario.id)" [disabled]="saving"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
-    </div>
-  </mat-card>
+
+  <ng-container *ngIf="!loading">
+    <p class="section-eyebrow">Resumen del módulo</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="purple" icon="manage_accounts" [value]="getTotalUsuarios()" label="Total usuarios" hint="Staff activo"></app-admin-stat-card>
+      <app-admin-stat-card accent="pink" icon="admin_panel_settings" [value]="getCountPerfil('admin')" label="Administradores" hint="Acceso completo"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" icon="medical_services" [value]="getCountPerfil('doctor')" label="Doctores" hint="Veterinarios"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" icon="support_agent" [value]="getCountPerfil('recepcionista') + getCountPerfil('peluquero')" label="Operativos" hint="Recepción y peluquería"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="purple"
+      icon="manage_accounts"
+      title="Administración de Usuarios"
+      subtitle="Gestiona cuentas staff, perfiles de acceso y permisos.">
+      <div bannerActions>
+        <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalUsuario()" [disabled]="saving">
+          <mat-icon>person_add</mat-icon>
+          Nuevo usuario
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-admin-data-panel
+      accent="purple"
+      title="Listado de usuarios"
+      description="Busca por nombre, correo o perfil."
+      [meta]="dataSource.data.length ? (dataSource.filteredData.length + ' en pantalla · ' + getTotalUsuarios() + ' totales') : ''"
+      [showLegend]="dataSource.data.length > 0">
+
+      <mat-form-field appearance="outline" class="buscador panel-search">
+        <mat-label>Buscar usuario</mat-label>
+        <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Nombre, correo, perfil..." />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="manage_accounts"
+        title="No hay usuarios"
+        message="No se han encontrado usuarios registrados."
+        actionLabel="Agregar primer usuario"
+        [actionDisabled]="saving"
+        (action)="abrirModalUsuario()">
+      </app-admin-empty-state>
+
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource">
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let usuario">
+              <div class="cell-primary">
+                <strong>{{ usuario.nombre ? usuario.nombre : 'N/P' }}</strong>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="correo">
+            <th mat-header-cell *matHeaderCellDef>Correo</th>
+            <td mat-cell *matCellDef="let usuario">
+              <span class="cell-sub">{{ usuario.correo ? usuario.correo : 'N/P' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="perfil">
+            <th mat-header-cell *matHeaderCellDef>Perfil</th>
+            <td mat-cell *matCellDef="let usuario">
+              <span class="admin-badge admin-badge--success">{{ getPerfilLabel(usuario.perfil) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let usuario">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verUsuario(usuario)" [disabled]="saving"><mat-icon>visibility</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarUsuario(usuario)" [disabled]="saving"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="bajaLogicaUsuario(usuario.id)" [disabled]="saving"><mat-icon>delete_outline</mat-icon></button>
+            </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="usuarioMenu" (click)="menuContext = usuario" [disabled]="saving"><mat-icon>more_vert</mat-icon></button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+        </table>
+      </div>
+
+      <mat-paginator *ngIf="dataSource.data.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+    </app-admin-data-panel>
+  </ng-container>
+
+  <mat-menu #usuarioMenu="matMenu">
+    <button mat-menu-item (click)="verUsuario(menuContext)" [disabled]="!menuContext || saving"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarUsuario(menuContext)" [disabled]="!menuContext || saving"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="bajaLogicaUsuario(menuContext?.id)" [disabled]="!menuContext || saving"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+  </mat-menu>
 </div>

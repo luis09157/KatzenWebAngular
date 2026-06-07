@@ -1,15 +1,1 @@
-.detalle-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
-  min-width: 420px;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.full-width p {
-  margin: 4px 0 0;
-  white-space: pre-wrap;
-}
+/* Estilos globales: src/styles/admin-dialog.scss — panelClass: admin-dialog-panel */

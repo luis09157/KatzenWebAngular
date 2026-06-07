@@ -1,0 +1,285 @@
+/* Scope overlay CDK — encapsulation: None */
+
+.admin-dialog-panel app-historial-dialog {
+  display: block;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-header__text {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-close {
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+  overflow: hidden !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-title {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-subtitle {
+  margin: 6px 0 0 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-historial-dialog mat-dialog-content.admin-dialog-body {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel app-historial-dialog .entity-summary--compact {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-historial-dialog .entity-summary--compact .entity-summary__name {
+  margin: 0 0 6px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #032d60;
+}
+
+.admin-dialog-panel app-historial-dialog .entity-summary--compact .entity-summary__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-historial-dialog .entity-summary--compact .entity-summary__meta--secondary {
+  margin-top: 4px;
+}
+
+.admin-dialog-panel app-historial-dialog .form-section {
+  margin-bottom: 20px !important;
+}
+
+.admin-dialog-panel app-historial-dialog .form-section:last-child {
+  margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .form-section__title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 0 14px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .form-section__badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-dialog-panel app-historial-dialog .form-section__badge--optional {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-historial-dialog .form-grid,
+.admin-dialog-panel app-historial-dialog .form-grid--3 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 16px !important;
+  row-gap: 20px !important;
+  align-items: start !important;
+}
+
+.admin-dialog-panel app-historial-dialog .form-grid mat-form-field,
+.admin-dialog-panel app-historial-dialog .form-grid--3 mat-form-field {
+  width: 100% !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .form-grid .full-span {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel app-historial-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  min-height: 18px !important;
+}
+
+.admin-dialog-panel app-historial-dialog .hint-text {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.admin-dialog-panel app-historial-dialog .archivos-section {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.admin-dialog-panel app-historial-dialog .archivos-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  h4 {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #111827;
+  }
+}
+
+.admin-dialog-panel app-historial-dialog .archivos-info {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-input-container {
+  margin-bottom: 12px;
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-input {
+  display: none;
+}
+
+.admin-dialog-panel app-historial-dialog .archivos-lista {
+  margin-top: 12px;
+
+  h5 {
+    margin: 0 0 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: #111827;
+
+  mat-icon {
+    flex-shrink: 0;
+    color: #065d60;
+  }
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-tamaño {
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  color: #065d60;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.admin-dialog-panel app-historial-dialog .archivo-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-actions__left,
+.admin-dialog-panel app-historial-dialog .admin-dialog-actions__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-dialog-panel app-historial-dialog .admin-dialog-actions__right {
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-historial-dialog .form-grid,
+  .admin-dialog-panel app-historial-dialog .form-grid--3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dialog-panel app-historial-dialog .admin-dialog-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .admin-dialog-panel app-historial-dialog .admin-dialog-actions__left,
+  .admin-dialog-panel app-historial-dialog .admin-dialog-actions__right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

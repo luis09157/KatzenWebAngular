@@ -13,19 +13,26 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_WIDE } from '../core/config/admin-ui.config';
 import {
   calcularClienteEstadisticas,
   calcularClientesConPacientes
 } from '../core/utils/entity-stats.util';
 
+interface ClienteKpi {
+  label: string;
+  value: number;
+  hint: string;
+}
+
 @Component({
   selector: 'app-clientes',
   templateUrl: './clientes.component.html',
-  styleUrls: ['./clientes.component.css']
+  styleUrls: ['./clientes.component.scss']
 })
 export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
-  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'direccion', 'antiguedad', 'estado', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'ubicacion', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -41,6 +48,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesBase: any[] = [];
   clientesFiltrados: any[] = [];
   filtroActual: string = '';
+  clienteMenuContext: any = null;
 
   loading = false;
   saving = false;
@@ -200,8 +208,82 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     this.refrescarFiltroTexto();
   }
 
-  getEstadoColor(activo: boolean): string {
-    return activo !== false ? '#4caf50' : '#f44336';
+  get kpis(): ClienteKpi[] {
+    return [
+      {
+        label: 'Total de clientes',
+        value: this.totalClientes,
+        hint: 'Activos en sistema'
+      },
+      {
+        label: 'Con pacientes',
+        value: this.clientesConPacientes,
+        hint: 'Tienen mascota vinculada'
+      },
+      {
+        label: 'Sin correo',
+        value: this.clientesSinCorreo,
+        hint: 'Requieren actualización'
+      },
+      {
+        label: 'Con expediente',
+        value: this.clientesConExpediente,
+        hint: 'Ficha clínica asignada'
+      }
+    ];
+  }
+
+  get clientesSinCorreo(): number {
+    return Math.max(0, this.totalClientes - this.clientesConCorreo);
+  }
+
+  getNombreCompleto(cliente: any): string {
+    const nombre = [
+      cliente?.nombre,
+      cliente?.apellidoPaterno,
+      cliente?.apellidoMaterno
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    return nombre || 'Sin nombre';
+  }
+
+  getTelefono(cliente: any): string {
+    const telefono = (cliente?.telefono || '').trim();
+    return telefono || 'N/P';
+  }
+
+  getCorreo(cliente: any): string {
+    const correo = (cliente?.correo || '').trim();
+    return correo || 'N/P';
+  }
+
+  isDatoFaltante(valor: string | null | undefined): boolean {
+    const v = (valor || '').trim().toLowerCase();
+    return !v || v === 'n/p' || v === 'n/a' || v === '—';
+  }
+
+  isCorreoFaltante(correo: string | null | undefined): boolean {
+    const v = (correo || '').trim().toLowerCase();
+    return (
+      !v ||
+      v === 'n/p' ||
+      v === 'n/a' ||
+      v.includes('no proporcionado') ||
+      v.includes('sin email') ||
+      v.includes('sin correo')
+    );
+  }
+
+  getUbicacion(cliente: any): string {
+    const municipio = (cliente?.municipio || '').trim();
+    const colonia = (cliente?.colonia || '').trim();
+
+    if (municipio && colonia) {
+      return `${municipio} (${colonia})`;
+    }
+    return municipio || colonia || '';
   }
 
   calcularAntiguedad(fecha: string): string {
@@ -260,8 +342,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   abrirModalCliente(cliente: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(ClienteDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_WIDE,
       data: { cliente, modoVer }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {

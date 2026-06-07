@@ -20,6 +20,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { ClienteDialogComponent } from './cliente-dialog.component';
+import { SharedModule } from '../shared/shared.module';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -44,7 +47,10 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
     MatNativeDateModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
-    AngularFireStorageModule
+    AngularFireStorageModule,
+    MatTooltipModule,
+    MatMenuModule,
+    SharedModule
   ]
 })
 export class ClientesModule { }

@@ -79,7 +79,10 @@
           <mat-option *ngFor="let sucursal of sucursales" [value]="sucursal.id">{{ sucursal.nombre }}</mat-option>
         </mat-select>
       </mat-form-field>
-      <span class="m3-body hide-mobile">{{ getNombreUsuario() }}</span>
+      <span class="admin-user-chip hide-mobile" *ngIf="getNombreUsuario()">
+        <mat-icon>person</mat-icon>
+        <span>{{ getNombreUsuario() }}</span>
+      </span>
     </mat-toolbar>
     <div class="admin-content">
       <router-outlet></router-outlet>

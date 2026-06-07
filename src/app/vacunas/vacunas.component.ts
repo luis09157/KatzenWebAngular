@@ -13,6 +13,7 @@ import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-vacunas',
@@ -22,6 +23,7 @@ import { LoadingService } from '../core/loading.service';
 export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_vacuna', 'paciente', 'tipo_vacuna', 'estado', 'proxima_dosis', 'veterinario', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -167,8 +169,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     // Si es una vacuna existente (edición), abrir directamente
     if (vacuna && vacuna.id) {
       const dialogRef = this.dialog.open(VacunaDialogComponent, {
-        width: '90vw',
-        maxWidth: '95vw',
+        ...ADMIN_DIALOG_FORM,
         data: vacuna
       });
       
@@ -180,15 +181,13 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     } else {
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteVacunaDialogComponent, {
-        width: '80vw',
-        maxWidth: '90vw',
+        ...ADMIN_DIALOG_CONFIG,
         data: {}
       });
       seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result && result.cliente && result.paciente) {
           const vacunaDialogRef = this.dialog.open(VacunaDialogComponent, {
-            width: '90vw',
-            maxWidth: '95vw',
+            ...ADMIN_DIALOG_FORM,
             data: {
               idPaciente: result.paciente.id,
               cliente_id: result.cliente.id,
@@ -213,16 +212,14 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   verVacuna(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { ...vacuna, modoSoloLectura: true }
     });
   }
 
   verVacunaDetalle(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDetalleComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_DETAIL,
       data: vacuna
     });
   }

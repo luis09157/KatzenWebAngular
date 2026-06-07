@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -9,7 +9,8 @@ import { map, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operato
 @Component({
   selector: 'app-seleccionar-cliente-banio-dialog',
   templateUrl: './seleccionar-cliente-banio-dialog.component.html',
-  styleUrls: ['./seleccionar-cliente-banio-dialog.component.css']
+  styleUrls: ['./seleccionar-cliente-banio-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SeleccionarClienteBanioDialogComponent implements OnInit {
   clientes: any[] = [];

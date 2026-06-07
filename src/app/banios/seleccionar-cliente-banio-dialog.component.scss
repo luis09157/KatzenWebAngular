@@ -1,0 +1,223 @@
+/* Scope overlay CDK — encapsulation: None */
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog {
+  display: block;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-header__text {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-close {
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+  overflow: hidden !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-title {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-subtitle {
+  margin: 6px 0 0 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog mat-dialog-content.admin-dialog-body {
+  padding: 20px 28px 24px !important;
+  overflow-y: auto !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-step {
+  margin-bottom: 22px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-step:last-child {
+  margin-bottom: 0;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-step__title {
+  margin: 0 0 12px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #065d60;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-search {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(28vh, 220px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row:hover {
+  border-color: #0a969b;
+  background: #f0fdfa;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid #0a969b;
+  border-radius: 10px;
+  background: #f0fdfa;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-selected__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-selected__body strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9375rem;
+  color: #111827;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #065d60;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__avatar mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__title {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__meta mat-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-row__chevron {
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-state p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .picker-state--empty mat-icon {
+  width: 36px;
+  height: 36px;
+  font-size: 36px;
+  color: #d1d5db;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.admin-dialog-panel app-seleccionar-cliente-banio-dialog .admin-dialog-actions__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

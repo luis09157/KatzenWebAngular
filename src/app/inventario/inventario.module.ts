@@ -43,6 +43,7 @@ import { OrdenDialogComponent } from './ordenes/orden-dialog.component';
 import { RecibirOrdenDialogComponent } from './ordenes/recibir-orden-dialog.component';
 import { AlertasComponent } from './alertas/alertas.component';
 import { ReportesComponent } from './reportes/reportes.component';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -89,7 +90,8 @@ import { ReportesComponent } from './reportes/reportes.component';
     MatAutocompleteModule,
     MatMenuModule,
     MatDividerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    SharedModule
   ]
 })
 export class InventarioModule { }

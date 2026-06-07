@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
@@ -9,7 +9,8 @@ import { map, startWith } from 'rxjs/operators';
 @Component({
   selector: 'app-seleccionar-cliente-dialog',
   templateUrl: './seleccionar-cliente-dialog.component.html',
-  styleUrls: ['./seleccionar-cliente-dialog.component.css']
+  styleUrls: ['./seleccionar-cliente-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SeleccionarClienteDialogComponent implements OnInit {
   clientes: any[] = [];

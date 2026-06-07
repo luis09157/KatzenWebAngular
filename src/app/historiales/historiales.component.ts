@@ -13,6 +13,7 @@ import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-historiales',
@@ -20,7 +21,8 @@ import { LoggerService } from '../core/logger.service';
   styleUrls: ['./historiales.component.css']
 })
 export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
-  displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico_presuntivo', 'manejo_terapeutico', 'medico_atendio', 'acciones'];
+  displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico_presuntivo', 'medico_atendio', 'estado', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -244,8 +246,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { paciente_id: pacienteId }
     });
 
@@ -262,8 +263,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   seleccionarClienteParaHistorial() {
     const dialogRef = this.dialog.open(SeleccionarClienteDialogComponent, {
-      width: '80vw',
-      maxWidth: '90vw',
+      ...ADMIN_DIALOG_CONFIG,
       disableClose: true
     });
 
@@ -283,8 +283,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     };
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { historial: historialNuevo, modoVer: false }
     });
     
@@ -301,16 +300,14 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   verHistorialDetalle(historial: any) {
     this.dialog.open(HistorialDetalleComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_DETAIL,
       data: historial
     });
   }
 
   editarHistorial(historial: any) {
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_FORM,
       data: { historial, modoVer: false }
     });
     

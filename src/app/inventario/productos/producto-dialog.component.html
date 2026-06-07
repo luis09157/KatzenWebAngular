@@ -1,15 +1,20 @@
-<h2 mat-dialog-title>
-  <mat-icon>{{modoEdicion ? 'edit' : 'add_circle'}}</mat-icon>
-  {{modoEdicion ? 'Editar Producto' : 'Nuevo Producto'}}
-</h2>
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ modoEdicion ? 'Editar producto' : 'Nuevo producto' }}</h2>
+      <p class="admin-dialog-subtitle">Catálogo, stock, precios y ubicación en almacén.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
+  <mat-dialog-content class="admin-dialog-body">
   <form [formGroup]="productoForm" class="producto-form">
-    <!-- Información Básica -->
-    <div class="form-section">
-      <h3>Información Básica</h3>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Información básica</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Código de Barras</mat-label>
           <input matInput formControlName="codigo_barras" placeholder="Ej: 7501234567890">
           <mat-icon matSuffix>barcode</mat-icon>
@@ -18,25 +23,19 @@
             {{getErrorMessage('codigo_barras')}}
           </mat-error>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Nombre del Producto</mat-label>
           <input matInput formControlName="nombre" placeholder="Ej: Amoxicilina 500mg">
           <mat-error *ngIf="hasError('nombre', 'required')">{{getErrorMessage('nombre')}}</mat-error>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Descripción</mat-label>
           <textarea matInput formControlName="descripcion" rows="3" 
                     placeholder="Descripción detallada del producto"></textarea>
         </mat-form-field>
-      </div>
 
-      <div class="form-row two-col">
         <mat-form-field appearance="outline">
           <mat-label>Categoría</mat-label>
           <mat-select formControlName="categoria">
@@ -53,7 +52,7 @@
         </mat-form-field>
       </div>
 
-      <div class="form-row two-col">
+      <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Marca</mat-label>
           <input matInput formControlName="marca" placeholder="Ej: Pfizer">
@@ -66,12 +65,11 @@
           <mat-error *ngIf="hasError('presentacion', 'required')">{{getErrorMessage('presentacion')}}</mat-error>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Stock -->
-    <div class="form-section">
-      <h3>Control de Stock</h3>
-      <div class="form-row three-col">
+    <section class="form-section">
+      <h3 class="form-section__title">Control de stock</h3>
+      <div class="form-grid form-grid--3">
         <mat-form-field appearance="outline">
           <mat-label>Unidad de Medida</mat-label>
           <mat-select formControlName="unidad_medida">
@@ -98,7 +96,7 @@
         </mat-form-field>
       </div>
 
-      <div class="form-row two-col">
+      <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Punto de Reorden</mat-label>
           <input matInput type="number" formControlName="punto_reorden" min="0">
@@ -111,12 +109,11 @@
           <mat-icon matSuffix>location_on</mat-icon>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Precios -->
-    <div class="form-section">
-      <h3>Precios y Margen</h3>
-      <div class="form-row two-col">
+    <section class="form-section">
+      <h3 class="form-section__title">Precios y margen</h3>
+      <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Precio de Compra</mat-label>
           <input matInput type="number" formControlName="precio_compra" min="0" step="0.01">
@@ -140,13 +137,12 @@
         <mat-icon>trending_up</mat-icon>
         <span>Margen de Ganancia: <strong>{{margenCalculado | number:'1.2-2'}}%</strong></span>
       </div>
-    </div>
+    </section>
 
-    <!-- Proveedor -->
-    <div class="form-section">
-      <h3>Proveedor</h3>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Proveedor</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Proveedor Principal</mat-label>
           <mat-select formControlName="proveedor_principal_id">
             <mat-option *ngFor="let prov of proveedores" [value]="prov.id">
@@ -159,14 +155,12 @@
           </mat-error>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Opciones Adicionales -->
-    <div class="form-section">
-      <h3>Opciones Adicionales</h3>
-      
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Opciones adicionales</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Días de Alerta antes de Caducidad</mat-label>
           <input matInput type="number" formControlName="fecha_caducidad_alerta_dias" min="1" max="365">
           <mat-hint>Se generará alerta X días antes de que caduque</mat-hint>
@@ -194,11 +188,11 @@
           Medicamento Controlado
         </mat-checkbox>
       </div>
-    </div>
+    </section>
   </form>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+  <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">
     Cancelar
   </button>
@@ -207,5 +201,5 @@
     <mat-icon *ngIf="!loading">save</mat-icon>
     {{loading ? 'Guardando...' : 'Guardar'}}
   </button>
-</mat-dialog-actions>
-
+  </mat-dialog-actions>
+</div>

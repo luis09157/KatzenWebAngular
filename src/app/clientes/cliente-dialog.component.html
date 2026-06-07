@@ -1,222 +1,265 @@
-<div class="cliente-dialog-header">
-  <h2 mat-dialog-title>{{ modoVer ? 'Detalle de Cliente' : (data.cliente ? 'Editar Cliente' : 'Agregar Cliente') }}</h2>
-  <button mat-icon-button class="close-button" (click)="cerrar()" matTooltip="Cerrar">
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
+<div class="admin-dialog-shell" [class.admin-dialog-shell--readonly]="modoVer">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de cliente' : (data.cliente ? 'Editar cliente' : 'Nuevo cliente') }}</h2>
+      <p class="admin-dialog-subtitle">
+        {{ modoVer ? 'Consulta datos de contacto, dirección y mascotas vinculadas.' : 'Completa la ficha del cliente para el expediente clínico.' }}
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
-  <form [formGroup]="clienteForm">
-    <!-- Sección de Imagen -->
-    <div class="image-section">
-      <div class="image-preview" *ngIf="imagePreview">
-        <img [src]="imagePreview" alt="Foto del cliente" decoding="async" />
-        <button mat-icon-button class="remove-image" (click)="removeImage()" *ngIf="!modoVer">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-      
-      <div class="upload-section" *ngIf="!imagePreview">
-        <div class="upload-placeholder">
-          <mat-icon>person</mat-icon>
-          <p>Sin foto</p>
-        </div>
-      </div>
-      
-      <div class="upload-controls" *ngIf="!modoVer">
-        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-        <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
-          <mat-icon>photo_camera</mat-icon>
-          {{ imagePreview ? 'Cambiar Foto' : 'Agregar Foto' }}
-        </button>
-      </div>
-      
-      <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
-    </div>
-    <!-- Información Personal -->
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Nombre</mat-label>
-        <input matInput formControlName="nombre" placeholder="Nombre del cliente" />
-        <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Apellido Paterno</mat-label>
-        <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno" />
-        <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{ getErrorMessage('apellidoPaterno') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Apellido Materno</mat-label>
-        <input matInput formControlName="apellidoMaterno" placeholder="Apellido materno (opcional)" />
-        <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{ getErrorMessage('apellidoMaterno') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Género</mat-label>
-        <mat-select formControlName="genero" placeholder="Seleccionar género">
-          <mat-option value="Masculino">Masculino</mat-option>
-          <mat-option value="Femenino">Femenino</mat-option>
-          <mat-option value="No binario">No binario</mat-option>
-        </mat-select>
-        <mat-error *ngIf="isFieldInvalid('genero')">{{ getErrorMessage('genero') }}</mat-error>
-      </mat-form-field>
-    </div>
-    
-    <!-- Información de Contacto -->
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Teléfono</mat-label>
-        <input matInput formControlName="telefono" placeholder="10 dígitos" 
-               (keypress)="soloNumeros($event)" maxlength="10" />
-        <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Correo {{ data.cliente?.id && data.cliente?.correo ? '(No editable)' : '' }}</mat-label>
-        <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />
-        <mat-icon matSuffix *ngIf="data.cliente?.id && data.cliente?.correo" matTooltip="El correo no se puede editar">lock</mat-icon>
-        <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Expediente</mat-label>
-        <input matInput formControlName="expediente" placeholder="Número de expediente" />
-        <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Dirección -->
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Código Postal</mat-label>
-        <input matInput formControlName="codigoPostal" placeholder="00000" maxlength="5" 
-               (input)="onCodigoPostalInput($event)" />
-        <mat-icon matSuffix>location_on</mat-icon>
-        <mat-hint>Ingresa el código postal para autocompletar la dirección</mat-hint>
-        <mat-error *ngIf="isFieldInvalid('codigoPostal')">{{ getErrorMessage('codigoPostal') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Selector de colonias -->
-    <div class="form-row" *ngIf="mostrarSelectorColonias && coloniasDisponibles.length > 0">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Selecciona tu colonia</mat-label>
-        <mat-select (selectionChange)="seleccionarColonia($event.value)">
-          <mat-option *ngFor="let colonia of coloniasDisponibles" [value]="colonia">
-            {{ colonia.colonia }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matSuffix>location_city</mat-icon>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Municipio</mat-label>
-        <input matInput formControlName="municipio" placeholder="Municipio" />
-        <mat-error *ngIf="isFieldInvalid('municipio')">{{ getErrorMessage('municipio') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Colonia</mat-label>
-        <input matInput formControlName="colonia" placeholder="Colonia" />
-        <mat-error *ngIf="isFieldInvalid('colonia')">{{ getErrorMessage('colonia') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Calle</mat-label>
-        <input matInput formControlName="calle" placeholder="Nombre de la calle" />
-        <mat-error *ngIf="isFieldInvalid('calle')">{{ getErrorMessage('calle') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Número</mat-label>
-        <input matInput formControlName="numero" placeholder="Número" />
-        <mat-error *ngIf="isFieldInvalid('numero')">{{ getErrorMessage('numero') }}</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Kilómetros a Casa</mat-label>
-        <input matInput formControlName="kilometrosCasa" placeholder="0.0" type="number" step="0.1" />
-        <mat-error *ngIf="isFieldInvalid('kilometrosCasa')">{{ getErrorMessage('kilometrosCasa') }}</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Información Adicional -->
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Google Maps</mat-label>
-        <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/..." />
-        <mat-error *ngIf="isFieldInvalid('urlGoogleMaps')">{{ getErrorMessage('urlGoogleMaps') }}</mat-error>
-      </mat-form-field>
-    </div>
-  </form>
-
-  <!-- Sección de Mascotas (solo en modo ver) -->
-  <div class="pacientes-section" *ngIf="modoVer">
-    <div class="section-header">
-      <h3>Mascotas</h3>
-      <mat-icon>pets</mat-icon>
-    </div>
-    
-    <div class="loading-container" *ngIf="cargandoPacientes">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>Cargando pacientes...</p>
-    </div>
-    
-    <div class="no-pacientes" *ngIf="!cargandoPacientes && pacientesRelacionados.length === 0">
-      <mat-icon>info</mat-icon>
-      <p>Este cliente no tiene pacientes registrados</p>
-    </div>
-    
-    <div class="pacientes-grid" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
-      <mat-card class="paciente-card" *ngFor="let paciente of pacientesRelacionados">
-        <mat-card-header>
-          <mat-card-title>{{ paciente.nombre }}</mat-card-title>
-          <mat-card-subtitle>
-            <span class="especie-badge" [class]="paciente.especie?.toLowerCase()">
-              {{ paciente.especie || 'N/A' }}
-            </span>
-          </mat-card-subtitle>
-        </mat-card-header>
-        
-        <mat-card-content>
-          <div class="paciente-info">
-            <div class="info-row">
-              <mat-icon>category</mat-icon>
-              <span><strong>Raza:</strong> {{ paciente.raza || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <mat-icon>wc</mat-icon>
-              <span><strong>Sexo:</strong> {{ paciente.sexo || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <mat-icon>schedule</mat-icon>
-              <span><strong>Edad:</strong> {{ calcularEdad(paciente.edad) }}</span>
-            </div>
-            <div class="info-row">
-              <mat-icon>palette</mat-icon>
-              <span><strong>Color:</strong> {{ paciente.color || 'N/A' }}</span>
-            </div>
-            <div class="info-row" *ngIf="paciente.peso">
-              <mat-icon>fitness_center</mat-icon>
-              <span><strong>Peso:</strong> {{ paciente.peso }} kg</span>
-            </div>
-            <div class="info-row">
-              <mat-icon>circle</mat-icon>
-              <span><strong>Estado:</strong> 
-                <span class="estado-badge" [class]="paciente.estado?.toLowerCase()">
-                  {{ paciente.estado || 'N/A' }}
-                </span>
-              </span>
+  <mat-dialog-content class="admin-dialog-body">
+    <!-- Vista solo lectura -->
+    <ng-container *ngIf="modoVer">
+      <div class="admin-dialog-layout admin-dialog-layout--readonly">
+        <aside class="admin-dialog-aside">
+          <div class="admin-dialog-photo admin-dialog-photo--round">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async">
+            <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+              <mat-icon>person</mat-icon>
+              <span>Sin foto</span>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()" 
-          [disabled]="!isFormValidForSave()">Guardar</button>
-</mat-dialog-actions> 
+        </aside>
+
+        <div class="admin-dialog-form">
+          <div class="entity-summary">
+            <h3 class="entity-summary__name">{{ getNombreCompleto() }}</h3>
+            <p class="entity-summary__meta">{{ getResumenMeta() }}</p>
+          </div>
+
+          <section class="detail-section">
+            <h4 class="detail-section__title">Contacto y expediente</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Teléfono</span>
+                <p class="detail-item__value">{{ getDisplayValue('telefono') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Correo</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('correo') === '—'">{{ getDisplayValue('correo') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Expediente</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('expediente') === '—'">{{ getDisplayValue('expediente') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Género</span>
+                <p class="detail-item__value">{{ getDisplayValue('genero') }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h4 class="detail-section__title">Dirección</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Código postal</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('codigoPostal') === '—'">{{ getDisplayValue('codigoPostal') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Municipio</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('municipio') === '—'">{{ getDisplayValue('municipio') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Colonia</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('colonia') === '—'">{{ getDisplayValue('colonia') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Calle</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('calle') === '—'">{{ getDisplayValue('calle') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Número</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('numero') === '—'">{{ getDisplayValue('numero') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Km a casa</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('kilometrosCasa') === '—'">
+                  {{ getDisplayValue('kilometrosCasa') !== '—' ? getDisplayValue('kilometrosCasa') + ' km' : '—' }}
+                </p>
+              </div>
+              <div class="detail-item detail-item--wide" *ngIf="getDisplayValue('urlGoogleMaps') !== '—'">
+                <span class="detail-item__label">Google Maps</span>
+                <p class="detail-item__value">
+                  <a class="detail-item__link" [href]="getDisplayValue('urlGoogleMaps')" target="_blank" rel="noopener noreferrer">
+                    Abrir en Google Maps
+                  </a>
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section detail-section--mascotas">
+            <h4 class="detail-section__title">
+              <mat-icon>pets</mat-icon>
+              Mascotas vinculadas
+            </h4>
+
+            <div class="cliente-dialog-loading" *ngIf="cargandoPacientes">
+              <mat-spinner diameter="32"></mat-spinner>
+              <span>Cargando mascotas…</span>
+            </div>
+
+            <p class="cliente-dialog-empty" *ngIf="!cargandoPacientes && pacientesRelacionados.length === 0">
+              Este cliente no tiene mascotas registradas.
+            </p>
+
+            <div class="mascotas-grid" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
+              <div class="mascota-card" *ngFor="let paciente of pacientesRelacionados">
+                <strong>{{ paciente.nombre }}</strong>
+                <span>{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</span>
+                <span class="mascota-meta">{{ paciente.sexo || 'Sexo N/P' }} · {{ calcularEdad(paciente.edad) }}</span>
+                <span class="mascota-estado" [class.inactivo]="paciente.estado === 'Fallecido'">{{ paciente.estado || 'Vivo' }}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Formulario crear / editar -->
+    <form *ngIf="!modoVer" [formGroup]="clienteForm">
+      <div class="admin-dialog-layout">
+        <aside class="admin-dialog-aside">
+          <div class="admin-dialog-photo admin-dialog-photo--round">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async">
+            <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+              <mat-icon>person</mat-icon>
+              <span>Sin foto</span>
+            </div>
+            <button
+              *ngIf="imagePreview"
+              mat-icon-button
+              type="button"
+              class="admin-dialog-photo__remove"
+              (click)="removeImage()"
+              aria-label="Quitar foto">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+          <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
+            <mat-icon>photo_camera</mat-icon>
+            {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
+          </button>
+          <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+        </aside>
+
+        <div class="admin-dialog-form">
+          <section class="form-section">
+            <h3 class="form-section__title">Información personal</h3>
+            <div class="form-grid form-grid--3">
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="nombre" placeholder="Nombre">
+                <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Apellido paterno</mat-label>
+                <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno">
+                <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{ getErrorMessage('apellidoPaterno') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Apellido materno</mat-label>
+                <input matInput formControlName="apellidoMaterno" placeholder="Opcional">
+                <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{ getErrorMessage('apellidoMaterno') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Género</mat-label>
+                <mat-select formControlName="genero">
+                  <mat-option value="Masculino">Masculino</mat-option>
+                  <mat-option value="Femenino">Femenino</mat-option>
+                  <mat-option value="No binario">No binario</mat-option>
+                </mat-select>
+                <mat-error *ngIf="isFieldInvalid('genero')">{{ getErrorMessage('genero') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Contacto y expediente</h3>
+            <div class="form-grid form-grid--3">
+              <mat-form-field appearance="outline">
+                <mat-label>Teléfono</mat-label>
+                <input matInput formControlName="telefono" placeholder="10 dígitos" (keypress)="soloNumeros($event)" maxlength="10">
+                <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Correo</mat-label>
+                <input matInput formControlName="correo" placeholder="correo@ejemplo.com">
+                <mat-icon matSuffix *ngIf="data.cliente?.id && data.cliente?.correo" matTooltip="El correo no se puede editar">lock</mat-icon>
+                <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Expediente</mat-label>
+                <input matInput formControlName="expediente" placeholder="Número de expediente">
+                <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Dirección</h3>
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Código postal</mat-label>
+                <input matInput formControlName="codigoPostal" placeholder="00000" maxlength="5" (input)="onCodigoPostalInput($event)">
+                <mat-icon matSuffix>location_on</mat-icon>
+                <mat-hint>Autocompleta colonia y municipio</mat-hint>
+                <mat-error *ngIf="isFieldInvalid('codigoPostal')">{{ getErrorMessage('codigoPostal') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" *ngIf="mostrarSelectorColonias && coloniasDisponibles.length > 0" class="full-span">
+                <mat-label>Selecciona colonia</mat-label>
+                <mat-select (selectionChange)="seleccionarColonia($event.value)">
+                  <mat-option *ngFor="let colonia of coloniasDisponibles" [value]="colonia">{{ colonia.colonia }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Municipio</mat-label>
+                <input matInput formControlName="municipio" placeholder="Municipio">
+                <mat-error *ngIf="isFieldInvalid('municipio')">{{ getErrorMessage('municipio') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Colonia</mat-label>
+                <input matInput formControlName="colonia" placeholder="Colonia">
+                <mat-error *ngIf="isFieldInvalid('colonia')">{{ getErrorMessage('colonia') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Calle</mat-label>
+                <input matInput formControlName="calle" placeholder="Calle">
+                <mat-error *ngIf="isFieldInvalid('calle')">{{ getErrorMessage('calle') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Número</mat-label>
+                <input matInput formControlName="numero" placeholder="Número">
+                <mat-error *ngIf="isFieldInvalid('numero')">{{ getErrorMessage('numero') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Km a casa</mat-label>
+                <input matInput formControlName="kilometrosCasa" placeholder="0.0" type="number" step="0.1">
+                <mat-error *ngIf="isFieldInvalid('kilometrosCasa')">{{ getErrorMessage('kilometrosCasa') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-span">
+                <mat-label>Google Maps</mat-label>
+                <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/…">
+                <mat-error *ngIf="isFieldInvalid('urlGoogleMaps')">{{ getErrorMessage('urlGoogleMaps') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()" [disabled]="!isFormValidForSave()">
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</div>

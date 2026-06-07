@@ -5,12 +5,14 @@ import { RecordatoriosService } from './recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
+import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
 import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-recordatorios',
@@ -20,6 +22,7 @@ import { LoadingService } from '../core/loading.service';
 export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_recordatorio', 'titulo', 'tipo', 'estado', 'prioridad', 'paciente', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -158,9 +161,8 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
     // Si es un recordatorio existente (edición), abrir directamente
     if (recordatorio && recordatorio.id) {
       const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-        width: '90vw',
-        maxWidth: '95vw',
-        panelClass: 'recordatorio-dialog-container',
+        ...ADMIN_DIALOG_FORM,
+        panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
         data: recordatorio
       });
       
@@ -172,17 +174,15 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       });
     } else {
       const seleccionDialogRef = this.dialog.open(SeleccionarClienteRecordatorioDialogComponent, {
-        width: '80vw',
-        maxWidth: '90vw',
-        panelClass: 'seleccionar-cliente-dialog-container',
+        ...ADMIN_DIALOG_CONFIG,
+        panelClass: ['admin-dialog-panel', 'seleccionar-cliente-dialog-container'],
         data: {}
       });
       seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result && result.cliente && result.paciente) {
           const recordatorioDialogRef = this.dialog.open(RecordatorioDialogComponent, {
-            width: '90vw',
-            maxWidth: '95vw',
-            panelClass: 'recordatorio-dialog-container',
+            ...ADMIN_DIALOG_FORM,
+            panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
             data: {
               paciente_id: result.paciente.id,
               cliente_id: result.cliente.id,
@@ -206,11 +206,9 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   verRecordatorio(recordatorio: any) {
-    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
-      panelClass: 'recordatorio-dialog-container',
-      data: { ...recordatorio, modoSoloLectura: true }
+    this.dialog.open(RecordatorioDetalleComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      data: recordatorio
     });
   }
 

@@ -1,15 +1,17 @@
-<div class="seleccionar-cliente-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>{{ pasoActual === 1 ? 'person' : 'pets' }}</mat-icon>
-      {{ pasoActual === 1 ? 'Seleccionar Cliente' : 'Seleccionar Paciente' }}
-    </h2>
-    <button mat-icon-button (click)="cancelar()" class="close-btn" matTooltip="Cerrar">
+<div class="admin-dialog-shell seleccionar-cliente-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">
+        <mat-icon>{{ pasoActual === 1 ? 'person' : 'pets' }}</mat-icon>
+        {{ pasoActual === 1 ? 'Seleccionar cliente' : 'Seleccionar paciente' }}
+      </h2>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" matTooltip="Cerrar" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <div class="dialog-content">
+  <div class="admin-dialog-body dialog-content">
     <!-- Paso 1: Seleccionar Cliente -->
     <div *ngIf="pasoActual === 1" class="paso-cliente">
       <div class="paso-info">
@@ -164,7 +166,7 @@
     </div>
   </div>
 
-  <div class="dialog-actions">
+  <div class="admin-dialog-actions dialog-actions">
     <div class="actions-left">
       <button *ngIf="pasoActual === 2" 
               type="button" 

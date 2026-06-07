@@ -1,184 +1,123 @@
-<div class="vacunas-contenedor">
-  <!-- Dashboard de Estadísticas -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>vaccines</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.total }}</div>
-        <div class="stat-label">Total de Vacunas</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>schedule</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.pendientes }}</div>
-        <div class="stat-label">Pendientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.aplicadas }}</div>
-        <div class="stat-label">Aplicadas</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>pets</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ estadisticas.pacientesUnicos }}</div>
-        <div class="stat-label">Pacientes Únicos</div>
-      </div>
-    </div>
-  </div>
+<div class="admin-page vacunas-contenedor">
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="green" icon="vaccines" [value]="estadisticas.total" label="Total vacunas" hint="En el sistema"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" icon="schedule" [value]="estadisticas.pendientes" label="Pendientes" hint="Por aplicar"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" icon="check_circle" [value]="estadisticas.aplicadas" label="Aplicadas" hint="Completadas"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" icon="pets" [value]="estadisticas.pacientesUnicos" label="Pacientes únicos" hint="Con vacunación"></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
-  <!-- Banner de Administración -->
-  <div class="admin-banner">
-    <div class="banner-content">
-      <div class="banner-icon">
-        <mat-icon>vaccines</mat-icon>
-      </div>
-      <div class="banner-text">
-        <h2>Administración de Vacunas</h2>
-        <p>Gestiona todas las vacunas y calendarios de vacunación</p>
-      </div>
-    </div>
-    <div class="banner-actions">
-      <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
+  <app-admin-page-banner
+    accent="green"
+    icon="vaccines"
+    title="Administración de Vacunas"
+    subtitle="Gestiona todas las vacunas y calendarios de vacunación.">
+    <div bannerActions>
+      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalVacuna()">
         <mat-icon>add</mat-icon>
-        Nueva Vacuna
+        Nueva vacuna
       </button>
     </div>
-  </div>
+  </app-admin-page-banner>
 
-  <mat-card class="vacunas-card">
-    
-    <mat-form-field appearance="outline" class="buscador">
+  <app-admin-data-panel
+    accent="green"
+    title="Listado de vacunas"
+    description="Busca por paciente, tipo de vacuna o veterinario."
+    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
+    [showLegend]="!loading && !!dataSource?.data?.length">
+
+    <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar vacuna</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por paciente, tipo de vacuna..." />
-      <mat-icon matSuffix>search</mat-icon>
+      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Paciente, tipo de vacuna..." />
+      <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
-    
-    <div class="tabla-contenedor">
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando vacunas...</p>
-      </div>
 
-      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-vacunas">
-        <div class="empty-icon-container">
-          <mat-icon>vaccines</mat-icon>
-        </div>
-        <h3>No hay vacunas</h3>
-        <p>No se han encontrado vacunas registradas.</p>
-        <button mat-raised-button color="primary" (click)="abrirModalVacuna()">
-          <mat-icon>add</mat-icon>
-          Agregar primera vacuna
-        </button>
-      </div>
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando vacunas…</p>
+    </div>
 
-      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        
-        <!-- Fecha -->
+    <app-admin-empty-state
+      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
+      icon="vaccines"
+      title="No hay vacunas"
+      message="No se han encontrado vacunas registradas."
+      actionLabel="Agregar primera vacuna"
+      (action)="abrirModalVacuna()">
+    </app-admin-empty-state>
+
+    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
+      <table mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="fecha_vacuna">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let vacuna">
-            <div class="fecha-cell">
-              <mat-icon class="fecha-icon">event</mat-icon>
-              {{ vacuna.fecha_vacuna }}
-            </div>
+            <span class="fecha-compact">{{ vacuna.fecha_vacuna }}</span>
           </td>
         </ng-container>
 
-        <!-- Paciente -->
         <ng-container matColumnDef="paciente">
           <th mat-header-cell *matHeaderCellDef>Paciente</th>
           <td mat-cell *matCellDef="let vacuna">
-            <div class="paciente-cell">
-              <mat-icon class="paciente-icon">pets</mat-icon>
-              {{ vacuna.paciente }}
+            <div class="cell-primary">
+              <strong>{{ vacuna.paciente }}</strong>
             </div>
           </td>
         </ng-container>
 
-        <!-- Tipo de Vacuna -->
         <ng-container matColumnDef="tipo_vacuna">
-          <th mat-header-cell *matHeaderCellDef>Tipo de Vacuna</th>
+          <th mat-header-cell *matHeaderCellDef>Tipo de vacuna</th>
           <td mat-cell *matCellDef="let vacuna">
-            <div class="tipo-cell">
-              <mat-icon class="tipo-icon" [style.color]="getVacunaColor(vacuna.tipo_vacuna)">vaccines</mat-icon>
-              <span class="tipo-texto">{{ getNombreVacuna(vacuna.tipo_vacuna) }}</span>
-            </div>
+            <span class="tag" [style.color]="getVacunaColor(vacuna.tipo_vacuna)">{{ getNombreVacuna(vacuna.tipo_vacuna) }}</span>
           </td>
         </ng-container>
 
-        <!-- Estado -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let vacuna">
-            <span class="estado-badge" [style.background-color]="getEstadoColor(vacuna.estado)">
+            <span class="estado-badge" [ngClass]="vacuna.estado | adminEstadoClass">
               {{ vacuna.estado | titlecase }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Próxima Dosis -->
         <ng-container matColumnDef="proxima_dosis">
-          <th mat-header-cell *matHeaderCellDef>Próxima Dosis</th>
+          <th mat-header-cell *matHeaderCellDef>Próxima dosis</th>
           <td mat-cell *matCellDef="let vacuna">
-            <div class="proxima-cell">
-              <mat-icon class="proxima-icon">schedule</mat-icon>
-              {{ vacuna.proxima_dosis || 'N/A' }}
-            </div>
+            <span class="cell-sub">{{ vacuna.proxima_dosis || 'N/A' }}</span>
           </td>
         </ng-container>
 
-        <!-- Veterinario -->
         <ng-container matColumnDef="veterinario">
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
           <td mat-cell *matCellDef="let vacuna">
-            <div class="veterinario-cell">
-              <mat-icon class="veterinario-icon">person</mat-icon>
-              {{ vacuna.veterinario || 'N/A' }}
-            </div>
+            <span class="tag tag-muted">{{ vacuna.veterinario || 'N/A' }}</span>
           </td>
         </ng-container>
 
-        <!-- Acciones -->
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef style="text-align: center;">Acciones</th>
-          <td mat-cell *matCellDef="let vacuna" style="text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
-              <button mat-icon-button color="primary" (click)="verVacuna(vacuna)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
-              </button>
-              <button mat-icon-button color="accent" (click)="editarVacuna(vacuna)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="eliminarVacuna(vacuna)" matTooltip="Eliminar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-              </button>
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let vacuna">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verVacuna(vacuna)"><mat-icon>visibility</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarVacuna(vacuna)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="eliminarVacuna(vacuna)"><mat-icon>delete_outline</mat-icon></button>
             </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="vacunaMenu" (click)="menuContext = vacuna"><mat-icon>more_vert</mat-icon></button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-            (dblclick)="verVacuna(row)"
-            class="vacuna-row"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" (dblclick)="verVacuna(row)"></tr>
       </table>
-
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </div>
-  </mat-card>
-</div> 
+
+    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+  </app-admin-data-panel>
+
+  <mat-menu #vacunaMenu="matMenu">
+    <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="eliminarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+  </mat-menu>
+</div>

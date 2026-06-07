@@ -1,206 +1,131 @@
-<div class="historial-detalle-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>medical_services</mat-icon>
-      Detalles del Historial Clínico
-    </h2>
-    <button mat-icon-button (click)="cerrar()" class="close-btn">
+<div class="admin-dialog-shell admin-dialog-shell--readonly">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly">Solo lectura</span>
+      <h2 class="admin-dialog-title">Detalle del historial clínico</h2>
+      <p class="admin-dialog-subtitle">Consulta diagnóstico, tratamiento y archivos adjuntos.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <div class="dialog-content">
-    <div class="info-grid">
-      
-      <!-- Información del Paciente y Cliente -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>pets</mat-icon>
-          Información del Paciente
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-label">Nombre del Paciente</div>
-            <div class="info-value">{{ getNombrePaciente() }}</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Propietario</div>
-            <div class="info-value">{{ getNombreCliente() }}</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Información del Paciente</div>
-            <div class="info-value">{{ getInfoPaciente() }}</div>
-          </div>
-        </div>
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="admin-dialog-form admin-dialog-form--padded">
+      <div class="entity-summary">
+        <span class="historial-estado-badge" [class.historial-estado-badge--inactivo]="!isActivo()">
+          {{ getEstadoText(data.activo) }}
+        </span>
+        <h3 class="entity-summary__name">{{ getNombrePaciente() }}</h3>
+        <p class="entity-summary__meta">{{ getInfoPaciente() }}</p>
+        <p class="entity-summary__meta entity-summary__meta--secondary">Dueño: {{ getNombreCliente() }}</p>
       </div>
 
-      <!-- Información del Historial -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>info</mat-icon>
-          Información del Historial
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-label">Estado</div>
-            <div class="info-value" [style.color]="getEstadoColor(data.activo)">
-              {{ getEstadoText(data.activo) }}
-            </div>
+      <section class="detail-section">
+        <h4 class="detail-section__title">Información del historial</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-item__label">Fecha de registro</span>
+            <p class="detail-item__value">{{ formatearFecha(data.fecha_registro) }}</p>
           </div>
-          <div class="info-card">
-            <div class="info-label">Fecha de Registro</div>
-            <div class="info-value">{{ formatearFecha(data.fecha_registro) }}</div>
+          <div class="detail-item">
+            <span class="detail-item__label">Última actualización</span>
+            <p class="detail-item__value">{{ formatearFecha(data.updated_at) }}</p>
           </div>
-          <div class="info-card">
-            <div class="info-label">Última Actualización</div>
-            <div class="info-value">{{ formatearFecha(data.updated_at) }}</div>
+          <div class="detail-item">
+            <span class="detail-item__label">Tiempo transcurrido</span>
+            <p class="detail-item__value">{{ getTiempoTranscurrido(data.created_at) || '—' }}</p>
+          </div>
+          <div class="detail-item" *ngIf="data.medico_atendio">
+            <span class="detail-item__label">Médico que atendió</span>
+            <p class="detail-item__value">{{ data.medico_atendio }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Historia Clínica -->
-      <div class="info-section" *ngIf="data.historia_clinica">
-        <h3 class="section-title">
-          <mat-icon>description</mat-icon>
-          Historia Clínica
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.historia_clinica }}</div>
-        </div>
-      </div>
-
-      <!-- Examen Físico -->
-      <div class="info-section" *ngIf="data.peso || data.tr || data.hallazgos">
-        <h3 class="section-title">
-          <mat-icon>monitor_heart</mat-icon>
-          Examen Físico
-        </h3>
-        <div class="info-cards">
-          <div class="info-card" *ngIf="data.peso">
-            <div class="info-label">Peso</div>
-            <div class="info-value">{{ data.peso }}</div>
+      <section class="detail-section" *ngIf="data.peso || data.tr || data.hallazgos">
+        <h4 class="detail-section__title">Examen físico</h4>
+        <div class="detail-grid">
+          <div class="detail-item" *ngIf="data.peso">
+            <span class="detail-item__label">Peso</span>
+            <p class="detail-item__value">{{ data.peso }}</p>
           </div>
-          <div class="info-card" *ngIf="data.tr">
-            <div class="info-label">TR</div>
-            <div class="info-value">{{ data.tr }}</div>
+          <div class="detail-item" *ngIf="data.tr">
+            <span class="detail-item__label">TR</span>
+            <p class="detail-item__value">{{ data.tr }}</p>
           </div>
-          <div class="info-card" *ngIf="data.hallazgos">
-            <div class="info-label">Hallazgos</div>
-            <div class="info-value">{{ data.hallazgos }}</div>
+          <div class="detail-item detail-item--wide" *ngIf="data.hallazgos">
+            <span class="detail-item__label">Hallazgos</span>
+            <p class="detail-item__value">{{ data.hallazgos }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Diagnóstico Presuntivo -->
-      <div class="info-section" *ngIf="data.diagnostico_presuntivo">
-        <h3 class="section-title">
-          <mat-icon>description</mat-icon>
-          Diagnóstico Presuntivo
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.diagnostico_presuntivo }}</div>
-        </div>
-      </div>
+      <section class="detail-section" *ngIf="data.historia_clinica">
+        <h4 class="detail-section__title">Historia clínica</h4>
+        <div class="detail-text-block">{{ data.historia_clinica }}</div>
+      </section>
 
-      <!-- Manejo Terapéutico -->
-      <div class="info-section" *ngIf="data.manejo_terapeutico">
-        <h3 class="section-title">
-          <mat-icon>healing</mat-icon>
-          Manejo Terapéutico
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.manejo_terapeutico }}</div>
-        </div>
-      </div>
+      <section class="detail-section" *ngIf="data.diagnostico_presuntivo">
+        <h4 class="detail-section__title">Diagnóstico presuntivo</h4>
+        <div class="detail-text-block">{{ data.diagnostico_presuntivo }}</div>
+      </section>
 
-      <!-- Receta -->
-      <div class="info-section" *ngIf="data.receta">
-        <h3 class="section-title">
-          <mat-icon>receipt</mat-icon>
-          Receta
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.receta }}</div>
-        </div>
-      </div>
+      <section class="detail-section" *ngIf="data.manejo_terapeutico">
+        <h4 class="detail-section__title">Manejo terapéutico</h4>
+        <div class="detail-text-block">{{ data.manejo_terapeutico }}</div>
+      </section>
 
-      <!-- Médico que Atendió -->
-      <div class="info-section" *ngIf="data.medico_atendio">
-        <h3 class="section-title">
-          <mat-icon>person</mat-icon>
-          Médico que Atendió
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.medico_atendio }}</div>
-        </div>
-      </div>
+      <section class="detail-section" *ngIf="data.receta">
+        <h4 class="detail-section__title">Receta</h4>
+        <div class="detail-text-block">{{ data.receta }}</div>
+      </section>
 
-      <!-- Estudios Solicitados (Archivos) -->
-      <div class="info-section" *ngIf="data.archivos && data.archivos.length > 0">
-        <h3 class="section-title">
+      <section class="detail-section" *ngIf="data.notas">
+        <h4 class="detail-section__title">Notas adicionales</h4>
+        <div class="detail-text-block">{{ data.notas }}</div>
+      </section>
+
+      <section class="detail-section" *ngIf="data.archivos && data.archivos.length > 0">
+        <h4 class="detail-section__title">
           <mat-icon>folder</mat-icon>
-          Estudios Solicitados
-        </h3>
-        <div class="archivos-container">
-          <div class="archivo-item" *ngFor="let archivo of data.archivos; let i = index">
-            <div class="archivo-info">
-              <mat-icon class="archivo-icon">description</mat-icon>
-              <span class="archivo-nombre">Archivo {{ i + 1 }}</span>
+          Estudios solicitados
+        </h4>
+        <div class="historial-archivos">
+          <div class="historial-archivo" *ngFor="let archivo of data.archivos; let i = index">
+            <div class="historial-archivo__info">
+              <mat-icon>description</mat-icon>
+              <span>Archivo {{ i + 1 }}</span>
             </div>
-            <div class="archivo-actions">
-              <button mat-icon-button 
-                      color="primary" 
-                      (click)="verArchivo(archivo)"
-                      matTooltip="Ver en el navegador">
+            <div class="historial-archivo__actions">
+              <button mat-icon-button type="button" (click)="verArchivo(archivo)" matTooltip="Ver en el navegador" aria-label="Ver archivo">
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button mat-icon-button 
-                      color="accent" 
-                      (click)="descargarArchivo(archivo)"
-                      matTooltip="Descargar archivo">
+              <button mat-icon-button type="button" (click)="descargarArchivo(archivo)" matTooltip="Descargar" aria-label="Descargar archivo">
                 <mat-icon>download</mat-icon>
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Notas Adicionales -->
-      <div class="info-section" *ngIf="data.notas">
-        <h3 class="section-title">
-          <mat-icon>note</mat-icon>
-          Notas Adicionales
-        </h3>
-        <div class="info-content">
-          <div class="content-text">{{ data.notas }}</div>
-        </div>
-      </div>
-
-      <!-- Información de Registro -->
-      <div class="info-section">
-        <h3 class="section-title">
-          <mat-icon>schedule</mat-icon>
-          Información de Registro
-        </h3>
-        <div class="info-cards">
-          <div class="info-card">
-            <div class="info-label">Creado</div>
-            <div class="info-value">{{ formatearFecha(data.created_at) }}</div>
+      <section class="detail-section">
+        <h4 class="detail-section__title">Información de registro</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-item__label">Creado</span>
+            <p class="detail-item__value">{{ formatearFecha(data.created_at) }}</p>
           </div>
-          <div class="info-card">
-            <div class="info-label">Tiempo Transcurrido</div>
-            <div class="info-value">{{ getTiempoTranscurrido(data.created_at) }}</div>
+          <div class="detail-item">
+            <span class="detail-item__label">Estado</span>
+            <p class="detail-item__value">{{ getEstadoText(data.activo) }}</p>
           </div>
         </div>
-      </div>
-
+      </section>
     </div>
-  </div>
+  </mat-dialog-content>
 
-  <div class="dialog-actions">
-    <button mat-raised-button color="primary" (click)="cerrar()">
-      <mat-icon>close</mat-icon>
-      Cerrar
-    </button>
-  </div>
-</div> 
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+  </mat-dialog-actions>
+</div>

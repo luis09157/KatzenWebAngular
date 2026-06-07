@@ -1,55 +1,82 @@
-<h2 mat-dialog-title>{{ modoVer ? 'Detalle de Paciente' : (data.paciente ? 'Editar Paciente' : 'Agregar Paciente') }}</h2>
-<mat-dialog-content>
-  <form [formGroup]="pacienteForm">
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Nombre</mat-label>
-        <input matInput formControlName="nombre" required />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Especie</mat-label>
-        <input matInput formControlName="especie" required />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Raza</mat-label>
-        <input matInput formControlName="raza" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Sexo</mat-label>
-        <input matInput formControlName="sexo" />
-      </mat-form-field>
+<div class="admin-dialog-shell" [class.admin-dialog-shell--readonly]="modoVer">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de paciente' : (data.paciente ? 'Editar paciente' : 'Nuevo paciente') }}</h2>
+      <p class="admin-dialog-subtitle">{{ modoVer ? 'Consulta la ficha clínica del paciente.' : 'Registra o actualiza los datos de la mascota.' }}</p>
     </div>
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Edad</mat-label>
-        <input matInput formControlName="edad" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Color</mat-label>
-        <input matInput formControlName="color" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Peso</mat-label>
-        <input matInput formControlName="peso" />
-      </mat-form-field>
-    </div>
-    <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Cliente</mat-label>
-        <input matInput formControlName="nombreCliente" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>ID Cliente</mat-label>
-        <input matInput formControlName="idCliente" />
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Imagen (URL)</mat-label>
-        <input matInput formControlName="imageUrl" />
-      </mat-form-field>
-    </div>
-  </form>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-raised-button color="primary" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
-</mat-dialog-actions> 
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <ng-container *ngIf="modoVer">
+      <div class="admin-dialog-form admin-dialog-form--padded">
+        <div class="entity-summary">
+          <h3 class="entity-summary__name">{{ getDisplayValue('nombre') }}</h3>
+          <p class="entity-summary__meta">{{ getDisplayValue('especie') }} · {{ getDisplayValue('raza') }}</p>
+        </div>
+        <section class="detail-section">
+          <h4 class="detail-section__title">Datos clínicos</h4>
+          <div class="detail-grid">
+            <div class="detail-item"><span class="detail-item__label">Sexo</span><p class="detail-item__value">{{ getDisplayValue('sexo') }}</p></div>
+            <div class="detail-item"><span class="detail-item__label">Edad</span><p class="detail-item__value">{{ getDisplayValue('edad') }}</p></div>
+            <div class="detail-item"><span class="detail-item__label">Color</span><p class="detail-item__value">{{ getDisplayValue('color') }}</p></div>
+            <div class="detail-item"><span class="detail-item__label">Peso</span><p class="detail-item__value">{{ getDisplayValue('peso') !== '—' ? getDisplayValue('peso') + ' kg' : '—' }}</p></div>
+            <div class="detail-item detail-item--wide"><span class="detail-item__label">Dueño</span><p class="detail-item__value">{{ getDisplayValue('nombreCliente') }}</p></div>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+
+    <form *ngIf="!modoVer" [formGroup]="pacienteForm" class="admin-dialog-form admin-dialog-form--padded">
+      <section class="form-section">
+        <h3 class="form-section__title">Datos del paciente</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="nombre" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Especie</mat-label>
+            <input matInput formControlName="especie" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Raza</mat-label>
+            <input matInput formControlName="raza" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Sexo</mat-label>
+            <input matInput formControlName="sexo" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Edad</mat-label>
+            <input matInput formControlName="edad" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Color</mat-label>
+            <input matInput formControlName="color" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Peso</mat-label>
+            <input matInput formControlName="peso" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Cliente</mat-label>
+            <input matInput formControlName="nombreCliente" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Imagen (URL)</mat-label>
+            <input matInput formControlName="imageUrl" />
+          </mat-form-field>
+        </div>
+      </section>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button mat-raised-button color="primary" class="btn-primary-teal" *ngIf="!modoVer" (click)="guardar()">Guardar</button>
+  </mat-dialog-actions>
+</div>

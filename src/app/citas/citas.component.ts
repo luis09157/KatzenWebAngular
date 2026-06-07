@@ -15,6 +15,7 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
+import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-citas',
@@ -23,7 +24,8 @@ import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 })
 export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
-  displayedColumns: string[] = ['fecha_hora', 'cliente', 'paciente', 'motivo', 'estado', 'veterinario', 'acciones'];
+  displayedColumns: string[] = ['fecha_hora', 'consulta', 'motivo', 'estado', 'veterinario', 'acciones'];
+  menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -235,8 +237,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
     const dialogRef = this.dialog.open(CitaDialogComponent, {
-      width: '90vw',
-      maxWidth: '95vw',
+      ...ADMIN_DIALOG_CONFIG,
       data: { cita, modoVer }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {

@@ -1,15 +1,18 @@
-<div class="confirmar-eliminacion-vacuna-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>warning</mat-icon>
-      Confirmar Eliminación
-    </h2>
-    <button mat-icon-button (click)="cancelar()" class="close-btn">
+<div class="admin-dialog-shell confirmar-eliminacion-vacuna-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">
+        <mat-icon>warning</mat-icon>
+        Confirmar eliminación
+      </h2>
+      <p class="admin-dialog-subtitle">Esta acción marcará la vacuna como inactiva.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <div class="dialog-content">
+  <div class="admin-dialog-body dialog-content">
     <div class="warning-section">
       <div class="warning-icon">
         <mat-icon>delete_forever</mat-icon>
@@ -24,7 +27,7 @@
       <div class="info-card">
         <div class="info-header">
           <mat-icon class="info-icon">vaccines</mat-icon>
-          <h4>Información de la Vacuna</h4>
+          <h4>Información de la vacuna</h4>
         </div>
         <div class="info-details">
           <div class="info-row">
@@ -45,7 +48,7 @@
           </div>
           <div class="info-row">
             <span class="label">Estado:</span>
-            <span class="value estado-badge" [style.background-color]="getEstadoColor(data.aplicada)">
+            <span class="value estado-badge" [ngClass]="data.aplicada | adminEstadoClass">
               {{ getEstadoText(data.aplicada) }}
             </span>
           </div>
@@ -59,26 +62,11 @@
     </div>
   </div>
 
-  <div class="dialog-actions">
-    <div class="actions-left">
-      <button type="button" 
-              mat-button 
-              (click)="cancelar()"
-              class="cancel-btn">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
-    </div>
-    
-    <div class="actions-right">
-      <button type="button" 
-              mat-raised-button 
-              color="warn"
-              (click)="confirmar()"
-              class="confirm-btn">
-        <mat-icon>delete_forever</mat-icon>
-        Sí, eliminar
-      </button>
-    </div>
-  </div>
+  <mat-dialog-actions class="admin-dialog-actions dialog-actions">
+    <button type="button" mat-button (click)="cancelar()">Cancelar</button>
+    <button type="button" mat-raised-button color="warn" (click)="confirmar()">
+      <mat-icon>delete_forever</mat-icon>
+      Sí, eliminar
+    </button>
+  </mat-dialog-actions>
 </div>

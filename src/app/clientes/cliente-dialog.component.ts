@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,7 +13,8 @@ import { LoadingService } from '../core/loading.service';
 @Component({
   selector: 'app-cliente-dialog',
   templateUrl: './cliente-dialog.component.html',
-  styleUrls: ['./cliente-dialog.component.css']
+  styleUrls: ['./cliente-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ClienteDialogComponent implements OnInit {
   clienteForm: FormGroup;
@@ -73,9 +74,36 @@ export class ClienteDialogComponent implements OnInit {
       kilometrosCasa: [data.cliente?.kilometrosCasa || ''],
       urlGoogleMaps: [data.cliente?.urlGoogleMaps || '', [Validators.pattern('^https?://.*')]]
     });
-    if (this.modoVer) {
-      this.clienteForm.disable();
+  }
+
+  getDisplayValue(field: string): string {
+    const raw = this.data?.cliente?.[field] ?? this.clienteForm.get(field)?.value;
+    if (raw == null || raw === '') {
+      return '—';
     }
+    return String(raw).trim() || '—';
+  }
+
+  getNombreCompleto(): string {
+    const partes = [
+      this.getDisplayValue('nombre'),
+      this.getDisplayValue('apellidoPaterno'),
+      this.getDisplayValue('apellidoMaterno')
+    ].filter(v => v !== '—');
+    return partes.length ? partes.join(' ') : '—';
+  }
+
+  getResumenMeta(): string {
+    const genero = this.getDisplayValue('genero');
+    const expediente = this.getDisplayValue('expediente');
+    const partes: string[] = [];
+    if (genero !== '—') {
+      partes.push(genero);
+    }
+    if (expediente !== '—') {
+      partes.push(`Exp. ${expediente}`);
+    }
+    return partes.length ? partes.join(' · ') : 'Cliente registrado';
   }
 
   ngOnInit() {

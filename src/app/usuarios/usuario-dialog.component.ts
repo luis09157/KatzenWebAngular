@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 
@@ -14,14 +14,14 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-usuario-dialog',
   templateUrl: './usuario-dialog.component.html',
-  styleUrls: ['./usuario-dialog.component.css']
+  styleUrls: ['./usuario-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class UsuarioDialogComponent implements OnInit {
   usuarioForm: FormGroup;
   modoVer: boolean = false;
   isEditMode: boolean = false;
 
-  // Opciones para los selects
   perfiles = [
     { value: 'admin', label: 'Administrador', icon: 'admin_panel_settings' },
     { value: 'doctor', label: 'Doctor/Veterinario', icon: 'medical_services' },
@@ -49,25 +49,37 @@ export class UsuarioDialogComponent implements OnInit {
       password: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['']
     }, { validators: passwordsMatch });
+  }
 
-    if (this.modoVer) {
-      this.usuarioForm.disable();
+  getDisplayValue(field: string): string {
+    const raw = this.data?.usuario?.[field] ?? this.usuarioForm.get(field)?.value;
+    if (raw == null || raw === '') {
+      return '—';
     }
+    return String(raw).trim() || '—';
+  }
+
+  getPerfilLabel(): string {
+    const perfil = this.getDisplayValue('perfil');
+    const found = this.perfiles.find(p => p.value === perfil);
+    return found?.label ?? perfil;
+  }
+
+  getEstadoLabel(): string {
+    const activo = this.data?.usuario?.activo !== false;
+    return activo ? 'Activo' : 'Inactivo';
   }
 
   guardar() {
     if (this.usuarioForm.valid) {
       const formData = this.usuarioForm.value;
 
-      // Agregar timestamp si es nuevo usuario
       if (!this.isEditMode) {
         formData.fecha_registro = new Date().toISOString();
         formData.created_by = 'system';
       }
-      // El padre muestra el loading al recibir result; no mostrar aquí para evitar doble show
       this.dialogRef.close(formData);
     } else {
-      // Marcar todos los campos como tocados para mostrar errores
       Object.keys(this.usuarioForm.controls).forEach(key => {
         this.usuarioForm.get(key)?.markAsTouched();
       });
@@ -113,4 +125,4 @@ export class UsuarioDialogComponent implements OnInit {
     };
     return labels[fieldName] || fieldName;
   }
-} 
+}

@@ -1,0 +1,1298 @@
+/* KatzenVet — Diálogos admin (formularios + detalle) */
+
+.admin-dialog-panel .mat-mdc-dialog-container,
+.admin-dialog-panel .mat-dialog-container {
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  max-height: 88vh !important;
+  box-shadow: 0 20px 48px rgba(17, 24, 39, 0.14) !important;
+  background: #fff;
+  border-top: 5px solid #0a969b;
+}
+
+.admin-dialog-panel .mat-mdc-dialog-surface {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 88vh !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+}
+
+.admin-dialog-shell,
+.admin-dialog-panel .historial-dialog,
+.admin-dialog-panel .usuario-dialog,
+.admin-dialog-panel .vacuna-dialog,
+.admin-dialog-panel .banio-dialog,
+.admin-dialog-panel .recordatorio-dialog,
+.admin-dialog-panel .vacuna-detalle-dialog,
+.admin-dialog-panel .historial-detalle-dialog,
+.admin-dialog-panel .banio-detalle-dialog,
+.admin-dialog-panel .recordatorio-detalle-dialog {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 88vh;
+  width: 100%;
+  background: #fff;
+}
+
+/* ── Header ── */
+.admin-dialog-header,
+.admin-dialog-panel .dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff !important;
+  flex-shrink: 0;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.admin-dialog-panel .dialog-header::before,
+.admin-dialog-panel .admin-dialog-header::before,
+.admin-dialog-panel .admin-dialog-header::after {
+  display: none !important;
+  content: none !important;
+}
+
+.admin-dialog-header__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-dialog-header__top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.admin-dialog-header__top .admin-dialog-badge {
+  margin-bottom: 0;
+}
+
+.admin-dialog-header__top .admin-dialog-title {
+  margin: 0;
+}
+
+.admin-dialog-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.admin-dialog-header h2,
+.admin-dialog-header .admin-dialog-title,
+.admin-dialog-header .admin-dialog-title {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: #111827 !important;
+  line-height: 1.3;
+}
+
+.admin-dialog-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.admin-dialog-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-dialog-badge--readonly {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-dialog-close,
+.admin-dialog-panel .close-btn {
+  flex-shrink: 0;
+  color: #6b7280 !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 8px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.admin-dialog-close .mat-mdc-button-persistent-ripple,
+.admin-dialog-close .mat-mdc-focus-indicator,
+.admin-dialog-panel .close-btn .mat-mdc-button-persistent-ripple,
+.admin-dialog-panel .close-btn .mat-mdc-focus-indicator {
+  border-radius: 10px !important;
+}
+
+.admin-dialog-close:hover,
+.admin-dialog-panel .close-btn:hover {
+  background: #f3f4f6 !important;
+}
+
+/* ── Body scrollable ── */
+.admin-dialog-shell mat-dialog-content,
+.admin-dialog-shell .mat-mdc-dialog-content,
+.admin-dialog-shell .admin-dialog-body,
+.admin-dialog-panel .historial-dialog mat-dialog-content,
+.admin-dialog-panel .usuario-dialog mat-dialog-content,
+.admin-dialog-panel .vacuna-dialog mat-dialog-content,
+.admin-dialog-panel .banio-dialog mat-dialog-content,
+.admin-dialog-panel .recordatorio-dialog mat-dialog-content,
+.admin-dialog-panel .dialog-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-dialog-panel .mat-mdc-dialog-content {
+  max-height: none !important;
+}
+
+.admin-dialog-panel .dialog-content:not(.admin-dialog-body),
+.admin-dialog-panel mat-dialog-content:not(.admin-dialog-body) {
+  padding: 24px 28px 28px !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+}
+
+/* Diálogos compactos sin shell (inventario, etc.) */
+.admin-dialog-panel > .mat-mdc-dialog-container h2.admin-dialog-title,
+.admin-dialog-panel .mat-mdc-dialog-surface > h2.admin-dialog-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 22px 56px 18px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  color: #032d60 !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+}
+
+.admin-dialog-panel h2.admin-dialog-title mat-icon {
+  color: #0a969b !important;
+}
+
+.admin-dialog-panel .form-section {
+  margin-bottom: 20px;
+  padding: 18px 20px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  border-left: none !important;
+}
+
+.admin-dialog-panel .form-section h3 {
+  margin: 0 0 14px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel .form-section h3 mat-icon {
+  display: none !important;
+}
+
+.admin-dialog-panel .paciente-info {
+  padding: 0 28px;
+  flex-shrink: 0;
+}
+
+.admin-dialog-panel .paciente-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.admin-form-layout,
+.admin-dialog-layout {
+  display: grid !important;
+  grid-template-columns: 132px minmax(0, 1fr) !important;
+  gap: 28px !important;
+  padding: 24px 28px 28px !important;
+  align-items: start !important;
+}
+
+.admin-dialog-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-dialog-photo {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-dialog-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: cover;
+}
+
+.admin-dialog-photo__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  gap: 4px;
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+  }
+}
+
+.admin-dialog-photo__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px !important;
+  height: 28px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid #fecaca;
+  color: #dc2626 !important;
+}
+
+.admin-dialog-form {
+  min-width: 0;
+}
+
+.form-section {
+  margin-bottom: 22px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-section__title {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #065d60;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 20px;
+  align-items: start;
+}
+
+.form-grid--3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 20px;
+  align-items: start;
+}
+
+.form-grid .full-span {
+  grid-column: 1 / -1;
+}
+
+.admin-dialog-shell .mat-mdc-form-field,
+.admin-dialog-shell mat-form-field {
+  width: 100%;
+  margin: 0;
+  display: block;
+  min-width: 0;
+}
+
+.admin-dialog-panel .form-grid,
+.admin-dialog-panel .form-grid--3 {
+  display: grid !important;
+  column-gap: 16px !important;
+  row-gap: 20px !important;
+  align-items: start !important;
+}
+
+.admin-dialog-panel .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.admin-dialog-panel .form-grid--3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.admin-dialog-panel .form-grid mat-form-field,
+.admin-dialog-panel .form-grid--3 mat-form-field {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Reserva espacio bajo cada campo (subscriptSizing="dynamic" lo quita por defecto) */
+.admin-dialog-panel .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  min-height: 18px;
+}
+
+/* ── Legacy shells (seleccionar, confirmar, citas día) ── */
+.admin-dialog-panel .seleccionar-cliente-vacuna-dialog,
+.admin-dialog-panel .seleccionar-cliente-banio-dialog,
+.admin-dialog-panel .seleccionar-cliente-recordatorio-dialog,
+.admin-dialog-panel .seleccionar-cliente-dialog,
+.admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog,
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog,
+.admin-dialog-panel .citas-dia-dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 88vh !important;
+  width: 100% !important;
+  background: #fff !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel .seleccionar-cliente-vacuna-dialog > .dialog-content,
+.admin-dialog-panel .seleccionar-cliente-banio-dialog > .dialog-content,
+.admin-dialog-panel .seleccionar-cliente-recordatorio-dialog > .dialog-content,
+.admin-dialog-panel .seleccionar-cliente-dialog > .dialog-content,
+.admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog > .dialog-content,
+.admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog > .admin-dialog-body,
+.admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog mat-dialog-content,
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog > .dialog-content,
+.admin-dialog-panel .citas-dia-dialog > .dialog-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 24px 28px 28px !important;
+}
+
+/* Legacy h2.dialog-header (vacuna, recordatorio) */
+.admin-dialog-panel h2.admin-dialog-title.dialog-header,
+.admin-dialog-panel h2.dialog-header.admin-dialog-title {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel h2.dialog-header .title-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.admin-dialog-panel .dialog-header h2.admin-dialog-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel .dialog-header h2 mat-icon,
+.admin-dialog-panel h2.dialog-header mat-icon {
+  color: #0a969b !important;
+}
+
+/* form-row — baños, proveedores, inventario legacy */
+.admin-dialog-panel .form-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 16px !important;
+  row-gap: 20px !important;
+  align-items: start !important;
+  margin: 0 0 16px !important;
+}
+
+.admin-dialog-panel .form-row:last-child {
+  margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel .form-row .full-width {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel .form-row .half-width,
+.admin-dialog-panel .form-row .third-width,
+.admin-dialog-panel .form-row mat-form-field,
+.admin-dialog-panel .form-row .form-field {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.admin-dialog-panel .form-row .third-width {
+  grid-column: span 1;
+}
+
+.admin-dialog-panel .form-container {
+  padding: 0 !important;
+}
+
+.admin-dialog-panel .dialog-content,
+.admin-dialog-panel mat-dialog-content.dialog-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.admin-dialog-panel .dialog-actions,
+.admin-dialog-panel mat-dialog-actions.dialog-actions,
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog > .dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-dialog-panel .dialog-actions .actions-left,
+.admin-dialog-panel .dialog-actions .actions-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.admin-dialog-panel .dialog-actions .actions-left:empty {
+  display: none !important;
+}
+
+.admin-dialog-panel .dialog-actions .actions-right {
+  margin-left: auto !important;
+}
+
+.admin-dialog-shell .mat-mdc-text-field-wrapper {
+  background: #fff;
+}
+
+/* ── Footer ── */
+.admin-dialog-shell mat-dialog-actions,
+.admin-dialog-shell .mat-mdc-dialog-actions,
+.admin-dialog-actions,
+.admin-dialog-panel .mat-mdc-dialog-actions,
+.admin-dialog-panel mat-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  flex-shrink: 0;
+}
+
+.admin-dialog-actions .mat-mdc-raised-button,
+.admin-dialog-actions .mat-mdc-unelevated-button {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  min-height: 40px;
+}
+
+.admin-dialog-panel .btn-primary-teal,
+.admin-dialog-actions .btn-primary-teal {
+  --mdc-protected-button-container-color: #0a969b;
+  --mdc-protected-button-label-text-color: #fff;
+}
+
+.admin-dialog-actions .btn-primary-teal:hover:not([disabled]) {
+  --mdc-protected-button-container-color: #065d60;
+}
+
+/* ── Vistas de detalle (solo lectura) ── */
+.admin-detail-dialog .admin-dialog-body,
+.admin-detail-dialog mat-dialog-content {
+  padding: 24px !important;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #065d60;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-field {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.detail-field__label,
+.detail-item__label {
+  display: block !important;
+  margin-bottom: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.detail-field__value,
+.detail-item__value {
+  display: block !important;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.detail-field__value--muted {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.detail-field--wide {
+  grid-column: 1 / -1;
+}
+
+.detail-text-block {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+/* Vista detalle entidad (solo lectura) */
+.entity-detail {
+  padding: 24px 28px 28px;
+}
+
+.entity-detail__hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.entity-detail__photo {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  mat-icon {
+    color: #9ca3af;
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.entity-detail__headline {
+  min-width: 0;
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #032d60;
+  }
+
+  p {
+    margin: 0 0 10px;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}
+
+.detail-section {
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-section__title {
+  margin: 0 0 12px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #065d60;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.detail-item--wide {
+  grid-column: 1 / -1;
+}
+
+.detail-item__label {
+  display: block !important;
+  margin: 0 0 6px !important;
+  padding: 0 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  line-height: 1.2 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.detail-item__value {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  line-height: 1.45 !important;
+  word-break: break-word;
+}
+
+.detail-item__value--muted {
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+}
+
+.entity-status,
+.admin-dialog-panel .estado-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #4caf50;
+}
+
+.entity-status--inactive {
+  background: #78909c;
+}
+
+/* Compatibilidad con diálogos legacy dentro del panel */
+.admin-dialog-panel .vacuna-detalle-dialog,
+.admin-dialog-panel .historial-detalle-dialog,
+.admin-dialog-panel .banio-detalle-dialog,
+.admin-dialog-panel .recordatorio-detalle-dialog,
+.admin-dialog-panel .historial-dialog,
+.admin-dialog-panel .vacuna-dialog,
+.admin-dialog-panel .usuario-dialog,
+.admin-dialog-panel .banio-dialog,
+.admin-dialog-panel .recordatorio-dialog,
+.admin-dialog-panel .seleccionar-cliente-dialog,
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog {
+  .dialog-header h2,
+  .dialog-header .admin-dialog-title,
+  .header-text h2 {
+    margin: 0 !important;
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: #032d60 !important;
+    display: block !important;
+  }
+
+  .header-subtitle,
+  .vacuna-subtitle {
+    margin: 4px 0 0 !important;
+    font-size: 0.875rem !important;
+    color: #6b7280 !important;
+    opacity: 1 !important;
+  }
+
+  .header-icon,
+  .vacuna-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    background: #ecfdf5 !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  .header-icon mat-icon,
+  .vacuna-icon mat-icon {
+    color: #065d60 !important;
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .info-section {
+    margin-bottom: 24px;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .section-title {
+    display: block !important;
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #065d60 !important;
+  }
+
+  .section-title mat-icon {
+    display: none !important;
+  }
+
+  .info-cards,
+  .info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .admin-dialog-body > .info-grid,
+  mat-dialog-content.admin-dialog-body > .info-grid {
+    padding: 24px 28px 28px !important;
+  }
+
+  .info-card {
+    display: block !important;
+    padding: 14px 16px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    border-left: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+  }
+
+  .card-icon {
+    display: none !important;
+  }
+
+  .info-label,
+  .card-label {
+    display: block !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    font-size: 0.6875rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #6b7280 !important;
+    background: transparent !important;
+  }
+
+  .info-value,
+  .card-value {
+    display: block !important;
+    font-size: 0.9375rem !important;
+    font-weight: 500 !important;
+    color: #111827 !important;
+  }
+
+  .info-content,
+  .content-text {
+    padding: 14px 16px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    color: #374151 !important;
+  }
+
+  .form-container {
+    padding: 24px 28px !important;
+  }
+
+  .form-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+
+  .form-section h3 {
+    margin: 0 0 12px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #065d60 !important;
+  }
+
+  .form-section h3 mat-icon {
+    display: none !important;
+  }
+
+  mat-dialog-actions,
+  .dialog-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    padding: 14px 28px 18px !important;
+    margin: 0 !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #f9fafb !important;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-form-layout,
+  .admin-dialog-layout {
+    grid-template-columns: 1fr !important;
+    padding: 20px !important;
+  }
+
+  .admin-dialog-aside {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .form-grid,
+  .form-grid--3,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dialog-panel .info-cards,
+  .admin-dialog-panel .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Refuerzo global layout (overlay CDK) ── */
+.admin-dialog-panel .detail-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.admin-dialog-panel .detail-item {
+  padding: 14px 16px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.admin-dialog-panel .detail-item__label {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.admin-dialog-panel .detail-item__value,
+.admin-dialog-panel .info-value,
+.admin-dialog-panel .card-value {
+  display: block !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.45 !important;
+}
+
+.admin-dialog-panel .admin-dialog-photo {
+  width: 112px !important;
+  height: 112px !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}
+
+.admin-dialog-panel .admin-dialog-photo img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.admin-dialog-panel .entity-summary {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-dialog-panel .entity-summary__name {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #032d60;
+}
+
+.admin-dialog-panel .entity-summary__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel .estado-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 72px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff !important;
+}
+
+.admin-dialog-panel .estado-badge--success,
+.admin-dialog-panel .estado-badge--vivo {
+  background: #4caf50 !important;
+}
+
+.admin-dialog-panel mat-dialog-content.admin-dialog-body > .detail-grid,
+.admin-dialog-panel mat-dialog-content.admin-dialog-body > .entity-detail,
+.admin-dialog-panel .admin-dialog-body > .detail-grid {
+  padding: 24px 28px 28px !important;
+}
+
+/* Confirmación eliminar vacuna */
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .warning-section {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .warning-icon mat-icon {
+  color: #dc2626;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .warning-text h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #991b1b;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .warning-text p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .info-card {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .info-row:last-child {
+  border-bottom: none;
+}
+
+.admin-dialog-panel .confirmar-eliminacion-vacuna-dialog .warning-message {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+/* Seleccionar cliente/paciente — listas */
+.admin-dialog-panel .seleccionar-cliente-dialog .search-container,
+.admin-dialog-panel .seleccionar-cliente-dialog .paso-info {
+  margin-bottom: 16px;
+}
+
+.admin-dialog-panel .seleccionar-cliente-dialog .paso-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel .seleccionar-cliente-dialog .cliente-item,
+.admin-dialog-panel .seleccionar-cliente-dialog .paciente-item {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-dialog-panel .seleccionar-cliente-dialog .cliente-item:hover,
+.admin-dialog-panel .seleccionar-cliente-dialog .paciente-item:hover {
+  border-color: #0a969b;
+  background: #f0fdfa;
+}
+
+.admin-dialog-panel .seleccionar-cliente-dialog .full-width {
+  width: 100%;
+}
+
+/* ── Refuerzo universal CRUD / detalle ── */
+.admin-dialog-panel .admin-dialog-close {
+  align-self: flex-start !important;
+}
+
+.admin-dialog-panel .admin-dialog-badge {
+  margin-bottom: 10px !important;
+}
+
+.admin-dialog-panel .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  min-height: 18px !important;
+}
+
+.admin-dialog-panel mat-dialog-content.admin-dialog-body {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-layout),
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-layout--readonly),
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.info-grid),
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-form--padded),
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.entity-summary) {
+  padding: 0 !important;
+}
+
+.admin-dialog-panel .admin-dialog-form--padded {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel .entity-summary {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-dialog-panel .entity-summary__name {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #032d60;
+  letter-spacing: -0.02em;
+}
+
+.admin-dialog-panel .entity-summary__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel .detail-item--wide {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel .detail-item__value--muted {
+  color: #9ca3af !important;
+  font-weight: 500 !important;
+}
+
+.admin-dialog-panel .form-row.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.admin-dialog-panel .form-row.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 900px) {
+  .admin-dialog-panel .form-row.three-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel .form-row,
+  .admin-dialog-panel .form-row.two-col,
+  .admin-dialog-panel .form-row.three-col {
+    grid-template-columns: 1fr !important;
+  }
+}

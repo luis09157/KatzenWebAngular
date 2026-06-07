@@ -11,6 +11,7 @@ import { AjusteDialogComponent } from '../movimientos/ajuste-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-dashboard-inventario',
@@ -113,7 +114,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
 
   registrarEntrada(): void {
     const dialogRef = this.dialog.open(EntradaDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -123,7 +124,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
 
   registrarSalida(): void {
     const dialogRef = this.dialog.open(SalidaDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -133,7 +134,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
 
   registrarAjuste(): void {
     const dialogRef = this.dialog.open(AjusteDialogComponent, {
-      width: '700px',
+      ...ADMIN_DIALOG_FORM,
       disableClose: false
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {

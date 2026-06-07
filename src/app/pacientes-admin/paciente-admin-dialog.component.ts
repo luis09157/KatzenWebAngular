@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable, firstValueFrom, lastValueFrom } from 'rxjs';
@@ -13,7 +13,8 @@ import { LoadingService } from '../core/loading.service';
 @Component({
   selector: 'app-paciente-admin-dialog',
   templateUrl: './paciente-admin-dialog.component.html',
-  styleUrls: ['./paciente-admin-dialog.component.css']
+  styleUrls: ['./paciente-admin-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PacienteAdminDialogComponent implements OnInit {
   pacienteForm: FormGroup;
@@ -35,7 +36,44 @@ export class PacienteAdminDialogComponent implements OnInit {
   imagePreview: string | null = null;
   uploadProgress: number = 0;
   isUploading = false;
-  defaultImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik03NSA0MEM2NS4wNTc2IDQwIDU3IDQ4LjA1NzYgNTcgNThDNTcgNjcuOTQyNCA2NS4wNTc2IDc2IDc1IDc2Qzg0Ljk0MjQgNzYgOTMgNjcuOTQyNCA5MyA1OEM5MyA0OC4wNTc2IDg0Ljk0MjQgNDAgNzUgNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSA4MEM2NS4wNTc2IDgwIDU3IDg4LjA1NzYgNTcgOThDNTcgMTA3Ljk0MiA2NS4wNTc2IDExNiA3NSAxMTZDODQuOTQyNCAxMTYgOTMgMTA3Ljk0MiA5MyA5OEM5MyA4OC4wNTc2IDg0Ljk0MjQgODAgNzUgODBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSAxMjBDNjUuMDU3NiAxMjAgNTcgMTI4LjA1OCA1NyAxMzhDNTcgMTQ3Ljk0MiA2NS4wNTc2IDE1NiA3NSAxNTZDODQuOTQyNCAxNTYgOTMgMTQ3Ljk0MiA5MyAxMzhDOTMgMTI4LjA1OCA4NC45NDI0IDEyMCA3NSAxMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+Cjwvc3ZnPgo='; // Ícono de huellita por defecto en base64
+  defaultImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik03NSA0MEM2NS4wNTc2IDQwIDU3IDQ4LjA1NzYgNTcgNThDNTcgNjcuOTQyNCA2NS4wNTc2IDc2IDc1IDc2Qzg0Ljk0MjQgNzYgOTMgNjcuOTQyNCA5MyA1OEM5MyA0OC4wNTc2IDg0Ljk0MjQgNDAgNzUgNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSA4MEM2NS4wNTc2IDgwIDU3IDg4LjA1NzYgNTcgOThDNTcgMTA3Ljk0MiA2NS4wNTc2IDExNiA3NSAxMTZDODQuOTQyNCAxMTYgOTMgMTA3Ljk0MiA5MyA5OEM5MyA4OC4wNTc2IDg0Ljk0MjQgODAgNzUgODBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSAxMjBDNjUuMDU3NiAxMjAgNTcgMTI4LjA1OCA1NyAxMzhDNTcgMTQ3Ljk0MiA2NS4wNTc2IDE1NiA3NSAxNTZDODQuOTQyNCAxNTYgOTMgMTQ3Ljk0MiA5MyAxMzhDOTMgMTI4LjA1OCA4NC45NDI0IDEyMCA3NSAxMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+Cjwvc3ZnPgo=';
+
+  get dialogTitle(): string {
+    if (this.isViewMode) return 'Detalle del paciente';
+    if (this.isEditMode) return 'Editar paciente';
+    return 'Nuevo paciente';
+  }
+
+  get dialogSubtitle(): string {
+    if (this.isViewMode) return 'Consulta la ficha clínica y datos del dueño.';
+    if (this.isEditMode) return 'Actualiza la información de la mascota registrada.';
+    return 'Registra una nueva mascota y vincúlala a un cliente.';
+  }
+
+  getDisplayValue(field: string): string {
+    const raw = this.pacienteForm.get(field)?.value ?? this.data?.paciente?.[field];
+    if (raw == null || raw === '') {
+      return '—';
+    }
+    return String(raw).trim() || '—';
+  }
+
+  getDisplayFecha(field: string): string {
+    const raw = this.pacienteForm.get(field)?.value ?? this.data?.paciente?.[field];
+    if (!raw) {
+      return '—';
+    }
+    if (raw instanceof Date) {
+      return this.convertirDateAString(raw);
+    }
+    return String(raw);
+  }
+
+  onEditFromView(): void {
+    this.isViewMode = false;
+    this.isEditMode = true;
+    this.pacienteForm.enable();
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -146,7 +184,7 @@ export class PacienteAdminDialogComponent implements OnInit {
       }
 
       if (this.isViewMode) {
-        this.pacienteForm.disable();
+        // Mantener formulario cargado para lectura; la plantilla de detalle no usa campos deshabilitados
       }
     } else {
       console.log('⚠️ No se recibieron datos del paciente');

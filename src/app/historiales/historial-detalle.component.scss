@@ -1,0 +1,232 @@
+/* Scope overlay CDK — encapsulation: None */
+
+.admin-dialog-panel app-historial-detalle {
+  display: block;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-header__text {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 8px !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-close {
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
+  overflow: hidden !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-title {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-subtitle {
+  margin: 6px 0 0 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-badge {
+  display: inline-flex !important;
+  margin: 0 0 10px !important;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-form--padded {
+  padding: 24px 28px 28px !important;
+}
+
+.admin-dialog-panel app-historial-detalle .entity-summary {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-dialog-panel app-historial-detalle .entity-summary__name {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #032d60;
+  letter-spacing: -0.02em;
+}
+
+.admin-dialog-panel app-historial-detalle .entity-summary__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-historial-detalle .entity-summary__meta--secondary {
+  margin-top: 4px;
+}
+
+.admin-dialog-panel app-historial-detalle .historial-estado-badge {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-dialog-panel app-historial-detalle .historial-estado-badge--inactivo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-section {
+  margin: 0 0 22px;
+  padding: 0;
+  border: none;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-section__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.admin-dialog-panel app-historial-detalle .detail-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-item {
+  padding: 14px 16px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-item--wide {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-item__label {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: transparent !important;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-item__value {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.45 !important;
+  word-break: break-word;
+}
+
+.admin-dialog-panel app-historial-detalle .detail-text-block {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.admin-dialog-panel app-historial-detalle .historial-archivos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-dialog-panel app-historial-detalle .historial-archivo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.admin-dialog-panel app-historial-detalle .historial-archivo__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+
+  mat-icon {
+    flex-shrink: 0;
+    color: #065d60;
+  }
+}
+
+.admin-dialog-panel app-historial-detalle .historial-archivo__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.admin-dialog-panel app-historial-detalle .admin-dialog-actions,
+.admin-dialog-panel app-historial-detalle .mat-mdc-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-historial-detalle .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

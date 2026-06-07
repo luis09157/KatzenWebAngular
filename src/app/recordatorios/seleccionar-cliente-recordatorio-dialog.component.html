@@ -1,154 +1,129 @@
-<div class="seleccionar-cliente-recordatorio-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>{{ pasoActual === 1 ? 'person' : 'pets' }}</mat-icon>
-      {{ pasoActual === 1 ? 'Seleccionar Cliente' : 'Seleccionar Paciente' }}
-    </h2>
-    <button mat-icon-button (click)="cancelar()" class="close-btn" matTooltip="Cerrar">
+<div class="admin-dialog-shell seleccionar-cliente-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">
+        {{ pasoActual === 1 ? 'Seleccionar cliente' : 'Seleccionar paciente' }}
+      </h2>
+      <p class="admin-dialog-subtitle">
+        {{ pasoActual === 1
+          ? 'Elige el cliente para crear el recordatorio.'
+          : 'Cliente: ' + getNombreCompletoCliente(clienteSeleccionado) }}
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" matTooltip="Cerrar" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <div class="dialog-content">
-    <!-- Paso 1: Seleccionar Cliente -->
-    <div *ngIf="pasoActual === 1" class="paso-cliente">
-      <div class="paso-info">
-        <mat-icon>person</mat-icon>
-        <div>
-          <h3>Selecciona un Cliente</h3>
-          <p>Elige el cliente para el cual crearás el recordatorio</p>
-        </div>
-      </div>
+  <mat-dialog-content class="admin-dialog-body">
+    <ng-container *ngIf="pasoActual === 1">
+      <mat-form-field appearance="outline" class="picker-search">
+        <mat-label>Buscar cliente</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput
+               type="text"
+               [(ngModel)]="filtroCliente"
+               (input)="aplicarFiltroCliente($event)"
+               placeholder="Nombre, teléfono, correo o expediente">
+      </mat-form-field>
 
-      <!-- Campo de búsqueda -->
-      <div class="search-container">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>
-            <mat-icon class="search-icon">search</mat-icon>
-            Buscar cliente por nombre, teléfono, correo o expediente
-          </mat-label>
-          <input matInput 
-                 type="text" 
-                 [(ngModel)]="filtroCliente"
-                 (input)="aplicarFiltroCliente($event)"
-                 placeholder="Ej: luis niño, 8111234567, luis@email.com, 123456">
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
-      </div>
-
-      <div *ngIf="loading" class="loading-container">
+      <div *ngIf="loading" class="picker-state">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Cargando clientes...</p>
+        <p>Cargando clientes…</p>
       </div>
 
-      <div *ngIf="!loading && clientes.length === 0" class="no-data">
+      <div *ngIf="!loading && clientes.length === 0" class="picker-state picker-state--empty">
         <mat-icon>warning</mat-icon>
         <h3>No hay clientes disponibles</h3>
-        <p>Debes crear al menos un cliente antes de crear un recordatorio</p>
+        <p>Debes crear al menos un cliente antes de crear un recordatorio.</p>
       </div>
 
-      <div *ngIf="!loading && clientes.length > 0 && clientesFiltrados.length === 0" class="no-data">
+      <div *ngIf="!loading && clientes.length > 0 && clientesFiltrados.length === 0" class="picker-state picker-state--empty">
         <mat-icon>search</mat-icon>
         <h3>No se encontraron resultados</h3>
-        <p>Intenta con otros términos de búsqueda</p>
+        <p>Intenta con otros términos de búsqueda.</p>
       </div>
 
-      <div *ngIf="!loading && clientesFiltrados.length > 0" class="clientes-list">
-        <div class="results-info">
-          <p>{{ clientesFiltrados.length }} cliente{{ clientesFiltrados.length !== 1 ? 's' : '' }} encontrado{{ clientesFiltrados.length !== 1 ? 's' : '' }}</p>
+      <ng-container *ngIf="!loading && clientesFiltrados.length > 0">
+        <p class="picker-count">
+          {{ clientesFiltrados.length }} cliente{{ clientesFiltrados.length !== 1 ? 's' : '' }} encontrado{{ clientesFiltrados.length !== 1 ? 's' : '' }}
+        </p>
+        <div class="picker-list">
+          <button type="button"
+                  class="picker-row"
+                  *ngFor="let cliente of clientesFiltrados"
+                  (click)="seleccionarCliente(cliente)">
+            <span class="picker-row__avatar"><mat-icon>person</mat-icon></span>
+            <span class="picker-row__body">
+              <strong class="picker-row__title">{{ getNombreCompletoCliente(cliente) }}</strong>
+              <span class="picker-row__meta">
+                <span *ngIf="cliente.telefono">
+                  <mat-icon>phone</mat-icon>{{ cliente.telefono }}
+                </span>
+                <span *ngIf="cliente.correo">
+                  <mat-icon>email</mat-icon>{{ cliente.correo }}
+                </span>
+                <span *ngIf="cliente.expediente">
+                  <mat-icon>folder</mat-icon>Exp. {{ cliente.expediente }}
+                </span>
+              </span>
+            </span>
+            <mat-icon class="picker-row__chevron">chevron_right</mat-icon>
+          </button>
         </div>
-        <div *ngFor="let cliente of clientesFiltrados" 
-             class="cliente-item"
-             (click)="seleccionarCliente(cliente)">
-          <div class="cliente-info">
-            <mat-icon class="cliente-icon">person</mat-icon>
-            <div class="cliente-details">
-              <h4>{{ getNombreCompletoCliente(cliente) }}</h4>
-              <p>
-                <mat-icon class="detail-icon">phone</mat-icon>
-                {{ cliente.telefono || 'Sin teléfono' }}
-              </p>
-              <p *ngIf="cliente.correo">
-                <mat-icon class="detail-icon">email</mat-icon>
-                {{ cliente.correo }}
-              </p>
-              <p *ngIf="cliente.expediente">
-                <mat-icon class="detail-icon">folder</mat-icon>
-                Expediente: {{ cliente.expediente }}
-              </p>
-            </div>
-          </div>
-          <mat-icon class="arrow-icon">arrow_forward</mat-icon>
-        </div>
-      </div>
-    </div>
+      </ng-container>
+    </ng-container>
 
-    <!-- Paso 2: Seleccionar Paciente -->
-    <div *ngIf="pasoActual === 2" class="paso-paciente">
-      <div class="paso-info">
-        <mat-icon>pets</mat-icon>
-        <div>
-          <h3>Selecciona un Paciente</h3>
-          <p>Cliente: {{ getNombreCompletoCliente(clienteSeleccionado) }}</p>
-        </div>
-      </div>
-
-      <div *ngIf="loading" class="loading-container">
+    <ng-container *ngIf="pasoActual === 2">
+      <div *ngIf="loading" class="picker-state">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Cargando pacientes...</p>
+        <p>Cargando pacientes…</p>
       </div>
 
-      <div *ngIf="!loading && pacientes.length === 0" class="no-data">
+      <div *ngIf="!loading && pacientes.length === 0" class="picker-state picker-state--empty">
         <mat-icon>warning</mat-icon>
         <h3>No hay pacientes activos</h3>
-        <p>El cliente {{ getNombreCompletoCliente(clienteSeleccionado) }} no tiene pacientes activos para crear recordatorios</p>
+        <p>El cliente no tiene pacientes activos para crear recordatorios.</p>
       </div>
 
-      <div *ngIf="!loading && pacientes.length > 0" class="pacientes-list">
-        <div class="section-header">
-          <mat-icon class="section-icon">pets</mat-icon>
-          <h4>Pacientes Disponibles</h4>
+      <ng-container *ngIf="!loading && pacientes.length > 0">
+        <p class="picker-count">
+          {{ getPacientesActivos().length }} paciente{{ getPacientesActivos().length !== 1 ? 's' : '' }} disponible{{ getPacientesActivos().length !== 1 ? 's' : '' }}
+        </p>
+        <div class="picker-list">
+          <button type="button"
+                  class="picker-row"
+                  *ngFor="let paciente of getPacientesActivos()"
+                  (click)="seleccionarPaciente(paciente)">
+            <span class="picker-row__avatar"><mat-icon>pets</mat-icon></span>
+            <span class="picker-row__body">
+              <strong class="picker-row__title">{{ paciente.nombre || 'Sin nombre' }}</strong>
+              <span class="picker-row__meta">
+                <span *ngIf="paciente.especie">{{ paciente.especie }}</span>
+                <span *ngIf="paciente.raza">{{ paciente.raza }}</span>
+                <span *ngIf="paciente.edad">{{ paciente.edad }} años</span>
+              </span>
+            </span>
+            <mat-icon class="picker-row__chevron">chevron_right</mat-icon>
+          </button>
         </div>
-        <div class="results-info">
-          <p>{{ getPacientesActivos().length }} paciente{{ getPacientesActivos().length !== 1 ? 's' : '' }} disponible{{ getPacientesActivos().length !== 1 ? 's' : '' }}</p>
-        </div>
-        <div *ngFor="let paciente of getPacientesActivos()" 
-             class="paciente-item"
-             (click)="seleccionarPaciente(paciente)">
-          <div class="paciente-info">
-            <mat-icon class="paciente-icon">pets</mat-icon>
-            <div class="paciente-details">
-              <h4>{{ paciente.nombre || 'Sin nombre' }}</h4>
-              <p>{{ paciente.especie || 'Sin especie' }} {{ paciente.raza ? '- ' + paciente.raza : '' }}</p>
-              <p *ngIf="paciente.edad">Edad: {{ paciente.edad }} años</p>
-            </div>
-          </div>
-          <mat-icon class="arrow-icon">arrow_forward</mat-icon>
-        </div>
-      </div>
-    </div>
-  </div>
+      </ng-container>
+    </ng-container>
+  </mat-dialog-content>
 
-  <div class="dialog-actions">
-    <div class="actions-left">
-      <button *ngIf="pasoActual === 2" 
-              type="button" 
-              mat-button 
+  <mat-dialog-actions class="admin-dialog-actions">
+    <div class="admin-dialog-actions__left">
+      <button *ngIf="pasoActual === 2"
+              type="button"
+              mat-button
               (click)="retroceder()"
               matTooltip="Volver a seleccionar cliente">
         <mat-icon>arrow_back</mat-icon>
         Atrás
       </button>
     </div>
-    
-    <div class="actions-right">
-      <button type="button" 
-              mat-button 
-              (click)="cancelar()"
-              matTooltip="Cancelar">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
+    <div class="admin-dialog-actions__right">
+      <button type="button" mat-button (click)="cancelar()">Cancelar</button>
     </div>
-  </div>
+  </mat-dialog-actions>
 </div>

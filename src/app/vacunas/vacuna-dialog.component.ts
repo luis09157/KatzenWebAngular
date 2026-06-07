@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
@@ -15,7 +15,8 @@ import { LoggerService } from '../core/logger.service';
 @Component({
   selector: 'app-vacuna-dialog',
   templateUrl: './vacuna-dialog.component.html',
-  styleUrls: ['./vacuna-dialog.component.css']
+  styleUrls: ['./vacuna-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class VacunaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -140,6 +141,18 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     const apellidoMaterno = cliente.apellidoMaterno || '';
     
     return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+  }
+
+  getPacienteMeta(): string {
+    const p = this.data?.paciente || this.pacienteInfo;
+    if (!p) return '';
+    const parts: string[] = [];
+    if (p.especie) parts.push(p.especie);
+    if (p.raza) parts.push(p.raza);
+    if (p.edad) parts.push(`${p.edad} años`);
+    if (p.peso) parts.push(`${p.peso} kg`);
+    if (p.sexo) parts.push(p.sexo);
+    return parts.join(' · ');
   }
 
   ngOnInit() {

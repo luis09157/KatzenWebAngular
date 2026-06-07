@@ -1,0 +1,14 @@
+<div class="admin-banner" [ngClass]="'admin-banner--' + accent">
+  <div class="banner-content">
+    <div class="banner-icon">
+      <mat-icon>{{ icon }}</mat-icon>
+    </div>
+    <div class="banner-text">
+      <h2>{{ title }}</h2>
+      <p *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+  </div>
+  <div class="banner-actions">
+    <ng-content select="[bannerActions]"></ng-content>
+  </div>
+</div>

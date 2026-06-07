@@ -1,29 +1,43 @@
-<div class="portal-login-wrap">
-  <mat-card appearance="outlined" class="portal-login-card">
-    <mat-card-header>
-      <img mat-card-avatar ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="40" height="40">
-      <mat-card-title>Panel administrativo</mat-card-title>
-      <mat-card-subtitle>Acceso staff KatzenVet</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <form (ngSubmit)="login()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Correo</mat-label>
-          <mat-icon matPrefix>mail</mat-icon>
-          <input matInput type="email" [(ngModel)]="email" name="email" required>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contraseña</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input matInput type="password" [(ngModel)]="password" name="password" required>
-        </mat-form-field>
-        <button mat-flat-button color="primary" type="submit" class="full-width">Entrar</button>
-      </form>
-    </mat-card-content>
+<div class="admin-auth-page">
+  <div class="admin-auth-bg" aria-hidden="true"></div>
+
+  <mat-card class="admin-auth-card" appearance="outlined">
+    <div class="admin-auth-brand">
+      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo">
+      <h1>KatzenVet Admin</h1>
+      <p>Panel de gestión para personal autorizado</p>
+    </div>
+
+    <form class="admin-auth-form" (ngSubmit)="login()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Correo electrónico</mat-label>
+        <mat-icon matPrefix>mail_outline</mat-icon>
+        <input matInput type="email" [(ngModel)]="email" name="email" autocomplete="username" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contraseña</mat-label>
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <input matInput type="password" [(ngModel)]="password" name="password" autocomplete="current-password" required>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" class="admin-auth-submit">
+        <mat-icon>login</mat-icon>
+        Iniciar sesión
+      </button>
+    </form>
+
     <mat-divider></mat-divider>
-    <mat-card-actions>
-      <button mat-button (click)="irAlInicio()">Inicio</button>
-      <button mat-button routerLink="/portal/login">Portal del dueño</button>
-    </mat-card-actions>
+
+    <div class="admin-auth-links">
+      <button mat-button type="button" (click)="irAlInicio()">
+        <mat-icon>home</mat-icon>
+        Ir al inicio
+      </button>
+      <button mat-button type="button" routerLink="/portal/login">
+        <mat-icon>smartphone</mat-icon>
+        Portal del dueño
+      </button>
+    </div>
   </mat-card>
 </div>

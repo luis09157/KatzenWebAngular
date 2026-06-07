@@ -20,6 +20,7 @@ import { RecordatoriosComponent } from './recordatorios.component';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
 import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
 import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cli
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    SharedModule
   ],
   exports: [
     RecordatorioDialogComponent,

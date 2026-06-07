@@ -34,6 +34,7 @@ import { BaniosService } from './banios.service';
 
 // Rutas
 import { baniosRoutes } from './banios-routing.module';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -66,7 +67,8 @@ import { baniosRoutes } from './banios-routing.module';
     MatChipsModule,
     MatCheckboxModule,
     MatSlideToggleModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    SharedModule
   ],
   providers: [
     BaniosService

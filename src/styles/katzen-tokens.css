@@ -42,6 +42,21 @@
   --portal-muted: var(--text-secondary);
   --portal-border: var(--border);
 
+  /* Admin — surfaces & layout tokens */
+  --admin-bg: #f3f4f6;
+  --admin-surface: #ffffff;
+  --admin-border: #e5e7eb;
+  --admin-text: #111827;
+  --admin-text-secondary: #6b7280;
+  --admin-text-muted: #9ca3af;
+  --admin-success-bg: #ecfdf5;
+  --admin-success-text: #047857;
+  --admin-radius-sm: 8px;
+  --admin-radius-md: 12px;
+  --admin-radius-lg: 16px;
+  --admin-shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.06);
+  --admin-shadow-md: 0 8px 24px rgba(17, 24, 39, 0.08);
+
   /* Admin sidebar */
   --admin-sidebar-bg: linear-gradient(180deg, #065D60 0%, #043638 100%);
   --admin-sidebar-width: 268px;

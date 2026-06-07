@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
@@ -9,7 +9,8 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
 @Component({
   selector: 'app-proveedor-dialog',
   templateUrl: './proveedor-dialog.component.html',
-  styleUrls: ['./proveedor-dialog.component.css']
+  styleUrls: ['./proveedor-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProveedorDialogComponent implements OnInit {
   proveedorForm: FormGroup;

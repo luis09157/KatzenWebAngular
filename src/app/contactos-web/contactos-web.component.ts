@@ -15,6 +15,7 @@ import { LoggerService } from '../core/logger.service';
 export class ContactosWebComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns = ['fecha', 'nombre', 'email', 'telefono', 'mascota', 'leido', 'acciones'];
+  menuContext: ContactoWebRecord | null = null;
   dataSource = new MatTableDataSource<ContactoWebRecord>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -129,6 +130,14 @@ export class ContactosWebComponent implements OnInit, OnDestroy, AfterViewInit {
         await this.alternarLeido(contacto);
       }
     });
+  }
+
+  getTotalLeidos(): number {
+    return this.contactos.filter(c => c.leido).length;
+  }
+
+  getConMascota(): number {
+    return this.contactos.filter(c => !!c.mascota?.trim()).length;
   }
 
   formatearFecha(fecha: string): string {

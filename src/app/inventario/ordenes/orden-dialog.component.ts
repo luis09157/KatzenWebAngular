@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
@@ -11,7 +11,8 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
 @Component({
   selector: 'app-orden-dialog',
   templateUrl: './orden-dialog.component.html',
-  styleUrls: ['./orden-dialog.component.css']
+  styleUrls: ['./orden-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class OrdenDialogComponent implements OnInit {
   ordenForm: FormGroup;

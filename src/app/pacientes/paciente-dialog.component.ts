@@ -1,11 +1,12 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-paciente-dialog',
   templateUrl: './paciente-dialog.component.html',
-  styleUrls: ['./paciente-dialog.component.css']
+  styleUrls: ['./paciente-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PacienteDialogComponent {
   pacienteForm: FormGroup;
@@ -30,9 +31,14 @@ export class PacienteDialogComponent {
       nombreCliente: [data.paciente?.nombreCliente || ''],
       imageUrl: [data.paciente?.imageUrl || '']
     });
-    if (this.modoVer) {
-      this.pacienteForm.disable();
+  }
+
+  getDisplayValue(field: string): string {
+    const raw = this.data?.paciente?.[field] ?? this.pacienteForm.get(field)?.value;
+    if (raw == null || raw === '') {
+      return '—';
     }
+    return String(raw).trim() || '—';
   }
 
   guardar() {
@@ -44,4 +50,4 @@ export class PacienteDialogComponent {
   cerrar() {
     this.dialogRef.close();
   }
-} 
+}

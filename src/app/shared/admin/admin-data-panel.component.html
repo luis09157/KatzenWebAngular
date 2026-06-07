@@ -1,0 +1,24 @@
+<mat-card class="data-panel" [ngClass]="'data-panel--' + accent">
+  <div class="data-panel-header">
+    <div>
+      <h3>{{ title }}</h3>
+      <p *ngIf="description">{{ description }}</p>
+    </div>
+    <div class="data-panel-meta" *ngIf="meta">
+      <mat-icon>insights</mat-icon>
+      <span>{{ meta }}</span>
+    </div>
+  </div>
+
+  <div class="data-toolbar" *ngIf="showLegend">
+    <div class="action-legend hide-mobile">
+      <span><mat-icon>visibility</mat-icon> Ver detalle</span>
+      <span><mat-icon>edit</mat-icon> Editar</span>
+      <span><mat-icon>delete_outline</mat-icon> Baja lógica</span>
+    </div>
+  </div>
+
+  <div class="data-panel-body">
+    <ng-content></ng-content>
+  </div>
+</mat-card>

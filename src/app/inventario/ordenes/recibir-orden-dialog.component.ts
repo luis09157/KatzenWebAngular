@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
@@ -9,7 +9,8 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
 @Component({
   selector: 'app-recibir-orden-dialog',
   templateUrl: './recibir-orden-dialog.component.html',
-  styleUrls: ['./recibir-orden-dialog.component.css']
+  styleUrls: ['./recibir-orden-dialog.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class RecibirOrdenDialogComponent implements OnInit {
   recibirForm: FormGroup;

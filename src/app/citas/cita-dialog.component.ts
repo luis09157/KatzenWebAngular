@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -12,7 +12,8 @@ import { LoadingService } from '../core/loading.service';
 @Component({
   selector: 'app-cita-dialog',
   templateUrl: './cita-dialog.component.html',
-  styleUrls: ['./cita-dialog.component.css'],
+  styleUrls: ['./cita-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
     {
@@ -149,9 +150,64 @@ export class CitaDialogComponent implements OnInit {
       observaciones: [data.cita?.observaciones || ''],
       nombreCliente: [data.cita?.nombreCliente || '', Validators.required]
     });
-    if (this.modoVer) {
-      this.citaForm.disable();
+  }
+
+  getDisplayValue(field: string): string {
+    const raw = this.data?.cita?.[field] ?? this.citaForm.get(field)?.value;
+    if (raw == null || raw === '') {
+      return '—';
     }
+    return String(raw).trim() || '—';
+  }
+
+  getDisplayCliente(): string {
+    const nombre = this.citaForm.get('nombreCliente')?.value;
+    if (nombre) {
+      return String(nombre).split(' - ')[0].trim() || nombre;
+    }
+    const cliente = this.clientes.find(c => c.id === this.data?.cita?.cliente_id);
+    if (cliente) {
+      return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
+    }
+    return '—';
+  }
+
+  getDisplayPaciente(): string {
+    const pacienteId = this.data?.cita?.paciente_id ?? this.citaForm.get('paciente_id')?.value;
+    const paciente = this.pacientes.find(p => p.id === pacienteId);
+    if (paciente?.nombre) {
+      return paciente.especie ? `${paciente.nombre} (${paciente.especie})` : paciente.nombre;
+    }
+    return 'Paciente no asignado';
+  }
+
+  getDisplayFecha(): string {
+    const raw = this.citaForm.get('fecha')?.value || this.data?.cita?.fecha;
+    if (!raw) {
+      return '—';
+    }
+    if (typeof raw === 'string' && raw.includes('T')) {
+      const [fecha] = raw.split('T');
+      const [y, m, d] = fecha.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    try {
+      const date = new Date(raw);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('es-MX');
+      }
+    } catch {
+      return String(raw);
+    }
+    return String(raw);
+  }
+
+  getDisplayEstado(): string {
+    const estado = this.getDisplayValue('estado');
+    if (estado === '—') {
+      return estado;
+    }
+    return estado.charAt(0).toUpperCase() + estado.slice(1);
   }
 
   ngOnInit() {

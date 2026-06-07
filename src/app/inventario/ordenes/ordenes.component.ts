@@ -12,6 +12,7 @@ import { RecibirOrdenDialogComponent } from './recibir-orden-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-ordenes',
@@ -38,6 +39,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   ordenes: OrdenCompra[] = [];
   proveedores: Map<string, Proveedor> = new Map();
   loading = true;
+  menuContext: OrdenCompra | null = null;
 
   // Filtros
   filtroEstado = 'todos';
@@ -114,8 +116,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   nuevaOrden(): void {
     const dialogRef = this.dialog.open(OrdenDialogComponent, {
-      width: '900px',
-      maxHeight: '90vh',
+      ...ADMIN_DIALOG_FORM,
       disableClose: true
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -125,8 +126,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   recibirOrden(orden: OrdenCompra): void {
     const dialogRef = this.dialog.open(RecibirOrdenDialogComponent, {
-      width: '800px',
-      maxHeight: '90vh',
+      ...ADMIN_DIALOG_CONFIG,
       disableClose: true,
       data: { orden }
     });

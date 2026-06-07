@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -6,7 +6,8 @@ import { PacientesService } from '../pacientes/pacientes.service';
 @Component({
   selector: 'app-seleccionar-cliente-recordatorio-dialog',
   templateUrl: './seleccionar-cliente-recordatorio-dialog.component.html',
-  styleUrls: ['./seleccionar-cliente-recordatorio-dialog.component.css']
+  styleUrls: ['./seleccionar-cliente-recordatorio-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SeleccionarClienteRecordatorioDialogComponent implements OnInit {
   clientes: any[] = [];

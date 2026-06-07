@@ -1,22 +1,15 @@
-<div class="citas-dia-dialog">
-  <!-- Header con gradiente moderno -->
-  <div class="dialog-header">
-    <div class="header-content">
-      <div class="header-icon">
-        <mat-icon>event</mat-icon>
-      </div>
-      <div class="header-text">
-        <h2>Citas del {{ data.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</h2>
-        <p class="header-subtitle">{{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{ data.citas.length !== 1 ? 's' : '' }}</p>
-      </div>
+<div class="admin-dialog-shell citas-dia-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Citas del {{ data.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</h2>
+      <p class="admin-dialog-subtitle">{{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{ data.citas.length !== 1 ? 's' : '' }}</p>
     </div>
-    <button mat-icon-button (click)="cerrar()" class="close-btn" matTooltip="Cerrar">
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" matTooltip="Cerrar" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <!-- Contenido del modal -->
-  <div class="dialog-content">
+  <div class="admin-dialog-body dialog-content">
     <div *ngIf="data.citas.length === 0" class="sin-citas">
       <div class="empty-icon">
         <mat-icon>event_busy</mat-icon>

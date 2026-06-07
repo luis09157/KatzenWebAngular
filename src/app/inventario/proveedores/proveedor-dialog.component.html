@@ -1,36 +1,38 @@
-<h2 mat-dialog-title>
-  <mat-icon>{{isEditing ? 'edit' : 'add'}}</mat-icon>
-  {{isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}}
-</h2>
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ isEditing ? 'Editar proveedor' : 'Nuevo proveedor' }}</h2>
+      <p class="admin-dialog-subtitle">Datos comerciales y contacto del proveedor.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
 
-<mat-dialog-content>
+  <mat-dialog-content class="admin-dialog-body">
   <form [formGroup]="proveedorForm" class="proveedor-form">
-    <!-- Información General -->
-    <div class="form-section">
-      <h3><mat-icon>business</mat-icon> Información General</h3>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Información general</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
           <mat-label>Razón Social *</mat-label>
           <input matInput formControlName="razon_social">
           <mat-error *ngIf="hasError('razon_social', 'required')">La razón social es requerida</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Nombre Comercial *</mat-label>
           <input matInput formControlName="nombre_comercial">
           <mat-error *ngIf="hasError('nombre_comercial', 'required')">El nombre comercial es requerido</mat-error>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>RFC</mat-label>
           <input matInput formControlName="rfc" [style.text-transform]="'uppercase'">
           <mat-error *ngIf="hasError('rfc', 'pattern')">RFC inválido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Calificación</mat-label>
           <mat-select formControlName="calificacion">
             <mat-option [value]="5">⭐⭐⭐⭐⭐ Excelente</mat-option>
@@ -41,34 +43,30 @@
           </mat-select>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Dirección -->
-    <div class="form-section">
-      <h3><mat-icon>location_on</mat-icon> Dirección</h3>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Dirección</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Dirección *</mat-label>
           <input matInput formControlName="direccion">
           <mat-error *ngIf="hasError('direccion', 'required')">La dirección es requerida</mat-error>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="third-width">
+        <mat-form-field appearance="outline">
           <mat-label>Ciudad *</mat-label>
           <input matInput formControlName="ciudad">
           <mat-error *ngIf="hasError('ciudad', 'required')">La ciudad es requerida</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="third-width">
+        <mat-form-field appearance="outline">
           <mat-label>Estado *</mat-label>
           <input matInput formControlName="estado">
           <mat-error *ngIf="hasError('estado', 'required')">El estado es requerido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="third-width">
+        <mat-form-field appearance="outline">
           <mat-label>Código Postal *</mat-label>
           <input matInput formControlName="codigo_postal" maxlength="5">
           <mat-error *ngIf="hasError('codigo_postal', 'required') || hasError('codigo_postal', 'pattern')">
@@ -76,21 +74,19 @@
           </mat-error>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Contacto -->
-    <div class="form-section">
-      <h3><mat-icon>contact_phone</mat-icon> Información de Contacto</h3>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Información de contacto</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
           <mat-label>Nombre del Contacto *</mat-label>
           <input matInput formControlName="contacto_nombre">
           <mat-icon matSuffix>person</mat-icon>
           <mat-error *ngIf="hasError('contacto_nombre', 'required')">El nombre es requerido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Teléfono *</mat-label>
           <input matInput formControlName="contacto_telefono" maxlength="10">
           <mat-icon matSuffix>phone</mat-icon>
@@ -98,10 +94,8 @@
             10 dígitos
           </mat-error>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Email *</mat-label>
           <input matInput formControlName="contacto_email" type="email">
           <mat-icon matSuffix>email</mat-icon>
@@ -110,14 +104,12 @@
           </mat-error>
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Productos y Condiciones -->
-    <div class="form-section">
-      <h3><mat-icon>inventory_2</mat-icon> Productos y Condiciones</h3>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+    <section class="form-section">
+      <h3 class="form-section__title">Productos y condiciones</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
           <mat-label>Productos que Suministra</mat-label>
           <mat-select multiple formControlName="productos_suministra">
             <mat-option *ngFor="let categoria of categoriasProductos" [value]="categoria">
@@ -125,24 +117,20 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Días de Entrega</mat-label>
           <input matInput formControlName="dias_entrega" type="number" min="1" max="180">
           <mat-icon matSuffix>local_shipping</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="half-width">
+        <mat-form-field appearance="outline">
           <mat-label>Condiciones de Pago</mat-label>
           <input matInput formControlName="condiciones_pago">
           <mat-icon matSuffix>payments</mat-icon>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline">
           <mat-label>Estado</mat-label>
           <mat-select formControlName="activo">
             <mat-option [value]="true">Activo</mat-option>
@@ -150,15 +138,16 @@
           </mat-select>
         </mat-form-field>
       </div>
-    </div>
+    </section>
   </form>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+  <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
   <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading || proveedorForm.invalid">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">{{isEditing ? 'save' : 'add'}}</mat-icon>
     {{loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear Proveedor')}}
   </button>
-</mat-dialog-actions>
+  </mat-dialog-actions>
+</div>

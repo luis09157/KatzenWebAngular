@@ -1,115 +1,118 @@
-<div class="usuario-dialog">
-  <!-- Header con gradiente moderno -->
-  <div class="dialog-header">
-    <div class="header-content">
-      <div class="header-icon">
-        <mat-icon>person_add</mat-icon>
-      </div>
-      <div class="header-text">
-        <h2 mat-dialog-title>{{ modoVer ? 'Detalle de Usuario' : (isEditMode ? 'Editar Usuario' : 'Nuevo Usuario') }}</h2>
-        <p class="header-subtitle">{{ modoVer ? 'Información del usuario' : (isEditMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema') }}</p>
-      </div>
+<div class="admin-dialog-shell usuario-dialog" [class.admin-dialog-shell--readonly]="modoVer">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de usuario' : (isEditMode ? 'Editar usuario' : 'Nuevo usuario') }}</h2>
+      <p class="admin-dialog-subtitle">{{ modoVer ? 'Consulta datos de acceso y perfil.' : (isEditMode ? 'Modifica datos y permisos del usuario.' : 'Registra una cuenta staff en el sistema.') }}</p>
     </div>
-    <button mat-icon-button (click)="cerrar()" class="close-btn" matTooltip="Cerrar">
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
-  </div>
+  </header>
 
-  <form [formGroup]="usuarioForm" (ngSubmit)="guardar()">
-    <mat-dialog-content>
-      <div class="form-container">
-        
-        <!-- Información Personal -->
-        <div class="form-section">
-          <h3>
-            <mat-icon>person</mat-icon>
-            Información Personal
-          </h3>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Nombre Completo</mat-label>
+  <ng-container *ngIf="modoVer">
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="admin-dialog-form admin-dialog-form--padded">
+        <div class="entity-summary">
+          <h3 class="entity-summary__name">{{ getDisplayValue('nombre') }}</h3>
+          <p class="entity-summary__meta">{{ getPerfilLabel() }}</p>
+          <span class="entity-status" [class.entity-status--inactive]="data?.usuario?.activo === false">
+            {{ getEstadoLabel() }}
+          </span>
+        </div>
+
+        <section class="detail-section">
+          <h4 class="detail-section__title">Datos de contacto</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-item__label">Correo</span>
+              <p class="detail-item__value">{{ getDisplayValue('correo') }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Teléfono</span>
+              <p class="detail-item__value">{{ getDisplayValue('telefono') }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Perfil</span>
+              <p class="detail-item__value">{{ getPerfilLabel() }}</p>
+            </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Estado</span>
+              <p class="detail-item__value">{{ getEstadoLabel() }}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button type="button" mat-button (click)="cerrar()">Cerrar</button>
+    </mat-dialog-actions>
+  </ng-container>
+
+  <form *ngIf="!modoVer" [formGroup]="usuarioForm" (ngSubmit)="guardar()">
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="admin-dialog-form admin-dialog-form--padded">
+        <section class="form-section">
+          <h3 class="form-section__title">Información personal</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre completo</mat-label>
               <input matInput formControlName="nombre" placeholder="Ej: Juan Pérez García" required />
-              <mat-icon matSuffix>person</mat-icon>
               <mat-error *ngIf="getFieldError('nombre')">{{ getFieldError('nombre') }}</mat-error>
             </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Correo Electrónico</mat-label>
+            <mat-form-field appearance="outline">
+              <mat-label>Correo electrónico</mat-label>
               <input matInput type="email" formControlName="correo" placeholder="Ej: usuario@katzen.mx" required />
-              <mat-icon matSuffix>email</mat-icon>
               <mat-error *ngIf="getFieldError('correo')">{{ getFieldError('correo') }}</mat-error>
             </mat-form-field>
-          </div>
-          
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
+            <mat-form-field appearance="outline">
               <mat-label>Teléfono</mat-label>
               <input matInput type="tel" formControlName="telefono" placeholder="Ej: 8181234567" required />
-              <mat-icon matSuffix>phone</mat-icon>
               <mat-error *ngIf="getFieldError('telefono')">{{ getFieldError('telefono') }}</mat-error>
             </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="form-field">
+            <mat-form-field appearance="outline">
               <mat-label>Perfil</mat-label>
               <mat-select formControlName="perfil" required>
-                <mat-option *ngFor="let perfil of perfiles" [value]="perfil.value">
-                  <mat-icon>{{ perfil.icon }}</mat-icon>
-                  {{ perfil.label }}
-                </mat-option>
+                <mat-option *ngFor="let perfil of perfiles" [value]="perfil.value">{{ perfil.label }}</mat-option>
               </mat-select>
-              <mat-icon matSuffix>work</mat-icon>
               <mat-error *ngIf="getFieldError('perfil')">{{ getFieldError('perfil') }}</mat-error>
             </mat-form-field>
           </div>
-        </div>
+        </section>
 
-        <!-- Acceso al sistema (solo alta) -->
-        <div class="form-section" *ngIf="!isEditMode && !modoVer">
-          <h3>
-            <mat-icon>lock</mat-icon>
-            Acceso al sistema
-          </h3>
+        <section class="form-section" *ngIf="!isEditMode">
+          <h3 class="form-section__title">Acceso al sistema</h3>
           <p class="section-hint">Se creará la cuenta en Firebase Auth y el perfil de acceso staff.</p>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="form-field">
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
               <mat-label>Contraseña temporal</mat-label>
               <input matInput type="password" formControlName="password" autocomplete="new-password" />
               <mat-hint>Mínimo 8 caracteres</mat-hint>
               <mat-error *ngIf="getFieldError('password')">{{ getFieldError('password') }}</mat-error>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="form-field">
+            <mat-form-field appearance="outline">
               <mat-label>Confirmar contraseña</mat-label>
               <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
               <mat-error *ngIf="getFieldError('confirmPassword')">{{ getFieldError('confirmPassword') }}</mat-error>
             </mat-form-field>
           </div>
-        </div>
+        </section>
 
-        <!-- Estado del Usuario -->
-        <div class="form-section" *ngIf="isEditMode">
-          <h3>
-            <mat-icon>settings</mat-icon>
-            Estado del Usuario
-          </h3>
-          <div class="form-row">
-            <mat-slide-toggle formControlName="activo" color="primary">
-              <span class="toggle-label">Usuario Activo</span>
-            </mat-slide-toggle>
-          </div>
-        </div>
-
+        <section class="form-section" *ngIf="isEditMode">
+          <h3 class="form-section__title">Estado del usuario</h3>
+          <mat-slide-toggle formControlName="activo" color="primary">
+            Usuario activo
+          </mat-slide-toggle>
+        </section>
       </div>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end" class="dialog-actions">
-      <button type="button" mat-button (click)="cerrar()" class="btn-cancel">
-        <mat-icon>close</mat-icon>
-        Cancelar
-      </button>
-      <button type="submit" mat-raised-button color="primary" [disabled]="usuarioForm.invalid" class="btn-save" *ngIf="!modoVer">
-        <mat-icon>{{ isEditMode ? 'save' : 'person_add' }}</mat-icon>
-        {{ isEditMode ? 'Actualizar' : 'Crear Usuario' }}
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button type="button" mat-button (click)="cerrar()">Cancelar</button>
+      <button type="submit" mat-raised-button color="primary" [disabled]="usuarioForm.invalid">
+        {{ isEditMode ? 'Actualizar' : 'Crear usuario' }}
       </button>
     </mat-dialog-actions>
   </form>
-</div> 
+</div>

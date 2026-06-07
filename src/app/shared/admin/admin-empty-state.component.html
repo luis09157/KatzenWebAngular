@@ -1,0 +1,15 @@
+<div class="admin-empty">
+  <mat-icon>{{ icon }}</mat-icon>
+  <h3>{{ title }}</h3>
+  <p *ngIf="message">{{ message }}</p>
+  <button
+    *ngIf="actionLabel"
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="actionDisabled"
+    (click)="action.emit()">
+    <mat-icon>add</mat-icon>
+    {{ actionLabel }}
+  </button>
+</div>

@@ -1,203 +1,120 @@
-<div class="citas-contenedor">
-  <!-- Dashboard de Estadísticas -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>event</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ dataSource.data.length }}</div>
-        <div class="stat-label">Total de Citas</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>schedule</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ getCitasPendientes() }}</div>
-        <div class="stat-label">Pendientes</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ getCitasConfirmadas() }}</div>
-        <div class="stat-label">Confirmadas</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <mat-icon>done_all</mat-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{{ getCitasCompletadas() }}</div>
-        <div class="stat-label">Completadas</div>
-      </div>
-    </div>
-  </div>
+<div class="admin-page citas-contenedor">
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="purple" icon="event" [value]="dataSource.data.length" label="Total citas" hint="En el sistema"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" icon="schedule" [value]="getCitasPendientes()" label="Pendientes" hint="Por confirmar"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" icon="check_circle" [value]="getCitasConfirmadas()" label="Confirmadas" hint="Agendadas"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" icon="done_all" [value]="getCitasCompletadas()" label="Completadas" hint="Atendidas"></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
-  <!-- Banner de Administración -->
-  <div class="admin-banner">
-    <div class="banner-content">
-      <div class="banner-icon">
-        <mat-icon>event</mat-icon>
-      </div>
-      <div class="banner-text">
-        <h2>Administración de Citas</h2>
-        <p>Gestiona todas las citas programadas en el sistema</p>
-      </div>
+  <app-admin-page-banner
+    accent="purple"
+    icon="event"
+    title="Administración de Citas"
+    subtitle="Programa, confirma y da seguimiento a las citas de consulta.">
+    <div bannerActions>
+      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalCita()">
+        <mat-icon>add</mat-icon>
+        Nueva cita
+      </button>
     </div>
-    <button mat-raised-button color="primary" (click)="abrirModalCita()">
-      <mat-icon>add</mat-icon>
-      Nueva Cita
-    </button>
-  </div>
+  </app-admin-page-banner>
 
-  <mat-card class="citas-card">
-    
-    <mat-form-field appearance="outline" class="buscador">
+  <app-admin-data-panel
+    accent="purple"
+    title="Listado de citas"
+    description="Busca por cliente, paciente, motivo o veterinario."
+    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + dataSource.data.length + ' totales') : ''"
+    [showLegend]="!loading && !!dataSource?.data?.length">
+
+    <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar cita</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" placeholder="Buscar por cliente, paciente, motivo, etc." />
-      <mat-icon matSuffix>search</mat-icon>
+      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Cliente, paciente, motivo..." />
+      <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
-    
-    <div class="tabla-contenedor">
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando citas...</p>
-      </div>
 
-      <div *ngIf="!loading && (!dataSource || dataSource.data.length === 0)" class="sin-citas">
-        <mat-icon>event_busy</mat-icon>
-        <h3>No hay citas</h3>
-        <p>No se han encontrado citas registradas.</p>
-        <button mat-raised-button color="primary" (click)="abrirModalCita()">
-          <mat-icon>add</mat-icon>
-          Crear primera cita
-        </button>
-      </div>
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando citas…</p>
+    </div>
 
-      <table *ngIf="!loading && dataSource && dataSource.data.length > 0" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        
-        <!-- Fecha y Hora -->
+    <app-admin-empty-state
+      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
+      icon="event_busy"
+      title="No hay citas"
+      message="No se han encontrado citas registradas."
+      actionLabel="Agregar primera cita"
+      (action)="abrirModalCita()">
+    </app-admin-empty-state>
+
+    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
+      <table mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="fecha_hora">
-          <th mat-header-cell *matHeaderCellDef>Fecha y Hora</th>
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let cita">
-            <div class="fecha-cell">
-              <mat-icon class="fecha-icon">event</mat-icon>
-              {{ getFechaFormateada(cita) }}
+            <span class="fecha-compact">{{ getFechaFormateada(cita) }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="consulta">
+          <th mat-header-cell *matHeaderCellDef>Consulta</th>
+          <td mat-cell *matCellDef="let cita">
+            <div class="cell-primary">
+              <strong>{{ cita.paciente || 'Paciente N/P' }}</strong>
+              <span class="cell-sub">{{ cita.cliente || 'Cliente N/P' }}</span>
             </div>
           </td>
         </ng-container>
 
-        <!-- Cliente -->
-        <ng-container matColumnDef="cliente">
-          <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let cita">
-            <div class="cliente-cell">
-              <mat-icon class="cliente-icon">person</mat-icon>
-              {{ cita.cliente ? cita.cliente : 'N/P' }}
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Paciente -->
-        <ng-container matColumnDef="paciente">
-          <th mat-header-cell *matHeaderCellDef>Paciente</th>
-          <td mat-cell *matCellDef="let cita">
-            <div class="paciente-cell">
-              <mat-icon class="paciente-icon">pets</mat-icon>
-              {{ cita.paciente ? cita.paciente : 'N/P' }}
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Motivo -->
         <ng-container matColumnDef="motivo">
           <th mat-header-cell *matHeaderCellDef>Motivo</th>
           <td mat-cell *matCellDef="let cita">
-            <div class="motivo-cell">
-              <mat-icon class="motivo-icon">medical_services</mat-icon>
-              {{ cita.motivo ? cita.motivo : 'N/P' }}
-            </div>
+            <span class="cell-sub" style="color:#3d5252">{{ cita.motivo || 'N/P' }}</span>
           </td>
         </ng-container>
 
-        <!-- Estado -->
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let cita">
-            <span class="estado-badge" [style.background-color]="getEstadoColor(cita.estado)">
-              {{ cita.estado ? cita.estado : 'N/P' }}
+            <span class="estado-badge" [ngClass]="cita.estado | adminEstadoClass">
+              {{ cita.estado || 'N/P' | titlecase }}
             </span>
           </td>
         </ng-container>
 
-        <!-- Veterinario -->
         <ng-container matColumnDef="veterinario">
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
           <td mat-cell *matCellDef="let cita">
-            <div class="veterinario-cell">
-              <mat-icon class="veterinario-icon">person_pin</mat-icon>
-              {{ cita.veterinario ? cita.veterinario : 'N/P' }}
-            </div>
+            <span class="tag tag-muted">{{ cita.veterinario || 'N/P' }}</span>
           </td>
         </ng-container>
 
-        <!-- Acciones -->
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef style="text-align: center;">Acciones</th>
-          <td mat-cell *matCellDef="let cita" style="text-align: center;">
-            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; width: 100%;">
-              <button mat-icon-button color="primary" (click)="verCita(cita)" matTooltip="Ver detalles" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">visibility</mat-icon>
-              </button>
-              <button mat-icon-button color="accent" (click)="editarCita(cita)" matTooltip="Editar" style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" 
-                      (click)="bajaLogicaCita(cita.id)" 
-                      matTooltip="Eliminar" 
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">delete</mat-icon>
-              </button>
-              <button *ngIf="cita.estado?.toLowerCase() === 'pendiente'" 
-                      mat-icon-button color="primary" 
-                      (click)="cambiarEstado(cita, 'confirmada')" 
-                      matTooltip="Confirmar cita" 
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">check</mat-icon>
-              </button>
-              <button *ngIf="cita.estado?.toLowerCase() === 'confirmada'" 
-                      mat-icon-button color="success" 
-                      (click)="cambiarEstado(cita, 'completada')" 
-                      matTooltip="Marcar como completada" 
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">done_all</mat-icon>
-              </button>
-              <button *ngIf="cita.estado?.toLowerCase() === 'completada'" 
-                      mat-icon-button color="accent" 
-                      (click)="cambiarEstado(cita, 'confirmada')" 
-                      matTooltip="Revertir a confirmada" 
-                      style="width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <mat-icon style="margin: 0; display: flex; align-items: center; justify-content: center;">undo</mat-icon>
-              </button>
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let cita">
+            <div class="row-actions hide-mobile">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verCita(cita)"><mat-icon>visibility</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCita(cita)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Más acciones" [matMenuTriggerFor]="citaMenu" (click)="menuContext = cita"><mat-icon>more_vert</mat-icon></button>
             </div>
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="citaMenu" (click)="menuContext = cita"><mat-icon>more_vert</mat-icon></button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-            class="cita-row"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
       </table>
-
-      <mat-paginator #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </div>
-  </mat-card>
+
+    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+  </app-admin-data-panel>
+
+  <mat-menu #citaMenu="matMenu">
+    <button mat-menu-item (click)="verCita(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="editarCita(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="bajaLogicaCita(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'pendiente'" (click)="cambiarEstado(menuContext, 'confirmada')"><mat-icon>check</mat-icon> Confirmar</button>
+    <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'confirmada'" (click)="cambiarEstado(menuContext, 'completada')"><mat-icon>done_all</mat-icon> Completar</button>
+    <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'completada'" (click)="cambiarEstado(menuContext, 'confirmada')"><mat-icon>undo</mat-icon> Revertir</button>
+  </mat-menu>
 </div>
