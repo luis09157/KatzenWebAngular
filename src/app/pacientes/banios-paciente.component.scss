@@ -1,0 +1,34 @@
+:host {
+  display: block;
+}
+
+:host-context(.admin-content) .tab-panel__toolbar--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+:host-context(.admin-content) .banios-tab__search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+  margin: 0 !important;
+}
+
+:host-context(.admin-content) .clinical-list__item--active {
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.1);
+}
+
+@media (max-width: 768px) {
+  :host-context(.admin-content) .tab-panel__toolbar--split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  :host-context(.admin-content) .banios-tab__search {
+    max-width: none;
+  }
+}

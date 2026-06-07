@@ -25,7 +25,7 @@ import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../
 @Component({
   selector: 'app-pacientes',
   templateUrl: './pacientes.component.html',
-  styleUrls: ['./pacientes.component.css']
+  styleUrls: ['./pacientes.component.scss']
 })
 export class PacientesComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();

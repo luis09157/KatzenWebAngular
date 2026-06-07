@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-banios-paciente',
   templateUrl: './banios-paciente.component.html',
-  styleUrls: ['./banios-paciente.component.css']
+  styleUrls: ['./banios-paciente.component.scss']
 })
 export class BaniosPacienteComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();

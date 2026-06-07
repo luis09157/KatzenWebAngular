@@ -44,6 +44,7 @@ import { PacienteDialogComponent } from './paciente-dialog.component';
 import { BaniosPacienteComponent } from './banios-paciente.component';
 import { RecordatoriosModule } from '../recordatorios/recordatorios.module';
 import { VacunasModule } from '../vacunas/vacunas.module';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -56,6 +57,7 @@ import { VacunasModule } from '../vacunas/vacunas.module';
     FormsModule,
     ReactiveFormsModule,
     PacientesRoutingModule,
+    SharedModule,
     RecordatoriosModule,
     VacunasModule,
     MatTableModule,
