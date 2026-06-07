@@ -23,6 +23,11 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
+    if (!(await this.authService.ensureActiveSession())) {
+      await this.router.navigate(['/admin/login']);
+      return false;
+    }
+
     await this.firebaseFunctions.syncMyClaims();
 
     const hasStaff = await this.authProfileService.hasStaffAccess();

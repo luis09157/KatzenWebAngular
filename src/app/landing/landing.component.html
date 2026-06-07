@@ -637,6 +637,13 @@
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password" [disabled]="portalLoading">
         </mat-form-field>
+        <mat-checkbox
+          class="portal-modal-remember"
+          [(ngModel)]="portalKeepSessionActive"
+          name="portalKeepSessionActive"
+          [disabled]="portalLoading">
+          Mantener sesión activa
+        </mat-checkbox>
         <button mat-flat-button color="primary" type="submit" class="full-width portal-modal-submit" [disabled]="portalLoading">
           Entrar al portal
         </button>

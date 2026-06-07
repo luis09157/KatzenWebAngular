@@ -450,6 +450,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   portalEmail = '';
   portalPassword = '';
+  portalKeepSessionActive = false;
   portalLoading = false;
 
   constructor(
@@ -688,7 +689,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.appCheck.ensureInitialized();
     this.portalLoading = true;
     try {
-      const result = await this.portalAuth.login(this.portalEmail, this.portalPassword);
+      const result = await this.portalAuth.login(this.portalEmail, this.portalPassword, this.portalKeepSessionActive);
       if (result === 'inactive') {
         Swal.fire({
           icon: 'warning',

@@ -1753,6 +1753,13 @@
   min-height: 48px;
 }
 
+.portal-modal-remember {
+  display: block;
+  margin: 4px 0 12px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
 .portal-modal-footer {
   padding: 12px 20px 20px;
   text-align: center;

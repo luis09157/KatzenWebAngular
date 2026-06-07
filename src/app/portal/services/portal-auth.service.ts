@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AuthService } from '../../auth/auth.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
@@ -12,7 +11,6 @@ export type PortalLoginResult = 'client' | 'staff' | 'none' | 'inactive';
 @Injectable({ providedIn: 'root' })
 export class PortalAuthService {
   constructor(
-    private afAuth: AngularFireAuth,
     private authService: AuthService,
     private authProfileService: AuthProfileService,
     private firebaseFunctions: FirebaseFunctionsService,
@@ -20,8 +18,8 @@ export class PortalAuthService {
     private router: Router
   ) {}
 
-  async login(email: string, password: string): Promise<PortalLoginResult> {
-    await this.authService.login(email, password);
+  async login(email: string, password: string, rememberSession = false): Promise<PortalLoginResult> {
+    await this.authService.login(email, password, rememberSession);
     await this.firebaseFunctions.syncMyClaims();
 
     if (await this.authProfileService.hasClientAccess()) {
@@ -43,7 +41,7 @@ export class PortalAuthService {
   }
 
   async logout(): Promise<void> {
-    await this.afAuth.signOut();
+    await this.authService.signOutOnly();
     await this.router.navigate(['/']);
   }
 

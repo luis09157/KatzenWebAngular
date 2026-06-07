@@ -1092,6 +1092,13 @@
   border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
+.portal-login-remember {
+  display: block;
+  margin: 4px 0 12px;
+  font-size: 0.875rem;
+  color: var(--portal-muted);
+}
+
 .m3-body {
   font-size: 0.9375rem;
   line-height: 1.6;

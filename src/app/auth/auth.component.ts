@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 export class AuthComponent implements OnInit {
   email = '';
   password = '';
+  keepSessionActive = false;
   loading = false;
 
   constructor(
@@ -42,7 +43,7 @@ export class AuthComponent implements OnInit {
     }
     this.loading = true;
     try {
-      await this.authService.login(this.email, this.password);
+      await this.authService.login(this.email, this.password, this.keepSessionActive);
       await this.firebaseFunctions.syncMyClaims();
       const hasStaff = await this.authProfileService.hasStaffAccess();
       if (!hasStaff) {

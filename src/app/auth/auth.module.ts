@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { RouterModule } from '@angular/router';
 
 
@@ -29,6 +30,7 @@ import { RouterModule } from '@angular/router';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
     MatDividerModule,
     RouterModule
   ]

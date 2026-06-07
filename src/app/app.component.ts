@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LoggerService } from './core/logger.service';
 import { LoadingService } from './core/loading.service';
+import { AuthService } from './auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -12,10 +13,11 @@ export class AppComponent implements OnInit {
 
   constructor(
     private logger: LoggerService,
-    public globalLoading: LoadingService
+    public globalLoading: LoadingService,
+    private authService: AuthService
   ) {}
 
-  ngOnInit(): void {
-    // App Check / reCAPTCHA solo en pantallas de login (ver AppCheckService)
+  async ngOnInit(): Promise<void> {
+    await this.authService.ensureActiveSession();
   }
 }

@@ -159,6 +159,12 @@
   height: 20px;
 }
 
+.admin-auth-remember {
+  margin: 4px 0 8px;
+  font-size: 0.875rem;
+  color: #3d5252;
+}
+
 .admin-auth-links {
   display: flex;
   justify-content: center;

@@ -17,6 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRippleModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 // Landing Component
 import { LandingComponent } from './landing.component';
@@ -44,7 +45,8 @@ import { LandingComponent } from './landing.component';
     MatSelectModule,
     MatRippleModule,
     MatBadgeModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule
   ],
   exports: [
     LandingComponent

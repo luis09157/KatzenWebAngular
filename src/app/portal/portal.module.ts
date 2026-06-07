@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -53,6 +54,7 @@ import { PortalPerfilComponent } from './perfil/portal-perfil.component';
     MatListModule,
     MatMenuModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
     MatTabsModule,
     MatToolbarModule
   ]

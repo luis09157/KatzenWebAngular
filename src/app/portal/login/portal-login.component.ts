@@ -13,6 +13,7 @@ import Swal from 'sweetalert2';
 export class PortalLoginComponent implements OnInit {
   email = '';
   password = '';
+  keepSessionActive = false;
   loading = false;
   checkingSession = true;
   activeSession: PortalSession | null = null;
@@ -45,7 +46,7 @@ export class PortalLoginComponent implements OnInit {
 
     this.loading = true;
     try {
-      const result = await this.portalAuth.login(email, this.password);
+      const result = await this.portalAuth.login(email, this.password, this.keepSessionActive);
       if (result === 'inactive') {
         Swal.fire({
           icon: 'warning',
