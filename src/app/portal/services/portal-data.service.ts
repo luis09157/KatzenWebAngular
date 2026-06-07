@@ -11,6 +11,7 @@ import {
   mapNotificacion,
   mapVacuna
 } from '../utils/portal-mapper.util';
+import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
 
 @Injectable({ providedIn: 'root' })
 export class PortalDataService {
@@ -24,15 +25,34 @@ export class PortalDataService {
   }
 
   async getMascotasActivas(clienteId: string) {
-    const snap = await firstValueFrom(
-      this.db.list('Katzen/Mascota', ref =>
-        ref.orderByChild('idCliente').equalTo(clienteId)
-      ).snapshotChanges().pipe(take(1))
-    );
+    const [byIdCliente, byClienteId] = await Promise.all([
+      firstValueFrom(
+        this.db.list('Katzen/Mascota', ref =>
+          ref.orderByChild('idCliente').equalTo(clienteId)
+        ).snapshotChanges().pipe(take(1))
+      ),
+      firstValueFrom(
+        this.db.list('Katzen/Mascota', ref =>
+          ref.orderByChild('cliente_id').equalTo(clienteId)
+        ).snapshotChanges().pipe(take(1))
+      )
+    ]);
 
-    return snap
-      .map(a => mapMascota(a.key!, a.payload.val() as Record<string, unknown>))
-      .filter(m => m.activo);
+    const seen = new Set<string>();
+    const mascotas = [];
+
+    for (const snap of [...byIdCliente, ...byClienteId]) {
+      if (!snap.key || seen.has(snap.key)) {
+        continue;
+      }
+      seen.add(snap.key);
+      const mapped = mapMascota(snap.key, snap.payload.val() as Record<string, unknown>);
+      if (mapped.activo) {
+        mascotas.push(mapped);
+      }
+    }
+
+    return mascotas;
   }
 
   async getMascota(mascotaId: string) {
@@ -46,7 +66,7 @@ export class PortalDataService {
 
   async getMascotaForCliente(mascotaId: string, clienteId: string) {
     const mascota = await this.getMascota(mascotaId);
-    if (!mascota || String(mascota.idCliente) !== String(clienteId)) {
+    if (!mascota || !pacientePerteneceACliente(mascota as { cliente_id?: string; idCliente?: string }, clienteId)) {
       return null;
     }
     return mascota;

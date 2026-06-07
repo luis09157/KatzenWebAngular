@@ -21,7 +21,9 @@ export class AdminModuleCardComponent {
     if (!this.route) {
       return;
     }
-    const slug = this.route.replace(/^\/admin\//, '').replace(/^\//, '');
-    this.router.navigate(['/admin', slug]);
+    const normalized = this.route.startsWith('/admin/')
+      ? this.route
+      : `/admin/${this.route.replace(/^\//, '')}`;
+    void this.router.navigateByUrl(normalized);
   }
 }

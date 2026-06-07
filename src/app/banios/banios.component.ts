@@ -15,6 +15,7 @@ import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { Banio } from '../shared/banio.model';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
 import { exportToCsv } from '../core/utils/csv-export.util';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
@@ -53,7 +54,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
     private usuariosService: UsuariosService,
     private dialog: MatDialog,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -89,21 +91,47 @@ export class BaniosComponent implements OnInit, OnDestroy {
   }
 
   cargarDatosIniciales() {
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
-      (clientes || []).forEach((c: { id: string; nombre?: string; nombreCliente?: string }) => {
-        this.clientesMap[c.id] = c.nombre || c.nombreCliente || 'N/P';
-      });
-      this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
-        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        (clientes || []).forEach((c: { id: string; nombre?: string; nombreCliente?: string }) => {
+          this.clientesMap[c.id] = c.nombre || c.nombreCliente || 'N/P';
         });
-        this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe(usuarios => {
-          (usuarios || []).forEach((u: { id: string; nombre?: string }) => {
-            this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
-          });
-          this.cargarBanios();
+        this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+          next: pacientes => {
+            (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+              this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+            });
+            this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
+              next: usuarios => {
+                (usuarios || []).forEach((u: { id: string; nombre?: string }) => {
+                  this.usuariosMap[u.id] = u.nombre ? u.nombre : 'N/P';
+                });
+                this.cargarBanios();
+              },
+              error: error => this.handleLoadError(error, () => this.cargarDatosIniciales())
+            });
+          },
+          error: error => this.handleLoadError(error, () => this.cargarDatosIniciales())
         });
-      });
+      },
+      error: error => this.handleLoadError(error, () => this.cargarDatosIniciales())
+    });
+  }
+
+  private handleLoadError(error: unknown, retry: () => void): void {
+    this.logger.error('Error al cargar datos de baños:', error);
+    this.loading = false;
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: this.errorMessages.getUserMessage(error, 'cargar banios'),
+      showCancelButton: true,
+      confirmButtonText: 'Reintentar',
+      cancelButtonText: 'Cerrar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        retry();
+      }
     });
   }
 
@@ -134,11 +162,24 @@ export class BaniosComponent implements OnInit, OnDestroy {
         } catch (error) {
           this.logger.error('❌ Error al procesar datos de baños:', error);
           this.loading = false;
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar banios'), 'error');
         }
       },
       error: (error) => {
         this.logger.error('❌ Error al cargar baños:', error);
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: this.errorMessages.getUserMessage(error, 'cargar banios'),
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.cargarBanios();
+          }
+        });
       }
     });
   }
@@ -339,7 +380,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
           .catch(error => {
             this.logger.error('Error al dar de baja baño:', error);
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja el baño', 'error'), 0);
+            setTimeout(() => Swal.fire('Error', this.errorMessages.getUserMessage(error, 'eliminar banio'), 'error'), 0);
           });
       }
     });
@@ -358,7 +399,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
       .catch(error => {
         this.logger.error('Error al cambiar estado:', error);
         this.loadingService.hide();
-        setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el estado', 'error'), 0);
+        setTimeout(() => Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cambiar estado banio'), 'error'), 0);
       });
   }
 

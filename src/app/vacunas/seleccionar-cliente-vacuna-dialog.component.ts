@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -75,7 +76,7 @@ export class SeleccionarClienteVacunaDialogComponent implements OnInit {
         console.log('📋 Pacientes recibidos:', pacientes);
         // Filtrar solo pacientes activos (no fallecidos) para vacunas
         this.pacientes = (pacientes || []).filter(p => 
-          p.idCliente === clienteId && 
+          pacientePerteneceACliente(p, clienteId) && 
           p.activo !== false && 
           p.estado !== 'Fallecido' && 
           p.estado !== 'fallecido'

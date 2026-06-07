@@ -54,56 +54,81 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private cargarCitas(): void {
     this.loading = true;
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe(clientes => {
-      (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
-        this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
-      });
-      this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
-        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
+          this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
         });
-        this.citasService.getCitas().pipe(takeUntil(this.destroy$)).subscribe(citas => {
-          const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
-          this.dataSource.data = citasFiltradas
-            .filter(c => c.activo !== false)
-            .map(cita => ({
-              ...cita,
-              cliente: this.clientesMap[cita.cliente_id] || 'N/P',
-              paciente: this.pacientesMap[cita.paciente_id] || 'N/P'
-            }))
-            .sort((a, b) => {
-              const estadoA = (a.estado || '').toLowerCase();
-              const estadoB = (b.estado || '').toLowerCase();
-              const prioridadEstados: Record<string, number> = {
-                'pendiente': 4,
-                'confirmada': 3,
-                'completada': 2,
-                'cancelada': 1
-              };
-              const prioridadA = prioridadEstados[estadoA] || 0;
-              const prioridadB = prioridadEstados[estadoB] || 0;
-              if (prioridadA !== prioridadB) {
-                return prioridadB - prioridadA;
-              }
-              const fechaA = new Date(a.fecha || a.fecha_hora || 0);
-              const fechaB = new Date(b.fecha || b.fecha_hora || 0);
-              return fechaA.getTime() - fechaB.getTime();
+        this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+          next: pacientes => {
+            (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+              this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
             });
-          // Configurar ordenamiento por defecto
-          if (this.sort) {
-            this.dataSource.sort = this.sort;
-            this.sort.sort({
-              id: 'fecha_hora',
-              start: 'desc',
-              disableClear: false
+            this.citasService.getCitas().pipe(takeUntil(this.destroy$)).subscribe({
+              next: citas => {
+                const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
+                this.dataSource.data = citasFiltradas
+                  .filter(c => c.activo !== false)
+                  .map(cita => ({
+                    ...cita,
+                    cliente: this.clientesMap[cita.cliente_id] || 'N/P',
+                    paciente: this.pacientesMap[cita.paciente_id] || 'N/P'
+                  }))
+                  .sort((a, b) => {
+                    const estadoA = (a.estado || '').toLowerCase();
+                    const estadoB = (b.estado || '').toLowerCase();
+                    const prioridadEstados: Record<string, number> = {
+                      'pendiente': 4,
+                      'confirmada': 3,
+                      'completada': 2,
+                      'cancelada': 1
+                    };
+                    const prioridadA = prioridadEstados[estadoA] || 0;
+                    const prioridadB = prioridadEstados[estadoB] || 0;
+                    if (prioridadA !== prioridadB) {
+                      return prioridadB - prioridadA;
+                    }
+                    const fechaA = new Date(a.fecha || a.fecha_hora || 0);
+                    const fechaB = new Date(b.fecha || b.fecha_hora || 0);
+                    return fechaA.getTime() - fechaB.getTime();
+                  });
+                if (this.sort) {
+                  this.dataSource.sort = this.sort;
+                  this.sort.sort({
+                    id: 'fecha_hora',
+                    start: 'desc',
+                    disableClear: false
+                  });
+                }
+                this.loading = false;
+                setTimeout(() => {
+                  if (this.paginator) this.dataSource.paginator = this.paginator;
+                }, 0);
+              },
+              error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
             });
-          }
-          this.loading = false;
-          setTimeout(() => {
-            if (this.paginator) this.dataSource.paginator = this.paginator;
-          }, 0);
+          },
+          error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
         });
-      });
+      },
+      error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
+    });
+  }
+
+  private handleLoadError(error: unknown, context: string, retry: () => void): void {
+    this.logger.error(`Error al cargar citas (${context}):`, error);
+    this.loading = false;
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: this.errorMessages.getUserMessage(error, context),
+      showCancelButton: true,
+      confirmButtonText: 'Reintentar',
+      cancelButtonText: 'Cerrar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        retry();
+      }
     });
   }
 
@@ -229,7 +254,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           title: 'Error',
-          text: 'No se pudo cambiar el estado de la cita',
+          text: this.errorMessages.getUserMessage(error, 'cambiar estado cita'),
           icon: 'error'
         }), 0);
       });
@@ -329,7 +354,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
             this.loadingService.hide();
             setTimeout(() => Swal.fire({
               title: 'Error',
-              text: 'No se pudo eliminar la cita. Inténtalo de nuevo.',
+              text: this.errorMessages.getUserMessage(error, 'eliminar cita'),
               icon: 'error'
             }), 0);
           });

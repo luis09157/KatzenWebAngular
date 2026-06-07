@@ -2,6 +2,8 @@ import { Component, Inject, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-seleccionar-cliente-recordatorio-dialog',
@@ -46,6 +48,12 @@ export class SeleccionarClienteRecordatorioDialogComponent implements OnInit {
         this.clientes = [];
         this.clientesFiltrados = [];
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar clientes',
+          text: 'No se pudieron cargar los clientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }
@@ -58,7 +66,7 @@ export class SeleccionarClienteRecordatorioDialogComponent implements OnInit {
         console.log('📋 Pacientes recibidos:', pacientes);
         // Filtrar solo pacientes activos (no fallecidos) para recordatorios
         this.pacientes = (pacientes || []).filter(p => 
-          p.idCliente === clienteId && 
+          pacientePerteneceACliente(p, clienteId) && 
           p.activo !== false && 
           p.estado !== 'Fallecido' && 
           p.estado !== 'fallecido'
@@ -70,6 +78,12 @@ export class SeleccionarClienteRecordatorioDialogComponent implements OnInit {
         console.error('❌ Error al cargar pacientes:', error);
         this.pacientes = [];
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar pacientes',
+          text: 'No se pudieron cargar los pacientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }

@@ -13,6 +13,7 @@ import { Subject, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
@@ -39,7 +40,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     private migrationService: MigrationService,
     private dialog: MatDialog,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -173,6 +175,11 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           this.logger.error('Error al cargar estadísticas:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: this.errorMessages.getUserMessage(error, 'cargar estadisticas historiales')
+          });
         }
       });
   }

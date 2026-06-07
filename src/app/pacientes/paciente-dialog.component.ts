@@ -1,6 +1,7 @@
 import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
 
 @Component({
   selector: 'app-paciente-dialog',
@@ -27,7 +28,7 @@ export class PacienteDialogComponent {
       edad: [data.paciente?.edad || ''],
       color: [data.paciente?.color || ''],
       peso: [data.paciente?.peso || ''],
-      idCliente: [data.paciente?.idCliente || ''],
+      idCliente: [getPacienteClienteId(data.paciente)],
       nombreCliente: [data.paciente?.nombreCliente || ''],
       imageUrl: [data.paciente?.imageUrl || '']
     });

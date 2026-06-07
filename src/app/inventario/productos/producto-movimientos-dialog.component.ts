@@ -2,6 +2,8 @@ import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Movimiento, Producto } from '../../shared/inventario.models';
+import Swal from 'sweetalert2';
+import { ErrorMessagesService } from '../../core/error-messages.service';
 
 @Component({
   selector: 'app-producto-movimientos-dialog',
@@ -36,13 +38,13 @@ export class ProductoMovimientosDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { producto: Producto },
     private dialogRef: MatDialogRef<ProductoMovimientosDialogComponent>,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private errorMessages: ErrorMessagesService
   ) {
     this.producto = data.producto;
   }
 
   ngOnInit(): void {
-    console.log('🔍 Cargando movimientos para:', this.producto.nombre);
     this.cargarMovimientos();
   }
 
@@ -53,12 +55,12 @@ export class ProductoMovimientosDialogComponent implements OnInit {
     this.inventarioService.getMovimientosPorProducto(this.producto.id).subscribe({
       next: (movimientos) => {
         this.movimientos = movimientos;
-        console.log('✅ Movimientos cargados:', movimientos.length);
         this.loading = false;
       },
       error: (error) => {
-        console.error('❌ Error al cargar movimientos:', error);
+        this.movimientos = [];
         this.loading = false;
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar movimientos producto'), 'error');
       }
     });
   }

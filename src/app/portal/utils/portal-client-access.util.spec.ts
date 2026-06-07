@@ -46,6 +46,10 @@ describe('portal-client-access.util', () => {
       expect(mascotaPerteneceACliente({ idCliente: 'abc' }, 'abc')).toBeTrue();
     });
 
+    it('matches cliente_id field', () => {
+      expect(mascotaPerteneceACliente({ cliente_id: 'abc' }, 'abc')).toBeTrue();
+    });
+
     it('rejects different cliente id', () => {
       expect(mascotaPerteneceACliente({ idCliente: 'abc' }, 'xyz')).toBeFalse();
     });

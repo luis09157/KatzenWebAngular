@@ -502,7 +502,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
       
       // Crear un Set de IDs de clientes que tienen pacientes
       const clientesConPacientesSet = new Set(
-        pacientesData.map(paciente => paciente.idCliente).filter(id => id)
+        pacientesData.map(paciente => paciente.cliente_id || paciente.idCliente).filter(id => id)
       );
       
       // Encontrar clientes que NO tienen pacientes
@@ -532,7 +532,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.saving = false;
       },
-      error: () => { this.saving = false; this.loadingService.hide(); }
+      error: (error) => {
+        this.logger.error('Error al buscar clientes sin pacientes:', error);
+        this.loadingService.hide();
+        this.saving = false;
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
+      }
     });
   }
 

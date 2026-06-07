@@ -79,16 +79,12 @@ export class RecordatoriosService {
       fecha_creacion: timestamp,
       activo: true
     };
-
-    console.log('Intentando crear recordatorio:', nuevoRecordatorio);
     
     try {
       const ref = await this.db.list('Katzen/Recordatorios').push(nuevoRecordatorio);
       await stampRtdbIdAfterPush(this.db, 'Katzen/Recordatorios', ref.key);
-      console.log('Recordatorio creado exitosamente con ID:', ref.key);
       return ref;
     } catch (error) {
-      console.error('Error al crear recordatorio en Firebase:', error);
       throw error;
     }
   }

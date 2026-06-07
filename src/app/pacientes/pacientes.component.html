@@ -38,7 +38,7 @@
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPaciente" (optionSelected)="seleccionarPaciente($event.option.value)">
               <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
                 <span class="search-option__pet">{{ paciente.nombre }}</span>
-                <span class="search-option__owner">— {{ getClienteNombre(paciente.idCliente) }}</span>
+                <span class="search-option__owner">— {{ getClienteNombre(getPacienteClienteId(paciente)) }}</span>
               </mat-option>
               <mat-option *ngIf="pacientesFiltrados.length === 0 && searchTerm" disabled>
                 No se encontró ningún paciente con ese criterio.
@@ -104,8 +104,8 @@
           <div class="patient-card__owner">
             <span class="patient-card__owner-label">Dueño</span>
             <strong>{{ getClienteNombreFromPaciente(pacienteSeleccionado) }}</strong>
-            <span *ngIf="getClienteTelefono(pacienteSeleccionado.idCliente)">{{ getClienteTelefono(pacienteSeleccionado.idCliente) }}</span>
-            <span *ngIf="getClienteEmail(pacienteSeleccionado.idCliente)">{{ getClienteEmail(pacienteSeleccionado.idCliente) }}</span>
+            <span *ngIf="getClienteTelefono(getPacienteClienteId(pacienteSeleccionado))">{{ getClienteTelefono(getPacienteClienteId(pacienteSeleccionado)) }}</span>
+            <span *ngIf="getClienteEmail(getPacienteClienteId(pacienteSeleccionado))">{{ getClienteEmail(getPacienteClienteId(pacienteSeleccionado)) }}</span>
           </div>
         </div>
       </aside>

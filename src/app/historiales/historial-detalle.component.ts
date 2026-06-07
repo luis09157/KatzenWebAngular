@@ -5,6 +5,9 @@ import { takeUntil } from 'rxjs/operators';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { LoggerService } from '../core/logger.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-historial-detalle',
@@ -23,7 +26,8 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit() {
@@ -36,21 +40,37 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
   }
 
   cargarInformacion() {
-    if (this.data.paciente_id) {
-      this.pacientesService.getPaciente(this.data.paciente_id).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
+    if (!this.data.paciente_id) {
+      this.loading = false;
+      return;
+    }
+
+    this.pacientesService.getPaciente(this.data.paciente_id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: paciente => {
         this.pacienteInfo = paciente;
-        this.loading = false;
-        if (paciente && (paciente.idCliente || paciente.cliente_id)) {
-          const clienteId = paciente.idCliente || paciente.cliente_id;
-          this.clientesService.getCliente(clienteId).pipe(takeUntil(this.destroy$)).subscribe(cliente => {
+        const clienteId = getPacienteClienteId(paciente);
+        if (!clienteId) {
+          this.loading = false;
+          return;
+        }
+        this.clientesService.getCliente(clienteId).pipe(takeUntil(this.destroy$)).subscribe({
+          next: cliente => {
             this.clienteInfo = cliente;
             this.loading = false;
-          });
-        }
-      });
-    } else {
-      this.loading = false;
-    }
+          },
+          error: error => {
+            this.logger.error('Error al cargar cliente del historial:', error);
+            this.loading = false;
+            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
+          }
+        });
+      },
+      error: error => {
+        this.logger.error('Error al cargar paciente del historial:', error);
+        this.loading = false;
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar historial detalle'), 'error');
+      }
+    });
   }
 
   cerrar() {
@@ -172,8 +192,8 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
       // Abrir el archivo en una nueva pestaña del navegador
       window.open(urlArchivo, '_blank');
     } catch (error) {
-      console.error('Error al abrir archivo:', error);
-      alert('No se pudo abrir el archivo. Inténtalo de nuevo.');
+      this.logger.error('Error al abrir archivo:', error);
+      Swal.fire('Error', 'No se pudo abrir el archivo. Inténtalo de nuevo.', 'error');
     }
   }
 
@@ -192,8 +212,8 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Error al descargar archivo:', error);
-      alert('No se pudo descargar el archivo. Inténtalo de nuevo.');
+      this.logger.error('Error al descargar archivo:', error);
+      Swal.fire('Error', 'No se pudo descargar el archivo. Inténtalo de nuevo.', 'error');
     }
   }
 

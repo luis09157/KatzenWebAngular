@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-seleccionar-cliente-dialog',
@@ -50,6 +50,12 @@ export class SeleccionarClienteDialogComponent implements OnInit {
         this.clientes = [];
         this.clientesFiltrados = [];
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar clientes',
+          text: 'No se pudieron cargar los clientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }
@@ -61,7 +67,7 @@ export class SeleccionarClienteDialogComponent implements OnInit {
       next: (pacientes) => {
         console.log('📋 Pacientes recibidos:', pacientes);
         // Mostrar todos los pacientes del cliente (vivos y fallecidos)
-        this.pacientes = (pacientes || []).filter(p => p.idCliente === clienteId);
+        this.pacientes = (pacientes || []).filter(p => pacientePerteneceACliente(p, clienteId));
         console.log('✅ Pacientes cargados para cliente', clienteId, ':', this.pacientes.length);
         this.loading = false;
       },
@@ -69,6 +75,12 @@ export class SeleccionarClienteDialogComponent implements OnInit {
         console.error('❌ Error al cargar pacientes:', error);
         this.pacientes = [];
         this.loading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar pacientes',
+          text: 'No se pudieron cargar los pacientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }

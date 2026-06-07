@@ -1,5 +1,7 @@
 /** Validaciones de acceso al portal de clientes. */
 
+import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
+
 export const PORTAL_LOAD_ERROR =
   'No pudimos cargar tu información. Intenta de nuevo o contacta a la clínica.';
 
@@ -21,9 +23,8 @@ export function isPortalClienteActive(
 }
 
 export function mascotaPerteneceACliente(
-  mascota: { idCliente?: string } | null | undefined,
+  mascota: { idCliente?: string; cliente_id?: string } | null | undefined,
   clienteId: string
 ): boolean {
-  if (!mascota?.idCliente || !clienteId) return false;
-  return String(mascota.idCliente) === String(clienteId);
+  return pacientePerteneceACliente(mascota, clienteId);
 }

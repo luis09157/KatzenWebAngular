@@ -61,16 +61,18 @@ export class OrdenDialogComponent implements OnInit {
         this.proveedores = proveedores.filter(p => p.activo);
         console.log('✅ Proveedores cargados:', proveedores.length);
       },
-      error: (error) => console.error('❌ Error al cargar proveedores:', error)
+      error: (error) => {
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar proveedores orden'), 'error');
+      }
     });
 
-    // Cargar productos
     this.inventarioService.getProductos().subscribe({
       next: (productos) => {
         this.productos = productos.filter(p => p.activo);
-        console.log('✅ Productos cargados:', productos.length);
       },
-      error: (error) => console.error('❌ Error al cargar productos:', error)
+      error: (error) => {
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar productos orden'), 'error');
+      }
     });
   }
 

@@ -60,7 +60,9 @@ export class RecibirOrdenDialogComponent implements OnInit {
 
         console.log('✅ Productos cargados para recepción');
       },
-      error: (error) => console.error('❌ Error al cargar productos:', error)
+      error: (error) => {
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar productos orden'), 'error');
+      }
     });
   }
 

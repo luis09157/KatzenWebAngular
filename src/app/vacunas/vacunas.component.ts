@@ -46,11 +46,28 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe(pacientes => {
-      (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-        this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
-      });
-      this.cargarVacunas();
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: pacientes => {
+        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+        });
+        this.cargarVacunas();
+      },
+      error: error => {
+        this.logger.error('Error al cargar pacientes para vacunas:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: this.errorMessages.getUserMessage(error, 'cargar datos'),
+          showCancelButton: true,
+          confirmButtonText: 'Reintentar',
+          cancelButtonText: 'Cerrar'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.ngOnInit();
+          }
+        });
+      }
     });
   }
 

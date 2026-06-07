@@ -63,11 +63,17 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
   cargarDatos(): void {
     this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => { this.productos = productos; },
-      error: (error) => { this.logger.error('Error al cargar productos:', error); }
+      error: (error) => {
+        this.logger.error('Error al cargar productos:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
+      }
     });
     this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (proveedores) => { this.proveedores = proveedores; },
-      error: (error) => { this.logger.error('Error al cargar proveedores:', error); }
+      error: (error) => {
+        this.logger.error('Error al cargar proveedores:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
+      }
     });
   }
 
@@ -87,7 +93,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
   }
 
   onProductoSeleccionado(producto: Producto): void {
-    console.log('🔍 Producto seleccionado:', producto.nombre);
     this.productoSeleccionado = producto;
     this.entradaForm.patchValue({
       producto_id: producto.id,
@@ -113,9 +118,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
 
     try {
       const formData = this.entradaForm.value;
-      
-      console.log('🔄 Registrando entrada de producto...');
-      console.log('Datos:', formData);
 
       await this.inventarioService.registrarEntrada(
         formData.producto_id,
@@ -125,8 +127,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
         undefined, // orden_compra_id
         formData.observaciones
       );
-
-      console.log('✅ Entrada registrada exitosamente');
 
       Swal.fire({
         icon: 'success',

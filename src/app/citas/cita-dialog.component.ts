@@ -8,6 +8,10 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { LoadingService } from '../core/loading.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoggerService } from '../core/logger.service';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -78,7 +82,9 @@ export class CitaDialogComponent implements OnInit {
     private pacientesService: PacientesService,
     private usuariosService: UsuariosService,
     private dateAdapter: DateAdapter<any>,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {
     this.modoVer = data.modoVer;
     
@@ -86,16 +92,6 @@ export class CitaDialogComponent implements OnInit {
     let fecha = '';
     let hora = '';
     
-    console.log('🔍 Datos de cita recibidos:', data.cita);
-    console.log('🔍 Campos específicos:', {
-      fecha: data.cita?.fecha,
-      fecha_hora: data.cita?.fecha_hora,
-      hora: data.cita?.hora,
-      tipo_fecha: typeof data.cita?.fecha,
-      tipo_fecha_hora: typeof data.cita?.fecha_hora
-    });
-    
-    // Método para procesar fecha correctamente
     const procesarFecha = (fechaString: string) => {
       try {
         // Si es un string con formato ISO, extraer la fecha sin conversión de zona horaria
@@ -119,7 +115,7 @@ export class CitaDialogComponent implements OnInit {
           };
         }
       } catch (error) {
-        console.error('Error procesando fecha:', error);
+        this.logger.error('Error procesando fecha de cita:', error);
         return { fecha: '', hora: '' };
       }
     };
@@ -130,12 +126,10 @@ export class CitaDialogComponent implements OnInit {
       fecha = resultado.fecha;
       // Usar la hora del campo 'hora' si está disponible, sino usar la del resultado
       hora = data.cita.hora || resultado.hora;
-      console.log('📅 Constructor: Usando campo fecha:', fecha, hora);
     } else if (data.cita?.fecha_hora) {
       const resultado = procesarFecha(data.cita.fecha_hora);
       fecha = resultado.fecha;
       hora = resultado.hora;
-      console.log('📅 Constructor: Usando campo fecha_hora:', fecha, hora);
     }
     
     this.citaForm = this.fb.group({
@@ -226,35 +220,46 @@ export class CitaDialogComponent implements OnInit {
   }
 
   cargarClientes() {
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.clientes = clientes || [];
-      console.log('👥 Clientes cargados:', this.clientes.length);
-      // Si hay datos de cita y pacientes cargados, establecer valores
-      if (this.data.cita && this.pacientes.length > 0) {
-        console.log('🔄 Intentando establecer valores después de cargar clientes');
-        this.establecerValoresEdicion();
+    this.clientesService.getClientes().subscribe({
+      next: clientes => {
+        this.clientes = clientes || [];
+        if (this.data.cita && this.pacientes.length > 0) {
+          this.establecerValoresEdicion();
+        }
+      },
+      error: error => {
+        this.logger.error('Error al cargar clientes en cita:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar clientes cita'), 'error');
       }
     });
   }
 
   cargarPacientes() {
-    this.pacientesService.getPacientes().subscribe(pacientes => {
-      this.pacientes = pacientes || [];
-      console.log('🐾 Pacientes cargados:', this.pacientes.length);
-      // Si hay datos de cita y clientes cargados, establecer valores
-      if (this.data.cita && this.clientes.length > 0) {
-        console.log('🔄 Intentando establecer valores después de cargar pacientes');
-        this.establecerValoresEdicion();
+    this.pacientesService.getPacientes().subscribe({
+      next: pacientes => {
+        this.pacientes = pacientes || [];
+        if (this.data.cita && this.clientes.length > 0) {
+          this.establecerValoresEdicion();
+        }
+      },
+      error: error => {
+        this.logger.error('Error al cargar pacientes en cita:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar pacientes cita'), 'error');
       }
     });
   }
 
   cargarDoctores() {
-    this.usuariosService.getUsuarios().subscribe(usuarios => {
-      // Filtrar solo usuarios con perfil doctor o doctor_a
-      this.doctores = (usuarios || []).filter(usuario => 
-        usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a'
-      );
+    this.usuariosService.getUsuarios().subscribe({
+      next: usuarios => {
+        this.doctores = (usuarios || []).filter(usuario => 
+          usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a'
+        );
+      },
+      error: error => {
+        this.logger.error('Error al cargar doctores en cita:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar doctores cita'), 'error');
+      }
     });
   }
 
@@ -299,7 +304,7 @@ export class CitaDialogComponent implements OnInit {
     
     // Filtrar pacientes del cliente seleccionado
     this.pacientesDelCliente = this.pacientes.filter(paciente => 
-      paciente.cliente_id === cliente.id || paciente.idCliente === cliente.id
+      pacientePerteneceACliente(paciente, cliente.id)
     );
   }
 
@@ -384,9 +389,6 @@ export class CitaDialogComponent implements OnInit {
     const cita = this.data.cita;
     if (!cita) return;
 
-    console.log('🔧 Estableciendo valores para cita:', cita, 'Modo ver:', this.modoVer);
-
-    // Buscar el cliente en la lista de clientes
     const cliente = this.clientes.find(c => c.id === cita.cliente_id);
     if (cliente) {
       this.clienteSeleccionado = cliente;
@@ -395,47 +397,23 @@ export class CitaDialogComponent implements OnInit {
         nombreCliente: this.getNombreCompleto(cliente)
       });
       
-      // Filtrar pacientes del cliente seleccionado
       this.pacientesDelCliente = this.pacientes.filter(paciente => 
-        paciente.cliente_id === cliente.id || paciente.idCliente === cliente.id
+        pacientePerteneceACliente(paciente, cliente.id)
       );
-      console.log('👤 Cliente establecido:', cliente.nombre);
     }
 
-    // Buscar el paciente en la lista de pacientes
     const paciente = this.pacientes.find(p => p.id === cita.paciente_id);
     if (paciente) {
       this.citaForm.patchValue({
         paciente_id: cita.paciente_id
       });
-      console.log('🐾 Paciente establecido:', paciente.nombre);
     }
 
-    // Establecer otros valores
-    const valoresAEstablecer = {
+    this.citaForm.patchValue({
       motivo: cita.motivo || '',
       estado: cita.estado || 'pendiente',
       veterinario: cita.veterinario || '',
       observaciones: cita.observaciones || ''
-    };
-    
-    console.log('📝 Valores a establecer:', valoresAEstablecer);
-    this.citaForm.patchValue(valoresAEstablecer);
-    
-    // Verificar que los valores se establecieron correctamente
-    setTimeout(() => {
-      const estadoActual = this.citaForm.get('estado')?.value;
-      const fechaActual = this.citaForm.get('fecha')?.value;
-      const horaActual = this.citaForm.get('hora')?.value;
-      const clienteActual = this.citaForm.get('nombreCliente')?.value;
-      const pacienteActual = this.citaForm.get('paciente_id')?.value;
-      console.log('✅ Valores actuales del formulario:', {
-        estado: estadoActual,
-        fecha: fechaActual,
-        hora: horaActual,
-        cliente: clienteActual,
-        paciente: pacienteActual
-      });
-    }, 100);
+    });
   }
 } 

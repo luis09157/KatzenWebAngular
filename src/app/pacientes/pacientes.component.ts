@@ -21,6 +21,9 @@ import { VacunaDetalleComponent } from '../vacunas/vacuna-detalle.component';
 import { HistorialDetalleComponent } from '../historiales/historial-detalle.component';
 import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-detalle.component';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoggerService } from '../core/logger.service';
+import { getPacienteClienteId as resolvePacienteClienteId } from '../core/utils/paciente-cliente.util';
 
 @Component({
   selector: 'app-pacientes',
@@ -58,105 +61,15 @@ export class PacientesComponent implements OnInit, OnDestroy {
   // Control de estado
   isCreatingHistorial = false;
   loading = false;
-  private initialLoadCount = 0;
+  private initialLoadPending = 2;
+  private initialLoadFailed = false;
+  private lastLoadError: unknown = null;
 
   historialClinico: any[] = [];
 
   // Propiedades originales
   displayedColumns: string[] = ['nombre', 'especie', 'raza', 'sexo', 'edad', 'color', 'peso', 'nombreCliente', 'acciones'];
   dataSource!: MatTableDataSource<any>;
-
-  duenioEditable: any = { nombre: '', email: '', telefono: '' };
-  historialEjemplo: any[] = [];
-  vacunasEjemplo: any[] = [];
-  recordatoriosEjemplo: any[] = [];
-  busquedaHistorial: string = '';
-
-  onFotoChange(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.pacienteSeleccionado.foto = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  errores: any = {
-    paciente: {},
-    duenio: {},
-    vacunas: [],
-    historial: [],
-    recordatorios: []
-  };
-
-  validarPaciente() {
-    const p = this.pacienteSeleccionado;
-    this.errores.paciente = {
-      nombre: !p.nombre,
-      especie: !p.especie,
-      raza: !p.raza,
-      edad: !p.edad,
-      peso: !p.peso,
-      color: !p.color
-    };
-    return !Object.values(this.errores.paciente).some(e => e);
-  }
-
-  validarDuenio() {
-    const d = this.duenioEditable;
-    this.errores.duenio = {
-      nombre: !d.nombre,
-      telefono: !d.telefono,
-      email: d.email && !/^\S+@\S+\.\S+$/.test(d.email)
-    };
-    return !Object.values(this.errores.duenio).some(e => e);
-  }
-
-  validarVacunas() {
-    this.errores.vacunas = this.vacunasEjemplo.map(v => ({
-      nombre: !v.nombre,
-      fecha: !v.fecha
-    }));
-    return this.errores.vacunas.every(e => !e.nombre && !e.fecha);
-  }
-
-  validarHistorial() {
-    this.errores.historial = this.historialEjemplo.map(h => ({
-      fecha: !h.fecha,
-      descripcion: !h.descripcion
-    }));
-    return this.errores.historial.every(e => !e.fecha && !e.descripcion);
-  }
-
-  validarRecordatorios() {
-    this.errores.recordatorios = this.recordatoriosEjemplo.map(r => ({
-      tipo: !r.tipo,
-      fecha: !r.fecha
-    }));
-    return this.errores.recordatorios.every(e => !e.tipo && !e.fecha);
-  }
-
-  esFormularioValido() {
-    return this.validarPaciente() && this.validarDuenio() && this.validarVacunas() && this.validarHistorial() && this.validarRecordatorios();
-  }
-
-  guardarCambios() {
-    if (!this.esFormularioValido()) {
-      alert('Por favor corrige los errores antes de guardar.');
-      return;
-    }
-    // Aquí guardarías los cambios en la base de datos
-    alert('Cambios guardados (simulado)');
-  }
-
-  agregarHistorial() {
-    this.historialEjemplo.push({ fecha: '', descripcion: '' });
-  }
-  eliminarHistorial(h: any) {
-    this.historialEjemplo = this.historialEjemplo.filter(x => x !== h);
-  }
 
   constructor(
     private pacientesService: PacientesService,
@@ -166,28 +79,75 @@ export class PacientesComponent implements OnInit, OnDestroy {
     private vacunasService: VacunasService,
     private baniosPacienteService: BaniosPacienteService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private errorMessages: ErrorMessagesService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit() {
     this.loading = true;
-    this.initialLoadCount = 0;
+    this.initialLoadPending = 2;
+    this.initialLoadFailed = false;
+    this.lastLoadError = null;
     this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: pacientes => {
         this.allPacientes = (pacientes || []).filter((p: { activo?: boolean }) => p.activo !== false);
         this.filtrarPacientes();
-        this.initialLoadCount++;
-        if (this.initialLoadCount >= 2) this.loading = false;
+        this.finishInitialLoad();
       },
-      error: () => { this.initialLoadCount++; if (this.initialLoadCount >= 2) this.loading = false; }
+      error: error => this.handleInitialLoadError(error)
     });
     this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: clientes => {
         this.allClientes = clientes || [];
-        this.initialLoadCount++;
-        if (this.initialLoadCount >= 2) this.loading = false;
+        this.finishInitialLoad();
       },
-      error: () => { this.initialLoadCount++; if (this.initialLoadCount >= 2) this.loading = false; }
+      error: error => this.handleInitialLoadError(error)
+    });
+  }
+
+  private finishInitialLoad(): void {
+    this.initialLoadPending--;
+    if (this.initialLoadPending <= 0) {
+      this.loading = false;
+      if (this.initialLoadFailed) {
+        this.showInitialLoadError();
+      }
+    }
+  }
+
+  private handleInitialLoadError(error: unknown): void {
+    this.logger.error('Error al cargar datos del expediente:', error);
+    this.initialLoadFailed = true;
+    this.lastLoadError = error;
+    this.finishInitialLoad();
+  }
+
+  private showInitialLoadError(): void {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: this.errorMessages.getUserMessage(this.lastLoadError, 'cargar pacientes expediente'),
+      showCancelButton: true,
+      confirmButtonText: 'Reintentar',
+      cancelButtonText: 'Cerrar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.ngOnInit();
+      }
+    });
+  }
+
+  private handleExpedienteSectionError(context: string, error: unknown): void {
+    this.logger.error(`Error en expediente (${context}):`, error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: this.errorMessages.getUserMessage(error, context),
+      toast: true,
+      position: 'top-end',
+      timer: 4500,
+      showConfirmButton: false
     });
   }
 
@@ -266,20 +226,18 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   cargarHistorialClinico(pacienteId: string) {
-    this.historialesService.getHistorialesPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(historiales => {
-      
-      this.historialClinico = historiales.map(historial => {
-        const historialFormateado = {
+    this.historialesService.getHistorialesPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: historiales => {
+        this.historialClinico = historiales.map(historial => ({
           ...historial,
           fecha_formateada: this.formatearFecha(historial.fecha_registro),
           tiempo_transcurrido: this.getTiempoTranscurrido(historial.fecha_registro)
-        };
-        
-        console.log('📝 Historial formateado:', historialFormateado);
-        console.log('🔍 Campo diagnostico_presuntivo:', historialFormateado.diagnostico_presuntivo);
-        
-        return historialFormateado;
-      });
+        }));
+      },
+      error: error => {
+        this.historialClinico = [];
+        this.handleExpedienteSectionError('cargar historial expediente', error);
+      }
     });
   }
 
@@ -345,7 +303,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   // Métodos para recordatorios
   cargarRecordatorios(pacienteId: string) {
-    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(recordatorios => {
+    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: recordatorios => {
       this.recordatorios = (recordatorios || []).map(r => {
         // Buscar el campo de fecha correcto
         const fechaRaw = r.fecha_hora_recordatorio || r.fecha_recordatorio || null;
@@ -381,6 +340,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
           estado_tiempo: estadoTiempo
         };
       });
+      },
+      error: error => {
+        this.recordatorios = [];
+        this.handleExpedienteSectionError('cargar recordatorios expediente', error);
+      }
     });
   }
 
@@ -400,26 +364,20 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        // El recordatorio ya se creó en el diálogo, solo recargar y registrar en log
-        console.log('Recordatorio creado desde diálogo:', result);
-        
         this.cargarRecordatorios(this.pacienteSeleccionado.id);
         
-        // Registrar en el log con los datos completos
         const datosParaLog = {
           titulo: result.titulo || 'Sin título',
           fecha_hora_recordatorio: result.fecha_hora_recordatorio || result.fecha_recordatorio,
           prioridad: result.prioridad || 'media',
           paciente_id: this.pacienteSeleccionado.id,
-          id: result.id // El ID ya viene del diálogo
+          id: result.id
         };
         
-        console.log('Registrando recordatorio en log:', datosParaLog);
         this.pacientesService.registrarRecordatorio(this.pacienteSeleccionado.id, datosParaLog).then(() => {
-          console.log('Recordatorio registrado en log exitosamente');
           this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
-          console.error('Error al registrar recordatorio en log:', error);
+          this.logger.error('Error al registrar recordatorio en log:', error);
         });
       }
     });
@@ -549,12 +507,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        console.log('✅ Historial creado exitosamente desde diálogo');
-        
-        // Recargar el historial clínico
         this.cargarHistorialClinico(this.pacienteSeleccionado.id);
         
-        // Registrar en el log de actividades (solo para tracking)
         const datosParaLog = {
           diagnostico_presuntivo: result.diagnostico_presuntivo || 'Sin diagnóstico',
           manejo_terapeutico: result.manejo_terapeutico || 'Sin tratamiento',
@@ -563,12 +517,10 @@ export class PacientesComponent implements OnInit, OnDestroy {
           id: result.id
         };
         
-        console.log('Registrando historial clínico en log:', datosParaLog);
         this.pacientesService.registrarHistorialClinico(this.pacienteSeleccionado.id, datosParaLog).then(() => {
-          console.log('Historial clínico registrado en log exitosamente');
           this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
-          console.error('Error al registrar historial en log:', error);
+          this.logger.error('Error al registrar historial en log:', error);
         });
       }
       
@@ -602,11 +554,16 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   verDetalleHistorial(historial: any) {
-    this.historialesService.getHistorial(historial.id).pipe(takeUntil(this.destroy$)).subscribe((historialCompleto) => {
-      this.dialog.open(HistorialDetalleComponent, {
-        ...ADMIN_DIALOG_DETAIL,
-        data: historialCompleto
-      });
+    this.historialesService.getHistorial(historial.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: historialCompleto => {
+        this.dialog.open(HistorialDetalleComponent, {
+          ...ADMIN_DIALOG_DETAIL,
+          data: historialCompleto
+        });
+      },
+      error: error => {
+        this.handleExpedienteSectionError('cargar historial detalle', error);
+      }
     });
   }
 
@@ -640,19 +597,22 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.pacientesFiltrados = [];
   }
 
+  getPacienteClienteId(paciente: any): string {
+    return resolvePacienteClienteId(paciente);
+  }
+
   getClienteNombre(idCliente: string): string {
+    if (!idCliente) return 'Desconocido';
     const cliente = this.allClientes.find(c => c.id === idCliente);
     if (!cliente) return 'Desconocido';
     return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
   }
 
   getClienteNombreFromPaciente(paciente: any): string {
-    // Si el paciente tiene nombreCliente, usarlo directamente
     if (paciente.nombreCliente) {
       return paciente.nombreCliente.trim();
     }
-    // Si no, buscar en la lista de clientes
-    return this.getClienteNombre(paciente.idCliente);
+    return this.getClienteNombre(this.getPacienteClienteId(paciente));
   }
 
   displayPaciente = (paciente: any): string => {
@@ -662,8 +622,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   toggleSidenav() {
-    // Este método se puede implementar si necesitas funcionalidad del menú
-    console.log('Toggle sidenav');
+    // Reservado para layout admin si se integra sidenav local
   }
 
   getClienteTelefono(idCliente: string): string {
@@ -724,7 +683,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   // Métodos para vacunas
   cargarVacunas(pacienteId: string) {
-    this.vacunasService.getVacunasPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(vacunas => {
+    this.vacunasService.getVacunasPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: vacunas => {
       this.vacunas = vacunas.map(v => {
         // Usar fechaAplicacion en lugar de fecha, con fallback a fechaRegistro
         const fechaRaw = v.fechaAplicacion || v.fechaRegistro || v.fecha;
@@ -761,8 +721,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
                 estadoTiempo = `En ${semanas} semana${semanas > 1 ? 's' : ''}`;
               }
             }
-          } catch (error) {
-            console.warn('Error procesando fecha de vacuna:', error);
+          } catch {
             fecha_formateada = 'Fecha inválida';
             estadoTiempo = 'N/A';
           }
@@ -775,6 +734,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
           dias_restantes: dias
         };
       });
+      },
+      error: error => {
+        this.vacunas = [];
+        this.handleExpedienteSectionError('cargar vacunas expediente', error);
+      }
     });
   }
 
@@ -791,9 +755,6 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) {
-        // Solo recargar las vacunas y el log - NO crear la vacuna manualmente
-        // porque VacunaDialogComponent ya lo hace
-        console.log('Vacuna creada desde diálogo, recargando datos...');
         this.cargarVacunas(this.pacienteSeleccionado.id);
         this.cargarLogActividades(this.pacienteSeleccionado.id);
       }
@@ -895,9 +856,14 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   cargarBanios(pacienteId: string) {
-    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(banios => {
-      this.banios = banios;
-      console.log('🛁 Baños cargados para paciente:', pacienteId, banios);
+    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: banios => {
+        this.banios = banios;
+      },
+      error: error => {
+        this.banios = [];
+        this.handleExpedienteSectionError('cargar banios expediente', error);
+      }
     });
   }
 
@@ -916,12 +882,14 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   cargarLogActividades(pacienteId: string) {
-    this.pacientesService.getLogActividades(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(log => {
-      console.log('Número de actividades:', log.length);
-      this.logActividades = log;
-      console.log('logActividades actualizado:', this.logActividades);
-    }, error => {
-      console.error('Error al cargar log de actividades:', error);
+    this.pacientesService.getLogActividades(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: log => {
+        this.logActividades = log;
+      },
+      error: error => {
+        this.logActividades = [];
+        this.handleExpedienteSectionError('cargar actividad expediente', error);
+      }
     });
   }
 
@@ -976,45 +944,18 @@ export class PacientesComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método de prueba para verificar el log
-  probarLog() {
-    if (!this.pacienteSeleccionado) {
-      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
-      return;
-    }
-
-    console.log('Probando log para paciente:', this.pacienteSeleccionado.id);
-    
-    this.pacientesService.probarLogActividad(this.pacienteSeleccionado.id).then(() => {
-      console.log('Prueba de log exitosa');
-      Swal.fire('Éxito', 'Prueba de log completada', 'success');
-      this.cargarLogActividades(this.pacienteSeleccionado.id);
-    }).catch(error => {
-      console.error('Error en prueba de log:', error);
-      Swal.fire('Error', 'Error en prueba de log: ' + error, 'error');
-    });
-  }
-
-  // ===== MÉTODOS PARA BAÑOS =====
-
-  onBanioCreado(banio: any) {
-    console.log('Baño creado:', banio);
+  onBanioCreado(_banio: any) {
     this.cargarBanios(this.pacienteSeleccionado.id);
     this.cargarLogActividades(this.pacienteSeleccionado.id);
   }
 
-  onBanioActualizado(banio: any) {
-    console.log('Baño actualizado:', banio);
+  onBanioActualizado(_banio: any) {
     this.cargarBanios(this.pacienteSeleccionado.id);
     this.cargarLogActividades(this.pacienteSeleccionado.id);
   }
 
-  onBanioEliminado(banio: any) {
-    console.log('Baño eliminado:', banio);
+  onBanioEliminado(_banio: any) {
     this.cargarBanios(this.pacienteSeleccionado.id);
     this.cargarLogActividades(this.pacienteSeleccionado.id);
   }
-
-  // Eliminar métodos y referencias viejas
-  // Eliminar cargarDatos(), onSearchInput(), clearSearch(), selectPatient(), backToSearch(), nuevoPaciente(), editPatient(), addHistory(), nuevaCita(), verHistoriales(), agregarVacuna(), onTabChange(), getClienteInfo(), goBack(), aplicarFiltro(), abrirModalPaciente(), verPaciente(), editarPaciente(), bajaLogicaPaciente(), y cualquier referencia a allPatients, allClients, filteredPatients, selectedPatient.
 }

@@ -177,7 +177,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
       this.productoForm.patchValue({ proveedor_principal_id: proveedorId });
       this.cargarProveedores();
     } catch (error) {
-      console.error('❌ Error al crear proveedor por defecto:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar proveedor'), 'error');
     }
   }
 

@@ -22,7 +22,7 @@ describe('Admin CRUD — Clientes', () => {
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
 
     // CREATE
-    cy.contains('button', 'Nuevo Cliente').click();
+    cy.contains('button', /Nuevo cliente/i).click();
     cy.fillClienteFormBasico({
       nombre,
       apellidoPaterno: apellido,
@@ -50,7 +50,7 @@ describe('Admin CRUD — Clientes', () => {
 
     // DELETE (baja lógica)
     cy.contains('tr', nombre).within(() => {
-      cy.get('button[matTooltip="Eliminar"]').click();
+      cy.get('button[matTooltip="Dar de baja"]').click();
     });
     cy.get('.swal2-confirm').contains('Sí, dar de baja').click();
     cy.dismissSwalSuccess();

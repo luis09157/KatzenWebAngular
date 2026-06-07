@@ -9,6 +9,7 @@ import { Observable, map } from 'rxjs';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -686,7 +687,7 @@ export class ClienteDialogComponent implements OnInit {
       next: (pacientes) => {
         const pacientesData = pacientes || [];
         this.pacientesRelacionados = pacientesData.filter(paciente => 
-          paciente.idCliente === this.data.cliente.id
+          pacientePerteneceACliente(paciente, this.data.cliente.id)
         );
         
         console.log('✅ Pacientes relacionados cargados:', this.pacientesRelacionados.length);

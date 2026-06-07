@@ -2,7 +2,9 @@ import { Component, OnInit, ViewEncapsulation} from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
 import { FormControl } from '@angular/forms';
+import Swal from 'sweetalert2';
 import { Observable } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -38,8 +40,19 @@ export class SeleccionarClienteBanioDialogComponent implements OnInit {
   }
 
   cargarClientes() {
-    this.clientesService.getClientes().subscribe(clientes => {
-      this.clientes = (clientes || []).filter(c => c.activo !== false);
+    this.clientesService.getClientes().subscribe({
+      next: clientes => {
+        this.clientes = (clientes || []).filter(c => c.activo !== false);
+      },
+      error: () => {
+        this.clientes = [];
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar clientes',
+          text: 'No se pudieron cargar los clientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
+      }
     });
   }
 
@@ -111,13 +124,13 @@ export class SeleccionarClienteBanioDialogComponent implements OnInit {
       // Solo mostrar pacientes activos del cliente
       // Usar idCliente como en historiales y vacunas
       return this.getPacientesActivos().filter(p => 
-        p.idCliente === this.clienteSeleccionado.id || p.cliente_id === this.clienteSeleccionado.id
+        pacientePerteneceACliente(p, this.clienteSeleccionado.id)
       );
     }
     
     const filterValue = value.toLowerCase().trim();
     const pacientesDelCliente = this.getPacientesActivos().filter(p => 
-      p.idCliente === this.clienteSeleccionado.id || p.cliente_id === this.clienteSeleccionado.id
+      pacientePerteneceACliente(p, this.clienteSeleccionado.id)
     );
     
     return pacientesDelCliente.filter(paciente => {
@@ -142,23 +155,23 @@ export class SeleccionarClienteBanioDialogComponent implements OnInit {
   }
 
   cargarPacientes(clienteId: string) {
-    console.log('🔄 Cargando pacientes para baño del cliente:', clienteId);
     this.pacientesService.getPacientes().subscribe({
       next: (pacientes) => {
-        console.log('📋 Pacientes recibidos:', pacientes);
-        // Filtrar solo pacientes activos (no fallecidos) para baños
-        // Usar idCliente como en historiales y vacunas
         this.pacientes = (pacientes || []).filter(p => 
-          (p.idCliente === clienteId || p.cliente_id === clienteId) && 
+          pacientePerteneceACliente(p, clienteId) && 
           p.activo !== false && 
           p.estado !== 'Fallecido' && 
           p.estado !== 'fallecido'
         );
-        console.log('✅ Pacientes activos cargados para cliente', clienteId, ':', this.pacientes.length);
       },
-      error: (error) => {
-        console.error('❌ Error al cargar pacientes:', error);
+      error: () => {
         this.pacientes = [];
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar pacientes',
+          text: 'No se pudieron cargar los pacientes. Por favor, intenta de nuevo.',
+          confirmButtonText: 'Entendido'
+        });
       }
     });
   }

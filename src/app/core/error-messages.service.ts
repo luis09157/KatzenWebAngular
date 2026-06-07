@@ -54,7 +54,32 @@ export class ErrorMessagesService {
     'resolver alerta': 'No se pudo resolver la alerta.',
     'generar alertas': 'No se pudieron generar las alertas.',
     'eliminar producto': 'No se pudo eliminar el producto.',
-    'eliminar proveedor': 'No se pudo eliminar el proveedor.'
+    'eliminar proveedor': 'No se pudo eliminar el proveedor.',
+    'cargar citas': 'No se pudieron cargar las citas.',
+    'eliminar cita': 'No se pudo eliminar la cita.',
+    'cambiar estado cita': 'No se pudo cambiar el estado de la cita.',
+    'cargar banios': 'No se pudieron cargar los baños.',
+    'eliminar banio': 'No se pudo dar de baja el baño.',
+    'cambiar estado banio': 'No se pudo cambiar el estado del baño.',
+    'cargar pacientes expediente': 'No se pudieron cargar los datos para buscar pacientes.',
+    'guardar usuario': 'No se pudo guardar el usuario.',
+    'dar de baja usuario': 'No se pudo dar de baja al usuario.',
+    'guardar recordatorio': 'No se pudo guardar el recordatorio.',
+    'eliminar recordatorio': 'No se pudo eliminar el recordatorio.',
+    'guardar banio': 'No se pudo guardar el baño.',
+    'cargar historial expediente': 'No se pudo cargar el historial clínico del paciente.',
+    'cargar recordatorios expediente': 'No se pudieron cargar los recordatorios del paciente.',
+    'cargar vacunas expediente': 'No se pudieron cargar las vacunas del paciente.',
+    'cargar banios expediente': 'No se pudieron cargar los baños del paciente.',
+    'cargar actividad expediente': 'No se pudo cargar la actividad del paciente.',
+    'cargar historial detalle': 'No se pudo cargar el detalle del historial.',
+    'cargar clientes cita': 'No se pudieron cargar los clientes para la cita.',
+    'cargar pacientes cita': 'No se pudieron cargar los pacientes para la cita.',
+    'cargar doctores cita': 'No se pudieron cargar los veterinarios.',
+    'cargar movimientos producto': 'No se pudieron cargar los movimientos del producto.',
+    'cargar productos orden': 'No se pudieron cargar los productos para la orden.',
+    'cargar proveedores orden': 'No se pudieron cargar los proveedores para la orden.',
+    'cargar estadisticas historiales': 'No se pudieron cargar las estadísticas de historiales.'
   };
 
   getUserMessage(error: unknown, context?: string): string {
