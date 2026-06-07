@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 @Component({
   selector: 'app-citas-dia-dialog',
   templateUrl: './citas-dia-dialog.component.html',
-  styleUrls: ['./citas-dia-dialog.component.css'],
+  styleUrls: ['./citas-dia-dialog.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class CitasDiaDialogComponent {
@@ -34,34 +34,12 @@ export class CitasDiaDialogComponent {
     return '00:00';
   }
 
-  getEstadoColor(estado: string): string {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente':
-        return '#ff9800';
-      case 'confirmada':
-        return '#2196f3';
-      case 'completada':
-        return '#4caf50';
-      case 'cancelada':
-        return '#f44336';
-      default:
-        return '#888';
+  getEstadoClass(estado: string): string {
+    const e = String(estado || 'pendiente').toLowerCase();
+    if (e === 'confirmada' || e === 'completada' || e === 'pendiente' || e === 'cancelada') {
+      return `cita-estado-badge--${e}`;
     }
-  }
-
-  getEstadoIcon(estado: string): string {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente':
-        return 'schedule';
-      case 'confirmada':
-        return 'check_circle';
-      case 'completada':
-        return 'done_all';
-      case 'cancelada':
-        return 'cancel';
-      default:
-        return 'help';
-    }
+    return 'cita-estado-badge--pendiente';
   }
 
   trackByCita(index: number, cita: any): any {

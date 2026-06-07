@@ -9,7 +9,7 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
-import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { AdminModuleAccent } from '../shared/admin/admin-module-card.component';
 
 interface DashboardModule {
@@ -258,7 +258,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     // Abrir modal con las citas del día
     this.dialog.open(CitasDiaDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
+      ...ADMIN_DIALOG_DETAIL,
       width: '720px',
       data: {
         citas: citasConNombres,

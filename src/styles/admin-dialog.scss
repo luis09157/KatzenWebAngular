@@ -452,7 +452,8 @@
 .admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog > .admin-dialog-body,
 .admin-dialog-panel .admin-dialog-shell.seleccionar-cliente-dialog mat-dialog-content,
 .admin-dialog-panel .confirmar-eliminacion-vacuna-dialog > .dialog-content,
-.admin-dialog-panel .citas-dia-dialog > .dialog-content {
+.admin-dialog-panel .citas-dia-dialog > .dialog-content,
+.admin-dialog-panel .citas-dia-dialog > .admin-dialog-body {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow-y: auto !important;

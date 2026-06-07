@@ -4,99 +4,67 @@
       <h2 class="admin-dialog-title">Citas del {{ data.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</h2>
       <p class="admin-dialog-subtitle">{{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{ data.citas.length !== 1 ? 's' : '' }}</p>
     </div>
-    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" matTooltip="Cerrar" aria-label="Cerrar">
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </header>
 
-  <div class="admin-dialog-body dialog-content">
-    <div *ngIf="data.citas.length === 0" class="sin-citas">
-      <div class="empty-icon">
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="admin-dialog-form admin-dialog-form--padded">
+      <div *ngIf="data.citas.length === 0" class="citas-dia-empty">
         <mat-icon>event_busy</mat-icon>
+        <h3>No hay citas programadas</h3>
+        <p>No se encontraron citas para este día.</p>
       </div>
-      <h3>No hay citas programadas</h3>
-      <p>No se han encontrado citas para este día.</p>
-    </div>
 
-    <div *ngIf="data.citas.length > 0" class="citas-container">
-      <div *ngFor="let cita of data.citas; trackBy: trackByCita" class="cita-card">
-        <!-- Cabecera de la cita -->
-        <div class="cita-header">
-          <div class="cita-time-section">
-            <div class="cita-hora">
-              <mat-icon>schedule</mat-icon>
-              <span class="hora-text">{{ getHoraFormateada(cita) }}</span>
-            </div>
-            <div class="cita-estado" [style.background-color]="getEstadoColor(cita.estado)">
-              <mat-icon class="estado-icon">{{ getEstadoIcon(cita.estado) }}</mat-icon>
-              <span>{{ cita.estado || 'Pendiente' }}</span>
-            </div>
+      <div *ngIf="data.citas.length > 0" class="citas-dia-list">
+        <article *ngFor="let cita of data.citas; trackBy: trackByCita; let i = index" class="citas-dia-item" [class.citas-dia-item--divider]="i > 0">
+          <div class="entity-summary">
+            <span class="cita-estado-badge" [ngClass]="getEstadoClass(cita.estado)">
+              {{ cita.estado || 'Pendiente' }}
+            </span>
+            <h3 class="entity-summary__name">{{ cita.cliente || 'Cliente no especificado' }}</h3>
+            <p class="entity-summary__meta">{{ cita.paciente || 'Paciente no especificado' }}</p>
+            <p class="entity-summary__meta entity-summary__meta--secondary">
+              <mat-icon class="citas-dia-item__time-icon">schedule</mat-icon>
+              {{ getHoraFormateada(cita) }}
+            </p>
           </div>
-        </div>
-        
-        <!-- Contenido de la cita -->
-        <div class="cita-content">
-          <div class="cita-info-grid">
-            <div class="info-item cliente">
-              <div class="info-icon">
-                <mat-icon>person</mat-icon>
+
+          <section class="detail-section">
+            <h4 class="detail-section__title">Detalle de la cita</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Cliente</span>
+                <p class="detail-item__value">{{ cita.cliente || '—' }}</p>
               </div>
-              <div class="info-content">
-                <label>Cliente</label>
-                <span>{{ cita.cliente || 'Cliente no especificado' }}</span>
+              <div class="detail-item">
+                <span class="detail-item__label">Paciente</span>
+                <p class="detail-item__value">{{ cita.paciente || '—' }}</p>
               </div>
-            </div>
-            
-            <div class="info-item paciente">
-              <div class="info-icon">
-                <mat-icon>pets</mat-icon>
+              <div class="detail-item">
+                <span class="detail-item__label">Motivo</span>
+                <p class="detail-item__value">{{ cita.motivo || '—' }}</p>
               </div>
-              <div class="info-content">
-                <label>Paciente</label>
-                <span>{{ cita.paciente || 'Paciente no especificado' }}</span>
-              </div>
-            </div>
-            
-            <div class="info-item motivo">
-              <div class="info-icon">
-                <mat-icon>medical_services</mat-icon>
-              </div>
-              <div class="info-content">
-                <label>Motivo</label>
-                <span>{{ cita.motivo || 'Sin motivo especificado' }}</span>
+              <div class="detail-item">
+                <span class="detail-item__label">Veterinario</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="!cita.veterinario">
+                  {{ cita.veterinario || 'Sin asignar' }}
+                </p>
               </div>
             </div>
-            
-            <div *ngIf="cita.veterinario" class="info-item veterinario">
-              <div class="info-icon">
-                <mat-icon>person_pin</mat-icon>
-              </div>
-              <div class="info-content">
-                <label>Veterinario</label>
-                <span>{{ cita.veterinario }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div *ngIf="cita.observaciones" class="cita-observaciones">
-            <div class="observaciones-header">
-              <mat-icon>note</mat-icon>
-              <span>Observaciones</span>
-            </div>
-            <div class="observaciones-content">
-              {{ cita.observaciones }}
-            </div>
-          </div>
-        </div>
+          </section>
+
+          <section class="detail-section" *ngIf="cita.observaciones">
+            <h4 class="detail-section__title">Observaciones</h4>
+            <div class="detail-text-block">{{ cita.observaciones }}</div>
+          </section>
+        </article>
       </div>
     </div>
-  </div>
+  </mat-dialog-content>
 
-  <!-- Footer con botón -->
-  <div class="dialog-footer">
-    <button mat-raised-button color="primary" (click)="cerrar()" class="close-button">
-      <mat-icon>close</mat-icon>
-      Cerrar
-    </button>
-  </div>
-</div> 
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+  </mat-dialog-actions>
+</div>
