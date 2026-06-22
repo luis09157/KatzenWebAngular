@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { PortalSessionService } from '../services/portal-session.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
@@ -13,11 +13,19 @@ export class PortalAuthGuard implements CanActivate {
     private router: Router
   ) {}
 
-  async canActivate(): Promise<boolean> {
+  async canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
     await this.firebaseFunctions.syncMyClaims();
 
     const session = await this.portalSession.resolveSession();
-    if (session) return true;
+    if (session) {
+      const mustChange = await this.authProfileService.mustChangePassword();
+      const onPerfil = state.url.includes('/portal/perfil');
+      if (mustChange && !onPerfil) {
+        await this.router.navigate(['/portal/perfil'], { queryParams: { cambiarPassword: '1' } });
+        return false;
+      }
+      return true;
+    }
 
     const hasStaff = await this.authProfileService.hasStaffAccess();
     const hasClient = await this.authProfileService.hasClientAccess();

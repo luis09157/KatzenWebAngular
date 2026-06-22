@@ -14,16 +14,22 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { UsuarioDialogComponent } from './usuario-dialog.component';
+import { ProvisionPortalClienteDialogComponent } from './provision-portal-cliente-dialog.component';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     UsuariosComponent,
-    UsuarioDialogComponent
+    UsuarioDialogComponent,
+    ProvisionPortalClienteDialogComponent
   ],
   imports: [
     CommonModule,
@@ -42,7 +48,11 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatSlideToggleModule,
-    SharedModule
+    MatTabsModule,
+    MatCheckboxModule,
+    FormsModule,
+    SharedModule,
+    ClientesDialogModule
   ]
 })
 export class UsuariosModule { }

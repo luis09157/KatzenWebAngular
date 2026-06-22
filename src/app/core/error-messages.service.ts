@@ -27,7 +27,20 @@ export class ErrorMessagesService {
     'unauthenticated': 'Debes iniciar sesión para continuar.',
     'network-request-failed': 'Error de conexión. Revisa tu internet e intenta de nuevo.',
     'cancelled-popup-request': 'Se canceló la ventana de inicio de sesión.',
-    'popup-closed-by-user': 'Cerraste la ventana sin iniciar sesión.'
+    'popup-closed-by-user': 'Cerraste la ventana sin iniciar sesión.',
+    'not-found': 'El recurso solicitado no existe.',
+    'already-exists': 'El registro ya existe.',
+    'failed-precondition': 'No se cumplen las condiciones para esta operación.',
+    'invalid-argument': 'Los datos enviados no son válidos.',
+    'internal': 'Error interno del servidor. Intenta de nuevo.'
+  };
+
+  private static readonly FUNCTIONS_MESSAGES: Record<string, string> = {
+    'functions/not-found':
+      'La función del servidor no está disponible. Las Cloud Functions del portal aún no están desplegadas.',
+    'functions/unavailable': 'El servidor no respondió. Revisa tu conexión e intenta de nuevo.',
+    'functions/deadline-exceeded': 'La operación tardó demasiado. Intenta de nuevo.',
+    'functions/internal': 'Error interno del servidor al procesar la solicitud.'
   };
 
   private static readonly CONTEXT_MESSAGES: Record<string, string> = {
@@ -79,7 +92,11 @@ export class ErrorMessagesService {
     'cargar movimientos producto': 'No se pudieron cargar los movimientos del producto.',
     'cargar productos orden': 'No se pudieron cargar los productos para la orden.',
     'cargar proveedores orden': 'No se pudieron cargar los proveedores para la orden.',
-    'cargar estadisticas historiales': 'No se pudieron cargar las estadísticas de historiales.'
+    'cargar estadisticas historiales': 'No se pudieron cargar las estadísticas de historiales.',
+    'activar portal cliente': 'No se pudo activar el acceso al portal del cliente.',
+    'desactivar portal cliente': 'No se pudo desactivar el acceso al portal.',
+    'reenviar acceso portal': 'No se pudo reenviar el acceso al portal.',
+    'cambiar contraseña portal': 'No se pudo cambiar la contraseña.'
   };
 
   getUserMessage(error: unknown, context?: string): string {
@@ -87,23 +104,47 @@ export class ErrorMessagesService {
       return this.getGenericMessage(context);
     }
 
-    const err = error as { code?: string; message?: string };
+    const err = error as { code?: string; message?: string; details?: unknown };
 
     if (err.code) {
       const storageMsg = ErrorMessagesService.STORAGE_MESSAGES[err.code];
       if (storageMsg) return storageMsg;
-      const firebaseMsg = ErrorMessagesService.FIREBASE_MESSAGES[err.code];
+
+      const functionsMsg = ErrorMessagesService.FUNCTIONS_MESSAGES[err.code];
+      const serverMsg = ErrorMessagesService.extractCallableMessage(err);
+      if (serverMsg) return serverMsg;
+      if (functionsMsg) return functionsMsg;
+
+      const bareCode = err.code.replace(/^functions\//, '');
+      const firebaseMsg =
+        ErrorMessagesService.FIREBASE_MESSAGES[err.code] ||
+        ErrorMessagesService.FIREBASE_MESSAGES[bareCode];
       if (firebaseMsg) return firebaseMsg;
     }
 
-    if (err.message && typeof err.message === 'string') {
-      const msg = err.message.trim();
-      if (msg.length > 0 && msg.length < 200 && !msg.includes(' at ') && !msg.includes('Error:')) {
-        return msg;
+    const fallbackMsg = ErrorMessagesService.extractCallableMessage(err);
+    if (fallbackMsg) return fallbackMsg;
+
+    return this.getGenericMessage(context);
+  }
+
+  /** Mensaje útil de Cloud Functions (HttpsError), evitando códigos crudos como "internal". */
+  private static extractCallableMessage(err: { code?: string; message?: string; details?: unknown }): string | null {
+    const raw = typeof err.message === 'string' ? err.message.trim() : '';
+    const bareCode = String(err.code || '').replace(/^functions\//, '').toLowerCase();
+    const generic = new Set(['internal', 'unknown', 'not-found', 'deadline-exceeded', bareCode]);
+
+    if (raw && raw.length > 0 && raw.length < 240 && !raw.includes(' at ') && !raw.includes('Error:')) {
+      if (!generic.has(raw.toLowerCase())) {
+        return raw;
       }
     }
 
-    return this.getGenericMessage(context);
+    if (typeof err.details === 'string' && err.details.trim().length > 0 && err.details.length < 240) {
+      return err.details.trim();
+    }
+
+    return null;
   }
 
   private getGenericMessage(context?: string): string {

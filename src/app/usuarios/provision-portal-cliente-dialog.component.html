@@ -1,0 +1,34 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Activar portal del cliente</h2>
+      <p class="admin-dialog-subtitle">
+        Se creará una cuenta de acceso y se enviará una contraseña temporal al correo del dueño.
+        Tú no verás la contraseña.
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="portal-provision-summary">
+      <p><strong>Cliente:</strong> {{ data.cliente.nombreCompleto }}</p>
+      <p><strong>Correo:</strong> {{ data.cliente.correo }}</p>
+      <p *ngIf="data.cliente.telefono"><strong>Teléfono:</strong> {{ data.cliente.telefono }}</p>
+      <p *ngIf="data.cliente.expediente"><strong>Expediente:</strong> {{ data.cliente.expediente }}</p>
+    </div>
+
+    <mat-checkbox [(ngModel)]="confirmado" color="primary">
+      Confirmo que el correo pertenece al dueño y autorizo el envío de acceso al portal
+    </mat-checkbox>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button type="button" mat-button (click)="cancelar()">Cancelar</button>
+    <button type="button" mat-raised-button color="primary" [disabled]="!confirmado" (click)="confirmar()">
+      Activar y enviar correo
+    </button>
+  </mat-dialog-actions>
+</div>

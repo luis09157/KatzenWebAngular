@@ -21,6 +21,14 @@
   </aside>
 
   <div>
+    <div class="portal-password-banner" *ngIf="mustChangePassword" role="alert">
+      <mat-icon>lock</mat-icon>
+      <div>
+        <strong>Debes cambiar tu contraseña</strong>
+        <p>Por seguridad, configura una contraseña personal antes de continuar usando el portal.</p>
+      </div>
+    </div>
+
     <div class="portal-info-panel">
       <div class="portal-info-row">
         <div class="portal-info-icon"><mat-icon>phone</mat-icon></div>
@@ -45,12 +53,51 @@
       </div>
     </div>
 
-    <div class="portal-actions">
-      <button type="button" class="portal-btn portal-btn-outline" (click)="resetPassword()">
-        <mat-icon>lock_reset</mat-icon>
-        Restablecer contraseña
+    <div class="portal-security-panel" *ngIf="showPasswordForm || mustChangePassword">
+      <h3 class="portal-security-title">
+        <mat-icon>vpn_key</mat-icon>
+        Cambiar contraseña
+      </h3>
+
+      <mat-form-field appearance="outline" class="portal-field">
+        <mat-label>Contraseña actual</mat-label>
+        <input matInput type="password" [(ngModel)]="currentPassword" autocomplete="current-password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="portal-field">
+        <mat-label>Nueva contraseña</mat-label>
+        <input matInput type="password" [(ngModel)]="newPassword" autocomplete="new-password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="portal-field">
+        <mat-label>Confirmar nueva contraseña</mat-label>
+        <input matInput type="password" [(ngModel)]="confirmPassword" autocomplete="new-password" />
+      </mat-form-field>
+
+      <button
+        type="button"
+        class="portal-btn portal-btn-primary portal-btn-primary-action"
+        (click)="changePassword()"
+        [disabled]="changingPassword">
+        <mat-icon *ngIf="!changingPassword">check_circle</mat-icon>
+        {{ changingPassword ? 'Guardando…' : 'Guardar nueva contraseña' }}
       </button>
-      <button type="button" class="portal-btn portal-btn-danger" (click)="logout()">
+    </div>
+
+    <div class="portal-actions">
+      <button
+        type="button"
+        class="portal-btn portal-btn-outline"
+        *ngIf="!mustChangePassword"
+        (click)="togglePasswordForm()">
+        <mat-icon>{{ showPasswordForm ? 'expand_less' : 'lock' }}</mat-icon>
+        {{ showPasswordForm ? 'Ocultar cambio de contraseña' : 'Cambiar contraseña' }}
+      </button>
+      <button type="button" class="portal-btn portal-btn-outline" (click)="resetPassword()" *ngIf="!mustChangePassword">
+        <mat-icon>lock_reset</mat-icon>
+        Restablecer por correo
+      </button>
+      <button type="button" class="portal-btn portal-btn-danger" (click)="logout()" *ngIf="!mustChangePassword">
         <mat-icon>logout</mat-icon>
         Cerrar sesión
       </button>

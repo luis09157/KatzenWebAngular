@@ -44,6 +44,19 @@ export interface UpdateStaffInput {
   email?: string;
 }
 
+export interface PortalClientActionResult {
+  success?: boolean;
+  message?: string;
+  emailSent?: boolean;
+  uid?: string;
+  clienteId?: string;
+  email?: string;
+}
+
+export interface PortalClientActionInput {
+  clienteId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FirebaseFunctionsService {
   constructor(
@@ -78,5 +91,32 @@ export class FirebaseFunctionsService {
   async updateStaffUser(input: UpdateStaffInput): Promise<UpdateStaffResult> {
     const callable = this.fns.httpsCallable<UpdateStaffInput, UpdateStaffResult>('updateStaffUser');
     return firstValueFrom(callable(input));
+  }
+
+  async provisionPortalClient(clienteId: string): Promise<PortalClientActionResult> {
+    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('provisionPortalClient');
+    return firstValueFrom(callable({ clienteId }));
+  }
+
+  async deactivatePortalClient(clienteId: string): Promise<PortalClientActionResult> {
+    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('deactivatePortalClient');
+    return firstValueFrom(callable({ clienteId }));
+  }
+
+  async resendPortalClientAccess(clienteId: string): Promise<PortalClientActionResult> {
+    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('resendPortalClientAccess');
+    return firstValueFrom(callable({ clienteId }));
+  }
+
+  async clearMustChangePassword(): Promise<{ success?: boolean; message?: string }> {
+    const callable = this.fns.httpsCallable<Record<string, never>, { success?: boolean; message?: string }>(
+      'clearMustChangePassword'
+    );
+    const result = await firstValueFrom(callable({}));
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      await user.getIdToken(true);
+    }
+    return result;
   }
 }

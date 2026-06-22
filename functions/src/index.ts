@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onValueWritten } from 'firebase-functions/v2/database';
 import { setGlobalOptions } from 'firebase-functions/v2';
+import { generateSecurePassword, sendPortalWelcomeEmail } from './portal-mail';
 
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
@@ -16,6 +17,7 @@ interface AuthPerfil {
   staffRole?: string;
   clienteId?: string;
   activo?: boolean;
+  mustChangePassword?: boolean;
 }
 
 interface StaffClaims {
@@ -23,6 +25,7 @@ interface StaffClaims {
   staffRole?: string;
   clienteId?: string;
   dualAccess?: boolean;
+  mustChangePassword?: boolean;
 }
 
 function mapUsuarioPerfilToStaffRole(perfil: string | undefined): string {
@@ -70,7 +73,8 @@ function buildClaimsFromPerfil(perfil: AuthPerfil | null): StaffClaims {
     role,
     staffRole,
     clienteId: perfil.clienteId || undefined,
-    dualAccess: staffAccess && clientAccess
+    dualAccess: staffAccess && clientAccess,
+    mustChangePassword: perfil.mustChangePassword === true
   };
 }
 
@@ -278,4 +282,344 @@ export const updateStaffUser = onCall(async (request) => {
     staffRole: claims.staffRole,
     message: 'Usuario actualizado'
   };
+});
+
+interface ProvisionPortalClientInput {
+  clienteId: string;
+}
+
+async function loadCliente(clienteId: string): Promise<Record<string, unknown>> {
+  const snap = await db.ref(`Katzen/Cliente/${clienteId}`).once('value');
+  if (!snap.exists()) {
+    throw new HttpsError('not-found', 'Cliente no encontrado.');
+  }
+  return { id: clienteId, ...(snap.val() as Record<string, unknown>) };
+}
+
+function clienteNombre(cliente: Record<string, unknown>): string {
+  return [cliente['nombre'], cliente['apellidoPaterno'], cliente['apellidoMaterno']]
+    .filter(Boolean)
+    .join(' ')
+    .trim() || 'Cliente';
+}
+
+function correoClienteValido(raw: unknown): string {
+  const v = String(raw || '').trim().toLowerCase();
+  if (!v) return '';
+  if (v === 'n/p' || v === 'n/a') return '';
+  if (v.includes('no proporcionado') || v.includes('sin email') || v.includes('sin correo')) {
+    return '';
+  }
+  return v;
+}
+
+async function assertClienteProvisionable(
+  cliente: Record<string, unknown>,
+  email: string
+): Promise<void> {
+  if (cliente['activo'] === false) {
+    throw new HttpsError('failed-precondition', 'El cliente está inactivo.');
+  }
+  if (cliente['authUid'] && cliente['portalActivo'] === true) {
+    throw new HttpsError('already-exists', 'Este cliente ya tiene acceso al portal.');
+  }
+
+  const dupSnap = await db.ref('Katzen/Cliente')
+    .orderByChild('correo')
+    .equalTo(email)
+    .once('value');
+  const dupVal = dupSnap.val() as Record<string, Record<string, unknown>> | null;
+  if (dupVal) {
+    for (const [otherId, other] of Object.entries(dupVal)) {
+      if (
+        otherId !== String(cliente['id']) &&
+        other.activo !== false &&
+        other.authUid &&
+        other.portalActivo === true
+      ) {
+        throw new HttpsError('already-exists', 'Ya existe otro cliente activo con este correo en el portal.');
+      }
+    }
+  }
+
+  try {
+    const existing = await admin.auth().getUserByEmail(email);
+    const linkedAuthUid = String(cliente['authUid'] || '');
+    if (existing.uid !== linkedAuthUid) {
+      throw new HttpsError('already-exists', 'Este correo ya está registrado en otra cuenta.');
+    }
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code;
+    if (code !== 'auth/user-not-found') {
+      if (err instanceof HttpsError) throw err;
+      const message = err instanceof Error ? err.message : 'No se pudo validar el correo.';
+      throw new HttpsError('internal', message);
+    }
+  }
+}
+
+/** Callable (solo admin): crea acceso portal para un cliente existente. */
+export const provisionPortalClient = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
+  if (!callerAdmin) {
+    throw new HttpsError('permission-denied', 'Solo administradores pueden activar el portal de clientes.');
+  }
+
+  const clienteId = String((request.data as ProvisionPortalClientInput)?.clienteId || '').trim();
+  if (!clienteId) {
+    throw new HttpsError('invalid-argument', 'clienteId es requerido.');
+  }
+
+  const cliente = await loadCliente(clienteId);
+  const email = correoClienteValido(cliente['correo']);
+  if (!email) {
+    throw new HttpsError('failed-precondition', 'El cliente no tiene correo válido. Agrégalo en Clientes primero.');
+  }
+
+  await assertClienteProvisionable(cliente, email);
+
+  const password = generateSecurePassword(16);
+  const timestamp = new Date().toISOString();
+  const nombre = clienteNombre(cliente);
+  let uid = String(cliente['authUid'] || '');
+  let createdNewAuth = false;
+
+  try {
+    if (uid) {
+      await admin.auth().updateUser(uid, {
+        email,
+        password,
+        disabled: false,
+        displayName: nombre
+      });
+    } else {
+      const userRecord = await admin.auth().createUser({
+        email,
+        password,
+        displayName: nombre,
+        disabled: false
+      });
+      uid = userRecord.uid;
+      createdNewAuth = true;
+    }
+
+    const authPerfil: AuthPerfil = {
+      authUid: uid,
+      email,
+      role: 'client',
+      roles: ['client'],
+      clienteId,
+      activo: true,
+      mustChangePassword: true
+    };
+
+    await db.ref(`Katzen/AuthPerfiles/${uid}`).set(authPerfil);
+    await db.ref(`Katzen/Cliente/${clienteId}`).update({
+      authUid: uid,
+      portalActivo: true,
+      portalProvisionedAt: timestamp,
+      portalProvisionedBy: request.auth.uid,
+      portalEmail: email,
+      mustChangePassword: true
+    });
+
+    await syncClaimsForUid(uid);
+
+    const mail = await sendPortalWelcomeEmail({ to: email, nombre, password });
+
+    await db.ref(`Katzen/PortalProvisionLog`).push({
+      action: 'provision',
+      clienteId,
+      uid,
+      email,
+      emailSent: mail.sent,
+      emailReason: mail.reason || null,
+      createdAt: timestamp,
+      createdBy: request.auth.uid
+    });
+
+    return {
+      success: true,
+      uid,
+      clienteId,
+      email,
+      emailSent: mail.sent,
+      message: mail.sent
+        ? 'Portal activado. El cliente recibirá un correo con su contraseña temporal.'
+        : `Portal activado. ${mail.reason || 'Configure el envío de correo.'}`
+    };
+  } catch (err: unknown) {
+    if (createdNewAuth && uid) {
+      await admin.auth().deleteUser(uid).catch(() => undefined);
+    }
+    if (err instanceof HttpsError) {
+      throw err;
+    }
+    const message = err instanceof Error ? err.message : 'No se pudo activar el portal.';
+    throw new HttpsError('internal', message);
+  }
+});
+
+interface PortalClienteActionInput {
+  clienteId: string;
+}
+
+/** Callable (solo admin): desactiva acceso al portal sin borrar datos del cliente. */
+export const deactivatePortalClient = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
+  if (!callerAdmin) {
+    throw new HttpsError('permission-denied', 'Solo administradores pueden desactivar el portal.');
+  }
+
+  const clienteId = String((request.data as PortalClienteActionInput)?.clienteId || '').trim();
+  if (!clienteId) {
+    throw new HttpsError('invalid-argument', 'clienteId es requerido.');
+  }
+
+  try {
+    const cliente = await loadCliente(clienteId);
+    const uid = String(cliente['authUid'] || '');
+    if (!uid) {
+      throw new HttpsError('failed-precondition', 'Este cliente no tiene cuenta de portal.');
+    }
+
+    const timestamp = new Date().toISOString();
+
+    await db.ref(`Katzen/Cliente/${clienteId}`).update({
+      portalActivo: false,
+      portalDeactivatedAt: timestamp,
+      portalDeactivatedBy: request.auth.uid
+    });
+
+    await db.ref(`Katzen/AuthPerfiles/${uid}`).update({ activo: false });
+    await admin.auth().updateUser(uid, { disabled: true }).catch((err: unknown) => {
+      const code = (err as { code?: string }).code;
+      if (code !== 'auth/user-not-found') throw err;
+    });
+    await syncClaimsForUid(uid);
+
+    await db.ref(`Katzen/PortalProvisionLog`).push({
+      action: 'deactivate',
+      clienteId,
+      uid,
+      createdAt: timestamp,
+      createdBy: request.auth.uid
+    });
+
+    return { success: true, message: 'Acceso al portal desactivado.' };
+  } catch (err: unknown) {
+    if (err instanceof HttpsError) throw err;
+    const message = err instanceof Error ? err.message : 'No se pudo desactivar el portal.';
+    throw new HttpsError('internal', message);
+  }
+});
+
+/** Callable (solo admin): nueva contraseña temporal + correo. */
+export const resendPortalClientAccess = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
+  if (!callerAdmin) {
+    throw new HttpsError('permission-denied', 'Solo administradores pueden reenviar acceso.');
+  }
+
+  const clienteId = String((request.data as PortalClienteActionInput)?.clienteId || '').trim();
+  if (!clienteId) {
+    throw new HttpsError('invalid-argument', 'clienteId es requerido.');
+  }
+
+  try {
+    const cliente = await loadCliente(clienteId);
+    const uid = String(cliente['authUid'] || '');
+    const email =
+      correoClienteValido(cliente['correo']) || correoClienteValido(cliente['portalEmail']);
+
+    if (!uid) {
+      throw new HttpsError('failed-precondition', 'Este cliente no tiene cuenta de portal configurada.');
+    }
+    if (!email) {
+      throw new HttpsError('failed-precondition', 'El cliente no tiene correo válido para reenviar acceso.');
+    }
+
+    try {
+      await admin.auth().getUser(uid);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code === 'auth/user-not-found') {
+        throw new HttpsError(
+          'failed-precondition',
+          'La cuenta Auth del cliente no existe. Vuelve a activar el portal desde Pendientes.'
+        );
+      }
+      throw err;
+    }
+
+    const password = generateSecurePassword(16);
+    const nombre = clienteNombre(cliente);
+    const timestamp = new Date().toISOString();
+
+    await admin.auth().updateUser(uid, { password, disabled: false, email });
+    await db.ref(`Katzen/AuthPerfiles/${uid}`).update({ activo: true, mustChangePassword: true, email });
+    await db.ref(`Katzen/Cliente/${clienteId}`).update({
+      portalActivo: true,
+      mustChangePassword: true,
+      portalAccessResentAt: timestamp
+    });
+    await syncClaimsForUid(uid);
+
+    const mail = await sendPortalWelcomeEmail({ to: email, nombre, password });
+
+    await db.ref(`Katzen/PortalProvisionLog`).push({
+      action: 'resend',
+      clienteId,
+      uid,
+      email,
+      emailSent: mail.sent,
+      emailReason: mail.reason || null,
+      createdAt: timestamp,
+      createdBy: request.auth.uid
+    });
+
+    return {
+      success: true,
+      emailSent: mail.sent,
+      message: mail.sent
+        ? 'Se envió un nuevo correo con contraseña temporal.'
+        : `Contraseña actualizada. ${mail.reason || 'Configure RESEND_API_KEY para envío automático.'}`
+    };
+  } catch (err: unknown) {
+    if (err instanceof HttpsError) throw err;
+    const message = err instanceof Error ? err.message : 'No se pudo reenviar el acceso al portal.';
+    throw new HttpsError('internal', message);
+  }
+});
+
+/** Callable: quita obligación de cambio de contraseña tras actualizarla en el portal. */
+export const clearMustChangePassword = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const uid = request.auth.uid;
+  await db.ref(`Katzen/AuthPerfiles/${uid}`).update({ mustChangePassword: false });
+
+  const perfilSnap = await db.ref(`Katzen/AuthPerfiles/${uid}`).once('value');
+  const perfil = (perfilSnap.val() || null) as AuthPerfil | null;
+  const clienteId = perfil?.clienteId;
+  if (clienteId) {
+    await db.ref(`Katzen/Cliente/${clienteId}`).update({ mustChangePassword: false });
+  }
+
+  await syncClaimsForUid(uid);
+  return { success: true, message: 'Contraseña actualizada.' };
 });

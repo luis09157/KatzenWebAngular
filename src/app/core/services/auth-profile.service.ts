@@ -19,6 +19,7 @@ export interface AuthPerfil {
   staffRole?: string;
   clienteId?: string;
   activo?: boolean;
+  mustChangePassword?: boolean;
 }
 
 export interface AuthAccess {
@@ -27,6 +28,7 @@ export interface AuthAccess {
   perfil: AuthPerfil | null;
   clienteId?: string;
   staffRole?: string;
+  mustChangePassword?: boolean;
 }
 
 function normalizedRoles(perfil: AuthPerfil | null): Set<string> {
@@ -80,13 +82,14 @@ export class AuthProfileService {
     const clienteId = token.claims['clienteId'] as string | undefined;
     const staffRole = token.claims['staffRole'] as string | undefined;
     const dualAccess = token.claims['dualAccess'] === true;
+    const mustChangePassword = token.claims['mustChangePassword'] === true;
 
     const staffAccess = roleClaim === 'staff' || dualAccess;
     const clientAccess =
       roleClaim === 'client' ||
       (dualAccess && !!clienteId);
 
-    return { staffAccess, clientAccess, clienteId, staffRole };
+    return { staffAccess, clientAccess, clienteId, staffRole, mustChangePassword };
   }
 
   /** Perfil RTDB primero; claims solo si no hay perfil en RTDB. */
@@ -105,7 +108,8 @@ export class AuthProfileService {
         clientAccess,
         perfil,
         clienteId: perfil.clienteId,
-        staffRole: perfil.staffRole
+        staffRole: perfil.staffRole,
+        mustChangePassword: perfil.mustChangePassword === true
       };
     }
 
@@ -124,6 +128,18 @@ export class AuthProfileService {
   async hasClientAccess(): Promise<boolean> {
     const access = await this.resolveAccess();
     return access.clientAccess;
+  }
+
+  /** Requiere cambio de contraseña (perfil RTDB o custom claim). */
+  async mustChangePassword(): Promise<boolean> {
+    const access = await this.resolveAccess();
+    if (access.mustChangePassword === true) return true;
+    if (access.perfil?.mustChangePassword === false) return false;
+
+    const user = await this.afAuth.currentUser;
+    if (!user) return false;
+    const token = await user.getIdTokenResult();
+    return token.claims['mustChangePassword'] === true;
   }
 
   async isDual(): Promise<boolean> {

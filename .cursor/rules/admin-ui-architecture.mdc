@@ -1,0 +1,32 @@
+---
+description: KatzenVet Admin UI — Angular Material MDC, diálogos, tablas CRUD
+globs: src/app/**/*.html,src/app/**/*.scss,src/styles/admin*.scss,src/styles/katzen-tokens.css
+alwaysApply: false
+---
+
+# KatzenVet Admin UI Architecture
+
+Premium corporate dashboard (Stripe/Linear). Full spec: `docs/ADMIN-UI-ARCHITECTURE.md`.
+
+## NEVER violate
+
+1. **No `mat-dialog-title`** — use `<h2 class="admin-dialog-title">` (Material teleports the directive).
+2. **Dialog CSS** — target `.admin-dialog-panel` or component `:host`, never `.admin-content`.
+3. **Detail labels** — stack vertically; `display: block !important` on label and value.
+4. **Actions column** — `mat-column-acciones` fixed `120px`; `mat-icon-button` + `matTooltip` in `.row-actions`.
+
+## Tokens (use CSS vars)
+
+`--katzen-verde`, `--katzen-verde-fuerte`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-sm/md/lg`.
+
+## Refactor checklist
+
+1. Remove layout-breaking Material directives from HTML.
+2. Apply `.table-shell` (lists) or `.admin-form-layout` / `.admin-dialog-layout` (dialogs).
+3. Primary actions: `.btn-primary-teal` on `mat-raised-button`.
+
+## Dialog config
+
+```typescript
+{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }
+```

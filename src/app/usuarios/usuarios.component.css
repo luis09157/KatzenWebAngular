@@ -2,3 +2,210 @@
 :host {
   display: block;
 }
+
+.usuarios-tabs {
+  margin-top: 1rem;
+}
+
+:host ::ng-deep .usuarios-tabs .mat-mdc-tab-body-content {
+  overflow: visible !important;
+}
+
+:host ::ng-deep .usuarios-tabs .mat-mdc-tab-body-wrapper {
+  overflow: visible !important;
+}
+
+.section-hint {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--admin-text-secondary, #64748b);
+}
+
+/* Buscador: evitar solapamiento icono + texto */
+:host ::ng-deep .usuarios-search-field {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+:host ::ng-deep .usuarios-search-field .mat-mdc-form-field-icon-prefix {
+  padding: 0 6px 0 10px;
+  color: #9ca3af;
+}
+
+:host ::ng-deep .usuarios-search-field .mat-mdc-form-field-infix {
+  padding-left: 4px !important;
+}
+
+:host ::ng-deep .usuarios-search-field input.mat-mdc-input-element {
+  padding-left: 2px;
+}
+
+/* Tablas: restaurar layout de tabla (evita columnas cortadas por display:flex en td) */
+:host ::ng-deep .usuarios-contenedor .table-scroll table.usuarios-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: fixed !important;
+}
+
+:host ::ng-deep .usuarios-portal-table {
+  min-width: 680px !important;
+}
+
+:host ::ng-deep .usuarios-table .mat-column-nombre,
+:host ::ng-deep .usuarios-table .mat-mdc-column-nombre {
+  width: 24% !important;
+  min-width: 140px !important;
+}
+
+:host ::ng-deep .usuarios-portal-table .mat-column-nombre,
+:host ::ng-deep .usuarios-portal-table .mat-mdc-column-nombre {
+  width: 26% !important;
+}
+
+:host ::ng-deep .usuarios-table .mat-column-correo,
+:host ::ng-deep .usuarios-table .mat-mdc-column-correo {
+  width: 34% !important;
+  min-width: 180px !important;
+}
+
+:host ::ng-deep .usuarios-portal-table .mat-column-telefono,
+:host ::ng-deep .usuarios-portal-table .mat-mdc-column-telefono {
+  width: 16% !important;
+  min-width: 110px !important;
+}
+
+:host ::ng-deep .usuarios-staff-table .mat-column-perfil,
+:host ::ng-deep .usuarios-staff-table .mat-mdc-column-perfil {
+  width: 22% !important;
+  min-width: 130px !important;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .usuarios-table .mat-mdc-header-cell,
+:host ::ng-deep .usuarios-table .mat-mdc-cell,
+:host ::ng-deep .usuarios-table .mat-header-cell,
+:host ::ng-deep .usuarios-table .mat-cell {
+  display: table-cell !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+:host ::ng-deep .usuarios-table .mat-column-acciones,
+:host ::ng-deep .usuarios-table .mat-mdc-column-acciones {
+  width: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+:host ::ng-deep .usuarios-table td.mat-column-acciones,
+:host ::ng-deep .usuarios-table .mat-mdc-cell.mat-column-acciones {
+  display: table-cell !important;
+}
+
+:host ::ng-deep .usuarios-table .portal-acciones-inner,
+:host ::ng-deep .usuarios-table .row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+:host ::ng-deep .usuarios-portal-table--pendientes .mat-column-acciones,
+:host ::ng-deep .usuarios-portal-table--pendientes .mat-mdc-column-acciones {
+  width: 220px !important;
+  min-width: 220px !important;
+  max-width: none !important;
+  text-align: left !important;
+}
+
+:host ::ng-deep .portal-acciones-inner--pendientes {
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+:host ::ng-deep .portal-badge-sin-correo {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .btn-activar-portal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  height: auto;
+  padding: 6px 14px;
+  line-height: 1.25;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+:host ::ng-deep .btn-activar-portal mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+:host ::ng-deep .btn-activar-portal__text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  :host ::ng-deep .usuarios-contenedor .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :host ::ng-deep .usuarios-contenedor .table-scroll table.usuarios-staff-table {
+    min-width: 720px !important;
+  }
+
+  :host ::ng-deep .usuarios-contenedor .table-scroll table.usuarios-portal-table {
+    min-width: 760px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  :host ::ng-deep .usuarios-portal-table--pendientes .mat-column-acciones,
+  :host ::ng-deep .usuarios-portal-table--pendientes .mat-mdc-column-acciones {
+    width: 168px !important;
+    min-width: 168px !important;
+  }
+
+  :host ::ng-deep .btn-activar-portal__text {
+    display: none;
+  }
+
+  :host ::ng-deep .btn-activar-portal {
+    min-width: 44px;
+    width: 44px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep .usuarios-search-field {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+    width: calc(100% - 32px) !important;
+  }
+}
