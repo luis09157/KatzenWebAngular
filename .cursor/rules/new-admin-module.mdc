@@ -1,0 +1,80 @@
+---
+description: Checklist para crear un módulo admin nuevo
+globs: src/app/**/*module.ts,src/app/**/*routing*.ts,src/app/app-routing.module.ts,src/app/core/config/staff-role.config.ts
+alwaysApply: false
+---
+
+# Nuevo módulo admin — checklist
+
+Referencia CRUD: `src/app/clientes/` · Spec template: `specs/templates/`
+
+## 1. Spec primero
+
+Crear `specs/NNN-modulo/` antes de code. Incluir rutas, RTDB, roles, SC-xxx.
+
+## 2. Routing
+
+```typescript
+// app-routing.module.ts
+{
+  path: 'mi-modulo',
+  loadChildren: () => import('./mi-modulo/mi-modulo.module').then(m => m.MiModuloModule),
+  canActivate: [StaffRoleGuard],
+  data: { staffModule: 'mi-modulo' }
+}
+```
+
+## 3. StaffModule
+
+En `staff-role.config.ts`:
+
+- Añadir a type `StaffModule` y `ALL_STAFF_MODULES`
+- Asignar en `STAFF_MODULE_ACCESS` por rol
+
+## 4. Estructura carpeta
+
+```
+src/app/mi-modulo/
+  mi-modulo.module.ts
+  mi-modulo-routing.module.ts
+  mi-modulo.component.ts|html|css
+  mi-modulo.service.ts
+  *-dialog.component.*   (si aplica)
+```
+
+## 5. UI obligatoria
+
+```html
+<div class="admin-page mi-modulo-contenedor">
+  <app-admin-kpi-grid>...</app-admin-kpi-grid>
+  <app-admin-page-banner>...</app-admin-page-banner>
+  <app-admin-data-panel>
+    <div class="table-scroll">
+      <table mat-table>...</table>
+    </div>
+  </app-admin-data-panel>
+</div>
+```
+
+Acciones: `<div class="row-actions">` — **no** flex en `<td>`.
+
+## 6. Cypress smoke
+
+Añadir en `cypress/e2e/admin-modules-authenticated.cy.ts`:
+
+```typescript
+{ path: '/admin/mi-modulo', container: '.mi-modulo-contenedor', title: '...' }
+```
+
+## 7. Testing
+
+`npm run build` + `npm run cy:admin`
+
+## 8. QA exhaustiva al cerrar
+
+Antes de marcar la spec como `done`:
+
+1. Aplicar **`specs/templates/qa-validation-guide.md`** (formularios, modales, edge cases, build).
+2. Registrar resultados en la sección **Testing y validación exhaustiva** de `tasks.md`.
+3. Marcar ítems en `tasks.md` con `[x]` solo con evidencia registrada.
+4. Actualizar `spec.md`: `Estado: done` + fecha.

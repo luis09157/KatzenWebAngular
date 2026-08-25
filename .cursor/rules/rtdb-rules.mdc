@@ -1,0 +1,39 @@
+---
+description: Reglas Realtime Database — staff vs client portal
+globs: database.rules.json
+alwaysApply: false
+---
+
+# RTDB Rules KatzenVet
+
+## Modelo de roles (claims)
+
+- `auth.token.role`: `staff` | `client` | `none`
+- `auth.token.clienteId`: ID cliente portal
+- `auth.token.staffRole`: `administrador`, `doctor`, etc.
+
+## Principios
+
+1. **Clientes portal** solo leen datos ligados a su `clienteId` / mascotas propias
+2. **Staff** lee/escribe según rol (reglas usan `role != 'client'`)
+3. **AuthPerfiles**: write restringido; functions usan Admin SDK (bypass rules)
+4. Campos nuevos: no exigir en validación write si rompe legacy
+
+## Al añadir nodo
+
+```json
+"NuevoNodo": {
+  ".read": "auth != null && auth.token.role != 'client'",
+  ".write": false
+}
+```
+
+Preferir writes vía Cloud Functions para auditoría (`PortalProvisionLog` pattern).
+
+## Índices
+
+Si hay query `orderByChild`, añadir `.indexOn` en rules.
+
+## Verificar
+
+Tras cambiar rules: probar login staff + login client en emulador o staging antes de prod.

@@ -1,0 +1,47 @@
+---
+description: Flujo Spec-Driven Development — leer specs antes de implementar
+alwaysApply: true
+---
+
+# SDD — KatzenVet
+
+## Workflow Operativo de Seguridad y SDD
+
+Antes de escribir o modificar cualquier línea de código, el agente debe cumplir estrictamente con este orden:
+
+1. **Lectura de Restricciones:** Leer `specs/memory/constitution.md` y verificar que la tarea no viole el aislamiento de producción ni los contratos de la RTDB con la app móvil.
+2. **Uso Exclusivo de Mocks:** Para probar vistas o flujos de Angular 17, emplear exclusivamente datos mock locales (`src/app/core/testing/mock-data.ts`), evitando llamadas a nodos reales de producción.
+3. **Validación de Impacto en Plan:** En el archivo `plan.md` de la feature, el agente debe rellenar obligatoriamente la sección **Contratos de Datos y UI (Obligatorio)** y el **Plan de Mitigación y Rollback**.
+4. **Verificación Local:** Al terminar la implementación, ejecutar y reportar el resultado de `npm run build` para asegurar la integridad del tipado y compilación antes de entregar.
+
+---
+
+## Antes de codear
+
+1. Leer `AGENTS.md`, `specs/memory/constitution.md` y `specs/memory/domain-context.md` (si la feature toca entidades o flujos clínicos)
+2. Si existe spec para la feature: `specs/NNN-*/spec.md` + `plan.md` + `tasks.md`
+3. Si NO existe: crear copia desde `specs/templates/` y obtener confirmación de alcance
+4. Completar `plan.md` (**Contratos de Datos y UI**, **Plan de Mitigación y Rollback**) **antes** de implementar
+
+## Durante implementación
+
+- Solo cambios dentro del alcance de la spec activa
+- Marcar progreso en `tasks.md`
+- UI admin → `docs/ADMIN-UI-ARCHITECTURE.md`
+- RTDB: cambios **aditivos**; compatibilidad app móvil
+- Pruebas UI: mocks locales o emuladores — **nunca** producción (`katzen-a0e3e`)
+
+## Al terminar
+
+- Seguir **`specs/templates/qa-validation-guide.md`** (validación exhaustiva: formularios, modales, edge cases, build)
+- **Registrar resultados** en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar cualquier ítem con `[x]`
+- Ejecutar y **reportar** `npm run build` (obligatorio) — incluir resultado en `tasks.md`
+- Ejecutar resto de testing en `tasks.md` (Cypress si aplica)
+- Callable nuevo → documentar deploy; **no ejecutar** `firebase deploy` sin autorización explícita de Luis Alfonso Niño Martínez
+- Actualizar `spec.md` estado a `done` solo cuando la validación QA esté registrada
+
+## Prompt usuario típico
+
+> Implementa specs/00N-nombre/ según spec y plan.
+
+Adjuntar `@specs/00N-nombre/spec.md`.

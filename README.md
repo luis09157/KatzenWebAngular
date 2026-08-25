@@ -152,6 +152,25 @@ Guías detalladas:
 
 ---
 
+## Spec-Driven Development (SDD)
+
+El proyecto usa **specs versionadas** + **reglas Cursor** para que cada módulo/feature siga la misma estructura, diseño y testing.
+
+| Recurso | Descripción |
+|---------|-------------|
+| [`AGENTS.md`](AGENTS.md) | Guía para agentes IA (stack, comandos, principios) |
+| [`specs/README.md`](specs/README.md) | Cómo crear e implementar specs |
+| [`specs/ROADMAP.md`](specs/ROADMAP.md) | Plan de trabajo SDD por fases |
+| [`specs/memory/constitution.md`](specs/memory/constitution.md) | Reglas no negociables |
+| [`specs/memory/domain-context.md`](specs/memory/domain-context.md) | Entidades, reglas de negocio, RTDB |
+| [`specs/templates/`](specs/templates/) | Plantillas spec / plan / tasks |
+| [`specs/templates/qa-validation-guide.md`](specs/templates/qa-validation-guide.md) | Guía QA exhaustiva al cerrar specs |
+| [`.cursor/rules/`](.cursor/rules/) | Reglas Cursor (SDD, UI, Firebase, módulos) |
+
+**Nuevo módulo:** copiar `specs/templates/` → `specs/NNN-nombre/` → pedir en Cursor: *Implementa specs/NNN-nombre según spec y plan*.
+
+---
+
 ## Firebase
 
 | Recurso | Archivo / notas |

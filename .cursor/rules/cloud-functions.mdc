@@ -1,0 +1,45 @@
+---
+description: Cloud Functions v2 — callables, Auth, RTDB admin
+globs: functions/src/**
+alwaysApply: false
+---
+
+# Cloud Functions KatzenVet
+
+## Patrón callable admin
+
+```typescript
+export const miCallable = onCall(async (request) => {
+  if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  if (!(await isCallerAdmin(request.auth.uid, request.auth.token))) {
+    throw new HttpsError('permission-denied', 'Solo administradores...');
+  }
+  try {
+    // lógica
+    return { success: true, message: '...' };
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError('internal', err instanceof Error ? err.message : 'Error');
+  }
+});
+```
+
+## Reglas
+
+- Región: `us-central1` (`setGlobalOptions`)
+- Passwords: `generateSecurePassword()` — nunca loguear ni guardar en RTDB
+- Auth rollback: si falla RTDB tras `createUser`, `deleteUser`
+- Claims: `syncClaimsForUid` tras cambios en `AuthPerfiles`
+- Email: `sendPortalWelcomeEmail` — fallo de Resend no debe tumbar provision (retornar `emailSent: false`)
+
+## Deploy
+
+```bash
+cd functions && npm run build
+firebase deploy --only functions:nombreExacto
+firebase functions:list   # verificar
+```
+
+## Mensajes HttpsError
+
+Usar códigos estándar: `invalid-argument`, `failed-precondition`, `already-exists`, `permission-denied`. Mensaje en español, claro para el admin.

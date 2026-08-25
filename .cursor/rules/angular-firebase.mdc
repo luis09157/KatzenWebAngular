@@ -1,0 +1,39 @@
+---
+description: Angular + Firebase RTDB — servicios, guards, errores
+globs: src/app/**/*.ts,src/environments/**
+alwaysApply: false
+---
+
+# Angular + Firebase (KatzenVet)
+
+## Servicios
+
+- RTDB: `@angular/fire/compat/database` — rutas bajo `Katzen/`
+- Callables: `FirebaseFunctionsService` — no llamar `httpsCallable` suelto en componentes
+- Errores UI: `ErrorMessagesService.getUserMessage(error, 'contexto corto')`
+- Loading: `LoadingService` en operaciones async admin
+
+## Auth
+
+- Perfil: `AuthProfileService.resolveAccess()`
+- Staff módulos: `staff-role.config.ts` + `StaffRoleGuard`
+- Portal: `PortalSessionService` + `PortalAuthGuard`
+
+## Componentes admin
+
+- Página: class `admin-page` + contenedor `.{modulo}-contenedor` (para Cypress)
+- Destroy subscriptions: `takeUntil(destroy$)` en componentes con subscribe
+- Diálogos: `ADMIN_DIALOG_*` de `admin-ui.config.ts`
+
+## Convenciones
+
+- Idioma UI: español latino
+- No usar `any` salvo legacy inevitable
+- IDs cliente: string consistente con key RTDB (`cliente.id`)
+
+## Callable nueva
+
+1. Implementar en `functions/src/index.ts`
+2. Método en `firebase-functions.service.ts`
+3. Contexto en `error-messages.service.ts`
+4. Documentar en spec + deploy

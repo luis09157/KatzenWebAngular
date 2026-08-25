@@ -1,0 +1,600 @@
+# Contexto de dominio — KatzenVet Web
+
+Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
+**Última revisión:** 2026-08-25 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez).
+
+---
+
+## 1. Visión del producto
+
+KatzenVet es el sistema web de una clínica veterinaria con tres superficies:
+
+| Superficie | Ruta base | Usuarios | Propósito |
+|------------|-----------|----------|-----------|
+| **Landing** | `/`, `/privacidad` | Público | Marketing, contacto, captura de leads |
+| **Admin** | `/admin/*` | Staff clínica | Operación diaria: clientes, pacientes, citas, clínica, inventario, usuarios |
+| **Portal** | `/portal/*` | Dueños de mascotas | Consulta de mascotas, vacunas, citas, historial clínico visible, notificaciones |
+
+**Backend:** Firebase Auth + Realtime Database (`Katzen/*`) + Cloud Functions v2 (`us-central1`).
+
+**Convivencia móvil:** La app móvil consume los mismos nodos RTDB. Cambios deben ser **aditivos** (campos opcionales). Ver `specs/memory/constitution.md`.
+
+---
+
+## 2. Entidades y relaciones
+
+### 2.1 Modelo conceptual
+
+En código, **Paciente** y **Mascota** son la misma entidad; el nodo RTDB es `Katzen/Mascota`.
+
+```mermaid
+erDiagram
+    Cliente ||--o{ Mascota : "idCliente / cliente_id"
+    Cliente ||--o| AuthPerfil : "authUid (portal)"
+    Mascota ||--o{ Cita : "paciente_id"
+    Mascota ||--o{ HistorialClinico : "paciente_id"
+    Mascota ||--o{ Vacuna : "idPaciente"
+    Mascota ||--o{ Recordatorio : "paciente_id"
+    Mascota ||--o{ Banio : "paciente_id"
+    Mascota ||--o{ LogPaciente : "auditoría"
+    Cliente ||--o{ Notificacion : "Katzen/Notificaciones/{clienteId}"
+    UsuarioStaff ||--|| AuthPerfil : "mismo uid"
+    UsuarioStaff }o--|| StaffRole : "perfil / staffRole"
+    ProductoInventario ||--o{ Movimiento : "producto_id"
+    ProductoInventario }o--|| Proveedor : "proveedor_principal_id"
+    OrdenCompra }o--|| Proveedor : "proveedor_id"
+    OrdenCompra ||--o{ ItemOrden : "items[]"
+    Banio }o--|| Peluquero : "peluquero_id"
+    HistorialClinico }o--o| Movimiento : "historial_clinico_id (salida inv.)"
+    ContactoWeb }o--|| Landing : "origen landing"
+```
+
+### 2.2 Entidades principales
+
+| Entidad | Nodo RTDB | Identificador | Notas |
+|---------|-----------|---------------|-------|
+| Cliente (dueño) | `Katzen/Cliente/{id}` | UUID (`crypto.randomUUID`) | No confundir con staff |
+| Mascota / Paciente | `Katzen/Mascota/{id}` | Push key o UUID | Campos duales: `idCliente` y `cliente_id` |
+| Usuario staff | `Katzen/Usuarios/{uid}` | Firebase Auth UID | Perfiles: administrador, doctor, recepcionista, peluquero; **futuro:** super_admin / dueño |
+| Perfil auth | `Katzen/AuthPerfiles/{uid}` | Firebase Auth UID | Fuente de custom claims |
+| Cita | `Katzen/Citas/{id}` | Push key | Baja lógica con `activo: false` |
+| Historial clínico | `Katzen/Historiales_Clinicos/{id}` | Push key | Visibilidad portal: `oculto_portal` |
+| Vacuna | `Katzen/Vacunas/{id}` | Push key | Campos legacy: `vacuna`, `fechaAplicacion`, `idPaciente` |
+| Recordatorio | `Katzen/Recordatorios/{id}` | Push key | Estados: pendiente, completado |
+| Baño / peluquería | `Katzen/Banios/{id}` | Push key | Distinto de inventario clínico |
+| Producto inventario | `Katzen/Inventario/Productos/{id}` | Push key | Stock transaccional |
+| Movimiento inventario | `Katzen/Inventario/Movimientos/{id}` | Push key | Tipos: entrada, salida, ajuste, merma, … |
+| Proveedor | `Katzen/Inventario/Proveedores/{id}` | Push key | |
+| Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
+| Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
+| Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
+| Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |
+| Notificación portal | `Katzen/Notificaciones/{clienteId}/{id}` | Push key | Cliente solo puede marcar `leida: true` |
+| Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
+| Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
+
+### 2.3 Catálogos auxiliares
+
+| Catálogo | Nodo RTDB | Uso |
+|----------|-----------|-----|
+| Tipos de vacuna | `Katzen/TiposVacunas` | Admin vacunas |
+| Medicamentos | `Katzen/Medicamentos` | Historial / recetas |
+| Diagnósticos | `Katzen/Diagnosticos` | Historial clínico |
+| Tratamientos | `Katzen/Tratamientos` | Historial clínico |
+| Tipos servicio peluquería | `Katzen/TiposServiciosPeluqueria` | Baños |
+| Productos peluquería | `Katzen/ProductosPeluqueria` | Baños (no inventario clínico) |
+
+### 2.4 Nodos legacy (reglas RTDB, sin UI web activa)
+
+Presentes en `database.rules.json` pero **sin servicios Angular** detectados:
+
+- `Katzen/Venta`, `Katzen/Campaña`, `Katzen/Gasolina`
+- `Katzen/Producto`, `Katzen/Productos` (distintos de `Katzen/Inventario/Productos`) — **app móvil los usa activamente**
+- `peluqueros` (raíz, fuera de `Katzen/`)
+
+Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; migración móvil en fase posterior.
+
+---
+
+## 3. Nodos RTDB — campos clave
+
+### 3.1 `Katzen/Cliente/{clienteId}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `nombre`, `apellidoPaterno`, `apellidoMaterno` | string | Nombre completo en UI |
+| `telefono`, `correo` | string | Correo requerido para portal |
+| `expediente`, `direccion` | string | Opcionales |
+| `activo` | boolean | `false` → oculto en listas; baja lógica |
+| `fecha_registro` | string ISO | Alta web |
+| `sucursalId` | string | Stamp automático (`SucursalContextService`) |
+| `authUid` | string | UID Firebase Auth del portal |
+| `portalActivo` | boolean | Gate de acceso portal |
+| `portalEmail`, `portalProvisionedAt`, `portalProvisionedBy` | varios | Auditoría provision |
+| `mustChangePassword` | boolean | Fuerza cambio en primer login portal |
+| `fechaBaja` | string | Set en baja lógica |
+
+**Índices RTDB:** `authUid`, `correo`, `activo`, `portalActivo`, `sucursalId`.
+
+### 3.2 `Katzen/Mascota/{mascotaId}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `nombre`, `especie`, `raza`, `sexo`, `edad`, `color`, `peso` | varios | Expediente |
+| `idCliente` / `cliente_id` | string | **Ambos coexisten** — usar `pacientePerteneceACliente()` |
+| `activo` | boolean | Baja lógica |
+| `estado` | string | Valor `Fallecido` archiva recordatorios automáticamente (conservar histórico) |
+| `foto`, `imageUrl`, `rutaImagen` | string | Portal mapea varios alias |
+| `fecha_creacion`, `fechaBaja` | string | |
+| `sucursalId` | string | Stamp en altas |
+
+### 3.3 `Katzen/Citas/{citaId}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `cliente_id`, `paciente_id` | string | Obligatorios en formulario |
+| `fecha`, `fecha_hora`, `hora` | string | Fechas futuras en alta por defecto; fechas pasadas solo veterinarias (admin operativo) |
+| `motivo` | string | Catálogo fijo en `cita-dialog` |
+| `estado` | enum | `pendiente`, `confirmada`, `completada`, `cancelada` |
+| `veterinario` | string | Nombre del doctor (no UID); **obligatorio** — un veterinario por cita |
+| `duracion_minutos` | number | Default **30** al agendar; editable por el usuario |
+| `motivo_cancelacion` | string | Obligatorio al cancelar; visible en portal |
+| `observaciones` | string | |
+| `activo` | boolean | Baja lógica (no delete) |
+| `fecha_eliminacion` | string | Set en baja |
+| `sucursalId` | string | |
+
+**Flujo de estados (admin):** pendiente → confirmada → completada; cancelada disponible; revertir completada → confirmada (solo veterinarias / perfil veterinario).
+
+### 3.4 `Katzen/Historiales_Clinicos/{id}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `paciente_id` | string | |
+| `diagnostico_presuntivo`, `manejo_terapeutico`, `receta` | string | Campos clínicos principales |
+| `historia_clinica`, `hallazgos`, `estudios_solicitados` | string | Legacy / ampliados |
+| `medico_atendio` | string | **Obligatorio** — veterinario que atendió (auditoría y trazabilidad) |
+| `fecha_registro`, `created_at`, `updated_at` | string | |
+| `activo` | boolean | Baja lógica admin |
+| `oculto_portal` / `ocultoPortal` | boolean | Oculta en portal y app móvil |
+
+**Eliminar en admin:** `activo: false` + `oculto_portal: true` (preserva datos).
+
+### 3.5 `Katzen/Vacunas/{id}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `idPaciente` / `paciente_id` | string | Query por `idPaciente` |
+| `vacuna` / `nombre` | string | Nombre del biológico |
+| `dosis`, `fechaAplicacion`, `fechaRegistro` | varios | Duplicados bloqueados por vacuna+fecha |
+| `aplicada` | boolean | Marcar aplicada actualiza fecha |
+| `recordatorio`, `intervalo`, `proximaAplicacion` | varios | Recordatorio de refuerzo |
+| `activo` | boolean | Baja lógica preferida; `eliminarVacuna` con `remove()` es legacy — no usar |
+
+### 3.6 `Katzen/Recordatorios/{id}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `paciente_id`, `titulo`, `tipo` | string | Tipos: vacuna, cita, medicamento, baño, otro |
+| `fecha_hora_recordatorio` | string | |
+| `estado` | string | `pendiente`, `completado` |
+| `prioridad` | string | baja, media, alta, urgente |
+| `activo` | boolean | Baja lógica |
+
+### 3.7 `Katzen/Banios/{id}`
+
+| Campo | Tipo | Regla de negocio |
+|-------|------|------------------|
+| `paciente_id`, `cliente_id` | string | |
+| `fecha_banio`, `hora_banio` | string | No duplicar paciente+fecha+hora |
+| `tipo_servicio` | enum | baño_básico, baño_completo, corte_pelo, … |
+| `estado` | enum | programado, en_proceso, completado, cancelado |
+| `peluquero_id` | string | Conflicto de horario validado |
+| `precio_base`, `precio_total`, `pagado` | number/bool | Cancelar revierte `pagado: false` |
+| `activo` | boolean | Baja lógica |
+
+### 3.8 `Katzen/Inventario/*`
+
+**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra/venta`, `categoria`, `fecha_caducidad`, `activo`.
+
+**Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia.
+
+**Órdenes de compra:** Estados borrador → enviada → parcial/recibida/cancelada. Recepción dispara entradas de inventario.
+
+**Alertas:** Auto-creadas por stock bajo, punto reorden, caducidad (sin deduplicar en `generarAlertasAutomaticas`).
+
+### 3.9 Auth y usuarios
+
+**`Katzen/Usuarios/{uid}`** (staff):
+
+- `nombre`, `correo`, `telefono`, `perfil`, `staffRole`, `activo`, `fecha_registro`
+
+**`Katzen/AuthPerfiles/{uid}`**:
+
+- `role`: `staff` | `client` | `dual`
+- `roles[]`, `staffRole`, `clienteId`, `activo`, `mustChangePassword`, `email`
+
+**Custom claims** (sincronizados vía `syncMyClaims` / trigger `onAuthPerfilWrite`):
+
+- `role`: `staff` | `client` | `none`
+- `staffRole`, `clienteId`, `dualAccess`, `mustChangePassword`
+
+---
+
+## 4. Reglas de negocio implícitas
+
+### 4.1 Patrones transversales
+
+1. **Baja lógica preferida:** `activo: false` en lugar de borrar nodos (clientes, mascotas, citas, vacunas, recordatorios, productos). **Confirmado por negocio** para vacunas y baja de cliente (cascada).
+2. **Campos duales legacy:** Siempre normalizar `idCliente`/`cliente_id`, `idPaciente`/`paciente_id`, `oculto_portal`/`ocultoPortal`.
+3. **Stamp de sucursal:** Entidades nuevas reciben `sucursalId` del contexto de sesión (default `principal`). Multi-sucursal: **solo una sucursal hoy**; diseñar pensando en expansión futura.
+4. **IDs post-push:** `stampRtdbIdAfterPush` escribe `id` en el nodo tras `push()`.
+5. **Portal solo lectura clínica:** RTDB rules bloquean write de clientes en Citas, Historiales, Vacunas, etc.
+6. **Staff ≠ Cliente:** Clientes portal viven en `Katzen/Cliente`; staff en `Katzen/Usuarios`. Provision portal nunca crea staff.
+7. **Nodos legacy móvil:** `Katzen/Producto`/`Productos` siguen en uso por app móvil — cambios aditivos; migración móvil después.
+
+### 4.2 Clientes
+
+- Alta con UUID explícito (`clientes.service.guardarCliente`).
+- **Registro self-service:** landing portal dueños genera cuentas al registrarse como clientes; `/admin` auth es exclusivo para staff (veterinarias).
+- Baja lógica **en cascada:** desactiva mascotas, citas, portal (`portalActivo: false`); impide acceso a sistemas. Manual vs automático en implementación — política confirmada.
+- Correos inválidos detectados: `n/p`, `n/a`, "no proporcionado", "sin email/correo".
+- Un correo no puede tener dos clientes activos con portal (`provisionPortalClient`).
+
+### 4.3 Citas
+
+- Fecha de cita no puede ser pasada en **nueva** cita para roles operativos generales; **excepción confirmada:** veterinarias (perfil admin operativo / veterinario) pueden agendar fechas pasadas.
+- **Duración default:** 30 minutos al agendar; el usuario puede modificar la duración si lo prefiere.
+- **Un veterinario por cita:** cada cita se asigna a un solo vet; un vet **no puede** tener dos citas solapadas en el mismo horario.
+- **Paralelismo por disponibilidad:** si hay 2 o 3 veterinarios disponibles, pueden cubrir más citas en paralelo a la misma hora (una cita por vet).
+- **Mismo cliente, misma hora, mascotas distintas:** permitido si hay vets libres — se agenda al vet disponible en el mismo horario.
+- **Validación en código:** hoy **no implementada** — regla confirmada; ver backlog §12.
+- Revertir **completada → confirmada:** permitido para veterinarias / perfil veterinario (admins operativos).
+- **Portal:** citas canceladas **visibles** con motivo de cancelación obligatorio; filtro opcional "solo activas" para quien prefiera ocultar canceladas.
+- KPIs priorizan: pendiente > confirmada > completada > cancelada.
+
+### 4.4 Historiales
+
+- Portal filtra `activo !== false` **y** `oculto_portal !== true`.
+- `bajaLogicaHistorial` oculta en admin pero **no** en portal; `eliminarHistorial` oculta en ambos.
+- **Notas internas (confirmado):** se requieren notas visibles solo para médicos (continuidad entre doctoras), separadas de notas visibles al dueño. Implementación pendiente — ver backlog §12.
+- **`medico_atendio`:** obligatorio al registrar historial — siempre solicitar qué veterinario atendió.
+- **Archivar vs ocultar portal (confirmado):** `activo: false` = oculto en listas admin, datos preservados; `oculto_portal: true` = oculto al dueño (portal/móvil) pero visible en admin si `activo !== false`; **eliminar** (`eliminarHistorial`) aplica **ambos**; **archivar** (`bajaLogicaHistorial`) solo `activo: false` sin ocultar al dueño.
+
+### 4.5 Vacunas
+
+- Anti-duplicado: misma vacuna + misma `fechaAplicacion` por paciente.
+- **Política oficial:** baja lógica (`activo: false`); **no** `remove()` — no perder información ante auditoría. Deprecar `eliminarVacuna` con remove.
+
+### 4.6 Recordatorios
+
+- Recordatorios deben generar **push notification Firebase** (confirmado; no implementado en web).
+- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos.
+
+### 4.7 Inventario
+
+- Código de barras único al crear producto.
+- Stock actualizado en transacción; movimiento registrado después.
+- Salida puede vincularse a `paciente_id`, `historial_clinico_id`, `venta_id` (integración ventas no implementada en web).
+- **Mermas y stock negativo (confirmado):** bloquear stock negativo; registrar merma con **motivo obligatorio**; ajuste con **autorización supervisor** si aplica. Hoy el código aún permite negativo — implementación pendiente.
+- **Medicamento controlado:** salida ligada a historial clínico deseada como diseño mejor — feature futura §12.
+- **Órdenes de compra** borrador → enviada: autorizan veterinarias (admin operativo).
+
+### 4.8 Portal clientes
+
+- Acceso activo requiere: `portalActivo === true`, `activo !== false`, `authUid` presente.
+- **Registro:** clientes se provisionan al registrarse desde landing portal (no solo vía admin).
+- **Perfil dual** (staff + cliente, ej. vet con mascota propia): caso real confirmado; requiere UI clara post-login para elegir contexto.
+- Contraseña temporal generada en servidor; nunca expuesta al admin.
+- `mustChangePassword` redirige a `/portal/perfil?cambiarPassword=1`.
+- Staff sin rol client es redirigido a `/admin/inicio` si intenta portal.
+- **Desactivar portal (confirmado):** revocación **inmediata** de sesiones activas + `disabled: true` en Firebase Auth al desactivar portal.
+
+### 4.9 Peluquería / baños
+
+- Baño **cancelado:** puede cancelarse; debe afectar métricas operativas.
+- **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal. Implementación en roadmap §12.
+- Cancelar revierte `pagado: false` (código actual).
+
+### 4.10 Landing / contactos
+
+- Formulario escribe en `Katzen/ContactosWeb` con validación en rules (longitudes, email regex, `origen: landing`).
+- Staff marca `leido` desde admin; create público sin auth.
+- **Tareas automáticas** (saludo, seguimiento): no implementadas; considerar en futuro.
+- **Visión KPIs/SLA:** centralizar data de inventario, finanzas, pacientes, clientes y trabajadores; finanzas de publicidad; integración WhatsApp/agendas (contacto FB/WhatsApp) — sin SLA numérico definido aún.
+
+---
+
+## 5. Roles y permisos
+
+### 5.1 Matriz staff → módulos admin
+
+Definida en `src/app/core/config/staff-role.config.ts`:
+
+| Rol | Módulos |
+|-----|---------|
+| **administrador** / **admin** | Todos (`*`) |
+| **doctor** | inicio, paciente, pacientes-admin, clientes, citas, historiales, vacunas, recordatorios, banios |
+| **recepcionista** | inicio, paciente, pacientes-admin, clientes, contactos-web, citas, recordatorios, banios |
+| **peluquero** | inicio, paciente, banios |
+| **super_admin** / **dueño** *(futuro)* | Todos (`*`) — perfil desarrollador / dueño del sistema; super admin operativo |
+
+**Rol super admin / dueño (futuro, confirmado #6):** perfil para desarrolladores con acceso total al sistema (equivalente funcional a administrador, reservado a dueño/desarrollo). **No implementado** — al añadirlo en `staff-role.config.ts` requeriría:
+
+1. Entrada en `STAFF_MODULE_ACCESS`: `super_admin: '*'` y alias `dueno: '*'`.
+2. Mapeo en `mapUsuarioPerfilToStaffRole()` para `super_admin`, `dueno`.
+3. Valor `staffRole` en `Katzen/Usuarios` y `Katzen/AuthPerfiles` al provisionar staff (Cloud Function `provisionStaffUser`).
+4. Opcional: distinguir en UI/auditoría de `administrador` clínico (solo documentación hasta implementar).
+
+**Guards:**
+
+- `AuthGuard` — sesión Firebase en `/admin/*`
+- `StaffRoleGuard` — módulo según `data.staffModule`
+- `PortalAuthGuard` — sesión client + sync claims
+- `PortalGuestGuard` — login portal sin sesión
+
+### 5.2 RTDB vs UI
+
+La matriz de módulos es **solo frontend**. Reglas RTDB permiten write a **cualquier staff** (`role != 'client'`), no discriminan por `staffRole`. Excepción: `AuthPerfiles` y `Usuarios` write solo administrador.
+
+### 5.3 Portal vs staff
+
+| Acción | Staff | Cliente portal |
+|--------|-------|----------------|
+| Leer propio cliente | Sí (todos) | Solo su `clienteId` si portal activo |
+| Leer mascotas | Todas | Solo `idCliente == clienteId`, activas |
+| Leer citas/vacunas/historial | Todas | Solo de sus mascotas; historial sin `oculto_portal` |
+| Escribir datos clínicos | Sí | No |
+| Marcar notificación leída | Sí | Solo `leida: true` en sus notificaciones |
+| Provision portal / staff | Admin vía Functions | No |
+
+### 5.4 Cloud Functions (solo admin unless noted)
+
+| Callable | Quién | Acción |
+|----------|-------|--------|
+| `syncMyClaims` | Autenticado | Sincroniza claims desde AuthPerfiles |
+| `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
+| `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
+| `provisionPortalClient` | Admin | Activa portal + email bienvenida |
+| `deactivatePortalClient` | Admin | Desactiva portal |
+| `resendPortalClientAccess` | Admin | Nueva contraseña temporal |
+| `clearMustChangePassword` | Cliente autenticado | Tras cambio de contraseña |
+
+---
+
+## 6. Flujos principales
+
+### 6.1 Alta de cliente y mascota (admin)
+
+```mermaid
+flowchart LR
+    A[Recepcionista / Doctor] --> B[Clientes CRUD]
+    B --> C[Katzen/Cliente UUID]
+    A --> D[Pacientes-admin / Expediente]
+    D --> E[Katzen/Mascota push]
+    E --> F[Log_Paciente opcional]
+```
+
+### 6.2 Ciclo de cita
+
+```mermaid
+flowchart TD
+    A[Crear cita] --> B{Validación fecha futura}
+    B -->|OK o vet admin operativo| C[Asignar veterinario + duración default 30 min]
+    C --> D{¿Vet libre en slot?}
+    D -->|No| X[Rechazar solapamiento]
+    D -->|Sí| E[Guardar Katzen/Citas activo true]
+    E --> F[Estado pendiente]
+    F --> G[Confirmar]
+    G --> H[Completar]
+    H -->|Revertir vet admin| G
+    F --> I[Cancelar con motivo obligatorio]
+    E --> J[registrarCita en Log_Paciente]
+```
+
+> **Nota:** validación de solapamiento por veterinario y campo `duracion_minutos` — regla confirmada; implementación pendiente en servicio citas.
+
+### 6.3 Provision portal cliente
+
+```mermaid
+flowchart TD
+    A[Admin Usuarios tab Pendientes] --> B[provisionPortalClient]
+    B --> C{Cliente activo y correo válido?}
+    C -->|No| X[Error failed-precondition]
+    C -->|Sí| D[Crear/actualizar Auth]
+    D --> E[AuthPerfiles role client]
+    E --> F[Cliente portalActivo true]
+    F --> G[syncClaimsForUid]
+    G --> H[Email Resend con password]
+    H --> I[PortalProvisionLog]
+```
+
+### 6.4 Movimiento de inventario
+
+```mermaid
+flowchart TD
+    A[Entrada / Salida / Ajuste] --> B[Transaction stock_actual]
+    B --> C{Stock suficiente? salida}
+    C -->|No| X[Error]
+    C -->|Sí| D[Push Movimientos]
+    D --> E[verificarYCrearAlertas]
+```
+
+### 6.5 Login portal
+
+1. Auth email/password → `syncMyClaims`
+2. Si `hasClientAccess` y cliente portal activo → `/portal/mascotas`
+3. Si solo staff → `/admin/inicio`
+4. Si `mustChangePassword` → `/portal/perfil`
+
+---
+
+## 7. Separación admin / portal / landing
+
+| Aspecto | Admin | Portal | Landing |
+|---------|-------|--------|---------|
+| Layout | `AdminMainLayoutComponent` | `PortalLayoutComponent` | `LandingComponent` |
+| Login | `/admin/login` | `/portal/login` | N/A (contacto anónimo) |
+| Auth service | `AuthService` + guards staff | `PortalAuthService` + `PortalSessionService` | Ninguno |
+| Datos | Lectura/escritura RTDB staff | Lectura RTDB filtrada por clienteId | Solo write ContactosWeb |
+| UI pattern | `admin-page`, KPIs, tablas MDC | Mobile-first, secciones por mascota | Marketing estático |
+| Módulos | 12 módulos lazy-loaded | mascotas, detalle, vacunas/citas/historial, notificaciones, perfil | contacto, privacidad |
+
+---
+
+## 8. Referencias de código clave
+
+| Tema | Archivo |
+|------|---------|
+| Rutas globales | `src/app/app-routing.module.ts` |
+| Rutas portal | `src/app/portal/portal-routing.module.ts` |
+| Roles staff | `src/app/core/config/staff-role.config.ts` |
+| Resolución auth | `src/app/core/services/auth-profile.service.ts` |
+| Reglas RTDB | `database.rules.json` |
+| Cloud Functions | `functions/src/index.ts`, `functions/src/portal-mail.ts` |
+| Modelos core | `src/app/core/models.ts` |
+| Inventario modelos | `src/app/shared/inventario.models.ts` |
+| Baños modelo | `src/app/shared/banio.model.ts` |
+| Mapper portal | `src/app/portal/utils/portal-mapper.util.ts` |
+| Util cliente↔paciente | `src/app/core/utils/paciente-cliente.util.ts` |
+| Validaciones | `src/app/shared/validation.service.ts` |
+| Sucursal | `src/app/core/services/sucursal-context.service.ts` |
+| Servicios CRUD | `src/app/{clientes,pacientes,citas,historiales,vacunas,recordatorios,banios,inventario,usuarios}/*.service.ts` |
+| Portal data | `src/app/portal/services/portal-data.service.ts` |
+| Spec portal usuarios | `specs/002-portal-clientes-usuarios/spec.md` |
+| Baseline módulos | `specs/001-baseline/spec.md` |
+| Auditoría técnica | `specs/AUDIT-CODE.md` |
+| Constitución | `specs/memory/constitution.md` |
+
+---
+
+## 9. Deuda técnica / ambigüedades detectadas
+
+1. **Permisos RTDB granulares:** UI restringe por rol; RTDB no — un recepcionista puede escribir historiales vía API directa.
+2. **Eliminación vacunas:** coexisten `remove()` y baja lógica — negocio confirmó baja lógica; deprecar `remove()`.
+3. **Baños:** `eliminarBanio` hace remove físico vs baja lógica disponible.
+4. **Inventario vs ventas/caja:** nodos `Venta` en rules sin integración web; ingresos baños deben integrarse (confirmado negocio).
+5. **Multi-sucursal:** infraestructura (`sucursalId`, filtro KPIs) pero solo una sucursal en `environment` — diseño futuro confirmado.
+6. **Dual access:** perfil `dual` confirmado como caso real; flujo UI post-login no implementado.
+7. **Notificaciones push:** recordatorios deben generar push Firebase — sin bridge en Functions web.
+8. **Notas internas historial:** requeridas por negocio; modelo de datos no existe aún.
+9. **Validación agenda por veterinario:** regla confirmada (1 vet/cita, sin solapamiento, duración default 30 min) — **falta implementación** en servicio citas.
+10. **Revocación sesiones portal (parcial):** `deactivatePortalClient` ya aplica `disabled: true` en Firebase Auth y `portalActivo: false`; **falta** `admin.auth().revokeRefreshTokens(uid)` para invalidar sesiones activas inmediatamente (decisión #18).
+11. **Rol super admin / dueño:** confirmado para desarrolladores — **falta implementación** en config, RTDB y Functions.
+12. ~~**`medico_atendio` obligatorio:**~~ **Resuelto** — validación `Validators.required` en `historial-dialog.component.ts` (campo `medico_atendio` del formulario).
+13. **Política mermas inventario:** confirmada — **falta implementación** (bloqueo negativo, motivo, autorización supervisor).
+
+---
+
+## 10. Glosario
+
+| Término | Significado |
+|---------|-------------|
+| Staff | Empleado clínica con acceso admin |
+| Cliente | Dueño de mascota en `Katzen/Cliente` |
+| Paciente / Mascota | Animal atendido en `Katzen/Mascota` |
+| Portal activo | Cliente con Auth + `portalActivo: true` |
+| Baja lógica | `activo: false`, datos preservados |
+| Claims | Custom JWT claims Firebase Auth |
+
+---
+
+## 11. Decisiones de negocio confirmadas
+
+> Respuestas de **Luis Alfonso Niño Martínez** (2026-08-25). Estado: **confirmado** | **pendiente** | **propuesto** (recomendación técnica sin confirmación explícita).
+
+### Citas
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 1 | Dos citas mismo día/hora, mascotas distintas, mismo cliente | **Permitido** si hay perfiles de veterinarios y hay uno libre — se agenda al vet disponible al mismo tiempo | Confirmado |
+| 2 | Solapamiento por veterinario | **Un veterinario por cita** — un vet no puede tener dos citas a la misma hora. Si hay 2–3 vets disponibles, citas en paralelo (una por vet). Duración default **30 min** al agendar; editable por el usuario | Confirmado |
+| 3 | Revertir completada → confirmada | Permitido para **veterinarias / perfil veterinario** (admins operativos) | Confirmado |
+| 4 | Citas canceladas en portal | **Visibles** con motivo de cancelación obligatorio; filtro opcional "solo activas" | Confirmado |
+| 5 | Agendar fechas pasadas | Solo **veterinarias** (perfil admin operativo) | Confirmado |
+
+### Historial clínico
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 6 | Archivar admin (`activo: false`) vs oculto portal (`oculto_portal: true`) | **Confirmada propuesta técnica:** `activo: false` = oculto en listas admin, datos preservados; `oculto_portal: true` = oculto al dueño (portal/móvil) pero visible en admin si `activo !== false`; **eliminar** (`eliminarHistorial`) aplica **ambos**; **archivar** (`bajaLogicaHistorial`) solo `activo: false`. **Además:** crear perfil **dueño / super admin** para desarrolladores (super admin del sistema) | Confirmado |
+| 7 | Notas internas (no visibles al dueño) | **Sí necesarias** — notas solo médicos para continuidad entre doctoras; notas separadas visibles al dueño | Confirmado |
+| 8 | Campo `medico_atendio` obligatorio | **Sí** — siempre solicitar qué veterinario atendió (obligatorio) | Confirmado |
+
+### Vacunas y recordatorios
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 9 | Eliminación vacunas | **Baja lógica** preferida; **no** `remove()` — no perder información | Confirmado |
+| 10 | Recordatorios → push notification | **Sí** — Firebase push notification | Confirmado |
+| 11 | Mascota Fallecido | Archivar recordatorios automáticamente (evitar recordar a dueños); conservar registros históricos | Confirmado |
+
+### Inventario
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 12 | Mermas con stock negativo | **Sí** — bloquear stock negativo; registrar merma con motivo obligatorio; ajuste con autorización supervisor si aplica | Confirmado |
+| 13 | Salida ligada a historial (medicamento controlado) | **Sí desea diseño mejor** — feature futura | Confirmado (futuro) |
+| 14 | Órdenes compra borrador → enviada | Autorizan **veterinarias** (admin operativo) | Confirmado |
+| 15 | Legacy `Producto`/`Productos` | App **móvil los usa** — cambios aditivos; mejorar web sin romper móvil; migración móvil después | Confirmado |
+
+### Portal y auth
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 16 | Registro self-service | Landing portal dueños: generar cuentas al registrarse como clientes. `/admin` auth para staff (veterinarias). Portal también provisionado al registrarse | Confirmado |
+| 17 | Perfil dual (staff + cliente) | **Caso real** (ej. vet con mascota propia) — necesita UI clara post-login | Confirmado |
+| 18 | Desactivar portal revoca sesiones | **Sí** — revocación inmediata de sesiones activas + `disabled: true` en Firebase Auth al desactivar portal | Confirmado |
+
+### Peluquería / finanzas
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 19 | Baño cancelado | Puede cancelarse; debe afectar métricas; sistema debe llevar finanzas (baños, medicina, etc.) con balances mensuales — **roadmap** | Confirmado (futuro) |
+| 20 | Ingresos baños → ventas/caja | **Sí** — tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal | Confirmado |
+
+### Clientes
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 21 | Multi-sucursal | Solo **una sucursal** ahora; considerar en diseño futuro | Confirmado |
+| 22 | Baja cliente | Cascada baja lógica de todo (mascotas, citas, portal); impedir acceso a sistemas | Confirmado |
+
+### Landing
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 23 | ContactosWeb tareas automáticas | **No aún** — considerar futuro (saludo, seguimiento) | Confirmado (futuro) |
+| 24 | SLA / KPIs | Sin SLA numérico. Visión: centralizar data inventario/finanzas/pacientes/clientes/trabajadores; finanzas publicidad; integración WhatsApp/agendas (FB/WhatsApp contacto) | Confirmado (visión) |
+
+---
+
+## 12. Backlog de dominio derivado
+
+Features futuras derivadas de las decisiones de negocio. Sin fechas — priorizar en specs cuando corresponda.
+
+| Feature | Origen | Notas |
+|---------|--------|-------|
+| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado |
+| **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
+| **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
+| **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |
+| **Validación agenda por veterinario** | #2 | 1 vet/cita, sin solapamiento por vet, paralelismo si hay vets libres; slot default 30 min |
+| **Duración citas configurable** | #2 | Default 30 min al agendar; campo editable en formulario cita |
+| **Rol super admin / dueño** | #6 | Perfil desarrollador con acceso total; extensión de `staff-role.config.ts` + AuthPerfiles |
+| **UI perfil dual post-login** | #17 | Selector admin vs portal cuando `dualAccess` |
+| **Registro self-service portal** | #16 | Landing → Auth + Cliente + provision automático |
+| **Revocación sesiones al desactivar portal** | #18 | Parcial: `disabled: true` en Auth implementado; falta `revokeRefreshTokens` en `deactivatePortalClient` |
+| **Cascada baja lógica cliente** | #22 | Automatizar mascotas, citas futuras, portal |
+| **Archivo automático recordatorios (Fallecido)** | #11 | Trigger al cambiar `estado` mascota |
+| **Filtro citas portal "solo activas"** | #4 | UX portal citas canceladas |
+| **Motivo cancelación citas** | #4 | Campo obligatorio admin + visible portal |
+| **ContactosWeb automatización** | #23 | Saludo, seguimiento, tareas |
+| **Integración WhatsApp / agendas** | #24 | Contacto FB/WhatsApp; sync agendas |
+| **Dashboard KPIs centralizado** | #24 | Inventario, finanzas, pacientes, clientes, trabajadores, publicidad |
+| **Migración nodos legacy inventario** | #15 | Coordinar con app móvil post-mejoras web |
+| **Multi-sucursal** | #21 | Cuando crezca operación |
+| **Política mermas inventario** | #12 | Bloqueo stock negativo, motivo obligatorio, autorización supervisor |
+| ~~**`medico_atendio` obligatorio en historial**~~ | #8 | **Hecho** — `Validators.required` en `historial-dialog`; posible regla RTDB futura |
+
+**Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.
