@@ -12,7 +12,7 @@ describe('Admin sidenav — Inventario sub-ítems', () => {
     { label: 'Proveedores', path: '/admin/inventario/proveedores', title: 'Proveedores', container: '.admin-page' },
     { label: 'Órdenes de compra', path: '/admin/inventario/ordenes', title: 'Órdenes de compra', container: '.admin-page' },
     { label: 'Alertas', path: '/admin/inventario/alertas', title: 'Alertas de inventario', container: '.alertas-contenedor' },
-    { label: 'Reportes', path: '/admin/inventario/reportes', title: 'Reportes e Informes', container: '.reportes-container' }
+    { label: 'Reportes', path: '/admin/inventario/reportes', title: 'Reportes e informes', container: '.reportes-contenedor' }
   ];
 
   beforeEach(() => {

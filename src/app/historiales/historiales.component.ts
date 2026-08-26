@@ -14,6 +14,11 @@ import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import {
+  fechaEnRango,
+  normalizeFechaIso,
+  resolverPeriodo
+} from '../core/utils/periodo-filtro.util';
 import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
 import { InventarioService } from '../inventario/inventario.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
@@ -31,7 +36,16 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
-  estadisticas: any = { total: 0, activos: 0, inactivos: 0 };
+  estadisticas: any = {
+    total: 0,
+    activos: 0,
+    inactivos: 0,
+    delMes: 0,
+    consultasMes: 0,
+    cirugiasMes: 0,
+    vacunasMes: 0
+  };
+  private historialesRaw: any[] = [];
   loading = false;
   necesitaMigracion = false;
   private destroy$ = new Subject<void>();
@@ -146,12 +160,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (historiales) => {
+          this.historialesRaw = historiales || [];
           this.dataSource.data = (historiales || []).map(historial => ({
             ...historial,
             paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
             fecha_registro: this.formatearFecha(historial.fecha_registro)
           }));
-          
+          this.calcularKpisMes();
           this.loading = false;
           setTimeout(() => {
             if (this.paginator) this.dataSource.paginator = this.paginator;
@@ -174,7 +189,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stats) => {
-          this.estadisticas = stats;
+          this.estadisticas = { ...this.estadisticas, ...stats };
+          this.calcularKpisMes();
           this.logger.log('Estadísticas cargadas:', stats);
         },
         error: (error) => {
@@ -191,19 +207,45 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   getHistorialesRecientes(): number {
     const hace30Dias = new Date();
     hace30Dias.setDate(hace30Dias.getDate() - 30);
-    
-    return this.dataSource.data.filter(historial => {
-      if (!historial.fecha_registro) return false;
-      const fechaHistorial = new Date(historial.fecha_registro);
-      return fechaHistorial >= hace30Dias;
+
+    return this.historialesRaw.filter((historial) => {
+      const f = normalizeFechaIso(historial.fecha_registro);
+      if (!f) return false;
+      return new Date(f + 'T12:00:00') >= hace30Dias;
     }).length;
+  }
+
+  private clasificarHistorialTipo(historial: any): 'consulta' | 'cirugia' | 'vacuna' {
+    const diag = String(historial.diagnostico_presuntivo || '').toLowerCase();
+    if (diag.includes('cirug') || diag.includes('qx') || diag.includes('esteriliz')) {
+      return 'cirugia';
+    }
+    if (diag.includes('vacun')) return 'vacuna';
+    return 'consulta';
+  }
+
+  calcularKpisMes(): void {
+    const rango = resolverPeriodo('este_mes');
+    const delMes = (this.historialesRaw || []).filter(
+      (h) => h.activo !== false && fechaEnRango(h.fecha_registro, rango)
+    );
+    this.estadisticas.delMes = delMes.length;
+    this.estadisticas.consultasMes = delMes.filter(
+      (h) => this.clasificarHistorialTipo(h) === 'consulta'
+    ).length;
+    this.estadisticas.cirugiasMes = delMes.filter(
+      (h) => this.clasificarHistorialTipo(h) === 'cirugia'
+    ).length;
+    this.estadisticas.vacunasMes = delMes.filter(
+      (h) => this.clasificarHistorialTipo(h) === 'vacuna'
+    ).length;
   }
 
   getPacientesUnicos(): number {
     const pacientesUnicos = new Set(
-      this.dataSource.data
-        .map(historial => historial.paciente_id)
-        .filter(id => id && id !== 'N/P')
+      this.historialesRaw
+        .map((historial) => historial.paciente_id)
+        .filter((id) => id && id !== 'N/P')
     );
     return pacientesUnicos.size;
   }

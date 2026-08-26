@@ -21,3 +21,19 @@
 ## Criterios
 
 - [x] SC-001…008 (código)
+
+## Fase B — portal web tokens (2026-08-26)
+
+- [x] `PortalFcmService` + botón en `/portal/perfil`
+- [x] `firebase-messaging-sw.js` en assets
+- [x] `environment.fcmVapidKey` opcional (vacío = mensaje pendiente)
+- [ ] Deploy `onRecordatorioWritePush` — solo si no exige Resend secret (ver nota deploy MVP)
+- [ ] Smoke E2E push real — requiere VAPID + permiso navegador
+
+### Pasos pendientes VAPID
+
+1. Firebase Console → Project Settings → Cloud Messaging → Web Push certificates → Generate key pair
+2. Copiar a `environment.prod.ts` → `fcmVapidKey: '...'`
+3. Redeploy hosting
+4. Portal perfil → «Activar avisos push» → verificar nodo `Katzen/FcmTokens/{uid}`
+

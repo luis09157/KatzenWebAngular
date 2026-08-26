@@ -12,6 +12,9 @@ import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
 import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
+import { InversionMetaProgress } from '../core/models/clinic-config.model';
+import { InversionMetaDialogComponent } from './inversion-meta-dialog.component';
+import { ADMIN_DIALOG_TIMEPICKER } from '../core/config/admin-ui.config';
 import {
   PeriodoPreset,
   formatMoneyMx,
@@ -56,6 +59,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   desdeCustom = '';
   hastaCustom = '';
   snap: OwnerDashboardSnapshot | null = null;
+  inversionMeta: InversionMetaProgress | null = null;
   readonly presets: Array<{ id: PeriodoPreset; label: string }> = [
     { id: 'este_mes', label: 'Este mes' },
     { id: 'mes_anterior', label: 'Mes anterior' },
@@ -115,6 +119,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadCitas();
     this.generateCalendar();
     this.cargarOwnerDashboard();
+    this.cargarInversionMeta();
   }
 
   ngOnDestroy(): void {
@@ -134,6 +139,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.desdeCustom || !this.hastaCustom) return;
     this.periodoPreset = 'custom';
     this.cargarOwnerDashboard();
+  }
+
+  cargarInversionMeta(): void {
+    this.ownerDashboard
+      .inversionMetaProgress$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (p) => (this.inversionMeta = p),
+        error: (err) => this.logger.error('Error meta inversión:', err)
+      });
+  }
+
+  abrirConfigMeta(): void {
+    const ref = this.dialog.open(InversionMetaDialogComponent, {
+      ...ADMIN_DIALOG_TIMEPICKER,
+      data: { montoMeta: this.inversionMeta?.montoMeta }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      if (result?.saved) this.cargarInversionMeta();
+    });
   }
 
   cargarOwnerDashboard(): void {

@@ -31,6 +31,22 @@
 
     <div class="portal-info-panel">
       <div class="portal-info-row">
+        <div class="portal-info-icon"><mat-icon>notifications</mat-icon></div>
+        <div class="portal-info-push">
+          <span class="portal-info-label">Avisos en el dispositivo</span>
+          <span class="portal-info-value">Recordatorios vía push (inbox + FCM)</span>
+          <button
+            type="button"
+            class="portal-btn portal-btn-outline portal-btn-push"
+            (click)="activarNotificacionesPush()"
+            [disabled]="registeringPush || mustChangePassword">
+            <mat-icon>notifications_active</mat-icon>
+            {{ registeringPush ? 'Activando…' : 'Activar avisos push' }}
+          </button>
+          <p class="portal-push-hint" *ngIf="pushDetail">{{ pushDetail }}</p>
+        </div>
+      </div>
+      <div class="portal-info-row">
         <div class="portal-info-icon"><mat-icon>phone</mat-icon></div>
         <div>
           <span class="portal-info-label">Teléfono</span>

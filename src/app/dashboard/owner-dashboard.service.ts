@@ -22,6 +22,8 @@ import {
   OwnerKpisOperativos,
   OwnerTopItem
 } from './owner-dashboard.models';
+import { InversionMetaProgress } from '../core/models/clinic-config.model';
+import { ClinicConfigService } from '../core/services/clinic-config.service';
 import { CAJA_CATEGORIA_LABELS } from '../finanzas/caja.models';
 
 @Injectable({ providedIn: 'root' })
@@ -32,8 +34,53 @@ export class OwnerDashboardService {
     private citas: CitasService,
     private clientes: ClientesService,
     private inventario: InventarioService,
-    private pension: PensionService
+    private pension: PensionService,
+    private clinicConfig: ClinicConfigService
   ) {}
+
+  /** Ganancia neta acumulada (histórico, sin filtro de período) — spec 030. */
+  gananciaAcumulada$(): Observable<number> {
+    return combineLatest([
+      this.caja.getMovimientos().pipe(catchError(() => of([] as CajaMovimiento[]))),
+      this.banios.getBanios().pipe(catchError(() => of([] as Banio[])))
+    ]).pipe(map(([movimientos, banios]) => this.calcGananciaAcumulada(movimientos, banios)));
+  }
+
+  inversionMetaProgress$(): Observable<InversionMetaProgress> {
+    return combineLatest([this.clinicConfig.getInversionMeta$(), this.gananciaAcumulada$()]).pipe(
+      map(([meta, gananciaAcumulada]) => {
+        const montoMeta = Number(meta?.montoMeta) || 0;
+        const configurada = montoMeta > 0;
+        const porcentaje = configurada
+          ? Math.min(100, Math.round((Math.max(0, gananciaAcumulada) / montoMeta) * 100))
+          : 0;
+        const faltante = configurada ? Math.max(0, montoMeta - gananciaAcumulada) : 0;
+        return { montoMeta, gananciaAcumulada, porcentaje, faltante, configurada };
+      })
+    );
+  }
+
+  private calcGananciaAcumulada(movimientos: CajaMovimiento[], banios: Banio[]): number {
+    const activos = (movimientos || []).filter((m) => m.activo !== false);
+    const ingresos = activos.filter((m) => m.tipo === 'ingreso');
+    const egresos = activos.filter((m) => m.tipo === 'egreso');
+    let ventaBruta = sumMonto(ingresos);
+    let costosAsociados = ingresos.reduce((acc, m) => {
+      if (m.costoAsociado == null || Number.isNaN(Number(m.costoAsociado))) return acc;
+      return acc + Number(m.costoAsociado);
+    }, 0);
+    const gastosOperativos = sumMonto(egresos);
+
+    const baniosActivos = (banios || []).filter((b) => b.activo !== false && b.estado !== 'cancelado');
+    const baniosSinCaja = baniosActivos.filter((b) => !b.cajaMovimientoId);
+    ventaBruta += baniosSinCaja.reduce((a, b) => a + (Number(b.precio_total) || 0), 0);
+    costosAsociados += baniosSinCaja.reduce((a, b) => {
+      if (b.costoEstimado == null || Number.isNaN(Number(b.costoEstimado))) return a;
+      return a + Number(b.costoEstimado);
+    }, 0);
+
+    return ventaBruta - costosAsociados - gastosOperativos;
+  }
 
   snapshot$(
     preset: PeriodoPreset,

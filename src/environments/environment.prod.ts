@@ -25,5 +25,7 @@ export const environment = {
   defaultSucursalId: 'principal',
   sucursales: [
     { id: 'principal', nombre: 'Katzen Principal' }
-  ]
+  ],
+  /** FCM web portal (spec 023 fase B). Configurar vía Firebase Console antes de prod push. */
+  fcmVapidKey: '' as string | undefined
 }; 

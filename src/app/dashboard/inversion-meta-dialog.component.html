@@ -1,0 +1,30 @@
+<div class="admin-dialog-shell admin-dialog-shell--picker">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Meta de inversión</h2>
+      <p class="admin-dialog-subtitle">Monto objetivo para recuperación del negocio.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-form-layout">
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Monto meta (MXN)</mat-label>
+        <input matInput type="number" formControlName="montoMeta" min="1" step="1000" />
+        <mat-hint>Se compara contra la ganancia neta acumulada (caja + baños).</mat-hint>
+        <mat-error *ngIf="form.get('montoMeta')?.hasError('required')">Indica un monto</mat-error>
+        <mat-error *ngIf="form.get('montoMeta')?.hasError('min')">Debe ser mayor a cero</mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <footer class="admin-dialog-footer">
+    <button mat-stroked-button type="button" (click)="cancelar()">Cancelar</button>
+    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="guardar()">
+      Guardar meta
+    </button>
+  </footer>
+</div>

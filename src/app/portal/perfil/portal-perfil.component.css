@@ -1,3 +1,19 @@
+.portal-btn-push {
+  margin-top: 0.5rem;
+}
+
+.portal-info-push {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.portal-push-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
 .portal-password-banner {
   display: flex;
   gap: 0.75rem;

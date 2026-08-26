@@ -1,10 +1,18 @@
 <div class="admin-page historiales-contenedor">
-  <p class="section-eyebrow">Resumen del módulo</p>
+  <p class="section-eyebrow">Resumen del módulo · Este mes</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="pink" icon="medical_services" [value]="estadisticas.total" label="Total historiales" hint="En el sistema"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" icon="calendar_month" [value]="estadisticas.delMes" label="Historiales del mes" hint="Registros activos en el mes"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" icon="medical_services" [value]="estadisticas.consultasMes" label="Consultas" hint="Por diagnóstico"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" icon="content_cut" [value]="estadisticas.cirugiasMes" label="Cirugías / Qx" hint="Heurística en diagnóstico"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" icon="vaccines" [value]="estadisticas.vacunasMes" label="Vacunas" hint="Heurística en diagnóstico"></app-admin-stat-card>
+  </app-admin-kpi-grid>
+
+  <p class="section-eyebrow">Histórico general</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="pink" icon="folder" [value]="estadisticas.total" label="Total historiales" hint="En el sistema"></app-admin-stat-card>
     <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.activos" label="Activos" hint="Registros vigentes"></app-admin-stat-card>
     <app-admin-stat-card accent="blue" icon="schedule" [value]="getHistorialesRecientes()" label="Últimos 30 días" hint="Consultas recientes"></app-admin-stat-card>
-    <app-admin-stat-card accent="teal" icon="pets" [value]="getPacientesUnicos()" label="Pacientes únicos" hint="Con historial"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" icon="pets" [value]="getPacientesUnicos()" label="Pacientes únicos" hint="Con historial"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner

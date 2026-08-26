@@ -394,3 +394,10 @@ export const MOCK_PORTAL_BANIOS = [
   }
 ];
 
+/** Meta de inversión dashboard (spec 030). */
+export const MOCK_INVERSION_META = {
+  montoMeta: 500000,
+  updatedAt: '2026-08-26T12:00:00.000Z',
+  updatedBy: 'mock-staff-admin'
+};
+

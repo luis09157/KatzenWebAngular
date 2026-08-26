@@ -4,7 +4,7 @@
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    margin-bottom: 16px;
+    margin: 8px 28px 22px;
 
     mat-form-field {
       min-width: 180px;

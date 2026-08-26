@@ -110,17 +110,28 @@
           <app-admin-data-panel
             accent="teal"
             title="Meta de inversión"
-            description="Próximamente — placeholder v1"
+            [description]="inversionMeta?.configurada ? ('Meta ' + formatMoney(inversionMeta!.montoMeta)) : 'Configura el monto objetivo de recuperación'"
             [showLegend]="false">
             <div class="owner-meta">
-              <p class="owner-meta__hint">
-                Aquí podrás configurar una meta de recuperación de inversión (como en un tablero de dueña).
-                Por ahora los números reales están en finanzas y en los KPIs de arriba.
-              </p>
-              <div class="owner-meta__bar" aria-hidden="true">
-                <div class="owner-meta__fill" style="width: 0%"></div>
+              <div class="owner-meta__actions" *ngIf="inversionMeta">
+                <button mat-stroked-button type="button" (click)="abrirConfigMeta()">
+                  <mat-icon>tune</mat-icon>
+                  {{ inversionMeta.configurada ? 'Editar meta' : 'Configurar meta' }}
+                </button>
               </div>
-              <p class="owner-meta__pct">Progreso 0% · configurable en una siguiente entrega</p>
+              <p class="owner-meta__hint" *ngIf="!inversionMeta?.configurada">
+                Define cuánto quieres recuperar de la inversión inicial. El progreso usa la ganancia neta acumulada (caja + baños).
+              </p>
+              <ng-container *ngIf="inversionMeta?.configurada">
+                <div class="owner-meta__stats">
+                  <span>Acumulado <strong>{{ formatMoney(inversionMeta!.gananciaAcumulada) }}</strong></span>
+                  <span>Faltan <strong>{{ formatMoney(inversionMeta!.faltante) }}</strong></span>
+                </div>
+                <div class="owner-meta__bar" role="progressbar" [attr.aria-valuenow]="inversionMeta!.porcentaje" aria-valuemin="0" aria-valuemax="100">
+                  <div class="owner-meta__fill" [style.width.%]="inversionMeta!.porcentaje"></div>
+                </div>
+                <p class="owner-meta__pct">Progreso {{ inversionMeta!.porcentaje }}% · ganancia neta acumulada vs meta</p>
+              </ng-container>
             </div>
           </app-admin-data-panel>
         </div>

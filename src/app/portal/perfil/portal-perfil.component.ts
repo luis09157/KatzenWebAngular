@@ -9,6 +9,7 @@ import { PortalSessionService } from '../services/portal-session.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
+import { PortalFcmService, PortalFcmStatus } from '../../core/services/portal-fcm.service';
 import { isPortalClienteActive, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 
 @Component({
@@ -29,12 +30,17 @@ export class PortalPerfilComponent implements OnInit {
   newPassword = '';
   confirmPassword = '';
 
+  pushStatus: PortalFcmStatus | 'idle' = 'idle';
+  pushDetail = '';
+  registeringPush = false;
+
   constructor(
     private portalSession: PortalSessionService,
     private portalData: PortalDataService,
     private portalAuth: PortalAuthService,
     private authProfileService: AuthProfileService,
     private firebaseFunctions: FirebaseFunctionsService,
+    private portalFcm: PortalFcmService,
     private errorMessages: ErrorMessagesService,
     private afAuth: AngularFireAuth,
     private router: Router,
@@ -166,5 +172,42 @@ export class PortalPerfilComponent implements OnInit {
 
   async logout(): Promise<void> {
     await this.portalAuth.logout();
+  }
+
+  async activarNotificacionesPush(): Promise<void> {
+    this.registeringPush = true;
+    this.pushDetail = '';
+    try {
+      const result = await this.portalFcm.registerPortalToken();
+      this.pushStatus = result.status;
+      this.pushDetail = result.detail || '';
+      if (result.status === 'registered') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Avisos activados',
+          text: 'Recibirás notificaciones de recordatorios en este navegador.'
+        });
+      } else if (result.status === 'no_vapid') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Push pendiente de configuración',
+          text: this.pushDetail
+        });
+      } else if (result.status === 'denied') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Permiso denegado',
+          text: 'Habilita notificaciones en la configuración del navegador.'
+        });
+      } else if (result.status !== 'unsupported') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se pudo activar',
+          text: this.pushDetail || 'Intenta de nuevo más tarde.'
+        });
+      }
+    } finally {
+      this.registeringPush = false;
+    }
   }
 }

@@ -221,6 +221,25 @@
   padding: 8px 28px 24px;
 }
 
+.owner-meta__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.owner-meta__stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.owner-meta__stats strong {
+  color: #032d60;
+}
+
 .owner-meta__hint {
   margin: 0 0 16px;
   color: #4b5563;

@@ -209,13 +209,28 @@ export class AlertasComponent implements OnInit, OnDestroy {
   }
 
   getEstadisticas() {
-    const criticas = this.alertas.filter(a => a.prioridad === 'critica' && a.estado !== 'resuelta').length;
-    const altas = this.alertas.filter(a => a.prioridad === 'alta' && a.estado !== 'resuelta').length;
-    const medias = this.alertas.filter(a => a.prioridad === 'media' && a.estado !== 'resuelta').length;
-    const bajas = this.alertas.filter(a => a.prioridad === 'baja' && a.estado !== 'resuelta').length;
-    const activas = this.alertas.filter(a => a.estado !== 'resuelta').length;
+    const activas = this.alertas.filter((a) => a.estado !== 'resuelta');
+    const criticas = activas.filter((a) => a.prioridad === 'critica').length;
+    const altas = activas.filter((a) => a.prioridad === 'alta').length;
+    const medias = activas.filter((a) => a.prioridad === 'media').length;
+    const bajas = activas.filter((a) => a.prioridad === 'baja').length;
+    const porCaducar = activas.filter((a) => a.tipo === 'por_caducar').length;
+    const caducados = activas.filter((a) => a.tipo === 'caducado').length;
+    const stockBajo = activas.filter((a) => a.tipo === 'stock_bajo').length;
+    const puntoReorden = activas.filter((a) => a.tipo === 'punto_reorden').length;
 
-    return { criticas, altas, medias, bajas, activas, total: this.alertas.length };
+    return {
+      criticas,
+      altas,
+      medias,
+      bajas,
+      activas: activas.length,
+      total: this.alertas.length,
+      porCaducar,
+      caducados,
+      stockBajo,
+      puntoReorden
+    };
   }
 
   formatearFecha(fecha: string): string {

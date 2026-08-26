@@ -58,7 +58,11 @@ export class BaniosComponent implements OnInit, OnDestroy {
     ingresosCobrados: 0,
     valorEstimado: 0,
     costosEstimados: 0,
-    margenEstimado: 0
+    margenEstimado: 0,
+    tamanoPequeno: 0,
+    tamanoMediano: 0,
+    tamanoGrande: 0,
+    tamanoSinClasificar: 0
   };
 
   constructor(
@@ -267,6 +271,20 @@ export class BaniosComponent implements OnInit, OnDestroy {
     // costo=venta → $0 sin ocultar que hubo ingreso bruto = valorEstimado.
     this.estadisticas.margenEstimado =
       this.estadisticas.valorEstimado - this.estadisticas.costosEstimados;
+
+    const noCancelPeriodo = delPeriodo.filter((b) => b.estado !== 'cancelado');
+    this.estadisticas.tamanoPequeno = noCancelPeriodo.filter(
+      (b) => b.tamano_perro === 'pequeno'
+    ).length;
+    this.estadisticas.tamanoMediano = noCancelPeriodo.filter(
+      (b) => b.tamano_perro === 'mediano'
+    ).length;
+    this.estadisticas.tamanoGrande = noCancelPeriodo.filter(
+      (b) => b.tamano_perro === 'grande'
+    ).length;
+    this.estadisticas.tamanoSinClasificar = noCancelPeriodo.filter(
+      (b) => !b.tamano_perro
+    ).length;
   }
 
   formatearFecha(fecha: any): string {

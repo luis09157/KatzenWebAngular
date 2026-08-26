@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardComponent } from './dashboard.component';
 import { AdminLayoutComponent } from './admin-layout.component';
 import { ExpedientePacienteComponent } from './expediente-paciente/expediente-paciente.component';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
+import { InversionMetaDialogComponent } from './inversion-meta-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -29,11 +30,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     DashboardComponent,
     AdminLayoutComponent,
     ExpedientePacienteComponent,
-    CitasDiaDialogComponent
+    CitasDiaDialogComponent,
+    InversionMetaDialogComponent
   ],
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     DashboardRoutingModule,
     MatIconModule,
     MatButtonModule,

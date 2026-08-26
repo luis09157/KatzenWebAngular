@@ -29,6 +29,14 @@
     <app-admin-stat-card accent="green" [value]="formatMoney(estadisticas.margenEstimado)" label="Ganancia (margen)" hint="Ingresos brutos − costos · si costo=venta → $0"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
+  <p class="section-eyebrow">Baños por tamaño (período)</p>
+  <app-admin-kpi-grid class="kpi-secondary">
+    <app-admin-stat-card accent="blue" [value]="estadisticas.tamanoPequeno" label="Pequeño (P)" hint="tamano_perro pequeno"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" [value]="estadisticas.tamanoMediano" label="Mediano (M)" hint="tamano_perro mediano"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" [value]="estadisticas.tamanoGrande" label="Grande (G)" hint="tamano_perro grande"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="estadisticas.tamanoSinClasificar" label="Sin tamaño" hint="Legacy sin tamano_perro"></app-admin-stat-card>
+  </app-admin-kpi-grid>
+
   <app-admin-page-banner
     accent="teal"
     icon="spa"

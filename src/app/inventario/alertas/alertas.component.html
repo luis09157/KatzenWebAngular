@@ -5,12 +5,12 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <p class="section-eyebrow">Inventario</p>
+    <p class="section-eyebrow">Inventario · alertas activas</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="blue" [value]="getEstadisticas().total" label="Total alertas" hint="Activas + resueltas"></app-admin-stat-card>
-      <app-admin-stat-card accent="red" [value]="getEstadisticas().criticas" label="Críticas" hint="Requieren acción"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="getEstadisticas().altas" label="Altas" hint="Prioridad alta"></app-admin-stat-card>
-      <app-admin-stat-card accent="teal" [value]="getEstadisticas().medias" label="Medias" hint="Seguimiento"></app-admin-stat-card>
+      <app-admin-stat-card accent="red" [value]="getEstadisticas().criticas" label="Críticas" hint="Requieren acción inmediata"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="getEstadisticas().porCaducar" label="Por caducar" hint="Vencimiento próximo"></app-admin-stat-card>
+      <app-admin-stat-card accent="pink" [value]="getEstadisticas().caducados" label="Caducados" hint="Productos vencidos"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" [value]="getEstadisticas().stockBajo" label="Stock bajo" hint="Bajo mínimo"></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
