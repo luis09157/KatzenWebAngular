@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
@@ -25,6 +26,7 @@ import { AdminEmptyStateComponent } from './admin/admin-empty-state.component';
 import { AdminKpiGridComponent } from './admin/admin-kpi-grid.component';
 import { AdminDataPanelComponent } from './admin/admin-data-panel.component';
 import { AdminModuleCardComponent } from './admin/admin-module-card.component';
+import { ClientePacientePickerComponent } from './admin/cliente-paciente-picker.component';
 import { AdminEstadoClassPipe } from './pipes/admin-estado-class.pipe';
 import { AdminPrioridadClassPipe } from './pipes/admin-prioridad-class.pipe';
 import { MatCardModule } from '@angular/material/card';
@@ -42,7 +44,8 @@ import { MatMenuModule } from '@angular/material/menu';
     AdminDataPanelComponent,
     AdminModuleCardComponent,
     AdminEstadoClassPipe,
-    AdminPrioridadClassPipe
+    AdminPrioridadClassPipe,
+    ClientePacientePickerComponent
   ],
   imports: [
     CommonModule,
@@ -56,6 +59,7 @@ import { MatMenuModule } from '@angular/material/menu';
     MatDialogModule,
     MatSelectModule,
     MatButtonToggleModule,
+    MatAutocompleteModule,
     MatCardModule,
     MatMenuModule
   ],
@@ -87,6 +91,8 @@ import { MatMenuModule } from '@angular/material/menu';
     AdminModuleCardComponent,
     AdminEstadoClassPipe,
     AdminPrioridadClassPipe,
+    ClientePacientePickerComponent,
+    MatAutocompleteModule,
     MatCardModule,
     MatMenuModule
   ]

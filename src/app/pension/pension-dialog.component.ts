@@ -18,6 +18,9 @@ import {
   TAMANO_PENSION_LABELS,
   TamanoMascotaPension
 } from './pension.models';
+import {
+  ClientePacienteSelection
+} from '../shared/admin/cliente-paciente-picker.models';
 import { PensionService } from './pension.service';
 
 @Component({
@@ -47,10 +50,10 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: { estancia?: PensionEstancia }
   ) {
     this.form = this.fb.group({
-      paciente: ['', [Validators.required, Validators.minLength(2)]],
-      paciente_id: ['manual'],
-      cliente: ['', [Validators.required, Validators.minLength(2)]],
-      cliente_id: ['manual'],
+      paciente: [''],
+      paciente_id: ['', Validators.required],
+      cliente: [''],
+      cliente_id: ['', Validators.required],
       fecha_ingreso: ['', Validators.required],
       fecha_salida_prevista: [''],
       tamano_mascota: [''],
@@ -142,6 +145,23 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({ precio_total: Math.round(precioDia * dias * 100) / 100 }, { emitEvent: false });
   }
 
+  onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    const tamano = this.inferirTamanoMascota(sel.pacienteData);
+    if (tamano && !this.esEdicion) {
+      this.form.patchValue({ tamano_mascota: tamano });
+      void this.aplicarDefaultsTamano(tamano);
+    }
+  }
+
+  /** Mapea tamaño conocido del paciente (baños) a tamaño pensión si aplica. */
+  private inferirTamanoMascota(paciente: ClientePacienteSelection['pacienteData']): TamanoMascotaPension | '' {
+    const raw = String(paciente?.['tamano_perro'] || paciente?.['tamano'] || '').toLowerCase();
+    if (raw === 'pequeno' || raw === 'mediano' || raw === 'grande') {
+      return raw as TamanoMascotaPension;
+    }
+    return '';
+  }
+
   async guardar(): Promise<void> {
     this.revalidarCostoDia();
     this.form.get('costo_dia')?.markAsTouched();
@@ -158,9 +178,9 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     try {
       const raw = this.form.getRawValue();
       const payload = {
-        paciente_id: raw.paciente_id || 'manual',
+        paciente_id: String(raw.paciente_id || '').trim(),
         paciente: String(raw.paciente || '').trim(),
-        cliente_id: raw.cliente_id || 'manual',
+        cliente_id: String(raw.cliente_id || '').trim(),
         cliente: String(raw.cliente || '').trim(),
         fecha_ingreso: raw.fecha_ingreso,
         fecha_salida_prevista: raw.fecha_salida_prevista || undefined,

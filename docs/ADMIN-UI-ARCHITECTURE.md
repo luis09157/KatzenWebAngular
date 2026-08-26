@@ -261,6 +261,32 @@ No usar `input type="time"` nativo en formularios admin. Usar el control compart
 - **Diálogo:** `ADMIN_DIALOG_TIMEPICKER` + `admin-dialog-shell admin-dialog-shell--picker` (`src/app/shared/timepicker/`).
 - Spec: `specs/004-timepicker-dialog/`.
 
+### Cliente-Paciente Picker (regla global — obligatorio)
+
+Cuando un modal, vista o módulo admin involucra **cliente (dueño)** y **paciente (mascota)**:
+
+1. **Orden fijo:** primero cliente, después paciente (mascotas del cliente seleccionado).
+2. **Buscador/autocomplete** de clientes (nombre, apellidos, teléfono, correo, expediente).
+3. Al elegir cliente → cargar/filtrar pacientes activos de ese cliente en segundo selector.
+4. **Autorrellenar** `cliente_id`, `paciente_id`, nombres display y datos enlazados vía `(selectionChange)`.
+5. **Prohibido** texto libre para cliente/paciente donde deba haber enlace RTDB.
+
+Componente compartido:
+
+```html
+<form [formGroup]="form">
+  <app-cliente-paciente-picker
+    [formGroup]="form"
+    (selectionChange)="onClientePacienteSelected($event)">
+  </app-cliente-paciente-picker>
+</form>
+```
+
+- **Ubicación:** `src/app/shared/admin/cliente-paciente-picker.component.ts`
+- **Utils:** `cliente-search.util.ts`, `paciente-search.util.ts`, `paciente-cliente.util.ts`
+- **Spec:** `specs/029-cliente-paciente-picker/`
+- **Módulos:** pensión (migrado), citas (parcial), baños/vacunas/historiales/recordatorios (diálogos previos — unificar en backlog)
+
 ## Loading global (feedback contextual — obligatorio)
 
 Toda operación async del admin que bloquee la UI debe usar `LoadingService` (`src/app/core/loading.service.ts`) con **mensaje contextual**:

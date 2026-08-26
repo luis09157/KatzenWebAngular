@@ -51,6 +51,35 @@ export const MOCK_MASCOTA: Paciente = {
   fecha_creacion: '2026-01-15T10:00:00.000Z',
 };
 
+/** Cliente adicional para probar autocomplete «Luis» (spec 029). */
+export const MOCK_CLIENTE_LUIS: Cliente = {
+  id: 'mock-cliente-luis',
+  nombre: 'Luis',
+  apellidoPaterno: 'Niño',
+  apellidoMaterno: 'Martínez',
+  telefono: '5550001234',
+  correo: 'luisk21fy@gmail.com',
+  expediente: 'EXP-LUIS-001',
+  activo: true,
+};
+
+/** Mascota de Luis — preview picker pensión/citas. */
+export const MOCK_MASCOTA_LUIS: Paciente = {
+  id: 'mock-mascota-luis',
+  nombre: 'Firulais',
+  especie: 'Canino',
+  raza: 'Labrador',
+  tamano_perro: 'mediano',
+  idCliente: MOCK_CLIENTE_LUIS.id,
+  cliente_id: MOCK_CLIENTE_LUIS.id,
+  activo: true,
+};
+
+/** Lista mock para autocomplete cliente→paciente (spec 029). */
+export const MOCK_CLIENTES_PICKER: Cliente[] = [MOCK_CLIENTE, MOCK_CLIENTE_LUIS];
+
+export const MOCK_PACIENTES_PICKER: Paciente[] = [MOCK_MASCOTA, MOCK_MASCOTA_LUIS];
+
 export const MOCK_CITA: Cita = {
   id: 'mock-cita-001',
   cliente_id: MOCK_CLIENTE.id,
@@ -343,4 +372,25 @@ export const MOCK_BANIO_COSTO_MAYOR_VENTA = {
   fecha_banio: '2026-08-26'
 };
 
+/** Baños visibles en portal dueño (spec 028) — sin costos ni caja. */
+export const MOCK_PORTAL_BANIO = {
+  ...MOCK_BANIO,
+  paciente_id: MOCK_MASCOTA.id!,
+  cliente_id: MOCK_CLIENTE.id!,
+  peluquero: 'María Peluquera',
+  observaciones: 'Shampoo hipoalergénico'
+};
+
+export const MOCK_PORTAL_BANIOS = [
+  MOCK_PORTAL_BANIO,
+  {
+    ...MOCK_PORTAL_BANIO,
+    id: 'mock-banio-portal-002',
+    fecha_banio: '2026-07-15',
+    hora_banio: '10:30',
+    tipo_servicio: 'corte_pelo' as const,
+    estado: 'completado' as const,
+    observaciones: 'Corte verano'
+  }
+];
 

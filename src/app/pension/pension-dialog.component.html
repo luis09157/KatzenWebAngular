@@ -11,14 +11,11 @@
 
   <mat-dialog-content class="admin-dialog-body">
     <form [formGroup]="form" class="admin-form-layout">
-      <mat-form-field appearance="outline">
-        <mat-label>Paciente (mascota)</mat-label>
-        <input matInput formControlName="paciente" required />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Cliente (dueño)</mat-label>
-        <input matInput formControlName="cliente" required />
-      </mat-form-field>
+      <app-cliente-paciente-picker
+        class="full-width"
+        [formGroup]="form"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
       <mat-form-field appearance="outline">
         <mat-label>Fecha ingreso</mat-label>
         <input matInput type="date" formControlName="fecha_ingreso" required (change)="recalcularTotal()" />

@@ -55,6 +55,9 @@ erDiagram
 |---------|-----------|---------------|-------|
 | Cliente (dueño) | `Katzen/Cliente/{id}` | UUID (`crypto.randomUUID`) | No confundir con staff |
 | Mascota / Paciente | `Katzen/Mascota/{id}` | Push key o UUID | Campos duales: `idCliente` y `cliente_id` |
+
+**Regla UI admin (029):** En formularios que enlazan cliente + paciente, usar `app-cliente-paciente-picker` — **cliente primero, paciente después**, IDs RTDB reales (`cliente_id`, `paciente_id`). No texto libre. Ver `docs/ADMIN-UI-ARCHITECTURE.md` y `specs/029-cliente-paciente-picker/`.
+
 | Usuario staff | `Katzen/Usuarios/{uid}` | Firebase Auth UID | Perfiles: administrador, doctor, recepcionista, peluquero; **futuro:** super_admin / dueño |
 | Perfil auth | `Katzen/AuthPerfiles/{uid}` | Firebase Auth UID | Fuente de custom claims |
 | Cita | `Katzen/Citas/{id}` | Push key | Baja lógica con `activo: false` |
