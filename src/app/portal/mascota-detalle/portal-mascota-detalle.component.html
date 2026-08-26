@@ -29,6 +29,10 @@
           <strong>{{ counts.historiales }}</strong>
           <span>Historial</span>
         </div>
+        <div class="portal-stat portal-stat--banos">
+          <strong>{{ counts.banos }}</strong>
+          <span>Baños</span>
+        </div>
       </div>
     </div>
   </aside>
@@ -65,6 +69,15 @@
         <h3>Historial clínico</h3>
         <p>{{ subtitulo(counts.historiales, 'historial') }}</p>
         <span class="portal-section-count badge-historial">{{ counts.historiales }} registro{{ counts.historiales === 1 ? '' : 's' }}</span>
+      </button>
+
+      <button type="button" class="portal-section-card" (click)="ir('banos')">
+        <div class="portal-section-icon portal-section-icon--banos">
+          <mat-icon>content_cut</mat-icon>
+        </div>
+        <h3>Baños y peluquería</h3>
+        <p>{{ subtitulo(counts.banos, 'baños') }}</p>
+        <span class="portal-section-count badge-banos">{{ counts.banos }} registro{{ counts.banos === 1 ? '' : 's' }}</span>
       </button>
     </div>
   </div>

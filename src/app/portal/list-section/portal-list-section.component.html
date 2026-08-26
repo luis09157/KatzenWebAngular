@@ -81,6 +81,17 @@
                 {{ item.notas }}
               </div>
             </ng-container>
+
+            <ng-container *ngIf="seccion === 'banos'">
+              <div class="portal-data-field" *ngIf="item.peluquero">
+                <strong>Peluquero</strong>
+                {{ item.peluquero }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.observaciones">
+                <strong>Observaciones</strong>
+                {{ item.observaciones }}
+              </div>
+            </ng-container>
           </div>
         </div>
       </article>

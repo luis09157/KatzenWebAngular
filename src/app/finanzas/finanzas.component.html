@@ -191,6 +191,78 @@
         </app-admin-data-panel>
       </mat-tab>
 
+      <!-- TAB INGRESOS POR SERVICIO -->
+      <mat-tab label="Ingresos por servicio">
+        <app-admin-data-panel
+          accent="teal"
+          title="Ingresos por categoría"
+          [description]="'Desglose de cobros · ' + periodoLabel"
+          [meta]="formatMoney(totalIngresosServicio) + ' total'"
+          [showLegend]="!!chartIngresosServicio.length">
+
+          <app-admin-empty-state
+            *ngIf="chartIngresosServicio.length === 0"
+            icon="bar_chart"
+            title="Sin ingresos en el período"
+            message="Registra cobros categorizados o completa baños para ver el desglose.">
+          </app-admin-empty-state>
+
+          <div class="rent-charts" *ngIf="chartIngresosServicio.length > 0">
+            <section class="rent-chart-block" aria-label="Barras ingresos por servicio">
+              <h3 class="rent-chart-title">Por servicio</h3>
+              <div class="rent-bars">
+                <div class="rent-bar-col" *ngFor="let row of chartIngresosServicio">
+                  <div class="rent-bar-track">
+                    <div
+                      class="rent-bar-fill rent-bar-fill--ok"
+                      [style.height.%]="barPct(row.total, ingresosServicioMax)">
+                    </div>
+                  </div>
+                  <span class="rent-bar-value">{{ formatMoney(row.total) }}</span>
+                  <span class="rent-bar-label">{{ row.label }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="rent-chart-block" aria-label="Tabla ingresos por servicio">
+              <h3 class="rent-chart-title">Detalle</h3>
+              <div class="table-scroll">
+                <table mat-table [dataSource]="chartIngresosServicio" class="ingresos-servicio-table">
+                  <ng-container matColumnDef="label">
+                    <th mat-header-cell *matHeaderCellDef>Servicio</th>
+                    <td mat-cell *matCellDef="let row">
+                      <span class="cell-nombre">{{ row.label }}</span>
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="count">
+                    <th mat-header-cell *matHeaderCellDef>Cobros</th>
+                    <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef>Total</th>
+                    <td mat-cell *matCellDef="let row">
+                      <strong>{{ formatMoney(row.total) }}</strong>
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="pct">
+                    <th mat-header-cell *matHeaderCellDef>%</th>
+                    <td mat-cell *matCellDef="let row">
+                      {{
+                        totalIngresosServicio
+                          ? ((row.total / totalIngresosServicio) * 100).toFixed(1)
+                          : '0'
+                      }}%
+                    </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="ingresosServicioColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: ingresosServicioColumns"></tr>
+                </table>
+              </div>
+            </section>
+          </div>
+        </app-admin-data-panel>
+      </mat-tab>
+
       <!-- TAB COSTOS -->
       <mat-tab label="Costos de servicio">
         <div *ngIf="loadingPlantillas" class="loading-container tab-loading">

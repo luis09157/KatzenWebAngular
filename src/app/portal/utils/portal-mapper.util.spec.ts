@@ -1,6 +1,7 @@
 import {
   isActiveRecord,
   isVisibleInClientPortal,
+  mapBanio,
   mapHistorial,
   mapMascota
 } from './portal-mapper.util';
@@ -46,6 +47,28 @@ describe('portal-mapper.util', () => {
 
     it('defaults activo to true', () => {
       expect(mapMascota('m1', { nombre: 'X' }).activo).toBeTrue();
+    });
+  });
+
+  describe('mapBanio (028 portal read-only)', () => {
+    it('maps visible fields and hides cost/caja', () => {
+      const mapped = mapBanio('b1', {
+        paciente_id: 'm1',
+        fecha_banio: '2026-08-20',
+        hora_banio: '11:00',
+        tipo_servicio: 'baño_completo',
+        estado: 'completado',
+        peluquero: 'Ana',
+        observaciones: 'OK',
+        precio_total: 450,
+        costoEstimado: 120,
+        cajaMovimientoId: 'caja-1'
+      }) as Record<string, unknown>;
+
+      expect(mapped['tipo_servicio_label']).toBe('Baño completo');
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'precio_total')).toBeFalse();
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'costoEstimado')).toBeFalse();
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'cajaMovimientoId')).toBeFalse();
     });
   });
 

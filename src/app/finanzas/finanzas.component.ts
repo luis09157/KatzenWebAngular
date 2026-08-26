@@ -36,10 +36,13 @@ import {
   CajaChartBar,
   CajaDiaKpis,
   CajaEgresoDesglose,
+  CajaIngresoDesglose,
   CajaMovimiento,
   CajaPeriodoModo
 } from './caja.models';
 import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models';
+import { BaniosService } from '../banios/banios.service';
+import { Banio } from '../shared/banio.model';
 
 @Component({
   selector: 'app-finanzas',
@@ -56,6 +59,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   fechaFiltro = '';
   mesFiltro = '';
 
+  ingresosServicioColumns = ['label', 'count', 'total', 'pct'];
   displayedColumns = ['fecha', 'concepto', 'categoria', 'tipo', 'metodo', 'iva', 'monto', 'margen', 'acciones'];
   dataSource = new MatTableDataSource<CajaMovimiento>([]);
   plantillasColumns = ['nombre', 'tipo', 'costo', 'precio', 'margen', 'acciones'];
@@ -68,6 +72,9 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   kpis: CajaDiaKpis = this.emptyKpis();
   chartResumen: CajaChartBar[] = [];
   chartEgresos: CajaEgresoDesglose[] = [];
+  chartIngresosServicio: CajaIngresoDesglose[] = [];
+  totalIngresosServicio = 0;
+  ingresosServicioMax = 1;
   chartSerie: { fecha: string; ingresos: number; egresos: number; ganancia: number }[] = [];
   chartMax = 1;
   serieMax = 1;
@@ -80,6 +87,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly tamanoPensionLabels = TAMANO_PENSION_DEFAULT_LABELS;
 
   private todos: CajaMovimiento[] = [];
+  private todosBanios: Banio[] = [];
   private plantillas: PlantillaCosto[] = [];
 
   readonly categoriaLabels = CAJA_CATEGORIA_LABELS;
@@ -90,6 +98,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private plantillaService: PlantillaCostoService,
     private defaultsBanioService: DefaultsBanioService,
     private defaultsPensionService: DefaultsPensionService,
+    private baniosService: BaniosService,
     private fb: FormBuilder,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
@@ -104,6 +113,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
+    this.cargarBanios();
     this.cargarPlantillas();
     this.cargarDefaultsBanio();
     this.cargarDefaultsPension();
@@ -134,6 +144,22 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       ingresosConCosto: 0,
       ingresosSinCosto: 0
     };
+  }
+
+  cargarBanios(): void {
+    this.baniosService
+      .getBanios()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.todosBanios = rows;
+          this.aplicarFiltroPeriodo();
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar baños para ingresos:', error);
+          this.todosBanios = [];
+        }
+      });
   }
 
   cargar(): void {
@@ -199,6 +225,20 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.kpis = this.cajaService.calcularKpisPeriodo(this.todos, this.periodoModo, valor);
     this.chartResumen = this.cajaService.chartResumen(this.kpis);
     this.chartEgresos = this.cajaService.desgloseEgresos(this.todos, this.periodoModo, valor);
+    this.chartIngresosServicio = this.cajaService.desgloseIngresosPorServicio(
+      this.todos,
+      this.periodoModo,
+      valor,
+      this.todosBanios
+    );
+    this.totalIngresosServicio = this.chartIngresosServicio.reduce(
+      (acc, row) => acc + (Number(row.total) || 0),
+      0
+    );
+    this.ingresosServicioMax = Math.max(
+      1,
+      ...this.chartIngresosServicio.map((row) => row.total)
+    );
     this.chartSerie = this.cajaService.serieDiaria(this.todos, this.periodoModo, valor);
     this.chartMax = Math.max(
       1,

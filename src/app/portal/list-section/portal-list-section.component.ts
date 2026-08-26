@@ -5,7 +5,7 @@ import { PortalSessionService } from '../services/portal-session.service';
 import { chipClassForEstado, formatDisplayDate } from '../utils/portal-display.util';
 import { PORTAL_ACCESS_ERROR, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 
-export type PortalListSection = 'vacunas' | 'citas' | 'historial';
+export type PortalListSection = 'vacunas' | 'citas' | 'historial' | 'banos';
 
 @Component({
   selector: 'app-portal-list-section',
@@ -27,7 +27,8 @@ export class PortalListSectionComponent implements OnInit {
     const icons: Record<PortalListSection, string> = {
       vacunas: 'vaccines',
       citas: 'event',
-      historial: 'medical_services'
+      historial: 'medical_services',
+      banos: 'content_cut'
     };
     return icons[this.seccion];
   }
@@ -36,7 +37,8 @@ export class PortalListSectionComponent implements OnInit {
     const msgs: Record<PortalListSection, string> = {
       vacunas: 'No hay vacunas registradas',
       citas: 'No hay citas registradas',
-      historial: 'No hay historial clínico visible'
+      historial: 'No hay historial clínico visible',
+      banos: 'No hay baños ni peluquería registrados'
     };
     return msgs[this.seccion];
   }
@@ -58,7 +60,8 @@ export class PortalListSectionComponent implements OnInit {
     const titulos: Record<PortalListSection, string> = {
       vacunas: 'Vacunas',
       citas: 'Citas',
-      historial: 'Historial clínico'
+      historial: 'Historial clínico',
+      banos: 'Baños y peluquería'
     };
     this.titulo = titulos[this.seccion];
 
@@ -79,6 +82,8 @@ export class PortalListSectionComponent implements OnInit {
         this.items = await this.portalData.getVacunasPorMascota(this.mascotaId);
       } else if (this.seccion === 'citas') {
         this.items = await this.portalData.getCitasPorMascota(this.mascotaId);
+      } else if (this.seccion === 'banos') {
+        this.items = await this.portalData.getBaniosPorMascota(this.mascotaId);
       } else {
         this.items = await this.portalData.getHistorialesPorMascota(this.mascotaId);
       }
@@ -92,18 +97,26 @@ export class PortalListSectionComponent implements OnInit {
   itemTitle(item: Record<string, unknown>): string {
     if (this.seccion === 'vacunas') return String(item['vacuna'] || 'Vacuna');
     if (this.seccion === 'citas') return String(item['motivo'] || 'Cita');
+    if (this.seccion === 'banos') return String(item['tipo_servicio_label'] || 'Baño');
     return String(item['diagnostico'] || 'Consulta');
   }
 
   itemDate(item: Record<string, unknown>): string {
     if (this.seccion === 'vacunas') return this.formatDate(String(item['fecha'] || ''));
     if (this.seccion === 'citas') return this.formatDate(String(item['fecha_hora'] || ''));
+    if (this.seccion === 'banos') {
+      const hora = String(item['hora_banio'] || '').trim();
+      const fecha = this.formatDate(String(item['fecha_banio'] || ''));
+      return hora ? `${fecha} · ${hora}` : fecha;
+    }
     return this.formatDate(String(item['fecha_registro'] || ''));
   }
 
   itemEstado(item: Record<string, unknown>): string | null {
-    if (this.seccion !== 'citas') return null;
-    const estado = String(item['estado'] || '').trim();
-    return estado || null;
+    if (this.seccion === 'citas' || this.seccion === 'banos') {
+      const estado = String(item['estado'] || '').trim();
+      return estado || null;
+    }
+    return null;
   }
 }

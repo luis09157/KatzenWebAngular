@@ -30,6 +30,9 @@ describe('Portal auth smoke', () => {
         cy.url().should('include', '/citas');
         cy.visit(`${mascotaPath}/historial`);
         cy.url().should('include', '/historial');
+        cy.visit(`${mascotaPath}/banos`);
+        cy.url().should('include', '/banos');
+        cy.contains(/Baños y peluquería/i);
         cy.get('body').should('not.contain', 'notas_internas');
         cy.get('body').should('not.contain', 'Notas internas');
       } else {

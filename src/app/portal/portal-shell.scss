@@ -552,6 +552,7 @@
 .portal-stat--vacunas strong { color: var(--katzen-vacunas); }
 .portal-stat--citas strong { color: var(--katzen-citas); }
 .portal-stat--historial strong { color: var(--katzen-historial); }
+.portal-stat--banos strong { color: #c27803; }
 
 .portal-section-grid {
   display: grid;
@@ -608,6 +609,11 @@
   color: var(--katzen-historial);
 }
 
+.portal-section-icon--banos {
+  background: rgba(194, 120, 3, 0.12);
+  color: #c27803;
+}
+
 .portal-section-card h3 {
   margin: 0;
   font-size: 1.0625rem;
@@ -632,8 +638,9 @@
 .badge-vacunas { background: rgba(var(--brand-teal-rgb), 0.12); color: var(--katzen-vacunas); }
 .badge-citas { background: rgba(69, 97, 121, 0.12); color: var(--katzen-citas); }
 .badge-historial { background: rgba(var(--brand-plum-rgb), 0.12); color: var(--katzen-historial); }
+.badge-banos { background: rgba(194, 120, 3, 0.12); color: #c27803; }
 
-/* ----- Datos (vacunas, citas, historial) ----- */
+/* ----- Datos (vacunas, citas, historial, baños) ----- */
 .portal-data-panel {
   background: var(--portal-surface);
   border: 1px solid var(--portal-border);

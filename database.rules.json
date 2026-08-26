@@ -120,9 +120,13 @@
         ".write": false
       },
       "Banios": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["paciente_id", "activo", "fecha_banio", "estado"]
+        ".indexOn": ["paciente_id", "cliente_id", "activo", "fecha_banio", "estado"],
+        "$banioId": {
+          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
+        }
       },
       "Peluqueros": {
         ".read": "auth != null && auth.token.role != 'client'",

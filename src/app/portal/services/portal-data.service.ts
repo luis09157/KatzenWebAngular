@@ -9,6 +9,7 @@ import {
   mapHistorial,
   mapMascota,
   mapNotificacion,
+  mapBanio,
   mapVacuna
 } from '../utils/portal-mapper.util';
 import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
@@ -98,6 +99,23 @@ export class PortalDataService {
       .sort((a, b) => String(b.fecha_hora).localeCompare(String(a.fecha_hora)));
   }
 
+  async getBaniosPorMascota(mascotaId: string) {
+    const snap = await firstValueFrom(
+      this.db.list('Katzen/Banios', ref =>
+        ref.orderByChild('paciente_id').equalTo(mascotaId)
+      ).snapshotChanges().pipe(take(1))
+    );
+
+    return snap
+      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
+      .map(a => mapBanio(a.key!, a.payload.val() as Record<string, unknown>))
+      .sort((a, b) => {
+        const fa = `${String(b.fecha_banio)} ${String(b.hora_banio)}`;
+        const fb = `${String(a.fecha_banio)} ${String(a.hora_banio)}`;
+        return fa.localeCompare(fb);
+      });
+  }
+
   async getHistorialesPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
       this.db.list('Katzen/Historiales_Clinicos', ref =>
@@ -126,11 +144,17 @@ export class PortalDataService {
   }
 
   async getCounts(mascotaId: string) {
-    const [vacunas, citas, historiales] = await Promise.all([
+    const [vacunas, citas, historiales, banos] = await Promise.all([
       this.getVacunasPorMascota(mascotaId),
       this.getCitasPorMascota(mascotaId),
-      this.getHistorialesPorMascota(mascotaId)
+      this.getHistorialesPorMascota(mascotaId),
+      this.getBaniosPorMascota(mascotaId)
     ]);
-    return { vacunas: vacunas.length, citas: citas.length, historiales: historiales.length };
+    return {
+      vacunas: vacunas.length,
+      citas: citas.length,
+      historiales: historiales.length,
+      banos: banos.length
+    };
   }
 }

@@ -132,3 +132,21 @@ export interface CajaEgresoDesglose {
   label: string;
   total: number;
 }
+
+/** Desglose de ingresos por categoría/servicio (spec 028). */
+export interface CajaIngresoDesglose {
+  categoria: CajaCategoria | 'sin_categoria';
+  label: string;
+  total: number;
+  count: number;
+}
+
+/** Baño mínimo para refuerzo de ingresos sin caja (patrón owner-dashboard). */
+export interface BanioIngresoRefuerzo {
+  precio_total?: number;
+  fecha_banio?: string;
+  created_at?: string;
+  estado?: string;
+  cajaMovimientoId?: string;
+  activo?: boolean;
+}

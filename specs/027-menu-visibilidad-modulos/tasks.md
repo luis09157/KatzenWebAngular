@@ -87,4 +87,4 @@
 - [x] Validación pre-entrega completa
 - [x] Validación exhaustiva registrada
 - [x] `spec.md` estado → `done`
-- [x] Commit + push + deploy hosting (autorizado Luis)
+- [x] Commit + push + deploy hosting (autorizado Luis) — `2e6c730`; https://katzen-a0e3e.web.app

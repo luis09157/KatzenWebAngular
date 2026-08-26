@@ -14,7 +14,7 @@ export class PortalMascotaDetalleComponent implements OnInit {
   errorMessage = '';
   mascotaId = '';
   mascota: any = null;
-  counts = { vacunas: 0, citas: 0, historiales: 0 };
+  counts = { vacunas: 0, citas: 0, historiales: 0, banos: 0 };
   metaLine = '';
 
   constructor(
@@ -51,7 +51,7 @@ export class PortalMascotaDetalleComponent implements OnInit {
     }
   }
 
-  ir(seccion: 'vacunas' | 'citas' | 'historial'): void {
+  ir(seccion: 'vacunas' | 'citas' | 'historial' | 'banos'): void {
     this.router.navigate(['/portal/mascotas', this.mascotaId, seccion]);
   }
 

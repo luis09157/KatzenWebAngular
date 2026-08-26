@@ -5,10 +5,13 @@ import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import {
   CAJA_CATEGORIA_LABELS,
+  CAJA_CATEGORIAS_INGRESO,
   CajaCategoria,
   CajaChartBar,
   CajaDiaKpis,
   CajaEgresoDesglose,
+  CajaIngresoDesglose,
+  BanioIngresoRefuerzo,
   CajaMetodoPago,
   CajaMovimiento,
   CajaMovimientoFormData,
@@ -231,6 +234,66 @@ export class CajaService {
         total
       }))
       .sort((a, b) => b.total - a.total);
+  }
+
+  /**
+   * Ingresos por categoría/servicio. Refuerza baños sin movimiento de caja (spec 028 / owner-dashboard).
+   */
+  desgloseIngresosPorServicio(
+    movimientos: CajaMovimiento[],
+    modo: CajaPeriodoModo,
+    valor: string,
+    banios: BanioIngresoRefuerzo[] = []
+  ): CajaIngresoDesglose[] {
+    const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter(
+      (m) => m.tipo === 'ingreso'
+    );
+    const map = new Map<string, { total: number; count: number }>();
+    for (const m of delPeriodo) {
+      const key = m.categoria || 'otro';
+      const cur = map.get(key) || { total: 0, count: 0 };
+      cur.total += Number(m.monto) || 0;
+      cur.count += 1;
+      map.set(key, cur);
+    }
+
+    const rango = this.rangoPeriodo(modo, valor);
+    if (rango && banios.length) {
+      const baniosSinCaja = banios.filter((b) => {
+        if (b.activo === false || b.estado === 'cancelado' || b.cajaMovimientoId) {
+          return false;
+        }
+        const f = String(b.fecha_banio || b.created_at || '').slice(0, 10);
+        return f >= rango.desde && f <= rango.hasta;
+      });
+      if (baniosSinCaja.length) {
+        const extra = baniosSinCaja.reduce((a, b) => a + (Number(b.precio_total) || 0), 0);
+        const cur = map.get('banio') || { total: 0, count: 0 };
+        cur.total += extra;
+        cur.count += baniosSinCaja.length;
+        map.set('banio', cur);
+      }
+    }
+
+    const orden = [...CAJA_CATEGORIAS_INGRESO, 'sin_categoria'] as const;
+    const rows = Array.from(map.entries()).map(([categoria, v]) => ({
+      categoria: categoria as CajaCategoria | 'sin_categoria',
+      label:
+        categoria === 'sin_categoria'
+          ? 'Sin categoría'
+          : CAJA_CATEGORIA_LABELS[categoria as CajaCategoria] || categoria,
+      total: v.total,
+      count: v.count
+    }));
+
+    return rows.sort((a, b) => {
+      const ia = orden.indexOf(a.categoria as (typeof orden)[number]);
+      const ib = orden.indexOf(b.categoria as (typeof orden)[number]);
+      const ra = ia >= 0 ? ia : orden.length;
+      const rb = ib >= 0 ? ib : orden.length;
+      if (ra !== rb) return ra - rb;
+      return b.total - a.total;
+    });
   }
 
   /**

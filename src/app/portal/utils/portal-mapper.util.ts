@@ -75,6 +75,36 @@ export function mapNotificacion(id: string, raw: Record<string, unknown>) {
   };
 }
 
+const TIPO_SERVICIO_BANIO_LABELS: Record<string, string> = {
+  'baño_básico': 'Baño básico',
+  'baño_completo': 'Baño completo',
+  corte_pelo: 'Corte de pelo',
+  corte_uñas: 'Corte de uñas',
+  deslanado: 'Deslanado',
+  tratamiento_especial: 'Tratamiento especial'
+};
+
+export function labelTipoServicioBanio(tipo: unknown): string {
+  const key = String(tipo || '').trim();
+  if (!key) return 'Servicio de peluquería';
+  return TIPO_SERVICIO_BANIO_LABELS[key] || key.replace(/_/g, ' ');
+}
+
+/** Baño/peluquería — solo campos visibles al dueño (sin costos ni caja). */
+export function mapBanio(id: string, raw: Record<string, unknown>) {
+  return {
+    id,
+    paciente_id: raw['paciente_id'] || raw['idPaciente'] || '',
+    fecha_banio: raw['fecha_banio'] || raw['fecha'] || '',
+    hora_banio: raw['hora_banio'] || raw['hora'] || '',
+    tipo_servicio: raw['tipo_servicio'] || '',
+    tipo_servicio_label: labelTipoServicioBanio(raw['tipo_servicio']),
+    estado: raw['estado'] || 'programado',
+    peluquero: raw['peluquero'] || '',
+    observaciones: raw['observaciones'] || ''
+  };
+}
+
 export function mapMascota(id: string, raw: Record<string, unknown>) {
   return {
     id,

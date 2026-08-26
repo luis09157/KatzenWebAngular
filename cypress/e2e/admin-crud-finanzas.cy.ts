@@ -19,7 +19,7 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.get('.finanzas-contenedor', { timeout: 20000 }).should('exist');
     cy.contains('Caja / costos / rentabilidad', { matchCase: false });
-    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Costos|Rentabilidad/i).should('exist');
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Ingresos por servicio|Costos|Rentabilidad/i).should('exist');
     // Si rules recién desplegadas o error de lectura previo, cierra Swal residual.
     cy.get('body').then(($b) => {
       if ($b.find('.swal2-confirm:visible').length) {
