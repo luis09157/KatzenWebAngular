@@ -97,11 +97,11 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja** | **Solo roadmap (sin implementación en esta entrega):** módulo ventas/caja; ingresos baños (tarjeta, transferencia, efectivo); IVA declarado/no declarado; balances mensuales. Crear `specs/NNN-finanzas-caja/` cuando se priorice. | Alta — **spec pendiente** |
+| **Finanzas / caja** | Spec/plan en `specs/014-finanzas-caja-mvp/` (MVP pendiente de implementación). | Alta — **spec draft** |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; aislamiento RTDB hijo staff-only = fase 2. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |
-| **Portal / auth** | Registro self-service landing; UI perfil dual post-login; ~~revocación sesiones~~ **hecho + deploy OK** | Media |
+| **Portal / auth** | ~~Registro self-service landing~~ **013**; UI perfil dual post-login; ~~revocación sesiones~~ **hecho + deploy OK** | Media |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo (deploy DB pendiente)** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; archivo automático recordatorios (mascota Fallecido); ~~validación agenda~~ hecho 003 | Media |

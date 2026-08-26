@@ -28,6 +28,8 @@ specs/
 ├── 010-notas-internas-historial/   # notas_internas aditivo (MVP admin)
 ├── 011-staff-acceso-admin-unificado/ # Todo staff = acceso admin operativo
 ├── 012-perfiles-dual-y-duenas/       # Matriz perfiles, dual post-login, vincular portal
+├── 013-registro-portal-cliente-landing/ # Auto-provision alta + self-registro landing
+├── 014-finanzas-caja-mvp/            # Spec/plan caja (sin impl. aún)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

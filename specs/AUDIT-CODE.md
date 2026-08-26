@@ -138,12 +138,11 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 **Recomendación:** Specs Cypress portal con mocks/emuladores; ampliar `cy:admin` o crear `cy:portal`.  
 **Esfuerzo:** M
 
-#### 15. Registro self-service portal no implementado
+#### 15. Registro self-service portal — **cerrado en 013**
 
-**Archivos:** `src/app/landing/landing.component.ts`, `functions/src/index.ts`  
-**Descripción:** Landing solo login; decisión #16 (registro dueños → Auth + Cliente + provision) pendiente.  
-**Recomendación:** Spec `specs/NNN-registro-portal/` + callable `registerPortalOwner`.  
-**Esfuerzo:** L
+**Archivos:** `specs/013-registro-portal-cliente-landing/`, `registerPortalOwner`, landing modal  
+**Estado:** implementado overnight 2026-08-26. Operativo: configurar `RESEND_API_KEY` para self-reg y correos admin.  
+**Esfuerzo:** L → hecho
 
 ---
 

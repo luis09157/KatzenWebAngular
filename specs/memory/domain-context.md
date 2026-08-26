@@ -367,7 +367,8 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 | `syncMyClaims` | Autenticado | Sincroniza claims desde AuthPerfiles |
 | `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
 | `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
-| `provisionPortalClient` | Admin | Activa portal + email bienvenida |
+| `provisionPortalClient` | Staff clínica | Activa portal + email bienvenida (alta cliente / Usuarios) |
+| `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend) |
 | `linkStaffPortalCliente` | Admin | Vincula Cliente a staff (dual) |
 | `deactivatePortalClient` | Admin | Desactiva portal |
 | `resendPortalClientAccess` | Admin | Nueva contraseña temporal |
@@ -383,10 +384,15 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 flowchart LR
     A[Recepcionista / Doctor] --> B[Clientes CRUD]
     B --> C[Katzen/Cliente UUID]
+    C --> P{¿Correo válido?}
+    P -->|Sí| Q[provisionPortalClient + email]
+    P -->|No| R[Solo ficha clínica]
     A --> D[Pacientes-admin / Expediente]
     D --> E[Katzen/Mascota push]
     E --> F[Log_Paciente opcional]
 ```
+
+Self-registro landing: callable `registerPortalOwner` → Cliente + Auth + correo (spec 013).
 
 ### 6.2 Ciclo de cita
 
