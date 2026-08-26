@@ -94,6 +94,37 @@
             </div>
           </section>
 
+          <section class="detail-section">
+            <h4 class="detail-section__title">Datos fiscales</h4>
+            <p class="detail-fiscal-note">Preparación CFDI — timbrado fase 2 (sin PAC).</p>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Requiere factura</span>
+                <p class="detail-item__value">{{ getDisplayValue('requiereFactura') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">RFC</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('rfc') === '—'">{{ getDisplayValue('rfc') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Razón social</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('razonSocial') === '—'">{{ getDisplayValue('razonSocial') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Uso CFDI</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('usoCfdi') === '—'">{{ getDisplayValue('usoCfdi') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Régimen fiscal</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('regimenFiscal') === '—'">{{ getDisplayValue('regimenFiscal') }}</p>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">C.P. fiscal</span>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('codigoPostalFiscal') === '—'">{{ getDisplayValue('codigoPostalFiscal') }}</p>
+              </div>
+            </div>
+          </section>
+
           <section class="detail-section detail-section--mascotas">
             <h4 class="detail-section__title">
               <mat-icon>pets</mat-icon>
@@ -248,6 +279,44 @@
                 <mat-label>Google Maps</mat-label>
                 <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/…">
                 <mat-error *ngIf="isFieldInvalid('urlGoogleMaps')">{{ getErrorMessage('urlGoogleMaps') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Datos fiscales</h3>
+            <p class="form-section__hint">Opcional. Timbrado CFDI = fase 2 (requiere PAC autorizado).</p>
+            <div class="form-grid form-grid--3">
+              <mat-checkbox formControlName="requiereFactura" color="primary" class="full-span">
+                Cliente requiere factura
+              </mat-checkbox>
+              <mat-form-field appearance="outline">
+                <mat-label>RFC</mat-label>
+                <input matInput formControlName="rfc" [style.text-transform]="'uppercase'" placeholder="XAXX010101000">
+                <mat-error *ngIf="isFieldInvalid('rfc')">RFC inválido</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Razón social</mat-label>
+                <input matInput formControlName="razonSocial" placeholder="Si difiere del nombre">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Uso CFDI</mat-label>
+                <mat-select formControlName="usoCfdi">
+                  <mat-option value="">—</mat-option>
+                  <mat-option *ngFor="let u of usosCfdi" [value]="u.value">{{ u.label }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Régimen fiscal</mat-label>
+                <mat-select formControlName="regimenFiscal">
+                  <mat-option value="">—</mat-option>
+                  <mat-option *ngFor="let r of regimenesFiscales" [value]="r.value">{{ r.label }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>C.P. fiscal</mat-label>
+                <input matInput formControlName="codigoPostalFiscal" placeholder="Si ≠ domicilio" maxlength="5">
+                <mat-error *ngIf="isFieldInvalid('codigoPostalFiscal')">C.P. de 5 dígitos</mat-error>
               </mat-form-field>
             </div>
           </section>

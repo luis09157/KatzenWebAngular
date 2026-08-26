@@ -73,12 +73,43 @@ export class ClienteDialogComponent implements OnInit {
       imageUrl: [data.cliente?.imageUrl || ''],
       imageFileName: [data.cliente?.imageFileName || ''],
       kilometrosCasa: [data.cliente?.kilometrosCasa || ''],
-      urlGoogleMaps: [data.cliente?.urlGoogleMaps || '', [Validators.pattern('^https?://.*')]]
+      urlGoogleMaps: [data.cliente?.urlGoogleMaps || '', [Validators.pattern('^https?://.*')]],
+      // Spec 024 — datos fiscales (aditivos; timbrado fase 2)
+      requiereFactura: [!!data.cliente?.requiereFactura],
+      rfc: [
+        data.cliente?.rfc || '',
+        [Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]
+      ],
+      razonSocial: [data.cliente?.razonSocial || '', [Validators.maxLength(120)]],
+      usoCfdi: [data.cliente?.usoCfdi || ''],
+      regimenFiscal: [data.cliente?.regimenFiscal || ''],
+      codigoPostalFiscal: [
+        data.cliente?.codigoPostalFiscal || '',
+        [Validators.pattern('^[0-9]{5}$')]
+      ]
     });
   }
 
+  /** Catálogo corto uso CFDI (fase preparación; no timbra). */
+  readonly usosCfdi: Array<{ value: string; label: string }> = [
+    { value: 'G03', label: 'G03 — Gastos en general' },
+    { value: 'D01', label: 'D01 — Honorarios médicos' },
+    { value: 'S01', label: 'S01 — Sin efectos fiscales' },
+    { value: 'CN01', label: 'CN01 — Nómina' }
+  ];
+
+  readonly regimenesFiscales: Array<{ value: string; label: string }> = [
+    { value: '612', label: '612 — Personas físicas actividad empresarial' },
+    { value: '605', label: '605 — Sueldos y salarios' },
+    { value: '601', label: '601 — General de ley personas morales' },
+    { value: '616', label: '616 — Sin obligaciones fiscales' }
+  ];
+
   getDisplayValue(field: string): string {
     const raw = this.data?.cliente?.[field] ?? this.clienteForm.get(field)?.value;
+    if (field === 'requiereFactura') {
+      return raw ? 'Sí' : 'No';
+    }
     if (raw == null || raw === '') {
       return '—';
     }
@@ -402,6 +433,12 @@ export class ClienteDialogComponent implements OnInit {
           imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.cliente?.imageFileName || ''),
           kilometrosCasa: this.clienteForm.value.kilometrosCasa,
           urlGoogleMaps: this.clienteForm.value.urlGoogleMaps,
+          requiereFactura: !!this.clienteForm.value.requiereFactura,
+          rfc: String(this.clienteForm.value.rfc || '').trim().toUpperCase(),
+          razonSocial: String(this.clienteForm.value.razonSocial || '').trim(),
+          usoCfdi: this.clienteForm.value.usoCfdi || '',
+          regimenFiscal: this.clienteForm.value.regimenFiscal || '',
+          codigoPostalFiscal: this.clienteForm.value.codigoPostalFiscal || '',
           fecha: fechaPrimeraVisita
         };
         

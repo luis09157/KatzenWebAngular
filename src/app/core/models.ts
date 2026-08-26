@@ -33,6 +33,13 @@ export interface Cliente {
   expediente?: string;
   direccion?: string;
   activo?: boolean;
+  /** Spec 024 — datos fiscales aditivos (sin timbrar). */
+  rfc?: string;
+  razonSocial?: string;
+  usoCfdi?: string;
+  regimenFiscal?: string;
+  codigoPostalFiscal?: string;
+  requiereFactura?: boolean;
   [key: string]: unknown;
 }
 
