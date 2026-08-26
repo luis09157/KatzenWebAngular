@@ -6,8 +6,8 @@
 
   <ng-container *ngIf="!loading">
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="teal" [value]="totalActivas" label="Activas" hint="En alojamiento"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" [value]="totalReservadas" label="Reservadas" hint="Pendientes de ingreso"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" [value]="ocupacionVisible" label="Ocupación" hint="Mascotas en alojamiento activo"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" [value]="totalReservadas" label="Reservadas" hint="Pendientes de check-in"></app-admin-stat-card>
       <app-admin-stat-card accent="green" [value]="formatMoney(valorEstimado)" label="Valor estimado" hint="Reservadas + activas"></app-admin-stat-card>
     </app-admin-kpi-grid>
 
@@ -15,7 +15,7 @@
       accent="teal"
       icon="hotel"
       title="Pensión / alojamiento"
-      subtitle="Hospedaje de mascotas: alta, precios y cobro en caja.">
+      subtitle="Check-in, check-out, ocupación visible y cobro en caja.">
       <div bannerActions>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
           <mat-icon>add</mat-icon>
@@ -48,7 +48,9 @@
             <td mat-cell *matCellDef="let row">
               <div class="fecha-compact">
                 <span>Ingreso {{ row.fecha_ingreso }}</span>
-                <span *ngIf="row.fecha_salida_prevista">Salida {{ row.fecha_salida_prevista }}</span>
+                <span *ngIf="row.fecha_salida_prevista && !row.fecha_salida_real">Salida prev. {{ row.fecha_salida_prevista }}</span>
+                <span *ngIf="row.fecha_salida_real">Salida real {{ row.fecha_salida_real }}</span>
+                <span class="cell-secondary">{{ diasEstancia(row) }} día(s)</span>
               </div>
             </td>
           </ng-container>
@@ -73,7 +75,9 @@
           <ng-container matColumnDef="estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
             <td mat-cell *matCellDef="let row">
-              <span class="estado-badge">{{ estadoLabels[row.estado] || row.estado }}</span>
+              <span class="estado-badge" [ngClass]="estadoClass(row.estado)">
+                {{ estadoLabels[row.estado] || row.estado }}
+              </span>
             </td>
           </ng-container>
 
@@ -81,11 +85,40 @@
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let row">
               <div class="row-actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Check-in"
+                  *ngIf="puedeCheckIn(row)"
+                  (click)="checkIn(row)">
+                  <mat-icon>login</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Check-out"
+                  *ngIf="puedeCheckOut(row)"
+                  (click)="checkOut(row)">
+                  <mat-icon>logout</mat-icon>
+                </button>
                 <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(row)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button type="button" matTooltip="Registrar en caja" (click)="registrarEnCaja(row)">
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Registrar en caja"
+                  *ngIf="puedeCobrar(row)"
+                  (click)="registrarEnCaja(row)">
                   <mat-icon>account_balance_wallet</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Ya cobrado en caja"
+                  *ngIf="row.cajaMovimientoId"
+                  disabled>
+                  <mat-icon>check_circle</mat-icon>
                 </button>
                 <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
                   <mat-icon>delete</mat-icon>

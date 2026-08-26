@@ -41,6 +41,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   totalActivas = 0;
   totalReservadas = 0;
+  ocupacionVisible = 0;
   valorEstimado = 0;
 
   constructor(
@@ -76,6 +77,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
           this.dataSource.data = rows;
           this.totalActivas = rows.filter((r) => r.estado === 'activa').length;
           this.totalReservadas = rows.filter((r) => r.estado === 'reservada').length;
+          this.ocupacionVisible = this.totalActivas;
           this.valorEstimado = rows
             .filter((r) => r.estado === 'activa' || r.estado === 'reservada')
             .reduce((sum, r) => sum + (Number(r.precio_total) || 0), 0);
@@ -96,6 +98,40 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dataSource.filter = (event.target as HTMLInputElement).value.trim().toLowerCase();
   }
 
+  diasEstancia(row: PensionEstancia): number {
+    return this.pensionService.calcularDias(
+      row.fecha_ingreso,
+      row.fecha_salida_real || row.fecha_salida_prevista
+    );
+  }
+
+  estadoClass(estado: string): string {
+    switch (estado) {
+      case 'activa':
+        return 'estado-badge--activa';
+      case 'reservada':
+        return 'estado-badge--reservada';
+      case 'finalizada':
+        return 'estado-badge--finalizada';
+      case 'cancelada':
+        return 'estado-badge--cancelada';
+      default:
+        return '';
+    }
+  }
+
+  puedeCheckIn(row: PensionEstancia): boolean {
+    return row.estado === 'reservada';
+  }
+
+  puedeCheckOut(row: PensionEstancia): boolean {
+    return row.estado === 'activa';
+  }
+
+  puedeCobrar(row: PensionEstancia): boolean {
+    return !row.cajaMovimientoId && (row.estado === 'activa' || row.estado === 'finalizada');
+  }
+
   nueva(): void {
     const ref = this.dialog.open(PensionDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
@@ -114,6 +150,65 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       data: { estancia }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe();
+  }
+
+  async checkIn(estancia: PensionEstancia): Promise<void> {
+    if (!estancia?.id || !this.puedeCheckIn(estancia)) return;
+    const confirm = await Swal.fire({
+      title: '¿Check-in?',
+      text: `${estancia.paciente || 'Paciente'} pasa a alojamiento activo.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, check-in',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) return;
+    this.loadingService.show(LOADING_MESSAGES.updating);
+    try {
+      await this.pensionService.actualizarEstancia(estancia.id, { estado: 'activa' });
+      Swal.fire({ icon: 'success', title: 'Check-in listo', timer: 1400, showConfirmButton: false });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'check-in pensión'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  async checkOut(estancia: PensionEstancia): Promise<void> {
+    if (!estancia?.id || !this.puedeCheckOut(estancia)) return;
+    const hoy = new Date().toISOString().slice(0, 10);
+    const confirm = await Swal.fire({
+      title: '¿Check-out?',
+      html: `${estancia.paciente || 'Paciente'} sale hoy (${hoy}).<br>Puedes cobrar en caja después.`,
+      icon: 'question',
+      showCancelButton: true,
+      showDenyButton: !estancia.cajaMovimientoId,
+      confirmButtonText: 'Solo check-out',
+      denyButtonText: 'Check-out y cobrar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (confirm.isDismissed) return;
+
+    this.loadingService.show(LOADING_MESSAGES.updating);
+    try {
+      await this.pensionService.actualizarEstancia(estancia.id, {
+        estado: 'finalizada',
+        fecha_salida_real: hoy
+      });
+      this.loadingService.hide();
+      if (confirm.isDenied) {
+        await this.registrarEnCaja({
+          ...estancia,
+          estado: 'finalizada',
+          fecha_salida_real: hoy
+        });
+      } else {
+        Swal.fire({ icon: 'success', title: 'Check-out listo', timer: 1400, showConfirmButton: false });
+      }
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'check-out pensión'), 'error');
+      this.loadingService.hide();
+    }
   }
 
   async registrarEnCaja(estancia: PensionEstancia): Promise<void> {
@@ -214,9 +309,11 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!result?.ok || !id) return;
       this.loadingService.show(LOADING_MESSAGES.updating);
       try {
+        const hoy = new Date().toISOString().slice(0, 10);
         await this.pensionService.actualizarEstancia(estancia.id!, {
           cajaMovimientoId: id,
-          estado: 'finalizada'
+          estado: 'finalizada',
+          fecha_salida_real: estancia.fecha_salida_real || hoy
         });
         if (movimientoInventarioIds.length) {
           await Promise.all(

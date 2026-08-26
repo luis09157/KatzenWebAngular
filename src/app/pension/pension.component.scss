@@ -3,4 +3,33 @@
     width: min(320px, 100%);
     margin-bottom: 12px;
   }
+
+  .estado-badge--activa {
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+  }
+
+  .estado-badge--reservada {
+    background: rgba(59, 130, 246, 0.14);
+    color: #1d4ed8;
+  }
+
+  .estado-badge--finalizada {
+    background: rgba(100, 116, 139, 0.14);
+    color: #475569;
+  }
+
+  .estado-badge--cancelada {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+  }
+
+  .mat-column-estado {
+    min-width: 148px;
+  }
+
+  .mat-column-acciones {
+    width: 180px;
+    min-width: 180px;
+  }
 }
