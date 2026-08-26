@@ -212,21 +212,23 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021 / 022)
 
-**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (baño/corte/cirugía/venta/consulta/publicidad/operativo/otro; **+ `pension` en 022 B**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
+**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (ingresos: baño/corte/cirugía/venta/consulta/vacuna/pensión; egresos: publicidad/proveedores/gasolina/operativo/otro — **022 D**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
 
-**Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio`, `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
+**Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio` (`banio|corte|cirugia|consulta|vacuna|pension|otro`), `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
 **Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en config; override al registrar baño; `precio_total` siempre por registro.
 
+**Defaults pensión** (`Katzen/Finanzas/DefaultsPensionPorTamano` — **022 B**): `precioDia`, `costoDia?`, `productoComidaId?`, `cantidadComidaPorDia?`.
+
 **Extensibilidad:** hub Finanzas + Inventario + eventos de dominio (baño, historial, pensión, venta) que emiten movimientos económicos — no N dashboards por tipo de servicio.
 
-**Fuera de alcance web (histórico 021):** CFDI/SAT. **Plan 022 fases:** A valuación + baño→caja; B historial/cirugía/vacuna + módulo pensión; C gráficas; D egresos tipificados; E OC→egreso.
+**Fuera de alcance web:** CFDI/SAT. **022 A–D done** (2026-08-26); E opcional OC→egreso.
 
-### 3.8c `Katzen/Pension` (022 Fase B — diseño)
+### 3.8c `Katzen/Pension` (022 — implementado)
 
 **Estancias** (`Katzen/Pension/Estancias/{id}`): hospedaje mascota; `paciente_id`, fechas ingreso/salida, `tamano_mascota`, `precio_dia` / `precio_total`, costos opcionales, `estado`, `cajaMovimientoId?`, `activo`.
 
-**Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
+**Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño + opt-in comida. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
 
 ### 3.9 Auth y usuarios
 
