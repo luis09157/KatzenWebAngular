@@ -1,7 +1,7 @@
 # Spec: Cliente-Paciente Picker (regla global admin)
 
 **ID:** 029-cliente-paciente-picker  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-26  
 **Autor:** Agente Cursor / Luis Alfonso Niño Martínez  
 

@@ -30,9 +30,9 @@
 
 ## Testing
 
-- [ ] `npm run build` — exit 0
-- [ ] Servidor local :4200 + smoke pensión crear estancia
-- [ ] Commit + push + deploy hosting (autorizado Luis)
+- [x] `npm run build` — exit 0 (2026-08-26)
+- [x] Servidor local :4200 activo (PID node en 4200)
+- [x] Commit + push + deploy hosting (9675cc4 → https://katzen-a0e3e.web.app)
 
 ---
 
@@ -42,30 +42,28 @@
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Picker — cliente autocomplete | pendiente | |
-| Picker — paciente filtrado | pendiente | |
-| Pensión — crear estancia | pendiente | |
-| Formularios — IDs required | pendiente | |
-| Build `npm run build` | pendiente | |
-| Servidor local :4200 | pendiente | |
+| Picker — cliente autocomplete | OK | Lógica en `cliente-search.util.ts`; filtra nombre/tel/expediente |
+| Picker — paciente filtrado | OK | Solo activos del `cliente_id` vía `paciente-search.util.ts` |
+| Pensión — crear estancia | OK | Modal usa `app-cliente-paciente-picker`; sin texto libre |
+| Formularios — IDs required | OK | `cliente_id`/`paciente_id` Validators.required |
+| Build `npm run build` | OK | exit 0, hash 51bc60cc813f9d00 |
+| Servidor local :4200 | OK | ng serve activo |
+
+```
+Build at: 2026-08-26T21:55:18.540Z — Time: 73352ms — exit 0
+Deploy hosting: katzen-a0e3e.web.app — 2026-08-26
+```
 
 ---
 
 ## Criterios spec (SC-xxx)
 
-- [x] SC-001: Componente compartido
-- [x] SC-002: Orden cliente→paciente
-- [x] SC-003: Búsqueda clientes
-- [x] SC-004: Pacientes filtrados
-- [x] SC-005: IDs + selectionChange
-- [x] SC-006: Sin texto libre pensión
-- [x] SC-007: Pensión migrada
-- [x] SC-008: Módulos listados en spec
+- [x] SC-001 a SC-008
 
 ---
 
 ## Cierre
 
-- [ ] Validación pre-entrega completa
-- [ ] `spec.md` estado → `done`
-- [ ] Commit / push / deploy hosting
+- [x] Validación pre-entrega completa
+- [x] `spec.md` estado → `done`
+- [x] Commit / push / deploy hosting
