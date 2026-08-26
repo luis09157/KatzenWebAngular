@@ -94,5 +94,8 @@ npx cypress run --spec admin-crud-finanzas.cy.ts → 1 passing
 ## Cierre
 
 - [x] Validación pre-entrega completa
-- [ ] `spec.md` → `done` (tras commit/deploy)
-- [ ] Commit / push / deploy — solicitado por Luis
+- [x] `spec.md` → `done`
+- [x] Commit `b50e2d0` + push `main` + deploy database/hosting OK
+  - Hosting: https://katzen-a0e3e.web.app
+  - Rules `Katzen/Finanzas` + index `categoria` liberadas
+  - Rebuild hosting post-fix Swal plantillas
