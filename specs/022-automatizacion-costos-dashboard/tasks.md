@@ -1,4 +1,4 @@
-# Tasks: Automatización costos / dashboard + baños por tamaño
+# Tasks: Automatización costos / ops financieras + pensión
 
 **Spec:** `specs/022-automatizacion-costos-dashboard/spec.md`  
 **Plan:** `specs/022-automatizacion-costos-dashboard/plan.md`  
@@ -7,80 +7,98 @@
 
 ## Implementación
 
-### Setup / documentación
+### Setup / documentación (Parte 1)
 
-- [x] Carpeta `specs/022-automatizacion-costos-dashboard/` creada
-- [x] `spec.md` con sección **Baños: defaults por tamaño + precio por registro + enlace finanzas**
-- [x] `plan.md` con tabla campo|default|override|efecto + fases Config UI vs Fase A
-- [x] Análisis Banios ↔ 014/018/021 en spec/plan
+- [x] Carpeta `specs/022-automatizacion-costos-dashboard/`
+- [x] Spec ampliada: valuación inventario, baños, clínicas, pensión, extensibilidad, CRUD mapa, ejemplos, fases A–D
+- [x] Plan técnico + Contratos + Mitigación/Rollback
 - [x] Cross-refs: 021, ROADMAP, README, domain-context
-- [ ] Plan aprobado por Luis (código pendiente de OK)
+- [ ] Commit + push docs
 
-### Config UI (pendiente de implementación)
+### Fase A — código (Parte 2)
+
+#### A1 Valuación inventario KPIs
+
+- [ ] Extender `EstadisticasInventario` (invertido, valor venta, margen potencial)
+- [ ] `getEstadisticas` calcula las 3 métricas
+- [ ] Dashboard inventario: KPI cards con labels claros + hints
+- [ ] SC-INV-001…004
+
+#### A2 Defaults baño + enlace caja
 
 - [ ] Modelo + servicio `DefaultsBanioPorTamano`
-- [ ] UI catálogo 3 tamaños en finanzas
+- [ ] UI panel 3 tamaños en finanzas
+- [ ] Campos aditivos `Banio` + diálogo (tamaño, costo, precio, override)
+- [ ] `registrarEnCaja` prellena `costoAsociado` / plantilla / monto
 - [ ] Mocks
-- [ ] Reglas RTDB si hace falta extensión
+- [ ] Card «Finanzas» en `/admin/inicio`
+- [ ] SC-005…010
 
-### Fase A — automatización enlace (pendiente)
+#### A3 Venta → caja (si cabe)
 
-- [ ] Campos aditivos en `Banio` + diálogo (tamaño, costo, precio sugerido, override)
-- [ ] `precio_total` siempre editable por registro
-- [ ] `registrarEnCaja` prellena costo/plantilla/monto
-- [ ] Smoke Cypress baño→caja con margen
+- [ ] Checkbox en salida `venta_directa` → diálogo caja
+- [ ] Links cruzados opcionales
+- [ ] SC-001…004 (parcial OK si queda pendiente documentado)
 
-### Fase B — inventario (futuro, no MVP)
+### Fase B — diseño ready; código después de A
 
-- [ ] Diseño disparador salida stock desde plantilla (solo tras OK Luis)
-- [ ] No mezclar `ProductosPeluqueria` con inventario clínico sin decisión
+- [ ] Consumo inventario desde historial (cirugía/vacuna)
+- [ ] Módulo pensión MVP (StaffModule, lista, alta, caja)
+- [ ] Rules `Katzen/Pension`
+- [ ] Defaults pensión por tamaño
+- [ ] SC-011…020
+
+### Fase C / D / E
+
+- [ ] C: gráficas Rentabilidad
+- [ ] D: egresos tipificados
+- [ ] E: OC → egreso opt-in
 
 ---
 
 ## Testing
 
-> **Quién ejecuta:** el agente. Guía: `specs/templates/qa-validation-guide.md`  
-> **Ahora:** entrega solo docs → no aplica build/UI smoke de feature.
+> **Quién ejecuta:** el agente. Guía: `specs/templates/qa-validation-guide.md`
 
-- [ ] `npm run build` — al implementar Config/Fase A
-- [ ] Servidor `:4200` + smoke — al implementar UI
-- [ ] Cypress baños/finanzas — al implementar
+### Checklist pre-entrega Fase A
 
-**Resultado:** _docs only — pendiente código_
-
----
-
-## Testing y validación exhaustiva
-
-### Checklist pre-entrega (código)
-
-- [ ] Guía QA completa (cuando haya UI)
-- [ ] `npm run build` OK
-- [ ] Live preview :4200 + smoke
-- [ ] Tabla resultados rellenada
-- [ ] Chips / loading / diálogos verificados
+- [ ] Guía QA (formularios defaults, diálogo baño, KPIs)
+- [ ] `npm run build` OK — reportar exit code
+- [ ] Live preview `:4200` + smoke inventario/baños/finanzas
+- [ ] Cypress smoke admin (módulos tocados)
+- [ ] Design system: chips, loading, diálogos shell
+- [ ] Tabla resultados rellenada **antes** de marcar `[x]`
 
 ### Registro de resultados QA
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Docs 022 + cross-refs | OK | 2026-08-26 — sin UI |
-| Config defaults tamaño | PENDIENTE | |
-| Alta baño override + precio por registro | PENDIENTE | |
-| Baño→caja con costoAsociado | PENDIENTE | |
-| Build / :4200 | N/A | docs-only |
+| Docs 022 ampliada + cross-refs | PENDIENTE | Parte 1 |
+| KPIs invertido / venta / margen | PENDIENTE | A1 |
+| Defaults baño P/M/G guardan | PENDIENTE | A2 |
+| Alta baño tamaño + override precio | PENDIENTE | A2 |
+| Baño→caja con costoAsociado | PENDIENTE | A2 |
+| Card Finanzas inicio | PENDIENTE | A2 |
+| Venta→caja | PENDIENTE | A3 |
+| Build | PENDIENTE | |
+| :4200 smoke | PENDIENTE | |
+| Cypress | PENDIENTE | |
 
 ---
 
-## Criterios spec (SC-xxx)
+## Criterios spec
 
-- [ ] SC-001 … SC-010 (Config + Fase A)
-- [ ] SC-011 … SC-012 (documentados; implementación Fase B)
+- [ ] SC-INV-* (Fase A)
+- [ ] SC-005…010 (Fase A baños/finanzas)
+- [ ] SC-001…004 (A3 o defer documentado)
+- [ ] SC-011…025 documentados; código B/C/D
 
 ---
 
 ## Cierre
 
-- [ ] Validación pre-entrega completa (tras código)
-- [ ] `spec.md` → `done` solo con QA registrado
-- [x] Commit docs 022 (+ push)
+- [ ] Validación pre-entrega Fase A completa
+- [ ] Commit + push código A
+- [ ] Deploy hosting/database **solo con OK Luis**
+- [ ] `spec.md` → `done` solo cuando A+QA cerrados (o marcar fase A done en tasks)
+- [ ] Resend: no tocar (diferido)

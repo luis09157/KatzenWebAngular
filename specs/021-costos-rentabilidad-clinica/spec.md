@@ -100,7 +100,7 @@ Para **alimentar plantillas y márgenes**
 
 ### Continuación: baños ↔ finanzas (022)
 
-021 deja plantillas + caja con categoría/margen. **022** añade el catálogo de defaults por tamaño, el prefill/override en el diálogo de baño y el arrastre de `costoAsociado` al flujo baño→caja (018). Ver sección *Baños: defaults por tamaño…* en `specs/022-automatizacion-costos-dashboard/`.
+021 deja plantillas + caja con categoría/margen. **022** añade valuación de inventario (KPIs), defaults baño por tamaño, baño→caja con costo, wire venta/historial, y diseño del módulo **pensión**. Ver `specs/022-automatizacion-costos-dashboard/`.
 
 ---
 

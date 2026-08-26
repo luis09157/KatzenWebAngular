@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **021** costos/rentabilidad.
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **022** automatización costos/ops + pensión (diseño).
 
 ---
 
@@ -202,7 +202,9 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; no CFDI), `categoria`, `fecha_caducidad`, `activo`.
 
-**Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia.
+**Valuación stock (KPIs — 022):** `invertido_costo = Σ stock × precio_compra`; `valor_precio_venta = Σ stock × precio_venta`; `margen_potencial = venta − costo`. No es COGS FIFO ni utilidad de caja.
+
+**Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia. Link opcional `cajaMovimientoId` / caja↔`movimientoInventarioIds` (022).
 
 **Órdenes de compra:** Estados borrador → enviada → parcial/recibida/cancelada. Recepción dispara entradas de inventario.
 
@@ -210,13 +212,21 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021 / 022)
 
-**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (baño/corte/cirugía/venta/consulta/publicidad/operativo/otro), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `activo`.
+**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (baño/corte/cirugía/venta/consulta/publicidad/operativo/otro; **+ `pension` en 022 B**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
 
 **Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio`, `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
 **Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en config; override al registrar baño; `precio_total` siempre por registro.
 
-**Fuera de alcance web (histórico 021):** CFDI/SAT. **Plan 022:** (1) defaults baño por tamaño + enlace caja/costos; (2) wire baño/venta→stock+caja; (3) consumo desde historial; (4) egresos tipificados (gasolina/proveedores); (5) gráficas en tab Rentabilidad — sin módulos nuevos.
+**Extensibilidad:** hub Finanzas + Inventario + eventos de dominio (baño, historial, pensión, venta) que emiten movimientos económicos — no N dashboards por tipo de servicio.
+
+**Fuera de alcance web (histórico 021):** CFDI/SAT. **Plan 022 fases:** A valuación + baño→caja; B historial/cirugía/vacuna + módulo pensión; C gráficas; D egresos tipificados; E OC→egreso.
+
+### 3.8c `Katzen/Pension` (022 Fase B — diseño)
+
+**Estancias** (`Katzen/Pension/Estancias/{id}`): hospedaje mascota; `paciente_id`, fechas ingreso/salida, `tamano_mascota`, `precio_dia` / `precio_total`, costos opcionales, `estado`, `cajaMovimientoId?`, `activo`.
+
+**Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
 
 ### 3.9 Auth y usuarios
 
@@ -625,7 +635,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | Feature | Origen | Notas |
 |---------|--------|-------|
 | **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
-| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho; **costos/rentabilidad 021** hecho; **022** defaults baño por tamaño + automatización enlace (docs; UI pendiente) |
+| **Módulo finanzas / caja** | #19, #20 | **018/021** hechos. **022** valuación inventario + baño→caja (A) + pensión/cirugía (B) — `specs/022-automatizacion-costos-dashboard/` |
+| **Pensión / alojamiento** | ops | Hospedaje mascotas; módulo `/admin/pension` — diseño **022**; código Fase B |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |

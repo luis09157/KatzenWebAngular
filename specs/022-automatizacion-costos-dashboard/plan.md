@@ -1,185 +1,267 @@
-# Plan técnico: Automatización costos / dashboard + baños por tamaño
+# Plan técnico: Automatización costos / ops financieras + pensión
 
 **Spec:** `specs/022-automatizacion-costos-dashboard/spec.md`  
-**Estado:** draft  
+**Estado:** in-progress  
+**Extiende:** 014, 018, 021  
 
 ---
 
 ## Resumen
 
-Documentar e implementar (cuando Luis autorice código) el puente **Banio → costo por tamaño → caja/margen → P&L**, reutilizando 014/018/021. Primero **config de defaults** por tamaño; luego **Fase A** de automatización al registrar/cobrar. Inventario por plantilla queda diseñado, sin código hasta subtarea explícita. **Esta entrega inicial es solo documentación.**
+Implementar el puente **Inventario (valuación) ↔ Banio (tamaño/costo) ↔ Caja/margen ↔ P&L**, y diseñar **pensión** como módulo nuevo en Fase B. Principio: hub Finanzas + Inventario + eventos que emiten movimientos económicos. **Sin ventanas redundantes.**
 
 ---
 
-## Baños: defaults por tamaño + precio por registro + enlace finanzas
+## Fases A → D (implementación)
 
-### Tabla operativa (campo → comportamiento)
+| Fase | Alcance código | Deploy típico |
+|------|----------------|---------------|
+| **A (ahora)** | KPIs valuación inventario; defaults baño P/M/G; Banio campos aditivos; baño→caja con `costoAsociado`; card Finanzas; wire venta→caja (si tiempo) | hosting (+ database si rules) |
+| **B** | Consumo historial/cirugía/vacuna; módulo pensión MVP (lista/alta/caja); StaffModule | hosting + database rules Pension |
+| **C** | Gráficas tab Rentabilidad + filtros semana | hosting |
+| **D** | Egresos tipificados (gasolina, proveedores, …) | hosting |
+| **E** | OC → egreso opt-in | hosting |
 
-| Campo | Default configurable | Override al registrar | Efecto finanzas / inventario |
-|-------|----------------------|------------------------|------------------------------|
-| `tamano_perro` | — | Sí (obligatorio en flujo nuevo) | Índice del catálogo de defaults |
-| `costoDefault` → `Banios.costoEstimado` | Sí (pequeño/mediano/grande) | Sí | `Caja.costoAsociado` + margen P&L |
-| `precioSugerido` → prefill `precio_total` | Sí (opcional) | N/A (solo hint) | No cierra caja; usuario confirma precio |
-| `precio_total` | Prefill si hay sugerido | **Sí, siempre por registro** | `Caja.monto` ingreso |
-| `plantillaCostoId` | Opcional por tamaño/`tipo_servicio` | Sí | Stamp baño + movimiento; futuro stock |
-| `cajaMovimientoId` | — | Flujo cobro 018 | Link 1:1 Banio↔Movimiento |
-| Ítems inventario plantilla | En `PlantillasCosto` | Futuro | Salida stock (post-MVP) |
-
-### Fases claras
-
-| Fase | Qué incluye | Qué no incluye | Dependencias |
-|------|-------------|----------------|--------------|
-| **Docs (ahora)** | Spec + plan + tasks + índice ROADMAP/README/domain | Código UI/RTDB | — |
-| **Config UI** | CRUD/lectura de defaults por tamaño en Finanzas (o panel config baños); mocks | Auto-caja, inventario | Nodo RTDB aditivo + rules (si hace falta) |
-| **Fase A — automatización enlace** | Diálogo baño: tamaño → prefill costo/precio sugerido + override; «Registrar en caja» arrastra `costoAsociado` / plantilla / monto; dashboard 021 refleja sin cambios estructurales | Descuento stock; CFDI; forzar precio fijo | Config UI (defaults) + 018/021 ya en prod |
-| **Fase A+ (opcional)** | Egresos tipificados extra; gráficas simples en Rentabilidad | Módulos nuevos | Fase A |
-| **Fase B — inventario (futuro)** | Al completar/cobrar baño con plantilla: salidas inventario por ítems `producto_inventario`; wire venta→stock | Mezclar `ProductosPeluqueria` con stock clínico | 021 plantillas + inventario movimientos |
-| **Fase C** | Consumo desde historial clínico | — | Backlog medicamentos controlados |
-
-**Orden recomendado:** Config UI → Fase A (baños) → A+ / B según prioridad Luis.
-
----
-
-## Encaje con 014 / 018 / 021
-
-```text
-[Config DefaultsBanioPorTamano]     ← 022 Config UI
-         │
-         ▼
-[Banio alta] tamano + costoEstimado + precio_total (override)
-         │
-         │  018 registrarEnCaja
-         ▼
-[Caja Movimiento] monto ← precio_total
-                  categoria ← banio|corte
-                  costoAsociado ← costoEstimado
-                  plantillaCostoId ← opcional
-                  banioId / Banio.cajaMovimientoId
-         │
-         ▼
-[Rentabilidad 021] ingresos / costos / margen día|mes
-```
-
-- **014:** caja MVP intacta; solo más datos prellenados.
-- **018:** mismo botón/flujo; enriquecer `data` del diálogo.
-- **021:** plantillas siguen siendo BOM; defaults por tamaño son atajo de **costo total** (pueden coexistir: si hay plantilla, costo = `costoTotalEstimado` plantilla o override; si no, default por tamaño).
-
-### Modelo de datos propuesto (aditivo)
-
-```text
-Katzen/Finanzas/DefaultsBanioPorTamano
-  pequeno:  { costoDefault: number, precioSugerido?: number, plantillaCostoId?: string }
-  mediano:  { costoDefault: number, precioSugerido?: number, plantillaCostoId?: string }
-  grande:   { costoDefault: number, precioSugerido?: number, plantillaCostoId?: string }
-  updatedAt?, updatedBy?
-
-Katzen/Banios/{id}   # campos opcionales nuevos
-  tamano_perro?: 'pequeno' | 'mediano' | 'grande'
-  costoEstimado?: number
-  plantillaCostoId?: string
-  # existentes: precio_base, precio_total, cajaMovimientoId, tipo_servicio, …
-```
-
-Compatibilidad: lectura trata ausentes como «sin tamaño / sin costo» (margen N/D como en 021).
-
----
-
-## Archivos a crear / modificar (cuando se implemente)
-
-### Angular — Config UI
-
-| Archivo | Acción | Notas |
-|---------|--------|-------|
-| `src/app/finanzas/defaults-banio.models.ts` | crear | tipos tamaño |
-| `src/app/finanzas/defaults-banio.service.ts` | crear | CRUD nodo defaults |
-| `src/app/finanzas/finanzas.component.*` | modificar | UI catálogo 3 filas |
-| `src/app/core/testing/mock-data.ts` | modificar | `MOCK_DEFAULTS_BANIO_TAMANO` |
-
-### Angular — Fase A
-
-| Archivo | Acción | Notas |
-|---------|--------|-------|
-| `src/app/shared/banio.model.ts` | modificar | campos aditivos |
-| `src/app/banios/banio-dialog.component.*` | modificar | tamaño, costo, precio sugerido, override |
-| `src/app/banios/banios.component.ts` | modificar | `registrarEnCaja` pasa costo/plantilla |
-| `src/app/finanzas/caja-movimiento-dialog.component.*` | modificar | aceptar prefill costo/plantilla desde baño |
-
-### Firebase
-
-| Archivo | Acción |
-|---------|--------|
-| `database.rules.json` | confirmar `Katzen/Finanzas/**` staff R/W (ya 021) |
-
-### Cypress / docs
-
-| Archivo | Acción |
-|---------|--------|
-| `cypress/e2e/...` | smoke defaults + baño→caja con costo |
-| `specs/memory/domain-context.md` | § Banios + Finanzas |
-| `specs/ROADMAP.md` / `README.md` | entrada 022 |
-
----
-
-## Flujos
-
-### Config (una vez)
-
-1. Admin abre Finanzas → Defaults baño por tamaño.
-2. Edita costo (y opcional precio sugerido / plantilla) para pequeño/mediano/grande.
-3. Guarda nodo `DefaultsBanioPorTamano`.
-
-### Alta baño (Fase A)
-
-1. Usuario elige paciente + **tamaño**.
-2. Sistema prellena `costoEstimado` y opcionalmente `precio_total` desde defaults.
-3. Usuario ajusta costo y **siempre** confirma/edita `precio_total`.
-4. Guarda Banio (campos aditivos).
-
-### Cobro → finanzas
-
-1. «Registrar en caja» (018): prefill monto, categoría, costoAsociado, plantillaCostoId, banioId.
-2. Usuario confirma IVA/método; guarda movimiento; stamp `cajaMovimientoId`.
-3. Tab Rentabilidad 021 incluye el ingreso y el costo.
-
-### Errores
-
-| Caso | Mensaje |
-|------|---------|
-| Sin tamaño en flujo nuevo | Validación: elegir tamaño |
-| Costo default faltante en config | Usar 0 o pedir captura manual; no inventar margen falso |
-| Ya hay `cajaMovimientoId` | Aviso 018 (no doble cobro) |
+**Pensión:** diseño completo abajo; **código en B** (no bloquea A). Si A cierra y hay capacidad, scaffolding mínimo lista+alta opcional — prioridad: cerrar A con QA.
 
 ---
 
 ## Contratos de Datos y UI (Obligatorio)
 
-- **Impacto RTDB:** solo aditivo; móvil no requiere cambios.
+### Impacto RTDB
 
-  | Nodo / campo | Acción | ¿App móvil? | Notas |
-  |--------------|--------|-------------|-------|
-  | `Katzen/Finanzas/DefaultsBanioPorTamano` | nuevo | no | staff |
-  | `Banios.tamano_perro`, `costoEstimado`, `plantillaCostoId` | opcionales | ignora si no usa | safe |
-  | Caja / PlantillasCosto | sin breaking | no | reuso 021 |
+| Nodo / campo | Acción | ¿App móvil? | Notas |
+|--------------|--------|-------------|-------|
+| `Inventario/Productos` | solo lectura agregada | ignora | KPIs client-side |
+| `Finanzas/DefaultsBanioPorTamano` | **nuevo** | no | 3 keys tamaño |
+| `Banios.tamano_perro?`, `costoEstimado?`, `plantillaCostoId?` | opcionales | ignora | safe |
+| `Caja/Movimientos` | campos existentes + links A | no | `costoAsociado` ya 021 |
+| `Inventario/Movimientos.cajaMovimientoId?` | opcional A | no | |
+| `Caja/Movimientos.movimientoInventarioIds?` | opcional A | no | |
+| `Pension/Estancias/{id}` | **nuevo B** | no | |
+| `Finanzas/DefaultsPensionPorTamano` | **nuevo B** | no | |
 
-  - [x] Sin eliminar ni renombrar nodos
-  - [x] Campos nuevos opcionales
+- [x] Sin eliminar ni renombrar nodos  
+- [x] Campos nuevos opcionales  
 
-- **Pruebas:** mocks locales; emuladores si se tocan rules; **nunca** prod.
-- **Patrones UI:** `admin-dialog-shell`, tabs finanzas, baños CRUD, `LoadingService`, «Borrar» solo si aplica baja lógica de config (no borrar tamaños: editar valores).
+### Pruebas
+
+Mocks locales (`mock-data.ts`); Cypress smoke; **nunca** producción (`katzen-a0e3e`).
+
+### Patrones UI
+
+`admin-page`, `app-admin-kpi-grid`, `admin-dialog-shell`, `LoadingService` contextual, copy «Borrar», chips completos, `--picker` solo diálogos compactos.
 
 ---
 
 ## Plan de Mitigación y Rollback
 
-- [x] Sin cambios destructivos de contratos (docs-only ahora)
-- [ ] `npm run build` OK antes de entregar **código** Fase Config/A
-- [x] Rollback documentado
+- [x] Sin cambios destructivos de contratos  
+- [ ] `npm run build` OK antes de entregar código Fase A  
+- [x] Rollback documentado  
 
 | Escenario | Rollback |
 |-----------|----------|
+| KPIs invent. confunden | revert labels + campos stats; hosting |
 | UI baños rompe alta | revert diálogo baños + hosting |
-| Defaults mal | editar nodo o soft-ignore (lectura sin defaults) |
-| Rules Finanzas | revert `database.rules.json` |
+| Defaults mal | editar nodo o soft-ignore lectura |
+| Rules Pension (B) | revert `database.rules.json` |
+| Módulo pensión inestable | feature-flag ruta / quitar menú |
+
+---
+
+## 1. Inventario financiero (Fase A)
+
+### Modelo / cálculo
+
+```ts
+// EstadisticasInventario (extender)
+valor_total_inventario: number;      // = invertido_costo (compat)
+invertido_costo: number;             // Σ stock * precio_compra
+valor_precio_venta: number;          // Σ stock * precio_venta
+margen_potencial: number;            // valor_venta - invertido
+```
+
+### Archivos
+
+| Archivo | Acción |
+|---------|--------|
+| `shared/inventario.models.ts` | extender `EstadisticasInventario` |
+| `inventario/inventario.service.ts` | `getEstadisticas` calcula 3 métricas |
+| `dashboard-inventario.component.html` | 3–4 KPI cards claras (renombrar «Valor» → «Invertido») |
+| `finanzas.component` (opcional A) | mini resumen stock en Rentabilidad |
+
+### UI copy
+
+- «Invertido (a costo)»  
+- «Valor a precio de venta»  
+- «Margen potencial (stock)»  
+Hint: no es COGS realizado ni utilidad de caja.
+
+---
+
+## 2. Baños: defaults + enlace caja (Fase A)
+
+### Tabla operativa
+
+| Campo | Default configurable | Override al registrar | Efecto |
+|-------|----------------------|------------------------|--------|
+| `tamano_perro` | — | Sí | Índice defaults |
+| `costoEstimado` | costoDefault P/M/G | Sí | `Caja.costoAsociado` |
+| `precioSugerido` → prefill `precio_total` | Sí | N/A (hint) | No cierra caja |
+| `precio_total` | Prefill | **Sí, siempre** | `Caja.monto` |
+| `plantillaCostoId` | Opcional por tamaño | Sí | Stamp + margen |
+| `cajaMovimientoId` | — | Flujo 018 | Link 1:1 |
+
+### RTDB defaults
+
+```text
+Katzen/Finanzas/DefaultsBanioPorTamano
+  pequeno:  { costoDefault, precioSugerido?, plantillaCostoId? }
+  mediano:  { … }
+  grande:   { … }
+  updatedAt?, updatedBy?
+```
+
+### Archivos
+
+| Archivo | Acción |
+|---------|--------|
+| `finanzas/defaults-banio.models.ts` | crear |
+| `finanzas/defaults-banio.service.ts` | crear |
+| `finanzas/finanzas.component.*` | panel 3 filas |
+| `shared/banio.model.ts` | campos aditivos |
+| `banios/banio-dialog.component.*` | tamaño + prefill + override |
+| `banios/banios.component.ts` | `registrarEnCaja` pasa costo/plantilla |
+| `caja-movimiento-dialog` | ya acepta `costoAsociado` — verificar prefill |
+| `core/testing/mock-data.ts` | mocks |
+| `dashboard.component.ts` | card Finanzas |
+
+### Regla costo
+
+1. Si usuario elige plantilla → `costoEstimado` = costo plantilla (editable).  
+2. Si no → default por tamaño.  
+3. Override manual siempre gana al guardar.
+
+---
+
+## 3. Venta producto → caja (Fase A, si cabe en misma entrega)
+
+| Archivo | Acción |
+|---------|--------|
+| `salida-dialog.component.*` | checkbox «Registrar en caja»; abre `CajaMovimientoDialog` |
+| `caja.models` / create | `movimientoInventarioIds?` |
+| Inventario movimiento | stamp `cajaMovimientoId?` |
+
+Anti-doble: si falla caja tras salida, mensaje + opción reintentar link (no revertir stock automáticamente en MVP — documentar).
+
+---
+
+## 4. Cirugías / vacunas / historial (Fase B — diseño)
+
+```text
+Historial → «Consumir inventario»
+    → registrarSalida(..., historial_clinico_id)
+    → lista consumos del historial
+Cobro caja (cirugía/consulta/vacuna)
+    → costoAsociado sugerido = Σ salidas ligadas | plantilla
+    → opt-in descontar ítems plantilla restantes
+```
+
+Vacunas: el módulo `/admin/vacunas` sigue siendo registro clínico; **stock** vía producto inventario + consumo (no duplicar catálogo Medicamentos).
+
+Archivos previstos B: `historiales` UI consume; `salida-dialog` prefill historialId; plantillas tipo `cirugia`.
+
+---
+
+## 5. Alojamiento / pensión (módulo nuevo — diseño A; código B)
+
+### Justificación módulo nuevo
+
+Lifecycle propio (check-in/out, días, tarifa/día, tamaño) ≠ baño ni cita. Encaja menú admin + `StaffModule` como baños.
+
+### Modelo propuesto
+
+```text
+Katzen/Pension/Estancias/{id}
+  paciente_id, cliente_id
+  fecha_ingreso, fecha_salida_prevista?, fecha_salida_real?
+  tamano_mascota: pequeno|mediano|grande
+  precio_dia, costo_estimado?, precio_total?   # total override al cobrar
+  costo_dia?, costo_total_estimado?
+  estado: reservada|activa|finalizada|cancelada
+  notas?, cajaMovimientoId?, plantillaCostoId?
+  activo, created_at, updated_at, created_by
+
+Katzen/Finanzas/DefaultsPensionPorTamano
+  pequeno|mediano|grande: { precioDia, costoDia?, plantillaCostoId? }
+```
+
+### CRUD / UI B
+
+| Pieza | Detalle |
+|-------|---------|
+| Ruta | `/admin/pension` lazy module |
+| StaffModule | `'pension'` en type + ALL + menú layout |
+| Lista | KPI grid + banner + tabla (paciente, fechas, días, total, estado, acciones) |
+| Alta/editar | `admin-dialog-shell`; tamaño → defaults; override precio/día y total |
+| Cobrar | «Registrar en caja» (patrón baños 018) categoría `pension` |
+| Inventario | Opt-in: plantilla comida / salida alimentos (fase B+ o C) |
+| Cypress | entrada en `admin-modules-authenticated.cy.ts` |
+| Rules | `Katzen/Pension`: staff auth R/W; no cliente portal |
+
+### Fase implementación pensión
+
+| Subfase | Qué |
+|---------|-----|
+| Docs (A) | Spec + plan + domain-context + ROADMAP |
+| B1 | Nodo + rules + service + lista + alta mínima + menú |
+| B2 | Cobro caja + defaults tamaño |
+| B3 | Opt-in comida inventario |
+
+**No implementar pensión en Fase A** salvo scaffolding vacío si A termina con holgura (preferir no).
+
+---
+
+## 6. Extensibilidad (arquitectura)
+
+```text
+TipoServicio (catálogo labels)
+    banio | corte | cirugia | vacuna | consulta | pension | venta_producto | otro
+
+EventBus implícito (sin framework):
+  pantalla dominio → CajaService.crearMovimiento + opcional InventarioService.salida
+```
+
+Agregar tipo futuro:
+
+1. Label en `CAJA_CATEGORIA_LABELS` + opcional `PlantillaTipoServicio`  
+2. Evento en pantalla existente **o** módulo si hay CRUD operativo  
+3. No crear dashboard paralelo  
+
+---
+
+## 7. Encaje 014 / 018 / 021
+
+```text
+[Inventario KPIs valuación]                    ← 022 A
+[DefaultsBanioPorTamano] → [Banio] → [Caja]   ← 018/021/022 A
+[Salida venta] → [Caja]                         ← 022 A
+[Historial consumo] → [Caja cobro]              ← 022 B
+[Pension Estancia] → [Caja]                     ← 022 B
+[Rentabilidad gráficas]                         ← 022 C
+[Egresos tipificados]                           ← 022 D
+```
+
+---
+
+## 8. CRUD mapa (resumen plan)
+
+Ver tabla completa en `spec.md`. Decisiones clave:
+
+- **Extender:** caja, plantillas, baños, movimientos inv., finanzas defaults  
+- **Nuevo:** pensión (B), defaults pensión (B)  
+- **No crear:** gastos, ventas POS, dashboard finanzas aparte  
 
 ---
 
@@ -187,16 +269,22 @@ Compatibilidad: lectura trata ausentes como «sin tamaño / sin costo» (margen 
 
 ```bash
 npm run build
-firebase deploy --only database,hosting   # si hubo rules + UI
+# Fase A:
+firebase deploy --only hosting
+# Si rules Finanzas/Pension:
+firebase deploy --only database,hosting
 ```
 
-Sin Functions en MVP 022.
+Resend: **diferido**. Functions: no requeridas en A.
 
 ---
 
 ## Riesgos
 
-- Baños legacy sin `tamano_perro` / `costoEstimado` → cobro sigue funcionando; margen N/D hasta editar.
-- Confusión precio sugerido vs precio_total → copy UI claro: «Precio cobrado (este baño)».
-- Doble fuente de costo (plantilla vs default tamaño) → regla: plantilla gana si se elige; si no, default tamaño; override manual siempre gana al guardar.
-- `ProductosPeluqueria` ≠ inventario clínico — no descontar stock peluquería legacy en Fase B sin decisión explícita.
+| Riesgo | Mitigación |
+|--------|------------|
+| Confundir margen potencial stock con utilidad caja | Copy UI explícito |
+| Baños legacy sin tamaño | Cobro sigue; margen N/D |
+| Doble fuente costo (plantilla vs tamaño) | Regla prioridad documentada |
+| Pensión scope creep | B1 mínimo; comida en B3 |
+| Venta→caja falla a medias | Mensaje + no doble cobro; links |
