@@ -185,7 +185,14 @@
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'",
         "Movimientos": {
-          ".indexOn": ["fecha", "metodoPago", "activo", "tipo", "sucursalId"]
+          ".indexOn": ["fecha", "metodoPago", "activo", "tipo", "sucursalId", "categoria"]
+        }
+      },
+      "Finanzas": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "PlantillasCosto": {
+          ".indexOn": ["tipoServicio", "activo", "nombre"]
         }
       },
       "Gasolina": {

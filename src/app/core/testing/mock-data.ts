@@ -123,7 +123,7 @@ export const MOCK_PRODUCTO_SIN_STOCK = {
   stock_actual: 0,
 };
 
-/** Movimiento de caja — mocks UI (spec 014). */
+/** Movimiento de caja — mocks UI (specs 014 + 021). */
 export const MOCK_CAJA_MOVIMIENTO = {
   id: 'mock-caja-001',
   tipo: 'ingreso' as const,
@@ -132,6 +132,36 @@ export const MOCK_CAJA_MOVIMIENTO = {
   ivaDeclarado: false,
   concepto: 'Baño completo mock',
   fecha: '2026-08-26',
+  categoria: 'banio' as const,
+  costoAsociado: 85,
+  margenEstimado: 265,
+  activo: true,
+  createdAt: '2026-08-26T12:00:00.000Z',
+  createdBy: 'mock-staff'
+};
+
+/** Plantilla de costo de servicio — mocks UI (spec 021). */
+export const MOCK_PLANTILLA_COSTO = {
+  id: 'mock-plantilla-001',
+  nombre: 'Baño completo mediano',
+  tipoServicio: 'banio' as const,
+  precioSugeridoCliente: 350,
+  items: [
+    {
+      tipo: 'producto_inventario' as const,
+      productoId: 'mock-producto-001',
+      nombre: 'Shampoo mock',
+      cantidad: 1,
+      costoUnitario: 45
+    },
+    {
+      tipo: 'gasto_libre' as const,
+      nombre: 'Tiempo peluquero (~30 min)',
+      cantidad: 1,
+      costoUnitario: 40
+    }
+  ],
+  costoTotalEstimado: 85,
   activo: true,
   createdAt: '2026-08-26T12:00:00.000Z',
   createdBy: 'mock-staff'

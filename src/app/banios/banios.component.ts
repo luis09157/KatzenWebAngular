@@ -433,9 +433,12 @@ export class BaniosComponent implements OnInit, OnDestroy {
       return;
     }
     const metodo = (banio.metodo_pago || 'efectivo') as 'efectivo' | 'tarjeta' | 'transferencia';
+    const tipoServ = String(banio.tipo_servicio || '').toLowerCase();
+    const categoriaCaja =
+      tipoServ.includes('corte') ? 'corte' as const : 'banio' as const;
     const ref = this.dialog.open(CajaMovimientoDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
-      width: '560px',
+      width: '640px',
       disableClose: true,
       data: {
         fechaDefault: banio.fecha_banio || undefined,
@@ -443,7 +446,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
         concepto: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
         monto: Number(banio.precio_total) || 0,
         metodoPago: metodo,
-        notas: banio.observaciones || ''
+        notas: banio.observaciones || '',
+        categoria: categoriaCaja
       }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {

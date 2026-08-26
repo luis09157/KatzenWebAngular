@@ -1,6 +1,45 @@
-/** Movimiento de caja (ingresos / egresos simples). Spec 014. */
+/** Movimiento de caja (ingresos / egresos). Specs 014 + 021. */
 export type CajaTipoMovimiento = 'ingreso' | 'egreso';
 export type CajaMetodoPago = 'efectivo' | 'tarjeta' | 'transferencia';
+
+/** Categoría operativa / P&L simple (021). Opcional en legacy. */
+export type CajaCategoria =
+  | 'banio'
+  | 'corte'
+  | 'cirugia'
+  | 'venta_producto'
+  | 'consulta'
+  | 'publicidad'
+  | 'operativo'
+  | 'otro';
+
+export const CAJA_CATEGORIA_LABELS: Record<CajaCategoria, string> = {
+  banio: 'Baño / peluquería',
+  corte: 'Corte',
+  cirugia: 'Cirugía',
+  venta_producto: 'Venta producto',
+  consulta: 'Consulta',
+  publicidad: 'Publicidad',
+  operativo: 'Gasto operativo',
+  otro: 'Otro'
+};
+
+/** Categorías típicas de ingreso. */
+export const CAJA_CATEGORIAS_INGRESO: CajaCategoria[] = [
+  'banio',
+  'corte',
+  'cirugia',
+  'venta_producto',
+  'consulta',
+  'otro'
+];
+
+/** Categorías típicas de egreso. */
+export const CAJA_CATEGORIAS_EGRESO: CajaCategoria[] = [
+  'publicidad',
+  'operativo',
+  'otro'
+];
 
 export interface CajaMovimiento {
   id?: string;
@@ -17,6 +56,13 @@ export interface CajaMovimiento {
   clienteId?: string;
   sucursalId?: string;
   notas?: string;
+  /** Spec 021 — taxonomía P&L. */
+  categoria?: CajaCategoria;
+  plantillaCostoId?: string;
+  /** Costo estimado del servicio / COGS asociado al cobro. */
+  costoAsociado?: number;
+  /** Solo ingresos con costo: monto − costoAsociado. */
+  margenEstimado?: number;
   activo: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -32,6 +78,9 @@ export interface CajaMovimientoFormData {
   fecha: string;
   banioId?: string;
   notas?: string;
+  categoria?: CajaCategoria;
+  plantillaCostoId?: string;
+  costoAsociado?: number;
 }
 
 export interface CajaDiaKpis {
@@ -44,4 +93,11 @@ export interface CajaDiaKpis {
   ivaDeclarado: number;
   ivaNoDeclarado: number;
   movimientosActivos: number;
+  /** Spec 021 */
+  totalCostosAsociados: number;
+  margenEstimado: number;
+  ingresosConCosto: number;
+  ingresosSinCosto: number;
 }
+
+export type CajaPeriodoModo = 'dia' | 'mes';

@@ -1,0 +1,118 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ data?.plantilla ? 'Editar plantilla' : 'Nueva plantilla de costo' }}</h2>
+      <p class="admin-dialog-subtitle">Define qué cuesta hacer un baño, corte o cirugía (productos o gastos libres).</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="plantilla-form">
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Nombre *</mat-label>
+          <input matInput formControlName="nombre" placeholder="Ej. Baño completo mediano" />
+          <mat-error *ngIf="form.get('nombre')?.invalid">Nombre requerido (mín. 3)</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de servicio *</mat-label>
+          <mat-select formControlName="tipoServicio">
+            <mat-option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Precio al cliente (sugerido)</mat-label>
+          <input matInput type="number" formControlName="precioSugeridoCliente" min="0" step="0.01" />
+          <span matPrefix>$&nbsp;</span>
+        </mat-form-field>
+      </div>
+
+      <div class="items-header">
+        <h3 class="items-title">Ítems de costo</h3>
+        <button mat-stroked-button type="button" (click)="addItem()">
+          <mat-icon>add</mat-icon>
+          Agregar ítem
+        </button>
+      </div>
+
+      <div formArrayName="items" class="items-list">
+        <div class="item-card" *ngFor="let ctrl of items.controls; let i = index" [formGroupName]="i">
+          <div class="form-grid item-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Origen</mat-label>
+              <mat-select formControlName="tipo" (selectionChange)="onTipoItemChange(i)">
+                <mat-option value="gasto_libre">Gasto libre</mat-option>
+                <mat-option value="producto_inventario">Producto inventario</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="ctrl.get('tipo')?.value === 'producto_inventario'">
+              <mat-label>Producto</mat-label>
+              <mat-select formControlName="productoId" (selectionChange)="onProductoChange(i)">
+                <mat-option value="">— Elegir —</mat-option>
+                <mat-option *ngFor="let p of productos" [value]="p.id">
+                  {{ p.nombre }} (costo ${{ p.precio_compra | number:'1.2-2' }})
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Nombre del ítem *</mat-label>
+              <input matInput formControlName="nombre" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Cantidad *</mat-label>
+              <input matInput type="number" formControlName="cantidad" min="0.01" step="0.01" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Costo unitario *</mat-label>
+              <input matInput type="number" formControlName="costoUnitario" min="0" step="0.01" />
+              <span matPrefix>$&nbsp;</span>
+            </mat-form-field>
+          </div>
+          <button
+            mat-icon-button
+            type="button"
+            class="item-remove"
+            matTooltip="Quitar ítem"
+            (click)="removeItem(i)"
+            [disabled]="items.length <= 1">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="costo-preview">
+        <div>
+          <span class="preview-label">Costo total estimado</span>
+          <strong>{{ formatMoney(costoTotal) }}</strong>
+        </div>
+        <div *ngIf="margenPreview != null">
+          <span class="preview-label">Margen vs precio al cliente</span>
+          <strong [class.margen-neg]="margenPreview < 0">{{ formatMoney(margenPreview) }}</strong>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      data-cy="plantilla-guardar"
+      (click)="guardar()"
+      [disabled]="loading">
+      {{ loading ? 'Guardando…' : 'Guardar plantilla' }}
+    </button>
+  </mat-dialog-actions>
+</div>

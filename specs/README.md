@@ -36,6 +36,7 @@ specs/
 ├── 018-finanzas-csv-banio-caja/
 ├── 019-deprecar-remove-ui/
 ├── 020-portal-mascotas-cliente-id/   # Rules query cliente_id
+├── 021-costos-rentabilidad-clinica/  # Plantillas costo + margen caja + P&L día/mes
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

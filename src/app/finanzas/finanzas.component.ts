@@ -10,8 +10,17 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.component';
+import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
 import { CajaService } from './caja.service';
-import { CajaDiaKpis, CajaMovimiento } from './caja.models';
+import { PlantillaCostoService } from './plantilla-costo.service';
+import {
+  CAJA_CATEGORIA_LABELS,
+  CajaCategoria,
+  CajaDiaKpis,
+  CajaMovimiento,
+  CajaPeriodoModo
+} from './caja.models';
+import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models';
 
 @Component({
   selector: 'app-finanzas',
@@ -23,36 +32,41 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
 
-  displayedColumns = ['fecha', 'concepto', 'tipo', 'metodo', 'iva', 'monto', 'acciones'];
-  dataSource = new MatTableDataSource<CajaMovimiento>([]);
-  loading = true;
+  selectedTab = 0;
+  periodoModo: CajaPeriodoModo = 'dia';
   fechaFiltro = '';
-  kpis: CajaDiaKpis = {
-    totalIngresos: 0,
-    totalEgresos: 0,
-    neto: 0,
-    efectivo: 0,
-    tarjeta: 0,
-    transferencia: 0,
-    ivaDeclarado: 0,
-    ivaNoDeclarado: 0,
-    movimientosActivos: 0
-  };
+  mesFiltro = '';
+
+  displayedColumns = ['fecha', 'concepto', 'categoria', 'tipo', 'metodo', 'iva', 'monto', 'margen', 'acciones'];
+  dataSource = new MatTableDataSource<CajaMovimiento>([]);
+  plantillasColumns = ['nombre', 'tipo', 'costo', 'precio', 'margen', 'acciones'];
+  plantillasDataSource = new MatTableDataSource<PlantillaCosto>([]);
+
+  loading = true;
+  loadingPlantillas = true;
+  kpis: CajaDiaKpis = this.emptyKpis();
 
   private todos: CajaMovimiento[] = [];
+  private plantillas: PlantillaCosto[] = [];
+
+  readonly categoriaLabels = CAJA_CATEGORIA_LABELS;
+  readonly plantillaTipoLabels = PLANTILLA_TIPO_LABELS;
 
   constructor(
     private cajaService: CajaService,
+    private plantillaService: PlantillaCostoService,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private logger: LoggerService
   ) {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
+    this.mesFiltro = this.cajaService.mesLocalIso();
   }
 
   ngOnInit(): void {
     this.cargar();
+    this.cargarPlantillas();
   }
 
   ngAfterViewInit(): void {
@@ -64,6 +78,24 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private emptyKpis(): CajaDiaKpis {
+    return {
+      totalIngresos: 0,
+      totalEgresos: 0,
+      neto: 0,
+      efectivo: 0,
+      tarjeta: 0,
+      transferencia: 0,
+      ivaDeclarado: 0,
+      ivaNoDeclarado: 0,
+      movimientosActivos: 0,
+      totalCostosAsociados: 0,
+      margenEstimado: 0,
+      ingresosConCosto: 0,
+      ingresosSinCosto: 0
+    };
+  }
+
   cargar(): void {
     this.loading = true;
     this.cajaService
@@ -72,7 +104,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: (rows) => {
           this.todos = rows;
-          this.aplicarFiltroFecha();
+          this.aplicarFiltroPeriodo();
           this.loading = false;
           setTimeout(() => {
             if (this.paginator) this.dataSource.paginator = this.paginator;
@@ -86,18 +118,56 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  aplicarFiltroFecha(): void {
-    const fecha = this.fechaFiltro || this.cajaService.hoyLocalIsoDate();
-    const filtrados = this.todos.filter((m) => m.fecha === fecha);
+  cargarPlantillas(): void {
+    this.loadingPlantillas = true;
+    this.plantillaService
+      .getPlantillas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.plantillas = rows;
+          this.plantillasDataSource.data = rows;
+          this.loadingPlantillas = false;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar plantillas:', error);
+          this.plantillas = [];
+          this.plantillasDataSource.data = [];
+          this.loadingPlantillas = false;
+          // Sin Swal bloqueante: rules de Finanzas pueden no estar desplegadas aún.
+        }
+      });
+  }
+
+  get periodoValor(): string {
+    return this.periodoModo === 'mes' ? this.mesFiltro : this.fechaFiltro;
+  }
+
+  get periodoLabel(): string {
+    return this.periodoModo === 'mes' ? `Mes ${this.mesFiltro}` : `Día ${this.fechaFiltro}`;
+  }
+
+  aplicarFiltroPeriodo(): void {
+    const valor = this.periodoValor || this.cajaService.hoyLocalIsoDate();
+    const filtrados = this.cajaService.filtrarPorPeriodo(this.todos, this.periodoModo, valor);
     this.dataSource.data = filtrados;
-    this.kpis = this.cajaService.calcularKpisDia(this.todos, fecha);
+    this.kpis = this.cajaService.calcularKpisPeriodo(this.todos, this.periodoModo, valor);
     if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
   }
 
+  onPeriodoModoChange(modo: CajaPeriodoModo): void {
+    this.periodoModo = modo;
+    this.aplicarFiltroPeriodo();
+  }
+
   onFechaChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.fechaFiltro = value;
-    this.aplicarFiltroFecha();
+    this.fechaFiltro = (event.target as HTMLInputElement).value;
+    this.aplicarFiltroPeriodo();
+  }
+
+  onMesChange(event: Event): void {
+    this.mesFiltro = (event.target as HTMLInputElement).value;
+    this.aplicarFiltroPeriodo();
   }
 
   applyFilter(event: Event): void {
@@ -108,12 +178,38 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   nuevoMovimiento(): void {
     const ref = this.dialog.open(CajaMovimientoDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
-      width: '560px',
+      width: '640px',
       disableClose: true,
       data: { fechaDefault: this.fechaFiltro }
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((_ok) => {
-      // RTDB snapshot refresca lista
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
+      /* snapshot refresca */
+    });
+  }
+
+  nuevaPlantilla(): void {
+    const ref = this.dialog.open(PlantillaCostoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      maxWidth: '96vw',
+      disableClose: true,
+      data: {}
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
+      /* snapshot refresca */
+    });
+  }
+
+  editarPlantilla(p: PlantillaCosto): void {
+    const ref = this.dialog.open(PlantillaCostoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      maxWidth: '96vw',
+      disableClose: true,
+      data: { plantilla: p }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
+      /* snapshot refresca */
     });
   }
 
@@ -122,10 +218,22 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       ? this.dataSource.filteredData
       : this.dataSource.data;
     if (!rows.length) {
-      Swal.fire('Sin datos', 'No hay movimientos para exportar en esta fecha.', 'info');
+      Swal.fire('Sin datos', 'No hay movimientos para exportar en este período.', 'info');
       return;
     }
-    const header = ['fecha', 'concepto', 'tipo', 'metodo', 'iva', 'monto', 'notas', 'banioId'];
+    const header = [
+      'fecha',
+      'concepto',
+      'tipo',
+      'categoria',
+      'metodo',
+      'iva',
+      'monto',
+      'costoAsociado',
+      'margenEstimado',
+      'notas',
+      'banioId'
+    ];
     const escape = (v: unknown) => {
       const s = String(v ?? '');
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -137,9 +245,12 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           m.fecha,
           m.concepto,
           m.tipo,
+          m.categoria || '',
           this.labelMetodo(m),
           m.ivaDeclarado ? 'declarado' : 'no_declarado',
           Number(m.monto).toFixed(2),
+          m.costoAsociado != null ? Number(m.costoAsociado).toFixed(2) : '',
+          m.margenEstimado != null ? Number(m.margenEstimado).toFixed(2) : '',
           m.notas || '',
           m.banioId || ''
         ]
@@ -151,7 +262,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `caja-${this.fechaFiltro || 'dia'}.csv`;
+    a.download = `caja-${this.periodoValor || 'periodo'}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -185,6 +296,35 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  async borrarPlantilla(p: PlantillaCosto): Promise<void> {
+    if (!p.id) return;
+    const result = await Swal.fire({
+      title: '¿Borrar esta plantilla?',
+      text: p.nombre,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, borrar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33'
+    });
+    if (!result.isConfirmed) return;
+
+    this.loadingService.show(LOADING_MESSAGES.deleting);
+    try {
+      await this.plantillaService.bajaLogicaPlantilla(p.id);
+      Swal.fire({
+        icon: 'success',
+        title: 'Borrado',
+        timer: 1600,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar plantilla de costo'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
   labelMetodo(m: CajaMovimiento): string {
     const map: Record<string, string> = {
       efectivo: 'Efectivo',
@@ -194,7 +334,18 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     return map[m.metodoPago] || m.metodoPago;
   }
 
+  labelCategoria(cat?: CajaCategoria): string {
+    if (!cat) return 'Sin categoría';
+    return this.categoriaLabels[cat] || cat;
+  }
+
   formatMoney(n: number): string {
     return `$${(Number(n) || 0).toFixed(2)}`;
+  }
+
+  margenPlantilla(p: PlantillaCosto): string {
+    if (p.precioSugeridoCliente == null) return '—';
+    const m = Number(p.precioSugeridoCliente) - Number(p.costoTotalEstimado || 0);
+    return this.formatMoney(m);
   }
 }

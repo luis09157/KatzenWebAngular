@@ -16,6 +16,21 @@
   }
 }
 
+.margen-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--admin-radius-md, 12px);
+  background: var(--katzen-verde-soft, #e0f7f8);
+  font-size: 0.95rem;
+
+  .margen-neg {
+    color: #b91c1c;
+  }
+}
+
 .iva-check {
   display: flex;
   align-items: center;

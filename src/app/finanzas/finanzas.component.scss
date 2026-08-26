@@ -1,7 +1,36 @@
 .finanzas-contenedor {
   .fecha-filtro {
-    width: 160px;
-    margin-right: 8px;
+    width: 168px;
+  }
+
+  .finanzas-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .periodo-toggle {
+    display: inline-flex;
+    gap: 4px;
+
+    .periodo-activo {
+      background: var(--katzen-verde-soft, #e0f7f8);
+      border-color: var(--katzen-verde, #0a969b);
+      color: var(--katzen-verde-fuerte, #065d60);
+    }
+  }
+
+  .finanzas-tabs {
+    margin-top: 8px;
+  }
+
+  .tab-loading {
+    padding: 32px 0;
+  }
+
+  .panel-action {
+    margin-bottom: 12px;
   }
 
   .monto-egreso {
@@ -9,6 +38,72 @@
   }
 
   .estado-badge--muted {
-    opacity: 0.75;
+    opacity: 0.85;
+  }
+
+  .rentabilidad-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 8px 0 16px;
+  }
+
+  .rent-card {
+    padding: 16px 18px;
+    border-radius: var(--admin-radius-md, 12px);
+    border: 1px solid var(--admin-border, #e5e7eb);
+    background: var(--admin-surface, #fff);
+
+    &--wide {
+      grid-column: 1 / -1;
+    }
+
+    &--muted {
+      background: var(--admin-bg, #f3f4f6);
+    }
+  }
+
+  .rent-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+
+  .rent-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .rent-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .rent-ok {
+    color: var(--katzen-verde-fuerte, #065d60);
+  }
+
+  .rent-warn {
+    color: #b91c1c;
+  }
+
+  .rent-egreso {
+    color: #b45309;
+  }
+
+  @media (max-width: 720px) {
+    .rentabilidad-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rent-card--wide {
+      grid-column: auto;
+    }
   }
 }

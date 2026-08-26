@@ -18,7 +18,8 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.url({ timeout: 15000 }).should('include', '/admin/finanzas');
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.get('.finanzas-contenedor', { timeout: 20000 }).should('exist');
-    cy.contains('Caja / finanzas', { matchCase: false });
+    cy.contains('Caja / costos / rentabilidad', { matchCase: false });
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Costos|Rentabilidad/i).should('exist');
     // Si rules recién desplegadas o error de lectura previo, cierra Swal residual.
     cy.get('body').then(($b) => {
       if ($b.find('.swal2-confirm:visible').length) {
@@ -32,6 +33,8 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.contains('mat-dialog-container', 'Registrar movimiento');
     cy.fillMatInput('concepto', concepto);
     cy.fillMatInput('monto', '125.50');
+    cy.get('mat-select[formControlName="categoria"]').click({ force: true });
+    cy.get('.cdk-overlay-container mat-option').contains('Consulta').click({ force: true });
     cy.get('mat-select[formControlName="metodoPago"]').click({ force: true });
     cy.get('.cdk-overlay-container mat-option').contains('Tarjeta').click({ force: true });
     cy.get('mat-checkbox[formControlName="ivaDeclarado"] input').check({ force: true });
@@ -43,6 +46,7 @@ describe('Admin CRUD — Finanzas caja', () => {
 
     cy.get('.buscador input').clear().type(concepto);
     cy.contains('td', concepto, { timeout: 20000 }).should('be.visible');
+    cy.contains('td', 'Consulta').should('be.visible');
     cy.contains('td', 'Tarjeta').should('be.visible');
     cy.contains('td', 'Declarado').should('be.visible');
 

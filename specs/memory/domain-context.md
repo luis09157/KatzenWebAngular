@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez).
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **021** costos/rentabilidad.
 
 ---
 
@@ -67,6 +67,8 @@ erDiagram
 | Proveedor | `Katzen/Inventario/Proveedores/{id}` | Push key | |
 | Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
 | Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
+| Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021) |
+| Plantilla costo servicio | `Katzen/Finanzas/PlantillasCosto/{id}` | Push key | BOM ligero: ítems producto o gasto libre (021) |
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
 | Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |
 | Notificación portal | `Katzen/Notificaciones/{clienteId}/{id}` | Push key | Cliente solo puede marcar `leida: true` |
@@ -195,13 +197,21 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8 `Katzen/Inventario/*`
 
-**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra/venta`, `categoria`, `fecha_caducidad`, `activo`.
+**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; no CFDI), `categoria`, `fecha_caducidad`, `activo`.
 
 **Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia.
 
 **Órdenes de compra:** Estados borrador → enviada → parcial/recibida/cancelada. Recepción dispara entradas de inventario.
 
 **Alertas:** Auto-creadas por stock bajo, punto reorden, caducidad (sin deduplicar en `generarAlertasAutomaticas`).
+
+### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021)
+
+**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (baño/corte/cirugía/venta/consulta/publicidad/operativo/otro), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `activo`.
+
+**Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio`, `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
+
+**Fuera de alcance web (fase 2):** CFDI/SAT, BOM automático desde historial, descuento stock al completar baño.
 
 ### 3.9 Auth y usuarios
 
@@ -576,8 +586,8 @@ flowchart TD
 
 | # | Tema | Decisión | Estado |
 |---|------|----------|--------|
-| 19 | Baño cancelado | Puede cancelarse; debe afectar métricas; sistema debe llevar finanzas (baños, medicina, etc.) con balances mensuales — **roadmap** | Confirmado (futuro) |
-| 20 | Ingresos baños → ventas/caja | **Sí** — tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal | Confirmado |
+| 19 | Baño cancelado | Puede cancelarse; debe afectar métricas; sistema debe llevar finanzas (baños, medicina, etc.) con balances mensuales — **roadmap** · P&L día/mes en **021** | Confirmado (parcial 021) |
+| 20 | Ingresos baños → ventas/caja | **Sí** — tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link baño→caja **018** + categoría/margen **021** | Confirmado |
 
 ### Clientes
 
@@ -609,7 +619,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | Feature | Origen | Notas |
 |---------|--------|-------|
 | **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
-| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho |
+| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho; **costos/rentabilidad 021** (plantillas + margen + P&L día/mes) |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |
