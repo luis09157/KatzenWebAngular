@@ -31,6 +31,8 @@ interface StaffClaims {
 function mapUsuarioPerfilToStaffRole(perfil: string | undefined): string {
   const p = String(perfil || '').toLowerCase();
   if (p === 'admin' || p === 'administrador') return 'administrador';
+  if (p === 'super_admin' || p === 'superadmin') return 'super_admin';
+  if (p === 'dueno' || p === 'dueño' || p === 'duena' || p === 'dueña') return 'super_admin';
   if (p === 'doctor') return 'doctor';
   if (p === 'recepcionista') return 'recepcionista';
   if (p === 'peluquero') return 'peluquero';
@@ -80,13 +82,25 @@ function buildClaimsFromPerfil(perfil: AuthPerfil | null): StaffClaims {
 
 async function isCallerAdmin(uid: string, token: admin.auth.DecodedIdToken): Promise<boolean> {
   const staffRole = String(token.staffRole || '').toLowerCase();
-  if (staffRole === 'administrador' || staffRole === 'admin') {
+  if (
+    staffRole === 'administrador' ||
+    staffRole === 'admin' ||
+    staffRole === 'super_admin' ||
+    staffRole === 'dueno' ||
+    staffRole === 'dueño'
+  ) {
     return true;
   }
 
   const snap = await db.ref(`Katzen/Usuarios/${uid}/perfil`).once('value');
   const perfil = String(snap.val() || '').toLowerCase();
-  return perfil === 'administrador' || perfil === 'admin';
+  return (
+    perfil === 'administrador' ||
+    perfil === 'admin' ||
+    perfil === 'super_admin' ||
+    perfil === 'dueno' ||
+    perfil === 'dueño'
+  );
 }
 
 async function syncClaimsForUid(uid: string): Promise<StaffClaims> {
@@ -281,6 +295,123 @@ export const updateStaffUser = onCall(async (request) => {
     uid,
     staffRole: claims.staffRole,
     message: 'Usuario actualizado'
+  };
+});
+
+interface LinkStaffPortalInput {
+  staffUid: string;
+  clienteId: string;
+}
+
+/**
+ * Callable (solo admin): vincula un Cliente existente a un staff (perfil dual).
+ * Misma cuenta Auth → admin + portal. No crea Auth nuevo ni envía password.
+ */
+export const linkStaffPortalCliente = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
+  if (!callerAdmin) {
+    throw new HttpsError('permission-denied', 'Solo administradores pueden vincular portal dual.');
+  }
+
+  const data = request.data as LinkStaffPortalInput;
+  const staffUid = String(data?.staffUid || '').trim();
+  const clienteId = String(data?.clienteId || '').trim();
+  if (!staffUid || !clienteId) {
+    throw new HttpsError('invalid-argument', 'staffUid y clienteId son requeridos.');
+  }
+
+  const usuarioSnap = await db.ref(`Katzen/Usuarios/${staffUid}`).once('value');
+  if (!usuarioSnap.exists()) {
+    throw new HttpsError('not-found', 'Personal staff no encontrado.');
+  }
+  if (usuarioSnap.val()?.activo === false) {
+    throw new HttpsError('failed-precondition', 'El personal staff está inactivo.');
+  }
+
+  const perfilSnap = await db.ref(`Katzen/AuthPerfiles/${staffUid}`).once('value');
+  const perfilExistente = (perfilSnap.val() || {}) as AuthPerfil;
+  if (perfilSnap.exists() && perfilExistente.activo === false) {
+    throw new HttpsError('failed-precondition', 'El perfil de acceso del staff está inactivo.');
+  }
+
+  const cliente = await loadCliente(clienteId);
+  if (cliente['activo'] === false) {
+    throw new HttpsError('failed-precondition', 'El cliente está inactivo.');
+  }
+
+  const existingAuthUid = String(cliente['authUid'] || '').trim();
+  if (existingAuthUid && existingAuthUid !== staffUid) {
+    throw new HttpsError(
+      'already-exists',
+      'Este cliente ya está vinculado a otra cuenta. Desactiva ese portal antes de vincular dual.'
+    );
+  }
+
+  // Otro AuthPerfil no debe apuntar al mismo clienteId
+  const allPerfiles = await db.ref('Katzen/AuthPerfiles').once('value');
+  const perfilesVal = allPerfiles.val() as Record<string, AuthPerfil> | null;
+  if (perfilesVal) {
+    for (const [uid, p] of Object.entries(perfilesVal)) {
+      if (uid === staffUid) continue;
+      if (p?.clienteId === clienteId && p.activo !== false) {
+        throw new HttpsError(
+          'already-exists',
+          'Otro perfil de acceso ya usa este cliente. Revisa AuthPerfiles.'
+        );
+      }
+    }
+  }
+
+  const email =
+    String(perfilExistente.email || usuarioSnap.val()?.correo || '').trim().toLowerCase() ||
+    correoClienteValido(cliente['correo']);
+
+  const staffRole =
+    perfilExistente.staffRole ||
+    mapUsuarioPerfilToStaffRole(String(usuarioSnap.val()?.perfil || 'doctor'));
+
+  const timestamp = new Date().toISOString();
+  const authPerfilUpdates: AuthPerfil = {
+    authUid: staffUid,
+    email: email || undefined,
+    role: 'dual',
+    roles: ['staff', 'client'],
+    staffRole,
+    clienteId,
+    activo: true
+  };
+
+  await db.ref(`Katzen/AuthPerfiles/${staffUid}`).update(authPerfilUpdates);
+  await db.ref(`Katzen/Cliente/${clienteId}`).update({
+    authUid: staffUid,
+    portalActivo: true,
+    portalLinkedAt: timestamp,
+    portalLinkedBy: request.auth.uid,
+    portalEmail: email || correoClienteValido(cliente['correo']) || null
+  });
+
+  const claims = await syncClaimsForUid(staffUid);
+
+  await db.ref('Katzen/PortalProvisionLog').push({
+    action: 'link_staff_dual',
+    clienteId,
+    uid: staffUid,
+    email: email || null,
+    emailSent: false,
+    createdAt: timestamp,
+    createdBy: request.auth.uid
+  });
+
+  return {
+    success: true,
+    uid: staffUid,
+    clienteId,
+    dualAccess: claims.dualAccess === true,
+    message: 'Perfil dual vinculado. El personal puede entrar al portal con la misma cuenta.'
   };
 });
 

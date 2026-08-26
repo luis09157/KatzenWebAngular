@@ -2,8 +2,8 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
-      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de usuario' : (isEditMode ? 'Editar usuario' : 'Nuevo usuario') }}</h2>
-      <p class="admin-dialog-subtitle">{{ modoVer ? 'Consulta datos de acceso y perfil.' : (isEditMode ? 'Modifica datos y permisos del usuario.' : 'Registra una cuenta staff en el sistema.') }}</p>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de personal staff' : (isEditMode ? 'Editar personal staff' : 'Nuevo personal staff') }}</h2>
+      <p class="admin-dialog-subtitle">{{ modoVer ? 'Consulta datos de acceso y perfil staff.' : (isEditMode ? 'Modifica datos y perfil del personal.' : 'Registra una cuenta staff en el panel admin.') }}</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -100,9 +100,9 @@
         </section>
 
         <section class="form-section" *ngIf="isEditMode">
-          <h3 class="form-section__title">Estado del usuario</h3>
+          <h3 class="form-section__title">Estado del personal</h3>
           <mat-slide-toggle formControlName="activo" color="primary">
-            Usuario activo
+            Personal activo
           </mat-slide-toggle>
         </section>
       </div>
@@ -111,7 +111,7 @@
     <mat-dialog-actions class="admin-dialog-actions">
       <button type="button" mat-button (click)="cerrar()">Cancelar</button>
       <button type="submit" mat-raised-button color="primary" [disabled]="usuarioForm.invalid">
-        {{ isEditMode ? 'Actualizar' : 'Crear usuario' }}
+        {{ isEditMode ? 'Actualizar' : 'Crear personal' }}
       </button>
     </mat-dialog-actions>
   </form>

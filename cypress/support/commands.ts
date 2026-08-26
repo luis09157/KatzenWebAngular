@@ -45,6 +45,14 @@ function loginWithCredentials(email: string, password: string): void {
   cy.get('mat-checkbox.admin-auth-remember input[type="checkbox"]').check({ force: true });
   cy.get('button[type="submit"].admin-auth-submit').contains('Iniciar sesión').click();
 
+  // Dual (012): selector de contexto → elegir panel admin
+  cy.url({ timeout: 45000 }).should('match', /\/(auth\/contexto|admin\/(inicio|clientes))/);
+  cy.location('pathname').then(pathname => {
+    if (pathname.includes('/auth/contexto')) {
+      cy.contains('button', 'Panel admin', { timeout: 15000 }).click({ force: true });
+    }
+  });
+
   cy.url({ timeout: 45000 }).should('match', /\/admin\/(inicio|clientes)/);
   cy.get('body').then($body => {
     if ($body.find('.swal2-popup:visible').length) {

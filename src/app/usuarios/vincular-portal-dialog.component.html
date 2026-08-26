@@ -1,0 +1,49 @@
+<div class="admin-dialog-shell admin-dialog-shell--picker vincular-portal-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Vincular portal (dual)</h2>
+      <p class="admin-dialog-subtitle">
+        Asocia un cliente de clínica a <strong>{{ data.staffNombre }}</strong>
+        ({{ data.staffCorreo }}) para que use la misma cuenta en el portal de mascotas.
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div *ngIf="loading" class="vincular-loading">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Cargando clientes…</p>
+    </div>
+
+    <form *ngIf="!loading" [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Buscar cliente</mat-label>
+        <input matInput type="search" (keyup)="aplicarFiltro($any($event.target).value)" placeholder="Nombre o correo…" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cliente a vincular</mat-label>
+        <mat-select formControlName="clienteId" required>
+          <mat-option *ngFor="let c of filtered" [value]="c.id">
+            {{ c.label }} <span *ngIf="c.correo">· {{ c.correo }}</span>
+          </mat-option>
+        </mat-select>
+        <mat-hint>No crea otra cuenta Auth: usa la credencial del personal staff.</mat-hint>
+        <mat-error *ngIf="form.get('clienteId')?.touched && form.get('clienteId')?.invalid">
+          Selecciona un cliente
+        </mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button type="button" mat-button (click)="cerrar()">Cancelar</button>
+    <button type="button" mat-raised-button color="primary" class="btn-primary-teal" (click)="confirmar()" [disabled]="loading || form.invalid">
+      Vincular
+    </button>
+  </mat-dialog-actions>
+</div>

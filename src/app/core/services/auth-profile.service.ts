@@ -155,7 +155,7 @@ export class AuthProfileService {
 
   async isAdministrator(): Promise<boolean> {
     const staffRole = await this.getEffectiveStaffRole();
-    return staffRole === 'administrador';
+    return staffRole === 'administrador' || staffRole === 'super_admin';
   }
 
   /** Rol operativo normalizado (AuthPerfiles → claims → Katzen/Usuarios). */

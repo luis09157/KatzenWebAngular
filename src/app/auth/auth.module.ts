@@ -3,6 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 
 import { AuthRoutingModule } from './auth-routing.module';
 import { AuthComponent } from './auth.component';
+import { ContextoSelectorComponent } from './contexto-selector.component';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,7 +18,8 @@ import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
-    AuthComponent
+    AuthComponent,
+    ContextoSelectorComponent
   ],
   imports: [
     CommonModule,

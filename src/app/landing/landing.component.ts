@@ -707,7 +707,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       if (result === 'staff') {
-        Swal.fire({ icon: 'info', title: 'Cuenta de staff', text: 'Te redirigimos al panel administrativo.', timer: 1800, showConfirmButton: false });
+        Swal.fire({ icon: 'info', title: 'Cuenta de personal staff', text: 'Te redirigimos al panel administrativo.', timer: 1800, showConfirmButton: false });
       }
       await this.portalAuth.navigateAfterLogin(result);
     } catch {

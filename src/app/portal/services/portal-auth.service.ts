@@ -7,7 +7,7 @@ import { PortalDataService } from './portal-data.service';
 import { PortalSessionService } from './portal-session.service';
 import { isPortalClienteActive } from '../utils/portal-client-access.util';
 
-export type PortalLoginResult = 'client' | 'staff' | 'none' | 'inactive';
+export type PortalLoginResult = 'client' | 'staff' | 'dual' | 'none' | 'inactive';
 
 @Injectable({ providedIn: 'root' })
 export class PortalAuthService {
@@ -29,6 +29,11 @@ export class PortalAuthService {
 
     await this.firebaseFunctions.syncMyClaims();
 
+    if (await this.authProfileService.isDual()) {
+      await this.router.navigate(['/auth/contexto']);
+      return true;
+    }
+
     const portalSession = await this.portalSession.resolveSession();
     if (portalSession) {
       await this.router.navigate(['/portal/mascotas']);
@@ -47,7 +52,22 @@ export class PortalAuthService {
     await this.authService.login(email, password, rememberSession);
     await this.firebaseFunctions.syncMyClaims();
 
-    if (await this.authProfileService.hasClientAccess()) {
+    const hasClient = await this.authProfileService.hasClientAccess();
+    const hasStaff = await this.authProfileService.hasStaffAccess();
+
+    if (hasClient && hasStaff) {
+      const clienteId = await this.authProfileService.getClienteId();
+      if (clienteId) {
+        const cliente = await this.portalData.getCliente(clienteId);
+        if (!isPortalClienteActive(cliente)) {
+          // Dual con portal inactivo: aún puede usar admin
+          return 'staff';
+        }
+      }
+      return 'dual';
+    }
+
+    if (hasClient) {
       const clienteId = await this.authProfileService.getClienteId();
       if (clienteId) {
         const cliente = await this.portalData.getCliente(clienteId);
@@ -58,7 +78,7 @@ export class PortalAuthService {
       }
       return 'client';
     }
-    if (await this.authProfileService.hasStaffAccess()) {
+    if (hasStaff) {
       return 'staff';
     }
     await this.authService.logout();
@@ -71,6 +91,10 @@ export class PortalAuthService {
   }
 
   async navigateAfterLogin(result: PortalLoginResult): Promise<void> {
+    if (result === 'dual') {
+      await this.router.navigate(['/auth/contexto']);
+      return;
+    }
     if (result === 'client') {
       await this.router.navigate(['/portal/mascotas']);
       return;

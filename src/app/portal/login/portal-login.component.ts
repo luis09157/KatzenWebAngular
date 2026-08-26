@@ -74,10 +74,14 @@ export class PortalLoginComponent implements OnInit {
         });
         return;
       }
+      if (result === 'dual') {
+        await this.portalAuth.navigateAfterLogin(result);
+        return;
+      }
       if (result === 'staff') {
         Swal.fire({
           icon: 'info',
-          title: 'Cuenta de staff',
+          title: 'Cuenta de personal staff',
           text: 'Te redirigimos al panel administrativo.',
           timer: 2200,
           showConfirmButton: false

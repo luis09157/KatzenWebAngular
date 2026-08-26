@@ -24,9 +24,10 @@ export class UsuarioDialogComponent implements OnInit {
 
   perfiles = [
     { value: 'admin', label: 'Administrador', icon: 'admin_panel_settings' },
-    { value: 'doctor', label: 'Doctor/Veterinario', icon: 'medical_services' },
+    { value: 'doctor', label: 'Doctora / Veterinario', icon: 'medical_services' },
     { value: 'peluquero', label: 'Peluquero', icon: 'content_cut' },
-    { value: 'recepcionista', label: 'Recepcionista', icon: 'support_agent' }
+    { value: 'recepcionista', label: 'Recepcionista', icon: 'support_agent' },
+    { value: 'super_admin', label: 'Super admin (sistema)', icon: 'security' }
   ];
 
   constructor(

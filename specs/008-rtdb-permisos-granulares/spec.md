@@ -5,7 +5,8 @@
 **Fecha:** 2026-08-25  
 **Autor:** agente (autorizado Luis Alfonso Niño Martínez)
 
-> **2026-08-26:** Luis unificó acceso admin para todo staff. Ver `specs/011-staff-acceso-admin-unificado/`. Esta spec queda como registro de la matriz granular previa.
+> **2026-08-26:** Luis unificó acceso admin para todo staff. Ver `specs/011-staff-acceso-admin-unificado/`. Esta spec queda como registro de la matriz granular previa.  
+> **Perfiles dual / dueñas:** `specs/012-perfiles-dual-y-duenas/`.
 
 ---
 

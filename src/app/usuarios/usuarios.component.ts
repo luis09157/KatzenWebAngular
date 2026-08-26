@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, firstValueFrom } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 import { UsuariosService } from './usuarios.service';
 import { PortalClientesService, PortalClienteRow } from './portal-clientes.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,6 +15,8 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ClienteDialogComponent } from '../clientes/cliente-dialog.component';
+import { VincularPortalDialogComponent } from './vincular-portal-dialog.component';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 
 @Component({
   selector: 'app-usuarios',
@@ -26,7 +28,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   selectedTabIndex = 0;
 
-  displayedColumns: string[] = ['nombre', 'correo', 'perfil', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'correo', 'perfil', 'dual', 'acciones'];
   menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild('staffPaginator') staffPaginator!: MatPaginator;
@@ -50,6 +52,8 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   saving = false;
 
   portalStats = { conPortal: 0, pendientes: 0, sinCorreo: 0 };
+  /** uid → clienteId si AuthPerfiles es dual. */
+  private dualByUid = new Map<string, string>();
 
   constructor(
     private usuariosService: UsuariosService,
@@ -58,7 +62,8 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private loadingService: LoadingService,
     private logger: LoggerService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private db: AngularFireDatabase
   ) {}
 
   ngOnInit(): void {
@@ -99,14 +104,54 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   cargarStaff(): void {
     this.loadingStaff = true;
-    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
-      next: usuarios => {
-        this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
-        this.loadingStaff = false;
-        setTimeout(() => this.attachPaginators(), 0);
-      },
-      error: error => this.handleLoadError('staff', error, () => this.cargarStaff())
+    void this.refreshDualMap().finally(() => {
+      this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
+        next: usuarios => {
+          this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
+          this.loadingStaff = false;
+          setTimeout(() => this.attachPaginators(), 0);
+        },
+        error: error => this.handleLoadError('staff', error, () => this.cargarStaff())
+      });
     });
+  }
+
+  private async refreshDualMap(): Promise<void> {
+    try {
+      const snap = await firstValueFrom(
+        this.db
+          .object<Record<string, { role?: string; roles?: string[]; clienteId?: string; activo?: boolean }>>(
+            'Katzen/AuthPerfiles'
+          )
+          .valueChanges()
+          .pipe(take(1))
+      );
+      const map = new Map<string, string>();
+      if (snap) {
+        for (const [uid, p] of Object.entries(snap)) {
+          if (!p || p.activo === false || !p.clienteId) continue;
+          const roles = new Set([...(p.roles || []), p.role || ''].map(r => String(r).toLowerCase()));
+          const isDual =
+            p.role === 'dual' ||
+            (roles.has('staff') && roles.has('client')) ||
+            (roles.has('staff') && !!p.clienteId && roles.has('client'));
+          if (isDual || (roles.has('staff') && !!p.clienteId)) {
+            map.set(uid, p.clienteId);
+          }
+        }
+      }
+      this.dualByUid = map;
+    } catch {
+      this.dualByUid = new Map();
+    }
+  }
+
+  isDualStaff(usuario: { id?: string }): boolean {
+    return !!(usuario?.id && this.dualByUid.has(usuario.id));
+  }
+
+  getDualClienteId(usuario: { id?: string }): string {
+    return (usuario?.id && this.dualByUid.get(usuario.id)) || '';
   }
 
   cargarPortalClientes(): void {
@@ -182,11 +227,51 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   getPerfilLabel(perfil: string | undefined): string {
     const labels: Record<string, string> = {
       admin: 'Administrador',
-      doctor: 'Doctor/Veterinario',
+      administrador: 'Administrador',
+      doctor: 'Doctora / Veterinario',
       peluquero: 'Peluquero',
-      recepcionista: 'Recepcionista'
+      recepcionista: 'Recepcionista',
+      super_admin: 'Super admin',
+      dueno: 'Dueño sistema',
+      dueño: 'Dueño sistema'
     };
     return perfil ? (labels[perfil] ?? perfil) : 'N/P';
+  }
+
+  vincularPortalDual(usuario: { id?: string; nombre?: string; correo?: string }): void {
+    if (!usuario?.id) return;
+    const dialogRef = this.dialog.open(VincularPortalDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      width: '520px',
+      data: {
+        staffUid: usuario.id,
+        staffNombre: usuario.nombre || 'Personal',
+        staffCorreo: usuario.correo || ''
+      }
+    });
+
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (!result?.staffUid || !result?.clienteId) return;
+
+      this.saving = true;
+      this.loadingService.show(LOADING_MESSAGES.updating);
+      this.firebaseFunctions
+        .linkStaffPortalCliente(result.staffUid, result.clienteId)
+        .then(res => {
+          this.loadingService.hide();
+          Swal.fire('Vinculado', res.message || 'Perfil dual activado.', 'success');
+          this.cargarStaff();
+          this.cargarPortalClientes();
+        })
+        .catch(error => {
+          this.logger.error('Error al vincular portal dual:', error);
+          this.loadingService.hide();
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular portal dual'), 'error');
+        })
+        .finally(() => {
+          this.saving = false;
+        });
+    });
   }
 
   abrirModalUsuario(usuario: any = null, modoVer: boolean = false): void {

@@ -81,6 +81,17 @@
   white-space: nowrap;
 }
 
+:host ::ng-deep .usuarios-staff-table .mat-column-dual,
+:host ::ng-deep .usuarios-staff-table .mat-mdc-column-dual {
+  width: 88px;
+  min-width: 88px;
+}
+
+:host ::ng-deep .usuarios-staff-table .admin-badge--info {
+  background: rgba(10, 150, 155, 0.12);
+  color: #0a6e72;
+}
+
 :host ::ng-deep .usuarios-table .mat-mdc-header-cell,
 :host ::ng-deep .usuarios-table .mat-mdc-cell,
 :host ::ng-deep .usuarios-table .mat-header-cell,
@@ -94,9 +105,9 @@
 
 :host ::ng-deep .usuarios-table .mat-column-acciones,
 :host ::ng-deep .usuarios-table .mat-mdc-column-acciones {
-  width: 132px !important;
-  min-width: 132px !important;
-  max-width: 132px !important;
+  width: 168px !important;
+  min-width: 168px !important;
+  max-width: 168px !important;
   text-align: right !important;
   white-space: nowrap !important;
 }

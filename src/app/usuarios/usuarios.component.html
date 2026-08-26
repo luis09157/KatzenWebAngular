@@ -12,12 +12,12 @@
   <app-admin-page-banner
     accent="purple"
     icon="manage_accounts"
-    title="Administración de Usuarios"
-    subtitle="Staff de la clínica y acceso al portal de dueños. Las listas están separadas para evitar confusiones.">
+    title="Personal staff y portal"
+    subtitle="Personal de la clínica (staff) y dueños con portal. Listas separadas: no confundir con clientes externos.">
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalUsuario()" [disabled]="saving" *ngIf="selectedTabIndex === 0">
         <mat-icon>person_add</mat-icon>
-        Nuevo usuario staff
+        Nuevo personal staff
       </button>
     </div>
   </app-admin-page-banner>
@@ -26,14 +26,14 @@
     <mat-tab label="Staff">
       <div *ngIf="loadingStaff" class="loading-container">
         <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando usuarios staff…</p>
+        <p>Cargando personal staff…</p>
       </div>
 
       <app-admin-data-panel
         *ngIf="!loadingStaff"
         accent="purple"
-        title="Usuarios staff"
-        description="Administradores, doctores y personal operativo."
+        title="Personal staff"
+        description="Administradores, doctoras y personal operativo. Dual = también portal de mascotas."
         [meta]="dataSource.data.length ? (dataSource.filteredData.length + ' en pantalla · ' + getTotalUsuarios() + ' totales') : ''"
         [showLegend]="dataSource.data.length > 0">
 
@@ -41,18 +41,18 @@
           <input
             matInput
             type="search"
-            aria-label="Buscar staff"
+            aria-label="Buscar personal staff"
             (keyup)="aplicarFiltroStaff($event)"
-            placeholder="Buscar staff…" />
+            placeholder="Buscar personal…" />
           <mat-icon matPrefix>search</mat-icon>
         </mat-form-field>
 
         <app-admin-empty-state
           *ngIf="dataSource.data.length === 0"
           icon="manage_accounts"
-          title="No hay usuarios staff"
-          message="No se han encontrado usuarios registrados."
-          actionLabel="Agregar primer usuario"
+          title="No hay personal staff"
+          message="No se ha registrado personal de la clínica."
+          actionLabel="Agregar primer personal"
           [actionDisabled]="saving"
           (action)="abrirModalUsuario()">
         </app-admin-empty-state>
@@ -73,12 +73,28 @@
                 <span class="admin-badge admin-badge--success">{{ getPerfilLabel(usuario.perfil) }}</span>
               </td>
             </ng-container>
+            <ng-container matColumnDef="dual">
+              <th mat-header-cell *matHeaderCellDef>Portal</th>
+              <td mat-cell *matCellDef="let usuario">
+                <span *ngIf="isDualStaff(usuario)" class="admin-badge admin-badge--info" matTooltip="clienteId: {{ getDualClienteId(usuario) }}">Dual</span>
+                <span *ngIf="!isDualStaff(usuario)" class="cell-sub">—</span>
+              </td>
+            </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let usuario">
                 <div class="row-actions">
                   <button mat-icon-button type="button" matTooltip="Ver detalle" (click)="verUsuario(usuario)" [disabled]="saving"><mat-icon>visibility</mat-icon></button>
                   <button mat-icon-button type="button" matTooltip="Editar" (click)="editarUsuario(usuario)" [disabled]="saving"><mat-icon>edit</mat-icon></button>
+                  <button
+                    *ngIf="!isDualStaff(usuario)"
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Vincular portal (dual)"
+                    (click)="vincularPortalDual(usuario)"
+                    [disabled]="saving">
+                    <mat-icon>link</mat-icon>
+                  </button>
                   <button mat-icon-button type="button" matTooltip="Borrar" (click)="bajaLogicaUsuario(usuario.id)" [disabled]="saving"><mat-icon>delete_outline</mat-icon></button>
                 </div>
               </td>

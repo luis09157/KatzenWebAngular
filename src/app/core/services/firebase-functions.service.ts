@@ -57,6 +57,19 @@ export interface PortalClientActionInput {
   clienteId: string;
 }
 
+export interface LinkStaffPortalInput {
+  staffUid: string;
+  clienteId: string;
+}
+
+export interface LinkStaffPortalResult {
+  success?: boolean;
+  uid?: string;
+  clienteId?: string;
+  dualAccess?: boolean;
+  message?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FirebaseFunctionsService {
   constructor(
@@ -106,6 +119,12 @@ export class FirebaseFunctionsService {
   async resendPortalClientAccess(clienteId: string): Promise<PortalClientActionResult> {
     const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('resendPortalClientAccess');
     return firstValueFrom(callable({ clienteId }));
+  }
+
+  /** Vincula Cliente a staff existente (perfil dual). Solo admin. */
+  async linkStaffPortalCliente(staffUid: string, clienteId: string): Promise<LinkStaffPortalResult> {
+    const callable = this.fns.httpsCallable<LinkStaffPortalInput, LinkStaffPortalResult>('linkStaffPortalCliente');
+    return firstValueFrom(callable({ staffUid, clienteId }));
   }
 
   async clearMustChangePassword(): Promise<{ success?: boolean; message?: string }> {

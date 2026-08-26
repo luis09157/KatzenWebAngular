@@ -15,6 +15,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { UsuarioDialogComponent } from './usuario-dialog.component';
 import { ProvisionPortalClienteDialogComponent } from './provision-portal-cliente-dialog.component';
+import { VincularPortalDialogComponent } from './vincular-portal-dialog.component';
 import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -29,7 +30,8 @@ import { FormsModule } from '@angular/forms';
   declarations: [
     UsuariosComponent,
     UsuarioDialogComponent,
-    ProvisionPortalClienteDialogComponent
+    ProvisionPortalClienteDialogComponent,
+    VincularPortalDialogComponent
   ],
   imports: [
     CommonModule,

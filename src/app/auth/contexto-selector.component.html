@@ -1,0 +1,57 @@
+<div class="admin-auth-page contexto-page">
+  <div class="admin-auth-bg" aria-hidden="true"></div>
+
+  <mat-card class="admin-auth-card contexto-card" appearance="outlined">
+    <div class="admin-auth-brand">
+      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo">
+      <h1>¿A dónde quieres entrar?</h1>
+      <p>Tu cuenta tiene acceso al panel de la clínica y al portal de tus mascotas.</p>
+    </div>
+
+    <div *ngIf="loading" class="admin-auth-checking">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <p class="contexto-error" *ngIf="error" role="alert">{{ error }}</p>
+
+      <div class="contexto-options" *ngIf="!error">
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          class="contexto-option"
+          (click)="irAdmin()"
+          [disabled]="choosing">
+          <mat-icon>dashboard</mat-icon>
+          <span class="contexto-option__text">
+            <strong>Panel admin</strong>
+            <small>Operación de la clínica</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          mat-stroked-button
+          class="contexto-option"
+          (click)="irPortal()"
+          [disabled]="choosing">
+          <mat-icon>pets</mat-icon>
+          <span class="contexto-option__text">
+            <strong>Portal mis mascotas</strong>
+            <small>Como dueño / cliente</small>
+          </span>
+        </button>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="admin-auth-links">
+        <button mat-button type="button" (click)="cerrarSesion()" [disabled]="choosing">
+          <mat-icon>logout</mat-icon>
+          Cerrar sesión
+        </button>
+      </div>
+    </ng-container>
+  </mat-card>
+</div>

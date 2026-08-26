@@ -52,12 +52,16 @@
       </a>
       <a *ngIf="canShow('usuarios')" mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>manage_accounts</mat-icon>
-        <span matListItemTitle>Usuarios</span>
+        <span matListItemTitle>Personal y portal</span>
       </a>
     </mat-nav-list>
     <mat-divider></mat-divider>
     <mat-nav-list>
-      <a mat-list-item routerLink="/portal/login" (click)="closeSidenav()">
+      <a *ngIf="canGoPortal" mat-list-item (click)="irAMiPortal()">
+        <mat-icon matListItemIcon>pets</mat-icon>
+        <span matListItemTitle>Ir a mi portal</span>
+      </a>
+      <a *ngIf="!canGoPortal" mat-list-item routerLink="/portal/login" (click)="closeSidenav()">
         <mat-icon matListItemIcon>smartphone</mat-icon>
         <span matListItemTitle>Portal del dueño</span>
       </a>

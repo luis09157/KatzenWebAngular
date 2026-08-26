@@ -37,6 +37,10 @@
             <mat-icon>person</mat-icon>
             <span>Mi cuenta</span>
           </button>
+          <button *ngIf="canGoAdmin" mat-menu-item (click)="irAPanelAdmin()">
+            <mat-icon>dashboard</mat-icon>
+            <span>Ir a panel admin</span>
+          </button>
           <button mat-menu-item routerLink="/">
             <mat-icon>public</mat-icon>
             <span>Ir al sitio web</span>

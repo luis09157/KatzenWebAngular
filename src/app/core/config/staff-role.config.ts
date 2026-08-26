@@ -38,12 +38,18 @@ export const STAFF_MODULE_ACCESS: Record<string, StaffModule[] | '*'> = {
   admin: '*',
   doctor: '*',
   recepcionista: '*',
-  peluquero: '*'
+  peluquero: '*',
+  /** Dueño del sistema / desarrollador (alias operativo de acceso total). */
+  super_admin: '*',
+  dueno: '*',
+  dueño: '*'
 };
 
 export function mapUsuarioPerfilToStaffRole(perfil: string | undefined | null): string {
   const p = String(perfil || '').toLowerCase();
   if (p === 'admin' || p === 'administrador') return 'administrador';
+  if (p === 'super_admin' || p === 'superadmin') return 'super_admin';
+  if (p === 'dueno' || p === 'dueño' || p === 'duena' || p === 'dueña') return 'super_admin';
   if (p === 'doctor') return 'doctor';
   if (p === 'recepcionista') return 'recepcionista';
   if (p === 'peluquero') return 'peluquero';
@@ -53,6 +59,8 @@ export function mapUsuarioPerfilToStaffRole(perfil: string | undefined | null): 
 export function normalizeStaffRole(role: string | undefined | null): string {
   const r = String(role || '').toLowerCase();
   if (r === 'admin') return 'administrador';
+  if (r === 'superadmin') return 'super_admin';
+  if (r === 'dueno' || r === 'dueño' || r === 'duena' || r === 'dueña') return 'super_admin';
   return r;
 }
 
@@ -88,5 +96,5 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
  */
 export function staffRoleIsVeterinarioOperativo(staffRole: string | undefined | null): boolean {
   const role = normalizeStaffRole(staffRole);
-  return role === 'administrador' || role === 'doctor';
+  return role === 'administrador' || role === 'doctor' || role === 'super_admin';
 }

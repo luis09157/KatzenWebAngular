@@ -5,6 +5,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { PortalDataService } from '../services/portal-data.service';
+import { AuthProfileService } from '../../core/services/auth-profile.service';
 
 @Component({
   selector: 'app-portal-layout',
@@ -19,12 +20,15 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
   userInitial = '?';
   sinLeer = 0;
   pageSubtitle = '';
+  /** Dual / staff: atajo al panel admin. */
+  canGoAdmin = false;
 
   constructor(
     private router: Router,
     private portalAuth: PortalAuthService,
     private portalSession: PortalSessionService,
-    private portalData: PortalDataService
+    private portalData: PortalDataService,
+    private authProfileService: AuthProfileService
   ) {}
 
   ngOnInit(): void {
@@ -43,6 +47,8 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
 
   private async loadUserHeader(): Promise<void> {
     try {
+      this.canGoAdmin = await this.authProfileService.hasStaffAccess();
+
       const session = await this.portalSession.resolveSession();
       if (!session) return;
 
@@ -104,5 +110,9 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
 
   async logout(): Promise<void> {
     await this.portalAuth.logout();
+  }
+
+  irAPanelAdmin(): void {
+    this.router.navigate(['/admin/inicio']);
   }
 }

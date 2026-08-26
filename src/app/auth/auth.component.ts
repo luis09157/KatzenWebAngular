@@ -32,10 +32,8 @@ export class AuthComponent implements OnInit {
       const user = await this.authService.getRememberedAuthUser();
       if (user) {
         await this.firebaseFunctions.syncMyClaims();
-        if (await this.authProfileService.hasStaffAccess()) {
-          await this.router.navigate(['/admin/inicio']);
-          return;
-        }
+        await this.navigateAfterStaffLogin();
+        return;
       }
     } finally {
       this.checkingSession = false;
@@ -64,11 +62,11 @@ export class AuthComponent implements OnInit {
         Swal.fire({
           icon: 'warning',
           title: 'Sin acceso admin',
-          text: 'Tu cuenta no tiene perfil de staff. Si eres cliente, inicia sesión en el portal del dueño.'
+          text: 'Tu cuenta no tiene perfil de personal staff. Si eres dueño de mascota, inicia sesión en el portal del dueño.'
         });
         return;
       }
-      await this.router.navigate(['/admin/inicio']);
+      await this.navigateAfterStaffLogin();
     } catch {
       Swal.fire({
         icon: 'error',
@@ -77,6 +75,17 @@ export class AuthComponent implements OnInit {
       });
     } finally {
       this.loading = false;
+    }
+  }
+
+  /** Dual → selector de contexto; solo staff → admin. */
+  private async navigateAfterStaffLogin(): Promise<void> {
+    if (await this.authProfileService.isDual()) {
+      await this.router.navigate(['/auth/contexto']);
+      return;
+    }
+    if (await this.authProfileService.hasStaffAccess()) {
+      await this.router.navigate(['/admin/inicio']);
     }
   }
 

@@ -1,8 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthComponent } from './auth.component';
+import { ContextoSelectorComponent } from './contexto-selector.component';
 
-const routes: Routes = [{ path: '', component: AuthComponent }];
+const routes: Routes = [
+  { path: '', component: AuthComponent },
+  { path: 'contexto', component: ContextoSelectorComponent }
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

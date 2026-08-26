@@ -101,6 +101,7 @@ export class ErrorMessagesService {
     'activar portal cliente': 'No se pudo activar el acceso al portal del cliente.',
     'desactivar portal cliente': 'No se pudo desactivar el acceso al portal.',
     'reenviar acceso portal': 'No se pudo reenviar el acceso al portal.',
+    'vincular portal dual': 'No se pudo vincular el portal dual al personal staff.',
     'cambiar contraseña portal': 'No se pudo cambiar la contraseña.'
   };
 

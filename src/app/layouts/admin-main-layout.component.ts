@@ -24,6 +24,8 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   usuario: { nombre: string; rol: string; email: string } = { nombre: 'Administrador', rol: 'admin', email: '' };
   isMobile = false;
   isAdmin = false;
+  /** Staff con clienteId / dualAccess: atajo al portal. */
+  canGoPortal = false;
   accessibleModules = new Set<StaffModule>();
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
@@ -46,9 +48,11 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       switchMap(user => {
         if (!user?.uid) return of(null);
         this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
-        return this.authProfileService.getAccessibleModules().then(modules => {
+        return this.authProfileService.resolveAccess().then(async access => {
+          const modules = await this.authProfileService.getAccessibleModules();
           this.accessibleModules = new Set(modules);
           this.isAdmin = modules.includes('usuarios');
+          this.canGoPortal = !!(access.clientAccess && access.clienteId);
           return null;
         });
       })
@@ -119,5 +123,10 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   canShow(module: StaffModule): boolean {
     return this.accessibleModules.has(module);
+  }
+
+  irAMiPortal(): void {
+    this.router.navigate(['/portal/mascotas']);
+    this.closeSidenav();
   }
 } 

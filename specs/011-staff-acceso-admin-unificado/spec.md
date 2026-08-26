@@ -81,3 +81,4 @@ Para **operar la clínica sin bloqueos por rol de UI/RTDB**
 
 - Spec 008 queda **supersedida** en la parte granular por rol; se conserva como histórico.
 - Roles siguen en Auth/Usuarios para identidad y futuros reportes.
+- Continuación perfiles dual / dueñas: `specs/012-perfiles-dual-y-duenas/`.

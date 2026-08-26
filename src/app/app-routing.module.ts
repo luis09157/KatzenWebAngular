@@ -11,6 +11,7 @@ const routes: Routes = [
   { path: 'privacidad', component: PrivacidadComponent },
   { path: 'portal', loadChildren: () => import('./portal/portal.module').then(m => m.PortalModule) },
   { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
+  { path: 'auth', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
   {
     path: 'admin',
     component: AdminMainLayoutComponent,

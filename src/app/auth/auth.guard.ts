@@ -33,6 +33,11 @@ export class AuthGuard implements CanActivate {
     const hasStaff = await this.authProfileService.hasStaffAccess();
     if (!hasStaff) {
       this.logger.log('AuthGuard: sin acceso staff');
+      // Dual/client-only: no cerrar sesión a la fuerza si puede ir al portal
+      if (await this.authProfileService.hasClientAccess()) {
+        await this.router.navigate(['/portal/mascotas']);
+        return false;
+      }
       await this.authService.logout();
       return false;
     }

@@ -30,8 +30,15 @@ export class PortalAuthGuard implements CanActivate {
     const hasStaff = await this.authProfileService.hasStaffAccess();
     const hasClient = await this.authProfileService.hasClientAccess();
 
+    // Solo staff (sin portal): al admin. Dual con cliente inactivo/session null no debe ciclar.
     if (hasStaff && !hasClient) {
       await this.router.navigate(['/admin/inicio']);
+      return false;
+    }
+
+    // Dual con clientAccess pero session null (portal inactivo): ofrecer contexto o admin
+    if (hasStaff && hasClient) {
+      await this.router.navigate(['/auth/contexto']);
       return false;
     }
 

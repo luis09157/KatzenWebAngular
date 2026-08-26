@@ -308,6 +308,18 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ## 5. Roles y permisos
 
+### 5.0 Matriz de perfiles (política 012 — 2026-08-26)
+
+| Perfil | Superficie | Auth / claims | Notas de negocio |
+|--------|------------|---------------|------------------|
+| **Dueña operativa / doctora** | Admin (`/admin`) | staff, `staffRole: doctor` (u admin) | Las doctoras **hacen todo** y son dueñas operativas. Acceso admin completo (011). |
+| **Staff** | Admin | `role: staff`, `staffRole` | administrador, doctor, recepcionista, peluquero — identidad; acceso operativo unificado. |
+| **Cliente portal** | Portal (`/portal`) | `role: client`, `clienteId` | Dueños externos de mascotas. **No** son staff. |
+| **Dual** | Admin + Portal | `role: dual` / `roles: [staff,client]` + `clienteId` → claim `dualAccess` | Staff que también es dueño (ej. doctora con sus mascotas). Selector post-login `/auth/contexto`. |
+| **Super admin / dueño sistema** | Admin | `staffRole: super_admin` (alias `dueno`) | Perfil desarrollador / dueño del sistema; acceso `*`. Distinto de “dueña operativa” (doctora). |
+
+**Separación:** `Katzen/Usuarios` = personal staff · `Katzen/Cliente` = dueños · portal puro ≠ staff · dual = misma Auth UID en ambos.
+
 ### 5.1 Matriz staff → módulos admin
 
 Definida en `src/app/core/config/staff-role.config.ts`.
@@ -317,24 +329,20 @@ Definida en `src/app/core/config/staff-role.config.ts`.
 | Rol | Módulos |
 |-----|---------|
 | **administrador** / **admin** | Todos (`*`) |
-| **doctor** | Todos (`*`) |
+| **doctor** | Todos (`*`) — dueña operativa típica |
 | **recepcionista** | Todos (`*`) |
 | **peluquero** | Todos (`*`) |
-| **super_admin** / **dueño** *(futuro)* | Todos (`*`) — perfil desarrollador / dueño del sistema |
+| **super_admin** / **dueño** | Todos (`*`) — perfil desarrollador / dueño del sistema |
 
-**Rol super admin / dueño (futuro, confirmado #6):** perfil para desarrolladores con acceso total al sistema (equivalente funcional a administrador, reservado a dueño/desarrollo). **No implementado** — al añadirlo en `staff-role.config.ts` requeriría:
-
-1. Entrada en `STAFF_MODULE_ACCESS`: `super_admin: '*'` y alias `dueno: '*'`.
-2. Mapeo en `mapUsuarioPerfilToStaffRole()` para `super_admin`, `dueno`.
-3. Valor `staffRole` en `Katzen/Usuarios` y `Katzen/AuthPerfiles` al provisionar staff (Cloud Function `provisionStaffUser`).
-4. Opcional: distinguir en UI/auditoría de `administrador` clínico (solo documentación hasta implementar).
+**Rol super admin / dueño (012):** mapeado en `staff-role.config.ts` y Functions (`mapUsuarioPerfilToStaffRole`, `isCallerAdmin`). Provision UI permite elegir `super_admin`.
 
 **Guards:**
 
-- `AuthGuard` — sesión Firebase en `/admin/*`
+- `AuthGuard` — sesión Firebase en `/admin/*` (dual sin client-only logout forzado)
 - `StaffRoleGuard` — módulo según `data.staffModule` (con política 011, todos los staff pasan)
-- `PortalAuthGuard` — sesión client + sync claims
+- `PortalAuthGuard` — sesión client + sync claims (dual sin bucle)
 - `PortalGuestGuard` — login portal sin sesión
+- `/auth/contexto` — selector Admin vs Portal para dual (fuera de AuthGuard/PortalAuthGuard)
 
 ### 5.2 RTDB vs UI
 
@@ -360,6 +368,7 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 | `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
 | `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
 | `provisionPortalClient` | Admin | Activa portal + email bienvenida |
+| `linkStaffPortalCliente` | Admin | Vincula Cliente a staff (dual) |
 | `deactivatePortalClient` | Admin | Desactiva portal |
 | `resendPortalClientAccess` | Admin | Nueva contraseña temporal |
 | `clearMustChangePassword` | Cliente autenticado | Tras cambio de contraseña |
@@ -424,12 +433,15 @@ flowchart TD
     D --> E[verificarYCrearAlertas]
 ```
 
-### 6.5 Login portal
+### 6.5 Login portal / dual
 
 1. Auth email/password → `syncMyClaims`
-2. Si `hasClientAccess` y cliente portal activo → `/portal/mascotas`
-3. Si solo staff → `/admin/inicio`
-4. Si `mustChangePassword` → `/portal/perfil`
+2. Si dual (`staff` + `client`) → `/auth/contexto` (elegir Admin o Portal)
+3. Si solo `hasClientAccess` y cliente portal activo → `/portal/mascotas`
+4. Si solo staff → `/admin/inicio`
+5. Si `mustChangePassword` → `/portal/perfil`
+
+**Vínculo dual (admin):** callable `linkStaffPortalCliente` desde Personal staff → asocia `clienteId` sin crear Auth nuevo.
 
 ---
 
@@ -479,12 +491,12 @@ flowchart TD
 3. **Baños:** `eliminarBanio` hace remove físico vs baja lógica disponible.
 4. **Inventario vs ventas/caja:** nodos `Venta` en rules sin integración web; ingresos baños deben integrarse (confirmado negocio).
 5. **Multi-sucursal:** infraestructura (`sucursalId`, filtro KPIs) pero solo una sucursal en `environment` — diseño futuro confirmado.
-6. **Dual access:** perfil `dual` confirmado como caso real; flujo UI post-login no implementado.
+6. **Dual access:** perfil `dual` — UI post-login + vincular staff↔cliente en `specs/012-perfiles-dual-y-duenas/`.
 7. **Notificaciones push:** recordatorios deben generar push Firebase — sin bridge en Functions web.
 8. **Notas internas historial:** requeridas por negocio; modelo de datos no existe aún.
 9. ~~**Validación agenda por veterinario:**~~ **Resuelto** — `specs/003-validacion-agenda-citas/` (1 vet/cita, sin solapamiento, duración default 30 min).
 10. ~~**Revocación sesiones portal (parcial):**~~ **Resuelto** en `specs/006-revocacion-sesiones-portal/` — `deactivatePortalClient` aplica `disabled: true` + `revokeRefreshTokens(uid)`; pendiente deploy Functions.
-11. **Rol super admin / dueño:** confirmado para desarrolladores — **falta implementación** en config, RTDB y Functions.
+11. ~~**Rol super admin / dueño:**~~ **Mínimo en 012** — config + Functions + opción UI; uso operativo de dueñas = doctoras.
 12. ~~**`medico_atendio` obligatorio:**~~ **Resuelto** — validación `Validators.required` en `historial-dialog.component.ts` (campo `medico_atendio` del formulario).
 13. ~~**Política mermas inventario:**~~ **Resuelto (MVP)** — `specs/007-politica-mermas-inventario/` (bloqueo negativo, motivo, gate supervisor ligero).
 14. ~~**Motivo cancelación / fechas pasadas / revert citas:**~~ **Resuelto** — spec 003 (decisiones #3–#5).
@@ -495,8 +507,11 @@ flowchart TD
 
 | Término | Significado |
 |---------|-------------|
-| Staff | Empleado clínica con acceso admin |
-| Cliente | Dueño de mascota en `Katzen/Cliente` |
+| Staff / personal staff | Empleado clínica con acceso admin (`Katzen/Usuarios`) |
+| Cliente / dueño portal | Dueño de mascota en `Katzen/Cliente` con acceso `/portal` |
+| Dueña operativa | Doctora con acceso total operativo (negocio) |
+| Dual | Misma Auth: staff + portal (`dualAccess`) |
+| Super admin | Dueño/desarrollador del sistema (`super_admin`) |
 | Paciente / Mascota | Animal atendido en `Katzen/Mascota` |
 | Portal activo | Cliente con Auth + `portalActivo: true` |
 | Baja lógica | `activo: false`, datos preservados |
@@ -548,7 +563,7 @@ flowchart TD
 | # | Tema | Decisión | Estado |
 |---|------|----------|--------|
 | 16 | Registro self-service | Landing portal dueños: generar cuentas al registrarse como clientes. `/admin` auth para staff (veterinarias). Portal también provisionado al registrarse | Confirmado |
-| 17 | Perfil dual (staff + cliente) | **Caso real** (ej. vet con mascota propia) — necesita UI clara post-login | Confirmado |
+| 17 | Perfil dual (staff + cliente) | **Caso real** (ej. vet con mascota propia) — UI post-login + vincular en 012 | Confirmado · `specs/012-perfiles-dual-y-duenas/` |
 | 18 | Desactivar portal revoca sesiones | **Sí** — revocación inmediata de sesiones activas + `disabled: true` en Firebase Auth al desactivar portal | Confirmado |
 
 ### Peluquería / finanzas
@@ -577,6 +592,7 @@ flowchart TD
 | # | Tema | Decisión | Estado |
 |---|------|----------|--------|
 | 25 | Acceso admin por rol staff | Roles staff **sí existen** (identidad). **Todo staff** (no portal client) tiene acceso admin operativo (inventario, citas, historiales, pacientes, etc.). Solo portal dueño restringido. Usuarios/AuthPerfiles write: solo administrador | Confirmado 2026-08-26 · `specs/011-staff-acceso-admin-unificado/` |
+| 26 | Dueñas operativas | Las **doctoras** son dueñas operativas (hacen todo). `super_admin` = dueño/desarrollador del sistema (distinto) | Confirmado 2026-08-26 · `specs/012-perfiles-dual-y-duenas/` |
 
 ---
 
@@ -592,8 +608,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |
 | ~~**Validación agenda por veterinario**~~ | #2 | **Hecho** — `specs/003-validacion-agenda-citas/` |
 | ~~**Duración citas configurable**~~ | #2 | **Hecho** — `duracion_minutos` default 30 |
-| **Rol super admin / dueño** | #6 | Perfil desarrollador con acceso total; extensión de `staff-role.config.ts` + AuthPerfiles |
-| **UI perfil dual post-login** | #17 | Selector admin vs portal cuando `dualAccess` |
+| **Rol super admin / dueño** | #6 | **Hecho (mínimo 012)** — `staff-role.config` + Functions + UI |
+| ~~**UI perfil dual post-login**~~ | #17 | **Hecho** — `specs/012-perfiles-dual-y-duenas/` |
 | **Registro self-service portal** | #16 | Landing → Auth + Cliente + provision automático |
 | ~~**Revocación sesiones al desactivar portal**~~ | #18 | **Hecho** — `specs/006-revocacion-sesiones-portal/` (`revokeRefreshTokens`); pendiente deploy Functions |
 | **Cascada baja lógica cliente** | #22 | Automatizar mascotas, citas futuras, portal |

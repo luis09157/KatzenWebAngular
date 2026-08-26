@@ -9,6 +9,8 @@
 
 **Política 011:** todo staff (doctor / recepcionista / peluquero / administrador) tiene acceso admin operativo. Solo portal client restringido. Usuarios/AuthPerfiles write = solo administrador.
 
+**Nota 012 (perfiles dual / dueñas):** matriz limpia y flujo `/auth/contexto` en `specs/012-perfiles-dual-y-duenas/`. Credencial admin Cypress: **no rotar** en ese turno.
+
 **Última corrida automatizada:** 2026-08-26 — política 011: Cypress roles **16/16 PASS**; cy:admin **23/23 PASS**; RTDB probe **ALLOW** operativo (doctor/recepcionista/peluquero); deploy database **OK**; build **PASS**; `:4200` vivo.
 
 **Herramientas smoke multi-rol**
