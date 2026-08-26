@@ -84,8 +84,8 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 | build / functions:build | PASS |
 | secrets RESEND_API_KEY | BLOQUEADO 404 |
 | cy:admin baseline (24 tests) | PASS |
-| cy extended + fixes | Productos/Pacientes/Clientes/Portal/Modules/Auth PASS; Proveedores create E2E FAIL→smoke |
-| Deploy | Pendiente autorización de push; hosting recomendado por sidenav + pacientes list |
+| cy extended + fixes | **cy:admin 43/43 PASS** |
+| Deploy | hosting tras push |
 
 ---
 
