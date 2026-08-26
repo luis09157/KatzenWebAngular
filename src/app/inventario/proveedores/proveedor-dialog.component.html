@@ -49,27 +49,24 @@
       <h3 class="form-section__title">Dirección</h3>
       <div class="form-grid">
         <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Dirección *</mat-label>
+          <mat-label>Dirección</mat-label>
           <input matInput formControlName="direccion">
-          <mat-error *ngIf="hasError('direccion', 'required')">La dirección es requerida</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Ciudad *</mat-label>
+          <mat-label>Ciudad</mat-label>
           <input matInput formControlName="ciudad">
-          <mat-error *ngIf="hasError('ciudad', 'required')">La ciudad es requerida</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Estado *</mat-label>
+          <mat-label>Estado</mat-label>
           <input matInput formControlName="estado">
-          <mat-error *ngIf="hasError('estado', 'required')">El estado es requerido</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Código Postal *</mat-label>
+          <mat-label>Código Postal</mat-label>
           <input matInput formControlName="codigo_postal" maxlength="5">
-          <mat-error *ngIf="hasError('codigo_postal', 'required') || hasError('codigo_postal', 'pattern')">
+          <mat-error *ngIf="hasError('codigo_postal', 'pattern')">
             CP de 5 dígitos
           </mat-error>
         </mat-form-field>
@@ -143,11 +140,18 @@
 </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions">
-  <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading || proveedorForm.invalid">
+  <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    class="btn-primary-teal"
+    data-cy="proveedor-guardar"
+    (click)="guardar()"
+    [disabled]="loading">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">{{isEditing ? 'save' : 'add'}}</mat-icon>
-    {{loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear Proveedor')}}
+    <span>{{loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear Proveedor')}}</span>
   </button>
   </mat-dialog-actions>
 </div>

@@ -173,6 +173,13 @@
           ".indexOn": ["estado", "proveedor_id", "created_at"]
         }
       },
+      "Caja": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "Movimientos": {
+          ".indexOn": ["fecha", "metodoPago", "activo", "tipo", "sucursalId"]
+        }
+      },
       "Gasolina": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'"

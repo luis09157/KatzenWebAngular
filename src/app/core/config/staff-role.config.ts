@@ -11,6 +11,7 @@ export type StaffModule =
   | 'recordatorios'
   | 'banios'
   | 'inventario'
+  | 'finanzas'
   | 'usuarios';
 
 export const ALL_STAFF_MODULES: StaffModule[] = [
@@ -25,6 +26,7 @@ export const ALL_STAFF_MODULES: StaffModule[] = [
   'recordatorios',
   'banios',
   'inventario',
+  'finanzas',
   'usuarios'
 ];
 

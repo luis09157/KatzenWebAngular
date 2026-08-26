@@ -1,9 +1,9 @@
 # Spec: Finanzas / caja MVP
 
 **ID:** 014-finanzas-caja-mvp  
-**Estado:** draft  
+**Estado:** done  
 **Fecha:** 2026-08-26  
-**Autor:** Overnight agent (esqueleto SDD)
+**Autor:** Overnight agent + sesión QA
 
 ---
 
@@ -21,12 +21,12 @@ Como **recepcionista / administrador**
 Quiero **registrar un cobro ligado a baño o cita**  
 Para **llevar control de ingresos del día**
 
-**Criterios de aceptación (borrador):**
+**Criterios de aceptación:**
 
-- [ ] SC-001: Alta de movimiento de caja con monto, método de pago, fecha, referencia opcional
-- [ ] SC-002: Métodos: efectivo | tarjeta | transferencia
-- [ ] SC-003: Flag IVA declarado / no declarado
-- [ ] SC-004: Baja lógica («Borrar»), no delete físico
+- [x] SC-001: Alta de movimiento de caja con monto, método de pago, fecha, referencia opcional (notas)
+- [x] SC-002: Métodos: efectivo | tarjeta | transferencia
+- [x] SC-003: Flag IVA declarado / no declarado
+- [x] SC-004: Baja lógica («Borrar»), no delete físico
 
 ### US-2 — Balance del día / mes
 
@@ -34,10 +34,10 @@ Como **administrador / dueño**
 Quiero **ver totales por método e IVA**  
 Para **cuadrar caja**
 
-**Criterios (borrador):**
+**Criterios:**
 
-- [ ] SC-005: KPI día actual + filtro rango
-- [ ] SC-006: Export CSV simple (fase 2)
+- [x] SC-005: KPI día actual + filtro fecha
+- [ ] SC-006: Export CSV simple (fase 2 / SC futuro)
 
 ---
 
@@ -45,43 +45,41 @@ Para **cuadrar caja**
 
 - Facturación fiscal CFDI
 - Conciliación bancaria automática
-- Nómina / egresos complejos (solo egresos simples opcionales en fase 2)
+- Nómina / egresos complejos (egreso simple sí permitido)
 - Integración pasarela de pagos
+- Alta automática desde baño → caja (campo `Banios.cajaMovimientoId` aditivo preparado; UI link = SC futuro)
 
 ---
 
 ## Contratos de Datos y UI (Obligatorio)
 
-- **Impacto RTDB (propuesto, aditivo):**
+- **Impacto RTDB (aditivo):**
 
   | Nodo | Notas |
   |------|-------|
-  | `Katzen/Caja/Movimientos/{id}` | nuevo; campos opcionales seguros |
-  | `Katzen/Banios/{id}.cajaMovimientoId?` | link opcional |
+  | `Katzen/Caja/Movimientos/{id}` | nuevo; staff R/W |
+  | `Katzen/Banios/{id}.cajaMovimientoId?` | link opcional (modelo TS) |
 
-- **Pruebas:** mocks locales; sin prod.
-- **UI:** patrón `clientes` / inventario — KPI + panel + tabla + diálogo `admin-dialog-shell`.
+- **Pruebas:** mocks locales + Cypress autenticado.
+- **UI:** KPI + banner + panel + tabla + diálogo `admin-dialog-shell`.
 
 ---
 
 ## Roles
 
-| Rol | Acceso |
-|-----|--------|
-| administrador / super_admin | full |
-| recepcionista | alta + lectura día |
-| doctor | lectura (opcional) |
-| peluquero | alta cobros baño (opcional) |
+Política 011: todo staff operativo (`*`) incluye módulo `finanzas`.
 
 ---
 
 ## Backend
 
-- Preferir escritura staff vía RTDB rules + validación cliente; callables solo si hay lógica sensible
-- Índices: `fecha`, `metodoPago`, `sucursalId`
+Escritura staff vía RTDB rules. Sin callable en MVP.
 
 ---
 
-## Notas
+## SC futuros
 
-Implementación de código **no** incluida en overnight 013; solo spec/plan para siguiente sesión.
+1. SC-006 Export CSV
+2. Vincular cobro desde diálogo de baño (avisar si ya hay `cajaMovimientoId`)
+3. Filtro rango / balance mensual
+4. Sucursal en alta (stamp desde contexto)

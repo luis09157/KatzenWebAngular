@@ -1,28 +1,29 @@
 # Plan técnico: Finanzas / caja MVP
 
 **Spec:** `specs/014-finanzas-caja-mvp/spec.md`  
-**Estado:** draft  
+**Estado:** done  
 
 ---
 
 ## Resumen
 
-Módulo admin lazy `finanzas` / `caja` con movimientos en `Katzen/Caja/Movimientos`. UI según ADMIN-UI. Sin CFDI. Enlaces opcionales a Banios/Citas.
+Módulo admin lazy `finanzas` con movimientos en `Katzen/Caja/Movimientos`. UI según ADMIN-UI. Sin CFDI. Enlace opcional a Banios preparado en modelo.
 
 ---
 
-## Archivos previstos
+## Archivos
 
 | Área | Archivos |
 |------|----------|
-| Angular | `src/app/finanzas/` module + service + dialogs |
+| Angular | `src/app/finanzas/*` |
 | Config | `staff-role.config.ts`, routing, menú admin |
 | RTDB | `database.rules.json` → `Katzen/Caja` |
-| Cypress | smoke en `admin-modules-authenticated` |
+| Cypress | `admin-crud-finanzas.cy.ts` + modules smoke |
+| Mocks | `mock-data.ts` → `MOCK_CAJA_MOVIMIENTO` |
 
 ---
 
-## Modelo propuesto
+## Modelo
 
 ```text
 Katzen/Caja/Movimientos/{id}
@@ -31,13 +32,14 @@ Katzen/Caja/Movimientos/{id}
   metodoPago: 'efectivo' | 'tarjeta' | 'transferencia'
   ivaDeclarado: boolean
   concepto: string
-  fecha: ISO date
+  fecha: YYYY-MM-DD
   banioId?: string
   citaId?: string
   clienteId?: string
   sucursalId?: string
+  notas?: string
   activo: boolean
-  createdAt, createdBy
+  createdAt, updatedAt?, createdBy?
 ```
 
 ---
@@ -47,6 +49,7 @@ Katzen/Caja/Movimientos/{id}
 - Solo aditivo; móvil no consume Caja hoy → sin impacto.
 - Mocks en `mock-data.ts` para UI.
 - Patrones: KPI grid, data panel, loading contextual, «Borrar».
+- Montos: number MXN con 2 decimales en UI.
 
 ---
 
@@ -54,20 +57,23 @@ Katzen/Caja/Movimientos/{id}
 
 | Escenario | Rollback |
 |-----------|----------|
-| Rules Caja mal | revert rules |
-| UI | revert module + routing |
+| Rules Caja mal | revert `database.rules.json` + redeploy database |
+| UI defectuosa | revert módulo `finanzas` + routing/menú + hosting |
+| Datos basura E2E | soft-delete (`activo: false`); no hard delete |
 
 ---
 
-## Deploy (futuro)
+## Deploy
 
 ```bash
 firebase deploy --only database,hosting
 ```
 
+Functions no requeridas para 014.
+
 ---
 
 ## Riesgos
 
-- Doble cobro baño + caja → UI debe avisar si ya hay `cajaMovimientoId`
-- Montos en centavos vs float — preferir number MXN con 2 decimales validados
+- Doble cobro baño + caja → UI baño debe avisar si ya hay `cajaMovimientoId` (SC futuro)
+- Montos float — validar ≥ 0.01 en formulario

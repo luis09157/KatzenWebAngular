@@ -31,6 +31,8 @@ export interface Banio {
   precio_total: number;
   pagado: boolean;
   metodo_pago?: 'efectivo' | 'tarjeta' | 'transferencia';
+  /** Link opcional a `Katzen/Caja/Movimientos/{id}` (spec 014). */
+  cajaMovimientoId?: string;
   
   // Tiempos estimados
   duracion_estimada: number; // en minutos

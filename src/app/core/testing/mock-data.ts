@@ -123,3 +123,18 @@ export const MOCK_PRODUCTO_SIN_STOCK = {
   stock_actual: 0,
 };
 
+/** Movimiento de caja — mocks UI (spec 014). */
+export const MOCK_CAJA_MOVIMIENTO = {
+  id: 'mock-caja-001',
+  tipo: 'ingreso' as const,
+  monto: 350,
+  metodoPago: 'efectivo' as const,
+  ivaDeclarado: false,
+  concepto: 'Baño completo mock',
+  fecha: '2026-08-26',
+  activo: true,
+  createdAt: '2026-08-26T12:00:00.000Z',
+  createdBy: 'mock-staff'
+};
+
+

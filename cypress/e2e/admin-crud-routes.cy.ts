@@ -16,6 +16,7 @@ describe('Admin CRUD routes smoke', () => {
     '/admin/inventario/proveedores',
     '/admin/inventario/ordenes',
     '/admin/inventario/alertas',
+    '/admin/finanzas',
     '/admin/contactos-web',
     '/admin/usuarios'
   ];

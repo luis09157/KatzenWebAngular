@@ -25,6 +25,11 @@ declare global {
         telefono: string;
         correo?: string;
       }): Chainable<void>;
+      /**
+       * Rellena input Material/reactive form disparando setter nativo + input/change/blur
+       * (evita FormControl vacío pese a DOM lleno).
+       */
+      fillMatInput(formControlName: string, value: string, scope?: string): Chainable<JQuery<HTMLElement>>;
     }
   }
 }
@@ -84,6 +89,12 @@ Cypress.Commands.add('loginStaffRole', (role: 'doctor' | 'recepcionista' | 'pelu
 });
 
 Cypress.Commands.add('navigateAdmin', (path: string) => {
+  cy.location('pathname').then(pathname => {
+    if (pathname.includes('/auth/contexto')) {
+      cy.contains('button', 'Panel admin', { timeout: 15000 }).click({ force: true });
+      cy.url({ timeout: 30000 }).should('match', /\/admin\//);
+    }
+  });
   cy.get('body').then($body => {
     const $nav = $body.find('mat-sidenav.admin-sidenav');
     const hidden =
@@ -94,7 +105,7 @@ Cypress.Commands.add('navigateAdmin', (path: string) => {
     }
   });
   cy.get(`a[routerLink="${path}"]`, { timeout: 15000 }).should('exist').click({ force: true });
-  cy.url({ timeout: 15000 }).should('include', path);
+  cy.url({ timeout: 20000 }).should('include', path);
 });
 
 Cypress.Commands.add('visitAdminModule', (path: string) => {
@@ -167,6 +178,24 @@ Cypress.Commands.add('fillClienteFormBasico', (options) => {
   if (options.correo) {
     cy.get('input[formControlName="correo"]').click({ force: true }).clear({ force: true }).type(options.correo, { force: true });
   }
+});
+
+Cypress.Commands.add('fillMatInput', (formControlName, value, scope = 'mat-dialog-container') => {
+  const selector = `${scope} input[formControlName="${formControlName}"]`;
+  return cy.get(selector).scrollIntoView().should('exist').then(($input) => {
+    const el = $input[0] as HTMLInputElement;
+    el.focus();
+    const proto = window.HTMLInputElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (descriptor?.set) {
+      descriptor.set.call(el, value);
+    } else {
+      el.value = value;
+    }
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.blur();
+  });
 });
 
 export {};

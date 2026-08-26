@@ -373,8 +373,11 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
           const icon = res.emailSent ? 'success' : 'warning';
           Swal.fire({
             icon,
-            title: res.emailSent ? 'Portal activado' : 'Portal activado (revisar correo)',
-            text: res.message || 'Cuenta creada correctamente.'
+            title: res.emailSent ? 'Portal activado' : 'Portal activado (sin correo)',
+            text: res.message || 'Cuenta creada correctamente.',
+            footer: res.emailSent
+              ? undefined
+              : 'Pendiente: secret RESEND_API_KEY en Firebase (ver specs/QA-CRUD-MATRIX.md).'
           });
           this.cargarPortalClientes();
         })

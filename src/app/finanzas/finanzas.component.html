@@ -1,0 +1,123 @@
+<div class="admin-page finanzas-contenedor">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando caja…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <p class="section-eyebrow">Resumen del día</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="green" [value]="formatMoney(kpis.neto)" label="Neto del día" hint="Ingresos − egresos"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" [value]="formatMoney(kpis.totalIngresos)" label="Ingresos" hint="Cobros del día"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" [value]="formatMoney(kpis.efectivo)" label="Efectivo" hint="Ingresos en efectivo"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="formatMoney(kpis.ivaDeclarado)" label="IVA declarado" hint="Control fiscal"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="teal"
+      icon="account_balance_wallet"
+      title="Caja / finanzas"
+      subtitle="Registra cobros (baños, consultas u otros) con método de pago e IVA. Soft-delete conserva el historial.">
+      <div bannerActions>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
+          <mat-label>Fecha</mat-label>
+          <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
+        </mat-form-field>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevoMovimiento()">
+          <mat-icon>add</mat-icon>
+          Registrar cobro
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-admin-data-panel
+      accent="teal"
+      title="Movimientos del día"
+      description="Listado por fecha. Métodos: efectivo, tarjeta, transferencia."
+      [meta]="kpis.movimientosActivos + ' movimientos'"
+      [showLegend]="!!dataSource.data.length">
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="buscador panel-search">
+        <mat-label>Buscar</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Concepto, método…" />
+      </mat-form-field>
+
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="payments"
+        title="Sin movimientos"
+        message="No hay cobros registrados para esta fecha."
+        actionLabel="Registrar cobro"
+        (action)="nuevoMovimiento()">
+      </app-admin-empty-state>
+
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" class="caja-table">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let row">{{ row.fecha }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="concepto">
+            <th mat-header-cell *matHeaderCellDef>Concepto</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="cell-nombre">{{ row.concepto }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="estado-badge" [class.estado-badge--ok]="row.tipo === 'ingreso'" [class.estado-badge--warn]="row.tipo === 'egreso'">
+                {{ row.tipo === 'ingreso' ? 'Ingreso' : 'Egreso' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="metodo">
+            <th mat-header-cell *matHeaderCellDef>Método</th>
+            <td mat-cell *matCellDef="let row">{{ labelMetodo(row) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="iva">
+            <th mat-header-cell *matHeaderCellDef>IVA</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="estado-badge" [class.estado-badge--ok]="row.ivaDeclarado" [class.estado-badge--muted]="!row.ivaDeclarado">
+                {{ row.ivaDeclarado ? 'Declarado' : 'No declarado' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="monto">
+            <th mat-header-cell *matHeaderCellDef>Monto</th>
+            <td mat-cell *matCellDef="let row">
+              <strong [class.monto-egreso]="row.tipo === 'egreso'">{{ formatMoney(row.monto) }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="row-actions">
+                <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        *ngIf="dataSource.data.length > 0"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[25, 50, 100]"
+        showFirstLastButtons>
+      </mat-paginator>
+    </app-admin-data-panel>
+  </ng-container>
+</div>

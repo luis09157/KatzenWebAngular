@@ -89,6 +89,12 @@ const routes: Routes = [
         canActivate: [StaffRoleGuard],
         data: { staffModule: 'inventario' }
       },
+      {
+        path: 'finanzas',
+        loadChildren: () => import('./finanzas/finanzas.module').then(m => m.FinanzasModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'finanzas' }
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

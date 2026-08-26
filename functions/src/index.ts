@@ -606,7 +606,7 @@ export const provisionPortalClient = onCall(async (request) => {
       emailSent: mail.sent,
       message: mail.sent
         ? 'Portal activado. El cliente recibirá un correo con su contraseña temporal.'
-        : `Portal activado. ${mail.reason || 'Configure el envío de correo.'}`
+        : `Portal activado, pero el correo no se envió. Falta configurar RESEND_API_KEY en Firebase (Secret Manager). La cuenta sí quedó creada; puedes reenviar acceso cuando el secret esté listo.`
     };
   } catch (err: unknown) {
     if (createdNewAuth && uid) {
@@ -789,7 +789,7 @@ export const resendPortalClientAccess = onCall(async (request) => {
       emailSent: mail.sent,
       message: mail.sent
         ? 'Se envió un nuevo correo con contraseña temporal.'
-        : `Contraseña actualizada. ${mail.reason || 'Configure RESEND_API_KEY para envío automático.'}`
+        : `Contraseña actualizada en Auth, pero el correo no salió. Configura el secret RESEND_API_KEY (y opcional PORTAL_FROM_EMAIL) y vuelve a reenviar.`
     };
   } catch (err: unknown) {
     if (err instanceof HttpsError) throw err;
