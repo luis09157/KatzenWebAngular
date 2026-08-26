@@ -293,8 +293,16 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     this.saving = true;
     this.loadingService.show(LOADING_MESSAGES.updating);
     try {
-      const res = await this.firebaseFunctions.unlinkStaffPortalCliente(usuario.id);
-      Swal.fire('Desvinculado', res.message || 'Portal desvinculado.', 'success');
+      let message = 'Portal desvinculado. El personal conserva acceso al panel admin.';
+      try {
+        const res = await this.firebaseFunctions.unlinkStaffPortalCliente(usuario.id);
+        message = res.message || message;
+      } catch (callableErr) {
+        // Deploy functions puede estar bloqueado sin RESEND_API_KEY — fallback RTDB + trigger claims.
+        this.logger.warn('unlinkStaffPortalCliente callable no disponible; usando RTDB', callableErr);
+        await this.desvincularDualViaRtdb(usuario.id, clienteId);
+      }
+      Swal.fire('Desvinculado', message, 'success');
       this.cargarStaff();
       this.cargarPortalClientes();
     } catch (error) {
@@ -303,6 +311,38 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     } finally {
       this.loadingService.hide();
       this.saving = false;
+    }
+  }
+
+  /** Fallback admin: limpia AuthPerfiles + Cliente; claims vía onAuthPerfilWrite. */
+  private async desvincularDualViaRtdb(staffUid: string, clienteId: string): Promise<void> {
+    const timestamp = new Date().toISOString();
+    const perfilSnap = await this.db.database.ref(`Katzen/AuthPerfiles/${staffUid}`).once('value');
+    if (!perfilSnap.exists()) {
+      throw new Error('Perfil de acceso no encontrado.');
+    }
+    const perfil = perfilSnap.val() || {};
+    const staffRole = String(perfil.staffRole || 'doctor');
+    const cid = clienteId || String(perfil.clienteId || '').trim();
+    await this.db.database.ref(`Katzen/AuthPerfiles/${staffUid}`).update({
+      role: 'staff',
+      roles: ['staff'],
+      staffRole,
+      clienteId: null,
+      activo: true
+    });
+    if (cid) {
+      const clienteSnap = await this.db.database.ref(`Katzen/Cliente/${cid}`).once('value');
+      if (clienteSnap.exists()) {
+        const authUid = String(clienteSnap.val()?.authUid || '').trim();
+        if (!authUid || authUid === staffUid) {
+          await this.db.database.ref(`Katzen/Cliente/${cid}`).update({
+            authUid: null,
+            portalActivo: false,
+            portalUnlinkedAt: timestamp
+          });
+        }
+      }
     }
   }
 
