@@ -75,7 +75,7 @@
 ### 4. Integridad final
 
 - [x] `npm run build` exit 0
-- [ ] Commit + push + deploy hosting (autorizado Luis) — en curso
+- [x] Commit + push + deploy hosting (autorizado Luis) — `485d985`; hosting https://katzen-a0e3e.web.app
 
 ### Tabla de resultados
 
@@ -85,7 +85,7 @@
 | Menú / ruta | OK | `/admin/inventario/proveedores` + sidenav |
 | CRUD smoke | OK | Cypress create→edit→borrar |
 | Cypress | OK | 1 passing (~28s; retry attempt 1) |
-| Hosting deploy | pendiente | tras push |
+| Hosting deploy | OK | `firebase deploy --only hosting` 2026-08-26 |
 
 ---
 
