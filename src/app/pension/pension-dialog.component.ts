@@ -6,6 +6,10 @@ import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import {
+  costoMenorQueVentaValidator,
+  MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA
+} from '../core/utils/precio-margen.util';
 import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
 import {
   ESTADO_PENSION_LABELS,
@@ -52,7 +56,7 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
       tamano_mascota: [''],
       precio_dia: [0, [Validators.required, Validators.min(0)]],
       precio_total: [null],
-      costo_dia: [null],
+      costo_dia: [null, [costoMenorQueVentaValidator('precio_dia')]],
       estado: ['reservada' as EstadoPension, Validators.required],
       notas: ['']
     });
@@ -86,6 +90,20 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
       .get('tamano_mascota')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((t: TamanoMascotaPension) => this.aplicarDefaultsTamano(t));
+
+    this.form
+      .get('precio_dia')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.revalidarCostoDia());
+    this.form
+      .get('costo_dia')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.revalidarCostoDia());
+    this.revalidarCostoDia();
+  }
+
+  private revalidarCostoDia(): void {
+    this.form.get('costo_dia')?.updateValueAndValidity({ emitEvent: false });
   }
 
   ngOnDestroy(): void {
@@ -125,6 +143,12 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
   }
 
   async guardar(): Promise<void> {
+    this.revalidarCostoDia();
+    this.form.get('costo_dia')?.markAsTouched();
+    if (this.form.get('costo_dia')?.hasError('costoMayorOIgualVenta')) {
+      Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

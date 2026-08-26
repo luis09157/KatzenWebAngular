@@ -73,7 +73,10 @@ export interface Producto {
   precio_compra: number;
   precio_venta: number;
   margen_ganancia: number;
+  /** Control interno (no CFDI). Si true, usar `tasa_iva` para preview. */
   iva_aplicable: boolean;
+  /** Tasa % IVA (0 o 16 típicos MX). Opcional/aditivo; default según categoría. */
+  tasa_iva?: number;
   proveedor_principal_id: string;
   proveedores_alternos: string[];
   requiere_receta: boolean;
@@ -102,6 +105,8 @@ export interface ProductoFormData {
   precio_compra: number;
   precio_venta: number;
   iva_aplicable: boolean;
+  /** Aditivo: tasa % cuando iva_aplicable. */
+  tasa_iva?: number;
   proveedor_principal_id: string;
   requiere_receta: boolean;
   controlado: boolean;

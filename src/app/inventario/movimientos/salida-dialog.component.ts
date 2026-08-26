@@ -11,6 +11,7 @@ import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
 import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
+import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.util';
 
 /** Prefill opcional al abrir desde historial / pensión / vacunas (spec 022). */
 export interface SalidaDialogData {
@@ -109,6 +110,17 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     if (!this.productoSeleccionado) return 0;
     const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
     return Math.round((Number(this.productoSeleccionado.precio_venta) || 0) * qty * 100) / 100;
+  }
+
+  /** Preview con IVA si el producto lo marca (control interno). */
+  get montoVentaConIvaSugerido(): number {
+    if (!this.productoSeleccionado) return 0;
+    const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
+    const netoUnit = Number(this.productoSeleccionado.precio_venta) || 0;
+    const aplica = !!this.productoSeleccionado.iva_aplicable;
+    const tasa = this.productoSeleccionado.tasa_iva;
+    const unit = precioConIva(netoUnit, aplica, resolverTasaIva(aplica, tasa));
+    return Math.round(unit * qty * 100) / 100;
   }
 
   get costoVentaSugerido(): number {

@@ -123,3 +123,5 @@ Staff con acceso a `inicio` (política 011).
 - Cirugías/hospitalización: **no hay módulo** — n/a.
 - **2026-08-26:** se eliminó el launcher/cards de módulos en `/admin/inicio`; navegación por menú lateral; la página prioriza métricas + calendario.
 - **2026-08-26 fix KPIs:** si costo = precio de venta → **ganancia/margen = 0** (correcto), pero conteo + **ingresos brutos** deben subir. Dashboard: baños del período sin `cajaMovimientoId` suman `precio_total` a ingresos y `costoEstimado` a costos (sin doble conteo si ya hay movimiento de caja).
+- **2026-08-26 validación formulario baño:** no se permite guardar `costoEstimado` ≥ `precio_total` (crear/editar). Solo costo **estrictamente menor** que la venta; vacío/null sigue opcional. Margen % opcional recalcula precio.
+- **2026-08-26 ampliación global:** misma regla en productos (`precio_venta` > `precio_compra`) y pensión (`costo_dia` < `precio_dia` si se informa). Productos: margen % + `tasa_iva` aditivo + preview IVA (no CFDI). Util: `src/app/core/utils/precio-margen.util.ts`.

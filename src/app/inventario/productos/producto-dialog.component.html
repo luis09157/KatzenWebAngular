@@ -113,7 +113,7 @@
 
     <section class="form-section">
       <h3 class="form-section__title">Costo, precio de venta e IVA</h3>
-      <div class="form-grid">
+      <div class="form-grid form-grid--3">
         <mat-form-field appearance="outline">
           <mat-label>Costo (compra)</mat-label>
           <input matInput type="number" formControlName="precio_compra" min="0" step="0.01">
@@ -125,11 +125,21 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>Margen deseado %</mat-label>
+          <input matInput type="number" formControlName="margen_objetivo" step="0.1"
+                 (input)="onMargenObjetivoChange()" placeholder="Ej. 100">
+          <mat-hint>Recalcula el precio de venta = costo × (1 + %)</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Precio de venta</mat-label>
           <input matInput type="number" formControlName="precio_venta" min="0" step="0.01">
           <span matTextPrefix>$ &nbsp;</span>
-          <mat-hint>Lo que cobras al cliente</mat-hint>
+          <mat-hint>Debe ser mayor que el costo</mat-hint>
           <mat-error *ngIf="hasError('precio_venta', 'required') || hasError('precio_venta', 'min')">
+            {{getErrorMessage('precio_venta')}}
+          </mat-error>
+          <mat-error *ngIf="hasError('precio_venta', 'costoMayorOIgualVenta')">
             {{getErrorMessage('precio_venta')}}
           </mat-error>
         </mat-form-field>
@@ -139,6 +149,24 @@
         <mat-icon>trending_up</mat-icon>
         <span>Margen de ganancia: <strong>{{margenCalculado | number:'1.2-2'}}%</strong></span>
       </div>
+
+      <div class="form-grid" style="margin-top: 12px;">
+        <div class="checkboxes">
+          <mat-checkbox formControlName="iva_aplicable">
+            <mat-icon>receipt</mat-icon>
+            Aplica IVA (control interno; no es factura CFDI)
+          </mat-checkbox>
+        </div>
+        <mat-form-field appearance="outline" *ngIf="productoForm.get('iva_aplicable')?.value">
+          <mat-label>Tasa IVA %</mat-label>
+          <input matInput type="number" formControlName="tasa_iva" min="0" max="100" step="1">
+          <mat-hint>México general: 16%</mat-hint>
+        </mat-form-field>
+      </div>
+      <p class="mat-caption" style="margin: 8px 0 0; opacity: 0.85;">{{ hintIvaCategoria }}</p>
+      <p class="mat-caption" style="margin: 4px 0 0;" *ngIf="productoForm.get('iva_aplicable')?.value">
+        Precio con IVA (preview): <strong>${{ precioVentaConIva | number:'1.2-2' }}</strong>
+      </p>
     </section>
 
     <section class="form-section">
@@ -157,6 +185,13 @@
           </mat-error>
         </mat-form-field>
       </div>
+      <p class="mat-caption" style="margin: 8px 0 0;">
+        ¿No está en la lista?
+        <button type="button" mat-button color="primary" class="link-proveedores"
+                (click)="irAGestionProveedores()">
+          Administrar proveedores
+        </button>
+      </p>
     </section>
 
     <section class="form-section">
@@ -173,11 +208,6 @@
         <mat-checkbox formControlName="requiere_refrigeracion">
           <mat-icon>ac_unit</mat-icon>
           Requiere Refrigeración
-        </mat-checkbox>
-
-        <mat-checkbox formControlName="iva_aplicable">
-          <mat-icon>receipt</mat-icon>
-          Aplica IVA (control interno; no es factura CFDI)
         </mat-checkbox>
 
         <mat-checkbox formControlName="requiere_receta">

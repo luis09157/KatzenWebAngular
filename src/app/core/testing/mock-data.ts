@@ -84,6 +84,28 @@ export const MOCK_STAFF_USUARIO: StaffUsuario = {
   fecha_registro: '2025-06-01T08:00:00.000Z',
 };
 
+/** Proveedor de inventario — catálogo para selects de producto/OC (spec 026). */
+export const MOCK_PROVEEDOR = {
+  id: 'mock-proveedor-001',
+  razon_social: 'Distribuidora Mock SA de CV',
+  nombre_comercial: 'Proveedor Mock',
+  rfc: 'DMO010101AAA',
+  contacto_nombre: 'Contacto Mock',
+  contacto_telefono: '5512345678',
+  contacto_email: 'proveedor.mock@katzenvet.test',
+  direccion: 'Calle Mock 1',
+  ciudad: 'CDMX',
+  estado: 'CDMX',
+  codigo_postal: '01000',
+  productos_suministra: ['Medicamentos', 'Vacunas'] as string[],
+  dias_entrega: 5,
+  condiciones_pago: 'contado',
+  calificacion: 5,
+  activo: true,
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-01-01T00:00:00.000Z',
+};
+
 /** Producto de inventario para pruebas UI de mermas/stock (spec 007). */
 export const MOCK_PRODUCTO_INVENTARIO = {
   id: 'mock-producto-001',
@@ -104,8 +126,10 @@ export const MOCK_PRODUCTO_INVENTARIO = {
   fecha_caducidad_alerta_dias: 30,
   precio_compra: 50,
   precio_venta: 80,
-  margen_ganancia: 37.5,
-  iva_aplicable: true,
+  margen_ganancia: 60,
+  /** Medicamento: default sugerido sin IVA / tasa 0 (staff confirma). */
+  iva_aplicable: false,
+  tasa_iva: 0,
   proveedor_principal_id: 'mock-proveedor-001',
   proveedores_alternos: [] as string[],
   requiere_receta: true,
@@ -113,6 +137,20 @@ export const MOCK_PRODUCTO_INVENTARIO = {
   activo: true,
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: '2026-01-01T00:00:00.000Z',
+};
+
+/** Accesorio con IVA 16% — preview precio con IVA. */
+export const MOCK_PRODUCTO_ACCESORIO_IVA = {
+  ...MOCK_PRODUCTO_INVENTARIO,
+  id: 'mock-producto-accesorio-iva',
+  nombre: 'Collar Mock',
+  categoria: 'accesorio' as const,
+  precio_compra: 40,
+  precio_venta: 80,
+  margen_ganancia: 100,
+  iva_aplicable: true,
+  tasa_iva: 16,
+  requiere_receta: false,
 };
 
 /** Stock agotado — casos de merma/salida rechazada. */
@@ -268,8 +306,10 @@ export const MOCK_BANIO = {
 };
 
 /**
- * Caso costo = venta → margen 0, ingreso bruto 200 (spec 025 fix).
- * Sin cajaMovimientoId: debe reforzar dashboard ingresos.
+ * Caso legacy costo = venta → margen 0, ingreso bruto 200 (spec 025 KPI).
+ * Sin cajaMovimientoId: refuerzo dashboard ingresos.
+ * Nota: el formulario de baño ya no permite guardar costo ≥ venta (regla 2026-08-26);
+ * este mock solo simula datos históricos / lectura de KPIs.
  */
 export const MOCK_BANIO_COSTO_IGUAL_VENTA = {
   ...MOCK_BANIO,
@@ -278,6 +318,28 @@ export const MOCK_BANIO_COSTO_IGUAL_VENTA = {
   precio_total: 200,
   costoEstimado: 200,
   pagado: true,
+  fecha_banio: '2026-08-26'
+};
+
+/** Caso válido para formulario: costo estrictamente menor que venta. */
+export const MOCK_BANIO_COSTO_MENOR_VENTA = {
+  ...MOCK_BANIO,
+  id: 'mock-banio-margen-ok',
+  precio_base: 200,
+  precio_total: 200,
+  costoEstimado: 150,
+  pagado: true,
+  fecha_banio: '2026-08-26'
+};
+
+/** Caso inválido para validación de formulario: costo > venta. */
+export const MOCK_BANIO_COSTO_MAYOR_VENTA = {
+  ...MOCK_BANIO,
+  id: 'mock-banio-costo-invalido',
+  precio_base: 200,
+  precio_total: 200,
+  costoEstimado: 250,
+  pagado: false,
   fecha_banio: '2026-08-26'
 };
 

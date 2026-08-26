@@ -1,6 +1,7 @@
 import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { InventarioService } from '../inventario.service';
@@ -8,6 +9,15 @@ import { Producto, ProductoFormData, CategoriaProducto, UnidadMedida, Proveedor 
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import {
+  calcularMargenPorcentaje,
+  calcularVentaDesdeMargen,
+  MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA,
+  precioConIva,
+  resolverTasaIva,
+  sugerirIvaPorCategoria,
+  ventaMayorQueCostoValidator
+} from '../../core/utils/precio-margen.util';
 
 @Component({
   selector: 'app-producto-dialog',
@@ -42,6 +52,10 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
 
   proveedores: Proveedor[] = [];
   margenCalculado = 0;
+  /** Evita bucles margen % ↔ precio venta. */
+  private syncingMargen = false;
+  /** Si el usuario tocó IVA manualmente, no pisar al cambiar categoría. */
+  private ivaManual = false;
 
   constructor(
     private fb: FormBuilder,
@@ -49,9 +63,22 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     public dialogRef: MatDialogRef<ProductoDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { producto: Producto | null; modoEdicion: boolean },
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private router: Router
   ) {
     this.modoEdicion = data.modoEdicion;
+    const cat = data.producto?.categoria || 'medicamento';
+    const ivaSug = sugerirIvaPorCategoria(cat);
+    const ivaAplicable =
+      data.producto?.iva_aplicable !== undefined
+        ? data.producto.iva_aplicable
+        : ivaSug.iva_aplicable;
+    const tasaIva =
+      data.producto?.tasa_iva !== undefined && data.producto?.tasa_iva !== null
+        ? data.producto.tasa_iva
+        : ivaAplicable
+          ? ivaSug.tasa_iva
+          : 0;
 
     this.productoForm = this.fb.group({
       codigo_barras: [
@@ -66,10 +93,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         data.producto?.descripcion || '',
         [Validators.maxLength(500)]
       ],
-      categoria: [
-        data.producto?.categoria || 'medicamento',
-        [Validators.required]
-      ],
+      categoria: [cat, [Validators.required]],
       subcategoria: [
         data.producto?.subcategoria || '',
         [Validators.maxLength(100)]
@@ -113,13 +137,13 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         data.producto?.precio_compra || 0,
         [Validators.required, Validators.min(0)]
       ],
+      margen_objetivo: [null as number | null],
       precio_venta: [
         data.producto?.precio_venta || 0,
-        [Validators.required, Validators.min(0)]
+        [Validators.required, Validators.min(0), ventaMayorQueCostoValidator('precio_compra')]
       ],
-      iva_aplicable: [
-        data.producto?.iva_aplicable || true
-      ],
+      iva_aplicable: [ivaAplicable],
+      tasa_iva: [tasaIva, [Validators.min(0), Validators.max(100)]],
       proveedor_principal_id: [
         data.producto?.proveedor_principal_id || '',
         [Validators.required]
@@ -134,15 +158,76 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.productoForm.get('precio_compra')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.calcularMargen());
-    this.productoForm.get('precio_venta')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.calcularMargen());
+    this.productoForm
+      .get('precio_compra')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.revalidarPrecios();
+        this.calcularMargen();
+      });
+    this.productoForm
+      .get('precio_venta')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (!this.syncingMargen) {
+          this.calcularMargen();
+        }
+        this.revalidarPrecios();
+      });
+    this.productoForm
+      .get('categoria')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((cat: CategoriaProducto) => this.aplicarSugerenciaIva(cat));
+    this.productoForm
+      .get('iva_aplicable')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((aplica: boolean) => {
+        this.ivaManual = true;
+        if (!aplica) {
+          this.productoForm.patchValue({ tasa_iva: 0 }, { emitEvent: false });
+        } else if (Number(this.productoForm.get('tasa_iva')?.value) === 0) {
+          this.productoForm.patchValue({ tasa_iva: 16 }, { emitEvent: false });
+        }
+      });
+    this.productoForm
+      .get('tasa_iva')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.ivaManual = true;
+      });
+
     this.cargarProveedores();
     this.calcularMargen();
+    this.revalidarPrecios();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get precioVentaConIva(): number {
+    const neto = this.productoForm.get('precio_venta')?.value;
+    const aplica = !!this.productoForm.get('iva_aplicable')?.value;
+    const tasa = this.productoForm.get('tasa_iva')?.value;
+    return precioConIva(neto, aplica, resolverTasaIva(aplica, tasa));
+  }
+
+  get hintIvaCategoria(): string {
+    return sugerirIvaPorCategoria(this.productoForm.get('categoria')?.value).motivo;
+  }
+
+  private aplicarSugerenciaIva(categoria: CategoriaProducto): void {
+    if (this.ivaManual || this.modoEdicion) return;
+    const sug = sugerirIvaPorCategoria(categoria);
+    this.productoForm.patchValue(
+      { iva_aplicable: sug.iva_aplicable, tasa_iva: sug.tasa_iva },
+      { emitEvent: false }
+    );
+  }
+
+  private revalidarPrecios(): void {
+    this.productoForm.get('precio_venta')?.updateValueAndValidity({ emitEvent: false });
   }
 
   cargarProveedores(): void {
@@ -155,9 +240,14 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Cierra el diálogo y abre el CRUD de proveedores (menú Inventario → Proveedores). */
+  irAGestionProveedores(): void {
+    this.dialogRef.close(false);
+    void this.router.navigate(['/admin/inventario/proveedores']);
+  }
+
   async crearProveedorPorDefecto(): Promise<void> {
     try {
-      console.log('🔄 Creando proveedor por defecto...');
       const proveedorId = await this.inventarioService.crearProveedor({
         razon_social: 'Proveedor General',
         nombre_comercial: 'Proveedor General',
@@ -173,7 +263,6 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         condiciones_pago: 'Contado'
       });
 
-      console.log('✅ Proveedor por defecto creado con ID:', proveedorId);
       this.productoForm.patchValue({ proveedor_principal_id: proveedorId });
       this.cargarProveedores();
     } catch (error) {
@@ -184,12 +273,29 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   calcularMargen(): void {
     const precioCompra = this.productoForm.get('precio_compra')?.value || 0;
     const precioVenta = this.productoForm.get('precio_venta')?.value || 0;
-
-    if (precioCompra > 0) {
-      this.margenCalculado = ((precioVenta - precioCompra) / precioCompra) * 100;
-    } else {
-      this.margenCalculado = 0;
+    this.margenCalculado = calcularMargenPorcentaje(precioCompra, precioVenta);
+    if (!this.syncingMargen) {
+      this.productoForm.patchValue(
+        { margen_objetivo: Math.round(this.margenCalculado * 100) / 100 },
+        { emitEvent: false }
+      );
     }
+  }
+
+  /** Recalcula precio de venta desde margen % deseado. */
+  onMargenObjetivoChange(): void {
+    const costo = Number(this.productoForm.get('precio_compra')?.value);
+    const margen = Number(this.productoForm.get('margen_objetivo')?.value);
+    if (!(costo > 0) || Number.isNaN(margen)) {
+      return;
+    }
+    const venta = calcularVentaDesdeMargen(costo, margen);
+    if (venta == null) return;
+    this.syncingMargen = true;
+    this.productoForm.patchValue({ precio_venta: venta }, { emitEvent: false });
+    this.margenCalculado = margen;
+    this.revalidarPrecios();
+    this.syncingMargen = false;
   }
 
   getMargenColor(): string {
@@ -199,6 +305,14 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   }
 
   async guardar(): Promise<void> {
+    this.revalidarPrecios();
+    this.productoForm.get('precio_venta')?.markAsTouched();
+
+    if (this.productoForm.get('precio_venta')?.hasError('costoMayorOIgualVenta')) {
+      Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
+      return;
+    }
+
     if (this.productoForm.invalid) {
       this.productoForm.markAllAsTouched();
       Swal.fire('Formulario Inválido', 'Por favor completa todos los campos requeridos', 'warning');
@@ -208,34 +322,45 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     try {
-      const formData: ProductoFormData = this.productoForm.value;
+      const raw = this.productoForm.getRawValue();
+      const ivaAplicable = !!raw.iva_aplicable;
+      const formData: ProductoFormData = {
+        codigo_barras: raw.codigo_barras,
+        nombre: raw.nombre,
+        descripcion: raw.descripcion,
+        categoria: raw.categoria,
+        subcategoria: raw.subcategoria,
+        marca: raw.marca,
+        presentacion: raw.presentacion,
+        unidad_medida: raw.unidad_medida,
+        stock_minimo: raw.stock_minimo,
+        stock_maximo: raw.stock_maximo,
+        punto_reorden: raw.punto_reorden,
+        ubicacion_almacen: raw.ubicacion_almacen,
+        requiere_refrigeracion: raw.requiere_refrigeracion,
+        fecha_caducidad_alerta_dias: raw.fecha_caducidad_alerta_dias,
+        precio_compra: Number(raw.precio_compra) || 0,
+        precio_venta: Number(raw.precio_venta) || 0,
+        iva_aplicable: ivaAplicable,
+        tasa_iva: resolverTasaIva(ivaAplicable, raw.tasa_iva),
+        proveedor_principal_id: raw.proveedor_principal_id,
+        requiere_receta: raw.requiere_receta,
+        controlado: raw.controlado
+      };
 
-      // Validar que stock máximo sea mayor que mínimo
       if (formData.stock_maximo <= formData.stock_minimo) {
         Swal.fire('Error', 'El stock máximo debe ser mayor al stock mínimo', 'error');
         this.loading = false;
         return;
       }
 
-      // Validar que precio de venta sea mayor que precio de compra
-      if (formData.precio_venta < formData.precio_compra) {
-        const result = await Swal.fire({
-          title: 'Advertencia',
-          text: 'El precio de venta es menor que el precio de compra. ¿Deseas continuar?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Sí, continuar',
-          cancelButtonText: 'Cancelar'
-        });
-
-        if (!result.isConfirmed) {
-          this.loading = false;
-          return;
-        }
+      if (!(formData.precio_venta > formData.precio_compra)) {
+        Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
+        this.loading = false;
+        return;
       }
 
       if (this.modoEdicion && this.data.producto?.id) {
-        console.log('🔄 Actualizando producto...');
         await this.inventarioService.actualizarProducto(this.data.producto.id, formData as Partial<Producto>);
         this.dialogRef.close(true);
         Swal.fire({
@@ -246,7 +371,6 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
           showConfirmButton: false
         });
       } else {
-        console.log('🔄 Creando nuevo producto...');
         await this.inventarioService.crearProducto(formData);
         this.dialogRef.close(true);
         Swal.fire({
@@ -270,7 +394,6 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     this.dialogRef.close(false);
   }
 
-  // Helpers para validación
   hasError(campo: string, error: string): boolean {
     const control = this.productoForm.get(campo);
     return !!(control && control.hasError(error) && (control.dirty || control.touched));
@@ -280,6 +403,9 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     const control = this.productoForm.get(campo);
     if (!control) return '';
 
+    if (control.hasError('costoMayorOIgualVenta')) {
+      return MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA;
+    }
     if (control.hasError('required')) return 'Este campo es requerido';
     if (control.hasError('minlength')) {
       const minLength = control.errors?.['minlength'].requiredLength;
@@ -301,4 +427,3 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     return '';
   }
 }
-

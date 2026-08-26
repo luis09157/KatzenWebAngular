@@ -97,3 +97,36 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 | Build | OK | `npm run build` exit 0 · Hash ca9db923e33fda82 |
 | Simulación 200/200 | OK | ingreso 200, ganancia 0 |
 | Live :4200 | OK | `ng serve` compiled successfully (banios chunk) |
+
+### Registro QA validación costo < venta (2026-08-26)
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| costo vacío / null | OK | campo opcional |
+| costo 0, venta 100 | OK | margen positivo |
+| costo 120, venta 450 | OK | mock `MOCK_BANIO` / `MOCK_BANIO_COSTO_MENOR_VENTA` |
+| costo = venta (200/200) | FAIL form | error `costoMayorOIgualVenta`; submit bloqueado |
+| costo > venta (250/200) | FAIL form | mismo error; mock `MOCK_BANIO_COSTO_MAYOR_VENTA` |
+| Editar baño con costo ≥ venta | FAIL form | misma regla |
+| Unit tests `banio-costo.validators.spec.ts` | OK | ver `ng test` / karma |
+| Build | pendiente | `npm run build` |
+| Live :4200 | pendiente | smoke diálogo baño |
+
+### Registro QA margen/IVA global (2026-08-26 ampliación)
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| Producto costo = venta | FAIL | no guardar; error claro |
+| Producto margen 100% sobre costo 50 → venta 100 | OK | campo margen % |
+| Medicamento nuevo | OK | IVA off / tasa 0 sugerido |
+| Accesorio nuevo | OK | IVA on / 16% + preview |
+| Pensión costo_dia ≥ precio_dia | FAIL | misma regla |
+| Util `precio-margen.util` | OK | tests pure + validators |
+| Build | OK | `npm run build` exit 0 · Hash 614c838b8ffaa86b |
+| Live :4200 | OK | `ng serve` SERVE_OK |
+| Deploy hosting | pendiente | autorizado Luis |
+
+- [x] Follow-up 2026-08-26: validación UI costo estrictamente menor que venta en diálogo baño (crear/editar)
+- [x] Follow-up 2026-08-26: util compartido + productos (margen % + tasa_iva) + pensión
+
+

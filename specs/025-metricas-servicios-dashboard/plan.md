@@ -63,6 +63,7 @@ Enriquecer KPIs por módulo (client-side) y convertir `/admin/inicio` en dashboa
 
 - **Pruebas:** mocks + `npm run build` + smoke localhost + Cypress admin (no bloquear por auth flaky).
 - **UI:** admin pattern; loading contextual; empty states.
+- **Follow-up baños (2026-08-26):** validación formulario `costoEstimado` < `precio_total` (solo UI; sin schema RTDB nuevo). Rollback: quitar validator + mat-error.
 
 ---
 

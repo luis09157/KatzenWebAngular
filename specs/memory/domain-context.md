@@ -194,13 +194,17 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `peluquero_id` | string | Conflicto de horario validado |
 | `precio_base`, `precio_total`, `pagado` | number/bool | Cancelar revierte `pagado: false`; **precio_total se captura por registro** (varía; no forzar fijo) |
 | `tamano_perro?` | enum | `pequeno` \| `mediano` \| `grande` — **022** (aditivo) |
-| `costoEstimado?`, `plantillaCostoId?` | number/string | **022** — default por tamaño + override; enlace a caja/margen |
+| `costoEstimado?`, `plantillaCostoId?` | number/string | **022** — default por tamaño + override; enlace a caja/margen. **Regla UI (2026-08-26):** si se captura costo, debe ser **estrictamente menor** que `precio_total` (no guardar si costo ≥ venta). |
 | `cajaMovimientoId?` | string | Link a `Caja/Movimientos` (018) |
 | `activo` | boolean | Baja lógica |
 
 ### 3.8 `Katzen/Inventario/*`
 
-**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; no CFDI), `categoria`, `fecha_caducidad`, `activo`.
+**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria`, `fecha_caducidad`, `activo`.
+
+**Regla precio (2026-08-26):** al crear/editar producto, `precio_venta` debe ser **estrictamente mayor** que `precio_compra` (margen positivo). UI: campo margen % recalcula venta = costo × (1 + %). No guardar si costo ≥ venta.
+
+**IVA productos (control interno, México — 2026-08-26):** no es facturación PAC/CFDI. Staff marca `iva_aplicable` + `tasa_iva`. Defaults sugeridos por categoría: `medicamento` / `quirurgico` / `diagnostico` → sin IVA / tasa 0 (muchos medicamentos van exentos o tasa 0%; staff confirma); `alimento` / `accesorio` / `peluqueria` → IVA 16% sugerido. UI muestra preview «precio con IVA».
 
 **Valuación stock (KPIs — 022):** `invertido_costo = Σ stock × precio_compra`; `valor_precio_venta = Σ stock × precio_venta`; `margen_potencial = venta − costo`. No es COGS FIFO ni utilidad de caja.
 
@@ -226,7 +230,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8c `Katzen/Pension` (022 — implementado)
 
-**Estancias** (`Katzen/Pension/Estancias/{id}`): hospedaje mascota; `paciente_id`, fechas ingreso/salida, `tamano_mascota`, `precio_dia` / `precio_total`, costos opcionales, `estado`, `cajaMovimientoId?`, `activo`.
+**Estancias** (`Katzen/Pension/Estancias/{id}`): hospedaje mascota; `paciente_id`, fechas ingreso/salida, `tamano_mascota`, `precio_dia` / `precio_total`, costos opcionales, `estado`, `cajaMovimientoId?`, `activo`. Si se informa `costo_dia`, debe ser **estrictamente menor** que `precio_dia` (misma regla margen positivo).
 
 **Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño + opt-in comida. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
 
@@ -324,6 +328,13 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 - **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link **018** + costos **021** · defaults por tamaño + precio por registro **022**.
 - Cancelar revierte `pagado: false` (código actual).
 - **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
+- **Costo vs venta (2026-08-26):** al crear/editar baño, `costoEstimado` (si se informa) debe ser **estrictamente menor** que `precio_total`. Si costo ≥ venta → no guardar; mensaje en formulario («El costo debe ser menor que el precio de venta»). Datos legacy con costo=venta siguen leyéndose en KPIs con margen 0. Margen % opcional en UI recalcula `precio_total` desde costo.
+
+### 4.9b Precios, márgenes e IVA (global admin)
+
+- **Regla:** `precioVenta > costo` en formularios con ambos campos (productos, baños si hay costo, pensión si hay `costo_dia`).
+- **Margen %:** util compartido `precio-margen.util.ts` — venta = costo × (1 + margen/100); también se muestra margen derivado al editar venta.
+- **IVA:** solo dato de producto + preview; **sin CFDI/PAC**. Defaults por categoría documentados en §3.8.
 
 ### 4.10 Landing / contactos
 

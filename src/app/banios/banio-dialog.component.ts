@@ -15,6 +15,11 @@ import {
   TamanoPerroBanio,
   emptyDefaultsBanio
 } from '../finanzas/defaults-banio.models';
+import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from './banio-costo.validators';
+import {
+  calcularMargenPorcentaje,
+  calcularVentaDesdeMargen
+} from '../core/utils/precio-margen.util';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -33,6 +38,10 @@ export class BanioDialogComponent implements OnInit {
   readonly tamanoLabels = TAMANO_PERRO_LABELS;
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
   private precioTotalManual = false;
+  /** Evita bucles al sincronizar margen % ↔ precio_total. */
+  private syncingMargen = false;
+  /** Margen % editable (UI; recalcula precio cobrado desde costo). */
+  margenPct: number | null = null;
   
   // Opciones para los selects
   tiposServicios = [
@@ -117,7 +126,7 @@ export class BanioDialogComponent implements OnInit {
       servicios_adicionales: [[]],
       precio_total: [0, [Validators.required, Validators.min(0)]],
       tamano_perro: [''],
-      costoEstimado: [null as number | null],
+      costoEstimado: [null as number | null, [costoMenorQueVentaValidator()]],
       plantillaCostoId: [''],
       pagado: [false],
       metodo_pago: [''],
@@ -185,6 +194,7 @@ export class BanioDialogComponent implements OnInit {
     }
     
     this.configurarCalculoPrecio();
+    this.configurarValidacionCostoVsVenta();
 
     // Debug: Log del estado del formulario
     console.log('🔍 Estado del formulario después de inicialización:', {
@@ -297,6 +307,7 @@ export class BanioDialogComponent implements OnInit {
           this.precioTotalManual = true;
           // Recalcular precio por si faltaba precio_total
           this.calcularPrecioTotal();
+          this.revalidarCostoVsVenta();
         }
         // Si por alguna razón no llegó el registro (null), intentar poblar al menos la fecha desde la fila
         else if (this.data && this.data.fecha_banio) {
@@ -446,8 +457,55 @@ export class BanioDialogComponent implements OnInit {
     // Calcular precio inicial
     setTimeout(() => {
       this.calcularPrecioTotal();
+      this.revalidarCostoVsVenta();
       this.banioForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
     }, 100);
+  }
+
+  /** Revalida costo vs precio_total al cambiar cualquiera (crear y editar). */
+  private configurarValidacionCostoVsVenta(): void {
+    this.banioForm.get('precio_total')?.valueChanges.subscribe(() => {
+      this.revalidarCostoVsVenta();
+    });
+    this.banioForm.get('costoEstimado')?.valueChanges.subscribe(() => {
+      this.revalidarCostoVsVenta();
+    });
+  }
+
+  private revalidarCostoVsVenta(): void {
+    this.banioForm.get('costoEstimado')?.updateValueAndValidity({ emitEvent: false });
+    this.sincronizarMargenDesdePrecios();
+  }
+
+  /** Actualiza el campo margen % desde costo + precio (si no estamos escribiendo el %). */
+  private sincronizarMargenDesdePrecios(): void {
+    if (this.syncingMargen) return;
+    const costo = this.banioForm.get('costoEstimado')?.value;
+    const venta = this.banioForm.get('precio_total')?.value;
+    if (costo == null || costo === '' || Number(costo) <= 0) {
+      return;
+    }
+    this.margenPct = Math.round(calcularMargenPorcentaje(costo, venta) * 100) / 100;
+  }
+
+  /**
+   * Al editar margen %: precio cobrado = costo × (1 + margen/100).
+   * No pisa si no hay costo.
+   */
+  onMargenPctChange(raw: string | number): void {
+    const margen = Number(raw);
+    this.margenPct = Number.isNaN(margen) ? null : margen;
+    const costo = this.banioForm.get('costoEstimado')?.value;
+    if (costo == null || costo === '' || Number(costo) <= 0 || Number.isNaN(margen)) {
+      return;
+    }
+    const venta = calcularVentaDesdeMargen(costo, margen);
+    if (venta == null) return;
+    this.syncingMargen = true;
+    this.precioTotalManual = true;
+    this.banioForm.patchValue({ precio_total: venta }, { emitEvent: false });
+    this.revalidarCostoVsVenta();
+    this.syncingMargen = false;
   }
 
   private async cargarDefaultsBanio(): Promise<void> {
@@ -474,10 +532,12 @@ export class BanioDialogComponent implements OnInit {
       patch['precio_total'] = def.precioSugerido;
     }
     this.banioForm.patchValue(patch);
+    this.revalidarCostoVsVenta();
   }
 
   onPrecioTotalManual(): void {
     this.precioTotalManual = true;
+    this.revalidarCostoVsVenta();
   }
 
   // Función para actualizar precio automáticamente cuando se selecciona un servicio
@@ -508,6 +568,7 @@ export class BanioDialogComponent implements OnInit {
     // Solo auto-actualizar si el usuario no overrideó precio_total
     if (!this.precioTotalManual) {
       this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
+      this.revalidarCostoVsVenta();
     }
 
     return Number(this.banioForm.get('precio_total')?.value) || precioTotal;
@@ -560,6 +621,18 @@ export class BanioDialogComponent implements OnInit {
     console.log('🔍 Formulario válido:', this.banioForm.valid);
     console.log('🔍 Errores del formulario:', this.banioForm.errors);
     console.log('🔍 Estado del formulario:', this.banioForm.status);
+
+    this.revalidarCostoVsVenta();
+    this.banioForm.get('costoEstimado')?.markAsTouched();
+
+    if (this.banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')) {
+      Swal.fire(
+        'Error',
+        MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA,
+        'error'
+      );
+      return;
+    }
     
     if (this.banioForm.valid) {
       this.loading = true;

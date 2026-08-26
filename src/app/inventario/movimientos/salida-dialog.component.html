@@ -148,6 +148,9 @@
         <p class="venta-caja-hint" *ngIf="productoSeleccionado && salidaForm.get('registrarEnCaja')?.value">
           Monto sugerido: ${{ montoVentaSugerido | number:'1.2-2' }}
           · Costo: ${{ costoVentaSugerido | number:'1.2-2' }}
+          <ng-container *ngIf="productoSeleccionado.iva_aplicable">
+            · Con IVA ({{ productoSeleccionado.tasa_iva || 16 }}%): ${{ montoVentaConIvaSugerido | number:'1.2-2' }}
+          </ng-container>
         </p>
       </div>
       <p class="venta-caja-hint" *ngIf="contextoHistorial">

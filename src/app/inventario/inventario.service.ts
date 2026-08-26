@@ -104,6 +104,12 @@ export class InventarioService {
       }
 
       // Calcular margen de ganancia
+      if (!(productoData.precio_venta > productoData.precio_compra)) {
+        throw new Error(
+          'El costo debe ser menor que el precio de venta. Si el costo es igual o mayor a la venta, no hay ganancia.'
+        );
+      }
+
       const margen = productoData.precio_compra > 0 
         ? ((productoData.precio_venta - productoData.precio_compra) / productoData.precio_compra) * 100
         : 0;
@@ -112,6 +118,12 @@ export class InventarioService {
 
       const producto: Producto = {
         ...productoData,
+        tasa_iva:
+          productoData.tasa_iva != null
+            ? Number(productoData.tasa_iva)
+            : productoData.iva_aplicable
+              ? 16
+              : 0,
         stock_actual: 0,
         margen_ganancia: parseFloat(margen.toFixed(2)),
         proveedores_alternos: [],
@@ -140,7 +152,13 @@ export class InventarioService {
         if (productoActual) {
           const precioCompra = cambios.precio_compra ?? productoActual.precio_compra;
           const precioVenta = cambios.precio_venta ?? productoActual.precio_venta;
-          
+
+          if (!(precioVenta > precioCompra)) {
+            throw new Error(
+              'El costo debe ser menor que el precio de venta. Si el costo es igual o mayor a la venta, no hay ganancia.'
+            );
+          }
+
           if (precioCompra > 0) {
             cambios.margen_ganancia = parseFloat((((precioVenta - precioCompra) / precioCompra) * 100).toFixed(2));
           }
@@ -408,6 +426,7 @@ export class InventarioService {
 
   // ==================== PROVEEDORES ====================
 
+  /** Solo proveedores activos (selects de producto/OC y listado admin). Borrados = activo:false. */
   getProveedores(): Observable<Proveedor[]> {
     return this.db.list<Proveedor>(this.proveedoresPath)
       .snapshotChanges()
