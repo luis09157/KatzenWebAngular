@@ -6,6 +6,10 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { LoadingService } from '../core/loading.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
+import {
+  ClientePacientePickerFields,
+  ClientePacienteSelection
+} from '../shared/admin/cliente-paciente-picker.models';
 
 @Component({
   selector: 'app-recordatorio-dialog',
@@ -18,6 +22,18 @@ export class RecordatorioDialogComponent implements OnInit {
   isEditMode = false;
   loading = false;
   pacienteInfo: any = null;
+
+  readonly pickerFields: ClientePacientePickerFields = {
+    clienteId: 'cliente_id',
+    pacienteId: 'paciente_id',
+    clienteNombre: 'cliente',
+    pacienteNombre: 'paciente'
+  };
+
+  get muestraPickerClientePaciente(): boolean {
+    if (this.isEditMode) return false;
+    return !this.data?.paciente_id;
+  }
 
   // Tipos de recordatorios predefinidos
   tiposRecordatorio = [
@@ -55,6 +71,9 @@ export class RecordatorioDialogComponent implements OnInit {
       estado: ['pendiente'],
       prioridad: ['media'],
       paciente_id: ['', Validators.required],
+      cliente_id: [''],
+      cliente: [''],
+      paciente: [''],
       notas: ['']
     });
   }
@@ -64,6 +83,8 @@ export class RecordatorioDialogComponent implements OnInit {
       // Si tiene ID, es modo edición
       if (this.data.id) {
         this.isEditMode = true;
+        this.recordatorioForm.get('paciente_id')?.clearValidators();
+        this.recordatorioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
         let fecha: Date | null = null;
         let hora = '';
         if (this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio) {
@@ -96,10 +117,19 @@ export class RecordatorioDialogComponent implements OnInit {
           this.recordatorioForm.patchValue({
             paciente_id: this.data.paciente_id
           });
-          // Cargar información del paciente
+          this.recordatorioForm.get('paciente_id')?.clearValidators();
+          this.recordatorioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
           this.cargarInformacionPaciente(this.data.paciente_id);
         }
       }
+    }
+  }
+
+  onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    this.pacienteInfo = sel.pacienteData || null;
+    if (this.data) {
+      this.data.paciente = sel.pacienteData;
+      this.data.cliente = sel.clienteData;
     }
   }
 

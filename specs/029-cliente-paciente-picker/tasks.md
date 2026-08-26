@@ -20,19 +20,20 @@
 - [x] Migración modal pensión
 - [x] Mocks mock-data.ts
 - [x] Docs ADMIN-UI + domain-context
-
-### Integración pendiente (backlog)
-
-- [ ] Migrar `cita-dialog` al picker compartido
-- [ ] Unificar diálogos `seleccionar-cliente-*` (vacunas, historiales, recordatorios)
+- [x] Migrar `cita-dialog` al picker compartido
+- [x] Migrar `banio-dialog` (eliminar seleccionar-cliente-banio-dialog)
+- [x] Migrar `vacuna-dialog` (eliminar seleccionar-cliente-vacuna-dialog)
+- [x] Migrar `historial-dialog` (eliminar seleccionar-cliente-dialog)
+- [x] Migrar `recordatorio-dialog` (eliminar seleccionar-cliente-recordatorio-dialog)
 
 ---
 
 ## Testing
 
-- [x] `npm run build` — exit 0 (2026-08-26)
-- [x] Servidor local :4200 activo (PID node en 4200)
-- [x] Commit + push + deploy hosting (9675cc4 → https://katzen-a0e3e.web.app)
+- [x] `npm run build` — exit 0 (2026-08-26 unificación completa)
+- [x] Servidor local :4200 activo
+- [x] Cypress smoke actualizado (historiales → app-cliente-paciente-picker)
+- [x] Commit + push + deploy hosting (autorizado Luis)
 
 ---
 
@@ -42,16 +43,20 @@
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Picker — cliente autocomplete | OK | Lógica en `cliente-search.util.ts`; filtra nombre/tel/expediente |
-| Picker — paciente filtrado | OK | Solo activos del `cliente_id` vía `paciente-search.util.ts` |
-| Pensión — crear estancia | OK | Modal usa `app-cliente-paciente-picker`; sin texto libre |
-| Formularios — IDs required | OK | `cliente_id`/`paciente_id` Validators.required |
-| Build `npm run build` | OK | exit 0, hash 51bc60cc813f9d00 |
-| Servidor local :4200 | OK | ng serve activo |
+| Picker — cliente autocomplete | OK | `cliente-search.util.ts`; filtra nombre/tel/expediente |
+| Picker — paciente filtrado | OK | Solo activos del `cliente_id` |
+| Pensión — crear estancia | OK | Referencia previa (9675cc4) |
+| Citas — nueva cita | OK | `cita-dialog` usa picker; sin autocomplete inline |
+| Baños — nuevo baño | OK | Modal único con picker; autorrelleno `tamano_perro` |
+| Vacunas — nueva vacuna | OK | Picker embebido; flujo expediente sin picker |
+| Historiales — nuevo historial | OK | Picker en modal; expediente mantiene paciente fijo |
+| Recordatorios — nuevo | OK | Picker embebido; edición sin picker |
+| Formularios — IDs required | OK | Validators en FormGroup padre |
+| Build `npm run build` | OK | exit 0, hash 3354443b907577da |
+| Diálogos duplicados eliminados | OK | 4 componentes `seleccionar-cliente-*` borrados |
 
 ```
-Build at: 2026-08-26T21:55:18.540Z — Time: 73352ms — exit 0
-Deploy hosting: katzen-a0e3e.web.app — 2026-08-26
+Build at: 2026-08-26T22:07:52.890Z — Time: 69117ms — exit 0
 ```
 
 ---

@@ -5,7 +5,6 @@ import { VacunasService } from './vacunas.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { VacunaDialogComponent } from './vacuna-dialog.component';
-import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-vacuna-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -204,27 +203,15 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       });
     } else {
-      const seleccionDialogRef = this.dialog.open(SeleccionarClienteVacunaDialogComponent, {
-        ...ADMIN_DIALOG_CONFIG,
+      const dialogRef = this.dialog.open(VacunaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
         data: {}
       });
-      seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result && result.cliente && result.paciente) {
-          const vacunaDialogRef = this.dialog.open(VacunaDialogComponent, {
-            ...ADMIN_DIALOG_FORM,
-            data: {
-              idPaciente: result.paciente.id,
-              cliente_id: result.cliente.id,
-              paciente: result.paciente,
-              cliente: result.cliente
-            }
-          });
-          vacunaDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(dialogResult => {
-            if (dialogResult) {
-              this.loadingService.hide();
-              this.cargarVacunas();
-            }
-          });
+
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+        if (result) {
+          this.loadingService.hide();
+          this.cargarVacunas();
         }
       });
     }

@@ -20,8 +20,6 @@ import { VacunasRoutingModule } from './vacunas-routing.module';
 import { VacunasComponent } from './vacunas.component';
 import { VacunaDialogComponent } from './vacuna-dialog.component';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
-import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-vacuna-dialog.component';
-
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
@@ -31,7 +29,6 @@ import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.modu
     VacunasComponent,
     VacunaDialogComponent,
     VacunaDetalleComponent,
-    SeleccionarClienteVacunaDialogComponent,
     ConfirmarEliminacionVacunaDialogComponent
   ],
   imports: [
@@ -57,8 +54,7 @@ import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.modu
     SalidaDialogModule
   ],
   exports: [
-    VacunaDialogComponent,
-    SeleccionarClienteVacunaDialogComponent
+    VacunaDialogComponent
   ]
 })
 export class VacunasModule { } 

@@ -20,7 +20,6 @@ import { HistorialesRoutingModule } from './historiales-routing.module';
 import { HistorialesComponent } from './historiales.component';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
-import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
@@ -29,8 +28,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
   declarations: [
     HistorialesComponent,
     HistorialDialogComponent,
-    HistorialDetalleComponent,
-    SeleccionarClienteDialogComponent
+    HistorialDetalleComponent
   ],
   imports: [
     CommonModule,
@@ -57,8 +55,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
   ],
   exports: [
     HistorialDialogComponent,
-    HistorialDetalleComponent,
-    SeleccionarClienteDialogComponent
+    HistorialDetalleComponent
   ]
 })
 export class HistorialesModule { }

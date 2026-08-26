@@ -11,7 +11,15 @@
 
   <form [formGroup]="historialForm">
     <mat-dialog-content class="admin-dialog-body">
-      <div class="entity-summary entity-summary--compact" *ngIf="pacienteInfo">
+      <app-cliente-paciente-picker
+        *ngIf="muestraPickerClientePaciente"
+        class="full-span"
+        [formGroup]="historialForm"
+        [fields]="pickerFields"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
+
+      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && pacienteInfo">
         <h3 class="entity-summary__name">{{ pacienteInfo.nombre || 'Sin nombre' }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
         <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="pacienteInfo.nombreCliente || pacienteInfo.cliente">

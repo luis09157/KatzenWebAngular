@@ -11,6 +11,10 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import {
+  ClientePacientePickerFields,
+  ClientePacienteSelection
+} from '../shared/admin/cliente-paciente-picker.models';
 
 @Component({
   selector: 'app-vacuna-dialog',
@@ -26,6 +30,19 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   doctores: any[] = [];
   pacienteInfo: any = null;
   private operationId: string = '';
+
+  readonly pickerFields: ClientePacientePickerFields = {
+    clienteId: 'idCliente',
+    pacienteId: 'idPaciente',
+    clienteNombre: 'clienteDisplay',
+    pacienteNombre: 'pacienteDisplay'
+  };
+
+  get muestraPickerClientePaciente(): boolean {
+    if (this.isEditMode) return false;
+    const idPac = this.data?.paciente_id || this.data?.idPaciente;
+    return !idPac;
+  }
 
   // Tipos de vacunas - Cargados desde Firebase con fallback
   tiposVacunas: any[] = [];
@@ -102,8 +119,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       observaciones: [''],
       
       // IDs de relación
-      idPaciente: [''],
-      idCliente: [''],
+      idPaciente: ['', Validators.required],
+      idCliente: ['', Validators.required],
+      clienteDisplay: [''],
+      pacienteDisplay: [''],
       
       // Metadatos
       fechaRegistro: [''],
@@ -184,6 +203,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
     if (this.data && this.data.id) {
       this.isEditMode = true;
+      this.vacunaForm.get('idPaciente')?.clearValidators();
+      this.vacunaForm.get('idCliente')?.clearValidators();
+      this.vacunaForm.get('idPaciente')?.updateValueAndValidity({ emitEvent: false });
+      this.vacunaForm.get('idCliente')?.updateValueAndValidity({ emitEvent: false });
       this.vacunaForm.patchValue({
         vacuna: this.data.vacuna || '',
         idVacuna: this.data.idVacuna || '',
@@ -204,6 +227,19 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         fechaActualizacion: this.data.fechaActualizacion || '',
         stability: this.data.stability || 0
       });
+    } else if (this.data?.paciente_id || this.data?.idPaciente) {
+      this.vacunaForm.get('idPaciente')?.clearValidators();
+      this.vacunaForm.get('idCliente')?.clearValidators();
+      this.vacunaForm.get('idPaciente')?.updateValueAndValidity({ emitEvent: false });
+      this.vacunaForm.get('idCliente')?.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    this.pacienteInfo = sel.pacienteData || null;
+    if (this.data) {
+      this.data.paciente = sel.pacienteData;
+      this.data.cliente = sel.clienteData;
     }
   }
 
@@ -344,6 +380,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   // Validar datos del formulario con reglas de negocio
   validarDatosFormulario(): string | null {
     const formValue = this.vacunaForm.value;
+
+    if (this.muestraPickerClientePaciente && !formValue.idPaciente) {
+      return 'Debes seleccionar <strong>cliente y paciente</strong> del catálogo';
+    }
     
     // 1. Validar formato de dosis personalizada
     if (formValue.dosis === 'personalizada') {

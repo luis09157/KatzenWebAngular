@@ -285,7 +285,7 @@ Componente compartido:
 - **Ubicación:** `src/app/shared/admin/cliente-paciente-picker.component.ts`
 - **Utils:** `cliente-search.util.ts`, `paciente-search.util.ts`, `paciente-cliente.util.ts`
 - **Spec:** `specs/029-cliente-paciente-picker/`
-- **Módulos:** pensión (migrado), citas (parcial), baños/vacunas/historiales/recordatorios (diálogos previos — unificar en backlog)
+- **Módulos:** pensión, citas, baños, vacunas, historiales, recordatorios (todos migrados al picker compartido)
 
 ## Loading global (feedback contextual — obligatorio)
 

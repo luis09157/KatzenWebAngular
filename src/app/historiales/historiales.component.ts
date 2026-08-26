@@ -6,7 +6,6 @@ import { MigrationService } from '../shared/migration.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
-import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
@@ -251,9 +250,21 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   abrirModalHistorial(pacienteId?: string) {
-    // Si es un nuevo historial (no hay paciente seleccionado), primero seleccionar cliente
     if (!pacienteId) {
-      this.seleccionarClienteParaHistorial();
+      const dialogRef = this.dialog.open(HistorialDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { modoVer: false }
+      });
+
+      dialogRef.afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(result => {
+          if (result) {
+            this.loadingService.hide();
+            this.cargarHistoriales();
+            this.cargarEstadisticas();
+          }
+        });
       return;
     }
 
@@ -262,43 +273,6 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       data: { paciente_id: pacienteId }
     });
 
-    dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result) {
-          this.loadingService.hide();
-          this.cargarHistoriales();
-          this.cargarEstadisticas();
-        }
-      });
-  }
-
-  seleccionarClienteParaHistorial() {
-    const dialogRef = this.dialog.open(SeleccionarClienteDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
-      disableClose: true
-    });
-
-    dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result && result.cliente && result.paciente) {
-          this.abrirModalHistorialConPaciente(result.paciente);
-        }
-      });
-  }
-
-  abrirModalHistorialConPaciente(paciente: any) {
-    const historialNuevo = {
-      paciente_id: paciente.id,
-      paciente_nombre: paciente.nombre
-    };
-
-    const dialogRef = this.dialog.open(HistorialDialogComponent, {
-      ...ADMIN_DIALOG_FORM,
-      data: { historial: historialNuevo, modoVer: false }
-    });
-    
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {

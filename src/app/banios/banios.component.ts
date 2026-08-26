@@ -8,7 +8,6 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BanioDialogComponent } from './banio-dialog.component';
 import { BanioDetalleComponent } from './banio-detalle.component';
-import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -358,41 +357,19 @@ export class BaniosComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.seleccionarClienteParaBanio();
+      const dialogRef = this.dialog.open(BanioDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
+        data: {}
+      });
+
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+        if (result) {
+          this.loadingService.hide();
+          this.cargarBanios();
+        }
+      });
     }
-  }
-
-  seleccionarClienteParaBanio() {
-    const dialogRef = this.dialog.open(SeleccionarClienteBanioDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
-      disableClose: true,
-      panelClass: ['admin-dialog-panel', 'seleccionar-cliente-banio-dialog-container']
-    });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result && result.cliente_id && result.paciente_id) {
-        this.abrirModalBanioConPaciente(result);
-      }
-    });
-  }
-
-  abrirModalBanioConPaciente(datosPaciente: any) {
-    const banioNuevo = {
-      paciente_id: datosPaciente.paciente_id,
-      paciente: datosPaciente.paciente,
-      cliente_id: datosPaciente.cliente_id,
-      cliente: datosPaciente.cliente
-    };
-    const dialogRef = this.dialog.open(BanioDialogComponent, {
-      ...ADMIN_DIALOG_FORM,
-      panelClass: ['admin-dialog-panel', 'banio-dialog-container'],
-      data: banioNuevo
-    });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) {
-        this.loadingService.hide();
-        this.cargarBanios();
-      }
-    });
   }
 
   verBanio(banio: any) {

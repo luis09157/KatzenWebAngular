@@ -11,7 +11,15 @@
 
   <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()" id="recordatorioForm">
     <mat-dialog-content class="admin-dialog-body">
-      <div class="entity-summary entity-summary--compact" *ngIf="(data.cliente && data.paciente) || (pacienteInfo && !data.cliente)">
+      <app-cliente-paciente-picker
+        *ngIf="muestraPickerClientePaciente"
+        class="full-span"
+        [formGroup]="recordatorioForm"
+        [fields]="pickerFields"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
+
+      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))">
         <h3 class="entity-summary__name">{{ (data.paciente?.nombre || pacienteInfo?.nombre) || 'Sin nombre' }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
         <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="data.cliente || pacienteInfo?.cliente">

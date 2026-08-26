@@ -6,7 +6,6 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
 import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
-import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -173,29 +172,16 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
         }
       });
     } else {
-      const seleccionDialogRef = this.dialog.open(SeleccionarClienteRecordatorioDialogComponent, {
-        ...ADMIN_DIALOG_CONFIG,
-        panelClass: ['admin-dialog-panel', 'seleccionar-cliente-dialog-container'],
+      const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
         data: {}
       });
-      seleccionDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result && result.cliente && result.paciente) {
-          const recordatorioDialogRef = this.dialog.open(RecordatorioDialogComponent, {
-            ...ADMIN_DIALOG_FORM,
-            panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
-            data: {
-              paciente_id: result.paciente.id,
-              cliente_id: result.cliente.id,
-              paciente: result.paciente,
-              cliente: result.cliente
-            }
-          });
-          recordatorioDialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(dialogResult => {
-            if (dialogResult) {
-              this.loadingService.hide();
-              this.cargarRecordatorios();
-            }
-          });
+
+      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+        if (result) {
+          this.loadingService.hide();
+          this.cargarRecordatorios();
         }
       });
     }

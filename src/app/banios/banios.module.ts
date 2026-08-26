@@ -27,7 +27,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BaniosComponent } from './banios.component';
 import { BanioDialogComponent } from './banio-dialog.component';
 import { BanioDetalleComponent } from './banio-detalle.component';
-import { SeleccionarClienteBanioDialogComponent } from './seleccionar-cliente-banio-dialog.component';
 
 // Servicios
 import { BaniosService } from './banios.service';
@@ -41,8 +40,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
   declarations: [
     BaniosComponent,
     BanioDialogComponent,
-    BanioDetalleComponent,
-    SeleccionarClienteBanioDialogComponent
+    BanioDetalleComponent
   ],
   imports: [
     CommonModule,

@@ -11,8 +11,15 @@
 
   <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="admin-dialog-body">
+      <app-cliente-paciente-picker
+        *ngIf="muestraPickerClientePaciente"
+        class="full-span"
+        [formGroup]="banioForm"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
+
       <div class="entity-summary entity-summary--compact"
-           *ngIf="banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre">
+           *ngIf="!muestraPickerClientePaciente && (banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre)">
         <h3 class="entity-summary__name">
           {{ data?.paciente_nombre || banioForm.get('paciente')?.value || 'Paciente' }}
         </h3>

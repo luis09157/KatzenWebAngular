@@ -5,17 +5,19 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
-import { Observable, Subject } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
-import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
 import {
   CITA_DURACION_DEFAULT_MIN,
   CITA_DURACION_MINIMA_MIN
 } from './cita-agenda.util';
+import {
+  ClientePacientePickerFields
+} from '../shared/admin/cliente-paciente-picker.models';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -74,9 +76,13 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     'Grooming (Peluquería)',
     'Otro'
   ];
-  filteredClientes!: Observable<any[]>;
-  clienteSeleccionado: any = null;
-  pacientesDelCliente: any[] = [];
+  /** Campos del picker alineados al FormGroup de citas (nombreCliente legacy). */
+  readonly pickerFields: ClientePacientePickerFields = {
+    clienteId: 'cliente_id',
+    pacienteId: 'paciente_id',
+    clienteNombre: 'nombreCliente',
+    pacienteNombre: 'paciente'
+  };
   /** doctor | administrador pueden fechas pasadas */
   puedeAgendarFechaPasada = false;
   readonly duracionDefault = CITA_DURACION_DEFAULT_MIN;
@@ -132,6 +138,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       id: [data.cita?.id || ''],
       cliente_id: [data.cita?.cliente_id || '', Validators.required],
       paciente_id: [data.cita?.paciente_id || '', Validators.required],
+      paciente: [data.cita?.paciente || ''],
       fecha: [fecha, [Validators.required, this.validarFecha.bind(this)]],
       hora: [hora, [Validators.required, this.validarHora.bind(this)]],
       motivo: [data.cita?.motivo || '', Validators.required],
@@ -143,7 +150,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       ],
       motivo_cancelacion: [data.cita?.motivo_cancelacion || ''],
       observaciones: [data.cita?.observaciones || ''],
-      nombreCliente: [data.cita?.nombreCliente || '', Validators.required]
+      nombreCliente: [data.cita?.nombreCliente || '']
     });
   }
 
@@ -173,6 +180,8 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     if (paciente?.nombre) {
       return paciente.especie ? `${paciente.nombre} (${paciente.especie})` : paciente.nombre;
     }
+    const nombreForm = this.citaForm.get('paciente')?.value;
+    if (nombreForm) return String(nombreForm);
     return 'Paciente no asignado';
   }
 
@@ -232,10 +241,11 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
 
     this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
 
-    this.cargarClientes();
-    this.cargarPacientes();
+    if (this.modoVer) {
+      this.cargarClientes();
+      this.cargarPacientes();
+    }
     this.cargarDoctores();
-    this.setupAutocomplete();
 
     if (this.data.cita) {
       this.establecerValoresEdicion();
@@ -264,13 +274,9 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: clientes => {
         this.clientes = clientes || [];
-        if (this.data.cita && this.pacientes.length > 0) {
-          this.establecerValoresEdicion();
-        }
       },
       error: error => {
         this.logger.error('Error al cargar clientes en cita:', error);
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar clientes cita'), 'error');
       }
     });
   }
@@ -279,13 +285,9 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: pacientes => {
         this.pacientes = pacientes || [];
-        if (this.data.cita && this.clientes.length > 0) {
-          this.establecerValoresEdicion();
-        }
       },
       error: error => {
         this.logger.error('Error al cargar pacientes en cita:', error);
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar pacientes cita'), 'error');
       }
     });
   }
@@ -304,44 +306,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  setupAutocomplete() {
-    this.filteredClientes = this.citaForm.get('nombreCliente')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filterClientes(value))
-    );
-  }
-
-  private _filterClientes(value: any): any[] {
-    if (!value || typeof value !== 'string') {
-      return this.clientes;
-    }
-    const filterValue = value.toLowerCase();
-    return this.clientes.filter(cliente =>
-      this.getNombreCompleto(cliente).toLowerCase().includes(filterValue)
-    );
-  }
-
-  getNombreCompleto(cliente: any): string {
-    const nombre = cliente.nombre || '';
-    const apellidoPaterno = cliente.apellidoPaterno || '';
-    const apellidoMaterno = cliente.apellidoMaterno || '';
-    const telefono = cliente.telefono || '';
-    const nombreCompleto = [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
-    return telefono ? `${nombreCompleto} - ${telefono}` : nombreCompleto;
-  }
-
-  onClienteSelected(cliente: any) {
-    this.clienteSeleccionado = cliente;
-    this.citaForm.patchValue({
-      cliente_id: cliente.id,
-      nombreCliente: this.getNombreCompleto(cliente),
-      paciente_id: ''
-    });
-    this.pacientesDelCliente = this.pacientes.filter(paciente =>
-      pacientePerteneceACliente(paciente, cliente.id)
-    );
-  }
-
   async guardar() {
     this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
     if (this.citaForm.invalid) {
@@ -350,14 +314,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     }
 
     const formValue = { ...this.citaForm.value };
-    if (!formValue.cliente_id) {
-      const clienteSeleccionado = this.clientes.find(c =>
-        this.getNombreCompleto(c) === formValue.nombreCliente
-      );
-      if (clienteSeleccionado) {
-        formValue.cliente_id = clienteSeleccionado.id;
-      }
-    }
 
     if (formValue.fecha && formValue.hora) {
       const fecha = new Date(formValue.fecha);
@@ -377,7 +333,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     }
 
     delete formValue.nombreCliente;
-    // El loading lo muestra el padre al persistir (evita doble show → overlay trabado).
+    delete formValue.paciente;
     this.dialogRef.close(formValue);
   }
 
@@ -435,23 +391,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     const cita = this.data.cita;
     if (!cita) return;
 
-    const cliente = this.clientes.find(c => c.id === cita.cliente_id);
-    if (cliente) {
-      this.clienteSeleccionado = cliente;
-      this.citaForm.patchValue({
-        cliente_id: cita.cliente_id,
-        nombreCliente: this.getNombreCompleto(cliente)
-      });
-      this.pacientesDelCliente = this.pacientes.filter(paciente =>
-        pacientePerteneceACliente(paciente, cliente.id)
-      );
-    }
-
-    if (this.pacientes.find(p => p.id === cita.paciente_id)) {
-      this.citaForm.patchValue({ paciente_id: cita.paciente_id });
-    }
-
     this.citaForm.patchValue({
+      cliente_id: cita.cliente_id || '',
+      paciente_id: cita.paciente_id || '',
+      paciente: cita.paciente || '',
       motivo: cita.motivo || '',
       estado: cita.estado || 'pendiente',
       veterinario: cita.veterinario || '',
@@ -460,7 +403,8 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
           ? Number(cita.duracion_minutos)
           : CITA_DURACION_DEFAULT_MIN,
       motivo_cancelacion: cita.motivo_cancelacion || '',
-      observaciones: cita.observaciones || ''
+      observaciones: cita.observaciones || '',
+      nombreCliente: cita.nombreCliente || ''
     });
     this.syncMotivoCancelacionValidators(cita.estado || 'pendiente');
   }

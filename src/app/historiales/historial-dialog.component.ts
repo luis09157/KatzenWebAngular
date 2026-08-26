@@ -14,6 +14,10 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
+import {
+  ClientePacientePickerFields,
+  ClientePacienteSelection
+} from '../shared/admin/cliente-paciente-picker.models';
 
 @Component({
   selector: 'app-historial-dialog',
@@ -37,6 +41,18 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   // Lista de doctores
   doctores: any[] = [];
   cargandoDoctores = false;
+
+  readonly pickerFields: ClientePacientePickerFields = {
+    clienteId: 'cliente_id',
+    pacienteId: 'paciente_id',
+    clienteNombre: 'cliente',
+    pacienteNombre: 'paciente_nombre'
+  };
+
+  get muestraPickerClientePaciente(): boolean {
+    if (this.isEditMode) return false;
+    return !(this.data?.paciente_id || this.data?.historial?.paciente_id);
+  }
   
   // Opciones para hora y minuto
   horas: number[] = Array.from({ length: 24 }, (_, i) => i);
@@ -84,6 +100,9 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       
       // ID del paciente
       paciente_id: ['', Validators.required],
+      cliente_id: [''],
+      cliente: [''],
+      paciente_nombre: [''],
 
       // Visible en portal del dueño (app mobile)
       oculto_portal: [false],
@@ -106,11 +125,15 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         this.historialForm.patchValue({
           paciente_id: this.data.paciente_id
         });
+        this.historialForm.get('paciente_id')?.clearValidators();
+        this.historialForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
       }
       
       // Si es edición, cargar información del paciente
       if (this.isEditMode && this.data.historial?.paciente_id) {
         this.cargarInformacionPaciente(this.data.historial.paciente_id);
+        this.historialForm.get('paciente_id')?.clearValidators();
+        this.historialForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
       }
 
       this.historialForm.patchValue({
@@ -197,6 +220,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     if (this.pacienteInfo.peso) partes.push(`${this.pacienteInfo.peso} kg`);
     if (this.pacienteInfo.edad) partes.push(String(this.pacienteInfo.edad));
     return partes.length ? partes.join(' · ') : '—';
+  }
+
+  onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    this.pacienteInfo = sel.pacienteData || null;
   }
 
   cargarDoctores() {

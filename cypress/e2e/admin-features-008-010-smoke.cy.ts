@@ -22,7 +22,8 @@ describe('Admin features smoke 009/010', () => {
 
     cy.contains('button', /Nuevo historial/i).click();
     cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-    cy.get('mat-dialog-container').contains(/Seleccionar cliente/i).should('be.visible');
+    cy.get('app-cliente-paciente-picker').should('be.visible');
+    cy.get('mat-dialog-container').contains(/Cliente \(dueño\)/i).should('be.visible');
     cy.get('mat-dialog-container button').contains(/Cancelar/i).click({ force: true });
     cy.get('mat-dialog-container').should('not.exist');
   });

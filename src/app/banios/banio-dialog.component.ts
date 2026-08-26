@@ -20,6 +20,9 @@ import {
   calcularMargenPorcentaje,
   calcularVentaDesdeMargen
 } from '../core/utils/precio-margen.util';
+import {
+  ClientePacienteSelection
+} from '../shared/admin/cliente-paciente-picker.models';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -42,6 +45,10 @@ export class BanioDialogComponent implements OnInit {
   private syncingMargen = false;
   /** Margen % editable (UI; recalcula precio cobrado desde costo). */
   margenPct: number | null = null;
+
+  get muestraPickerClientePaciente(): boolean {
+    return !this.esEdicion && !this.hidePatientInfo;
+  }
   
   // Opciones para los selects
   tiposServicios = [
@@ -165,14 +172,18 @@ export class BanioDialogComponent implements OnInit {
       // Mantener la fecha original de alta (solo lectura en edición)
       this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
-      // Datos del cliente y paciente seleccionados
-      this.banioForm.patchValue({
-        paciente_id: this.data.paciente_id,
-        paciente: this.data.paciente,
-        cliente_id: this.data.cliente_id,
-        cliente: this.data.cliente,
-        created_by: 'system' // Valor por defecto para nuevos baños
-      });
+      // Pre-selección opcional (p. ej. desde expediente de paciente)
+      if (this.data.paciente_id) {
+        this.banioForm.patchValue({
+          paciente_id: this.data.paciente_id,
+          paciente: this.data.paciente,
+          cliente_id: this.data.cliente_id,
+          cliente: this.data.cliente,
+          created_by: 'system'
+        });
+      } else {
+        this.banioForm.patchValue({ created_by: 'system' });
+      }
       
       // Si se oculta la información del paciente, no validar estos campos
       if (this.hidePatientInfo) {
@@ -513,6 +524,18 @@ export class BanioDialogComponent implements OnInit {
       this.defaultsBanio = await this.defaultsBanioService.getDefaultsOnce();
     } catch {
       this.defaultsBanio = emptyDefaultsBanio();
+    }
+  }
+
+  onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    const raw = String(sel.pacienteData?.['tamano_perro'] || sel.pacienteData?.['tamano'] || '').toLowerCase();
+    let tamano: TamanoPerroBanio | '' = '';
+    if (raw === 'pequeno' || raw === 'chico') tamano = 'pequeno';
+    else if (raw === 'mediano') tamano = 'mediano';
+    else if (raw === 'grande') tamano = 'grande';
+    if (tamano) {
+      this.banioForm.patchValue({ tamano_perro: tamano });
+      this.onTamanoChange();
     }
   }
 

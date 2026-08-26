@@ -19,15 +19,13 @@ import { RecordatoriosRoutingModule } from './recordatorios-routing.module';
 import { RecordatoriosComponent } from './recordatorios.component';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
 import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
-import { SeleccionarClienteRecordatorioDialogComponent } from './seleccionar-cliente-recordatorio-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
     RecordatoriosComponent,
     RecordatorioDialogComponent,
-    RecordatorioDetalleComponent,
-    SeleccionarClienteRecordatorioDialogComponent
+    RecordatorioDetalleComponent
   ],
   imports: [
     CommonModule,
@@ -50,8 +48,7 @@ import { SharedModule } from '../shared/shared.module';
     SharedModule
   ],
   exports: [
-    RecordatorioDialogComponent,
-    SeleccionarClienteRecordatorioDialogComponent
+    RecordatorioDialogComponent
   ]
 })
 export class RecordatoriosModule { } 

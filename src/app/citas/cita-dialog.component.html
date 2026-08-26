@@ -65,30 +65,11 @@
     <form *ngIf="!modoVer" [formGroup]="citaForm" class="admin-dialog-form admin-dialog-form--padded cita-dialog-form">
       <section class="form-section">
         <h3 class="form-section__title">Paciente y dueño</h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Cliente</mat-label>
-            <input matInput formControlName="nombreCliente" placeholder="Buscar cliente…" [matAutocomplete]="auto">
-            <mat-icon matPrefix>person_search</mat-icon>
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
-              <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
-                {{ getNombreCompleto(cliente) }}
-              </mat-option>
-            </mat-autocomplete>
-            <mat-error *ngIf="citaForm.get('nombreCliente')?.hasError('required')">El cliente es requerido</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Paciente</mat-label>
-            <mat-select formControlName="paciente_id" [disabled]="!clienteSeleccionado" required>
-              <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
-                {{ paciente.nombre }} — {{ paciente.especie || 'Sin especie' }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="citaForm.get('paciente_id')?.hasError('required')">El paciente es requerido</mat-error>
-          </mat-form-field>
-        </div>
-        <input type="hidden" formControlName="cliente_id">
+        <app-cliente-paciente-picker
+          class="full-span"
+          [formGroup]="citaForm"
+          [fields]="pickerFields">
+        </app-cliente-paciente-picker>
       </section>
 
       <section class="form-section">
