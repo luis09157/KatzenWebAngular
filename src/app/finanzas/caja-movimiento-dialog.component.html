@@ -10,21 +10,24 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
-    <form [formGroup]="form" class="caja-form">
+    <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded caja-form">
       <div class="form-grid">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Tipo</mat-label>
           <mat-select formControlName="tipo">
             <mat-option *ngFor="let t of tipos" [value]="t.value">{{ t.label }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Fecha</mat-label>
           <input matInput type="date" formControlName="fecha" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field
+          appearance="outline"
+          subscriptSizing="dynamic"
+          [class.full-span]="form.get('tipo')?.value === 'egreso'">
           <mat-label>Categoría *</mat-label>
           <mat-select formControlName="categoria">
             <mat-option *ngFor="let c of categoriasDisponibles" [value]="c">
@@ -33,7 +36,10 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="form.get('tipo')?.value === 'ingreso'">
+        <mat-form-field
+          appearance="outline"
+          subscriptSizing="dynamic"
+          *ngIf="form.get('tipo')?.value === 'ingreso'">
           <mat-label>Plantilla de costo (opcional)</mat-label>
           <mat-select formControlName="plantillaCostoId" (selectionChange)="onPlantillaChange()">
             <mat-option value="">— Ninguna —</mat-option>
@@ -41,34 +47,38 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-span">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-span">
           <mat-label>Concepto *</mat-label>
           <input matInput formControlName="concepto" placeholder="Ej. Baño completo Oreon" />
           <mat-error *ngIf="form.get('concepto')?.hasError('required')">Requerido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Monto (MXN) *</mat-label>
           <input matInput type="number" formControlName="monto" min="0.01" step="0.01" />
           <span matPrefix>$&nbsp;</span>
           <mat-error *ngIf="form.get('monto')?.invalid">Monto válido requerido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Método de pago *</mat-label>
           <mat-select formControlName="metodoPago">
             <mat-option *ngFor="let m of metodos" [value]="m.value">{{ m.label }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="form.get('tipo')?.value === 'ingreso'">
+        <mat-form-field
+          appearance="outline"
+          subscriptSizing="dynamic"
+          class="full-span"
+          *ngIf="form.get('tipo')?.value === 'ingreso'">
           <mat-label>Costo asociado (opcional)</mat-label>
           <input matInput type="number" formControlName="costoAsociado" min="0" step="0.01" />
           <span matPrefix>$&nbsp;</span>
           <mat-hint>Insumos / tiempo estimado. Vacío = sin margen</mat-hint>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-span">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-span">
           <mat-label>Notas</mat-label>
           <textarea matInput formControlName="notas" rows="2"></textarea>
         </mat-form-field>

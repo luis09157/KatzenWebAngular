@@ -156,6 +156,34 @@ Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). A
 - Responsive: el `width: calc(100% - 56px)` + `max-width: 420px` se adapta; no forzar anchos fijos que desborden en móvil.
 - Referencia: Clientes, Citas, Finanzas, Inventario, Pensión.
 
+### Toolbar de período (Finanzas y módulos con filtros globales)
+
+Cuando el módulo tiene **filtros que afectan varias tabs o KPIs** (p. ej. Finanzas: Día/Semana/Mes + fecha), **no** apilar controles en `bannerActions` del page banner — desalinea `mat-form-field` vs botones.
+
+```html
+<app-admin-page-banner …>
+  <div bannerActions>
+    <button mat-raised-button class="btn-primary-teal">Acción principal</button>
+  </div>
+</app-admin-page-banner>
+
+<div class="admin-toolbar finanzas-toolbar" aria-label="Filtros de período">
+  <div class="admin-toolbar__actions">… toggles + date …</div>
+  <div class="admin-toolbar__actions">
+    <span class="admin-toolbar__meta">Etiqueta período</span>
+    <button mat-stroked-button>Exportar CSV</button>
+  </div>
+</div>
+
+<mat-tab-group class="finanzas-tabs">…</mat-tab-group>
+```
+
+- Banner: solo CTA principal (`Registrar cobro`).
+- Filtros: `.admin-toolbar` con `subscriptSizing="dynamic"` en campos fecha.
+- Tabs: `.finanzas-tabs` — `mat-mdc-tab-body-content { overflow: visible; padding: 0 }`; cada tab usa `app-admin-data-panel` con `.panel-search` alineado (`margin: 8px 28px 22px`).
+- Diálogos del módulo: `admin-dialog-form admin-dialog-form--padded` + `.form-grid` global (no grid local con gap distinto).
+- Referencia: `src/app/finanzas/`.
+
 ### KPIs operativos (obligatorio en módulos CRUD admin)
 
 Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, historiales, inventario, pensión, finanzas, usuarios, recordatorios, etc.) **debe** exponer un `app-admin-kpi-grid` con **3–4** `app-admin-stat-card` defaults:

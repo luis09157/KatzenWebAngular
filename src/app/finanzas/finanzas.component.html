@@ -18,7 +18,16 @@
       icon="account_balance_wallet"
       title="Caja / costos / rentabilidad"
       subtitle="Registra cobros y gastos, define costos de servicio y mira si el día o el mes dejan margen.">
-      <div bannerActions class="finanzas-banner-actions">
+      <div bannerActions>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevoMovimiento()">
+          <mat-icon>add</mat-icon>
+          Registrar cobro
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <div class="admin-toolbar finanzas-toolbar" aria-label="Filtros de período">
+      <div class="admin-toolbar__actions finanzas-toolbar__filters">
         <div class="periodo-toggle" role="group" aria-label="Período">
           <button
             mat-stroked-button
@@ -42,24 +51,31 @@
             Mes
           </button>
         </div>
-        <mat-form-field *ngIf="periodoModo === 'dia' || periodoModo === 'semana'" appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
+        <mat-form-field
+          *ngIf="periodoModo === 'dia' || periodoModo === 'semana'"
+          appearance="outline"
+          subscriptSizing="dynamic"
+          class="fecha-filtro">
           <mat-label>{{ periodoModo === 'semana' ? 'Día de la semana' : 'Fecha' }}</mat-label>
           <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
         </mat-form-field>
-        <mat-form-field *ngIf="periodoModo === 'mes'" appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
+        <mat-form-field
+          *ngIf="periodoModo === 'mes'"
+          appearance="outline"
+          subscriptSizing="dynamic"
+          class="fecha-filtro">
           <mat-label>Mes</mat-label>
           <input matInput type="month" [value]="mesFiltro" (change)="onMesChange($event)" />
         </mat-form-field>
+      </div>
+      <div class="admin-toolbar__actions">
+        <span class="admin-toolbar__meta finanzas-toolbar__meta">{{ periodoLabel }}</span>
         <button mat-stroked-button type="button" (click)="exportarCsv()" [disabled]="!dataSource.data.length">
           <mat-icon>file_download</mat-icon>
           Exportar CSV
         </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevoMovimiento()">
-          <mat-icon>add</mat-icon>
-          Registrar cobro
-        </button>
       </div>
-    </app-admin-page-banner>
+    </div>
 
     <mat-tab-group
       class="finanzas-tabs"

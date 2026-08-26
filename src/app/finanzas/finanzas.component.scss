@@ -1,18 +1,33 @@
-.finanzas-contenedor {
-  .fecha-filtro {
-    width: 168px;
+:host {
+  display: block;
+}
+
+:host-context(.admin-content) .finanzas-contenedor {
+  .finanzas-toolbar {
+    margin-bottom: 20px;
   }
 
-  .finanzas-banner-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
+  .finanzas-toolbar__filters {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .finanzas-toolbar__meta {
+    font-weight: 600;
+    color: #374151;
   }
 
   .periodo-toggle {
     display: inline-flex;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    button {
+      min-height: 42px;
+      border-radius: 10px;
+    }
 
     .periodo-activo {
       background: var(--katzen-verde-soft, #e0f7f8);
@@ -21,8 +36,57 @@
     }
   }
 
+  .fecha-filtro {
+    width: 168px;
+    min-width: 148px;
+    margin: 0;
+  }
+
   .finanzas-tabs {
-    margin-top: 8px;
+    margin-top: 0;
+  }
+
+  ::ng-deep .finanzas-tabs .mat-mdc-tab-header {
+    border-bottom: 1px solid var(--admin-border, #e5e7eb);
+    margin-bottom: 16px;
+  }
+
+  ::ng-deep .finanzas-tabs .mat-mdc-tab-body-content {
+    overflow: visible !important;
+    padding: 0;
+  }
+
+  ::ng-deep .finanzas-tabs .mat-mdc-tab-body-wrapper {
+    overflow: visible !important;
+  }
+
+  ::ng-deep .finanzas-tabs app-admin-data-panel {
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  ::ng-deep .finanzas-tabs app-admin-data-panel:last-child {
+    margin-bottom: 0;
+  }
+
+  ::ng-deep .finanzas-tabs .buscador.panel-search {
+    display: block;
+    margin: 8px 28px 22px !important;
+    width: calc(100% - 56px) !important;
+    max-width: 420px;
+
+    .mat-mdc-form-field-icon-prefix {
+      padding: 0 6px 0 10px;
+      color: #9ca3af;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding-left: 4px !important;
+    }
+
+    input.mat-mdc-input-element {
+      padding-left: 2px;
+    }
   }
 
   .tab-loading {
@@ -30,7 +94,7 @@
   }
 
   .panel-action {
-    margin-bottom: 12px;
+    margin: 8px 28px 16px;
   }
 
   .monto-egreso {
@@ -45,7 +109,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    padding: 8px 0 16px;
+    padding: 8px 28px 16px;
   }
 
   .rent-card {
@@ -101,8 +165,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 8px 0 20px;
-    max-width: 720px;
+    padding: 8px 28px 20px;
+    max-width: none;
   }
 
   .defaults-banio-row {
@@ -125,7 +189,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px;
-    padding: 8px 0 20px;
+    padding: 8px 28px 20px;
   }
 
   .rent-chart-block {
@@ -149,6 +213,7 @@
   .rent-chart-empty {
     grid-column: 1 / -1;
     margin: 0;
+    padding: 0 28px 20px;
     color: #64748b;
     font-size: 14px;
   }
@@ -315,6 +380,26 @@
     }
   }
 
+  @media (max-width: 768px) {
+    .finanzas-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .finanzas-toolbar__filters,
+    .finanzas-toolbar .admin-toolbar__actions {
+      width: 100%;
+      margin-left: 0;
+      justify-content: flex-start;
+    }
+
+    .fecha-filtro {
+      flex: 1 1 100%;
+      width: 100%;
+      max-width: none;
+    }
+  }
+
   @media (max-width: 720px) {
     .rentabilidad-grid {
       grid-template-columns: 1fr;
@@ -329,12 +414,32 @@
       grid-template-columns: 1fr;
     }
 
+    .defaults-banio-label {
+      padding-top: 0;
+    }
+
     .rent-charts {
       grid-template-columns: 1fr;
     }
 
     .rent-chart-block--wide {
       grid-column: auto;
+    }
+
+    ::ng-deep .finanzas-tabs .buscador.panel-search {
+      margin-left: 16px !important;
+      margin-right: 16px !important;
+      width: calc(100% - 32px) !important;
+      max-width: none;
+    }
+
+    .panel-action,
+    .defaults-banio-grid,
+    .rentabilidad-grid,
+    .rent-charts,
+    .rent-chart-empty {
+      padding-left: 16px;
+      padding-right: 16px;
     }
   }
 }
