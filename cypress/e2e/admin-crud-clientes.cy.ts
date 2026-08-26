@@ -48,11 +48,23 @@ describe('Admin CRUD — Clientes', () => {
     cy.get('.buscador input').clear().type(telefonoEditado);
     cy.contains('td', telefonoEditado, { timeout: 20000 }).should('be.visible');
 
-    // DELETE (UI «Borrar»; soft-delete activo: false)
+    // DELETE (UI «Borrar»; soft-delete activo: false + copy cascada 009)
     cy.contains('tr', nombre).within(() => {
       cy.get('button[matTooltip="Borrar"]').click();
     });
+    cy.get('.swal2-popup').should('be.visible');
+    cy.get('.swal2-html-container, .swal2-content').should(($el) => {
+      const text = ($el.text() || '').toLowerCase();
+      expect(text, 'confirmación debe mencionar cascada').to.match(/mascota/);
+      expect(text).to.match(/cita/);
+      expect(text).to.match(/portal/);
+    });
     cy.get('.swal2-confirm').contains('Sí, borrar').click();
+    cy.get('.swal2-popup', { timeout: 45000 }).should('exist');
+    cy.get('.swal2-title, .swal2-html-container').should(($el) => {
+      const text = ($el.text() || '').toLowerCase();
+      expect(text).to.match(/borrad|cascada/);
+    });
     cy.dismissSwalSuccess();
     cy.get('.buscador input').clear().type(telefonoEditado);
     cy.contains('td', nombre).should('not.exist');

@@ -1,6 +1,7 @@
 import {
   isActiveRecord,
   isVisibleInClientPortal,
+  mapHistorial,
   mapMascota
 } from './portal-mapper.util';
 
@@ -45,6 +46,21 @@ describe('portal-mapper.util', () => {
 
     it('defaults activo to true', () => {
       expect(mapMascota('m1', { nombre: 'X' }).activo).toBeTrue();
+    });
+  });
+
+  describe('mapHistorial (010 notas_internas)', () => {
+    it('never exposes notas_internas to portal payload', () => {
+      const mapped = mapHistorial('h1', {
+        diagnostico: 'Otitis',
+        notas: 'Nota dueño',
+        notas_internas: 'SECRETO STAFF — no al portal',
+        medico_atendio: 'Dra. Test'
+      }) as Record<string, unknown>;
+
+      expect(mapped['diagnostico']).toBe('Otitis');
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'notas_internas')).toBeFalse();
+      expect(JSON.stringify(mapped)).not.toContain('SECRETO STAFF');
     });
   });
 });
