@@ -122,11 +122,12 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 | Accesorio nuevo | OK | IVA on / 16% + preview |
 | Pensión costo_dia ≥ precio_dia | FAIL | misma regla |
 | Util `precio-margen.util` | OK | tests pure + validators |
-| Build | OK | `npm run build` exit 0 · Hash 614c838b8ffaa86b |
+| Build | OK | `npm run build` exit 0 · Hash aaf8f6bed2292be9 |
 | Live :4200 | OK | `ng serve` SERVE_OK |
-| Deploy hosting | pendiente | autorizado Luis |
+| Deploy hosting | OK | 53 files · https://katzen-a0e3e.web.app · commit `1a50515` |
 
 - [x] Follow-up 2026-08-26: validación UI costo estrictamente menor que venta en diálogo baño (crear/editar)
 - [x] Follow-up 2026-08-26: util compartido + productos (margen % + tasa_iva) + pensión
+- [x] Follow-up 2026-08-26: commit + push + deploy hosting (margen/IVA)
 
 
