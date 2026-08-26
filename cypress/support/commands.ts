@@ -30,6 +30,8 @@ declare global {
        * (evita FormControl vacío pese a DOM lleno).
        */
       fillMatInput(formControlName: string, value: string, scope?: string): Chainable<JQuery<HTMLElement>>;
+      /** Login portal dueños. Requiere portalEmail/portalPassword en cypress.env.json. */
+      loginPortal(): Chainable<void>;
     }
   }
 }
@@ -75,6 +77,34 @@ Cypress.Commands.add('loginAdmin', () => {
   const email = Cypress.env('adminEmail') as string;
   const password = Cypress.env('adminPassword') as string;
   loginWithCredentials(email, password);
+});
+
+Cypress.Commands.add('loginPortal', () => {
+  const email = Cypress.env('portalEmail') as string | undefined;
+  const password = Cypress.env('portalPassword') as string | undefined;
+  if (!email || !password) {
+    throw new Error(
+      'Faltan portalEmail/portalPassword. Copia cypress.env.example.json → cypress.env.json (no commitear secrets).'
+    );
+  }
+  cy.visit('/portal/login');
+  cy.get('input[name="email"]', { timeout: 15000 }).should('be.visible').clear().type(email);
+  cy.get('input[name="password"]').clear().type(password, { log: false });
+  cy.contains('button', /iniciar|entrar|sesión/i).click();
+
+  cy.url({ timeout: 45000 }).should('match', /\/(auth\/contexto|portal\/)/);
+  cy.location('pathname').then((pathname) => {
+    if (pathname.includes('/auth/contexto')) {
+      cy.contains('button', 'Portal mis mascotas', { timeout: 15000 }).click({ force: true });
+    }
+  });
+  cy.url({ timeout: 45000 }).should('include', '/portal/');
+  cy.get('body').then(($body) => {
+    if ($body.find('.swal2-popup:visible').length) {
+      const msg = $body.find('.swal2-html-container').text().trim();
+      throw new Error(`Login portal no completado: ${msg || 'error desconocido'}`);
+    }
+  });
 });
 
 Cypress.Commands.add('loginStaffRole', (role: 'doctor' | 'recepcionista' | 'peluquero') => {

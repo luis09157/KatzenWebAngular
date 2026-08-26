@@ -11,6 +11,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:admin": "cypress run --spec \"cypress/e2e/admin-smoke.cy.ts,cypress/e2e/admin-crud-routes.cy.ts,cypress/e2e/admin-login.cy.ts,cypress/e2e/admin-crud-clientes.cy.ts,cypress/e2e/admin-modules-authenticated.cy.ts,cypress/e2e/admin-crud-proveedores.cy.ts,cypress/e2e/admin-crud-productos.cy.ts,cypress/e2e/admin-crud-pacientes.cy.ts,cypress/e2e/admin-portal-provision-revoke.cy.ts,cypress/e2e/admin-auth-contexto.cy.ts,cypress/e2e/admin-crud-finanzas.cy.ts\"",
+    "cy:portal": "cypress run --spec \"cypress/e2e/portal-guest.cy.ts,cypress/e2e/portal-auth-smoke.cy.ts\"",
     "cy:admin:crud": "cypress run --spec \"cypress/e2e/admin-login.cy.ts,cypress/e2e/admin-crud-clientes.cy.ts,cypress/e2e/admin-crud-proveedores.cy.ts,cypress/e2e/admin-crud-productos.cy.ts,cypress/e2e/admin-crud-pacientes.cy.ts,cypress/e2e/admin-crud-finanzas.cy.ts\"",
     "cy:roles-008": "cypress run --spec \"cypress/e2e/admin-roles-008-smoke.cy.ts\" --browser chrome",
     "smoke:008:provision": "node scripts/smoke-008-provision-roles.mjs provision",
