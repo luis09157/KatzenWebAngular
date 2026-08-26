@@ -81,4 +81,4 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → done
-- [ ] Commit + push + deploy hosting (autorizado Luis)
+- [x] Commit + push + deploy hosting (autorizado Luis) — `e4afcd2` hosting OK
