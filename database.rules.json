@@ -98,6 +98,10 @@
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": false
       },
+      "PortalRegistroRate": {
+        ".read": false,
+        ".write": false
+      },
       "Banios": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'",

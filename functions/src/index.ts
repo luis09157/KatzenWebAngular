@@ -2,7 +2,12 @@ import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onValueWritten } from 'firebase-functions/v2/database';
 import { setGlobalOptions } from 'firebase-functions/v2';
-import { generateSecurePassword, sendPortalWelcomeEmail } from './portal-mail';
+import {
+  generateSecurePassword,
+  isPortalMailConfigured,
+  sendPortalWelcomeEmail
+} from './portal-mail';
+import * as crypto from 'crypto';
 
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
@@ -101,6 +106,23 @@ async function isCallerAdmin(uid: string, token: admin.auth.DecodedIdToken): Pro
     perfil === 'dueno' ||
     perfil === 'dueño'
   );
+}
+
+/** Staff clínico (admin u otro perfil en Usuarios / claim staff). */
+async function isCallerStaff(uid: string, token: admin.auth.DecodedIdToken): Promise<boolean> {
+  if (await isCallerAdmin(uid, token)) {
+    return true;
+  }
+  const role = String(token.role || '').toLowerCase();
+  if (role === 'staff') {
+    return true;
+  }
+  const snap = await db.ref(`Katzen/Usuarios/${uid}`).once('value');
+  if (!snap.exists()) {
+    return false;
+  }
+  const data = snap.val() as { activo?: boolean } | null;
+  return data?.activo !== false;
 }
 
 async function syncClaimsForUid(uid: string): Promise<StaffClaims> {
@@ -441,6 +463,9 @@ function correoClienteValido(raw: unknown): string {
   if (v.includes('no proporcionado') || v.includes('sin email') || v.includes('sin correo')) {
     return '';
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+    return '';
+  }
   return v;
 }
 
@@ -489,15 +514,15 @@ async function assertClienteProvisionable(
   }
 }
 
-/** Callable (solo admin): crea acceso portal para un cliente existente. */
+/** Callable (staff): crea acceso portal para un cliente existente. */
 export const provisionPortalClient = onCall(async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
 
-  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
-  if (!callerAdmin) {
-    throw new HttpsError('permission-denied', 'Solo administradores pueden activar el portal de clientes.');
+  const callerStaff = await isCallerStaff(request.auth.uid, request.auth.token);
+  if (!callerStaff) {
+    throw new HttpsError('permission-denied', 'Solo el personal de la clínica puede activar el portal de clientes.');
   }
 
   const clienteId = String((request.data as ProvisionPortalClientInput)?.clienteId || '').trim();
@@ -791,4 +816,232 @@ export const clearMustChangePassword = onCall(async (request) => {
 
   await syncClaimsForUid(uid);
   return { success: true, message: 'Contraseña actualizada.' };
+});
+
+interface RegisterPortalOwnerInput {
+  nombre?: string;
+  apellidoPaterno?: string;
+  correo?: string;
+  telefono?: string;
+  acceptPrivacy?: boolean;
+}
+
+const REGISTER_RATE_MAX_IP = 5;
+const REGISTER_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 h
+const REGISTER_RATE_MAX_EMAIL = 3;
+
+function clipStr(value: unknown, max: number): string {
+  return String(value ?? '')
+    .trim()
+    .slice(0, max);
+}
+
+function rateKey(prefix: string, raw: string): string {
+  const hash = crypto.createHash('sha256').update(`${prefix}:${raw}`).digest('hex').slice(0, 32);
+  return `${prefix}_${hash}`;
+}
+
+async function assertRegisterRateLimit(ip: string, email: string): Promise<void> {
+  const now = Date.now();
+  const checks: Array<{ key: string; max: number }> = [
+    { key: rateKey('ip', ip || 'unknown'), max: REGISTER_RATE_MAX_IP },
+    { key: rateKey('email', email), max: REGISTER_RATE_MAX_EMAIL }
+  ];
+
+  for (const { key, max } of checks) {
+    const ref = db.ref(`Katzen/PortalRegistroRate/${key}`);
+    const snap = await ref.once('value');
+    const data = (snap.val() || {}) as { count?: number; windowStart?: string };
+    const windowStart = data.windowStart ? Date.parse(data.windowStart) : 0;
+    let count = Number(data.count || 0);
+
+    if (!windowStart || now - windowStart > REGISTER_RATE_WINDOW_MS) {
+      count = 0;
+      await ref.set({ count: 1, windowStart: new Date(now).toISOString() });
+      continue;
+    }
+
+    if (count >= max) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Demasiados intentos de registro. Espera un momento e inténtalo de nuevo.'
+      );
+    }
+    await ref.update({ count: count + 1 });
+  }
+}
+
+/**
+ * Callable pública: self-registro dueño desde landing.
+ * Crea Cliente + Auth + AuthPerfiles y envía correo (exige RESEND_API_KEY).
+ * No retorna password.
+ */
+export const registerPortalOwner = onCall({ invoker: 'public', cors: true }, async (request) => {
+  if (request.auth?.uid) {
+    // Evitar que staff cree “self-reg” accidental; usar alta admin.
+    const tokenRole = String(request.auth.token?.role || '').toLowerCase();
+    if (tokenRole === 'staff') {
+      throw new HttpsError(
+        'failed-precondition',
+        'El personal debe dar de alta clientes desde el panel admin.'
+      );
+    }
+  }
+
+  if (!isPortalMailConfigured()) {
+    throw new HttpsError(
+      'failed-precondition',
+      'El registro en línea no está disponible: falta configurar el envío de correo (RESEND_API_KEY). Contacta a la clínica.'
+    );
+  }
+
+  const data = (request.data || {}) as RegisterPortalOwnerInput;
+  const nombre = clipStr(data.nombre, 80);
+  const apellidoPaterno = clipStr(data.apellidoPaterno, 60);
+  const telefono = clipStr(data.telefono, 20);
+  const email = correoClienteValido(data.correo);
+  const acceptPrivacy = data.acceptPrivacy === true;
+
+  if (nombre.length < 2) {
+    throw new HttpsError('invalid-argument', 'Ingresa tu nombre (mínimo 2 caracteres).');
+  }
+  if (!email) {
+    throw new HttpsError('invalid-argument', 'Ingresa un correo electrónico válido.');
+  }
+  if (!acceptPrivacy) {
+    throw new HttpsError('invalid-argument', 'Debes aceptar el aviso de privacidad para registrarte.');
+  }
+  if (telefono && !/^\+?[0-9\s\-()]{7,20}$/.test(telefono)) {
+    throw new HttpsError('invalid-argument', 'Teléfono inválido.');
+  }
+
+  const rawRequest = request.rawRequest as { ip?: string; headers?: Record<string, string | string[] | undefined> };
+  const forwarded = rawRequest?.headers?.['x-forwarded-for'];
+  const forwardedIp = Array.isArray(forwarded) ? forwarded[0] : String(forwarded || '').split(',')[0];
+  const ip = String(rawRequest?.ip || forwardedIp || 'unknown').trim();
+
+  await assertRegisterRateLimit(ip, email);
+
+  // Correo ya en Auth
+  try {
+    await admin.auth().getUserByEmail(email);
+    throw new HttpsError('already-exists', 'Este correo ya tiene una cuenta. Inicia sesión o recupera tu acceso con la clínica.');
+  } catch (err: unknown) {
+    if (err instanceof HttpsError) throw err;
+    const code = (err as { code?: string }).code;
+    if (code !== 'auth/user-not-found') {
+      const message = err instanceof Error ? err.message : 'No se pudo validar el correo.';
+      throw new HttpsError('internal', message);
+    }
+  }
+
+  // Otro cliente activo con mismo correo + portal
+  const dupSnap = await db.ref('Katzen/Cliente').orderByChild('correo').equalTo(email).once('value');
+  const dupVal = dupSnap.val() as Record<string, Record<string, unknown>> | null;
+  if (dupVal) {
+    for (const other of Object.values(dupVal)) {
+      if (other.activo !== false && other.portalActivo === true) {
+        throw new HttpsError('already-exists', 'Ya existe un cliente con este correo en el portal.');
+      }
+    }
+  }
+
+  const clienteId = crypto.randomUUID();
+  const password = generateSecurePassword(16);
+  const timestamp = new Date().toISOString();
+  const displayName = [nombre, apellidoPaterno].filter(Boolean).join(' ').trim();
+  let uid = '';
+  let createdAuth = false;
+  let wroteCliente = false;
+
+  try {
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName,
+      disabled: false
+    });
+    uid = userRecord.uid;
+    createdAuth = true;
+
+    const clientePayload: Record<string, unknown> = {
+      id: clienteId,
+      nombre,
+      apellidoPaterno: apellidoPaterno || '',
+      apellidoMaterno: '',
+      correo: email,
+      telefono: telefono || '',
+      activo: true,
+      fecha_registro: timestamp,
+      authUid: uid,
+      portalActivo: true,
+      portalProvisionedAt: timestamp,
+      portalProvisionedBy: 'self_register',
+      portalEmail: email,
+      mustChangePassword: true,
+      origenRegistro: 'landing'
+    };
+
+    await db.ref(`Katzen/Cliente/${clienteId}`).set(clientePayload);
+    wroteCliente = true;
+
+    const authPerfil: AuthPerfil = {
+      authUid: uid,
+      email,
+      role: 'client',
+      roles: ['client'],
+      clienteId,
+      activo: true,
+      mustChangePassword: true
+    };
+    await db.ref(`Katzen/AuthPerfiles/${uid}`).set(authPerfil);
+    await syncClaimsForUid(uid);
+
+    const mail = await sendPortalWelcomeEmail(
+      { to: email, nombre: displayName || nombre, password },
+      { selfRegistered: true }
+    );
+
+    if (!mail.sent) {
+      // Self-service exige correo; rollback para no dejar cuenta sin forma de entregar password.
+      await admin.auth().deleteUser(uid).catch(() => undefined);
+      await db.ref(`Katzen/AuthPerfiles/${uid}`).remove().catch(() => undefined);
+      await db.ref(`Katzen/Cliente/${clienteId}`).remove().catch(() => undefined);
+      throw new HttpsError(
+        'failed-precondition',
+        mail.reason ||
+          'No se pudo enviar el correo con tu acceso. Intenta más tarde o contacta a la clínica.'
+      );
+    }
+
+    await db.ref(`Katzen/PortalProvisionLog`).push({
+      action: 'self_register',
+      clienteId,
+      uid,
+      email,
+      emailSent: true,
+      createdAt: timestamp,
+      createdBy: 'self_register',
+      ip: ip.slice(0, 64)
+    });
+
+    return {
+      success: true,
+      clienteId,
+      email,
+      emailSent: true,
+      message: 'Cuenta creada. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+    };
+  } catch (err: unknown) {
+    if (createdAuth && uid) {
+      await admin.auth().deleteUser(uid).catch(() => undefined);
+      await db.ref(`Katzen/AuthPerfiles/${uid}`).remove().catch(() => undefined);
+    }
+    if (wroteCliente) {
+      await db.ref(`Katzen/Cliente/${clienteId}`).remove().catch(() => undefined);
+    }
+    if (err instanceof HttpsError) throw err;
+    const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';
+    throw new HttpsError('internal', message);
+  }
 });

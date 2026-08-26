@@ -23,9 +23,20 @@ export interface PortalWelcomeMailResult {
   reason?: string;
 }
 
+/** True si hay API key de Resend en el entorno de Functions. */
+export function isPortalMailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY && String(process.env.RESEND_API_KEY).trim());
+}
+
+export interface PortalWelcomeMailOptions {
+  /** Texto introductorio distinto para self-registro vs alta clínica. */
+  selfRegistered?: boolean;
+}
+
 /** Envía correo vía Resend si RESEND_API_KEY está configurada. */
 export async function sendPortalWelcomeEmail(
-  input: PortalWelcomeMailInput
+  input: PortalWelcomeMailInput,
+  options: PortalWelcomeMailOptions = {}
 ): Promise<PortalWelcomeMailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.PORTAL_FROM_EMAIL || 'Katzen Vet <onboarding@resend.dev>';
@@ -37,10 +48,14 @@ export async function sendPortalWelcomeEmail(
     };
   }
 
+  const intro = options.selfRegistered
+    ? 'Creaste tu cuenta en el portal de dueños Katzen Vet. Usa estos datos para iniciar sesión:'
+    : 'La clínica activó tu acceso al portal de dueños. Usa estos datos para iniciar sesión:';
+
   const subject = 'Tu acceso al portal Katzen Vet';
   const html = `
     <p>Hola ${escapeHtml(input.nombre)},</p>
-    <p>La clínica activó tu acceso al portal de dueños. Usa estos datos para iniciar sesión:</p>
+    <p>${intro}</p>
     <ul>
       <li><strong>Portal:</strong> <a href="${PORTAL_LOGIN_URL}">${PORTAL_LOGIN_URL}</a></li>
       <li><strong>Correo:</strong> ${escapeHtml(input.to)}</li>
@@ -49,7 +64,6 @@ export async function sendPortalWelcomeEmail(
     <p>Por seguridad, te recomendamos cambiar tu contraseña al entrar en <strong>Mi perfil → Seguridad</strong>.</p>
     <p>Si no solicitaste este acceso, contacta a la clínica.</p>
   `;
-
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
