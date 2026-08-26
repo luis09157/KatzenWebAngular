@@ -119,6 +119,6 @@ Staff con acceso a `inicio` (política 011).
 ## Notas
 
 - KPIs son **v1 defaults refinables**.
-- Ingresos baños: `pagado \|\| cajaMovimientoId` + `precio_total`; valor estimado / **ingresos brutos** incluyen no cancelados aunque no pagados.
+- Ingresos baños: `pagado \|\| cajaMovimientoId` + `precio_total`; valor estimado incluye no cancelados aunque no pagados.
 - Cirugías/hospitalización: **no hay módulo** — n/a.
-- **2026-08-26 fix:** si costo = precio de venta → **ganancia/margen = 0** (correcto), pero conteo + **ingresos brutos** deben subir. El dashboard ya no depende solo de caja: baños del período sin `cajaMovimientoId` suman `precio_total` a ingresos y `costoEstimado` a costos (sin doble conteo si ya hay movimiento).
+- **2026-08-26:** se eliminó el launcher/cards de módulos en `/admin/inicio`; navegación por menú lateral; la página prioriza métricas + calendario.
