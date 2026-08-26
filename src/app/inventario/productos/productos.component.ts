@@ -149,7 +149,13 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
     if (result.isConfirmed && producto.id) {
       try {
         await this.inventarioService.eliminarProducto(producto.id);
-        Swal.fire('Borrado', 'El producto ha sido borrado', 'success');
+        Swal.fire({
+          icon: 'success',
+          title: 'Borrado',
+          text: 'El producto ha sido borrado',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.cargarProductos();
       } catch (error) {
         this.logger.error('Error al eliminar producto:', error);

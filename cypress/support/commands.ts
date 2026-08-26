@@ -16,6 +16,8 @@ declare global {
       visitAdminModule(path: string): Chainable<void>;
       confirmSwal(): Chainable<void>;
       dismissSwalSuccess(): Chainable<void>;
+      /** Cierra Swal con confirm o espera timer (showConfirmButton: false). */
+      dismissSwalAny(): Chainable<void>;
       openPacienteExpediente(searchTerm?: string): Chainable<void>;
       fillClienteFormBasico(options: {
         nombre: string;
@@ -82,7 +84,16 @@ Cypress.Commands.add('loginStaffRole', (role: 'doctor' | 'recepcionista' | 'pelu
 });
 
 Cypress.Commands.add('navigateAdmin', (path: string) => {
-  cy.get(`a[routerLink="${path}"]`, { timeout: 15000 }).should('be.visible').click();
+  cy.get('body').then($body => {
+    const $nav = $body.find('mat-sidenav.admin-sidenav');
+    const hidden =
+      $nav.length > 0 &&
+      ($nav.css('display') === 'none' || !$nav.hasClass('mat-drawer-opened'));
+    if (hidden) {
+      cy.get('.m3-top-bar button[mat-icon-button]').first().click({ force: true });
+    }
+  });
+  cy.get(`a[routerLink="${path}"]`, { timeout: 15000 }).should('exist').click({ force: true });
   cy.url({ timeout: 15000 }).should('include', path);
 });
 
@@ -129,10 +140,21 @@ Cypress.Commands.add('confirmSwal', () => {
 });
 
 Cypress.Commands.add('dismissSwalSuccess', () => {
-  cy.get('.swal2-popup', { timeout: 30000 }).should('exist');
+  cy.get('body').should('have.class', 'swal2-shown');
   cy.get('.global-loading-overlay', { timeout: 30000 }).should('not.exist');
-  cy.get('.swal2-confirm').click({ force: true });
-  cy.get('.swal2-popup').should('not.exist');
+  cy.get('.swal2-confirm').should('exist').click({ force: true, multiple: true });
+  cy.get('body', { timeout: 15000 }).should('not.have.class', 'swal2-shown');
+});
+
+Cypress.Commands.add('dismissSwalAny', () => {
+  cy.get('.swal2-popup', { timeout: 30000 }).should('be.visible');
+  cy.get('.global-loading-overlay', { timeout: 30000 }).should('not.exist');
+  cy.get('body').then($body => {
+    if ($body.find('.swal2-confirm').length) {
+      cy.get('.swal2-confirm').click({ force: true, multiple: true });
+    }
+  });
+  cy.get('body', { timeout: 15000 }).should('not.have.class', 'swal2-shown');
 });
 
 Cypress.Commands.add('fillClienteFormBasico', (options) => {

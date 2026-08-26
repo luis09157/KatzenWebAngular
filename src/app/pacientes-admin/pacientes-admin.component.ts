@@ -219,11 +219,19 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
       if (result) {
         this.loadingService.show();
         this.pacientesService.crearPaciente(result)
-          .then(() => {
+          .then((id) => {
             this.loadingService.hide();
+            const nuevo = { ...result, id, activo: true };
+            this.pacientes = [nuevo, ...this.pacientes.filter(p => p.id !== id)];
+            this.prepararDataSource();
             setTimeout(() => {
-              Swal.fire('Éxito', 'Paciente creado correctamente', 'success');
-              this.cargarDatos();
+              Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Paciente creado correctamente',
+                timer: 2000,
+                showConfirmButton: false
+              });
             }, 0);
           })
           .catch(error => {
@@ -247,9 +255,18 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
         this.pacientesService.actualizarPaciente(paciente.id, result)
           .then(() => {
             this.loadingService.hide();
+            this.pacientes = this.pacientes.map(p =>
+              p.id === paciente.id ? { ...p, ...result, id: paciente.id } : p
+            );
+            this.prepararDataSource();
             setTimeout(() => {
-              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-              this.cargarDatos();
+              Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Paciente actualizado correctamente',
+                timer: 2000,
+                showConfirmButton: false
+              });
             }, 0);
           })
           .catch(error => {

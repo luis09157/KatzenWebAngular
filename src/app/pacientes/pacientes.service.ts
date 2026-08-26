@@ -78,14 +78,16 @@ export class PacientesService {
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
-  crearPaciente(paciente: Paciente): Promise<unknown> {
+  crearPaciente(paciente: Paciente): Promise<string> {
     paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente;
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
     return this.db.list('Katzen/Mascota').push(paciente).then(async (ref) => {
-      if (ref.key) {
-        await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key });
+      if (!ref.key) {
+        throw new Error('No se pudo crear el paciente');
       }
+      await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key });
+      return ref.key;
     });
   }
 

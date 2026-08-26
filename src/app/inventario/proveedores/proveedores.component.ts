@@ -169,7 +169,13 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
     if (result.isConfirmed && proveedor.id) {
       try {
         await this.inventarioService.eliminarProveedor(proveedor.id);
-        Swal.fire('Borrado', 'El proveedor ha sido borrado', 'success');
+        Swal.fire({
+          icon: 'success',
+          title: 'Borrado',
+          text: 'El proveedor ha sido borrado',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.cargarProveedores();
       } catch (error) {
         this.logger.error('Error al eliminar proveedor:', error);

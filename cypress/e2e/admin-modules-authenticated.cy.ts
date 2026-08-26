@@ -9,7 +9,7 @@ describe('Admin modules authenticated', () => {
     { path: '/admin/historiales', container: '.historiales-contenedor', title: 'Administración de Historiales Clínicos' },
     { path: '/admin/vacunas', container: '.vacunas-contenedor', title: 'Administración de Vacunas' },
     { path: '/admin/recordatorios', container: '.recordatorios-contenedor', title: 'Administración de Recordatorios' },
-    { path: '/admin/usuarios', container: '.usuarios-contenedor', title: 'Administración de Usuarios' },
+    { path: '/admin/usuarios', container: '.usuarios-contenedor', title: 'Personal staff y portal' },
     { path: '/admin/pacientes-admin', container: '.pacientes-contenedor', title: 'Administración de Pacientes' },
     { path: '/admin/contactos-web', container: '.contactos-contenedor', title: 'Administración de Contactos Web' },
     { path: '/admin/inventario/productos', container: '.admin-page', title: 'Catálogo de Productos' },

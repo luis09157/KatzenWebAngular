@@ -98,7 +98,10 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   }
 
   closeSidenav() {
-    this.sidenavOpened = false;
+    // En desktop el sidenav es permanente (mode=side); solo cerrar en móvil (over).
+    if (this.isMobile) {
+      this.sidenavOpened = false;
+    }
   }
 
   logout() {

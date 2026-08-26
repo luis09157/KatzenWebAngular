@@ -237,14 +237,27 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
       if (this.modoEdicion && this.data.producto?.id) {
         console.log('🔄 Actualizando producto...');
         await this.inventarioService.actualizarProducto(this.data.producto.id, formData as Partial<Producto>);
-        Swal.fire('Éxito', 'Producto actualizado correctamente', 'success');
+        this.dialogRef.close(true);
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'Producto actualizado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
         console.log('🔄 Creando nuevo producto...');
         await this.inventarioService.crearProducto(formData);
-        Swal.fire('Éxito', 'Producto creado correctamente', 'success');
+        this.dialogRef.close(true);
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'Producto creado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
 
-      this.dialogRef.close(true);
     } catch (error) {
       console.error('❌ Error al guardar producto:', error);
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar producto'), 'error');

@@ -105,7 +105,7 @@ export class ProveedorDialogComponent implements OnInit {
         console.log('🔄 Actualizando proveedor...');
         await this.inventarioService.actualizarProveedor(this.proveedor.id, formData);
         console.log('✅ Proveedor actualizado');
-        
+        this.dialogRef.close(true);
         Swal.fire({
           icon: 'success',
           title: 'Proveedor Actualizado',
@@ -117,7 +117,7 @@ export class ProveedorDialogComponent implements OnInit {
         console.log('🔄 Creando proveedor...');
         await this.inventarioService.crearProveedor(formData);
         console.log('✅ Proveedor creado');
-        
+        this.dialogRef.close(true);
         Swal.fire({
           icon: 'success',
           title: 'Proveedor Creado',
@@ -127,7 +127,6 @@ export class ProveedorDialogComponent implements OnInit {
         });
       }
 
-      this.dialogRef.close(true);
     } catch (error) {
       console.error('❌ Error al guardar proveedor:', error);
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar proveedor'), 'error');
