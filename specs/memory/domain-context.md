@@ -192,7 +192,10 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `tipo_servicio` | enum | baño_básico, baño_completo, corte_pelo, … |
 | `estado` | enum | programado, en_proceso, completado, cancelado |
 | `peluquero_id` | string | Conflicto de horario validado |
-| `precio_base`, `precio_total`, `pagado` | number/bool | Cancelar revierte `pagado: false` |
+| `precio_base`, `precio_total`, `pagado` | number/bool | Cancelar revierte `pagado: false`; **precio_total se captura por registro** (varía; no forzar fijo) |
+| `tamano_perro?` | enum | `pequeno` \| `mediano` \| `grande` — **022** (aditivo) |
+| `costoEstimado?`, `plantillaCostoId?` | number/string | **022** — default por tamaño + override; enlace a caja/margen |
+| `cajaMovimientoId?` | string | Link a `Caja/Movimientos` (018) |
 | `activo` | boolean | Baja lógica |
 
 ### 3.8 `Katzen/Inventario/*`
@@ -205,13 +208,15 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Alertas:** Auto-creadas por stock bajo, punto reorden, caducidad (sin deduplicar en `generarAlertasAutomaticas`).
 
-### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021)
+### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021 / 022)
 
 **Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (baño/corte/cirugía/venta/consulta/publicidad/operativo/otro), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `activo`.
 
 **Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio`, `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
-**Fuera de alcance web (fase 2):** CFDI/SAT, BOM automático desde historial, descuento stock al completar baño.
+**Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en config; override al registrar baño; `precio_total` siempre por registro.
+
+**Fuera de alcance web (histórico 021):** CFDI/SAT. **Plan 022:** (1) defaults baño por tamaño + enlace caja/costos; (2) wire baño/venta→stock+caja; (3) consumo desde historial; (4) egresos tipificados (gasolina/proveedores); (5) gráficas en tab Rentabilidad — sin módulos nuevos.
 
 ### 3.9 Auth y usuarios
 
@@ -304,8 +309,9 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 ### 4.9 Peluquería / baños
 
 - Baño **cancelado:** puede cancelarse; debe afectar métricas operativas.
-- **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal. Implementación en roadmap §12.
+- **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link **018** + costos **021** · defaults por tamaño + precio por registro **022**.
 - Cancelar revierte `pagado: false` (código actual).
+- **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
 
 ### 4.10 Landing / contactos
 
@@ -587,7 +593,7 @@ flowchart TD
 | # | Tema | Decisión | Estado |
 |---|------|----------|--------|
 | 19 | Baño cancelado | Puede cancelarse; debe afectar métricas; sistema debe llevar finanzas (baños, medicina, etc.) con balances mensuales — **roadmap** · P&L día/mes en **021** | Confirmado (parcial 021) |
-| 20 | Ingresos baños → ventas/caja | **Sí** — tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link baño→caja **018** + categoría/margen **021** | Confirmado |
+| 20 | Ingresos baños → ventas/caja | **Sí** — tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link baño→caja **018** + categoría/margen **021** + defaults tamaño/precio por registro **022** | Confirmado |
 
 ### Clientes
 
@@ -619,7 +625,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | Feature | Origen | Notas |
 |---------|--------|-------|
 | **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
-| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho; **costos/rentabilidad 021** (plantillas + margen + P&L día/mes) |
+| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho; **costos/rentabilidad 021** hecho; **022** defaults baño por tamaño + automatización enlace (docs; UI pendiente) |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |

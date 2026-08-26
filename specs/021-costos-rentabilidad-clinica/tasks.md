@@ -99,3 +99,7 @@ npx cypress run --spec admin-crud-finanzas.cy.ts → 1 passing
   - Hosting: https://katzen-a0e3e.web.app
   - Rules `Katzen/Finanzas` + index `categoria` liberadas
   - Rebuild hosting post-fix Swal plantillas
+
+### Seguimiento (no reabre 021)
+
+- [x] Requisitos baños por tamaño / precio por registro / enlace finanzas documentados en **022** (`specs/022-automatizacion-costos-dashboard/`)

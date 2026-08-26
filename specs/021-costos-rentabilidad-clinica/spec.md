@@ -87,15 +87,20 @@ Para **alimentar plantillas y márgenes**
 
 ---
 
-## Fuera de alcance (MVP) — Fase 2
+## Fuera de alcance (MVP) — Fase 2 / 022
 
 - Facturación electrónica **SAT CFDI** (timbrado, UUID, cancelación)
 - BOM automático de cirugía desde historial clínico / salidas de inventario
-- Descuento automático de stock al completar baño
+- Descuento automático de stock al completar baño → planificado en **`specs/022-automatizacion-costos-dashboard/`** (Fase B)
+- **Defaults de costo por tamaño de perro** (pequeño/mediano/grande) + override al registrar baño + precio por registro → **022** (Config UI + Fase A)
 - COGS FIFO / costo promedio ponderado formal
 - Nómina, conciliación bancaria, pasarela de pagos
 - Integración nodo legacy `Katzen/Venta`
 - Resend / correo (diferido)
+
+### Continuación: baños ↔ finanzas (022)
+
+021 deja plantillas + caja con categoría/margen. **022** añade el catálogo de defaults por tamaño, el prefill/override en el diálogo de baño y el arrastre de `costoAsociado` al flujo baño→caja (018). Ver sección *Baños: defaults por tamaño…* en `specs/022-automatizacion-costos-dashboard/`.
 
 ---
 

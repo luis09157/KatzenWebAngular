@@ -97,7 +97,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja** | Spec/plan en `specs/014-finanzas-caja-mvp/` + **018** CSV/baño→caja **hecho**. **021** costos/rentabilidad (plantillas + margen + P&L día/mes) | Alta — **MVP + CSV + costos 021** |
+| **Finanzas / caja** | Spec/plan en `specs/014-finanzas-caja-mvp/` + **018** CSV/baño→caja **hecho**. **021** costos/rentabilidad **hecho**. **022** automatización: defaults baño por tamaño + precio por registro + enlace caja/costos (docs; UI pendiente) | Alta — **MVP + CSV + 021; siguiente 022** |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |

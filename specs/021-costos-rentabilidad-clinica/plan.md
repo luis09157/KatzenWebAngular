@@ -160,9 +160,17 @@ Sin Functions. Solo con autorización explícita de Luis.
 
 1. **SAT CFDI** — timbrado, series, cancelación, complemento pago
 2. BOM cirugía desde historial + salidas inventario automáticas
-3. Descuento stock al completar baño con productos
+3. Descuento stock al completar baño con productos → **022 Fase B**
 4. Costo promedio ponderado en entradas
 5. Reportes P&L anuales / por sucursal
+
+### Seguimiento 022 (baños + automatización)
+
+Ver `specs/022-automatizacion-costos-dashboard/`:
+
+- **Config UI:** defaults costo (y precio sugerido opcional) por tamaño pequeño/mediano/grande
+- **Fase A:** registro baño con override + precio por registro + prefill caja (`costoAsociado` / plantilla)
+- **Fase B:** descuento inventario si plantilla trae productos clínicos
 
 ---
 
