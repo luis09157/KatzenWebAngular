@@ -27,7 +27,9 @@
 - [x] Deploy database ejecutado 2026-08-26 — éxito (rules en prod)
 - [ ] Rules unit tests / emulador RTDB — **no existen en repo**
 - [x] Smoke admin post-deploy (Cypress + `cypress.env.json`) — **PASS 2026-08-26** (ver tabla)
-- [ ] Smoke manual por roles restantes (doctor / recepcionista / peluquero / portal / sin staffRole) — **pendiente** (requiere usuarios)
+- [x] Smoke multi-rol doctor / recepcionista / peluquero — **PASS 2026-08-26** (usuarios efímeros + Cypress 16/16 + RTDB probe; luego desactivados)
+- [ ] Smoke portal E2E (D.1–D.3) — **PENDIENTE** (falta credencial portal o clienteId autorizado)
+- [ ] Smoke staff legacy sin `staffRole` (E.*) — **PENDIENTE** (no creable vía `provisionStaffUser`; ver checklist)
 - [x] Comparación rules locales vs prod — alineadas tras deploy 2026-08-26 (mismo `database.rules.json` liberado)
 - [x] Unit portal-mapper (`notas_internas` / `oculto_portal`) — **8/8 PASS** 2026-08-26
 
@@ -37,7 +39,7 @@
 |------|-----------|-------|
 | JSON rules válido | OK 2026-08-26 | |
 | Matriz roles documentada | OK | plan.md + smoke-roles-checklist.md |
-| Fallback sin staffRole | Documentado / en rules | smoke E pendiente |
+| Fallback sin staffRole | Documentado / en rules | smoke E pendiente (no creable vía callable) |
 | Deploy database | **OK** 2026-08-26 | |
 | Localhost :4200 | **OK** | LISTEN + HTTP 200 |
 | Admin A1.* Citas R/W UI | **PASS** | Cypress admin-modules |
@@ -45,22 +47,24 @@
 | Admin A1.* Inventario lectura UI | **PASS** | productos + movimientos |
 | Admin A1.* Baños diálogo | **PASS** | banios-flujos |
 | Admin A1.* Vacunas / Recordatorios | **PASS** | módulos autenticados |
-| Cypress suite 008-related | **PASS** 23/23 | modules + 008-010 + smoke + banios |
+| Cypress suite 008-related admin | **PASS** 23/23 | modules + 008-010 + smoke + banios |
 | Unit notas_internas portal | **PASS** 8/8 | dueño no ve (mapper) |
-| Doctor A2.* | **PENDIENTE** | requiere usuario doctor |
-| Recepcionista B.* | **PENDIENTE** | requiere usuario recepcionista |
-| Peluquero C.* | **PENDIENTE** | requiere usuario peluquero |
-| Portal D.1–D.3 E2E | **PENDIENTE** | requiere usuario portal |
-| Staff legacy E.* | **PENDIENTE** | requiere usuario sin staffRole |
+| Doctor A2.* UI + RTDB | **PASS** | Cypress roles + rtdb-probe |
+| Recepcionista B.* UI + RTDB | **PASS** | Cypress roles + rtdb-probe |
+| Peluquero C.* UI + RTDB | **PASS** | Cypress roles + rtdb-probe |
+| Portal D.1–D.3 E2E | **PENDIENTE** | falta portalEmail/password o clienteId |
+| Staff legacy E.* | **PENDIENTE** | syncClaims default doctor; sin emulador |
 | Rules unit tests | No existen | pendiente |
+| Cypress multi-rol 008 | **PASS** 16/16 | `admin-roles-008-smoke.cy.ts` |
+| RTDB probe JSON | **PASS** | `smoke-roles-rtdb-probe.json` |
 
 ### Plan de prueba manual post-deploy
 
 Ver `smoke-roles-checklist.md` (checklist completo con `- [ ]` y columna Resultado).
 
-1. Emulador o staging: admin write historial OK; recepcionista DENIED; peluquero baño OK / inventario DENIED.
-2. Token sin `staffRole`: write legacy OK (fallback).
-3. Portal client: lectura propia OK; write clínico DENIED.
+1. ~~Emulador o staging: admin write historial OK; recepcionista DENIED; peluquero baño OK / inventario DENIED.~~ → **hecho en prod rules** vía usuarios efímeros + rtdb-probe 2026-08-26.
+2. Token sin `staffRole`: write legacy OK (fallback) — **sigue pendiente**.
+3. Portal client: lectura propia OK; write clínico DENIED — **sigue pendiente** (credencial).
 4. Tras deploy autorizado: smoke app móvil staff.
 
 ---
@@ -70,8 +74,11 @@ Ver `smoke-roles-checklist.md` (checklist completo con `- [ ]` y columna Resulta
 ```
 npm run build → exit 0 (previo)
 Cypress (admin-modules + 008-010 + admin-smoke + banios) → 23/23 PASS
+Cypress admin-roles-008-smoke → 16/16 PASS
+node scripts/smoke-008-provision-roles.mjs rtdb-probe → doctor/recepcionista/peluquero alineados a matriz
 ng test portal-mapper.util.spec.ts → 8/8 PASS
 :4200 → vivo
+Usuarios efímeros → desactivados tras corrida
 ```
 
-Smoke multi-rol completo **sigue pendiente** de credenciales doctor / recepcionista / peluquero / portal / legacy.
+Pendiente solo: **portal E2E** + **legacy sin staffRole** (ver bloqueos en checklist).

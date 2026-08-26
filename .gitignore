@@ -159,6 +159,7 @@ firebase-debug.*.log
 
 # Cypress secrets (no commitear)
 cypress.env.json
+cypress.env.smoke-roles.json
 
 # Angular specific
 .angular/ 

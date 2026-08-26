@@ -7,7 +7,25 @@
 
 **Leyenda Resultado:** `PASS` | `FAIL` | `PENDIENTE` | `N/A`
 
-**Última corrida automatizada:** 2026-08-26 — Cypress admin **23/23 PASS**; unit portal-mapper **8/8 PASS**; `:4200` vivo.
+**Última corrida automatizada:** 2026-08-26 — Cypress admin **23/23 PASS**; roles 008 **16/16 PASS**; RTDB probe multi-rol **PASS**; unit portal-mapper **8/8 PASS**; `:4200` vivo.
+
+**Herramientas smoke multi-rol**
+
+```bash
+# 1) Provisionar staff efímero (doctor/recepcionista/peluquero) con admin de cypress.env.json
+node scripts/smoke-008-provision-roles.mjs provision
+
+# 2) Probe writes RTDB (ALLOW/DENIED) — limpia probes si ALLOW
+node scripts/smoke-008-provision-roles.mjs rtdb-probe
+
+# 3) Cypress UI por rol
+npx cypress run --spec cypress/e2e/admin-roles-008-smoke.cy.ts --browser chrome
+
+# 4) Desactivar usuarios efímeros
+node scripts/smoke-008-provision-roles.mjs deactivate
+```
+
+Credenciales rol → `cypress.env.json` / `cypress.env.smoke-roles.json` (**gitignored**, no passwords en repo).
 
 **Matriz RTDB (write) — resumen**
 
@@ -25,12 +43,14 @@
 
 **Notas internas (`notas_internas`):** write vía historial (solo admin/doctor + fallback). El portal **no** las expone en mapper (`mapHistorial`); RTDB no oculta el campo hijo — la garantía es app + write clínico.
 
+**Evidencia RTDB probe 2026-08-26** (`smoke-roles-rtdb-probe.json`): doctor Inventario DENIED / resto clínico ALLOW; recepcionista Historiales+Vacunas+Inventario DENIED / Citas+Baños ALLOW; peluquero solo Baños ALLOW.
+
 ---
 
 ## Cómo ejecutar
 
 1. Confirmar `http://localhost:4200` vivo.
-2. Credenciales en `cypress.env.json` (solo admin en repo local) o usuarios de prueba por rol.
+2. Credenciales en `cypress.env.json` (admin + roles via script) — **nunca** commitear passwords.
 3. Marcar cada ítem `- [x]` y rellenar **Resultado**.
 4. Registrar resumen en `tasks.md` § Testing.
 
@@ -69,97 +89,116 @@ Checklist rápido:
 - [x] A1.9 Baños R/W — **PASS** (diálogo)
 - [x] A1.10 Vacunas / Recordatorios — **PASS**
 
-### A2. Doctor — requiere usuario doctor
+### A2. Doctor — usuario efímero `provisionStaffUser` + Cypress / RTDB probe
 
 | # | Acción mínima | Esperado | Resultado | Notas |
 |---|---------------|----------|-----------|-------|
-| A2.1 | Login doctor → módulos clínicos | OK | **PENDIENTE** | requiere usuario doctor |
-| A2.2 | Citas R/W | PASS | **PENDIENTE** | |
-| A2.3 | Historiales R/W | PASS | **PENDIENTE** | |
-| A2.4 | Inventario: módulo **no** en menú UI | PASS (UI) | **PENDIENTE** | |
-| A2.5 | Inventario write RTDB DENIED si se intenta directo | DENIED | **PENDIENTE** | |
-| A2.6 | Baños R/W | PASS | **PENDIENTE** | |
+| A2.1 | Login doctor → módulos clínicos | OK | **PASS** | Cypress `admin-roles-008-smoke` 16/16 |
+| A2.2 | Citas R/W | PASS | **PASS** | UI diálogo + RTDB ALLOW |
+| A2.3 | Historiales R/W | PASS | **PASS** | UI + RTDB ALLOW |
+| A2.4 | Inventario: módulo **no** en menú UI | PASS (UI) | **PASS** | menú + guard → inicio |
+| A2.5 | Inventario write RTDB DENIED si se intenta directo | DENIED | **PASS** | rtdb-probe |
+| A2.6 | Baños R/W | PASS | **PASS** | UI diálogo + RTDB ALLOW |
 
-- [ ] A2.1 Login doctor — **requiere usuario doctor**
-- [ ] A2.2 Citas R/W
-- [ ] A2.3 Historiales R/W
-- [ ] A2.4 UI sin inventario
-- [ ] A2.5 Inventario write DENIED (RTDB)
-- [ ] A2.6 Baños R/W
+- [x] A2.1 Login doctor — **PASS**
+- [x] A2.2 Citas R/W — **PASS**
+- [x] A2.3 Historiales R/W — **PASS**
+- [x] A2.4 UI sin inventario — **PASS**
+- [x] A2.5 Inventario write DENIED (RTDB) — **PASS**
+- [x] A2.6 Baños R/W — **PASS**
 
 ---
 
-## B. Recepcionista — requiere usuario recepcionista
+## B. Recepcionista — usuario efímero + Cypress / RTDB probe
 
 | # | Acción mínima | Esperado | Resultado | Notas |
 |---|---------------|----------|-----------|-------|
-| B.1 | Login → citas / clientes / baños / recordatorios | OK | **PENDIENTE** | requiere usuario recepcionista |
-| B.2 | Citas R/W | PASS | **PENDIENTE** | |
-| B.3 | Historiales: lectura OK; write DENIED (RTDB) | R OK / W DENIED | **PENDIENTE** | UI puede ocultar módulo |
-| B.4 | Inventario: sin módulo UI; write DENIED | DENIED | **PENDIENTE** | |
-| B.5 | Baños R/W | PASS | **PENDIENTE** | |
-| B.6 | Vacunas write DENIED | DENIED | **PENDIENTE** | |
+| B.1 | Login → citas / clientes / baños / recordatorios | OK | **PASS** | menú OK; sin historiales/inventario/vacunas |
+| B.2 | Citas R/W | PASS | **PASS** | UI + RTDB ALLOW |
+| B.3 | Historiales: lectura OK; write DENIED (RTDB) | R OK / W DENIED | **PASS** | UI módulo denegado; RTDB W DENIED |
+| B.4 | Inventario: sin módulo UI; write DENIED | DENIED | **PASS** | UI + RTDB |
+| B.5 | Baños R/W | PASS | **PASS** | UI + RTDB ALLOW |
+| B.6 | Vacunas write DENIED | DENIED | **PASS** | UI denegado + RTDB DENIED |
 
-- [ ] B.1 Login recepcionista — **requiere usuario recepcionista**
-- [ ] B.2 Citas R/W
-- [ ] B.3 Historiales: R OK, W DENIED
-- [ ] B.4 Inventario W DENIED
-- [ ] B.5 Baños R/W
-- [ ] B.6 Vacunas W DENIED
+- [x] B.1 Login recepcionista — **PASS**
+- [x] B.2 Citas R/W — **PASS**
+- [x] B.3 Historiales: R OK, W DENIED — **PASS** (UI deny + RTDB W DENIED)
+- [x] B.4 Inventario W DENIED — **PASS**
+- [x] B.5 Baños R/W — **PASS**
+- [x] B.6 Vacunas W DENIED — **PASS**
 
 ---
 
-## C. Peluquero — requiere usuario peluquero
+## C. Peluquero — usuario efímero + Cypress / RTDB probe
 
 | # | Acción mínima | Esperado | Resultado | Notas |
 |---|---------------|----------|-----------|-------|
-| C.1 | Login → solo inicio / paciente / baños (UI) | OK | **PENDIENTE** | requiere usuario peluquero |
-| C.2 | Citas write DENIED | DENIED | **PENDIENTE** | |
-| C.3 | Historiales write DENIED | DENIED | **PENDIENTE** | |
-| C.4 | Inventario write DENIED | DENIED | **PENDIENTE** | |
-| C.5 | Baños R/W | PASS | **PENDIENTE** | |
+| C.1 | Login → solo inicio / paciente / baños (UI) | OK | **PASS** | menú estricto |
+| C.2 | Citas write DENIED | DENIED | **PASS** | UI deny + RTDB DENIED |
+| C.3 | Historiales write DENIED | DENIED | **PASS** | UI deny + RTDB DENIED |
+| C.4 | Inventario write DENIED | DENIED | **PASS** | UI deny + RTDB DENIED |
+| C.5 | Baños R/W | PASS | **PASS** | UI + RTDB ALLOW |
 
-- [ ] C.1 Login peluquero — **requiere usuario peluquero**
-- [ ] C.2 Citas W DENIED
-- [ ] C.3 Historiales W DENIED
-- [ ] C.4 Inventario W DENIED
-- [ ] C.5 Baños R/W
+- [x] C.1 Login peluquero — **PASS**
+- [x] C.2 Citas W DENIED — **PASS**
+- [x] C.3 Historiales W DENIED — **PASS**
+- [x] C.4 Inventario W DENIED — **PASS**
+- [x] C.5 Baños R/W — **PASS**
 
 ---
 
-## D. Portal cliente — requiere usuario portal
+## D. Portal cliente — **bloqueado** (falta credencial / cliente de prueba)
 
 | # | Acción mínima | Esperado | Resultado | Notas |
 |---|---------------|----------|-----------|-------|
-| D.1 | Login `/portal` | OK | **PENDIENTE** | requiere usuario portal |
-| D.2 | Lee solo sus mascotas / citas / historiales | PASS | **PENDIENTE** | `clienteId` en claims |
+| D.1 | Login `/portal` | OK | **PENDIENTE** | ver bloqueo abajo |
+| D.2 | Lee solo sus mascotas / citas / historiales | PASS | **PENDIENTE** | |
 | D.3 | No escribe Citas / Historiales / Vacunas / Inventario | DENIED | **PENDIENTE** | |
 | D.4 | No ve `notas_internas` en UI portal (mapper) | PASS | **PASS** (unit) | `portal-mapper.util.spec.ts` 8/8; E2E portal PENDIENTE |
 | D.5 | Historial con `oculto_portal: true` no visible | PASS | **PASS** (unit) | mismas specs unit |
 
-- [ ] D.1 Login portal — **requiere usuario portal**
+- [ ] D.1 Login portal — **PENDIENTE**
 - [ ] D.2 Lectura solo datos propios
 - [ ] D.3 Write clínico DENIED
 - [x] D.4 Dueño NO ve notas internas — **PASS unit** 2026-08-26 (E2E portal pendiente)
 - [x] D.5 Oculto portal respeta flag — **PASS unit**
 
+### Bloqueo portal (qué falta de Luis)
+
+`provisionPortalClient` exige un `clienteId` real con correo válido y envía email Resend (tocaría prod). No hay `portalEmail`/`portalPassword` en `cypress.env.json`.
+
+Para cerrar D.1–D.3 hace falta **una** de:
+
+1. Credencial portal de prueba ya existente: `portalEmail` + `portalPassword` en `cypress.env.json` (local), **o**
+2. Autorización explícita: `clienteId` desechable + permiso para llamar `provisionPortalClient` (correo Resend) y luego `deactivatePortalClient`.
+
 ---
 
-## E. Staff sin `staffRole` (legacy móvil) — requiere token/usuario legacy
+## E. Staff sin `staffRole` (legacy móvil) — **bloqueado** (no creable vía UI/callable)
 
 Fallback en rules: `auth.token.staffRole == null` → write como staff genérico (comportamiento pre-008).
 
 | # | Acción mínima | Esperado | Resultado | Notas |
 |---|---------------|----------|-----------|-------|
-| E.1 | Token staff sin claim `staffRole` | claims OK | **PENDIENTE** | requiere usuario legacy / emulador |
+| E.1 | Token staff sin claim `staffRole` | claims OK | **PENDIENTE** | ver nota |
 | E.2 | Write Historiales OK (fallback) | PASS | **PENDIENTE** | |
 | E.3 | Write Inventario OK (fallback) | PASS | **PENDIENTE** | |
 | E.4 | Write Citas / Baños OK | PASS | **PENDIENTE** | |
 
-- [ ] E.1 Identificar usuario sin staffRole — **requiere usuario legacy**
+- [ ] E.1 Identificar usuario sin staffRole — **PENDIENTE**
 - [ ] E.2 Historiales W OK
 - [ ] E.3 Inventario W OK
 - [ ] E.4 Citas / Baños W OK
+
+### Nota técnica legacy
+
+`provisionStaffUser` / `syncClaimsForUid` **siempre** asignan `staffRole` (si falta en AuthPerfiles → default `'doctor'`). No hay emulador RTDB / rules-unit en el repo (`F.4`).
+
+Para probar E.* hace falta **una** de:
+
+1. Usuario Auth legacy real cuyo token aún tenga `staffRole == null` (sin re-sync), **o**
+2. Admin SDK (`setCustomUserClaims` sin `staffRole`) + evitar trigger `onAuthPerfilWrite`, **o**
+3. Rules unit tests / emulador (no existe hoy).
 
 ---
 
@@ -171,8 +210,12 @@ Fallback en rules: `auth.token.staffRole == null` → write como staff genérico
 | F.2 | Cypress admin: módulos citas/historiales/inventario/baños | PASS | **PASS** | 23/23 2026-08-26 |
 | F.3 | Unit portal: `notas_internas` no en mapper | PASS | **PASS** | 8/8 |
 | F.4 | Rules-unit / emulador por rol | — | **PENDIENTE** | no existe en repo |
+| F.5 | Cypress multi-rol 008 | PASS | **PASS** | 16/16 `admin-roles-008-smoke` |
+| F.6 | RTDB probe multi-rol | PASS | **PASS** | `smoke-roles-rtdb-probe.json` |
 
 - [x] F.1 Parse rules — **PASS**
 - [x] F.2 Cypress admin smoke módulos 008 — **PASS** 23/23
 - [x] F.3 Unit mapper notas internas — **PASS** 8/8
 - [ ] F.4 Emulador multi-rol — no existe en repo
+- [x] F.5 Cypress roles doctor/recepcionista/peluquero — **PASS** 16/16
+- [x] F.6 RTDB probe writes por rol — **PASS**

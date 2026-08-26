@@ -4,6 +4,12 @@ declare global {
   namespace Cypress {
     interface Chainable {
       loginAdmin(): Chainable<void>;
+      /**
+       * Login staff por rol smoke 008.
+       * Credenciales: Cypress.env(`${role}Email` / `${role}Password`)
+       * roles: doctor | recepcionista | peluquero
+       */
+      loginStaffRole(role: 'doctor' | 'recepcionista' | 'peluquero'): Chainable<void>;
       /** Navegación SPA sin recargar (preserva sesión Firebase). */
       navigateAdmin(path: string): Chainable<void>;
       /** Navega a un módulo admin sin recargar (sidenav o sub-rutas de inventario). */
@@ -31,14 +37,12 @@ export function requireAdminCredentials(): void {
   }
 }
 
-Cypress.Commands.add('loginAdmin', () => {
-  requireAdminCredentials();
-  const email = Cypress.env('adminEmail') as string;
-  const password = Cypress.env('adminPassword') as string;
-
+function loginWithCredentials(email: string, password: string): void {
   cy.visit('/admin/login');
   cy.get('input[name="email"]', { timeout: 15000 }).should('be.visible').click({ force: true }).clear({ force: true }).type(email, { force: true });
   cy.get('input[name="password"]').click({ force: true }).clear({ force: true }).type(password, { log: false, force: true });
+  // Evita race AuthGuard en cy.visit a módulos: sesión LOCAL + auto-redirect desde login
+  cy.get('mat-checkbox.admin-auth-remember input[type="checkbox"]').check({ force: true });
   cy.get('button[type="submit"].admin-auth-submit').contains('Iniciar sesión').click();
 
   cy.url({ timeout: 45000 }).should('match', /\/admin\/(inicio|clientes)/);
@@ -49,6 +53,24 @@ Cypress.Commands.add('loginAdmin', () => {
     }
   });
   cy.get('mat-sidenav', { timeout: 20000 }).should('exist');
+}
+
+Cypress.Commands.add('loginAdmin', () => {
+  requireAdminCredentials();
+  const email = Cypress.env('adminEmail') as string;
+  const password = Cypress.env('adminPassword') as string;
+  loginWithCredentials(email, password);
+});
+
+Cypress.Commands.add('loginStaffRole', (role: 'doctor' | 'recepcionista' | 'peluquero') => {
+  const email = Cypress.env(`${role}Email`) as string | undefined;
+  const password = Cypress.env(`${role}Password`) as string | undefined;
+  if (!email || !password) {
+    throw new Error(
+      `Faltan credenciales smoke para rol "${role}". Ejecuta: node scripts/smoke-008-provision-roles.mjs provision`
+    );
+  }
+  loginWithCredentials(email, password);
 });
 
 Cypress.Commands.add('navigateAdmin', (path: string) => {

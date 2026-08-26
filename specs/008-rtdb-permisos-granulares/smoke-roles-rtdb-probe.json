@@ -1,0 +1,53 @@
+{
+  "ranAt": "2026-08-26T05:52:37.033Z",
+  "roles": [
+    {
+      "status": "OK",
+      "perfil": "doctor",
+      "email": "qa+smoke008.doctor.1787723545882@katzenvet.test",
+      "claims": {
+        "role": "staff",
+        "staffRole": "doctor"
+      },
+      "writes": {
+        "Citas": "ALLOW",
+        "Historiales_Clinicos": "ALLOW",
+        "Inventario": "DENIED",
+        "Banios": "ALLOW",
+        "Vacunas": "ALLOW"
+      }
+    },
+    {
+      "status": "OK",
+      "perfil": "recepcionista",
+      "email": "qa+smoke008.recepcionista.1787723545882@katzenvet.test",
+      "claims": {
+        "role": "staff",
+        "staffRole": "recepcionista"
+      },
+      "writes": {
+        "Citas": "ALLOW",
+        "Historiales_Clinicos": "DENIED",
+        "Inventario": "DENIED",
+        "Banios": "ALLOW",
+        "Vacunas": "DENIED"
+      }
+    },
+    {
+      "status": "OK",
+      "perfil": "peluquero",
+      "email": "qa+smoke008.peluquero.1787723545882@katzenvet.test",
+      "claims": {
+        "role": "staff",
+        "staffRole": "peluquero"
+      },
+      "writes": {
+        "Citas": "DENIED",
+        "Historiales_Clinicos": "DENIED",
+        "Inventario": "DENIED",
+        "Banios": "ALLOW",
+        "Vacunas": "DENIED"
+      }
+    }
+  ]
+}

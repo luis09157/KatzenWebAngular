@@ -12,6 +12,10 @@
     "cy:run": "cypress run",
     "cy:admin": "cypress run --spec \"cypress/e2e/admin-smoke.cy.ts,cypress/e2e/admin-crud-routes.cy.ts,cypress/e2e/admin-login.cy.ts,cypress/e2e/admin-crud-clientes.cy.ts\"",
     "cy:admin:crud": "cypress run --spec \"cypress/e2e/admin-login.cy.ts,cypress/e2e/admin-crud-clientes.cy.ts\"",
+    "cy:roles-008": "cypress run --spec \"cypress/e2e/admin-roles-008-smoke.cy.ts\" --browser chrome",
+    "smoke:008:provision": "node scripts/smoke-008-provision-roles.mjs provision",
+    "smoke:008:rtdb": "node scripts/smoke-008-provision-roles.mjs rtdb-probe",
+    "smoke:008:deactivate": "node scripts/smoke-008-provision-roles.mjs deactivate",
     "functions:build": "npm --prefix functions run build",
     "functions:deploy": "npm --prefix functions run build && firebase deploy --only functions"
   },
