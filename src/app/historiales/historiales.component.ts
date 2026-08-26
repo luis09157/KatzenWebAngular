@@ -216,11 +216,16 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private clasificarHistorialTipo(historial: any): 'consulta' | 'cirugia' | 'vacuna' {
-    const diag = String(historial.diagnostico_presuntivo || '').toLowerCase();
-    if (diag.includes('cirug') || diag.includes('qx') || diag.includes('esteriliz')) {
+    const diag = String(historial.diagnostico_presuntivo || historial.diagnostico || '').toLowerCase();
+    const trat = String(historial.tratamiento || '').toLowerCase();
+    const tipo = String(historial.tipo || historial.tipo_consulta || '').toLowerCase();
+    const blob = `${diag} ${trat} ${tipo}`;
+    if (/cirug|qx|esteriliz|castrac|ovario|laparo|abdominoplast/.test(blob)) {
       return 'cirugia';
     }
-    if (diag.includes('vacun')) return 'vacuna';
+    if (/vacun|inmuniz|refuerzo|antirr|desparasit/.test(blob)) {
+      return 'vacuna';
+    }
     return 'consulta';
   }
 

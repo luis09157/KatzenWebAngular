@@ -18,7 +18,7 @@
     "smoke:008:provision": "node scripts/smoke-008-provision-roles.mjs provision",
     "smoke:008:rtdb": "node scripts/smoke-008-provision-roles.mjs rtdb-probe",
     "smoke:008:deactivate": "node scripts/smoke-008-provision-roles.mjs deactivate",
-    "functions:build": "npm --prefix functions run build",
+    "functions:build": "npm --prefix functions run build && npm --prefix functions-fcm run build",
     "functions:deploy": "npm --prefix functions run build && firebase deploy --only functions"
   },
   "private": true,

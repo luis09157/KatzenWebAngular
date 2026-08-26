@@ -22,7 +22,19 @@ describe('Admin sidenav — Inventario sub-ítems', () => {
   });
 
   it('muestra los 6 sub-ítems bajo Inventario en el sidenav', () => {
-    cy.get('.admin-sidenav .admin-nav-subitem').should('have.length', 6);
+    cy.get('body').then(($body) => {
+      const $nav = $body.find('mat-sidenav.admin-sidenav');
+      const hidden =
+        $nav.length > 0 &&
+        ($nav.css('display') === 'none' || !$nav.hasClass('mat-drawer-opened'));
+      if (hidden) {
+        cy.get('.m3-top-bar button[mat-icon-button]').first().click({ force: true });
+      }
+    });
+    cy.get('.admin-sidenav a.admin-nav-subitem[href*="/admin/inventario/"]', { timeout: 15000 }).should(
+      'have.length',
+      6
+    );
     subItems.forEach(({ label, path }) => {
       cy.get('.admin-sidenav').contains('a', label).should('exist');
       cy.get(`.admin-sidenav a[href*="${path}"]`).should('exist');

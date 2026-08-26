@@ -9,12 +9,11 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
-import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_CONFIRM } from '../core/config/admin-ui.config';
 import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
 import { InversionMetaProgress } from '../core/models/clinic-config.model';
 import { InversionMetaDialogComponent } from './inversion-meta-dialog.component';
-import { ADMIN_DIALOG_TIMEPICKER } from '../core/config/admin-ui.config';
 import {
   PeriodoPreset,
   formatMoneyMx,
@@ -153,7 +152,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   abrirConfigMeta(): void {
     const ref = this.dialog.open(InversionMetaDialogComponent, {
-      ...ADMIN_DIALOG_TIMEPICKER,
+      ...ADMIN_DIALOG_CONFIRM,
       data: { montoMeta: this.inversionMeta?.montoMeta }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {

@@ -98,7 +98,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
 | **Finanzas / caja / ops** | **014/018/021** hechos. **022 done (A–E):** valuación + baño/venta→caja + historial/vacuna + pensión pulida + gráficas + egresos + **OC→egreso**. — `specs/022-automatizacion-costos-dashboard/` | Media — **cerrada** |
-| **Notificaciones** | ~~Push Firebase desde recordatorios~~ **023 MVP** (`onRecordatorioWritePush` + FcmTokens). Tokens portal/móvil = fase B. | Alta — **MVP hecho** |
+| **Notificaciones** | ~~Push Firebase desde recordatorios~~ **023 MVP** (`onRecordatorioWritePush` codebase **fcm** + FcmTokens). Deploy FCM **sin Resend** vía `functions-fcm/`. | Alta — **MVP hecho** |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)**; ~~Proveedores visibles en menú~~ **026**; ~~sub-ítems inventario en sidenav~~ **027** (productos, movimientos, OC, alertas, reportes) — autorización dual formal pendiente | Media |
 | **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; **Cypress portal** guest + auth (skip sin env) | Media |

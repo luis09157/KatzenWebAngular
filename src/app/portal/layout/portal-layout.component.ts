@@ -89,7 +89,10 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
     } else if (/\/historial/.test(url)) {
       this.pageTitle = 'Historial clínico';
       this.pageSubtitle = 'Consultas y tratamientos registrados';
-    } else if (/\/mascotas\/.+/.test(url) && !/\/vacunas|citas|historial/.test(url)) {
+    } else if (/\/banos/.test(url)) {
+      this.pageTitle = 'Baños y peluquería';
+      this.pageSubtitle = 'Servicios de estética registrados';
+    } else if (/\/mascotas\/.+/.test(url) && !/\/vacunas|citas|historial|banos/.test(url)) {
       this.pageTitle = 'Expediente';
       this.pageSubtitle = 'Resumen del expediente médico';
     } else {
@@ -99,7 +102,7 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    if (/\/vacunas|citas|historial/.test(this.router.url)) {
+    if (/\/vacunas|citas|historial|banos/.test(this.router.url)) {
       const parts = this.router.url.split('/');
       const mascotaId = parts[parts.indexOf('mascotas') + 1];
       this.router.navigate(['/portal/mascotas', mascotaId]);

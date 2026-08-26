@@ -33,7 +33,13 @@ Trigger RTDB → inbox + FCM multicast opt-in por tokens. Fail-soft.
 
 ## Deploy
 
+Codebase **fcm** separado — no exige `RESEND_API_KEY` (secret solo en codebase `default`).
+
 ```bash
 npm run functions:build
-firebase deploy --only functions:onRecordatorioWritePush,database
+firebase deploy --only functions:fcm:onRecordatorioWritePush
+# opcional rules si cambiaron:
+# firebase deploy --only functions:fcm:onRecordatorioWritePush,database
 ```
+
+Codebase `default` (portal mail) sigue bloqueado hasta setear Resend — ver ROADMAP «Al final».
