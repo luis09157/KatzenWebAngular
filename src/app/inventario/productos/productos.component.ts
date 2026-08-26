@@ -136,20 +136,20 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async eliminarProducto(producto: Producto): Promise<void> {
     const result = await Swal.fire({
-      title: '¿Eliminar producto?',
-      text: `¿Estás seguro de eliminar "${producto.nombre}"?`,
+      title: '¿Borrar este producto?',
+      text: `¿Estás seguro de borrar "${producto.nombre}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
     if (result.isConfirmed && producto.id) {
       try {
         await this.inventarioService.eliminarProducto(producto.id);
-        Swal.fire('Eliminado', 'El producto ha sido eliminado', 'success');
+        Swal.fire('Borrado', 'El producto ha sido borrado', 'success');
         this.cargarProductos();
       } catch (error) {
         this.logger.error('Error al eliminar producto:', error);

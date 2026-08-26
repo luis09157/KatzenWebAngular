@@ -13,7 +13,7 @@
 
 .admin-content .table-scroll table {
   width: 100%;
-  min-width: 760px;
+  min-width: 880px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -106,30 +106,48 @@
   border-color: #d1d5db !important;
 }
 
-/* ── Columnas proporcionales (evita tabla “estirada”) ── */
+/* ── Columnas proporcionales (evita tabla “estirada” y huecos raros) ── */
+.admin-content .mat-column-fecha_hora,
+.admin-content .mat-mdc-column-fecha_hora,
+.admin-content .mat-column-fecha,
+.admin-content .mat-mdc-column-fecha {
+  width: 118px;
+  min-width: 108px;
+  max-width: 140px;
+}
+
 .admin-content .mat-column-paciente,
 .admin-content .mat-mdc-column-paciente {
   min-width: 240px;
-  width: 30%;
-}
-
-.admin-content .mat-column-dueno,
-.admin-content .mat-mdc-column-dueno {
-  min-width: 140px;
-  width: 18%;
+  width: 28%;
 }
 
 .admin-content .mat-column-resumen,
 .admin-content .mat-mdc-column-resumen {
   min-width: 200px;
-  width: 26%;
+  width: 24%;
 }
 
+.admin-content .mat-column-motivo,
+.admin-content .mat-mdc-column-motivo {
+  min-width: 140px;
+  width: 18%;
+}
+
+/* Columna estado: ancho suficiente para chips (CONFIRMADA, COMPLETADA, etc.)
+   sin clip por table-layout:fixed + padding de celda + overflow MDC. */
 .admin-content .mat-column-estado,
 .admin-content .mat-mdc-column-estado {
-  width: 108px !important;
-  min-width: 108px !important;
-  max-width: 108px !important;
+  width: 148px !important;
+  min-width: 148px !important;
+  max-width: 168px !important;
+  overflow: visible !important;
+}
+
+.admin-content .mat-mdc-cell.mat-column-estado,
+.admin-content .mat-mdc-cell.mat-mdc-column-estado,
+.admin-content td.mat-column-estado {
+  overflow: visible !important;
 }
 
 .admin-content .mat-column-consulta,
@@ -138,10 +156,139 @@
   width: 22%;
 }
 
+/* Nombres de personas (veterinario, cliente, doctor, dueño, nombre):
+   en desktop ancho deben verse COMPLETOS — sin ellipsis si hay espacio.
+   table-layout:fixed + overflow MDC recortaba chips `.tag` (p. ej. citas). */
+.admin-content .mat-column-veterinario,
+.admin-content .mat-mdc-column-veterinario,
+.admin-content .mat-column-cliente,
+.admin-content .mat-mdc-column-cliente,
+.admin-content .mat-column-doctor,
+.admin-content .mat-mdc-column-doctor,
+.admin-content .mat-column-dueno,
+.admin-content .mat-mdc-column-dueno,
 .admin-content .mat-column-nombre,
 .admin-content .mat-mdc-column-nombre {
-  min-width: 160px;
-  width: 20%;
+  min-width: 200px;
+  width: 22%;
+  max-width: none;
+  overflow: visible !important;
+}
+
+.admin-content .mat-mdc-cell.mat-column-veterinario,
+.admin-content .mat-mdc-cell.mat-mdc-column-veterinario,
+.admin-content .mat-mdc-cell.mat-column-cliente,
+.admin-content .mat-mdc-cell.mat-mdc-column-cliente,
+.admin-content .mat-mdc-cell.mat-column-doctor,
+.admin-content .mat-mdc-cell.mat-mdc-column-doctor,
+.admin-content .mat-mdc-cell.mat-column-dueno,
+.admin-content .mat-mdc-cell.mat-mdc-column-dueno,
+.admin-content .mat-mdc-cell.mat-column-nombre,
+.admin-content .mat-mdc-cell.mat-mdc-column-nombre,
+.admin-content td.mat-column-veterinario,
+.admin-content td.mat-column-cliente,
+.admin-content td.mat-column-doctor,
+.admin-content td.mat-column-dueno,
+.admin-content td.mat-column-nombre {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal;
+}
+
+/* Chip/tag de nombre: wrap natural; sin ellipsis agresivo */
+.admin-content .mat-column-veterinario .tag,
+.admin-content .mat-column-cliente .tag,
+.admin-content .mat-column-doctor .tag,
+.admin-content .mat-column-dueno .tag,
+.admin-content .mat-column-nombre .tag,
+.admin-content .mat-mdc-column-veterinario .tag,
+.admin-content .mat-mdc-column-cliente .tag,
+.admin-content .mat-mdc-column-doctor .tag,
+.admin-content .mat-mdc-column-dueno .tag,
+.admin-content .mat-mdc-column-nombre .tag {
+  display: inline-flex;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: 100%;
+  width: fit-content;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Pantallas medianas: hasta 2 líneas; viewport estrecho → wrap + .table-scroll */
+@media (max-width: 1200px) {
+  .admin-content .mat-column-veterinario .tag,
+  .admin-content .mat-column-cliente .tag,
+  .admin-content .mat-column-doctor .tag,
+  .admin-content .mat-column-dueno .tag,
+  .admin-content .mat-column-nombre .tag,
+  .admin-content .mat-mdc-column-veterinario .tag,
+  .admin-content .mat-mdc-column-cliente .tag,
+  .admin-content .mat-mdc-column-doctor .tag,
+  .admin-content .mat-mdc-column-dueno .tag,
+  .admin-content .mat-mdc-column-nombre .tag {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Desktop ancho: nombre completo, sin clamp ni "..." — el espacio extra
+   lo absorben columnas de texto (motivo/consulta), no un hueco vacío. */
+@media (min-width: 1201px) {
+  .admin-content .mat-column-veterinario,
+  .admin-content .mat-mdc-column-veterinario,
+  .admin-content .mat-column-cliente,
+  .admin-content .mat-mdc-column-cliente,
+  .admin-content .mat-column-doctor,
+  .admin-content .mat-mdc-column-doctor,
+  .admin-content .mat-column-dueno,
+  .admin-content .mat-mdc-column-dueno,
+  .admin-content .mat-column-nombre,
+  .admin-content .mat-mdc-column-nombre {
+    min-width: 240px;
+    width: 24%;
+  }
+
+  .admin-content .mat-column-motivo,
+  .admin-content .mat-mdc-column-motivo {
+    width: 22%;
+    min-width: 160px;
+  }
+
+  .admin-content .mat-column-consulta,
+  .admin-content .mat-mdc-column-consulta {
+    width: 24%;
+    min-width: 200px;
+  }
+
+  .admin-content .mat-column-veterinario .tag,
+  .admin-content .mat-column-cliente .tag,
+  .admin-content .mat-column-doctor .tag,
+  .admin-content .mat-column-dueno .tag,
+  .admin-content .mat-column-nombre .tag,
+  .admin-content .mat-mdc-column-veterinario .tag,
+  .admin-content .mat-mdc-column-cliente .tag,
+  .admin-content .mat-mdc-column-doctor .tag,
+  .admin-content .mat-mdc-column-dueno .tag,
+  .admin-content .mat-mdc-column-nombre .tag {
+    display: inline-flex;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    max-width: 100%;
+    width: auto;
+  }
 }
 
 /* ── Celda paciente ── */
@@ -159,7 +306,19 @@
   font-weight: 600;
   color: #032d60;
   line-height: 1.35;
-  margin-bottom: 2px;
+  margin-bottom: 0;
+}
+
+.admin-content .cell-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+.admin-content .cell-primary .cell-sub {
+  margin-top: 0;
 }
 
 .admin-content .cell-dueno {
@@ -215,12 +374,18 @@
   border: 1px solid #dbeafe;
 }
 
-/* ── Badges de estado (referencia Vacunas — sólidos, texto blanco) ── */
-.admin-content .estado-badge {
+/* ── Badges de estado (referencia Vacunas — sólidos, texto blanco) ──
+   Deben verse enteros: sin overflow/clip ni text-overflow en el pill. */
+.admin-content .estado-badge,
+.admin-content .admin-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 88px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: max-content;
+  max-width: none;
+  min-width: 0;
   padding: 5px 12px;
   border-radius: 999px;
   font-size: 0.6875rem;
@@ -228,10 +393,15 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.2;
-  color: #fff;
   text-align: center;
   white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
   border: none;
+}
+
+.admin-content .estado-badge {
+  color: #fff;
 }
 
 .admin-content .estado-badge--success,
@@ -257,18 +427,6 @@
 
 .admin-content .estado-badge--fallecido {
   background: #78909c;
-}
-
-.admin-content .admin-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.2;
 }
 
 .admin-content .admin-badge--success {
@@ -362,7 +520,8 @@
 
 .admin-content .historiales-table .mat-column-estado,
 .admin-content .historiales-table .mat-mdc-column-estado {
-  width: 96px !important;
-  min-width: 96px !important;
-  max-width: 110px !important;
+  width: 148px !important;
+  min-width: 148px !important;
+  max-width: 168px !important;
+  overflow: visible !important;
 }

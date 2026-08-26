@@ -104,7 +104,7 @@
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarHistorial(historial)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="bajaLogicaHistorial(historial.id)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="bajaLogicaHistorial(historial.id)">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -125,6 +125,6 @@
   <mat-menu #historialMenu="matMenu">
     <button mat-menu-item (click)="verHistorialDetalle(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>
 </div>

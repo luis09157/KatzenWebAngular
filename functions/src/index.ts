@@ -500,10 +500,48 @@ export const deactivatePortalClient = onCall(async (request) => {
     });
 
     await db.ref(`Katzen/AuthPerfiles/${uid}`).update({ activo: false });
-    await admin.auth().updateUser(uid, { disabled: true }).catch((err: unknown) => {
+
+    let authUserExists = true;
+    try {
+      await admin.auth().updateUser(uid, { disabled: true });
+    } catch (err: unknown) {
       const code = (err as { code?: string }).code;
-      if (code !== 'auth/user-not-found') throw err;
-    });
+      if (code === 'auth/user-not-found') {
+        authUserExists = false;
+      } else {
+        throw err;
+      }
+    }
+
+    // Revocación inmediata (decisión #18). Si falla: Auth permanece disabled; sin rollback RTDB.
+    if (authUserExists) {
+      try {
+        await admin.auth().revokeRefreshTokens(uid);
+      } catch (revokeErr: unknown) {
+        console.error('[deactivatePortalClient] revokeRefreshTokens falló; Auth permanece disabled', {
+          uid,
+          clienteId,
+          error: revokeErr instanceof Error ? revokeErr.message : revokeErr
+        });
+        // Claims + audit ya reflejan desactivación; no revertir disabled.
+        await syncClaimsForUid(uid).catch((syncErr: unknown) => {
+          console.error('[deactivatePortalClient] syncClaims tras revoke fallido', syncErr);
+        });
+        await db.ref(`Katzen/PortalProvisionLog`).push({
+          action: 'deactivate',
+          clienteId,
+          uid,
+          createdAt: timestamp,
+          createdBy: request.auth.uid,
+          revokeRefreshTokensFailed: true
+        }).catch(() => undefined);
+        throw new HttpsError(
+          'failed-precondition',
+          'El portal quedó desactivado, pero no se pudieron revocar las sesiones activas. Reintenta o contacta soporte.'
+        );
+      }
+    }
+
     await syncClaimsForUid(uid);
 
     await db.ref(`Katzen/PortalProvisionLog`).push({

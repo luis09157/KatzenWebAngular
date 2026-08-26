@@ -209,12 +209,12 @@ export class RecordatorioDialogComponent implements OnInit {
 
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Archivar recordatorio?',
-      text: 'Se marcará como inactivo. Los datos se conservan en RTDB.',
+      title: '¿Borrar este recordatorio?',
+      text: 'Se ocultará del listado. Los datos se conservan.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, archivar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -231,7 +231,7 @@ export class RecordatorioDialogComponent implements OnInit {
         setTimeout(() => Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo eliminar el recordatorio'
+          text: 'No se pudo borrar el recordatorio'
         }), 0);
       } finally {
         this.loading = false;

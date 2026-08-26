@@ -116,7 +116,7 @@
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarBanio(banio)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="eliminarBanio(banio)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarBanio(banio)">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -137,7 +137,7 @@
   <mat-menu #banioMenu="matMenu">
     <button mat-menu-item (click)="verBanio(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="editarBanio(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="eliminarBanio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item (click)="eliminarBanio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'programado'" (click)="cambiarEstado(menuContext, 'en_proceso')"><mat-icon>play_arrow</mat-icon> Iniciar baño</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'en_proceso'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
     <button mat-menu-item *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado'" (click)="marcarComoPagado(menuContext)"><mat-icon>payment</mat-icon> Marcar pagado</button>

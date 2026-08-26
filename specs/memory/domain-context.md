@@ -225,7 +225,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 4.1 Patrones transversales
 
-1. **Baja lógica preferida:** `activo: false` en lugar de borrar nodos (clientes, mascotas, citas, vacunas, recordatorios, productos). **Confirmado por negocio** para vacunas y baja de cliente (cascada).
+1. **Baja lógica preferida (técnica):** `activo: false` en lugar de borrar nodos (clientes, mascotas, citas, vacunas, recordatorios, productos). **Confirmado por negocio** para vacunas y baja de cliente (cascada).
+   - **UX permanente:** en la UI el usuario solo ve **«Borrar»** (confirmaciones «¿Borrar esta…?»). Nunca «Baja lógica» ni jerga soft-delete. Docs/specs/código sí pueden decir baja lógica.
 2. **Campos duales legacy:** Siempre normalizar `idCliente`/`cliente_id`, `idPaciente`/`paciente_id`, `oculto_portal`/`ocultoPortal`.
 3. **Stamp de sucursal:** Entidades nuevas reciben `sucursalId` del contexto de sesión (default `principal`). Multi-sucursal: **solo una sucursal hoy**; diseñar pensando en expansión futura.
 4. **IDs post-push:** `stampRtdbIdAfterPush` escribe `id` en el nodo tras `push()`.
@@ -248,7 +249,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 - **Un veterinario por cita:** cada cita se asigna a un solo vet; un vet **no puede** tener dos citas solapadas en el mismo horario.
 - **Paralelismo por disponibilidad:** si hay 2 o 3 veterinarios disponibles, pueden cubrir más citas en paralelo a la misma hora (una cita por vet).
 - **Mismo cliente, misma hora, mascotas distintas:** permitido si hay vets libres — se agenda al vet disponible en el mismo horario.
-- **Validación en código:** hoy **no implementada** — regla confirmada; ver backlog §12.
+- **Validación en código:** implementada en `CitasService` + `cita-agenda.util` (spec 003).
 - Revertir **completada → confirmada:** permitido para veterinarias / perfil veterinario (admins operativos).
 - **Portal:** citas canceladas **visibles** con motivo de cancelación obligatorio; filtro opcional "solo activas" para quien prefiera ocultar canceladas.
 - KPIs priorizan: pendiente > confirmada > completada > cancelada.
@@ -276,7 +277,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 - Código de barras único al crear producto.
 - Stock actualizado en transacción; movimiento registrado después.
 - Salida puede vincularse a `paciente_id`, `historial_clinico_id`, `venta_id` (integración ventas no implementada en web).
-- **Mermas y stock negativo (confirmado):** bloquear stock negativo; registrar merma con **motivo obligatorio**; ajuste con **autorización supervisor** si aplica. Hoy el código aún permite negativo — implementación pendiente.
+- **Mermas y stock negativo (confirmado):** bloquear stock negativo; registrar merma con **motivo obligatorio**; ajuste con **autorización supervisor** si aplica. **Implementado** en `specs/007-politica-mermas-inventario/` (MVP: bloqueo + motivo + gate rol admin/doctor; autorización dual formal = SC futuro).
 - **Medicamento controlado:** salida ligada a historial clínico deseada como diseño mejor — feature futura §12.
 - **Órdenes de compra** borrador → enviada: autorizan veterinarias (admin operativo).
 
@@ -288,7 +289,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 - Contraseña temporal generada en servidor; nunca expuesta al admin.
 - `mustChangePassword` redirige a `/portal/perfil?cambiarPassword=1`.
 - Staff sin rol client es redirigido a `/admin/inicio` si intenta portal.
-- **Desactivar portal (confirmado):** revocación **inmediata** de sesiones activas + `disabled: true` en Firebase Auth al desactivar portal.
+- **Desactivar portal (confirmado):** revocación **inmediata** de sesiones activas (`revokeRefreshTokens`) + `disabled: true` en Firebase Auth al desactivar portal — implementado en `specs/006-revocacion-sesiones-portal/`.
 
 ### 4.9 Peluquería / baños
 
@@ -392,7 +393,7 @@ flowchart TD
     E --> J[registrarCita en Log_Paciente]
 ```
 
-> **Nota:** validación de solapamiento por veterinario y campo `duracion_minutos` — regla confirmada; implementación pendiente en servicio citas.
+> **Nota:** validación de solapamiento por veterinario y campo `duracion_minutos` — implementado en `specs/003-validacion-agenda-citas/`.
 
 ### 6.3 Provision portal cliente
 
@@ -478,11 +479,12 @@ flowchart TD
 6. **Dual access:** perfil `dual` confirmado como caso real; flujo UI post-login no implementado.
 7. **Notificaciones push:** recordatorios deben generar push Firebase — sin bridge en Functions web.
 8. **Notas internas historial:** requeridas por negocio; modelo de datos no existe aún.
-9. **Validación agenda por veterinario:** regla confirmada (1 vet/cita, sin solapamiento, duración default 30 min) — **falta implementación** en servicio citas.
-10. **Revocación sesiones portal (parcial):** `deactivatePortalClient` ya aplica `disabled: true` en Firebase Auth y `portalActivo: false`; **falta** `admin.auth().revokeRefreshTokens(uid)` para invalidar sesiones activas inmediatamente (decisión #18).
+9. ~~**Validación agenda por veterinario:**~~ **Resuelto** — `specs/003-validacion-agenda-citas/` (1 vet/cita, sin solapamiento, duración default 30 min).
+10. ~~**Revocación sesiones portal (parcial):**~~ **Resuelto** en `specs/006-revocacion-sesiones-portal/` — `deactivatePortalClient` aplica `disabled: true` + `revokeRefreshTokens(uid)`; pendiente deploy Functions.
 11. **Rol super admin / dueño:** confirmado para desarrolladores — **falta implementación** en config, RTDB y Functions.
 12. ~~**`medico_atendio` obligatorio:**~~ **Resuelto** — validación `Validators.required` en `historial-dialog.component.ts` (campo `medico_atendio` del formulario).
-13. **Política mermas inventario:** confirmada — **falta implementación** (bloqueo negativo, motivo, autorización supervisor).
+13. ~~**Política mermas inventario:**~~ **Resuelto (MVP)** — `specs/007-politica-mermas-inventario/` (bloqueo negativo, motivo, gate supervisor ligero).
+14. ~~**Motivo cancelación / fechas pasadas / revert citas:**~~ **Resuelto** — spec 003 (decisiones #3–#5).
 
 ---
 
@@ -579,22 +581,22 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |
-| **Validación agenda por veterinario** | #2 | 1 vet/cita, sin solapamiento por vet, paralelismo si hay vets libres; slot default 30 min |
-| **Duración citas configurable** | #2 | Default 30 min al agendar; campo editable en formulario cita |
+| ~~**Validación agenda por veterinario**~~ | #2 | **Hecho** — `specs/003-validacion-agenda-citas/` |
+| ~~**Duración citas configurable**~~ | #2 | **Hecho** — `duracion_minutos` default 30 |
 | **Rol super admin / dueño** | #6 | Perfil desarrollador con acceso total; extensión de `staff-role.config.ts` + AuthPerfiles |
 | **UI perfil dual post-login** | #17 | Selector admin vs portal cuando `dualAccess` |
 | **Registro self-service portal** | #16 | Landing → Auth + Cliente + provision automático |
-| **Revocación sesiones al desactivar portal** | #18 | Parcial: `disabled: true` en Auth implementado; falta `revokeRefreshTokens` en `deactivatePortalClient` |
+| ~~**Revocación sesiones al desactivar portal**~~ | #18 | **Hecho** — `specs/006-revocacion-sesiones-portal/` (`revokeRefreshTokens`); pendiente deploy Functions |
 | **Cascada baja lógica cliente** | #22 | Automatizar mascotas, citas futuras, portal |
 | **Archivo automático recordatorios (Fallecido)** | #11 | Trigger al cambiar `estado` mascota |
 | **Filtro citas portal "solo activas"** | #4 | UX portal citas canceladas |
-| **Motivo cancelación citas** | #4 | Campo obligatorio admin + visible portal |
+| ~~**Motivo cancelación citas**~~ | #4 | **Hecho** — obligatorio admin + visible portal (003) |
 | **ContactosWeb automatización** | #23 | Saludo, seguimiento, tareas |
 | **Integración WhatsApp / agendas** | #24 | Contacto FB/WhatsApp; sync agendas |
 | **Dashboard KPIs centralizado** | #24 | Inventario, finanzas, pacientes, clientes, trabajadores, publicidad |
 | **Migración nodos legacy inventario** | #15 | Coordinar con app móvil post-mejoras web |
 | **Multi-sucursal** | #21 | Cuando crezca operación |
-| **Política mermas inventario** | #12 | Bloqueo stock negativo, motivo obligatorio, autorización supervisor |
+| ~~**Política mermas inventario**~~ | #12 | **Hecho (MVP)** — `specs/007-politica-mermas-inventario/`; autorización dual formal pendiente |
 | ~~**`medico_atendio` obligatorio en historial**~~ | #8 | **Hecho** — `Validators.required` en `historial-dialog`; posible regla RTDB futura |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

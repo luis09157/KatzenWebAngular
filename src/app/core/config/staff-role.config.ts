@@ -91,3 +91,12 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
   }
   return (access || []).includes(module);
 }
+
+/**
+ * Veterinarias / admin operativo: fechas pasadas en agenda y revertir
+ * completada → confirmada (domain-context decisiones #3 y #5).
+ */
+export function staffRoleIsVeterinarioOperativo(staffRole: string | undefined | null): boolean {
+  const role = normalizeStaffRole(staffRole);
+  return role === 'administrador' || role === 'doctor';
+}

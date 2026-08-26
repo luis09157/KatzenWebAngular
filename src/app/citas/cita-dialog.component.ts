@@ -1,16 +1,21 @@
-import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
-import { LoadingService } from '../core/loading.service';
+import { Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
+import { AuthProfileService } from '../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
 import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import {
+  CITA_DURACION_DEFAULT_MIN,
+  CITA_DURACION_MINIMA_MIN
+} from './cita-agenda.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -36,9 +41,10 @@ import Swal from 'sweetalert2';
     },
   ]
 })
-export class CitaDialogComponent implements OnInit {
+export class CitaDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   citaForm: FormGroup;
-  modoVer: boolean = false;
+  modoVer = false;
   clientes: any[] = [];
   pacientes: any[] = [];
   doctores: any[] = [];
@@ -71,8 +77,9 @@ export class CitaDialogComponent implements OnInit {
   filteredClientes!: Observable<any[]>;
   clienteSeleccionado: any = null;
   pacientesDelCliente: any[] = [];
-  
-
+  /** doctor | administrador pueden fechas pasadas */
+  puedeAgendarFechaPasada = false;
+  readonly duracionDefault = CITA_DURACION_DEFAULT_MIN;
 
   constructor(
     public dialogRef: MatDialogRef<CitaDialogComponent>,
@@ -82,56 +89,45 @@ export class CitaDialogComponent implements OnInit {
     private pacientesService: PacientesService,
     private usuariosService: UsuariosService,
     private dateAdapter: DateAdapter<any>,
-    private loadingService: LoadingService,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private authProfile: AuthProfileService
   ) {
     this.modoVer = data.modoVer;
-    
-    // Separar fecha_hora en fecha y hora si existe
+
     let fecha = '';
     let hora = '';
-    
+
     const procesarFecha = (fechaString: string) => {
       try {
-        // Si es un string con formato ISO, extraer la fecha sin conversión de zona horaria
         if (fechaString.includes('T')) {
-          // Extraer fecha directamente del string ISO sin crear objeto Date
-          const fechaPart = fechaString.split('T')[0]; // "2025-08-15"
-          const horaPart = fechaString.split('T')[1]; // "00:00:00.000Z"
-          
-          // Extraer hora de la parte de tiempo
-          const hora = horaPart.split(':')[0] + ':' + horaPart.split(':')[1]; // "00:00"
-          
-          return {
-            fecha: fechaPart, // "2025-08-15"
-            hora: hora // "00:00"
-          };
-        } else {
-          // Si no tiene T, asumir que es solo fecha
-          return {
-            fecha: fechaString,
-            hora: '00:00'
-          };
+          const fechaPart = fechaString.split('T')[0];
+          const horaPart = fechaString.split('T')[1];
+          const horaVal = horaPart.split(':')[0] + ':' + horaPart.split(':')[1];
+          return { fecha: fechaPart, hora: horaVal };
         }
+        return { fecha: fechaString, hora: '00:00' };
       } catch (error) {
         this.logger.error('Error procesando fecha de cita:', error);
         return { fecha: '', hora: '' };
       }
     };
-    
-    // Usar el campo 'fecha' que es la fecha real de la cita
+
     if (data.cita?.fecha) {
       const resultado = procesarFecha(data.cita.fecha);
       fecha = resultado.fecha;
-      // Usar la hora del campo 'hora' si está disponible, sino usar la del resultado
       hora = data.cita.hora || resultado.hora;
     } else if (data.cita?.fecha_hora) {
       const resultado = procesarFecha(data.cita.fecha_hora);
       fecha = resultado.fecha;
       hora = resultado.hora;
     }
-    
+
+    const duracionInicial =
+      data.cita?.duracion_minutos != null && Number(data.cita.duracion_minutos) >= CITA_DURACION_MINIMA_MIN
+        ? Number(data.cita.duracion_minutos)
+        : CITA_DURACION_DEFAULT_MIN;
+
     this.citaForm = this.fb.group({
       id: [data.cita?.id || ''],
       cliente_id: [data.cita?.cliente_id || '', Validators.required],
@@ -140,7 +136,12 @@ export class CitaDialogComponent implements OnInit {
       hora: [hora, [Validators.required, this.validarHora.bind(this)]],
       motivo: [data.cita?.motivo || '', Validators.required],
       estado: [data.cita?.estado || 'pendiente', Validators.required],
-      veterinario: [data.cita?.veterinario || ''],
+      veterinario: [data.cita?.veterinario || '', Validators.required],
+      duracion_minutos: [
+        duracionInicial,
+        [Validators.required, Validators.min(CITA_DURACION_MINIMA_MIN)]
+      ],
+      motivo_cancelacion: [data.cita?.motivo_cancelacion || ''],
       observaciones: [data.cita?.observaciones || ''],
       nombreCliente: [data.cita?.nombreCliente || '', Validators.required]
     });
@@ -204,23 +205,63 @@ export class CitaDialogComponent implements OnInit {
     return estado.charAt(0).toUpperCase() + estado.slice(1);
   }
 
-  ngOnInit() {
-    // Configurar el datepicker para español
+  getDisplayDuracion(): string {
+    const d = this.data?.cita?.duracion_minutos ?? this.citaForm.get('duracion_minutos')?.value;
+    const n = Number(d);
+    if (!Number.isFinite(n) || n < CITA_DURACION_MINIMA_MIN) {
+      return `${CITA_DURACION_DEFAULT_MIN} min`;
+    }
+    return `${Math.floor(n)} min`;
+  }
+
+  async ngOnInit() {
     this.dateAdapter.setLocale('es-ES');
-    
+
+    try {
+      const role = await this.authProfile.getEffectiveStaffRole();
+      this.puedeAgendarFechaPasada = staffRoleIsVeterinarioOperativo(role);
+      this.citaForm.get('fecha')?.updateValueAndValidity({ emitEvent: false });
+    } catch (error) {
+      this.logger.error('No se pudo resolver rol staff en cita:', error);
+      this.puedeAgendarFechaPasada = false;
+    }
+
+    this.citaForm.get('estado')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(estado => this.syncMotivoCancelacionValidators(estado));
+
+    this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
+
     this.cargarClientes();
     this.cargarPacientes();
     this.cargarDoctores();
     this.setupAutocomplete();
-    
-    // Si hay datos de cita, establecer valores (tanto para editar como para ver)
+
     if (this.data.cita) {
       this.establecerValoresEdicion();
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private syncMotivoCancelacionValidators(estado: string): void {
+    const control = this.citaForm.get('motivo_cancelacion');
+    if (!control) {
+      return;
+    }
+    if (String(estado || '').toLowerCase() === 'cancelada') {
+      control.setValidators([Validators.required, Validators.minLength(3)]);
+    } else {
+      control.clearValidators();
+    }
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
   cargarClientes() {
-    this.clientesService.getClientes().subscribe({
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: clientes => {
         this.clientes = clientes || [];
         if (this.data.cita && this.pacientes.length > 0) {
@@ -235,7 +276,7 @@ export class CitaDialogComponent implements OnInit {
   }
 
   cargarPacientes() {
-    this.pacientesService.getPacientes().subscribe({
+    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: pacientes => {
         this.pacientes = pacientes || [];
         if (this.data.cita && this.clientes.length > 0) {
@@ -250,9 +291,9 @@ export class CitaDialogComponent implements OnInit {
   }
 
   cargarDoctores() {
-    this.usuariosService.getUsuarios().subscribe({
+    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
       next: usuarios => {
-        this.doctores = (usuarios || []).filter(usuario => 
+        this.doctores = (usuarios || []).filter(usuario =>
           usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a'
         );
       },
@@ -271,25 +312,20 @@ export class CitaDialogComponent implements OnInit {
   }
 
   private _filterClientes(value: any): any[] {
-    // Verificar que value sea un string
     if (!value || typeof value !== 'string') {
       return this.clientes;
     }
-    
     const filterValue = value.toLowerCase();
-    return this.clientes.filter(cliente => 
+    return this.clientes.filter(cliente =>
       this.getNombreCompleto(cliente).toLowerCase().includes(filterValue)
     );
   }
-
-
 
   getNombreCompleto(cliente: any): string {
     const nombre = cliente.nombre || '';
     const apellidoPaterno = cliente.apellidoPaterno || '';
     const apellidoMaterno = cliente.apellidoMaterno || '';
     const telefono = cliente.telefono || '';
-    
     const nombreCompleto = [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
     return telefono ? `${nombreCompleto} - ${telefono}` : nombreCompleto;
   }
@@ -299,92 +335,102 @@ export class CitaDialogComponent implements OnInit {
     this.citaForm.patchValue({
       cliente_id: cliente.id,
       nombreCliente: this.getNombreCompleto(cliente),
-      paciente_id: '' // Limpiar paciente seleccionado
+      paciente_id: ''
     });
-    
-    // Filtrar pacientes del cliente seleccionado
-    this.pacientesDelCliente = this.pacientes.filter(paciente => 
+    this.pacientesDelCliente = this.pacientes.filter(paciente =>
       pacientePerteneceACliente(paciente, cliente.id)
     );
   }
 
   async guardar() {
-    if (this.citaForm.valid) {
-      // Asegurar que el cliente_id esté presente
-      const formValue = this.citaForm.value;
-      if (!formValue.cliente_id) {
-        // Si no hay cliente_id pero hay nombreCliente, buscar el cliente
-        const clienteSeleccionado = this.clientes.find(c => 
-          this.getNombreCompleto(c) === formValue.nombreCliente
-        );
-        if (clienteSeleccionado) {
-          formValue.cliente_id = clienteSeleccionado.id;
-        }
-      }
-      
-      // Combinar fecha y hora en el formato correcto
-      if (formValue.fecha && formValue.hora) {
-        const fecha = new Date(formValue.fecha);
-        const [horas, minutos] = formValue.hora.split(':');
-        fecha.setHours(parseInt(horas), parseInt(minutos));
-        
-        // Guardar tanto la fecha real como fecha_hora para compatibilidad
-        formValue.fecha = fecha.toISOString(); // Fecha real de la cita
-        formValue.fecha_hora = fecha.toISOString().slice(0, 16); // Formato YYYY-MM-DDTHH:MM para compatibilidad
-      }
-      
-      // Limpiar campos temporales que no deben guardarse
-      delete formValue.nombreCliente;
-      this.loadingService.show();
-      this.dialogRef.close(formValue);
+    this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
+    if (this.citaForm.invalid) {
+      this.citaForm.markAllAsTouched();
+      return;
     }
+
+    const formValue = { ...this.citaForm.value };
+    if (!formValue.cliente_id) {
+      const clienteSeleccionado = this.clientes.find(c =>
+        this.getNombreCompleto(c) === formValue.nombreCliente
+      );
+      if (clienteSeleccionado) {
+        formValue.cliente_id = clienteSeleccionado.id;
+      }
+    }
+
+    if (formValue.fecha && formValue.hora) {
+      const fecha = new Date(formValue.fecha);
+      const [horas, minutos] = formValue.hora.split(':');
+      fecha.setHours(parseInt(horas, 10), parseInt(minutos, 10));
+      formValue.fecha = fecha.toISOString();
+      formValue.fecha_hora = fecha.toISOString().slice(0, 16);
+    }
+
+    formValue.veterinario = String(formValue.veterinario || '').trim();
+    formValue.duracion_minutos = Number(formValue.duracion_minutos) || CITA_DURACION_DEFAULT_MIN;
+
+    if (String(formValue.estado).toLowerCase() !== 'cancelada') {
+      delete formValue.motivo_cancelacion;
+    } else {
+      formValue.motivo_cancelacion = String(formValue.motivo_cancelacion || '').trim();
+    }
+
+    delete formValue.nombreCliente;
+    // El loading lo muestra el padre al persistir (evita doble show → overlay trabado).
+    this.dialogRef.close(formValue);
   }
 
   cerrar() {
     this.dialogRef.close();
   }
 
-  // Validadores personalizados
-  validarFecha(control: any): {[key: string]: any} | null {
+  validarFecha(control: AbstractControl): ValidationErrors | null {
     if (!control.value) {
-      return { 'required': true };
+      return { required: true };
     }
-    
+
+    if (this.puedeAgendarFechaPasada) {
+      return null;
+    }
+
     const fecha = new Date(control.value);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    
+
     if (fecha < hoy) {
-      return { 'fechaPasada': true };
+      return { fechaPasada: true };
     }
-    
+
     return null;
   }
 
-  validarHora(control: any): {[key: string]: any} | null {
+  validarHora(control: AbstractControl): ValidationErrors | null {
     if (!control.value) {
-      return { 'required': true };
+      return { required: true };
     }
-    
     const horaRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!horaRegex.test(control.value)) {
-      return { 'formatoInvalido': true };
+      return { formatoInvalido: true };
     }
-    
     return null;
   }
 
-  // Método para verificar si el formulario es válido
   esFormularioValido(): boolean {
-    return this.citaForm.valid && 
-           this.citaForm.get('cliente_id')?.value && 
-           this.citaForm.get('paciente_id')?.value &&
-           this.citaForm.get('fecha')?.value &&
-           this.citaForm.get('hora')?.value &&
-           this.citaForm.get('motivo')?.value;
+    return !!this.citaForm.valid &&
+      !!this.citaForm.get('cliente_id')?.value &&
+      !!this.citaForm.get('paciente_id')?.value &&
+      !!this.citaForm.get('fecha')?.value &&
+      !!this.citaForm.get('hora')?.value &&
+      !!this.citaForm.get('motivo')?.value &&
+      !!this.citaForm.get('veterinario')?.value &&
+      Number(this.citaForm.get('duracion_minutos')?.value) >= CITA_DURACION_MINIMA_MIN;
   }
 
-  // Método para establecer valores cuando se edita o ve una cita
+  get muestraMotivoCancelacion(): boolean {
+    return String(this.citaForm.get('estado')?.value || '').toLowerCase() === 'cancelada';
+  }
+
   establecerValoresEdicion() {
     const cita = this.data.cita;
     if (!cita) return;
@@ -396,24 +442,26 @@ export class CitaDialogComponent implements OnInit {
         cliente_id: cita.cliente_id,
         nombreCliente: this.getNombreCompleto(cliente)
       });
-      
-      this.pacientesDelCliente = this.pacientes.filter(paciente => 
+      this.pacientesDelCliente = this.pacientes.filter(paciente =>
         pacientePerteneceACliente(paciente, cliente.id)
       );
     }
 
-    const paciente = this.pacientes.find(p => p.id === cita.paciente_id);
-    if (paciente) {
-      this.citaForm.patchValue({
-        paciente_id: cita.paciente_id
-      });
+    if (this.pacientes.find(p => p.id === cita.paciente_id)) {
+      this.citaForm.patchValue({ paciente_id: cita.paciente_id });
     }
 
     this.citaForm.patchValue({
       motivo: cita.motivo || '',
       estado: cita.estado || 'pendiente',
       veterinario: cita.veterinario || '',
+      duracion_minutos:
+        cita.duracion_minutos != null && Number(cita.duracion_minutos) >= CITA_DURACION_MINIMA_MIN
+          ? Number(cita.duracion_minutos)
+          : CITA_DURACION_DEFAULT_MIN,
+      motivo_cancelacion: cita.motivo_cancelacion || '',
       observaciones: cita.observaciones || ''
     });
+    this.syncMotivoCancelacionValidators(cita.estado || 'pendiente');
   }
-} 
+}

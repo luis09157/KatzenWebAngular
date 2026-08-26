@@ -215,12 +215,12 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   async eliminarRecordatorio(recordatorio: any) {
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
-      text: 'Se archivará el recordatorio (baja lógica). Los datos se conservan en RTDB.',
+      title: '¿Borrar este recordatorio?',
+      text: 'El recordatorio se ocultará del listado. Los datos se conservan.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, archivar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -230,12 +230,12 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
         await this.recordatoriosService.eliminarRecordatorio(recordatorio.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: 'Archivado', text: 'Recordatorio dado de baja correctamente' });
+          Swal.fire({ icon: 'success', title: 'Borrado', text: 'Recordatorio borrado correctamente' });
           this.cargarRecordatorios();
         }, 0);
       } catch (error) {
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el recordatorio' }), 0);
+        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo borrar el recordatorio' }), 0);
       }
     }
   }

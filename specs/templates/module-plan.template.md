@@ -96,10 +96,13 @@ Katzen/NodoEjemplo/{id}
   | Página CRUD | `src/app/clientes/` |
   | Diálogo detalle/edición | `admin-dialog-shell`, `ADMIN_DIALOG_*` |
   | Alertas / errores | `ErrorMessagesService`, SweetAlert2 (patrón existente) |
+  | Loading async | `LoadingService` + mensaje contextual; `hide` en `finally` (ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading) |
   | Tabla acciones | `.row-actions` + `mat-icon-button` + `matTooltip` |
+  | Badges estado | `.estado-badge` + `adminEstadoClass`; columna `estado` sin clip (`admin-table.scss`) |
 
   - [ ] Sin librerías UI externas
   - [ ] `docs/ADMIN-UI-ARCHITECTURE.md` consultado
+  - [ ] Chips/badges de estado visibles enteros (no truncados)
 
 ---
 

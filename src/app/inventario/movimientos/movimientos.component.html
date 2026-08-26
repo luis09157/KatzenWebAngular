@@ -3,7 +3,7 @@
     accent="blue"
     icon="history"
     title="Historial de movimientos"
-    subtitle="Registro de entradas, salidas y ajustes de inventario.">
+    subtitle="Registro de entradas, salidas, mermas y ajustes de inventario.">
     <div bannerActions>
       <button mat-stroked-button type="button" (click)="registrarEntrada()">
         <mat-icon>add_circle</mat-icon>
@@ -13,7 +13,9 @@
         <mat-icon>remove_circle</mat-icon>
         Salida
       </button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="registrarAjuste()">
+      <button mat-raised-button color="primary" class="btn-primary-teal" type="button"
+              *ngIf="puedeAjustar"
+              (click)="registrarAjuste()">
         <mat-icon>tune</mat-icon>
         Ajuste
       </button>

@@ -46,21 +46,30 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 - KPIs + banner + panel + tabla + paginador.
 - Acciones: `mat-icon-button` + `matTooltip` dentro de `.row-actions`.
 - Celdas `<td>`: **display table-cell**; flex solo en contenedores internos.
+- Chips/badges de estado (`.estado-badge`, etc.): deben verse **completos** (sin clip por columna estrecha u `overflow`); ver `admin-table.scss`.
+- Nombres de personas en tablas (veterinario, cliente, doctor, dueño, etc.): **completos** en pantallas anchas — sin ellipsis si hay espacio; ver `admin-table.scss` y `docs/ADMIN-UI-ARCHITECTURE.md`.
+- Celdas multi-línea (fecha+hora, paciente+dueño): **gap vertical visible** (≈4–8px); no líneas pegadas.
+- Layout admin en desktop (≥1200px): aprovechar ancho de `.admin-content`; no comprimir columnas de texto mientras sobra espacio vacío.
 - Errores: `ErrorMessagesService.getUserMessage(error, contexto)`.
+- Loading async admin: `LoadingService` con mensaje contextual; overlay **nunca** trabado (`hide` en success y error). Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading y `specs/005-loading-feedback-ux/`.
+- **Copy destructivo:** en UI siempre **«Borrar»** (menús, tooltips, leyendas, SweetAlert). Nunca mostrar «Baja lógica» / «Dar de baja» al usuario. Técnicamente sigue siendo baja lógica (`activo: false`); docs/código pueden usar ese término.
 - Sin librerías UI externas ni estilos fuera del design system.
 
 ## 4. Calidad y testing
 
-Toda feature lista para merge debe cumplir:
+**QA pre-entrega no negociable:** el agente ejecuta **todas** las validaciones de `specs/templates/qa-validation-guide.md` de forma autónoma **antes de entregar**; Luis no es el QA por defecto. Registrar en `tasks.md` **antes** de marcar `[x]`.
+
+Toda feature lista para merge / entrega debe cumplir:
 
 | Verificación | Cuándo |
 |--------------|--------|
+| Guía QA completa + registro en `tasks.md` | Siempre, antes de cerrar |
 | `npm run build` | Siempre |
 | `npm run functions:build` | Si toca `functions/` |
+| Live preview `:4200` + smoke visual | Cambios UI |
 | Cypress smoke del módulo | Rutas admin nuevas o cambiadas |
 | Probar en localhost / emuladores | Flujo feliz + un error esperado |
-
-Registrar en `tasks.md` de la spec qué tests se ejecutaron.
+| UI acordadas (chips, `--picker`, loading, timepicker) | Si la feature toca esos patrones |
 
 ## 5. Deploy checklist (solo con autorización explícita de Luis)
 

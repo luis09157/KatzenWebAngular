@@ -101,7 +101,7 @@
               <button mat-icon-button type="button" matTooltip="Ver productos" (click)="verProductos(proveedor)">
                 <mat-icon>inventory_2</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Eliminar" (click)="eliminarProveedor(proveedor)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarProveedor(proveedor)">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -146,7 +146,7 @@
       <mat-icon>inventory_2</mat-icon> Ver productos
     </button>
     <button mat-menu-item (click)="eliminarProveedor(menuContext!)" [disabled]="!menuContext">
-      <mat-icon>delete_outline</mat-icon> Eliminar
+      <mat-icon>delete_outline</mat-icon> Borrar
     </button>
   </mat-menu>
 </div>

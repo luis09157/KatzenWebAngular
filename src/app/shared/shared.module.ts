@@ -6,6 +6,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
@@ -14,6 +17,8 @@ import { MigrationService } from './migration.service';
 import { BaniosService } from '../banios/banios.service';
 import { ValidationService } from './validation.service';
 import { AutocompleteFieldComponent } from './autocomplete-field.component';
+import { TimepickerFieldComponent } from './timepicker/timepicker-field.component';
+import { TimepickerDialogComponent } from './timepicker/timepicker-dialog.component';
 import { AdminPageBannerComponent } from './admin/admin-page-banner.component';
 import { AdminStatCardComponent } from './admin/admin-stat-card.component';
 import { AdminEmptyStateComponent } from './admin/admin-empty-state.component';
@@ -28,6 +33,8 @@ import { MatMenuModule } from '@angular/material/menu';
 @NgModule({
   declarations: [
     AutocompleteFieldComponent,
+    TimepickerFieldComponent,
+    TimepickerDialogComponent,
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AdminEmptyStateComponent,
@@ -46,6 +53,9 @@ import { MatMenuModule } from '@angular/material/menu';
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
+    MatDialogModule,
+    MatSelectModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatMenuModule
   ],
@@ -68,6 +78,7 @@ import { MatMenuModule } from '@angular/material/menu';
     MatButtonModule,
     MatCardModule,
     AutocompleteFieldComponent,
+    TimepickerFieldComponent,
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AdminEmptyStateComponent,

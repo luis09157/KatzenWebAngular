@@ -17,7 +17,7 @@ Proyecto Firebase: **katzen-a0e3e** · Producción: https://katzen-a0e3e.web.app
 ## Comandos esenciales
 
 ```bash
-npm start                    # dev → http://localhost:4200
+npm start                    # dev → http://localhost:4200 (asegurar vivo tras cambios UI)
 npm run build                # build producción
 npm run e2e                  # Cypress headless
 npm run cy:admin             # smoke admin autenticado
@@ -64,7 +64,13 @@ Matriz en `src/app/core/config/staff-role.config.ts`. Al crear módulo admin nue
 2. Crear carpeta `specs/NNN-nombre-feature/` desde `specs/templates/`
 3. Completar `spec.md` → `plan.md` → `tasks.md`
 4. En Cursor: `@specs/NNN-nombre-feature/spec.md` al pedir implementación
-5. Al terminar: aplicar `specs/templates/qa-validation-guide.md`, registrar resultados en `tasks.md`, marcar tasks con evidencia, ejecutar `npm run build`, actualizar estado en `spec.md`
+5. **Al terminar (validación pre-entrega obligatoria — el agente es el QA; Luis no):**
+   - Aplicar `specs/templates/qa-validation-guide.md` **completo** (autónomo / multitask)
+   - Ejecutar y reportar `npm run build`
+   - Asegurar `npm start` vivo en http://localhost:4200 + smoke visual de lo tocado
+   - Registrar resultados en `tasks.md` **antes** de marcar `[x]`
+   - Verificar UI acordadas si aplican: chips completos, `--picker`, loading contextual/no trabado, timepicker en horas
+   - Solo entonces actualizar `spec.md` → `done`
 
 Índice: `specs/README.md` · Dominio: `specs/memory/domain-context.md` · Plan maestro: `specs/ROADMAP.md` · QA: `specs/templates/qa-validation-guide.md`
 

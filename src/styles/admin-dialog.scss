@@ -599,6 +599,56 @@
   flex-shrink: 0;
 }
 
+/*
+ * ── Diálogos compactos tipo picker (timepicker, futuros selectores) ──
+ *
+ * Criterio de espaciado (design system):
+ *   - Padding body mínimo: 28px vertical / 32px horizontal
+ *   - Gap vertical entre bloques (preview, controls, toggle): mínimo 24px
+ *   - Header: ≥ 24px / 28px; subtitle margin-top ≥ 8px
+ *   - Footer: ≥ 18px / 28px / 22px (más aire que CRUD estándar 14/28/18)
+ *
+ * Motivo: `.admin-dialog-shell .admin-dialog-body` fuerza `padding: 0` para
+ * formularios que ponen padding en layouts internos. Los pickers NO tienen
+ * ese layout — deben usar `admin-dialog-shell--picker` para recuperar aire.
+ * No aplicar a CRUD grandes (historial, vacuna, etc.).
+ */
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-header {
+  padding: 24px 28px 20px;
+}
+
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-subtitle {
+  margin-top: 8px;
+}
+
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-body {
+  padding: 28px 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 24px !important;
+  box-sizing: border-box !important;
+}
+
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions {
+  padding: 18px 28px 22px !important;
+}
+
+@media (max-width: 420px) {
+  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-header {
+    padding: 20px 20px 16px;
+  }
+
+  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-body {
+    padding: 22px 20px !important;
+    gap: 20px !important;
+  }
+
+  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions {
+    padding: 16px 20px 20px !important;
+  }
+}
+
 .admin-dialog-actions .mat-mdc-raised-button,
 .admin-dialog-actions .mat-mdc-unelevated-button {
   border-radius: 10px !important;

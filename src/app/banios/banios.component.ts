@@ -358,13 +358,13 @@ export class BaniosComponent implements OnInit, OnDestroy {
 
   eliminarBanio(banio: any) {
     Swal.fire({
-      title: '¿Dar de baja?',
-      text: `El baño de ${banio.paciente} se archivará. Los datos se conservan.`,
+      title: '¿Borrar este baño?',
+      text: `El baño de ${banio.paciente} se ocultará del listado. Los datos se conservan.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
@@ -373,7 +373,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Baja lógica', 'El baño ha sido dado de baja correctamente', 'success');
+              Swal.fire('Borrado', 'El baño ha sido borrado correctamente', 'success');
               this.cargarBanios();
             }, 0);
           })

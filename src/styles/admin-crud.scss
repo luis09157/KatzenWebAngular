@@ -18,6 +18,19 @@
   box-sizing: border-box;
 }
 
+/* Desktop ancho: más aire útil sin romper mobile */
+@media (min-width: 1400px) {
+  .admin-content {
+    max-width: 1680px !important;
+  }
+}
+
+@media (min-width: 1800px) {
+  .admin-content {
+    max-width: 1800px !important;
+  }
+}
+
 .admin-content .admin-page,
 .admin-content [class$='-contenedor'] {
   animation: adminPageIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;

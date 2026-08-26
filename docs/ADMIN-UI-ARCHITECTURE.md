@@ -8,7 +8,11 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 2. **Dialog Styles Isolation:** Dialog styles must NEVER be wrapped inside `.admin-content` or component-specific scopes that don't apply to the overlay body. They must target `.admin-dialog-panel` via global overlays or root levels.
 3. **Detail View Labels Layout:** Labels and values in detail panels must ALWAYS stack vertically. Never inline them. Force it using `display: block !important;` on both label and value.
 4. **Strict Actions Column:** The actions column (`mat-column-acciones`) must have a strict fixed width of `120px` on desktop. Use `mat-icon-button` with `matTooltip` inside an inline flex container.
-
+5. **Status chips/badges must render fully:** Pills de estado (`.estado-badge`, `.admin-badge`, variantes `*-estado-badge`) **nunca** deben verse truncados/mochados. No usar `max-width` de columna más estrecho que el chip + padding de celda; en celdas de estado preferir `overflow: visible`. Estilos canónicos: `src/styles/admin-table.scss` (columna `mat-column-estado` ≥ ~148px).
+6. **Person names must render fully on wide screens:** Nombres de personas en tablas admin (veterinario, cliente, doctor, dueño, `mat-column-nombre`, etc.) **deben verse completos** en pantallas anchas (≥ ~1201px). No truncar con `text-overflow: ellipsis` si hay espacio disponible. En medianas: wrap hasta 2 líneas; en estrecho: wrap + scroll horizontal (`.table-scroll`). Canonical: `src/styles/admin-table.scss` (columnas `mat-column-veterinario` / `cliente` / `doctor` / `dueno` / `nombre`).
+7. **Destructive action copy = "Borrar":** En UI (menús, tooltips, leyendas, SweetAlert) siempre **«Borrar»**. Nunca «Baja lógica» / «Dar de baja». Internamente sigue siendo baja lógica (`activo: false`); docs y código pueden usar ese término.
+8. **Multi-line table cells need visible vertical gap:** Celdas apiladas (fecha+hora en `.fecha-compact`, paciente+dueño en `.cell-primary`) deben tener **gap vertical visible** (≈4–8px). No apilar líneas pegadas por wrap accidental sin espaciado.
+9. **Admin layout must use available desktop width:** En viewports anchos (≥1200px) el contenido admin debe aprovechar el ancho de `.admin-content` (sin un segundo `max-width` más agresivo en `.admin-page`). Columnas de texto flexibles absorben el espacio; no dejar texto comprimido mientras sobra hueco vacío entre columnas (p. ej. entre veterinario y acciones).
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
 Ensure all color, padding, spacing, and elevation attributes use these tokens:
@@ -74,7 +78,68 @@ When asked to refactor or build a CRUD or Dialog view:
 </td>
 ```
 
-## DIALOG CONFIG
+### Copy de acción destructiva (Borrar — no jerga técnica)
+
+Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). Al usuario **no** le importa soft-delete vs delete físico.
+
+| Superficie UI | Label correcto | Prohibido en UI |
+|---------------|----------------|-----------------|
+| Leyenda de tabla (`action-legend`) | **Borrar** | «Baja lógica», «Dar de baja» |
+| `mat-menu` / botón / `matTooltip` | **Borrar** | «Baja lógica», jerga técnica |
+| SweetAlert confirmación | «¿Borrar esta [entidad]?» / «Sí, borrar» | «baja lógica», «dar de baja» |
+| Mensaje de éxito | «Borrado» / «… borrado correctamente» | «Baja lógica» |
+
+- Preferir **Borrar** (no «Eliminar») salvo convención fuerte ya existente en un flujo puntual.
+- En **docs técnicas / specs / comentarios de código / nombres de métodos** (`bajaLogicaCita`, etc.) sí se puede decir «baja lógica».
+- El comportamiento técnico **no** cambia: sigue siendo `activo: false` (o equivalente), sin `remove()` de nodo.
+
+### Status badge in table (correct)
+
+```html
+<td mat-cell *matCellDef="let row">
+  <span class="estado-badge" [ngClass]="row.estado | adminEstadoClass">
+    {{ row.estado | titlecase }}
+  </span>
+</td>
+```
+
+- Columna `estado`: anchos en `admin-table.scss` (no reducir a ≤108px: “CONFIRMADA”/“COMPLETADA” se recortan).
+- Chip: `white-space: nowrap`, `width: max-content`, sin `text-overflow: ellipsis` en el pill.
+- Scroll horizontal de la tabla (`.table-scroll`) está bien; **clip del badge** no.
+
+### Person name in table (correct)
+
+```html
+<td mat-cell *matCellDef="let row">
+  <span class="tag tag-muted">{{ row.veterinario || 'N/P' }}</span>
+</td>
+```
+
+- Columnas de nombre (`veterinario`, `cliente`, `doctor`, `dueno`, `nombre`): min-width ≥ ~220px; celda `overflow: visible`; chip `.tag` sin ellipsis en desktop ancho.
+- Medianas (≤1200px): wrap hasta 2 líneas; móvil: wrap + `.table-scroll`.
+- **No** aplicar `max-width` agresivo ni `text-overflow: ellipsis` en nombres de persona cuando el viewport tiene espacio.
+
+### Multi-line cells (fecha+hora, paciente+dueño)
+
+```html
+<span class="fecha-compact">
+  {{ fecha }}
+  <small class="fecha-hora">{{ hora }}</small>
+</span>
+
+<div class="cell-primary">
+  <strong>{{ paciente }}</strong>
+  <span class="cell-sub">{{ dueno }}</span>
+</div>
+```
+
+- Gap vertical visible (`.fecha-compact` / `.cell-primary` usan `gap` ≈6px). Canonical: `admin-data-panel.scss`, `admin-table.scss`.
+- Preferir stack explícito (fecha + `<small>`) antes que un solo string que wrappea sin aire.
+
+### Layout ancho (desktop)
+
+- `.admin-page` / `*-contenedor` **no** deben imponer un `max-width` más estrecho que `.admin-content`.
+- ≥1200px: columnas flexibles (`motivo`, `consulta`, nombres) absorben el ancho; scroll horizontal en estrecho sigue OK.
 
 ```typescript
 // src/app/core/config/admin-ui.config.ts
@@ -85,6 +150,71 @@ export const ADMIN_DIALOG_CONFIG = {
   panelClass: 'admin-dialog-panel',
 };
 ```
+
+Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`.
+
+### Diálogos compactos tipo picker (espaciado)
+
+Los CRUD grandes ponen padding en layouts internos (`.admin-dialog-layout`, `.admin-dialog-form--padded`); el shell fuerza `padding: 0` en `.admin-dialog-body`. Los selectores compactos (timepicker, futuros pickers) **no** tienen ese layout → deben usar la clase modificadora:
+
+```html
+<div class="admin-dialog-shell admin-dialog-shell--picker">
+```
+
+Criterio mínimo (tokens en `src/styles/admin-dialog.scss`):
+
+| Zona | Mínimo |
+|------|--------|
+| Body padding | **28px** vertical / **32px** horizontal |
+| Gap vertical entre bloques | **24px** |
+| Header | **24×28** px; subtitle `margin-top` ≥ **8px** |
+| Footer acciones | **18×28×22** px (más aire que CRUD `14×28×18`) |
+
+Panel: `ADMIN_DIALOG_TIMEPICKER` ≈ **420px** / `maxWidth: 94vw` (no estrechar a ≤360px: el padding se come el aire). En mobile (`≤420px`) el SCSS reduce a ~20px sin cortar contenido. No aplicar `--picker` a formularios CRUD grandes.
+
+### Timepicker (patrón estándar de formularios)
+
+No usar `input type="time"` nativo en formularios admin. Usar el control compartido:
+
+```html
+<app-timepicker-field
+  formControlName="hora"
+  label="Hora"
+  [required]="true"
+  dialogTitle="Seleccionar hora">
+</app-timepicker-field>
+```
+
+- **Valor del FormControl:** `HH:mm` (24h), compatible con validadores y RTDB.
+- **Display:** 12h con `a.m.` / `p.m.` (español latino).
+- **Diálogo:** `ADMIN_DIALOG_TIMEPICKER` + `admin-dialog-shell admin-dialog-shell--picker` (`src/app/shared/timepicker/`).
+- Spec: `specs/004-timepicker-dialog/`.
+
+## Loading global (feedback contextual — obligatorio)
+
+Toda operación async del admin que bloquee la UI debe usar `LoadingService` (`src/app/core/loading.service.ts`) con **mensaje contextual**:
+
+| Operación | Mensaje (`LOADING_MESSAGES`) |
+|-----------|------------------------------|
+| Lectura / listas | `Cargando…` (default) |
+| Create / update persistente | `Guardando…` |
+| Baja / delete lógico | `Eliminando…` |
+| Cambio de estado / patch | `Actualizando…` |
+
+### Reglas no negociables
+
+1. **Nunca dejar el overlay trabado:** cada `show()` debe emparejarse con `hide()` en **success y error** (`finally` o `LoadingService.wrap()`).
+2. **Un solo `show` por operación:** no llamar `show()` en el diálogo **y** otra vez en el padre al `afterClosed` — el contador interno queda en `1` y el overlay no cierra.
+3. **API:** `show(message?: string)` — callers sin argumento siguen con «Cargando…».
+4. Preferir el servicio centralizado; el texto se renderiza en `app.component` (`.global-loading-text`).
+
+### Checklist QA
+
+- Tras guardar: el overlay **desaparece**.
+- Durante guardar: se lee «Guardando…» (o el mensaje acordado).
+- En error de red/persistencia: overlay cierra + mensaje de error claro.
+
+Spec: `specs/005-loading-feedback-ux/`.
 
 ## REFERENCE IMPLEMENTATIONS
 

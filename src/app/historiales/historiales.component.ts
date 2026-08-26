@@ -336,12 +336,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         if (historial) {
           const result = await Swal.fire({
             icon: 'warning',
-            title: '¿Archivar historial?',
+            title: '¿Borrar este historial?',
             text: 'Se ocultará solo en el panel admin. El dueño seguirá viéndolo en la app a menos que marques "Ocultar del portal" al editar.',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, archivar en admin',
+            confirmButtonText: 'Sí, borrar',
             cancelButtonText: 'Cancelar'
           });
 
@@ -353,10 +353,10 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: '¡Completado!', text: 'El historial ha sido marcado como inactivo' }), 0);
+              setTimeout(() => Swal.fire({ icon: 'success', title: 'Borrado', text: 'El historial ha sido borrado' }), 0);
             } catch (error) {
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo marcar el historial como inactivo' }), 0);
+              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo borrar el historial' }), 0);
             }
           }
         }
@@ -370,13 +370,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe(async (historial) => {
         if (historial) {
           const result = await Swal.fire({
-            title: '¿Archivar historial?',
-            text: 'Se ocultará en admin y en el portal del dueño. Los datos se conservan en RTDB.',
+            title: '¿Borrar este historial?',
+            text: 'Se ocultará en admin y en el portal del dueño. Los datos se conservan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, archivar',
+            confirmButtonText: 'Sí, borrar',
             cancelButtonText: 'Cancelar'
           });
 
@@ -388,13 +388,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: 'Archivado', text: 'Historial archivado correctamente.' }), 0);
+              setTimeout(() => Swal.fire({ icon: 'success', title: 'Borrado', text: 'Historial borrado correctamente.' }), 0);
             } catch (error) {
               this.loadingService.hide();
               setTimeout(() => Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo eliminar el historial'
+                text: 'No se pudo borrar el historial'
               }), 0);
             }
           }

@@ -9,6 +9,7 @@ import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 
 @Component({
   selector: 'app-salida-dialog',
@@ -24,6 +25,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
 
+  /** Motivo `merma` se persiste como tipo de movimiento `merma` (spec 007). */
   motivosSalida = [
     { valor: 'uso_consulta', etiqueta: 'Uso en Consulta' },
     { valor: 'venta_directa', etiqueta: 'Venta Directa' },
@@ -38,7 +40,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<SalidaDialogComponent>,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {
     this.salidaForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
@@ -63,6 +66,10 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get esMerma(): boolean {
+    return this.salidaForm.get('motivo')?.value === 'merma';
+  }
+
   cargarProductos(): void {
     this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
       next: (productos) => { this.productos = productos; },
@@ -72,9 +79,9 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
   private _filtrarProductos(valor: string): Producto[] {
     if (typeof valor !== 'string') return this.productos;
-    
+
     const filtro = valor.toLowerCase();
-    return this.productos.filter(p => 
+    return this.productos.filter(p =>
       p.nombre.toLowerCase().includes(filtro) ||
       p.codigo_barras.toLowerCase().includes(filtro) ||
       p.marca.toLowerCase().includes(filtro)
@@ -86,13 +93,11 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   }
 
   onProductoSeleccionado(producto: Producto): void {
-    console.log('🔍 Producto seleccionado:', producto.nombre);
     this.productoSeleccionado = producto;
     this.salidaForm.patchValue({
       producto_id: producto.id
     });
 
-    // Validar si hay stock disponible
     if (producto.stock_actual <= 0) {
       Swal.fire({
         icon: 'warning',
@@ -131,7 +136,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       'uso_consulta': 'medical_services',
       'venta_directa': 'shopping_cart',
       'muestra_medica': 'card_giftcard',
-      'merma': 'delete',
+      'merma': 'report',
       'robo_perdida': 'warning',
       'otro': 'info'
     };
@@ -147,15 +152,14 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   async guardar(): Promise<void> {
     if (this.salidaForm.invalid || !this.productoSeleccionado) {
       this.salidaForm.markAllAsTouched();
-      Swal.fire('Formulario Incompleto', 'Por favor completa todos los campos requeridos', 'warning');
+      Swal.fire('Formulario incompleto', 'Completa todos los campos requeridos, incluido el motivo', 'warning');
       return;
     }
 
-    // Validar stock disponible
     if (this.isStockInsuficiente()) {
       Swal.fire({
         icon: 'error',
-        title: 'Stock Insuficiente',
+        title: 'Stock insuficiente',
         html: `
           Stock disponible: ${this.getStockDisponible()} ${this.productoSeleccionado.unidad_medida}<br>
           Cantidad solicitada: ${this.salidaForm.get('cantidad')?.value}
@@ -166,36 +170,43 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
 
     try {
       const formData = this.salidaForm.value;
       const motivoTexto = this.motivosSalida.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
-      
-      console.log('🔄 Registrando salida de producto...');
-      console.log('Datos:', formData);
+      const motivoCompleto = `${motivoTexto}. ${formData.observaciones || ''}`.trim();
 
-      await this.inventarioService.registrarSalida(
-        formData.producto_id,
-        formData.cantidad,
-        `${motivoTexto}. ${formData.observaciones || ''}`.trim(),
-        undefined, // paciente_id
-        undefined, // historial_id
-        undefined, // venta_id
-        formData.observaciones
-      );
-
-      console.log('✅ Salida registrada exitosamente');
+      if (formData.motivo === 'merma') {
+        await this.inventarioService.registrarMerma(
+          formData.producto_id,
+          formData.cantidad,
+          motivoCompleto,
+          formData.observaciones
+        );
+      } else {
+        await this.inventarioService.registrarSalida(
+          formData.producto_id,
+          formData.cantidad,
+          motivoCompleto,
+          undefined,
+          undefined,
+          undefined,
+          formData.observaciones
+        );
+      }
 
       const nuevoStock = this.productoSeleccionado.stock_actual - formData.cantidad;
+      const tituloExito = formData.motivo === 'merma' ? 'Merma registrada' : 'Salida registrada';
 
       Swal.fire({
         icon: 'success',
-        title: 'Salida Registrada',
+        title: tituloExito,
         html: `
           <strong>${this.productoSeleccionado.nombre}</strong><br>
           Cantidad: ${formData.cantidad} ${this.productoSeleccionado.unidad_medida}<br>
           Stock restante: ${nuevoStock} ${this.productoSeleccionado.unidad_medida}
-          ${nuevoStock <= this.productoSeleccionado.stock_minimo ? '<br><span style="color:#f44336;">⚠️ Stock bajo el mínimo</span>' : ''}
+          ${nuevoStock <= this.productoSeleccionado.stock_minimo ? '<br><span style="color:#f44336;">Stock bajo el mínimo</span>' : ''}
         `,
         timer: 3000,
         showConfirmButton: false
@@ -203,9 +214,11 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
       this.dialogRef.close(true);
     } catch (error) {
-      console.error('❌ Error al registrar salida:', error);
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'registrar salida'), 'error');
+      this.logger.error('Error al registrar salida/merma:', error);
+      const contexto = this.esMerma ? 'registrar merma' : 'registrar salida';
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, contexto), 'error');
     } finally {
+      this.loadingService.hide();
       this.loading = false;
     }
   }
@@ -219,4 +232,3 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     return !!(control && control.hasError(error) && (control.dirty || control.touched));
   }
 }
-

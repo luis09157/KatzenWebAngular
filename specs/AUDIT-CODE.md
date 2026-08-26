@@ -15,7 +15,7 @@ KatzenVet Web tiene una base sólida: Angular 17 lazy-loaded, guards de auth/rol
 
 La brecha más grave es **seguridad en profundidad**: la matriz `staff-role.config.ts` restringe módulos en UI, pero `database.rules.json` permite **write a cualquier staff** (`role != 'client'`) en nodos clínicos e inventario. Un recepcionista con token válido puede escribir historiales o inventario vía SDK/API, saltándose la UI.
 
-Varias **reglas de negocio confirmadas** en `domain-context.md` siguen sin implementar: solapamiento de citas por veterinario, `motivo_cancelacion`, cascada de baja de cliente, revocación inmediata de sesiones portal, mermas con política estricta, registro self-service portal y UI perfil dual.
+Varias **reglas de negocio confirmadas** en `domain-context.md` siguen sin implementar: cascada de baja de cliente, registro self-service portal y UI perfil dual. Resueltas recientemente: agenda citas (003), revocación portal (006), política mermas MVP (007).
 
 Hay **deuda técnica acumulada**: servicios que cargan colecciones RTDB completas, ~50+ usos de `any`, métodos legacy con `.remove()`, `mock-data.ts` sin adopción real, y Cypress concentrado en admin smoke sin cobertura portal/inventario.
 
@@ -41,18 +41,17 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 **Recomendación:** Añadir `.indexOn: ["cliente_id"]` y ampliar reglas de query/read para ambos campos (aditivo, compatible móvil).  
 **Esfuerzo:** M
 
-#### 3. Desactivar portal no revoca sesiones activas inmediatamente
+#### 3. ~~Desactivar portal no revoca sesiones activas inmediatamente~~ ✅
 
-**Archivos:** `functions/src/index.ts` (`deactivatePortalClient`, L472–523)  
-**Descripción:** Se aplica `disabled: true` y `portalActivo: false`, pero falta `admin.auth().revokeRefreshTokens(uid)` confirmado en domain-context #18. Tokens JWT vigentes pueden seguir usándose hasta expiración.  
-**Recomendación:** Añadir `revokeRefreshTokens` tras desactivar; documentar en spec y probar en emulador.  
+**Archivos:** `functions/src/index.ts` (`deactivatePortalClient`)  
+**Estado:** **Resuelto** en `specs/006-revocacion-sesiones-portal/` — `revokeRefreshTokens(uid)` tras `disabled: true`; si revoke falla se reporta `failed-precondition` sin rollback de disabled.  
+**Pendiente:** deploy `functions:deactivatePortalClient` con autorización de Luis.  
 **Esfuerzo:** S
 
-#### 4. Movimientos tipo `merma` permiten stock negativo
+#### 4. ~~Movimientos tipo `merma` permiten stock negativo~~ ✅
 
-**Archivos:** `src/app/inventario/inventario.service.ts` (L268–284)  
-**Descripción:** `salida` valida stock insuficiente; `merma` resta sin validación → stock negativo posible si se invoca ese tipo. Política de negocio #12 exige bloqueo de negativo + motivo obligatorio.  
-**Recomendación:** Unificar validación de stock para `merma`; exigir motivo en UI/servicio; bloquear `nuevoStock < 0` en transacción.  
+**Archivos:** `src/app/inventario/inventario.service.ts`, `inventario-stock.util.ts`  
+**Estado:** **Resuelto** 2026-08-25 — `specs/007-politica-mermas-inventario/` — `merma` valida stock como `salida`; `registrarMerma` + motivo obligatorio; ajuste con gate supervisor ligero (admin/doctor). Autorización dual formal = SC futuro.  
 **Esfuerzo:** M
 
 #### 5. Métodos `.remove()` legacy aún presentes (riesgo de pérdida de datos)
@@ -68,12 +67,16 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 #### 6. Citas: sin validación de solapamiento por veterinario
 
+**Estado:** ✅ Resuelto 2026-08-25 — `specs/003-validacion-agenda-citas/` (`cita-agenda.util.ts` + `CitasService.guardarCita`)
+
 **Archivos:** `src/app/citas/citas.service.ts`, `src/app/citas/cita-dialog.component.ts`  
 **Descripción:** No hay chequeo de conflicto horario por vet ni campo `duracion_minutos` (default 30 min confirmado). Doble booking del mismo veterinario es posible.  
 **Recomendación:** Validar en `guardarCita()` contra citas activas del mismo `veterinario` + ventana `[fecha, fecha+duracion]`.  
 **Esfuerzo:** M
 
 #### 7. Citas: `veterinario` no es obligatorio
+
+**Estado:** ✅ Resuelto 2026-08-25 — `specs/003-validacion-agenda-citas/`
 
 **Archivos:** `src/app/citas/cita-dialog.component.ts` (L143)  
 **Descripción:** Campo sin `Validators.required`; domain-context exige un veterinario por cita.  
@@ -82,21 +85,27 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 #### 8. Citas: fechas pasadas bloqueadas para todos los roles
 
-**Archivos:** `src/app/citas/cita-dialog.component.ts` (`validarFecha`, L348–361)  
+**Estado:** ✅ Resuelto 2026-08-25 — excepción doctor/administrador vía `staffRoleIsVeterinarioOperativo`
+
+**Archivos:** `src/app/citas/cita-dialog.component.ts` (`validarFecha`)  
 **Descripción:** Rechaza cualquier fecha `< hoy` sin excepción para veterinarias/admin operativo (decisión #5).  
 **Recomendación:** Condicionar validador con `AuthProfileService.getEffectiveStaffRole()` (doctor/admin).  
 **Esfuerzo:** S
 
 #### 9. Citas canceladas sin `motivo_cancelacion` obligatorio
 
-**Archivos:** `src/app/citas/citas.component.ts` (`cambiarEstado`, L231), `src/app/citas/cita-dialog.component.html`  
+**Estado:** ✅ Resuelto 2026-08-25 — dialog + menú cancelar + portal
+
+**Archivos:** `src/app/citas/citas.component.ts`, `src/app/citas/cita-dialog.component.html`, portal mapper/list  
 **Descripción:** Se puede pasar a `cancelada` sin capturar motivo; portal no muestra motivo (`portal-mapper.util.ts`, `portal-list-section.component.html`).  
 **Recomendación:** Diálogo obligatorio al cancelar; persistir campo; mostrarlo en portal.  
 **Esfuerzo:** M
 
 #### 10. Revertir completada → confirmada sin control de rol
 
-**Archivos:** `src/app/citas/citas.component.html` (L118)  
+**Estado:** ✅ Resuelto 2026-08-25 — UI + validación en servicio
+
+**Archivos:** `src/app/citas/citas.component.html`, `citas.service.ts`  
 **Descripción:** Menú visible para cualquier staff con acceso al módulo; negocio limita a veterinarias/perfil veterinario (#3).  
 **Recomendación:** Ocultar acción según rol + validar en servicio.  
 **Esfuerzo:** S
@@ -255,12 +264,12 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 | # | Mejora | Impacto | Esfuerzo | Fase sugerida |
 |---|--------|---------|----------|---------------|
 | 1 | Reglas RTDB granulares por rol/operación (historiales, inventario) | Seguridad crítica | L | Fase 1 |
-| 2 | Validación agenda citas (vet obligatorio, solapamiento, duración) | Negocio core | M | Fase 1 |
-| 3 | `revokeRefreshTokens` en desactivar portal | Seguridad sesiones | S | Fase 1 |
+| 2 | ~~Validación agenda citas~~ — **hecho** `specs/003-validacion-agenda-citas/` | Negocio core | M | ✅ |
+| 3 | ~~`revokeRefreshTokens` en desactivar portal~~ | Seguridad sesiones | S | **Hecho** 006 (pendiente deploy) |
 | 4 | Política mermas/stock negativo unificada | Integridad inventario | M | Fase 1 |
 | 5 | Cascada baja lógica cliente + revocación Auth | Negocio + seguridad | M | Fase 2 |
 | 6 | Paginación/queries indexadas (citas, clientes en diálogos, movimientos) | Performance | L | Fase 2 |
-| 7 | Motivo cancelación citas + UX portal | Portal UX / negocio | M | Fase 2 |
+| 7 | ~~Motivo cancelación citas + UX portal~~ — **hecho** en 003 | Portal UX / negocio | M | ✅ |
 | 8 | Cypress portal + inventario (flujos críticos) | Calidad | M | Fase 2 |
 | 9 | Deprecar `.remove()` y alinear baja lógica en todos los módulos | Auditoría datos | M | Fase 3 |
 | 10 | Registro self-service portal + UI perfil dual | Producto | L | Fase 3 |
@@ -272,22 +281,22 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 | Regla / decisión | Estado en código | Gap |
 |------------------|------------------|-----|
 | RTDB restringe por `staffRole` | Solo UI (`StaffRoleGuard`) | **No implementado** en rules |
-| 1 vet/cita, sin solapamiento, 30 min default | Sin validación servicio | **Pendiente** |
-| `veterinario` obligatorio por cita | Campo opcional en form | **Pendiente** |
-| Fechas pasadas solo veterinarias | Bloqueadas para todos | **Invertido** |
-| `motivo_cancelacion` obligatorio al cancelar | No existe campo/flujo | **Pendiente** |
-| Citas canceladas visibles en portal con motivo | Visibles sin motivo | **Parcial** |
-| Revertir completada → confirmada (solo vets) | Sin guard de rol | **Pendiente** |
+| 1 vet/cita, sin solapamiento, 30 min default | `cita-agenda.util` + servicio | **Hecho** (003) |
+| `veterinario` obligatorio por cita | required form + servicio | **Hecho** (003) |
+| Fechas pasadas solo veterinarias | excepción doctor/admin | **Hecho** (003) |
+| `motivo_cancelacion` obligatorio al cancelar | dialog + menú + servicio | **Hecho** (003) |
+| Citas canceladas visibles en portal con motivo | mapper + list-section | **Hecho** (003) |
+| Revertir completada → confirmada (solo vets) | UI + servicio | **Hecho** (003) |
 | `medico_atendio` obligatorio historial | `Validators.required` en dialog | **Implementado** |
 | Notas internas historial (solo staff) | No hay campos | **Pendiente** |
 | Baja lógica vacunas (no `remove()`) | UI usa baja lógica; servicio tiene `remove()` | **Parcial** |
 | Recordatorios → push Firebase | Sin bridge FCM | **Pendiente** |
 | Mascota Fallecido → archivar recordatorios | Solo UI filtros | **Pendiente** |
-| Bloqueo stock negativo + merma con motivo | Salida OK; `merma` tipo sin check | **Parcial** |
+| Bloqueo stock negativo + merma con motivo | Salida OK; merma tipada con check + motivo (007) | **Hecho (MVP)** |
 | Ajuste con autorización supervisor | Sin control de rol | **Pendiente** |
 | OC borrador → enviada (solo vets) | Sin flujo/autorización | **Pendiente** |
 | Baja cliente en cascada | Solo flags cliente | **Pendiente** |
-| Desactivar portal revoca sesiones | `disabled: true` sí; `revokeRefreshTokens` no | **Parcial** |
+| Desactivar portal revoca sesiones | `disabled: true` + `revokeRefreshTokens` | **Hecho** (006; pendiente deploy) |
 | Registro self-service portal landing | Solo login | **Pendiente** |
 | UI perfil dual post-login | Redirección binaria admin/portal | **Pendiente** |
 | Rol super_admin / dueño | Documentado, no en config | **Pendiente** |
@@ -300,7 +309,7 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 ## Notas adicionales por área auditada
 
-**Cloud Functions:** Patrón sólido (`isCallerAdmin`, rollback Auth, passwords server-side, audit `PortalProvisionLog`). Mejoras: `revokeRefreshTokens`, validación rol en `clearMustChangePassword`, evitar password staff en payload cliente (`provisionStaffUser` recibe password del admin UI — aceptable operativamente pero conviene generación server-side opcional).
+**Cloud Functions:** Patrón sólido (`isCallerAdmin`, rollback Auth, passwords server-side, audit `PortalProvisionLog`). `revokeRefreshTokens` en `deactivatePortalClient` (006). Mejoras pendientes: validación rol en `clearMustChangePassword`, evitar password staff en payload cliente (`provisionStaffUser` recibe password del admin UI — aceptable operativamente pero conviene generación server-side opcional).
 
 **Auth guards:** `AuthGuard` + `StaffRoleGuard` + `PortalAuthGuard`/`PortalGuestGuard` bien encadenados; `PortalSessionService` valida `portalActivo` y cliente activo.
 
@@ -321,3 +330,4 @@ Priorizar spec `specs/NNN-rtdb-granular-permisos/` y `specs/NNN-validacion-agend
 | Fecha | Cambio |
 |-------|--------|
 | 2026-08-25 | Auditoría inicial — 30 hallazgos documentados |
+| 2026-08-25 | Spec 003: ítems 6–10 citas resueltos (agenda, motivo, roles) |

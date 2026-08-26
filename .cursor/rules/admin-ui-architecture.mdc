@@ -14,6 +14,11 @@ Premium corporate dashboard (Stripe/Linear). Full spec: `docs/ADMIN-UI-ARCHITECT
 2. **Dialog CSS** — target `.admin-dialog-panel` or component `:host`, never `.admin-content`.
 3. **Detail labels** — stack vertically; `display: block !important` on label and value.
 4. **Actions column** — `mat-column-acciones` fixed `120px`; `mat-icon-button` + `matTooltip` in `.row-actions`.
+5. **Status chips complete** — `.estado-badge` / `.admin-badge` must render fully (no clipped right edge). Do not shrink `mat-column-estado` below ~148px; keep `overflow: visible` on estado cells. Canonical CSS: `src/styles/admin-table.scss`.
+6. **Person names complete on wide screens** — veterinario / cliente / doctor / dueño / `mat-column-nombre` must show **full names** on wide viewports (no ellipsis when space exists). Medium: wrap ≤2 lines; narrow: wrap + `.table-scroll`. Canonical: `src/styles/admin-table.scss`.
+7. **Destructive action copy = "Borrar"** — UI labels, tooltips, menu items, legends and SweetAlert must say **Borrar** (never «Baja lógica» / «Dar de baja»). Internally it remains soft-delete (`activo: false`); method names/comments may keep `bajaLogica*`. Prefer «Borrar» over «Eliminar».
+8. **Multi-line cells** — fecha+hora (`.fecha-compact`) and paciente+dueño (`.cell-primary`) need visible vertical gap (~4–8px).
+9. **Desktop width** — admin pages use full `.admin-content` width (≥1200px); no nested tighter `max-width` on `.admin-page`; flexible text columns absorb space (no empty gaps while text looks cramped).
 
 ## Tokens (use CSS vars)
 
@@ -30,3 +35,12 @@ Premium corporate dashboard (Stripe/Linear). Full spec: `docs/ADMIN-UI-ARCHITECT
 ```typescript
 { width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }
 ```
+
+Compact pickers (timepicker): `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER` (~420px). Body padding ≥28×32, gap ≥24px, footer ≥18×28×22. Do not use `--picker` on large CRUD forms.
+
+## Loading (obligatorio)
+
+- Usar `LoadingService` con mensaje contextual: `Cargando…` / `Guardando…` / `Eliminando…` / `Actualizando…` (`LOADING_MESSAGES`).
+- Cada `show()` → `hide()` en success **y** error (`finally` o `wrap`).
+- **No** doble `show` (diálogo + padre): deja el overlay trabado por el contador.
+- Spec: `specs/005-loading-feedback-ux/` · detalle: `docs/ADMIN-UI-ARCHITECTURE.md` § Loading.

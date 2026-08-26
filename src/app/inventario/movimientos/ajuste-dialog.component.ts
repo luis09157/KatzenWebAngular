@@ -9,6 +9,9 @@ import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
+import { AuthProfileService } from '../../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 
 @Component({
   selector: 'app-ajuste-dialog',
@@ -23,6 +26,8 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
   productos: Producto[] = [];
   productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
+  /** Supervisor ligero: administrador | doctor (spec 007). */
+  puedeAjustar = false;
 
   motivosAjuste = [
     { valor: 'conteo_fisico', etiqueta: 'Conteo Físico' },
@@ -38,7 +43,9 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<AjusteDialogComponent>,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private loadingService: LoadingService,
+    private authProfile: AuthProfileService
   ) {
     this.ajusteForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
@@ -55,12 +62,34 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.cargarProductos();
+    this.cargarPermisoYProductos();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private async cargarPermisoYProductos(): Promise<void> {
+    try {
+      const role = await this.authProfile.getEffectiveStaffRole();
+      this.puedeAjustar = staffRoleIsVeterinarioOperativo(role);
+      if (!this.puedeAjustar) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Sin autorización',
+          text: 'Solo un supervisor (administrador o veterinario) puede registrar ajustes de inventario',
+          confirmButtonColor: '#f44336'
+        });
+        this.dialogRef.close(false);
+        return;
+      }
+    } catch (error) {
+      this.logger.error('Error al resolver rol para ajuste:', error);
+      this.dialogRef.close(false);
+      return;
+    }
+    this.cargarProductos();
   }
 
   cargarProductos(): void {
@@ -72,9 +101,9 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
 
   private _filtrarProductos(valor: string): Producto[] {
     if (typeof valor !== 'string') return this.productos;
-    
+
     const filtro = valor.toLowerCase();
-    return this.productos.filter(p => 
+    return this.productos.filter(p =>
       p.nombre.toLowerCase().includes(filtro) ||
       p.codigo_barras.toLowerCase().includes(filtro) ||
       p.marca.toLowerCase().includes(filtro)
@@ -86,11 +115,10 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
   }
 
   onProductoSeleccionado(producto: Producto): void {
-    console.log('🔍 Producto seleccionado:', producto.nombre);
     this.productoSeleccionado = producto;
     this.ajusteForm.patchValue({
       producto_id: producto.id,
-      stock_fisico: producto.stock_actual // Pre-llenar con stock actual
+      stock_fisico: producto.stock_actual
     });
   }
 
@@ -124,18 +152,26 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
   }
 
   async guardar(): Promise<void> {
+    if (!this.puedeAjustar) {
+      Swal.fire(
+        'Sin autorización',
+        'Solo un supervisor (administrador o veterinario) puede registrar ajustes',
+        'error'
+      );
+      return;
+    }
+
     if (this.ajusteForm.invalid || !this.productoSeleccionado) {
       this.ajusteForm.markAllAsTouched();
-      Swal.fire('Formulario Incompleto', 'Por favor completa todos los campos requeridos', 'warning');
+      Swal.fire('Formulario incompleto', 'Completa todos los campos requeridos, incluido el motivo', 'warning');
       return;
     }
 
     const diferencia = this.getDiferencia();
 
-    // Si no hay diferencia, advertir
     if (diferencia === 0) {
       const result = await Swal.fire({
-        title: 'Sin Cambios',
+        title: 'Sin cambios',
         text: 'El stock físico es igual al stock en sistema. ¿Deseas continuar?',
         icon: 'question',
         showCancelButton: true,
@@ -146,10 +182,9 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
       if (!result.isConfirmed) return;
     }
 
-    // Confirmar ajuste si hay diferencia significativa
     if (Math.abs(diferencia) > 10) {
       const result = await Swal.fire({
-        title: 'Diferencia Grande',
+        title: 'Diferencia grande',
         html: `
           <strong>Diferencia detectada: ${diferencia > 0 ? '+' : ''}${diferencia} unidades</strong><br><br>
           ¿Estás seguro de aplicar este ajuste?
@@ -165,15 +200,11 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
 
     try {
       const formData = this.ajusteForm.value;
       const motivoTexto = this.motivosAjuste.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
-      
-      console.log('🔄 Registrando ajuste de inventario...');
-      console.log('Stock sistema:', this.getStockSistema());
-      console.log('Stock físico:', this.getStockFisico());
-      console.log('Diferencia:', diferencia);
 
       await this.inventarioService.registrarAjuste(
         formData.producto_id,
@@ -182,11 +213,9 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
         formData.observaciones
       );
 
-      console.log('✅ Ajuste registrado exitosamente');
-
       Swal.fire({
         icon: 'success',
-        title: 'Ajuste Registrado',
+        title: 'Ajuste registrado',
         html: `
           <strong>${this.productoSeleccionado.nombre}</strong><br>
           Stock anterior: ${this.getStockSistema()} ${this.productoSeleccionado.unidad_medida}<br>
@@ -201,9 +230,10 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
 
       this.dialogRef.close(true);
     } catch (error) {
-      console.error('❌ Error al registrar ajuste:', error);
+      this.logger.error('Error al registrar ajuste:', error);
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'registrar ajuste'), 'error');
     } finally {
+      this.loadingService.hide();
       this.loading = false;
     }
   }
@@ -217,4 +247,3 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
     return !!(control && control.hasError(error) && (control.dirty || control.touched));
   }
 }
-

@@ -32,6 +32,7 @@ export class ProductoMovimientosDialogComponent implements OnInit {
     { valor: 'todos', etiqueta: 'Todos' },
     { valor: 'entrada', etiqueta: 'Entradas' },
     { valor: 'salida', etiqueta: 'Salidas' },
+    { valor: 'merma', etiqueta: 'Mermas' },
     { valor: 'ajuste', etiqueta: 'Ajustes' }
   ];
 
@@ -76,6 +77,7 @@ export class ProductoMovimientosDialogComponent implements OnInit {
     const colores: {[key: string]: string} = {
       'entrada': '#4caf50',
       'salida': '#f44336',
+      'merma': '#e65100',
       'ajuste': '#ff9800'
     };
     return colores[tipo] || '#757575';
@@ -85,6 +87,7 @@ export class ProductoMovimientosDialogComponent implements OnInit {
     const iconos: {[key: string]: string} = {
       'entrada': 'arrow_downward',
       'salida': 'arrow_upward',
+      'merma': 'report',
       'ajuste': 'tune'
     };
     return iconos[tipo] || 'help';
@@ -94,6 +97,7 @@ export class ProductoMovimientosDialogComponent implements OnInit {
     const textos: {[key: string]: string} = {
       'entrada': 'Entrada',
       'salida': 'Salida',
+      'merma': 'Merma',
       'ajuste': 'Ajuste'
     };
     return textos[tipo] || tipo;
@@ -112,7 +116,7 @@ export class ProductoMovimientosDialogComponent implements OnInit {
 
   getEstadisticas() {
     const entradas = this.movimientos.filter(m => m.tipo === 'entrada');
-    const salidas = this.movimientos.filter(m => m.tipo === 'salida');
+    const salidas = this.movimientos.filter(m => m.tipo === 'salida' || m.tipo === 'merma');
     const ajustes = this.movimientos.filter(m => m.tipo === 'ajuste');
 
     const totalEntradas = entradas.reduce((sum, m) => sum + m.cantidad, 0);

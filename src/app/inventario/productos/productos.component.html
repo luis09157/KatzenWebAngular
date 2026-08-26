@@ -107,7 +107,7 @@
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarProducto(producto)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Eliminar" (click)="eliminarProducto(producto)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarProducto(producto)">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -151,7 +151,7 @@
       <mat-icon>edit</mat-icon> Editar
     </button>
     <button mat-menu-item (click)="eliminarProducto(menuContext!)" [disabled]="!menuContext">
-      <mat-icon>delete_outline</mat-icon> Eliminar
+      <mat-icon>delete_outline</mat-icon> Borrar
     </button>
   </mat-menu>
 </div>

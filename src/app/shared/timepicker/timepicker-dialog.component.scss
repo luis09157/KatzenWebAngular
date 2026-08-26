@@ -1,0 +1,57 @@
+/* Timepicker — espaciado del shell vía .admin-dialog-shell--picker (admin-dialog.scss).
+   Aquí solo tipografía/layout interno del picker. */
+
+.admin-dialog-panel .timepicker-dialog .timepicker-dialog__preview {
+  margin: 0;
+  padding: 4px 0 2px;
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--katzen-verde-fuerte, #065d60);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.admin-dialog-panel .timepicker-dialog .timepicker-dialog__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-dialog-panel .timepicker-dialog .timepicker-dialog__field {
+  width: 100%;
+  margin: 0;
+}
+
+/* Sin subscript vacío: libera aire entre selects y el toggle a.m./p.m. */
+.admin-dialog-panel .timepicker-dialog .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.admin-dialog-panel .timepicker-dialog .timepicker-dialog__period {
+  align-self: center;
+  margin-top: 4px;
+  border-radius: var(--admin-radius-sm, 8px);
+  overflow: hidden;
+
+  .mat-button-toggle {
+    --mat-standard-button-toggle-height: 44px;
+  }
+
+  .mat-button-toggle-checked {
+    background: var(--katzen-verde-soft, #e0f7f8);
+    color: var(--katzen-verde-fuerte, #065d60);
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 380px) {
+  .admin-dialog-panel .timepicker-dialog .timepicker-dialog__controls {
+    gap: 12px;
+  }
+
+  .admin-dialog-panel .timepicker-dialog .timepicker-dialog__preview {
+    font-size: 1.625rem;
+  }
+}

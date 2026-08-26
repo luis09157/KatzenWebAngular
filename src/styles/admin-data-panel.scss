@@ -139,7 +139,7 @@
   display: block;
   font-size: 0.8125rem;
   color: #6b7280;
-  margin-top: 3px;
+  margin-top: 6px;
   line-height: 1.35;
 }
 
@@ -152,17 +152,25 @@
   color: #065d60;
 }
 
+/* Celdas multi-línea (fecha+hora, paciente+dueño): gap vertical visible */
 .admin-content .fecha-compact {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   font-size: 0.875rem;
   font-weight: 600;
   color: #1a2e2e;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
-.admin-content .fecha-compact small {
+.admin-content .fecha-compact small,
+.admin-content .fecha-compact .fecha-hora {
   display: block;
-  margin-top: 2px;
+  margin-top: 0;
   font-size: 0.75rem;
   font-weight: 500;
   color: #5a6e6e;
+  line-height: 1.35;
 }

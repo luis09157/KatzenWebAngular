@@ -1,11 +1,22 @@
 /* KatzenVet Admin — Layout unificado estilo Salesforce/Linear */
 
+/* Aprovecha el ancho de `.admin-content` (no un segundo max-width más estrecho). */
 .admin-content .admin-page,
 .admin-content [class$='-contenedor'],
 .admin-content .clientes-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
   padding: 0 4px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1200px) {
+  .admin-content .admin-page,
+  .admin-content [class$='-contenedor'],
+  .admin-content .clientes-page {
+    padding: 0 8px;
+  }
 }
 
 .admin-content .section-eyebrow {

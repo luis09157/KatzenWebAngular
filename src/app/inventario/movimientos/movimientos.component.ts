@@ -14,6 +14,8 @@ import { LoggerService } from '../../core/logger.service';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 import { MovimientoDetalleDialogComponent } from './movimiento-detalle-dialog.component';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
+import { AuthProfileService } from '../../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -35,12 +37,14 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     'usuario',
     'acciones'
   ];
-  
+
   dataSource: MatTableDataSource<Movimiento>;
   movimientos: Movimiento[] = [];
   productos: Map<string, Producto> = new Map();
   loading = true;
   menuContext: Movimiento | null = null;
+  /** Supervisor ligero (admin/doctor) — spec 007 */
+  puedeAjustar = false;
 
   // Filtros
   filtroTexto = '';
@@ -52,6 +56,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     { valor: 'todos', etiqueta: 'Todos' },
     { valor: 'entrada', etiqueta: 'Entradas' },
     { valor: 'salida', etiqueta: 'Salidas' },
+    { valor: 'merma', etiqueta: 'Mermas' },
     { valor: 'ajuste', etiqueta: 'Ajustes' }
   ];
 
@@ -61,12 +66,14 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private authProfile: AuthProfileService
   ) {
     this.dataSource = new MatTableDataSource<Movimiento>([]);
   }
 
   ngOnInit(): void {
+    void this.cargarPermisoAjuste();
     this.cargarDatos();
   }
 
@@ -77,6 +84,15 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private async cargarPermisoAjuste(): Promise<void> {
+    try {
+      const role = await this.authProfile.getEffectiveStaffRole();
+      this.puedeAjustar = staffRoleIsVeterinarioOperativo(role);
+    } catch {
+      this.puedeAjustar = false;
+    }
   }
 
   cargarDatos(): void {
@@ -177,6 +193,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     const colores: {[key: string]: string} = {
       'entrada': '#4caf50',
       'salida': '#f44336',
+      'merma': '#e65100',
       'ajuste': '#ff9800'
     };
     return colores[tipo] || '#757575';
@@ -186,6 +203,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     const iconos: {[key: string]: string} = {
       'entrada': 'arrow_downward',
       'salida': 'arrow_upward',
+      'merma': 'report',
       'ajuste': 'tune'
     };
     return iconos[tipo] || 'help';
@@ -195,6 +213,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     const textos: {[key: string]: string} = {
       'entrada': 'Entrada',
       'salida': 'Salida',
+      'merma': 'Merma',
       'ajuste': 'Ajuste'
     };
     return textos[tipo] || tipo;

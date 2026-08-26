@@ -120,7 +120,7 @@
   <mat-menu #recordatorioMenu="matMenu">
     <button mat-menu-item (click)="verRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="editarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="eliminarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item (click)="eliminarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'pendiente'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'completado'" (click)="cambiarEstado(menuContext, 'pendiente')"><mat-icon>schedule</mat-icon> Marcar pendiente</button>
   </mat-menu>

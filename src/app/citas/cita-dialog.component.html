@@ -20,7 +20,7 @@
           <h3 class="entity-summary__name">{{ getDisplayCliente() }}</h3>
           <p class="entity-summary__meta">{{ getDisplayPaciente() }}</p>
           <p class="entity-summary__meta entity-summary__meta--secondary">
-            {{ getDisplayFecha() }} · {{ getDisplayValue('hora') }}
+            {{ getDisplayFecha() }} · {{ getDisplayValue('hora') }} · {{ getDisplayDuracion() }}
           </p>
         </div>
 
@@ -43,7 +43,16 @@
               <span class="detail-item__label">Hora</span>
               <p class="detail-item__value">{{ getDisplayValue('hora') }}</p>
             </div>
+            <div class="detail-item">
+              <span class="detail-item__label">Duración</span>
+              <p class="detail-item__value">{{ getDisplayDuracion() }}</p>
+            </div>
           </div>
+        </section>
+
+        <section class="detail-section" *ngIf="getDisplayValue('motivo_cancelacion') !== '—'">
+          <h4 class="detail-section__title">Motivo de cancelación</h4>
+          <div class="detail-text-block">{{ getDisplayValue('motivo_cancelacion') }}</div>
         </section>
 
         <section class="detail-section" *ngIf="getDisplayValue('observaciones') !== '—'">
@@ -91,14 +100,24 @@
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">La fecha es requerida</mat-error>
-            <mat-error *ngIf="citaForm.get('fecha')?.hasError('fechaPasada')">La fecha no puede ser anterior a hoy</mat-error>
+            <mat-error *ngIf="citaForm.get('fecha')?.hasError('fechaPasada')">
+              Solo veterinarias pueden agendar fechas pasadas
+            </mat-error>
           </mat-form-field>
 
+          <app-timepicker-field
+            formControlName="hora"
+            label="Hora"
+            [required]="true"
+            dialogTitle="Hora de la cita">
+          </app-timepicker-field>
+
           <mat-form-field appearance="outline">
-            <mat-label>Hora</mat-label>
-            <input matInput formControlName="hora" type="time" required>
-            <mat-error *ngIf="citaForm.get('hora')?.hasError('required')">La hora es requerida</mat-error>
-            <mat-error *ngIf="citaForm.get('hora')?.hasError('formatoInvalido')">Formato de hora inválido</mat-error>
+            <mat-label>Duración (min)</mat-label>
+            <input matInput type="number" formControlName="duracion_minutos" [min]="5" required>
+            <mat-hint>Predeterminado {{ duracionDefault }} min</mat-hint>
+            <mat-error *ngIf="citaForm.get('duracion_minutos')?.hasError('required')">La duración es requerida</mat-error>
+            <mat-error *ngIf="citaForm.get('duracion_minutos')?.hasError('min')">Mínimo 5 minutos</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -122,10 +141,28 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Veterinario</mat-label>
-            <mat-select formControlName="veterinario">
+            <mat-select formControlName="veterinario" required>
               <mat-option value="">Seleccionar veterinario</mat-option>
               <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">{{ doctor.nombre }}</mat-option>
             </mat-select>
+            <mat-error *ngIf="citaForm.get('veterinario')?.hasError('required')">El veterinario es obligatorio</mat-error>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section" *ngIf="muestraMotivoCancelacion">
+        <h3 class="form-section__title">Cancelación</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Motivo de cancelación</mat-label>
+            <textarea matInput formControlName="motivo_cancelacion" rows="2"
+              placeholder="Explica por qué se cancela la cita…" required></textarea>
+            <mat-error *ngIf="citaForm.get('motivo_cancelacion')?.hasError('required')">
+              El motivo de cancelación es obligatorio
+            </mat-error>
+            <mat-error *ngIf="citaForm.get('motivo_cancelacion')?.hasError('minlength')">
+              Escribe al menos 3 caracteres
+            </mat-error>
           </mat-form-field>
         </div>
       </section>

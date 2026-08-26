@@ -12,10 +12,12 @@ import { MatSort } from '@angular/material/sort';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
-import { LoadingService } from '../core/loading.service';
+import { LOADING_MESSAGES, LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { AuthProfileService } from '../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
 
 @Component({
   selector: 'app-citas',
@@ -33,6 +35,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
   loading = false;
+  /** doctor | administrador pueden revertir completada → confirmada */
+  puedeRevertirCompletada = false;
 
   constructor(
     private citasService: CitasService,
@@ -42,10 +46,16 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private loadingService: LoadingService,
-    private sucursalContext: SucursalContextService
+    private sucursalContext: SucursalContextService,
+    private authProfile: AuthProfileService
   ) {}
 
   ngOnInit(): void {
+    this.authProfile.getEffectiveStaffRole().then(role => {
+      this.puedeRevertirCompletada = staffRoleIsVeterinarioOperativo(role);
+    }).catch(() => {
+      this.puedeRevertirCompletada = false;
+    });
     this.sucursalContext.selectedId$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.cargarCitas();
     });
@@ -167,45 +177,79 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'completada').length;
   }
 
+  /** Fecha + hora en una sola línea (filtros / legacy). */
   getFechaFormateada(cita: any): string {
-    // Usar el campo 'fecha' que es la fecha real de la cita
-    if (cita.fecha) {
+    const fecha = this.getFechaParte(cita);
+    const hora = this.getHoraParte(cita);
+    if (fecha === 'N/P') {
+      return 'N/P';
+    }
+    return hora ? `${fecha} ${hora}` : fecha;
+  }
+
+  getFechaParte(cita: any): string {
+    if (cita?.fecha) {
       try {
         const fecha = new Date(cita.fecha);
         if (!isNaN(fecha.getTime())) {
-          const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+          return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
           });
-          const resultado = fechaFormateada + ' ' + (cita.hora || '');
-          return resultado;
         }
       } catch (error) {
         this.logger.error('❌ Error procesando fecha:', error);
       }
     }
-    if (cita.fecha_hora) {
+    if (cita?.fecha_hora) {
       try {
         const fecha = new Date(cita.fecha_hora);
         if (!isNaN(fecha.getTime())) {
-          const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+          return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
           });
-          const horaFormateada = fecha.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          return fechaFormateada + ' ' + horaFormateada;
         }
       } catch (error) {
         this.logger.error('❌ Error procesando fecha_hora:', error);
       }
     }
-    
     return 'N/P';
+  }
+
+  getHoraParte(cita: any): string {
+    if (cita?.hora && /^\d{1,2}:\d{2}/.test(String(cita.hora))) {
+      return String(cita.hora).slice(0, 5);
+    }
+    if (cita?.fecha) {
+      try {
+        const fecha = new Date(cita.fecha);
+        if (!isNaN(fecha.getTime()) && String(cita.fecha).includes('T')) {
+          return fecha.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    if (cita?.fecha_hora) {
+      try {
+        const fecha = new Date(cita.fecha_hora);
+        if (!isNaN(fecha.getTime())) {
+          return fecha.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return '';
   }
 
   aplicarFiltro(event: Event) {
@@ -228,36 +272,80 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  cambiarEstado(cita: any, nuevoEstado: string) {
-    const citaActualizada = {
+  cambiarEstado(cita: any, nuevoEstado: string, motivoCancelacion?: string) {
+    const estadoNorm = String(nuevoEstado || '').toLowerCase();
+    const citaActualizada: Record<string, unknown> = {
       ...cita,
-      estado: nuevoEstado,
+      estado: estadoNorm,
       fecha_actualizacion: new Date().toISOString()
     };
-    this.loadingService.show();
+    if (estadoNorm === 'cancelada' && motivoCancelacion) {
+      citaActualizada['motivo_cancelacion'] = motivoCancelacion.trim();
+    }
+    this.loadingService.show(LOADING_MESSAGES.updating);
     this.citasService.guardarCita(citaActualizada)
       .then(() => {
-        this.loadingService.hide();
         setTimeout(() => {
           Swal.fire({
             title: '¡Éxito!',
-            text: `Cita marcada como ${nuevoEstado.toUpperCase()}`,
+            text: `Cita marcada como ${estadoNorm.toUpperCase()}`,
             icon: 'success',
             timer: 2000,
             showConfirmButton: false
           });
-          this.ngOnInit();
+          this.cargarCitas();
         }, 0);
       })
       .catch(error => {
-        this.logger.error('❌ Error al cambiar estado:', error);
-        this.loadingService.hide();
+        this.logger.error('Error al cambiar estado:', error);
         setTimeout(() => Swal.fire({
           title: 'Error',
           text: this.errorMessages.getUserMessage(error, 'cambiar estado cita'),
           icon: 'error'
         }), 0);
+      })
+      .finally(() => this.loadingService.hide());
+  }
+
+  async cancelarCita(cita: any): Promise<void> {
+    if (!cita) {
+      return;
+    }
+    const result = await Swal.fire({
+      title: 'Cancelar cita',
+      input: 'textarea',
+      inputLabel: 'Motivo de cancelación (obligatorio)',
+      inputPlaceholder: 'Describe el motivo…',
+      inputAttributes: { 'aria-label': 'Motivo de cancelación' },
+      showCancelButton: true,
+      confirmButtonText: 'Cancelar cita',
+      cancelButtonText: 'Volver',
+      confirmButtonColor: '#d33',
+      inputValidator: value => {
+        if (!value || !String(value).trim() || String(value).trim().length < 3) {
+          return 'Indica un motivo de al menos 3 caracteres';
+        }
+        return null;
+      }
+    });
+    if (result.isConfirmed && result.value) {
+      this.cambiarEstado(cita, 'cancelada', String(result.value).trim());
+    }
+  }
+
+  async revertirAConfirmada(cita: any): Promise<void> {
+    if (!cita) {
+      return;
+    }
+    if (!this.puedeRevertirCompletada) {
+      Swal.fire({
+        title: 'Sin permiso',
+        text: 'Solo veterinarias pueden revertir una cita completada.',
+        icon: 'warning'
       });
+      return;
+    }
+    this.cambiarEstado(cita, 'confirmada');
   }
 
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
@@ -267,10 +355,9 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result && !modoVer) {
-        this.loadingService.show();
+        this.loadingService.show(LOADING_MESSAGES.saving);
         this.citasService.guardarCita(result)
           .then(() => {
-            this.loadingService.hide();
             setTimeout(() => {
               Swal.fire({
                 title: '¡Éxito!',
@@ -278,19 +365,19 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                 icon: 'success',
                 confirmButtonText: 'Entendido'
               });
-              this.ngOnInit();
+              this.cargarCitas();
             }, 0);
           })
           .catch(error => {
             this.logger.error('❌ Error al guardar cita:', error);
-            this.loadingService.hide();
             setTimeout(() => Swal.fire({
               title: 'Error al guardar cita',
               text: this.errorMessages.getUserMessage(error, 'guardar cita'),
               icon: 'error',
               confirmButtonText: 'Entendido'
             }), 0);
-          });
+          })
+          .finally(() => this.loadingService.hide());
       }
     });
   }
@@ -309,7 +396,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       this.logger.error('❌ ERROR: ID de cita inválido:', id);
       Swal.fire({
         title: 'Error',
-        text: 'ID de cita inválido. No se puede eliminar.',
+        text: 'ID de cita inválido. No se puede borrar.',
         icon: 'error'
       });
       return;
@@ -318,46 +405,45 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       this.logger.error('❌ ERROR: Cita no encontrada en dataSource con ID:', id);
       Swal.fire({
         title: 'Error',
-        text: 'Cita no encontrada. No se puede eliminar.',
+        text: 'Cita no encontrada. No se puede borrar.',
         icon: 'error'
       });
       return;
     }
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Deseas eliminar esta cita? Esta acción no se puede deshacer.',
+      title: '¿Borrar esta cita?',
+      text: 'La cita se ocultará del listado. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.loadingService.show();
+        this.loadingService.show(LOADING_MESSAGES.deleting);
         this.citasService.bajaLogicaCita(id)
           .then(() => {
-            this.loadingService.hide();
             setTimeout(() => {
               Swal.fire({
-                title: '¡Eliminado!',
-                text: 'Cita eliminada correctamente',
+                title: 'Borrado',
+                text: 'Cita borrada correctamente',
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false
               });
-              this.ngOnInit();
+              this.cargarCitas();
             }, 0);
           })
           .catch(error => {
             this.logger.error('❌ Error al eliminar cita:', error);
-            this.loadingService.hide();
             setTimeout(() => Swal.fire({
               title: 'Error',
               text: this.errorMessages.getUserMessage(error, 'eliminar cita'),
               icon: 'error'
             }), 0);
-          });
+          })
+          .finally(() => this.loadingService.hide());
       }
     });
   }

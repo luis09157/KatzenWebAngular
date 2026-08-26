@@ -118,14 +118,14 @@
       </h3>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Motivo</mat-label>
+        <mat-label>Motivo (obligatorio)</mat-label>
         <mat-select formControlName="motivo">
           <mat-option *ngFor="let motivo of motivosAjuste" [value]="motivo.valor">
             {{motivo.etiqueta}}
           </mat-option>
         </mat-select>
         <mat-error *ngIf="hasError('motivo', 'required')">
-          Selecciona un motivo
+          El motivo es obligatorio
         </mat-error>
       </mat-form-field>
     </div>

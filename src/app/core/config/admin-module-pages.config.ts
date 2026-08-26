@@ -34,7 +34,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     entitySingular: 'paciente',
     entityGender: 'm',
     bannerTitle: 'Administración de Pacientes',
-    bannerSubtitle: 'Consulta, edita y da de baja lógica a las mascotas registradas.',
+    bannerSubtitle: 'Consulta, edita y borra mascotas registradas.',
     listTitle: 'Listado de pacientes',
     listDescription: 'Busca por nombre, especie, raza o dueño.',
     searchLabel: 'Buscar paciente',

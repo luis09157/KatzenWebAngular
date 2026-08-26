@@ -32,3 +32,15 @@ export const ADMIN_DIALOG_CONFIRM = {
   width: '480px',
   maxWidth: '94vw'
 };
+
+/**
+ * Selector de hora (timepicker) anidable sobre formularios.
+ * Panel ~420px: deja aire para padding picker (28×32) + dos selects.
+ * Shell: añadir clase `admin-dialog-shell--picker` (ver admin-dialog.scss).
+ */
+export const ADMIN_DIALOG_TIMEPICKER = {
+  ...ADMIN_DIALOG_CONFIG,
+  width: '420px',
+  maxWidth: '94vw',
+  maxHeight: '90vh'
+};

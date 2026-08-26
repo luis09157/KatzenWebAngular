@@ -569,23 +569,23 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   eliminarHistorialClinico(historial: any) {
     Swal.fire({
-      title: '¿Archivar historial?',
-      text: 'Baja lógica en admin. Para ocultarlo del portal del dueño, edítalo y marca "Ocultar del portal".',
+      title: '¿Borrar este historial?',
+      text: 'Se ocultará en el panel admin. Para ocultarlo del portal del dueño, edítalo y marca "Ocultar del portal".',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
         this.historialesService.bajaLogicaHistorial(historial.id).then(() => {
-          Swal.fire('Baja lógica', 'El historial fue dado de baja correctamente.', 'success');
+          Swal.fire('Borrado', 'El historial fue borrado correctamente.', 'success');
           this.cargarHistorialClinico(this.pacienteSeleccionado.id);
           // Registrar en el log
           this.pacientesService.registrarEliminacionHistorialClinico(this.pacienteSeleccionado.id, historial);
           this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
           console.error('Error al dar de baja:', error);
-          Swal.fire('Error', 'No se pudo dar de baja el historial', 'error');
+          Swal.fire('Error', 'No se pudo borrar el historial', 'error');
         });
       }
     });
@@ -781,24 +781,24 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   eliminarVacuna(vacuna: any) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'La vacuna será eliminada del sistema.',
+      title: '¿Borrar esta vacuna?',
+      text: 'La vacuna se ocultará del listado. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
         // Usar baja lógica en lugar de eliminación física
         this.vacunasService.bajaLogicaVacuna(vacuna.id).then(() => {
-          Swal.fire('Eliminada', 'Vacuna eliminada correctamente.', 'success');
+          Swal.fire('Borrada', 'Vacuna borrada correctamente.', 'success');
           this.cargarVacunas(this.pacienteSeleccionado.id);
           // Registrar en el log
           this.pacientesService.registrarEliminacionVacuna(this.pacienteSeleccionado.id, vacuna);
           this.cargarLogActividades(this.pacienteSeleccionado.id);
         }).catch(error => {
           console.error('Error al eliminar vacuna:', error);
-          Swal.fire('Error', 'No se pudo eliminar la vacuna', 'error');
+          Swal.fire('Error', 'No se pudo borrar la vacuna', 'error');
         });
       }
     });

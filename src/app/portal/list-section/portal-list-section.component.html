@@ -53,6 +53,10 @@
                 <strong>Veterinario</strong>
                 {{ item.veterinario }}
               </div>
+              <div class="portal-data-field" *ngIf="item.motivo_cancelacion">
+                <strong>Motivo de cancelación</strong>
+                {{ item.motivo_cancelacion }}
+              </div>
               <div class="portal-data-field" *ngIf="item.observaciones">
                 <strong>Notas</strong>
                 {{ item.observaciones }}

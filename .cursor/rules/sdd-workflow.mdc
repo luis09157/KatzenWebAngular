@@ -31,11 +31,38 @@ Antes de escribir o modificar cualquier línea de código, el agente debe cumpli
 - RTDB: cambios **aditivos**; compatibilidad app móvil
 - Pruebas UI: mocks locales o emuladores — **nunca** producción (`katzen-a0e3e`)
 
+## Servidor local de desarrollo
+
+Tras modificar código UI/frontend, el agente debe **asegurar que el servidor local sigue vivo** para que el usuario pueda ver los cambios:
+
+1. Verificar que `ng serve` / `npm start` sigue corriendo en **http://localhost:4200** (p. ej. revisar terminals).
+2. Si no está corriendo o el proceso murió, reiniciar `npm start` en background.
+3. Confirmar al usuario la URL (`http://localhost:4200`) cuando quede listo.
+
+**Nota:** el live reload actualiza la página si el proceso está vivo; el problema a evitar es un proceso muerto que deja al usuario sin preview.
+
+## Validación pre-entrega (obligatoria)
+
+**Regla fuerte:** el agente ejecuta **todas** las validaciones de forma autónoma (multitask / en paralelo cuando sea posible) **antes de entregar** cualquier módulo, mejora, fix UI o funcionalidad. **Luis no es el QA por defecto**; no se entrega pidiendo que el usuario “pruebe y reporte”.
+
+Antes de dar por cerrada una entrega, el agente DEBE:
+
+1. Seguir **`specs/templates/qa-validation-guide.md` completo** (formularios, modales, edge cases, chips, loading, pickers, etc.).
+2. Ejecutar **`npm run build`** y **reportar** el resultado (exit code / errores).
+3. Asegurar servidor local vivo (`npm start` → **http://localhost:4200**) y hacer o simular **smoke visual** de lo tocado.
+4. **Registrar resultados** en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar cualquier ítem con `[x]`.
+5. Verificar las reglas de UI ya acordadas (cuando apliquen):
+   - Chips/badges de estado se ven **completos** (no mochos / sin clip)
+   - Diálogos picker/compactos con espaciado `--picker` (`admin-dialog-shell--picker`)
+   - Loading con mensaje contextual (Cargando / Guardando / Eliminando / Actualizando) y **nunca** overlay trabado
+   - **Timepicker dialog** donde hay campo de hora (`app-timepicker-field`)
+   - **Live preview local activo** al entregar cambios UI
+
+Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.md` → `done`).
+
 ## Al terminar
 
-- Seguir **`specs/templates/qa-validation-guide.md`** (validación exhaustiva: formularios, modales, edge cases, build)
-- **Registrar resultados** en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar cualquier ítem con `[x]`
-- Ejecutar y **reportar** `npm run build` (obligatorio) — incluir resultado en `tasks.md`
+- Completar **Validación pre-entrega (obligatoria)** arriba (no omitir)
 - Ejecutar resto de testing en `tasks.md` (Cypress si aplica)
 - Callable nuevo → documentar deploy; **no ejecutar** `firebase deploy` sin autorización explícita de Luis Alfonso Niño Martínez
 - Actualizar `spec.md` estado a `done` solo cuando la validación QA esté registrada

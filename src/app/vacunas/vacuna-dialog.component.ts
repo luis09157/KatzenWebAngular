@@ -420,19 +420,19 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
+      title: '¿Borrar esta vacuna?',
       html: `
-        <p>Estás a punto de <strong>eliminar</strong> la siguiente vacuna:</p>
+        <p>Estás a punto de <strong>borrar</strong> la siguiente vacuna:</p>
         <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
           <p><strong>Vacuna:</strong> ${nombreVacuna}</p>
           <p><strong>Paciente:</strong> ${nombrePaciente}</p>
         </div>
-        <p class="text-danger">Esta acción <strong>no se puede deshacer</strong>.</p>
+        <p class="text-muted">Se ocultará del listado. Los datos se conservan.</p>
       `,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -455,7 +455,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         this.loadingService.hide();
         setTimeout(() => Swal.fire({
           icon: 'error',
-          title: 'Error al Eliminar',
+          title: 'Error al borrar',
           text: this.errorMessages.getUserMessage(error, 'eliminar vacuna')
         }), 0);
       } finally {

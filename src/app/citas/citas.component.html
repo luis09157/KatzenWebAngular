@@ -52,7 +52,10 @@
         <ng-container matColumnDef="fecha_hora">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let cita">
-            <span class="fecha-compact">{{ getFechaFormateada(cita) }}</span>
+            <span class="fecha-compact">
+              {{ getFechaParte(cita) }}
+              <small class="fecha-hora" *ngIf="getHoraParte(cita)">{{ getHoraParte(cita) }}</small>
+            </span>
           </td>
         </ng-container>
 
@@ -112,9 +115,20 @@
   <mat-menu #citaMenu="matMenu">
     <button mat-menu-item (click)="verCita(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="editarCita(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="bajaLogicaCita(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Baja lógica</button>
+    <button mat-menu-item (click)="bajaLogicaCita(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
     <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'pendiente'" (click)="cambiarEstado(menuContext, 'confirmada')"><mat-icon>check</mat-icon> Confirmar</button>
     <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'confirmada'" (click)="cambiarEstado(menuContext, 'completada')"><mat-icon>done_all</mat-icon> Completar</button>
-    <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'completada'" (click)="cambiarEstado(menuContext, 'confirmada')"><mat-icon>undo</mat-icon> Revertir</button>
+    <button
+      mat-menu-item
+      *ngIf="menuContext?.estado?.toLowerCase() === 'completada' && puedeRevertirCompletada"
+      (click)="revertirAConfirmada(menuContext)">
+      <mat-icon>undo</mat-icon> Revertir
+    </button>
+    <button
+      mat-menu-item
+      *ngIf="menuContext && menuContext.estado?.toLowerCase() !== 'cancelada' && menuContext.estado?.toLowerCase() !== 'completada'"
+      (click)="cancelarCita(menuContext)">
+      <mat-icon>event_busy</mat-icon> Cancelar cita
+    </button>
   </mat-menu>
 </div>

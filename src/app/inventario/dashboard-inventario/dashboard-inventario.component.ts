@@ -12,6 +12,8 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
+import { AuthProfileService } from '../../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 
 @Component({
   selector: 'app-dashboard-inventario',
@@ -25,18 +27,30 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   productosBajoStock: Producto[] = [];
   productosPorCaducar: Producto[] = [];
   loading = true;
+  puedeAjustar = false;
 
   constructor(
     private inventarioService: InventarioService,
     private router: Router,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private authProfile: AuthProfileService
   ) {}
 
   ngOnInit(): void {
     this.logger.log('Dashboard de Inventario cargado');
+    void this.cargarPermisoAjuste();
     this.cargarDatos();
+  }
+
+  private async cargarPermisoAjuste(): Promise<void> {
+    try {
+      const role = await this.authProfile.getEffectiveStaffRole();
+      this.puedeAjustar = staffRoleIsVeterinarioOperativo(role);
+    } catch {
+      this.puedeAjustar = false;
+    }
   }
 
   ngOnDestroy(): void {

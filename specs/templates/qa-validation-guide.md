@@ -1,6 +1,6 @@
 # Guía de Pruebas y Validación Exhaustiva — KatzenVet
 
-**Uso:** Cursor y agentes IA deben aplicar esta guía **antes de marcar como completada** cualquier tarea, componente o vista de una feature SDD.
+**Uso:** Cursor y agentes IA deben aplicar esta guía **antes de marcar como completada** cualquier tarea, componente o vista de una feature SDD — y **antes de entregar** cualquier módulo, mejora o fix al usuario.
 
 **Referencia en specs:** copiar la sección **Testing y validación exhaustiva** de `module-tasks.template.md` al `tasks.md` de cada feature y registrar ahí los resultados.
 
@@ -8,11 +8,29 @@
 
 ---
 
-## Rol del agente
+## Rol del agente (no negociable)
 
-Actúa como un **Ingeniero de QA Senior** y desarrollador riguroso. Antes de dar por completada cualquier tarea, componente o vista de la feature activa, debes **diseñar, simular y verificar** un set exhaustivo de pruebas que cubra los escenarios obligatorios descritos abajo.
+Actúa como un **Ingeniero de QA Senior** y desarrollador riguroso.
+
+**El agente corre las validaciones; el usuario no es el QA por defecto.** No entregues pidiendo que Luis “pruebe y reporte”. Ejecuta (o simula con evidencia) el set completo de forma **autónoma** — en multitask / en paralelo cuando sea posible — **antes de dar por cerrada** la entrega.
 
 No marques `[x]` en `tasks.md` hasta haber ejecutado (o simulado con evidencia) cada ítem aplicable y **registrado el resultado** en la sección correspondiente de `tasks.md`.
+
+---
+
+## Checklist pre-entrega (obligatorio)
+
+Antes de responder que la feature/fix/módulo está listo, completar **todos** los ítems aplicables:
+
+| # | Acción | Evidencia |
+|---|--------|-----------|
+| 1 | Seguir esta guía completa (§1–§4) | Resultados en `tasks.md` |
+| 2 | `npm run build` (exit 0) | Resumen reportado en `tasks.md` y al usuario |
+| 3 | Servidor local vivo (`npm start` → http://localhost:4200) + smoke visual de lo tocado | Confirmación URL / captura o simulación anotada |
+| 4 | Registrar resultados en `tasks.md` **antes** de marcar `[x]` | Tabla QA rellenada |
+| 5 | Reglas de UI recientes (si aplica — ver §2.4) | Filas OK / N/A en tabla QA |
+
+Sin este checklist, la entrega **no está cerrada**.
 
 ---
 
@@ -46,6 +64,8 @@ No marques `[x]` en `tasks.md` hasta haber ejecutado (o simulado con evidencia) 
 | Textos extremadamente largos | Notas, diagnósticos, observaciones (500+ caracteres) |
 | Diseño responsivo | No rompe layout, tablas ni modales; scroll interno si aplica |
 | Truncamiento | Si hay límite de caracteres, se muestra contador o error antes de guardar |
+| Chips/badges de estado | Pills (`.estado-badge`, etc.) se ven **completos** — sin borde derecho cortado por columna estrecha u `overflow:hidden` |
+| Nombres de persona (tabla) | Chips/texto de veterinario, cliente, doctor, dueño se ven **completos** en desktop ancho; no truncar con "..." si hay espacio (`admin-table.scss`) |
 
 ---
 
@@ -69,6 +89,8 @@ No marques `[x]` en `tasks.md` hasta haber ejecutado (o simulado con evidencia) 
 | Éxito | Toast/snackbar verde o mensaje según arquitectura UI (`ErrorMessagesService`, Material snackbar) |
 | Error | Mensaje en tiempo y lugar correctos; contexto claro para el usuario |
 | Timing | Aparece tras la acción, no antes ni duplicado |
+| Loading contextual | Overlay con mensaje acorde: «Cargando…» / «Guardando…» / «Eliminando…» / «Actualizando…» (`LoadingService`) |
+| Loading no trabado | Tras success **y** error el overlay **desaparece** (`finally` / `wrap`); sin doble `show` |
 
 ### 2.3 Prevención de doble submit
 
@@ -77,6 +99,20 @@ No marques `[x]` en `tasks.md` hasta haber ejecutado (o simulado con evidencia) 
 | Primer clic en acción principal | Botón se **deshabilita** o muestra estado de carga (`mat-spinner`, `[disabled]`) |
 | Clics rápidos repetidos | **Un solo** registro/actualización en Firebase (mock o emulador) |
 | Botones afectados | "Guardar", "Registrar", "Confirmar cita", etc. |
+
+### 2.4 Reglas de UI recientes (acordadas — verificar si aplica)
+
+| Qué verificar | Criterio de éxito |
+|---------------|-------------------|
+| Chips/badges de estado | Se ven **completos** (no mochos); columna estado con overflow visible / ancho suficiente |
+| Nombres de persona en tablas | En pantallas anchas se ven **completos** (veterinario, cliente, doctor, dueño); sin ellipsis si hay espacio. Medianas: wrap ≤2 líneas; estrecho: wrap + `.table-scroll` |
+| Celdas multi-línea (fecha+hora, paciente+dueño) | Gap vertical **visible** (≈4–8px); no líneas pegadas por wrap sin aire |
+| Layout admin desktop (≥1200px) | Contenido aprovecha ancho de `.admin-content`; columnas de texto flexibles; sin huecos raros (p. ej. entre veterinario y acciones) mientras el texto se ve comprimido |
+| Diálogos picker / compactos | Usan `admin-dialog-shell--picker` (espaciado `--picker`); no CRUD grandes |
+| Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`) |
+| Campos de hora | Usan `app-timepicker-field` + diálogo timepicker (no `type="time"` nativo) — `specs/004-timepicker-dialog/` |
+| Acción destructiva (copy) | Labels visibles = **«Borrar»** (menú, tooltip, leyenda, SweetAlert). **No** «Baja lógica» / «Dar de baja». Técnico: sigue siendo soft-delete |
+| Live preview | `npm start` vivo en :4200 al entregar cambios UI |
 
 ---
 
@@ -124,7 +160,14 @@ Si también se modificaron Cloud Functions:
 npm run functions:build
 ```
 
-### 4.2 Registro en `tasks.md` (obligatorio antes de `[x]`)
+### 4.2 Servidor local + smoke visual (obligatorio en cambios UI)
+
+1. Verificar `npm start` / `ng serve` en **http://localhost:4200**.
+2. Si el proceso murió, reiniciarlo en background.
+3. Hacer o simular smoke de las pantallas/diálogos tocados.
+4. Confirmar al usuario la URL al entregar.
+
+### 4.3 Registro en `tasks.md` (obligatorio antes de `[x]`)
 
 Antes de marcar cualquier tarea de implementación o testing como completada:
 
@@ -143,11 +186,21 @@ Antes de marcar cualquier tarea de implementación o testing como completada:
 | Formularios — campos vacíos | OK / N/A / FALLO | ... |
 | Formularios — tipos erróneos | OK / N/A / FALLO | ... |
 | Formularios — límites texto | OK / N/A / FALLO | ... |
+| UI — chips estado completos | OK / N/A / FALLO | ... |
+| UI — nombres persona completos (desktop) | OK / N/A / FALLO | veterinario/cliente/etc. sin ellipsis en ancho |
+| UI — celdas multi-línea (gap) | OK / N/A / FALLO | fecha+hora / paciente+dueño con gap visible |
+| UI — layout ancho desktop | OK / N/A / FALLO | aprovecha `.admin-content`; sin huecos raros |
 | Modales — apertura/cierre | OK / N/A / FALLO | ... |
+| UI — diálogos --picker | OK / N/A / FALLO | ... |
+| UI — timepicker en campos hora | OK / N/A / FALLO | ... |
+| UI — copy destructivo «Borrar» | OK / N/A / FALLO | menú/tooltip/leyenda/Swal; no «Baja lógica» |
 | UI — retroalimentación | OK / N/A / FALLO | ... |
+| UI — loading contextual | OK / N/A / FALLO | mensaje Guardando/Cargando/etc. |
+| UI — loading no trabado | OK / N/A / FALLO | overlay desaparece tras guardar/error |
 | UI — doble submit | OK / N/A / FALLO | ... |
 | Edge — red lenta/error | OK / N/A / FALLO | ... |
 | Edge — datos nulos RTDB | OK / N/A / FALLO | ... |
+| Servidor local :4200 + smoke | OK / FALLO | ... |
 | Build `npm run build` | OK / FALLO | exit code, errores si hay |
 ```
 
@@ -166,20 +219,25 @@ Documentar resultado en la sección **Testing** de `tasks.md`.
 
 ## 6. Checklist rápido para el agente
 
-Antes de responder "tarea completada" al usuario:
+Antes de responder "tarea completada" / entregar al usuario:
 
 - [ ] Leí esta guía (`specs/templates/qa-validation-guide.md`)
+- [ ] Completé el **checklist pre-entrega** (§ arriba)
 - [ ] Probé (o simulé con mocks) formularios, modales y edge cases **aplicables** a la feature
+- [ ] Verifiqué chips completos, nombres de persona sin ellipsis en desktop ancho, `--picker`, loading contextual/no trabado, timepicker, copy destructivo «Borrar» (si aplica)
 - [ ] Ejecuté `npm run build` y reporté resultado
-- [ ] Registré resultados en `tasks.md` de la feature
+- [ ] **Servidor local activo** (`npm start` → http://localhost:4200) + smoke visual; reiniciar si el proceso murió
+- [ ] Registré resultados en `tasks.md` de la feature **antes** de marcar `[x]`
 - [ ] Marqué `[x]` solo en ítems verificados
 - [ ] No usé datos ni servicios de producción
+- [ ] **No** delegué el QA al usuario como paso por defecto
 
 ---
 
 ## Referencias
 
 - `specs/templates/module-tasks.template.md` — checklist ejecutable por feature
-- `.cursor/rules/sdd-workflow.mdc` — flujo SDD e integración al cierre
-- `docs/ADMIN-UI-ARCHITECTURE.md` — patrones UI admin (modales, tablas, feedback)
+- `.cursor/rules/sdd-workflow.mdc` — flujo SDD + Validación pre-entrega
+- `docs/ADMIN-UI-ARCHITECTURE.md` — patrones UI admin (modales, tablas, feedback, pickers, chips)
 - `AGENTS.md` — comandos y restricciones del proyecto
+- `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/`

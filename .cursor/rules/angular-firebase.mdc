@@ -11,7 +11,7 @@ alwaysApply: false
 - RTDB: `@angular/fire/compat/database` — rutas bajo `Katzen/`
 - Callables: `FirebaseFunctionsService` — no llamar `httpsCallable` suelto en componentes
 - Errores UI: `ErrorMessagesService.getUserMessage(error, 'contexto corto')`
-- Loading: `LoadingService` en operaciones async admin
+- Loading: `LoadingService` en operaciones async admin — `show(message?)` con mensaje contextual (`LOADING_MESSAGES`: Cargando / Guardando / Eliminando / Actualizando). Siempre `hide()` en success y error (`finally` / `wrap`). Nunca doble `show` diálogo+padre.
 
 ## Auth
 

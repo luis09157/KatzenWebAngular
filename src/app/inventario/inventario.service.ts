@@ -9,11 +9,13 @@ import {
   ProveedorFormData,
   OrdenCompra,
   Alerta,
-  EstadisticasInventario,
-  TipoMovimiento
+  EstadisticasInventario
 } from '../shared/inventario.models';
 import { CurrentStaffService } from '../core/services/current-staff.service';
+import { AuthProfileService } from '../core/services/auth-profile.service';
+import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { calcularNuevoStock, validarMotivoMovimiento } from './inventario-stock.util';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +28,8 @@ export class InventarioService {
 
   constructor(
     private db: AngularFireDatabase,
-    private currentStaff: CurrentStaffService
+    private currentStaff: CurrentStaffService,
+    private authProfile: AuthProfileService
   ) {
     console.log('✅ InventarioService inicializado');
   }
@@ -226,6 +229,29 @@ export class InventarioService {
     });
   }
 
+  async registrarMerma(
+    productoId: string,
+    cantidad: number,
+    motivo: string,
+    observaciones?: string
+  ): Promise<void> {
+    console.log('🔄 Registrando merma de producto...');
+    const usuarioId = await this.currentStaff.getStaffId();
+    return this.registrarMovimiento({
+      tipo: 'merma',
+      producto_id: productoId,
+      cantidad: cantidad,
+      costo_unitario: 0,
+      costo_total: 0,
+      motivo: motivo,
+      usuario_responsable_id: usuarioId,
+      observaciones: observaciones || '',
+      cantidad_anterior: 0,
+      cantidad_nueva: 0,
+      created_at: new Date().toISOString()
+    });
+  }
+
   async registrarAjuste(
     productoId: string,
     nuevoStock: number,
@@ -233,6 +259,7 @@ export class InventarioService {
     observaciones?: string
   ): Promise<void> {
     console.log('🔄 Registrando ajuste de inventario...');
+    await this.assertPuedeRegistrarAjuste();
     const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
       tipo: 'ajuste',
@@ -249,9 +276,27 @@ export class InventarioService {
     });
   }
 
+  /**
+   * Autorización supervisor ligera (decisión #12): administrador o doctor.
+   * Flujo dual / PIN formal = SC futuro (spec 007 SC-009).
+   */
+  async assertPuedeRegistrarAjuste(): Promise<void> {
+    const role = await this.authProfile.getEffectiveStaffRole();
+    if (!staffRoleIsVeterinarioOperativo(role)) {
+      throw new Error(
+        'Solo un supervisor (administrador o veterinario) puede registrar ajustes de inventario'
+      );
+    }
+  }
+
   private async registrarMovimiento(movimiento: Movimiento): Promise<void> {
     try {
       console.log('🔄 Registrando movimiento:', movimiento.tipo);
+
+      const motivoError = validarMotivoMovimiento(movimiento.tipo, movimiento.motivo);
+      if (motivoError) {
+        throw new Error(motivoError);
+      }
 
       const productoPath = `${this.productosPath}/${movimiento.producto_id}`;
       let stockError: string | null = null;
@@ -263,30 +308,20 @@ export class InventarioService {
         }
 
         const cantidadAnterior = producto.stock_actual ?? 0;
-        let nuevoStock = cantidadAnterior;
+        const calculo = calcularNuevoStock(
+          movimiento.tipo,
+          cantidadAnterior,
+          movimiento.cantidad
+        );
 
-        switch (movimiento.tipo) {
-          case 'entrada':
-            nuevoStock += movimiento.cantidad;
-            break;
-          case 'salida':
-            if (cantidadAnterior < movimiento.cantidad) {
-              stockError = `Stock insuficiente. Disponible: ${cantidadAnterior}, Solicitado: ${movimiento.cantidad}`;
-              return undefined;
-            }
-            nuevoStock -= movimiento.cantidad;
-            break;
-          case 'ajuste':
-            nuevoStock = movimiento.cantidad;
-            break;
-          case 'merma':
-            nuevoStock -= movimiento.cantidad;
-            break;
+        if (calculo.ok === false) {
+          stockError = calculo.error;
+          return undefined;
         }
 
         movimiento.cantidad_anterior = cantidadAnterior;
-        movimiento.cantidad_nueva = nuevoStock;
-        return { ...producto, stock_actual: nuevoStock };
+        movimiento.cantidad_nueva = calculo.nuevoStock;
+        return { ...producto, stock_actual: calculo.nuevoStock };
       });
 
       if (stockError) {

@@ -27,8 +27,12 @@ Auditoría integral del codebase (2026-08-25): [`specs/AUDIT-CODE.md`](AUDIT-COD
 **Top 3 prioridades inmediatas:**
 
 1. **RTDB granular por rol** — reglas `database.rules.json` alineadas con `staff-role.config.ts` (historiales, inventario).
-2. **Validación agenda citas** — veterinario obligatorio, solapamiento por vet, `duracion_minutos` default 30 min.
-3. **`revokeRefreshTokens`** en `deactivatePortalClient` — revocación inmediata de sesiones portal al desactivar.
+2. ~~**Validación agenda citas**~~ — **hecho** en `specs/003-validacion-agenda-citas/` (vet obligatorio, solape, duración 30, motivo cancelación, fechas pasadas / revert por rol).
+3. ~~**`revokeRefreshTokens`** en `deactivatePortalClient`~~ — **hecho** en `specs/006-revocacion-sesiones-portal/` (pendiente deploy Functions).
+
+**UI reciente:**
+- `specs/004-timepicker-dialog/` — timepicker Material estándar (`app-timepicker-field`) reemplaza `type="time"` en citas, baños y recordatorios.
+- `specs/005-loading-feedback-ux/` — mensajes contextuales en `LoadingService` + fix overlay trabado al guardar citas.
 
 ---
 
@@ -94,7 +98,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Finanzas / caja** | Módulo ventas/caja; ingresos baños (tarjeta, transferencia, efectivo); IVA declarado/no declarado; balances mensuales | Alta |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
 | **Historial clínico** | Notas internas solo médicos; campo `medico_atendio` obligatorio (confirmado) | Media |
-| **Inventario** | Salida ligada a historial para medicamentos controlados; política mermas confirmada (bloqueo negativo, motivo, autorización supervisor) | Media |
+| **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |
 | **Portal / auth** | Registro self-service landing; UI perfil dual post-login; revocación inmediata sesiones + `disabled` Auth al desactivar portal (confirmado) | Media |
 | **Roles / plataforma** | Rol **super admin / dueño** para desarrolladores (acceso total, distinto de administrador clínico) | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |

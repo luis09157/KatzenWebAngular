@@ -10,7 +10,7 @@ describe('Admin CRUD — Clientes', () => {
     }
   });
 
-  it('flujo completo: crear → editar → baja lógica', () => {
+  it('flujo completo: crear → editar → borrar', () => {
     const runId = Date.now();
     const nombre = `E2E${runId}`;
     const apellido = 'PruebaAuto';
@@ -48,11 +48,11 @@ describe('Admin CRUD — Clientes', () => {
     cy.get('.buscador input').clear().type(telefonoEditado);
     cy.contains('td', telefonoEditado, { timeout: 20000 }).should('be.visible');
 
-    // DELETE (baja lógica)
+    // DELETE (UI «Borrar»; soft-delete activo: false)
     cy.contains('tr', nombre).within(() => {
-      cy.get('button[matTooltip="Dar de baja"]').click();
+      cy.get('button[matTooltip="Borrar"]').click();
     });
-    cy.get('.swal2-confirm').contains('Sí, dar de baja').click();
+    cy.get('.swal2-confirm').contains('Sí, borrar').click();
     cy.dismissSwalSuccess();
     cy.get('.buscador input').clear().type(telefonoEditado);
     cy.contains('td', nombre).should('not.exist');

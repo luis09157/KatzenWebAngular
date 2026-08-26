@@ -17,6 +17,12 @@ specs/
 │   ├── module-tasks.template.md
 │   └── qa-validation-guide.md # Guía QA exhaustiva (obligatoria al cerrar)
 ├── 001-baseline/              # Snapshot del producto
+├── 002-portal-clientes-usuarios/
+├── 003-validacion-agenda-citas/  # Agenda: vet, duración, solape, cancelación
+├── 004-timepicker-dialog/        # Timepicker Material (reemplazo type=time)
+├── 005-loading-feedback-ux/      # Loading contextual + overlay no trabado
+├── 006-revocacion-sesiones-portal/ # revokeRefreshTokens al desactivar portal
+├── 007-politica-mermas-inventario/ # Bloqueo stock negativo, motivo merma, ajuste supervisor
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
@@ -53,15 +59,21 @@ Marca tasks.md al avanzar.
 
 Adjuntar con `@specs/003-mi-modulo/spec.md`.
 
-### 4. Verificar
+### 4. Verificar (pre-entrega obligatoria — la hace el agente)
 
-1. Aplicar **`specs/templates/qa-validation-guide.md`** (formularios, modales, edge cases, build).
-2. Registrar resultados en la sección **Testing y validación exhaustiva** de `tasks.md`.
-3. Ejecutar la sección **Testing** de `tasks.md` y marcar `[x]` solo con evidencia registrada.
+**El agente ejecuta todas las validaciones de forma autónoma; el usuario no es el QA por defecto.**
+
+1. Aplicar **`specs/templates/qa-validation-guide.md` completo** (formularios, modales, edge cases, chips, pickers, loading, timepicker, build).
+2. Ejecutar y reportar `npm run build` (exit 0).
+3. Asegurar `npm start` vivo en http://localhost:4200 + smoke visual de lo tocado.
+4. Registrar resultados en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar `[x]`.
+5. Ejecutar el resto de **Testing** en `tasks.md` (Cypress si aplica) solo con evidencia registrada.
+
+Regla Cursor: `.cursor/rules/sdd-workflow.mdc` → **Validación pre-entrega (obligatoria)**.
 
 ### 5. Cerrar
 
-En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha.
+En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cuando la validación pre-entrega esté registrada.
 
 ## Convención de nombres
 
@@ -76,6 +88,9 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha.
 |----|---------|--------|
 | 001 | Baseline producto | done |
 | 002 | Portal clientes en Usuarios | done |
+| 003 | Validación agenda citas | done |
+| 004 | Timepicker dialog | done — timepicker obligatorio en campos hora (pre-entrega) |
+| 005 | Loading feedback UX | done — loading contextual / overlay no trabado (pre-entrega en async admin) |
 
 ## Reglas Cursor relacionadas
 

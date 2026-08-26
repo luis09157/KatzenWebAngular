@@ -70,13 +70,12 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Hora</mat-label>
-            <input matInput type="time" formControlName="hora_material">
-            <mat-error *ngIf="recordatorioForm.get('hora_material')?.hasError('required')">
-              La hora es requerida
-            </mat-error>
-          </mat-form-field>
+          <app-timepicker-field
+            formControlName="hora_material"
+            label="Hora"
+            [required]="true"
+            dialogTitle="Hora del recordatorio">
+          </app-timepicker-field>
         </div>
       </section>
 
@@ -131,7 +130,7 @@
                 (click)="eliminarRecordatorio()"
                 [disabled]="loading">
           <mat-icon>delete</mat-icon>
-          Eliminar
+          Borrar
         </button>
 
         <button *ngIf="isEditMode && data.estado === 'pendiente'"

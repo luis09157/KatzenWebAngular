@@ -243,7 +243,7 @@ export class BanioDialogComponent implements OnInit {
             normalizado.precio_total = normalizado.precio_base || 0;
           }
           if (!normalizado.duracion_estimada) normalizado.duracion_estimada = 60;
-          // Normalizar hora a formato HH:mm para input type="time"
+          // Normalizar hora a formato HH:mm (FormControl / timepicker)
           if (normalizado.hora_banio) {
             normalizado.hora_banio = this.normalizarHora(normalizado.hora_banio);
           }

@@ -9,7 +9,7 @@ import { ProvisionPortalClienteDialogComponent } from './provision-portal-client
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
@@ -245,11 +245,11 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   bajaLogicaUsuario(id: string): void {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'El usuario será dado de baja y no podrá iniciar sesión.',
+      title: '¿Borrar este usuario?',
+      text: 'El usuario se ocultará y no podrá iniciar sesión. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
@@ -258,7 +258,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
         this.usuariosService.actualizarUsuarioStaff(id, { uid: id, activo: false })
           .then(() => {
             this.loadingService.hide();
-            Swal.fire('Baja lógica', 'El usuario fue dado de baja correctamente.', 'success');
+            Swal.fire('Borrado', 'El usuario fue borrado correctamente.', 'success');
             this.cargarStaff();
           })
           .catch(error => {
@@ -314,7 +314,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!result.isConfirmed) return;
 
       this.saving = true;
-      this.loadingService.show();
+      this.loadingService.show(LOADING_MESSAGES.updating);
       this.firebaseFunctions.deactivatePortalClient(cliente.id)
         .then(res => {
           this.loadingService.hide();

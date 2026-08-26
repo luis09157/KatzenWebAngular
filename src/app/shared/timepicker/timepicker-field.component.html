@@ -1,0 +1,33 @@
+<div class="timepicker-field">
+  <mat-form-field appearance="outline" class="timepicker-field__form-field">
+    <mat-label>{{ label }}</mat-label>
+    <input
+      matInput
+      type="text"
+      readonly
+      [value]="displayValue"
+      [placeholder]="placeholder"
+      [required]="required"
+      [disabled]="disabled"
+      [attr.aria-required]="required"
+      [attr.aria-label]="label"
+      role="combobox"
+      aria-haspopup="dialog"
+      (click)="openPicker($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="markTouched()"
+    />
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      class="timepicker-field__toggle"
+      [disabled]="disabled"
+      [attr.aria-label]="'Abrir selector de ' + label"
+      (click)="openPicker($event)">
+      <mat-icon>schedule</mat-icon>
+    </button>
+    <mat-error *ngIf="showRequiredError">La hora es requerida</mat-error>
+    <mat-error *ngIf="showFormatError">Formato de hora inválido</mat-error>
+  </mat-form-field>
+</div>

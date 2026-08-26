@@ -1,0 +1,21 @@
+.timepicker-field {
+  display: block;
+  width: 100%;
+}
+
+.timepicker-field__form-field {
+  width: 100%;
+}
+
+.timepicker-field__toggle {
+  margin-right: -4px;
+}
+
+.timepicker-field input[readonly] {
+  cursor: pointer;
+  caret-color: transparent;
+}
+
+.timepicker-field input[readonly]:disabled {
+  cursor: not-allowed;
+}

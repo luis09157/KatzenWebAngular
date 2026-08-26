@@ -43,7 +43,9 @@ export function mapCita(id: string, raw: Record<string, unknown>) {
     fecha_hora: `${fecha}${hora}`.trim(),
     estado: raw['estado'] || raw['status'] || 'pendiente',
     veterinario: raw['veterinario'] || raw['medico_atendio'] || '',
-    observaciones: raw['observaciones'] || raw['notas'] || ''
+    observaciones: raw['observaciones'] || raw['notas'] || '',
+    motivo_cancelacion: raw['motivo_cancelacion'] || '',
+    duracion_minutos: raw['duracion_minutos'] ?? null
   };
 }
 

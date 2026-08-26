@@ -464,11 +464,11 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   bajaLogicaCliente(id: string) {
     Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'El cliente será dado de baja (baja lógica). Se desactivará también el acceso al portal del dueño. Los datos se conservan.',
+      title: '¿Borrar este cliente?',
+      text: 'El cliente se ocultará del listado y se desactivará el acceso al portal del dueño. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed) {
@@ -481,12 +481,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
             this.aplicarFiltroSucursal();
             this.cargarEstadisticas();
             setTimeout(() => {
-              Swal.fire('Baja lógica', 'El cliente fue dado de baja correctamente.', 'success');
+              Swal.fire('Borrado', 'El cliente fue borrado correctamente.', 'success');
             }, 0);
           })
           .catch(() => {
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo dar de baja al cliente', 'error'), 0);
+            setTimeout(() => Swal.fire('Error', 'No se pudo borrar al cliente', 'error'), 0);
           })
           .finally(() => { this.saving = false; });
       }

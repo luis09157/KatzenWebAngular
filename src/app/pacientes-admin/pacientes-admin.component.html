@@ -11,7 +11,7 @@
     accent="teal"
     icon="pets"
     title="Administración de Pacientes"
-    subtitle="Consulta, edita y da de baja lógica a las mascotas registradas. Los datos clínicos se conservan en historial.">
+    subtitle="Consulta, edita y borra mascotas registradas. Los datos clínicos se conservan en historial.">
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="nuevoPaciente()">
         <mat-icon>add</mat-icon>
@@ -102,7 +102,7 @@
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarPaciente(paciente)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Dar de baja" (click)="eliminarPaciente(paciente)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarPaciente(paciente)">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
@@ -134,6 +134,6 @@
   <mat-menu #rowMenu="matMenu">
     <button mat-menu-item (click)="verPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="editarPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>edit</mat-icon> Editar paciente</button>
-    <button mat-menu-item (click)="eliminarPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>delete_outline</mat-icon> Dar de baja lógica</button>
+    <button mat-menu-item (click)="eliminarPaciente(pacienteMenuContext)" [disabled]="!pacienteMenuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>
 </div>

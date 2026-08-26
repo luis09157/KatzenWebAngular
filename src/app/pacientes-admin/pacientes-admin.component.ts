@@ -263,13 +263,13 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   eliminarPaciente(paciente: any) {
     Swal.fire({
-      title: '¿Dar de baja?',
-      text: `El paciente "${paciente.nombre}" se marcará como inactivo. Los datos se conservan y puede reactivarse desde la app staff.`,
+      title: '¿Borrar este paciente?',
+      text: `El paciente "${paciente.nombre}" se ocultará del listado. Los datos se conservan y puede reactivarse desde la app staff.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, dar de baja',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
@@ -278,14 +278,14 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Baja lógica', 'Paciente dado de baja correctamente.', 'success');
+              Swal.fire('Borrado', 'Paciente borrado correctamente.', 'success');
               this.cargarDatos();
             }, 0);
           })
           .catch(error => {
             this.logger.error('Error al eliminar paciente:', error);
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo eliminar el paciente', 'error'), 0);
+            setTimeout(() => Swal.fire('Error', 'No se pudo borrar el paciente', 'error'), 0);
           });
       }
     });

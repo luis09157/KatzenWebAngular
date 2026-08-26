@@ -247,20 +247,20 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Estás seguro?',
+      title: '¿Borrar esta vacuna?',
       html: `
-        <p>Estás a punto de <strong>eliminar</strong> la siguiente vacuna:</p>
+        <p>Estás a punto de <strong>borrar</strong> la siguiente vacuna:</p>
         <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
           <p><strong>Vacuna:</strong> ${nombreVacuna}</p>
           <p><strong>Paciente:</strong> ${nombrePaciente}</p>
           ${vacuna.fecha_vacuna ? `<p><strong>Fecha:</strong> ${vacuna.fecha_vacuna}</p>` : ''}
         </div>
-        <p class="text-danger">Esta acción <strong>no se puede deshacer</strong>.</p>
+        <p class="text-muted">Se ocultará del listado. Los datos se conservan.</p>
       `,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 
@@ -270,12 +270,12 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: '¡Vacuna Eliminada!', html: '<p>La vacuna ha sido eliminada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
+          Swal.fire({ icon: 'success', title: 'Borrada', html: '<p>La vacuna ha sido borrada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
           this.cargarVacunas();
         }, 0);
       } catch (error) {
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error al Eliminar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') }), 0);
+        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error al borrar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') }), 0);
       }
     }
   }

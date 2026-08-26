@@ -45,7 +45,13 @@ export interface Cita {
   hora?: string;
   motivo?: string;
   estado?: string;
+  /** Nombre del doctor asignado (formulario admin). */
+  veterinario?: string;
   veterinario_id?: string;
+  /** Duración del slot en minutos; default web 30. Campo aditivo RTDB. */
+  duracion_minutos?: number;
+  /** Obligatorio al cancelar; visible en portal. Campo aditivo RTDB. */
+  motivo_cancelacion?: string;
   activo?: boolean;
   [key: string]: unknown;
 }

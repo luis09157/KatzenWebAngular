@@ -34,10 +34,12 @@
             <mat-datepicker #fechaPicker></mat-datepicker>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Hora del baño</mat-label>
-            <input matInput type="time" formControlName="hora_banio" required>
-          </mat-form-field>
+          <app-timepicker-field
+            formControlName="hora_banio"
+            label="Hora del baño"
+            [required]="true"
+            dialogTitle="Hora del baño">
+          </app-timepicker-field>
         </div>
       </section>
 
