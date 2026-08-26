@@ -1,168 +1,102 @@
-<div class="alertas-container">
-  <div class="header">
-    <div class="titulo">
-      <h1>
-        <mat-icon>notifications_active</mat-icon>
-        Centro de Alertas
-      </h1>
-      <p>Monitoreo y gestión de alertas de inventario</p>
-    </div>
-
-    <div class="acciones-header">
-      <button mat-raised-button color="primary" (click)="generarAlertasAutomaticas()">
-        <mat-icon>auto_fix_high</mat-icon>
-        Generar Alertas
-      </button>
-      <button mat-raised-button color="accent" (click)="resolverTodas()" [disabled]="alertasFiltradas.length === 0">
-        <mat-icon>done_all</mat-icon>
-        Resolver Todas
-      </button>
-    </div>
-  </div>
-
-  <!-- Estadísticas -->
-  <div class="estadisticas-grid" *ngIf="!loading">
-    <mat-card class="stat-card total">
-      <mat-icon>notifications</mat-icon>
-      <div class="stat-content">
-        <span class="stat-label">Total Alertas</span>
-        <span class="stat-value">{{getEstadisticas().total}}</span>
-      </div>
-    </mat-card>
-
-    <mat-card class="stat-card critica">
-      <mat-icon>error</mat-icon>
-      <div class="stat-content">
-        <span class="stat-label">Críticas</span>
-        <span class="stat-value">{{getEstadisticas().criticas}}</span>
-      </div>
-    </mat-card>
-
-    <mat-card class="stat-card alta">
-      <mat-icon>warning</mat-icon>
-      <div class="stat-content">
-        <span class="stat-label">Altas</span>
-        <span class="stat-value">{{getEstadisticas().altas}}</span>
-      </div>
-    </mat-card>
-
-    <mat-card class="stat-card media">
-      <mat-icon>info</mat-icon>
-      <div class="stat-content">
-        <span class="stat-label">Medias</span>
-        <span class="stat-value">{{getEstadisticas().medias}}</span>
-      </div>
-    </mat-card>
-  </div>
-
-  <!-- Filtros -->
-  <mat-card class="filtros-card">
-    <div class="filtros-grid">
-      <mat-form-field appearance="outline" class="filtro-field">
-        <mat-label>Tipo de Alerta</mat-label>
-        <mat-select [(ngModel)]="filtroTipo" (ngModelChange)="aplicarFiltros()">
-          <mat-option *ngFor="let tipo of tiposAlerta" [value]="tipo.valor">
-            <mat-icon [style.color]="tipo.color">{{tipo.icono}}</mat-icon>
-            {{tipo.etiqueta}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filtro-field">
-        <mat-label>Prioridad</mat-label>
-        <mat-select [(ngModel)]="filtroPrioridad" (ngModelChange)="aplicarFiltros()">
-          <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.valor">
-            <span [style.color]="prioridad.color">{{prioridad.etiqueta}}</span>
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-stroked-button (click)="limpiarFiltros()">
-        <mat-icon>clear</mat-icon>
-        Limpiar Filtros
-      </button>
-    </div>
-  </mat-card>
-
-  <!-- Lista de Alertas -->
-  <div class="alertas-lista" *ngIf="!loading">
-    <div *ngIf="alertasFiltradas.length === 0" class="no-alertas">
-      <mat-icon>check_circle</mat-icon>
-      <h3>¡No hay alertas!</h3>
-      <p>Todo está bajo control en el inventario</p>
-    </div>
-
-    <mat-card *ngFor="let alerta of alertasFiltradas" class="alerta-card"
-              [class.critica]="alerta.prioridad === 'critica'"
-              [class.alta]="alerta.prioridad === 'alta'"
-              [class.media]="alerta.prioridad === 'media'"
-              [class.baja]="alerta.prioridad === 'baja'"
-              [class.resuelta]="alerta.estado === 'resuelta'">
-      
-      <div class="alerta-header">
-        <div class="alerta-icono" [style.background-color]="getColorAlerta(alerta.prioridad)">
-          <mat-icon>{{getIconoAlerta(alerta.tipo)}}</mat-icon>
-        </div>
-
-        <div class="alerta-info">
-          <div class="alerta-titulo">
-            <strong>{{alerta.mensaje}}</strong>
-            <mat-chip [style.background-color]="getColorAlerta(alerta.prioridad)">
-              {{alerta.prioridad}}
-            </mat-chip>
-          </div>
-
-          <div class="alerta-detalles">
-            <div class="detalle-item">
-              <mat-icon>inventory_2</mat-icon>
-              <span>{{getProductoNombre(alerta.producto_id)}}</span>
-            </div>
-            <div class="detalle-item" *ngIf="alerta.tipo === 'stock_bajo'">
-              <mat-icon>straighten</mat-icon>
-              <span>Stock: {{getProductoStock(alerta.producto_id)}} {{getProductoUnidad(alerta.producto_id)}}</span>
-            </div>
-            <div class="detalle-item">
-              <mat-icon>schedule</mat-icon>
-              <span>{{formatearFecha(alerta.fecha_alerta)}}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="alerta-acciones">
-          <button mat-icon-button [matMenuTriggerFor]="menu" [disabled]="alerta.estado === 'resuelta'">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="verProducto(alerta.producto_id)">
-              <mat-icon>visibility</mat-icon>
-              <span>Ver Producto</span>
-            </button>
-            <button mat-menu-item (click)="resolverAlerta(alerta)" *ngIf="alerta.estado !== 'resuelta'">
-              <mat-icon color="primary">check_circle</mat-icon>
-              <span>Resolver</span>
-            </button>
-          </mat-menu>
-
-          <button mat-mini-fab color="primary" 
-                  (click)="resolverAlerta(alerta)"
-                  *ngIf="alerta.estado !== 'resuelta'"
-                  matTooltip="Resolver alerta">
-            <mat-icon>check</mat-icon>
-          </button>
-
-          <div class="badge-resuelta" *ngIf="alerta.estado === 'resuelta'">
-            <mat-icon>check_circle</mat-icon>
-            <span>Resuelta</span>
-          </div>
-        </div>
-      </div>
-    </mat-card>
-  </div>
-
-  <!-- Loading -->
+<div class="admin-page alertas-contenedor">
   <div *ngIf="loading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Cargando alertas...</p>
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando alertas…</p>
   </div>
-</div>
 
+  <ng-container *ngIf="!loading">
+    <p class="section-eyebrow">Inventario</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="blue" [value]="getEstadisticas().total" label="Total alertas" hint="Activas + resueltas"></app-admin-stat-card>
+      <app-admin-stat-card accent="red" [value]="getEstadisticas().criticas" label="Críticas" hint="Requieren acción"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="getEstadisticas().altas" label="Altas" hint="Prioridad alta"></app-admin-stat-card>
+      <app-admin-stat-card accent="teal" [value]="getEstadisticas().medias" label="Medias" hint="Seguimiento"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="orange"
+      icon="notifications_active"
+      title="Alertas de inventario"
+      subtitle="Stock bajo, caducidad y punto de reorden.">
+      <div bannerActions>
+        <button mat-stroked-button type="button" (click)="generarAlertasAutomaticas()">
+          <mat-icon>auto_fix_high</mat-icon>
+          Generar alertas
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button"
+          (click)="resolverTodas()" [disabled]="alertasFiltradas.length === 0">
+          <mat-icon>done_all</mat-icon>
+          Resolver todas
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-admin-data-panel
+      accent="orange"
+      title="Listado de alertas"
+      description="Filtra por tipo y prioridad."
+      [meta]="alertasFiltradas.length + ' alertas'"
+      [showLegend]="false">
+
+      <div class="alertas-filtros panel-search">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Tipo</mat-label>
+          <mat-select [(ngModel)]="filtroTipo" (ngModelChange)="aplicarFiltros()">
+            <mat-option *ngFor="let tipo of tiposAlerta" [value]="tipo.valor">{{ tipo.etiqueta }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Prioridad</mat-label>
+          <mat-select [(ngModel)]="filtroPrioridad" (ngModelChange)="aplicarFiltros()">
+            <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.valor">{{ prioridad.etiqueta }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="limpiarFiltros()">
+          <mat-icon>clear</mat-icon>
+          Limpiar
+        </button>
+      </div>
+
+      <app-admin-empty-state
+        *ngIf="alertasFiltradas.length === 0"
+        icon="check_circle"
+        title="Sin alertas"
+        message="Todo bajo control en el inventario con estos filtros.">
+      </app-admin-empty-state>
+
+      <div class="alertas-lista" *ngIf="alertasFiltradas.length > 0">
+        <div
+          *ngFor="let alerta of alertasFiltradas"
+          class="alerta-row"
+          [class.alerta-row--critica]="alerta.prioridad === 'critica'"
+          [class.alerta-row--alta]="alerta.prioridad === 'alta'"
+          [class.alerta-row--resuelta]="alerta.estado === 'resuelta'">
+          <div class="alerta-row__main">
+            <span class="estado-badge" [ngClass]="alerta.prioridad | adminPrioridadClass">{{ alerta.prioridad }}</span>
+            <div class="alerta-row__text">
+              <strong class="cell-nombre">{{ alerta.mensaje }}</strong>
+              <span class="cell-sub">{{ getProductoNombre(alerta.producto_id) }} · {{ formatearFecha(alerta.fecha_alerta) }}</span>
+              <span class="cell-sub" *ngIf="alerta.tipo === 'stock_bajo'">
+                Stock: {{ getProductoStock(alerta.producto_id) }} {{ getProductoUnidad(alerta.producto_id) }}
+              </span>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button mat-icon-button type="button" matTooltip="Ver producto" (click)="verProducto(alerta.producto_id)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Resolver"
+              *ngIf="alerta.estado !== 'resuelta'"
+              (click)="resolverAlerta(alerta)">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <span *ngIf="alerta.estado === 'resuelta'" class="estado-badge estado-badge--success">Resuelta</span>
+          </div>
+        </div>
+      </div>
+    </app-admin-data-panel>
+  </ng-container>
+</div>

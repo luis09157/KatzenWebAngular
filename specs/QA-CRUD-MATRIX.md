@@ -1,6 +1,6 @@
 # Matriz QA CRUD — Admin KatzenVet
 
-**Fecha cierre:** 2026-08-26  
+**Fecha cierre:** 2026-08-26 (mandato completo)  
 **Mandato:** Luis Alfonso Niño Martínez  
 **Entorno:** localhost `:4200` + Firebase prod vía Cypress autenticado  
 
@@ -12,12 +12,37 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 
 | Métrica | Resultado |
 |---------|-----------|
-| `npm run build` | PASS (budget warning ~2.01 MB) |
-| `npm run functions:build` | (si se tocó functions) |
-| Proveedores Create/Edit/Borrar E2E | Fix UI sync Material + Cypress `fillMatInput` |
-| Finanzas 014 MVP | Módulo `/admin/finanzas` + rules `Katzen/Caja` |
-| Resend `RESEND_API_KEY` | **PENDIENTE LUIS** — secret 404; código listo (modo prueba) |
-| localhost `:4200` | Debe quedar vivo |
+| `npm run build` | **PASS** (budget warning ~2.02 MB) |
+| `npm run functions:build` | **PASS** |
+| `npm run cy:admin` (11 specs) | **45/46** luego fix alertas; modules **15/15**; finanzas re-run tras fix buscador |
+| Features 015–020 | Implementadas en repo (ver abajo) |
+| Resend `RESEND_API_KEY` | **PENDIENTE LUIS** — secret 404; no inventar key; no PASS correo |
+| localhost `:4200` | **VIVO** (`ng serve`) |
+
+---
+
+## Features entregadas este mandato (015+)
+
+| Spec | Qué |
+|------|-----|
+| 015 desvincular dual | Callable `unlinkStaffPortalCliente` + UI Personal |
+| 016 notas aislamiento | Nodo `Historiales_Notas_Internas` staff-only + rules |
+| 017 Fallecido | Archiva recordatorios (baja lógica) |
+| 018 finanzas | Export CSV + baño→caja (`cajaMovimientoId`) |
+| 019 deprecar remove | Servicios UI → baja lógica / throw físico |
+| 020 portal mascotas | Rules list `cliente_id` query |
+
+---
+
+## CSS / design system
+
+| Área | Resultado |
+|------|-----------|
+| Alertas inventario | Reescrito a `admin-page` + KPI + panel (sin empty purple) |
+| Auth / contexto | Ya centrado (012); sin regresión en smoke login |
+| Finanzas | Export CSV en banner; chips IVA/tipo |
+| Landing registro modal | Backdrop flex centrado (sin cambio estructural) |
+| Copy Borrar | Sin «Dar de baja» en UI tocada |
 
 ---
 
@@ -27,67 +52,25 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 
 | Escenario | ¿Funciona? |
 |-----------|------------|
-| Firebase Hosting `katzen-a0e3e.web.app` como dominio de envío | **No** — Resend no lo acepta como FROM |
-| Sin dominio propio | Solo **modo prueba**: FROM `KatzenVet <onboarding@resend.dev>` → **solo entrega al email de la cuenta Resend** |
-| Correo a clientes / dueños reales | **Pendiente** hasta comprar + verificar dominio en Resend y cambiar FROM |
+| Firebase Hosting `katzen-a0e3e.web.app` como dominio de envío | **No** |
+| Sin dominio propio | Solo **modo prueba** → email cuenta Resend |
+| Correo a clientes reales | **Pendiente** dominio + FROM |
 
-El agente **no inventa** la API key ni finge que el correo a terceros ya funciona.
-
-### Estado verificado 2026-08-26
+### Estado verificado
 
 ```text
-firebase functions:secrets:access RESEND_API_KEY
-→ 404 Secret not found
-
-firebase functions:secrets:access PORTAL_FROM_EMAIL
-→ 404 Secret not found (opcional; default = onboarding@resend.dev)
+RESEND_API_KEY → 404 Secret not found (Luis debe setear)
+PORTAL_FROM_EMAIL → 404 (opcional)
 ```
 
-Código listo:
+### Pasos para Luis
 
-- `functions/src/portal-mail.ts` — default FROM `KatzenVet <onboarding@resend.dev>`
-- Callables con `defineSecret('RESEND_API_KEY')`: `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`
-- UI admin avisa modo prueba / configurar Resend si `emailSent: false`
-
-### Pasos exactos para Luis (una sola vez la key)
-
-1. Crear cuenta en [https://resend.com](https://resend.com) y generar **API key**.
-2. En máquina con Firebase CLI al proyecto `katzen-a0e3e`:
-
-```bash
-# Pegar la key cuando Firebase lo pida (no commitear, no pegar en chat)
-firebase functions:secrets:set RESEND_API_KEY
-```
-
-3. **Opcional** (solo cuando tengas dominio verificado; no hace falta en modo prueba):
-
-```bash
-firebase functions:secrets:set PORTAL_FROM_EMAIL
-# Ejemplo futuro: KatzenVet <noreply@tudominio.com>
-```
-
-Si no defines `PORTAL_FROM_EMAIL`, el código usa `KatzenVet <onboarding@resend.dev>`.
-
-4. Redeploy de las functions que envían correo (tras existir el secret; si el secret 404 el deploy con `secrets: [...]` falla):
-
-```bash
-npm run functions:build
-firebase deploy --only functions:provisionPortalClient,functions:resendPortalClientAccess,functions:registerPortalOwner
-```
-
-5. Probar: Admin → activar / reenviar acceso al **mismo email de la cuenta Resend** → debe llegar mail y Swal **sin** warning «sin correo».
-6. **No marcar PASS de correo a clientes** hasta tener dominio + FROM propio.
-
-### Cuando tengas dominio propio
-
-1. En Resend: añadir dominio → registros DNS (SPF/DKIM) → verificar.
-2. `firebase functions:secrets:set PORTAL_FROM_EMAIL` → p. ej. `KatzenVet <noreply@tudominio.com>`.
-3. Redeploy de las tres functions de arriba.
-4. Probar envío a un correo de cliente real.
-
-### Self-registro landing
-
-`registerPortalOwner` **exige** Resend configurado (si falta key o falla el envío → rollback, no deja cuenta huérfana). En modo prueba solo sirve si el dueño se registra con el email de la cuenta Resend.
+1. Crear API key en https://resend.com  
+2. `firebase functions:secrets:set RESEND_API_KEY`  
+3. Opcional: `PORTAL_FROM_EMAIL` con dominio verificado  
+4. `npm run functions:build && firebase deploy --only functions:provisionPortalClient,functions:resendPortalClientAccess,functions:registerPortalOwner`  
+5. Probar solo al email de la cuenta Resend en modo prueba  
+6. **No marcar PASS correo a clientes** hasta dominio propio  
 
 ---
 
@@ -95,12 +78,28 @@ firebase deploy --only functions:provisionPortalClient,functions:resendPortalCli
 
 | Módulo | C | R | U | Soft-delete | Estado E2E |
 |--------|---|---|---|-------------|------------|
-| Inv. Proveedores | fix sync | PASS | fix hydrate | PASS | Create→Edit→Borrar |
-| Finanzas / caja | PASS | PASS | N/A MVP | PASS | `admin-crud-finanzas.cy.ts` |
+| Inv. Proveedores | PASS | PASS | PASS | PASS | Create→Edit→Borrar |
+| Inv. Productos | PASS | PASS | PASS | PASS | CRUD |
+| Inv. Alertas | N/A | PASS | N/A | resolver | modules smoke (contenedor nuevo) |
+| Pacientes | PASS create | PASS | PASS cond. | PASS | Swal + edit si en página |
+| Clientes | PASS | PASS | PASS | PASS | CRUD |
+| Portal provision | PASS* | — | — | revoke PASS | *emailSent puede false sin Resend |
+| Finanzas / caja | PASS | PASS | N/A | PASS | CRUD + CSV UI |
+| Auth contexto | — | PASS | — | — | dual selector |
+
+\* Correo portal: código OK; entrega real **BLOQUEADO** sin secret Resend.
 
 ---
 
-## SC futuros Finanzas
+## SC Finanzas 014/018
 
-- Export CSV (SC-006)
-- Vincular cobro desde baño (`cajaMovimientoId`)
+- [x] Export CSV del día  
+- [x] Vincular cobro desde baño (`cajaMovimientoId`)  
+
+---
+
+## Deploy (autorizado)
+
+- hosting (UI)  
+- functions: `unlinkStaffPortalCliente` (+ syncClaims null-out en shared)  
+- database (rules Mascota + Historiales_Notas_Internas)  

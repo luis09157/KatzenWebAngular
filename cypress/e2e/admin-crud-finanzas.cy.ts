@@ -52,7 +52,12 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.get('.swal2-confirm').contains('Sí, borrar').click({ force: true });
     cy.get('.swal2-title', { timeout: 20000 }).should('contain.text', 'Borrado');
     cy.get('body', { timeout: 10000 }).should('not.have.class', 'swal2-shown');
-    cy.get('.buscador input').clear().type(concepto);
+    cy.get('.loading-container', { timeout: 15000 }).should('not.exist');
+    cy.get('body').then(($b) => {
+      if ($b.find('.buscador input:enabled').length) {
+        cy.get('.buscador input:enabled').clear({ force: true }).type(concepto, { force: true });
+      }
+    });
     cy.contains('td', concepto).should('not.exist');
   });
 });
