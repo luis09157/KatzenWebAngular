@@ -84,7 +84,7 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 - [x] `spec.md` → done
 - [x] Commit + push + deploy hosting (autorizado Luis) — `e4afcd2` hosting OK
 - [x] Follow-up 2026-08-26: quitado launcher/cards de módulos en `/admin/inicio` (menú lateral basta; métricas + calendario)
-- [x] Follow-up 2026-08-26: fix KPIs baños/dashboard — baños sin caja suman `precio_total` a ingresos brutos; labels Ingresos vs Ganancia; costo=venta → margen 0 pero ingreso/conteo sí suben
+- [x] Follow-up 2026-08-26: fix KPIs baños/dashboard — baños sin caja suman `precio_total` a ingresos brutos; labels Ingresos vs Ganancia; costo=venta → margen 0 pero ingreso/conteo sí suben · commit `0dc5543` · hosting deploy OK
 
 ### Registro QA fix ingresos baños (2026-08-26)
 
