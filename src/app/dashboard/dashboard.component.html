@@ -9,9 +9,10 @@
     <section class="owner-dash" aria-label="Dashboard de negocio">
       <header class="owner-dash__header">
         <div>
-          <p class="section-eyebrow">Vista de dueña / doctora</p>
+          <p class="section-eyebrow">{{ getSaludo() }} · Métricas del negocio</p>
           <h1 class="owner-dash__title">Dashboard de la clínica</h1>
           <p class="owner-dash__range" *ngIf="snap">{{ rangoLabel() }}</p>
+          <p class="owner-dash__range" *ngIf="!snap">Ingresos, operación, tops y calendario de citas.</p>
         </div>
         <div class="owner-dash__filters">
           <div class="periodo-toggle" role="group" aria-label="Período rápido">
@@ -50,13 +51,13 @@
             accent="blue"
             [value]="formatMoney(snap.financieros.ventaBruta)"
             label="Ingresos brutos"
-            hint="Cobros en caja">
+            hint="Caja + baños (precio de venta)">
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="orange"
             [value]="formatMoney(snap.financieros.costosAsociados)"
             label="Costos de servicio"
-            hint="Solo cobros con costo">
+            hint="Caja + costoEstimado baños">
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="pink"
@@ -68,7 +69,7 @@
             accent="green"
             [value]="formatMoney(snap.financieros.gananciaNeta)"
             label="Ganancia neta"
-            hint="Ingresos − costos − gastos">
+            hint="Ingresos − costos − gastos · si costo=venta → ≈$0">
           </app-admin-stat-card>
         </app-admin-kpi-grid>
 
@@ -203,43 +204,6 @@
           </div>
         </app-admin-data-panel>
       </ng-container>
-    </section>
-
-    <section class="dashboard-hero">
-      <p class="dashboard-hero__eyebrow">KatzenVet · Panel administrativo</p>
-      <h2 class="dashboard-hero__title">{{ getSaludo() }}</h2>
-      <p class="dashboard-hero__lead">
-        Accesos rápidos a cada módulo y calendario de citas.
-      </p>
-      <p class="dashboard-hero__date">
-        {{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}
-      </p>
-    </section>
-
-    <section class="dashboard-modules">
-      <h2 class="dashboard-modules__heading">
-        Encuentra la herramienta adecuada para cada tarea
-      </h2>
-
-      <div class="admin-feature-grid">
-        <app-admin-module-card
-          *ngFor="let module of visibleModules"
-          [title]="module.title"
-          [description]="module.description"
-          [route]="module.route"
-          [accent]="module.accent">
-        </app-admin-module-card>
-      </div>
-
-      <div class="dashboard-modules__actions" *ngIf="allModules.length > primaryModuleCount">
-        <button
-          mat-stroked-button
-          type="button"
-          class="dashboard-modules__toggle"
-          (click)="toggleModules()">
-          {{ showAllModules ? 'Ver menos módulos' : 'Ver todos los módulos' }}
-        </button>
-      </div>
     </section>
 
     <app-admin-data-panel

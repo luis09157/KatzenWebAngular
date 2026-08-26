@@ -170,7 +170,7 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 - **v1 defaults refinables** — no bloquear entrega por métricas “perfectas”.
 - Dinero: pasar string formateado (`$1,200`) o número; `admin-stat-card` muestra ambos.
 - Spec: `specs/025-metricas-servicios-dashboard/` · Dashboard central: `/admin/inicio`.
-- Hub de negocio (dueña): filtros de período + KPIs financieros/operativos + tops + serie diaria — **no** copiar branding de terceros; tokens Katzen.
+- Hub de negocio (dueña): filtros de período + KPIs financieros/operativos + tops + serie diaria + calendario debajo — **sin** launcher/cards de módulos (navegación = menú lateral). Tokens Katzen; **no** copiar branding de terceros.
 
 ### Layout ancho (desktop)
 

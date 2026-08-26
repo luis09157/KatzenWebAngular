@@ -12,7 +12,7 @@
 ## Problema
 
 1. Módulos admin tenían KPIs genéricos (totales históricos) o ninguno (productos/OC/movimientos). La dueña no veía **baños del mes**, ingresos ni alertas útiles.
-2. `/admin/inicio` era solo saludo + cards de módulos + calendario — **no** un tablero de negocio.
+2. `/admin/inicio` era solo saludo + cards de módulos + calendario — **no** un tablero de negocio. (Post-entrega: se quitó el launcher de cards; el menú lateral basta.)
 3. Finanzas tiene P&L, pero no hay un **dashboard central** con filtros Este mes / 30d / 60d.
 
 Luis pide: **KPIs defaults en todo módulo operativo** + **Dashboard dueño** (referencia Niño Maker, UI KatzenVet teal).
@@ -68,7 +68,7 @@ Para ver cómo va el negocio.
 - [x] SC-015: Gráfica/serie ingresos por día (SVG/CSS)
 - [x] SC-016: Empty states claros si no hay datos
 - [x] SC-017: Mocks en `mock-data.ts` para preview local
-- [x] SC-018: Calendario + módulos de acceso rápido se conservan debajo
+- [x] SC-018: Calendario de citas se conserva debajo de las métricas (sin hub/cards de módulos; el menú lateral basta)
 
 ---
 
@@ -111,7 +111,7 @@ Staff con acceso a `inicio` (política 011).
 
 | Ruta | Cambio |
 |------|--------|
-| `/admin/inicio` | Dashboard dueño + hero módulos + calendario |
+| `/admin/inicio` | Dashboard dueño (métricas) + calendario de citas — sin launcher de cards |
 | `/admin/banios` … módulos listados | KPI grids enriquecidos |
 
 ---
@@ -119,5 +119,6 @@ Staff con acceso a `inicio` (política 011).
 ## Notas
 
 - KPIs son **v1 defaults refinables**.
-- Ingresos baños: `pagado \|\| cajaMovimientoId` + `precio_total`; valor estimado incluye no cancelados aunque no pagados.
+- Ingresos baños: `pagado \|\| cajaMovimientoId` + `precio_total`; valor estimado / **ingresos brutos** incluyen no cancelados aunque no pagados.
 - Cirugías/hospitalización: **no hay módulo** — n/a.
+- **2026-08-26 fix:** si costo = precio de venta → **ganancia/margen = 0** (correcto), pero conteo + **ingresos brutos** deben subir. El dashboard ya no depende solo de caja: baños del período sin `cajaMovimientoId` suman `precio_total` a ingresos y `costoEstimado` a costos (sin doble conteo si ya hay movimiento).

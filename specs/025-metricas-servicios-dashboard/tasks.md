@@ -63,6 +63,7 @@
 | Build | OK | exit 0; budget warn |
 | Smoke :4200 | OK | ng serve LISTEN |
 | Cypress admin | OK | 20 passing |
+| Follow-up: sin launcher cards | OK | HTML/TS/CSS limpios; métricas + calendario; build Hash 6c7891a841d7901e |
 
 ```
 npm run build → exit 0 (Hash 17718f51592652b2)
@@ -82,3 +83,15 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → done
 - [x] Commit + push + deploy hosting (autorizado Luis) — `e4afcd2` hosting OK
+- [x] Follow-up 2026-08-26: quitado launcher/cards de módulos en `/admin/inicio` (menú lateral basta; métricas + calendario)
+- [x] Follow-up 2026-08-26: fix KPIs baños/dashboard — baños sin caja suman `precio_total` a ingresos brutos; labels Ingresos vs Ganancia; costo=venta → margen 0 pero ingreso/conteo sí suben
+
+### Registro QA fix ingresos baños (2026-08-26)
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| precio 200, costo 200 | OK | ingreso bruto +200, ganancia +0 |
+| Baño sin `cajaMovimientoId` | OK | refuerzo en OwnerDashboardService |
+| Baño con `cajaMovimientoId` | OK | solo caja (sin doble conteo) |
+| Labels UI | OK | Ingresos brutos ≠ Ganancia neta |
+| Build | (pendiente en esta pasada) | |

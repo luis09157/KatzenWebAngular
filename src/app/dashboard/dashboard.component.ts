@@ -10,7 +10,6 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
 import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
-import { AdminModuleAccent } from '../shared/admin/admin-module-card.component';
 import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
 import {
@@ -19,13 +18,6 @@ import {
   formatLabelEs
 } from '../core/utils/periodo-filtro.util';
 import { LoggerService } from '../core/logger.service';
-
-interface DashboardModule {
-  title: string;
-  description: string;
-  route: string;
-  accent: AdminModuleAccent;
-}
 
 @Component({
   selector: 'app-dashboard',
@@ -44,7 +36,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private ownerSub?: Subscription;
   breadcrumbs: Array<{ label: string; url: string }> = [];
-  currentDate = new Date();
   selectedDate = new Date();
   calendarDays: any[] = [];
   citas: any[] = [];
@@ -59,8 +50,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ];
   loading = false;
   ownerLoading = false;
-  showAllModules = false;
-  readonly primaryModuleCount = 6;
 
   /** Spec 025 — filtros dashboard dueño */
   periodoPreset: PeriodoPreset = 'este_mes';
@@ -73,81 +62,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { id: '30d', label: '30 días' },
     { id: '60d', label: '60 días' }
   ];
-
-  readonly allModules: DashboardModule[] = [
-    {
-      title: 'Pacientes',
-      description: 'Registra mascotas, historial clínico y datos del expediente en un solo lugar.',
-      route: 'pacientes-admin',
-      accent: 'teal'
-    },
-    {
-      title: 'Clientes',
-      description: 'Administra dueños, contacto, dirección y expedientes vinculados a sus mascotas.',
-      route: 'clientes',
-      accent: 'blue'
-    },
-    {
-      title: 'Citas',
-      description: 'Programa consultas, controla la agenda diaria y da seguimiento a cada cita.',
-      route: 'citas',
-      accent: 'purple'
-    },
-    {
-      title: 'Historiales clínicos',
-      description: 'Consulta diagnósticos, tratamientos y evolución médica de cada paciente.',
-      route: 'historiales',
-      accent: 'pink'
-    },
-    {
-      title: 'Vacunas',
-      description: 'Lleva el control de esquemas, fechas de aplicación y recordatorios de refuerzo.',
-      route: 'vacunas',
-      accent: 'green'
-    },
-    {
-      title: 'Inventario',
-      description: 'Gestiona productos, movimientos, órdenes de compra y alertas de stock bajo.',
-      route: 'inventario',
-      accent: 'orange'
-    },
-    {
-      title: 'Finanzas / caja',
-      description: 'Cobros, costos de servicio, rentabilidad y defaults de baño por tamaño.',
-      route: 'finanzas',
-      accent: 'green'
-    },
-    {
-      title: 'Pensión / alojamiento',
-      description: 'Hospedaje de mascotas: estancias, precios por día y cobro en caja.',
-      route: 'pension',
-      accent: 'teal'
-    },
-    {
-      title: 'Baños y estética',
-      description: 'Agenda servicios de baño, peluquería y cuidado estético por paciente.',
-      route: 'banios',
-      accent: 'teal'
-    },
-    {
-      title: 'Recordatorios',
-      description: 'Crea avisos para vacunas, citas de seguimiento y tareas pendientes del equipo.',
-      route: 'recordatorios',
-      accent: 'blue'
-    },
-    {
-      title: 'Usuarios',
-      description: 'Administra accesos del personal, perfiles y permisos del sistema.',
-      route: 'usuarios',
-      accent: 'purple'
-    }
-  ];
-
-  get visibleModules(): DashboardModule[] {
-    return this.showAllModules
-      ? this.allModules
-      : this.allModules.slice(0, this.primaryModuleCount);
-  }
 
   get serieMax(): number {
     if (!this.snap?.serieIngresos?.length) return 1;
@@ -261,10 +175,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   rangoLabel(): string {
     if (!this.snap) return '';
     return `Mostrando datos del ${formatLabelEs(this.snap.rango.desde)} al ${formatLabelEs(this.snap.rango.hasta)}`;
-  }
-
-  toggleModules(): void {
-    this.showAllModules = !this.showAllModules;
   }
 
   getSaludo(): string {
