@@ -16,7 +16,7 @@
 | `npm run functions:build` | OK | 2026-08-26 |
 | Sin tokens → skip | OK diseño | pushStatus skipped |
 | Angular build no Messaging | OK | MVP functions-only |
-| Deploy function | PEND | ciclo deploy |
+| Deploy function | **BLOCKED** | Firebase exige `RESEND_API_KEY` al analizar codebase (404). Hosting+database OK 2026-08-26. Redeploy `onRecordatorioWritePush` cuando Luis setee Resend. |
 
 ## Criterios
 
