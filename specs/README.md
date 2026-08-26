@@ -41,6 +41,7 @@ specs/
 ├── 023-push-fcm-recordatorios/          # **done** MVP CF push + FcmTokens
 ├── 024-cfdi-preparacion/                # **done** datos fiscales; sin PAC
 ├── 025-metricas-servicios-dashboard/    # KPIs por módulo + dashboard dueño `/admin/inicio`
+├── 026-proveedores-menu-visibilidad/    # Proveedores en sidenav + enlace desde producto
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

@@ -4,7 +4,7 @@
     <app-admin-stat-card accent="teal" [value]="kpiTotal" label="Total proveedores" hint="En catálogo"></app-admin-stat-card>
     <app-admin-stat-card accent="green" [value]="kpiActivos" label="Activos" hint="Disponibles"></app-admin-stat-card>
     <app-admin-stat-card accent="orange" [value]="kpiSinEmail" label="Sin email" hint="Falta contacto"></app-admin-stat-card>
-    <app-admin-stat-card accent="purple" [value]="kpiInactivos" label="Inactivos" hint="Baja lógica"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" [value]="kpiEntregaRapida" label="Entrega ≤7 días" hint="Plazo corto"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner
@@ -75,15 +75,16 @@
         <ng-container matColumnDef="productos_suministrados">
           <th mat-header-cell *matHeaderCellDef>Productos</th>
           <td mat-cell *matCellDef="let proveedor">
-            <mat-chip-listbox>
-              <mat-chip-option *ngFor="let producto of proveedor.productos_suministra.slice(0, 2)">
+            <mat-chip-listbox *ngIf="(proveedor.productos_suministra || []).length; else sinProductos">
+              <mat-chip-option *ngFor="let producto of (proveedor.productos_suministra || []).slice(0, 2)">
                 {{ producto }}
               </mat-chip-option>
-              <mat-chip-option *ngIf="proveedor.productos_suministra.length > 2"
-                               [matTooltip]="proveedor.productos_suministra.join(', ')">
-                +{{ proveedor.productos_suministra.length - 2 }}
+              <mat-chip-option *ngIf="(proveedor.productos_suministra || []).length > 2"
+                               [matTooltip]="(proveedor.productos_suministra || []).join(', ')">
+                +{{ (proveedor.productos_suministra || []).length - 2 }}
               </mat-chip-option>
             </mat-chip-listbox>
+            <ng-template #sinProductos><span class="cell-sub">—</span></ng-template>
           </td>
         </ng-container>
 

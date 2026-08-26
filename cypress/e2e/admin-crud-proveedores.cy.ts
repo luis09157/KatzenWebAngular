@@ -35,6 +35,10 @@ describe('Admin CRUD — Proveedores', () => {
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.contains('Proveedores', { matchCase: false });
 
+    // Menú lateral: entrada visible (spec 026)
+    cy.get('.admin-sidenav').contains('Proveedores').should('be.visible');
+    cy.get('.admin-sidenav a[href*="/admin/inventario/proveedores"]').should('exist');
+
     cy.contains('button', /Nuevo proveedor/i).click();
     cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
     fillProveedorRequired({ razon, comercial, email });

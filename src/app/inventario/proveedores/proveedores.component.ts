@@ -52,8 +52,9 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.proveedores.filter((p) => p.activo !== false && !p.contacto_email).length;
   }
 
-  get kpiInactivos(): number {
-    return this.proveedores.filter((p) => p.activo === false).length;
+  /** Proveedores con entrega prometida en ≤ 7 días. */
+  get kpiEntregaRapida(): number {
+    return this.proveedores.filter((p) => (p.dias_entrega ?? 99) <= 7).length;
   }
   menuContext: Proveedor | null = null;
 

@@ -1,3 +1,14 @@
+/** Entrada secundaria bajo Inventario (Proveedores, etc.). */
+.admin-nav-subitem {
+  padding-left: 8px !important;
+  opacity: 0.95;
+}
+
+.admin-nav-subitem .mdc-list-item__start,
+.admin-nav-subitem mat-icon[matListItemIcon] {
+  margin-left: 12px;
+}
+
 .sucursal-select {
   width: 180px;
   margin-right: 12px;
