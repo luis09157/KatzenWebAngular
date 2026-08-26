@@ -63,6 +63,7 @@ Sin este checklist, la entrega **no está cerrada**.
 |-----------|-------------------|
 | Textos extremadamente largos | Notas, diagnósticos, observaciones (500+ caracteres) |
 | Diseño responsivo | No rompe layout, tablas ni modales; scroll interno si aplica |
+| Filtros / búsqueda en panel | `.panel-search` alineado con padding de la tabla; sin overflow ni desfase a la izquierda del card |
 | Shells auth/portal/landing | Card/contenido **centrado y equilibrado** en desktop; full-width + padding en móvil; sin layout aplastado a un lado con hueco vacío |
 | Truncamiento | Si hay límite de caracteres, se muestra contador o error antes de guardar |
 | Chips/badges de estado | Pills (`.estado-badge`, etc.) se ven **completos** — sin borde derecho cortado por columna estrecha u `overflow:hidden` |
@@ -109,6 +110,7 @@ Sin este checklist, la entrega **no está cerrada**.
 | Nombres de persona en tablas | En pantallas anchas se ven **completos** (veterinario, cliente, doctor, dueño); sin ellipsis si hay espacio. Medianas: wrap ≤2 líneas; estrecho: wrap + `.table-scroll` |
 | Celdas multi-línea (fecha+hora, paciente+dueño) | Gap vertical **visible** (≈4–8px); no líneas pegadas por wrap sin aire |
 | Layout admin desktop (≥1200px) | Contenido aprovecha ancho de `.admin-content`; columnas de texto flexibles; sin huecos raros (p. ej. entre veterinario y acciones) mientras el texto se ve comprimido |
+| Filtros / búsqueda en `admin-data-panel` | Campo con `.panel-search` (o `.buscador.panel-search`); margen lateral alineado con el contenido de la tabla; **sin** overflow ni desfase visual a la izquierda del card |
 | Shells auth / portal / landing | Coherente con design system; card centrada (V+H) en desktop; responsiva en móvil; **no** pegada a un borde con vacío grande |
 | Diálogos picker / compactos | Usan `admin-dialog-shell--picker` (espaciado `--picker`); no CRUD grandes |
 | Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`) |

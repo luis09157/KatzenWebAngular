@@ -25,10 +25,10 @@
     </app-admin-page-banner>
 
     <app-admin-data-panel accent="teal" title="Estancias" description="Lista operativa de pensión" [showLegend]="false">
-      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+      <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
         <mat-label>Buscar</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
         <input matInput (keyup)="applyFilter($event)" placeholder="Paciente, cliente…" />
-        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
       <div class="table-scroll">

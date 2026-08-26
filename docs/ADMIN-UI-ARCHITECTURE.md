@@ -14,6 +14,7 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 8. **Multi-line table cells need visible vertical gap:** Celdas apiladas (fecha+hora en `.fecha-compact`, paciente+dueño en `.cell-primary`) deben tener **gap vertical visible** (≈4–8px). No apilar líneas pegadas por wrap accidental sin espaciado.
 9. **Admin layout must use available desktop width:** En viewports anchos (≥1200px) el contenido admin debe aprovechar el ancho de `.admin-content` (sin un segundo `max-width` más agresivo en `.admin-page`). Columnas de texto flexibles absorben el espacio; no dejar texto comprimido mientras sobra hueco vacío entre columnas (p. ej. entre veterinario y acciones).
 10. **Auth / portal / landing shells must stay centered and balanced:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, **centrada y equilibrada en desktop**, y **responsiva** en móvil. Prohibido layouts aplastados a un lado con huecos vacíos grandes. Páginas de auth reutilizan el shell existente (`.admin-auth-page` / `.admin-auth-card` o `.portal-login-wrap` / `.portal-login-card`) — incluir esos CSS en el componente (no solo copiar nombres de clase: la encapsulación de Angular no hereda estilos de otro componente).
+11. **Panel search / filtros must align with table content:** Dentro de `app-admin-data-panel`, el campo de búsqueda/filtro debe usar `.panel-search` (o `.buscador.panel-search`) para heredar el margen lateral canónico (`8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`). Debe alinearse visualmente con el padding del contenido de la tabla; **sin overflow** ni desfase a la izquierda del card. No usar clases locales (p. ej. `.filter-field`) que anulen ese alineamiento.
 
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
@@ -137,6 +138,28 @@ Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). A
 
 - Gap vertical visible (`.fecha-compact` / `.cell-primary` usan `gap` ≈6px). Canonical: `admin-data-panel.scss`, `admin-table.scss`.
 - Preferir stack explícito (fecha + `<small>`) antes que un solo string que wrappea sin aire.
+
+### Panel search / filtros dentro de `app-admin-data-panel` (correct)
+
+```html
+<app-admin-data-panel accent="teal" title="Estancias" description="…">
+  <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
+    <mat-label>Buscar</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput (keyup)="applyFilter($event)" placeholder="…" />
+  </mat-form-field>
+
+  <div class="table-scroll">
+    <table mat-table … class="admin-table">…</table>
+  </div>
+</app-admin-data-panel>
+```
+
+- **Obligatorio:** clase `.panel-search` (o `.buscador.panel-search`) en el `mat-form-field` de búsqueda/filtro dentro del panel.
+- Estilos canónicos en `admin-table.scss` / `admin-crud.scss`: `margin: 8px 28px 22px`, `width: calc(100% - 56px)`, `max-width: 420px` — alinea el campo con el padding del contenido de la tabla (sin overflow ni desfase a la izquierda).
+- **Prohibido:** márgenes locales tipo `.filter-field { margin-bottom: … }` sin el margen lateral de `.panel-search` (deja el buscador pegado al borde del card).
+- Responsive: el `width: calc(100% - 56px)` + `max-width: 420px` se adapta; no forzar anchos fijos que desborden en móvil.
+- Referencia: Clientes, Citas, Finanzas, Inventario.
 
 ### Layout ancho (desktop)
 
