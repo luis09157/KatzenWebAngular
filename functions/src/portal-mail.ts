@@ -33,18 +33,25 @@ export interface PortalWelcomeMailOptions {
   selfRegistered?: boolean;
 }
 
+/**
+ * Remitente por defecto (modo prueba Resend, sin dominio propio).
+ * Solo entrega al email de la cuenta Resend; producción a clientes = dominio verificado.
+ */
+export const DEFAULT_PORTAL_FROM_EMAIL = 'KatzenVet <onboarding@resend.dev>';
+
 /** Envía correo vía Resend si RESEND_API_KEY está configurada. */
 export async function sendPortalWelcomeEmail(
   input: PortalWelcomeMailInput,
   options: PortalWelcomeMailOptions = {}
 ): Promise<PortalWelcomeMailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.PORTAL_FROM_EMAIL || 'Katzen Vet <onboarding@resend.dev>';
+  const from = (process.env.PORTAL_FROM_EMAIL || '').trim() || DEFAULT_PORTAL_FROM_EMAIL;
 
   if (!apiKey) {
     return {
       sent: false,
-      reason: 'RESEND_API_KEY no configurada; la cuenta se creó pero el correo no se envió automáticamente.'
+      reason:
+        'RESEND_API_KEY no configurada (modo prueba pendiente). La cuenta se creó pero el correo no se envió. Ver specs/QA-CRUD-MATRIX.md.'
     };
   }
 

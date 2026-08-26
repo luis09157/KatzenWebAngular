@@ -139,11 +139,18 @@ Katzen/PortalRegistroRate/{key}
 ```bash
 npm run build
 npm run functions:build
-firebase deploy --only functions:registerPortalOwner,functions:provisionPortalClient
+firebase deploy --only functions:registerPortalOwner,functions:provisionPortalClient,functions:resendPortalClientAccess
 firebase deploy --only database   # si rules PortalRegistroRate
 firebase deploy --only hosting    # UI landing + admin
-# Operativo: firebase functions:secrets:set RESEND_API_KEY  (o env)
 ```
+
+### Correo Resend (operativo)
+
+1. Sin dominio propio: FROM default `KatzenVet <onboarding@resend.dev>` → **solo** email de la cuenta Resend.
+2. `firebase functions:secrets:set RESEND_API_KEY` (Luis pega la key; no inventar).
+3. Redeploy de las tres functions de arriba (código ya usa `defineSecret`).
+4. Dominio futuro: verificar DNS en Resend → `PORTAL_FROM_EMAIL` → redeploy.
+5. Detalle: `specs/QA-CRUD-MATRIX.md`.
 
 ---
 

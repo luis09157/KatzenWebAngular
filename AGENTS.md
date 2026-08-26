@@ -10,10 +10,17 @@ Proyecto privado de clínica veterinaria: **landing**, **panel admin** (`/admin`
 | Backend | Firebase Auth, Realtime Database (`Katzen/*`), Cloud Functions v2 (`us-central1`) |
 | Hosting | Firebase Hosting → `dist/katzenvet` |
 | E2E | Cypress 13 |
-| Correo portal | Resend (`RESEND_API_KEY`, `PORTAL_FROM_EMAIL`) |
+| Correo portal | Resend (`RESEND_API_KEY`; FROM default `KatzenVet <onboarding@resend.dev>`) |
 
 Proyecto Firebase: **katzen-a0e3e** · Producción: https://katzen-a0e3e.web.app
 
+### Correo Resend (sin dominio propio)
+
+- Hosting `*.web.app` **no** sirve como dominio de envío.
+- Sin dominio: modo prueba → solo llega al **email de la cuenta Resend**.
+- Luis: crear API key → `firebase functions:secrets:set RESEND_API_KEY` → redeploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`.
+- Con dominio verificado: DNS + opcional `PORTAL_FROM_EMAIL` + redeploy. Pasos: `specs/QA-CRUD-MATRIX.md`.
+- **No inventar** API key ni marcar PASS de correo a clientes sin dominio.
 ## Comandos esenciales
 
 ```bash

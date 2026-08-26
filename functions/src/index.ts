@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onValueWritten } from 'firebase-functions/v2/database';
 import { setGlobalOptions } from 'firebase-functions/v2';
+import { defineSecret } from 'firebase-functions/params';
 import {
   generateSecurePassword,
   isPortalMailConfigured,
@@ -11,6 +12,12 @@ import * as crypto from 'crypto';
 
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
+
+/** Secret Resend — debe existir en Secret Manager antes del deploy con `secrets: [...]`. */
+const resendApiKey = defineSecret('RESEND_API_KEY');
+
+/** Opciones comunes para callables que envían correo portal. */
+const portalMailSecrets = { secrets: [resendApiKey] };
 
 const db = admin.database();
 
@@ -515,7 +522,7 @@ async function assertClienteProvisionable(
 }
 
 /** Callable (staff): crea acceso portal para un cliente existente. */
-export const provisionPortalClient = onCall(async (request) => {
+export const provisionPortalClient = onCall(portalMailSecrets, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -606,7 +613,7 @@ export const provisionPortalClient = onCall(async (request) => {
       emailSent: mail.sent,
       message: mail.sent
         ? 'Portal activado. El cliente recibirá un correo con su contraseña temporal.'
-        : `Portal activado, pero el correo no se envió. Falta configurar RESEND_API_KEY en Firebase (Secret Manager). La cuenta sí quedó creada; puedes reenviar acceso cuando el secret esté listo.`
+        : `Portal activado, pero el correo no se envió. Falta RESEND_API_KEY (modo prueba Resend) o el envío falló. Sin dominio propio solo llega al email de la cuenta Resend. La cuenta sí quedó creada; reenvía cuando el secret esté listo (specs/QA-CRUD-MATRIX.md).`
     };
   } catch (err: unknown) {
     if (createdNewAuth && uid) {
@@ -717,7 +724,7 @@ export const deactivatePortalClient = onCall(async (request) => {
 });
 
 /** Callable (solo admin): nueva contraseña temporal + correo. */
-export const resendPortalClientAccess = onCall(async (request) => {
+export const resendPortalClientAccess = onCall(portalMailSecrets, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -789,7 +796,7 @@ export const resendPortalClientAccess = onCall(async (request) => {
       emailSent: mail.sent,
       message: mail.sent
         ? 'Se envió un nuevo correo con contraseña temporal.'
-        : `Contraseña actualizada en Auth, pero el correo no salió. Configura el secret RESEND_API_KEY (y opcional PORTAL_FROM_EMAIL) y vuelve a reenviar.`
+        : `Contraseña actualizada en Auth, pero el correo no salió. Configura RESEND_API_KEY (modo prueba: solo al email de tu cuenta Resend; con dominio, cambia PORTAL_FROM_EMAIL) y vuelve a reenviar. Ver specs/QA-CRUD-MATRIX.md.`
     };
   } catch (err: unknown) {
     if (err instanceof HttpsError) throw err;
@@ -876,7 +883,9 @@ async function assertRegisterRateLimit(ip: string, email: string): Promise<void>
  * Crea Cliente + Auth + AuthPerfiles y envía correo (exige RESEND_API_KEY).
  * No retorna password.
  */
-export const registerPortalOwner = onCall({ invoker: 'public', cors: true }, async (request) => {
+export const registerPortalOwner = onCall(
+  { invoker: 'public', cors: true, ...portalMailSecrets },
+  async (request) => {
   if (request.auth?.uid) {
     // Evitar que staff cree “self-reg” accidental; usar alta admin.
     const tokenRole = String(request.auth.token?.role || '').toLowerCase();
@@ -891,7 +900,7 @@ export const registerPortalOwner = onCall({ invoker: 'public', cors: true }, asy
   if (!isPortalMailConfigured()) {
     throw new HttpsError(
       'failed-precondition',
-      'El registro en línea no está disponible: falta configurar el envío de correo (RESEND_API_KEY). Contacta a la clínica.'
+      'El registro en línea no está disponible: falta configurar el envío de correo (RESEND_API_KEY / modo prueba Resend). Contacta a la clínica.'
     );
   }
 

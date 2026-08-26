@@ -426,9 +426,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
                       ? (provision.message ||
                         'Portal activado. El dueño recibirá un correo con su contraseña temporal.')
                       : (provision.message ||
-                        'Cliente guardado y portal activado, pero el correo no se envió. Configura RESEND_API_KEY o reenvía el acceso desde Usuarios.'),
+                        'Cliente y portal listos, pero el correo no se envió. Falta configurar Resend (modo prueba) o el envío falló. Reenvía desde Usuarios cuando haya RESEND_API_KEY.'),
                     icon: mailOk ? 'success' : 'warning',
-                    confirmButtonText: 'Entendido'
+                    confirmButtonText: 'Entendido',
+                    footer: mailOk
+                      ? undefined
+                      : 'Sin dominio propio Resend solo entrega al email de tu cuenta Resend. Clientes reales = dominio verificado (QA-CRUD-MATRIX).'
                   });
                 }, 0);
               } catch (provErr) {

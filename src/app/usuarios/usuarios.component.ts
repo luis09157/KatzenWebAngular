@@ -377,7 +377,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
             text: res.message || 'Cuenta creada correctamente.',
             footer: res.emailSent
               ? undefined
-              : 'Pendiente: secret RESEND_API_KEY en Firebase (ver specs/QA-CRUD-MATRIX.md).'
+              : 'Modo prueba / Resend no configurado: solo envía al email de la cuenta Resend tras pegar RESEND_API_KEY (ver specs/QA-CRUD-MATRIX.md). Correo a clientes reales requiere dominio verificado.'
           });
           this.cargarPortalClientes();
         })
@@ -436,8 +436,11 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
           this.loadingService.hide();
           Swal.fire({
             icon: res.emailSent ? 'success' : 'warning',
-            title: 'Acceso reenviado',
-            text: res.message || 'Operación completada.'
+            title: res.emailSent ? 'Acceso reenviado' : 'Contraseña actualizada (sin correo)',
+            text: res.message || 'Operación completada.',
+            footer: res.emailSent
+              ? undefined
+              : 'Configura Resend (modo prueba: solo tu email de cuenta Resend) o verifica dominio para clientes. Ver specs/QA-CRUD-MATRIX.md.'
           });
         })
         .catch(error => {
