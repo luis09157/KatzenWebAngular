@@ -16,7 +16,7 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 | `npm run functions:build` | **PASS** |
 | `npm run cy:admin` (11 specs) | **45/46** luego fix alertas; modules **15/15**; finanzas re-run tras fix buscador |
 | Features 015–020 | Implementadas en repo (ver abajo) |
-| Resend `RESEND_API_KEY` | **PENDIENTE LUIS** — secret 404; no inventar key; no PASS correo |
+| Resend `RESEND_API_KEY` | **DIFERIDO** (decisión Luis 2026-08-26) — al final del backlog; secret 404; no inventar key; no PASS correo |
 | localhost `:4200` | **VIVO** (`ng serve`) |
 
 ---
@@ -47,6 +47,8 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 ---
 
 ## Resend — correo portal (sin dominio propio)
+
+> **Correos diferidos por decisión Luis (2026-08-26):** no priorizar setup Resend ni marcar PASS de entrega hasta el **final** de lo que se construya. Seguir implementando features sin depender de correo real. Ver `specs/ROADMAP.md` → «Al final — Resend».
 
 ### Límites honestos
 
@@ -102,4 +104,4 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 
 - [x] hosting (UI) → https://katzen-a0e3e.web.app  
 - [x] database (rules Mascota `cliente_id` + `Historiales_Notas_Internas`)  
-- [ ] functions:`unlinkStaffPortalCliente` — **BLOQUEADO** hasta `firebase functions:secrets:set RESEND_API_KEY` (Firebase exige el secret al analizar el codebase). UI desvincular tiene **fallback RTDB** operativo.  
+- [ ] functions:`unlinkStaffPortalCliente` — **DIFERIDO** con Resend (Firebase exige el secret al analizar el codebase). UI desvincular tiene **fallback RTDB** operativo.  

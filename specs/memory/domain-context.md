@@ -608,7 +608,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 
 | Feature | Origen | Notas |
 |---------|--------|-------|
-| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado |
+| **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
+| **Módulo finanzas / caja** | #19, #20 | Balances mensuales; ingresos baños + medicina; medios de pago; IVA declarado/no declarado — MVP+CSV **018** hecho |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |

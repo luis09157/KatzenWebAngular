@@ -16,9 +16,10 @@ Proyecto Firebase: **katzen-a0e3e** · Producción: https://katzen-a0e3e.web.app
 
 ### Correo Resend (sin dominio propio)
 
+- **Diferido por decisión Luis (2026-08-26):** configurar `RESEND_API_KEY` + dominio + deploy functions portal **al final** del backlog (no bloquear features). Ver `specs/ROADMAP.md`.
 - Hosting `*.web.app` **no** sirve como dominio de envío.
 - Sin dominio: modo prueba → solo llega al **email de la cuenta Resend**.
-- Luis: crear API key → `firebase functions:secrets:set RESEND_API_KEY` → redeploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`.
+- Cuando toque: crear API key → `firebase functions:secrets:set RESEND_API_KEY` → redeploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`.
 - Con dominio verificado: DNS + opcional `PORTAL_FROM_EMAIL` + redeploy. Pasos: `specs/QA-CRUD-MATRIX.md`.
 - **No inventar** API key ni marcar PASS de correo a clientes sin dominio.
 ## Comandos esenciales

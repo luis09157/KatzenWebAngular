@@ -109,6 +109,20 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 ---
 
+## Al final — Resend / correos portal (diferido)
+
+**Decisión Luis (2026-08-26):** configurar correo **después** de cerrar el resto del backlog de producto. No bloquear features ni deploys de UI por Resend.
+
+| Paso final | Acción |
+|------------|--------|
+| 1 | `firebase functions:secrets:set RESEND_API_KEY` (+ dominio verificado / `PORTAL_FROM_EMAIL` si aplica) |
+| 2 | Deploy functions portal: `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` (+ `unlinkStaffPortalCliente` si sigue pendiente por el secret) |
+| 3 | Smoke entrega real (modo prueba → email cuenta Resend; luego clientes con dominio) |
+
+Detalle operativo: `specs/QA-CRUD-MATRIX.md` · `AGENTS.md`.
+
+---
+
 ## Cómo pedir un módulo nuevo (para ti)
 
 Mensaje tipo:
