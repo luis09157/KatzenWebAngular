@@ -51,10 +51,35 @@
         <mat-icon matListItemIcon>inventory_2</mat-icon>
         <span matListItemTitle>Inventario</span>
       </a>
+      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/productos" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>category</mat-icon>
+        <span matListItemTitle>Productos</span>
+      </a>
+      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/movimientos" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>swap_horiz</mat-icon>
+        <span matListItemTitle>Movimientos</span>
+      </a>
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/proveedores" routerLinkActive="active"
          class="admin-nav-subitem" (click)="closeSidenav()">
         <mat-icon matListItemIcon>local_shipping</mat-icon>
         <span matListItemTitle>Proveedores</span>
+      </a>
+      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/ordenes" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>receipt_long</mat-icon>
+        <span matListItemTitle>Órdenes de compra</span>
+      </a>
+      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/alertas" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>notification_important</mat-icon>
+        <span matListItemTitle>Alertas</span>
+      </a>
+      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/reportes" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>assessment</mat-icon>
+        <span matListItemTitle>Reportes</span>
       </a>
       <a *ngIf="canShow('finanzas')" mat-list-item routerLink="/admin/finanzas" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>account_balance_wallet</mat-icon>

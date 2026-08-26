@@ -17,6 +17,7 @@ describe('Admin modules authenticated', () => {
     { path: '/admin/inventario/ordenes', container: '.admin-page', title: 'Órdenes de compra' },
     { path: '/admin/inventario/movimientos', container: '.admin-page', title: 'Historial de movimientos' },
     { path: '/admin/inventario/alertas', container: '.alertas-contenedor', title: 'Alertas de inventario' },
+    { path: '/admin/inventario/reportes', container: '.reportes-container', title: 'Reportes e Informes' },
     { path: '/admin/finanzas', container: '.finanzas-contenedor', title: 'Caja / finanzas' },
     { path: '/admin/pension', container: '.pension-contenedor', title: 'Pensión / alojamiento' }
   ];

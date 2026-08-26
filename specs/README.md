@@ -42,6 +42,7 @@ specs/
 ├── 024-cfdi-preparacion/                # **done** datos fiscales; sin PAC
 ├── 025-metricas-servicios-dashboard/    # KPIs por módulo + dashboard dueño `/admin/inicio`
 ├── 026-proveedores-menu-visibilidad/    # Proveedores en sidenav + enlace desde producto
+├── 027-menu-visibilidad-modulos/        # Sub-ítems inventario en sidenav (026 follow-up)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

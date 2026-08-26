@@ -189,7 +189,7 @@ export class ExpedientePacienteComponent implements OnInit, OnDestroy {
         break;
       case 'nuevo-paciente':
         console.log('Crear nuevo paciente');
-        this.router.navigate(['/admin/pacientes']);
+        this.router.navigate(['/admin/paciente']);
         break;
       case 'carrito':
         console.log('Abrir carrito de compras');
@@ -215,7 +215,7 @@ export class ExpedientePacienteComponent implements OnInit, OnDestroy {
   // Funciones de pacientes
   verPaciente(paciente: any) {
     console.log('Ver paciente:', paciente);
-    this.router.navigate(['/admin/pacientes']);
+    this.router.navigate(['/admin/paciente']);
   }
 
   // Cargar datos
