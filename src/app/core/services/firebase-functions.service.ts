@@ -57,6 +57,22 @@ export interface PortalClientActionInput {
   clienteId: string;
 }
 
+export interface RegisterPortalOwnerInput {
+  nombre: string;
+  apellidoPaterno?: string;
+  correo: string;
+  telefono?: string;
+  acceptPrivacy: boolean;
+}
+
+export interface RegisterPortalOwnerResult {
+  success?: boolean;
+  message?: string;
+  emailSent?: boolean;
+  clienteId?: string;
+  email?: string;
+}
+
 export interface LinkStaffPortalInput {
   staffUid: string;
   clienteId: string;
@@ -109,6 +125,14 @@ export class FirebaseFunctionsService {
   async provisionPortalClient(clienteId: string): Promise<PortalClientActionResult> {
     const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('provisionPortalClient');
     return firstValueFrom(callable({ clienteId }));
+  }
+
+  /** Self-registro dueño desde landing (callable pública). */
+  async registerPortalOwner(input: RegisterPortalOwnerInput): Promise<RegisterPortalOwnerResult> {
+    const callable = this.fns.httpsCallable<RegisterPortalOwnerInput, RegisterPortalOwnerResult>(
+      'registerPortalOwner'
+    );
+    return firstValueFrom(callable(input));
   }
 
   async deactivatePortalClient(clienteId: string): Promise<PortalClientActionResult> {

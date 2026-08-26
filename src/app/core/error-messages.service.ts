@@ -32,6 +32,7 @@ export class ErrorMessagesService {
     'already-exists': 'El registro ya existe.',
     'failed-precondition': 'No se cumplen las condiciones para esta operación.',
     'invalid-argument': 'Los datos enviados no son válidos.',
+    'resource-exhausted': 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
     'internal': 'Error interno del servidor. Intenta de nuevo.'
   };
 
@@ -40,6 +41,7 @@ export class ErrorMessagesService {
       'La función del servidor no está disponible. Las Cloud Functions del portal aún no están desplegadas.',
     'functions/unavailable': 'El servidor no respondió. Revisa tu conexión e intenta de nuevo.',
     'functions/deadline-exceeded': 'La operación tardó demasiado. Intenta de nuevo.',
+    'functions/resource-exhausted': 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
     'functions/internal': 'Error interno del servidor al procesar la solicitud.'
   };
 
@@ -102,6 +104,7 @@ export class ErrorMessagesService {
     'desactivar portal cliente': 'No se pudo desactivar el acceso al portal.',
     'reenviar acceso portal': 'No se pudo reenviar el acceso al portal.',
     'vincular portal dual': 'No se pudo vincular el portal dual al personal staff.',
+    'registro portal dueño': 'No se pudo completar el registro en el portal.',
     'cambiar contraseña portal': 'No se pudo cambiar la contraseña.'
   };
 

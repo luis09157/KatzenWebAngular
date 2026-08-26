@@ -401,10 +401,10 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         this.saving = true;
-        this.loadingService.show();
+        this.loadingService.show(LOADING_MESSAGES.saving);
+        const esNuevo = !cliente || !cliente.id;
         this.clientesService.guardarCliente(result)
-          .then((id) => {
-            this.loadingService.hide();
+          .then(async (id) => {
             const saved = { ...result, id };
             this.todosLosClientes = [
               saved,
@@ -412,6 +412,43 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
             ];
             this.aplicarFiltroSucursal();
             this.cargarEstadisticas();
+
+            const emailValido = this.esCorreoPortalValido(result.correo);
+            if (esNuevo && emailValido) {
+              try {
+                const provision = await this.firebaseFunctions.provisionPortalClient(id);
+                this.loadingService.hide();
+                setTimeout(() => {
+                  const mailOk = provision.emailSent === true;
+                  Swal.fire({
+                    title: mailOk ? 'Cliente y portal listos' : 'Cliente guardado',
+                    text: mailOk
+                      ? (provision.message ||
+                        'Portal activado. El dueño recibirá un correo con su contraseña temporal.')
+                      : (provision.message ||
+                        'Cliente guardado y portal activado, pero el correo no se envió. Configura RESEND_API_KEY o reenvía el acceso desde Usuarios.'),
+                    icon: mailOk ? 'success' : 'warning',
+                    confirmButtonText: 'Entendido'
+                  });
+                }, 0);
+              } catch (provErr) {
+                this.loadingService.hide();
+                const msg = this.errorMessages.getUserMessage(provErr, 'activar portal cliente');
+                setTimeout(() => {
+                  Swal.fire({
+                    title: 'Cliente guardado',
+                    text:
+                      `El cliente se guardó, pero no se activó el portal: ${msg}. ` +
+                      'Puedes activarlo después desde Usuarios → Pendientes.',
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido'
+                  });
+                }, 0);
+              }
+              return;
+            }
+
+            this.loadingService.hide();
             setTimeout(() => {
               Swal.fire({
                 title: '¡Éxito!',
@@ -434,8 +471,8 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
                 showCancelButton: true,
                 cancelButtonText: 'Ver detalles',
                 cancelButtonColor: '#3085d6'
-              }).then((result) => {
-                if (result.dismiss === Swal.DismissReason.cancel) {
+              }).then((swalResult) => {
+                if (swalResult.dismiss === Swal.DismissReason.cancel) {
                   Swal.fire({
                     title: 'Detalles técnicos',
                     html: `
@@ -455,6 +492,22 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           .finally(() => { this.saving = false; });
       }
     });
+  }
+
+  private esCorreoPortalValido(correo: unknown): boolean {
+    const email = String(correo || '').trim();
+    if (!email) return false;
+    const lower = email.toLowerCase();
+    if (
+      lower.includes('no proporcionado') ||
+      lower.includes('sin email') ||
+      lower.includes('sin correo') ||
+      lower === 'n/a' ||
+      lower === 'n/p'
+    ) {
+      return false;
+    }
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
   editarCliente(cliente: any) {

@@ -5,6 +5,8 @@ import { AnalyticsService } from '../shared/services/analytics.service';
 import { PortalAuthService } from '../portal/services/portal-auth.service';
 import { AppCheckService } from '../core/app-check.service';
 import { ContactoWebService } from './services/contacto-web.service';
+import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -56,9 +58,12 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   citasDisponibles = 3;
 
   showPortalLoginModal = false;
+  showPortalRegisterModal = false;
   
   // Formulario de contacto
   contactForm: FormGroup;
+  registerForm: FormGroup;
+  isRegistering = false;
   
   // Equipo Médico
   equipoMedico = [
@@ -459,6 +464,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     private portalAuth: PortalAuthService,
     private contactoWeb: ContactoWebService,
     private appCheck: AppCheckService,
+    private firebaseFunctions: FirebaseFunctionsService,
+    private errorMessages: ErrorMessagesService,
     private el: ElementRef<HTMLElement>
   ) {
     this.contactForm = this.fb.group({
@@ -467,6 +474,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       telefono: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
       mascota: ['', [Validators.required, Validators.maxLength(80)]],
       mensaje: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
+    });
+    this.registerForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+      apellidoPaterno: ['', [Validators.maxLength(60)]],
+      correo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+      telefono: ['', [Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
+      acceptPrivacy: [false, [Validators.requiredTrue]]
     });
   }
 
@@ -727,7 +741,107 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closePortalLogin(): void {
     this.showPortalLoginModal = false;
-    document.body.style.overflow = '';
+    if (!this.showPortalRegisterModal) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  openPortalRegister(): void {
+    this.showPortalLoginModal = false;
+    this.showPortalRegisterModal = true;
+    document.body.style.overflow = 'hidden';
+    this.analytics.trackEvent('portal_register_open', {
+      event_category: 'portal',
+      event_label: 'landing'
+    });
+  }
+
+  closePortalRegister(): void {
+    this.showPortalRegisterModal = false;
+    if (!this.showPortalLoginModal) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  async onSubmitRegister(): Promise<void> {
+    if (this.isRegistering) {
+      return;
+    }
+    if (!this.registerForm.valid) {
+      Object.keys(this.registerForm.controls).forEach(key => {
+        this.registerForm.get(key)?.markAsTouched();
+      });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Revisa el formulario',
+        text: 'Completa los campos obligatorios y acepta el aviso de privacidad.',
+        confirmButtonColor: '#3b9a9c'
+      });
+      return;
+    }
+
+    this.appCheck.ensureInitialized();
+    this.isRegistering = true;
+    const raw = this.registerForm.getRawValue();
+    try {
+      const result = await this.firebaseFunctions.registerPortalOwner({
+        nombre: String(raw.nombre || '').trim(),
+        apellidoPaterno: String(raw.apellidoPaterno || '').trim() || undefined,
+        correo: String(raw.correo || '').trim(),
+        telefono: String(raw.telefono || '').trim() || undefined,
+        acceptPrivacy: raw.acceptPrivacy === true
+      });
+      this.registerForm.reset({ acceptPrivacy: false });
+      this.closePortalRegister();
+      Swal.fire({
+        icon: 'success',
+        title: '¡Registro listo!',
+        text:
+          result.message ||
+          'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.',
+        confirmButtonText: 'Ir al portal',
+        confirmButtonColor: '#3b9a9c'
+      }).then(res => {
+        if (res.isConfirmed) {
+          void this.openPortalLogin();
+        }
+      });
+    } catch (err) {
+      const msg = this.errorMessages.getUserMessage(err, 'registro portal dueño');
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo registrar',
+        text: msg,
+        confirmButtonColor: '#3b9a9c'
+      });
+    } finally {
+      this.isRegistering = false;
+    }
+  }
+
+  getRegisterError(controlName: string): string {
+    const control = this.registerForm.get(controlName);
+    if (!control?.touched) {
+      return '';
+    }
+    if (control.hasError('required') || control.hasError('requiredTrue')) {
+      return controlName === 'acceptPrivacy'
+        ? 'Debes aceptar el aviso de privacidad'
+        : 'Este campo es requerido';
+    }
+    if (control.hasError('email')) {
+      return 'Ingresa un email válido';
+    }
+    if (control.hasError('minlength')) {
+      return `Mínimo ${control.errors?.['minlength'].requiredLength} caracteres`;
+    }
+    if (control.hasError('pattern')) {
+      return 'Formato de teléfono inválido';
+    }
+    if (control.hasError('maxlength')) {
+      return `Máximo ${control.errors?.['maxlength'].requiredLength} caracteres`;
+    }
+    return '';
   }
 
   irAMiPortal(): void {

@@ -143,6 +143,10 @@
           <mat-icon>login</mat-icon>
           Acceder al portal
         </button>
+        <button type="button" class="btn-premium btn-premium-primary btn-premium-sm" (click)="openPortalRegister()">
+          <mat-icon>person_add</mat-icon>
+          Crear cuenta
+        </button>
         <a class="btn-premium-ghost" routerLink="/portal/login">Pantalla completa</a>
       </div>
     </div>
@@ -651,7 +655,66 @@
     </div>
     <mat-divider></mat-divider>
     <div class="portal-modal-footer">
+      <button mat-button type="button" (click)="openPortalRegister()">Crear cuenta de dueño</button>
       <a mat-button routerLink="/portal/login" (click)="closePortalLogin()">Abrir pantalla completa</a>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Modal registro portal -->
+<div class="portal-modal-backdrop modal-enter" *ngIf="showPortalRegisterModal" (click)="closePortalRegister()" role="presentation">
+  <mat-card appearance="elevated" class="portal-modal portal-modal--register modal-enter-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="portal-register-title" aria-modal="true">
+    <div class="portal-modal-header">
+      <div>
+        <h2 id="portal-register-title">Crear cuenta de dueño</h2>
+        <p>Te enviaremos una contraseña temporal a tu correo</p>
+      </div>
+      <button mat-icon-button (click)="closePortalRegister()" aria-label="Cerrar" [disabled]="isRegistering">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="portal-modal-body" [class.portal-modal-body--loading]="isRegistering">
+      <div class="auth-loading-state auth-loading-state--modal" *ngIf="isRegistering" aria-live="polite" aria-busy="true">
+        <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
+        <p class="auth-loading-state__title">Creando tu cuenta…</p>
+        <p class="auth-loading-state__hint">Enviando acceso por correo</p>
+      </div>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmitRegister()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" autocomplete="given-name" [disabled]="isRegistering">
+          <mat-error *ngIf="getRegisterError('nombre')">{{ getRegisterError('nombre') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Apellido (opcional)</mat-label>
+          <input matInput formControlName="apellidoPaterno" autocomplete="family-name" [disabled]="isRegistering">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo electrónico</mat-label>
+          <input matInput type="email" formControlName="correo" autocomplete="email" [disabled]="isRegistering">
+          <mat-error *ngIf="getRegisterError('correo')">{{ getRegisterError('correo') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Teléfono (opcional)</mat-label>
+          <input matInput type="tel" formControlName="telefono" autocomplete="tel" [disabled]="isRegistering">
+          <mat-error *ngIf="getRegisterError('telefono')">{{ getRegisterError('telefono') }}</mat-error>
+        </mat-form-field>
+        <mat-checkbox class="portal-modal-remember" formControlName="acceptPrivacy" [disabled]="isRegistering">
+          Acepto el
+          <a routerLink="/privacidad" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">aviso de privacidad</a>
+        </mat-checkbox>
+        <p class="portal-register-hint" *ngIf="registerForm.get('acceptPrivacy')?.touched && registerForm.get('acceptPrivacy')?.invalid">
+          Debes aceptar el aviso de privacidad
+        </p>
+        <button mat-flat-button color="primary" type="submit" class="full-width portal-modal-submit" [disabled]="isRegistering || registerForm.invalid">
+          Registrarme
+        </button>
+      </form>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="portal-modal-footer">
+      <button mat-button type="button" (click)="closePortalRegister(); openPortalLogin()">Ya tengo cuenta</button>
     </div>
   </mat-card>
 </div>

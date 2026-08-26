@@ -1763,6 +1763,26 @@
 .portal-modal-footer {
   padding: 12px 20px 20px;
   text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.portal-register-hint {
+  margin: -4px 0 12px;
+  font-size: 0.8125rem;
+  color: #b91c1c;
+}
+
+.portal-modal--register {
+  max-width: 440px;
+}
+
+.portal-modal-remember a {
+  color: var(--primary-teal, #3b9a9c);
+  text-decoration: underline;
 }
 
 /* ==========================================================================
