@@ -163,6 +163,8 @@ export interface OrdenCompra {
   total: number;
   forma_pago: FormaPagoProveedor;
   pagada: boolean;
+  /** Spec 022 Fase E — link opcional a egreso de caja al recibir OC. */
+  cajaMovimientoId?: string;
   usuario_solicita_id: string;
   usuario_solicita?: string;
   usuario_autoriza_id?: string;

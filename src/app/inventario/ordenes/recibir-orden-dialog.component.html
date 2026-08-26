@@ -74,6 +74,20 @@
       <mat-label>Observaciones</mat-label>
       <textarea matInput formControlName="observaciones" rows="2"></textarea>
     </mat-form-field>
+
+    <!-- Spec 022 Fase E — opt-in egreso proveedores -->
+    <div class="oc-egreso-optin" *ngIf="!yaTieneEgresoCaja">
+      <mat-checkbox formControlName="registrarEgresoCaja" color="primary">
+        Registrar egreso en caja (proveedores)
+      </mat-checkbox>
+      <p class="oc-egreso-hint" *ngIf="recibirForm.get('registrarEgresoCaja')?.value">
+        Monto sugerido: ${{ montoEgresoSugerido | number:'1.2-2' }}
+        (suma de lo que recibes ahora). Editable en el siguiente paso.
+      </p>
+    </div>
+    <p class="oc-egreso-hint" *ngIf="yaTieneEgresoCaja">
+      Esta orden ya tiene un egreso de caja vinculado.
+    </p>
   </form>
 </mat-dialog-content>
 

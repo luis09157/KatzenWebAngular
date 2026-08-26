@@ -63,9 +63,20 @@
 - [x] Sin módulo `/admin/gastos`
 - [x] SC-024…025
 
-### Fase E (opcional, fuera de este cierre)
+### Fase E — OC → egreso opt-in
 
-- [ ] E: OC → egreso opt-in
+- [x] Checkbox «Registrar egreso en caja» en recibir OC
+- [x] Prefill egreso `proveedores` + monto Σ recibido
+- [x] Campo aditivo `cajaMovimientoId` + `pagada` al vincular
+- [x] Prefill `tipo: egreso` en CajaMovimientoDialog
+- [x] Contratos + mitigación en plan.md
+
+### Pulido pensión (mismo hub 022)
+
+- [x] Check-in (reservada→activa) / check-out (activa→finalizada + fecha_salida_real)
+- [x] KPI ocupación = activas; chips estado con variantes CSS
+- [x] Días visibles; caja solo si no hay `cajaMovimientoId`
+- [x] Enlace caja existente preservado (+ opt-in comida)
 
 ---
 
@@ -82,6 +93,13 @@
 - [x] Design system: KPI grid, admin-dialog-shell, loading contextual, «Borrar»
 - [x] Tabla resultados rellenada **antes** de marcar `[x]`
 
+### Checklist Fase E + pulido pensión
+
+- [x] Guía QA recepción OC + opt-in egreso + check-in/out
+- [x] `npm run build` OK — exit 0 (2026-08-26 ciclo E+)
+- [x] Live preview `:4200` vivo
+- [x] Registrar resultados abajo
+
 ### Registro de resultados QA
 
 | Escenario | Resultado | Notas |
@@ -97,10 +115,14 @@
 | Opt-in comida al cobrar | OK | Confirm + salida |
 | Gráficas Rentabilidad + semana | OK | CSS bars, sin lib |
 | Egresos proveedores/gasolina | OK | CAJA_CATEGORIAS_EGRESO |
-| Build | OK | exit 0 |
+| Build | OK | exit 0 (ciclo E+) |
 | :4200 smoke | OK | ng serve vivo |
-| Cypress | OK | 45/45 (smoke, routes, modules, finanzas, baños, vacunas) |
-| Resend | N/A | diferido |
+| Cypress admin | OK | suite previa |
+| Resend | N/A | secret 404; diferido |
+| OC→egreso opt-in (E) | OK | checkbox + egreso proveedores |
+| Pensión check-in/out + ocupación | OK | chips + KPI ocupación |
+| functions:build (023) | OK | onRecordatorioWritePush |
+| cy:portal | OK | guest 3/3; auth skip sin env |
 
 ---
 

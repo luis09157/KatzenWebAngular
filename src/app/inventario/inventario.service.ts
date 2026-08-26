@@ -678,6 +678,18 @@ export class InventarioService {
     });
   }
 
+  /** Spec 022 Fase E — vincular egreso de caja a la OC (aditivo). */
+  async vincularOrdenACaja(ordenId: string, cajaMovimientoId: string, marcarPagada = true): Promise<void> {
+    const patch: Record<string, unknown> = {
+      cajaMovimientoId,
+      updated_at: new Date().toISOString()
+    };
+    if (marcarPagada) {
+      patch['pagada'] = true;
+    }
+    await this.db.object(`Katzen/Inventario/OrdenesCompra/${ordenId}`).update(patch);
+  }
+
   async eliminarProveedor(proveedorId: string): Promise<void> {
     await this.db.object(`Katzen/Inventario/Proveedores/${proveedorId}`).update({
       activo: false,

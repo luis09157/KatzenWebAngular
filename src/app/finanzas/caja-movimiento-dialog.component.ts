@@ -52,6 +52,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
+      tipo?: CajaTipoMovimiento;
       fechaDefault?: string;
       banioId?: string;
       concepto?: string;
@@ -65,7 +66,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
     }
   ) {
     this.form = this.fb.group({
-      tipo: ['ingreso' as CajaTipoMovimiento, Validators.required],
+      tipo: [(this.data?.tipo || 'ingreso') as CajaTipoMovimiento, Validators.required],
       concepto: ['', [Validators.required, Validators.minLength(3)]],
       monto: [null, [Validators.required, Validators.min(0.01)]],
       metodoPago: ['efectivo' as CajaMetodoPago, Validators.required],
@@ -107,6 +108,9 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
         }
       });
 
+    if (this.data?.tipo) {
+      this.form.patchValue({ tipo: this.data.tipo });
+    }
     if (this.data?.fechaDefault) {
       this.form.patchValue({ fecha: this.data.fechaDefault });
     }

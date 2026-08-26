@@ -40,6 +40,8 @@ Implementar el puente **Inventario (valuación) ↔ Banio (tamaño/costo) ↔ Ca
 | `Caja/Movimientos.movimientoInventarioIds?` | opcional A | no | |
 | `Pension/Estancias/{id}` | **nuevo B** | no | |
 | `Finanzas/DefaultsPensionPorTamano` | **nuevo B** | no | |
+| `Inventario/OrdenesCompra.cajaMovimientoId?` | opcional **E** | no | Link a egreso proveedores |
+| `Inventario/OrdenesCompra.pagada` | update **E** | no | true si se registra egreso |
 
 - [x] Sin eliminar ni renombrar nodos  
 - [x] Campos nuevos opcionales  
@@ -67,6 +69,7 @@ Mocks locales (`mock-data.ts`); Cypress smoke; **nunca** producción (`katzen-a0
 | Defaults mal | editar nodo o soft-ignore lectura |
 | Rules Pension (B) | revert `database.rules.json` |
 | Módulo pensión inestable | feature-flag ruta / quitar menú |
+| OC→egreso confunde / doble pago | quitar checkbox / ignorar `cajaMovimientoId`; hosting |
 
 ---
 
