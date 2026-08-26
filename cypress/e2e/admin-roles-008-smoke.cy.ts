@@ -1,27 +1,43 @@
 /**
- * Smoke UI multi-rol — Spec 008 (doctor / recepcionista / peluquero).
+ * Smoke UI multi-rol — Spec 008 + política 011 (acceso admin unificado).
  * Requiere credenciales en cypress.env.json (provision via scripts/smoke-008-provision-roles.mjs).
- * No persiste writes: diálogos se cancelan; módulos denegados → redirect /admin/inicio.
+ * No persiste writes: diálogos se cancelan.
  *
- * Escrituras RTDB DENIED se validan aparte con:
+ * Política 011: doctor / recepcionista / peluquero tienen los mismos módulos que
+ * administrador. Solo portal client queda restringido.
+ *
+ * Escrituras RTDB operativas ALLOW se validan con:
  *   node scripts/smoke-008-provision-roles.mjs rtdb-probe
  */
 describe('Admin roles 008 smoke', () => {
-  /**
-   * Módulo denegado no debe quedar accesible.
-   * Con login + «Mantener sesión activa»: hard visit puede pasar por race AuthGuard→login
-   * y luego restore a /admin/inicio; o StaffRoleGuard redirige a inicio. Ambos OK.
-   */
-  const denyRedirect = (path: string) => {
-    cy.visit(path);
-    cy.url({ timeout: 45000 }).should('include', '/admin/inicio');
-    cy.get('mat-sidenav', { timeout: 20000 }).should('exist');
-  };
-
   const expectNav = (path: string, visible: boolean) => {
     cy.get('mat-sidenav mat-nav-list a[routerLink="' + path + '"]').should(
       visible ? 'exist' : 'not.exist'
     );
+  };
+
+  /** Todos los módulos admin deben ser visibles para cualquier staff (política 011). */
+  const expectFullAdminNav = () => {
+    expectNav('/admin/inicio', true);
+    expectNav('/admin/citas', true);
+    expectNav('/admin/historiales', true);
+    expectNav('/admin/vacunas', true);
+    expectNav('/admin/inventario', true);
+    expectNav('/admin/clientes', true);
+    expectNav('/admin/banios', true);
+    expectNav('/admin/usuarios', true);
+    expectNav('/admin/contactos-web', true);
+  };
+
+  const openAndCloseDialog = (visitPath: string, buttonLabel: RegExp | string) => {
+    cy.visitAdminModule(visitPath);
+    cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+    cy.contains('button', buttonLabel).click({ force: true });
+    cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
+    cy.get('mat-dialog-container button')
+      .contains(/Cerrar|Cancelar/i)
+      .click({ force: true });
+    cy.get('mat-dialog-container').should('not.exist');
   };
 
   describe('Doctor', () => {
@@ -29,22 +45,12 @@ describe('Admin roles 008 smoke', () => {
       cy.loginStaffRole('doctor');
     });
 
-    it('A2.1 login y menú clínico sin inventario/usuarios', () => {
-      expectNav('/admin/citas', true);
-      expectNav('/admin/historiales', true);
-      expectNav('/admin/banios', true);
-      expectNav('/admin/inventario', false);
-      expectNav('/admin/usuarios', false);
-      expectNav('/admin/contactos-web', false);
+    it('A2.1 login y menú admin completo (política 011)', () => {
+      expectFullAdminNav();
     });
 
     it('A2.2 citas R/W UI (diálogo Nueva cita → cerrar)', () => {
-      cy.visitAdminModule('/admin/citas');
-      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
-      cy.contains('button', 'Nueva cita').click();
-      cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-      cy.get('mat-dialog-container button').contains('Cerrar').click({ force: true });
-      cy.get('mat-dialog-container').should('not.exist');
+      openAndCloseDialog('/admin/citas', 'Nueva cita');
     });
 
     it('A2.3 historiales lectura + flujo Nuevo alcanzable', () => {
@@ -54,17 +60,15 @@ describe('Admin roles 008 smoke', () => {
       cy.contains('button', /Nuevo|nuevo historial/i).should('exist');
     });
 
-    it('A2.4 inventario denegado en UI (guard → inicio)', () => {
-      denyRedirect('/admin/inventario');
+    it('A2.4 inventario accesible (UI)', () => {
+      cy.visitAdminModule('/admin/inventario');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/inventario');
+      cy.get('.dashboard-inventario, .admin-page', { timeout: 20000 }).should('exist');
     });
 
     it('A2.6 baños R/W UI (diálogo)', () => {
-      cy.visitAdminModule('/admin/banios');
-      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
-      cy.contains('button', /Nuevo baño|Nuevo/i).click({ force: true });
-      cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-      cy.get('mat-dialog-container button').contains(/Cerrar|Cancelar/i).click({ force: true });
-      cy.get('mat-dialog-container').should('not.exist');
+      openAndCloseDialog('/admin/banios', /Nuevo baño|Nuevo/i);
     });
   });
 
@@ -73,43 +77,35 @@ describe('Admin roles 008 smoke', () => {
       cy.loginStaffRole('recepcionista');
     });
 
-    it('B.1 login → citas / clientes / baños / recordatorios; sin historiales/inventario', () => {
-      expectNav('/admin/citas', true);
-      expectNav('/admin/clientes', true);
-      expectNav('/admin/banios', true);
-      expectNav('/admin/recordatorios', true);
-      expectNav('/admin/historiales', false);
-      expectNav('/admin/inventario', false);
-      expectNav('/admin/vacunas', false);
-      expectNav('/admin/usuarios', false);
+    it('B.1 login → menú admin completo (política 011)', () => {
+      expectFullAdminNav();
     });
 
     it('B.2 citas R/W UI', () => {
-      cy.visitAdminModule('/admin/citas');
+      openAndCloseDialog('/admin/citas', 'Nueva cita');
+    });
+
+    it('B.3 historiales módulo accesible (UI)', () => {
+      cy.visitAdminModule('/admin/historiales');
       cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
-      cy.contains('button', 'Nueva cita').click();
-      cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-      cy.get('mat-dialog-container button').contains('Cerrar').click({ force: true });
+      cy.url({ timeout: 20000 }).should('include', '/admin/historiales');
+      cy.get('.historiales-contenedor', { timeout: 20000 }).should('exist');
     });
 
-    it('B.3 historiales módulo denegado (UI)', () => {
-      denyRedirect('/admin/historiales');
-    });
-
-    it('B.4 inventario denegado (UI)', () => {
-      denyRedirect('/admin/inventario');
+    it('B.4 inventario accesible (UI)', () => {
+      cy.visitAdminModule('/admin/inventario');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/inventario');
     });
 
     it('B.5 baños R/W UI', () => {
-      cy.visitAdminModule('/admin/banios');
-      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
-      cy.contains('button', /Nuevo baño|Nuevo/i).click({ force: true });
-      cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-      cy.get('mat-dialog-container button').contains(/Cerrar|Cancelar/i).click({ force: true });
+      openAndCloseDialog('/admin/banios', /Nuevo baño|Nuevo/i);
     });
 
-    it('B.6 vacunas módulo denegado (UI)', () => {
-      denyRedirect('/admin/vacunas');
+    it('B.6 vacunas módulo accesible (UI)', () => {
+      cy.visitAdminModule('/admin/vacunas');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/vacunas');
     });
   });
 
@@ -118,34 +114,30 @@ describe('Admin roles 008 smoke', () => {
       cy.loginStaffRole('peluquero');
     });
 
-    it('C.1 login → solo inicio / paciente / baños', () => {
-      expectNav('/admin/inicio', true);
-      expectNav('/admin/paciente', true);
-      expectNav('/admin/banios', true);
-      expectNav('/admin/citas', false);
-      expectNav('/admin/historiales', false);
-      expectNav('/admin/inventario', false);
-      expectNav('/admin/clientes', false);
+    it('C.1 login → menú admin completo (política 011)', () => {
+      expectFullAdminNav();
     });
 
-    it('C.2 citas denegado (UI)', () => {
-      denyRedirect('/admin/citas');
+    it('C.2 citas accesible (UI)', () => {
+      cy.visitAdminModule('/admin/citas');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/citas');
     });
 
-    it('C.3 historiales denegado (UI)', () => {
-      denyRedirect('/admin/historiales');
+    it('C.3 historiales accesible (UI)', () => {
+      cy.visitAdminModule('/admin/historiales');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/historiales');
     });
 
-    it('C.4 inventario denegado (UI)', () => {
-      denyRedirect('/admin/inventario');
+    it('C.4 inventario accesible (UI)', () => {
+      cy.visitAdminModule('/admin/inventario');
+      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
+      cy.url({ timeout: 20000 }).should('include', '/admin/inventario');
     });
 
     it('C.5 baños R/W UI', () => {
-      cy.visitAdminModule('/admin/banios');
-      cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
-      cy.contains('button', /Nuevo baño|Nuevo/i).click({ force: true });
-      cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-      cy.get('mat-dialog-container button').contains(/Cerrar|Cancelar/i).click({ force: true });
+      openAndCloseDialog('/admin/banios', /Nuevo baño|Nuevo/i);
     });
   });
 });

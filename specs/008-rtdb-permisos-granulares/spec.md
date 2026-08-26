@@ -1,9 +1,11 @@
 # Spec: Permisos RTDB granulares por rol
 
 **ID:** 008-rtdb-permisos-granulares  
-**Estado:** done  
+**Estado:** done (histórico; **supersedida** en granularidad por `011-staff-acceso-admin-unificado`)  
 **Fecha:** 2026-08-25  
 **Autor:** agente (autorizado Luis Alfonso Niño Martínez)
+
+> **2026-08-26:** Luis unificó acceso admin para todo staff. Ver `specs/011-staff-acceso-admin-unificado/`. Esta spec queda como registro de la matriz granular previa.
 
 ---
 

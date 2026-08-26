@@ -13,7 +13,7 @@
 
 KatzenVet Web tiene una base sólida: Angular 17 lazy-loaded, guards de auth/roles en frontend, Cloud Functions con patrón `isCallerAdmin`, transacciones RTDB en inventario (salidas) y arquitectura admin documentada (`docs/ADMIN-UI-ARCHITECTURE.md`) mayormente respetada.
 
-La brecha más grave es **seguridad en profundidad**: la matriz `staff-role.config.ts` restringe módulos en UI, pero `database.rules.json` permite **write a cualquier staff** (`role != 'client'`) en nodos clínicos e inventario. Un recepcionista con token válido puede escribir historiales o inventario vía SDK/API, saltándose la UI.
+**Actualización 2026-08-26 (política 011):** el negocio unificó acceso admin para **todo staff**; la “brecha” UI vs RTDB de 008 dejó de ser el modelo deseado. UI y rules operativas alinean en `role != 'client'`. Provision `Usuarios`/`AuthPerfiles` sigue solo administrador. Ver `specs/011-staff-acceso-admin-unificado/`.
 
 Varias **reglas de negocio confirmadas** en `domain-context.md` siguen sin implementar: cascada de baja de cliente, registro self-service portal y UI perfil dual. Resueltas recientemente: agenda citas (003), revocación portal (006), política mermas MVP (007).
 
@@ -27,12 +27,12 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 ### 🔴 Crítico (seguridad / datos / producción)
 
-#### 1. ~~RTDB no discrimina por `staffRole` — brecha UI vs backend~~ ✅ (repo)
+#### 1. ~~RTDB no discrimina por `staffRole` — brecha UI vs backend~~ ✅ → **supersedido 011**
 
 **Archivos:** `database.rules.json`, `src/app/core/config/staff-role.config.ts`  
-**Estado:** **Implementado en repo** — `specs/008-rtdb-permisos-granulares/`. Writes clínicos/inventario/ops alineados a `auth.token.staffRole` con fallback si el claim falta (móvil).  
-**Pendiente:** `firebase deploy --only database` solo tras confirmación de Luis / smoke móvil.  
-**Esfuerzo:** L
+**Estado 008:** Implementado granular por `staffRole` en repo.  
+**Estado 011 (2026-08-26):** Política de negocio — todo staff con acceso admin operativo; rules simplificadas a `role != 'client'`; UI `STAFF_MODULE_ACCESS` = `*` para doctor/recepcionista/peluquero. Admin-only: Usuarios/AuthPerfiles. Spec: `011-staff-acceso-admin-unificado`.  
+**Esfuerzo:** L → cerrado por cambio de política
 
 #### 2. Reglas portal `Mascota` solo indexan/validan `idCliente`, no `cliente_id`
 
@@ -280,7 +280,7 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 | Regla / decisión | Estado en código | Gap |
 |------------------|------------------|-----|
-| RTDB restringe por `staffRole` | Solo UI (`StaffRoleGuard`) | **No implementado** en rules |
+| RTDB write operativo | Cualquier staff (`role != 'client'`) | **Alineado** política 011 |
 | 1 vet/cita, sin solapamiento, 30 min default | `cita-agenda.util` + servicio | **Hecho** (003) |
 | `veterinario` obligatorio por cita | required form + servicio | **Hecho** (003) |
 | Fechas pasadas solo veterinarias | excepción doctor/admin | **Hecho** (003) |

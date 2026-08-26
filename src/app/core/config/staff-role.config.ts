@@ -28,32 +28,17 @@ export const ALL_STAFF_MODULES: StaffModule[] = [
   'usuarios'
 ];
 
-/** Matriz rol → módulos permitidos. `*` = acceso total. */
+/**
+ * Matriz rol → módulos permitidos. `*` = acceso total.
+ * Política 011 (2026-08-26): todo staff (excepto portal client) tiene acceso admin
+ * unificado; el rol solo identifica organización/identidad.
+ */
 export const STAFF_MODULE_ACCESS: Record<string, StaffModule[] | '*'> = {
   administrador: '*',
   admin: '*',
-  doctor: [
-    'inicio',
-    'paciente',
-    'pacientes-admin',
-    'clientes',
-    'citas',
-    'historiales',
-    'vacunas',
-    'recordatorios',
-    'banios'
-  ],
-  recepcionista: [
-    'inicio',
-    'paciente',
-    'pacientes-admin',
-    'clientes',
-    'contactos-web',
-    'citas',
-    'recordatorios',
-    'banios'
-  ],
-  peluquero: ['inicio', 'paciente', 'banios']
+  doctor: '*',
+  recepcionista: '*',
+  peluquero: '*'
 };
 
 export function mapUsuarioPerfilToStaffRole(perfil: string | undefined | null): string {
@@ -80,7 +65,8 @@ export function modulesForStaffRole(staffRole: string): StaffModule[] {
   if (Array.isArray(access)) {
     return access;
   }
-  return STAFF_MODULE_ACCESS.doctor as StaffModule[];
+  // Rol staff desconocido: acceso admin completo (política 011)
+  return ALL_STAFF_MODULES;
 }
 
 export function staffRoleCanAccessModule(staffRole: string, module: StaffModule): boolean {
@@ -89,7 +75,11 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
   if (access === '*') {
     return true;
   }
-  return (access || []).includes(module);
+  if (Array.isArray(access)) {
+    return access.includes(module);
+  }
+  // Rol desconocido staff → permitir (política unificada)
+  return true;
 }
 
 /**

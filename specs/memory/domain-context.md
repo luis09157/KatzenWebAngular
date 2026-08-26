@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-25 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez).
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez).
 
 ---
 
@@ -310,15 +310,17 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 5.1 Matriz staff → módulos admin
 
-Definida en `src/app/core/config/staff-role.config.ts`:
+Definida en `src/app/core/config/staff-role.config.ts`.
+
+**Política 011 (2026-08-26, confirmada Luis):** los roles staff **existen** (identidad/organización: doctor, recepcionista, peluquero, administrador, etc.), pero **cualquier staff** (excepto portal cliente) tiene **acceso admin completo** a módulos operativos. Solo el portal dueño queda restringido a su acceso de cliente.
 
 | Rol | Módulos |
 |-----|---------|
 | **administrador** / **admin** | Todos (`*`) |
-| **doctor** | inicio, paciente, pacientes-admin, clientes, citas, historiales, vacunas, recordatorios, banios |
-| **recepcionista** | inicio, paciente, pacientes-admin, clientes, contactos-web, citas, recordatorios, banios |
-| **peluquero** | inicio, paciente, banios |
-| **super_admin** / **dueño** *(futuro)* | Todos (`*`) — perfil desarrollador / dueño del sistema; super admin operativo |
+| **doctor** | Todos (`*`) |
+| **recepcionista** | Todos (`*`) |
+| **peluquero** | Todos (`*`) |
+| **super_admin** / **dueño** *(futuro)* | Todos (`*`) — perfil desarrollador / dueño del sistema |
 
 **Rol super admin / dueño (futuro, confirmado #6):** perfil para desarrolladores con acceso total al sistema (equivalente funcional a administrador, reservado a dueño/desarrollo). **No implementado** — al añadirlo en `staff-role.config.ts` requeriría:
 
@@ -330,13 +332,14 @@ Definida en `src/app/core/config/staff-role.config.ts`:
 **Guards:**
 
 - `AuthGuard` — sesión Firebase en `/admin/*`
-- `StaffRoleGuard` — módulo según `data.staffModule`
+- `StaffRoleGuard` — módulo según `data.staffModule` (con política 011, todos los staff pasan)
 - `PortalAuthGuard` — sesión client + sync claims
 - `PortalGuestGuard` — login portal sin sesión
 
 ### 5.2 RTDB vs UI
 
-La matriz de módulos es **solo frontend**. Reglas RTDB permiten write a **cualquier staff** (`role != 'client'`), no discriminan por `staffRole`. Excepción: `AuthPerfiles` y `Usuarios` write solo administrador.
+Write operativo RTDB: **cualquier staff** (`auth.token.role != 'client'`). No se discrimina por `staffRole` en citas, historiales, inventario, vacunas, etc. (política 011; revierte granularidad 008).  
+Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision staff). `PortalProvisionLog` write solo Functions.
 
 ### 5.3 Portal vs staff
 
@@ -471,7 +474,7 @@ flowchart TD
 
 ## 9. Deuda técnica / ambigüedades detectadas
 
-1. **Permisos RTDB granulares:** UI restringe por rol; RTDB no — un recepcionista puede escribir historiales vía API directa.
+1. ~~**Permisos RTDB granulares:**~~ **Supersedido 011** — negocio unificó acceso admin para todo staff; UI y RTDB alineados (`role != 'client'` operativo). Provision Usuarios/AuthPerfiles sigue admin-only.
 2. **Eliminación vacunas:** coexisten `remove()` y baja lógica — negocio confirmó baja lógica; deprecar `remove()`.
 3. **Baños:** `eliminarBanio` hace remove físico vs baja lógica disponible.
 4. **Inventario vs ventas/caja:** nodos `Venta` en rules sin integración web; ingresos baños deben integrarse (confirmado negocio).
@@ -568,6 +571,12 @@ flowchart TD
 |---|------|----------|--------|
 | 23 | ContactosWeb tareas automáticas | **No aún** — considerar futuro (saludo, seguimiento) | Confirmado (futuro) |
 | 24 | SLA / KPIs | Sin SLA numérico. Visión: centralizar data inventario/finanzas/pacientes/clientes/trabajadores; finanzas publicidad; integración WhatsApp/agendas (FB/WhatsApp contacto) | Confirmado (visión) |
+
+### Acceso staff (política unificada)
+
+| # | Tema | Decisión | Estado |
+|---|------|----------|--------|
+| 25 | Acceso admin por rol staff | Roles staff **sí existen** (identidad). **Todo staff** (no portal client) tiene acceso admin operativo (inventario, citas, historiales, pacientes, etc.). Solo portal dueño restringido. Usuarios/AuthPerfiles write: solo administrador | Confirmado 2026-08-26 · `specs/011-staff-acceso-admin-unificado/` |
 
 ---
 
