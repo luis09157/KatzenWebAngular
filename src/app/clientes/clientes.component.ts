@@ -18,6 +18,8 @@ import {
   calcularClienteEstadisticas,
   calcularClientesConPacientes
 } from '../core/utils/entity-stats.util';
+import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { LOADING_MESSAGES } from '../core/loading.service';
 
 interface ClienteKpi {
   label: string;
@@ -64,7 +66,8 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private loadingService: LoadingService,
-    private sucursalContext: SucursalContextService
+    private sucursalContext: SucursalContextService,
+    private firebaseFunctions: FirebaseFunctionsService
   ) {}
 
   ngOnInit(): void {
@@ -465,7 +468,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   bajaLogicaCliente(id: string) {
     Swal.fire({
       title: '¿Borrar este cliente?',
-      text: 'El cliente se ocultará del listado y se desactivará el acceso al portal del dueño. Los datos se conservan.',
+      text: 'Se ocultará el cliente, sus mascotas y citas futuras; también se desactivará el portal del dueño. Los datos se conservan.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
@@ -473,20 +476,27 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     }).then(result => {
       if (result.isConfirmed) {
         this.saving = true;
-        this.loadingService.show();
-        this.clientesService.bajaLogicaCliente(id)
-          .then(() => {
+        this.loadingService.show(LOADING_MESSAGES.deleting);
+        this.clientesService
+          .bajaLogicaClienteCascada(id, cid => this.firebaseFunctions.deactivatePortalClient(cid))
+          .then(res => {
             this.loadingService.hide();
             this.todosLosClientes = this.todosLosClientes.filter(c => c.id !== id);
             this.aplicarFiltroSucursal();
             this.cargarEstadisticas();
+            const detalle = [
+              `${res.mascotasDesactivadas} mascota(s)`,
+              `${res.citasCanceladas} cita(s)`,
+              res.portalRevocado ? 'portal revocado' : (res.portalRevokeError ? 'portal desactivado (revocación Auth pendiente)' : 'sin portal')
+            ].join(', ');
             setTimeout(() => {
-              Swal.fire('Borrado', 'El cliente fue borrado correctamente.', 'success');
+              Swal.fire('Borrado', `Cliente borrado en cascada (${detalle}).`, 'success');
             }, 0);
           })
-          .catch(() => {
+          .catch(err => {
             this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo borrar al cliente', 'error'), 0);
+            const msg = this.errorMessages.getUserMessage(err, 'borrar cliente');
+            setTimeout(() => Swal.fire('Error', msg, 'error'), 0);
           })
           .finally(() => { this.saving = false; });
       }

@@ -11,6 +11,7 @@ export function isVisibleInClientPortal(data: Record<string, unknown> | null | u
 }
 
 export function mapHistorial(id: string, raw: Record<string, unknown>) {
+  // Nunca incluir notas_internas (solo staff) en el portal.
   const notasParts = [
     raw['notas'],
     raw['historia_clinica'],

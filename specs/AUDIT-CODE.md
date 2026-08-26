@@ -27,11 +27,11 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 ### 🔴 Crítico (seguridad / datos / producción)
 
-#### 1. RTDB no discrimina por `staffRole` — brecha UI vs backend
+#### 1. ~~RTDB no discrimina por `staffRole` — brecha UI vs backend~~ ✅ (repo)
 
 **Archivos:** `database.rules.json`, `src/app/core/config/staff-role.config.ts`  
-**Descripción:** La UI limita módulos por rol (doctor, recepcionista, peluquero), pero las reglas permiten write staff genérico en `Historiales_Clinicos`, `Citas`, `Inventario`, `Vacunas`, `Recordatorios`, `Banios`, etc. Cualquier cuenta staff autenticada puede modificar datos clínicos vía cliente Firebase directo.  
-**Recomendación:** Diseñar reglas granulares por nodo/operación (o mover writes sensibles a Cloud Functions con validación de rol). Empezar por historiales e inventario. Coordinar con app móvil (cambios aditivos).  
+**Estado:** **Implementado en repo** — `specs/008-rtdb-permisos-granulares/`. Writes clínicos/inventario/ops alineados a `auth.token.staffRole` con fallback si el claim falta (móvil).  
+**Pendiente:** `firebase deploy --only database` solo tras confirmación de Luis / smoke móvil.  
 **Esfuerzo:** L
 
 #### 2. Reglas portal `Mascota` solo indexan/validan `idCliente`, no `cliente_id`
@@ -45,7 +45,7 @@ El build compila limpio; el riesgo principal no es compilación sino **consisten
 
 **Archivos:** `functions/src/index.ts` (`deactivatePortalClient`)  
 **Estado:** **Resuelto** en `specs/006-revocacion-sesiones-portal/` — `revokeRefreshTokens(uid)` tras `disabled: true`; si revoke falla se reporta `failed-precondition` sin rollback de disabled.  
-**Pendiente:** deploy `functions:deactivatePortalClient` con autorización de Luis.  
+**Deploy:** `functions:deactivatePortalClient` **OK** 2026-08-25.  
 **Esfuerzo:** S
 
 #### 4. ~~Movimientos tipo `merma` permiten stock negativo~~ ✅

@@ -63,6 +63,8 @@ export interface Historial {
   diagnostico_presuntivo?: string;
   manejo_terapeutico?: string;
   receta?: string;
+  /** Notas solo staff/médicos — no mostrar en portal ni app móvil. */
+  notas_internas?: string;
   activo?: boolean;
   [key: string]: unknown;
 }

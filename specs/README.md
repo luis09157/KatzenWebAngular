@@ -23,6 +23,9 @@ specs/
 ├── 005-loading-feedback-ux/      # Loading contextual + overlay no trabado
 ├── 006-revocacion-sesiones-portal/ # revokeRefreshTokens al desactivar portal
 ├── 007-politica-mermas-inventario/ # Bloqueo stock negativo, motivo merma, ajuste supervisor
+├── 008-rtdb-permisos-granulares/   # Writes RTDB por staffRole (deploy DB pendiente)
+├── 009-cascada-baja-cliente/       # Baja cliente → mascotas/citas/portal
+├── 010-notas-internas-historial/   # notas_internas aditivo (MVP admin)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

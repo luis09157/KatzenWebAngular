@@ -213,6 +213,23 @@
       </section>
 
       <section class="form-section">
+        <h3 class="form-section__title">
+          <mat-icon>lock</mat-icon>
+          Notas internas (solo médicos)
+        </h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Notas internas</mat-label>
+            <textarea matInput formControlName="notas_internas" rows="3"
+              placeholder="Continuidad clínica entre doctoras — no visible al dueño"></textarea>
+          </mat-form-field>
+        </div>
+        <p class="hint-text">
+          Campo aditivo opcional. El portal web no lo muestra; la app móvil debe ignorarlo.
+        </p>
+      </section>
+
+      <section class="form-section">
         <mat-checkbox formControlName="oculto_portal" color="warn">
           Ocultar del portal del dueño (app móvil)
         </mat-checkbox>

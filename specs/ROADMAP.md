@@ -26,13 +26,15 @@ Auditoría integral del codebase (2026-08-25): [`specs/AUDIT-CODE.md`](AUDIT-COD
 
 **Top 3 prioridades inmediatas:**
 
-1. **RTDB granular por rol** — reglas `database.rules.json` alineadas con `staff-role.config.ts` (historiales, inventario).
+1. ~~**RTDB granular por rol**~~ — **hecho en repo** `specs/008-rtdb-permisos-granulares/` (`database.rules.json`); **deploy database pendiente** (confirmar con Luis / smoke móvil).
 2. ~~**Validación agenda citas**~~ — **hecho** en `specs/003-validacion-agenda-citas/` (vet obligatorio, solape, duración 30, motivo cancelación, fechas pasadas / revert por rol).
-3. ~~**`revokeRefreshTokens`** en `deactivatePortalClient`~~ — **hecho** en `specs/006-revocacion-sesiones-portal/` (pendiente deploy Functions).
+3. ~~**`revokeRefreshTokens`** en `deactivatePortalClient`~~ — **hecho** en `specs/006-revocacion-sesiones-portal/` (**deploy Functions OK** 2026-08-25).
 
 **UI reciente:**
 - `specs/004-timepicker-dialog/` — timepicker Material estándar (`app-timepicker-field`) reemplaza `type="time"` en citas, baños y recordatorios.
 - `specs/005-loading-feedback-ux/` — mensajes contextuales en `LoadingService` + fix overlay trabado al guardar citas.
+- `specs/009-cascada-baja-cliente/` — baja cliente en cascada (mascotas, citas futuras, portal).
+- `specs/010-notas-internas-historial/` — campo aditivo `notas_internas` (MVP admin; portal no lo mapea).
 
 ---
 
@@ -95,14 +97,14 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja** | Módulo ventas/caja; ingresos baños (tarjeta, transferencia, efectivo); IVA declarado/no declarado; balances mensuales | Alta |
+| **Finanzas / caja** | **Solo roadmap (sin implementación en esta entrega):** módulo ventas/caja; ingresos baños (tarjeta, transferencia, efectivo); IVA declarado/no declarado; balances mensuales. Crear `specs/NNN-finanzas-caja/` cuando se priorice. | Alta — **spec pendiente** |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
-| **Historial clínico** | Notas internas solo médicos; campo `medico_atendio` obligatorio (confirmado) | Media |
+| **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; aislamiento RTDB hijo staff-only = fase 2. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |
-| **Portal / auth** | Registro self-service landing; UI perfil dual post-login; revocación inmediata sesiones + `disabled` Auth al desactivar portal (confirmado) | Media |
-| **Roles / plataforma** | Rol **super admin / dueño** para desarrolladores (acceso total, distinto de administrador clínico) | Media |
+| **Portal / auth** | Registro self-service landing; UI perfil dual post-login; ~~revocación sesiones~~ **hecho + deploy OK** | Media |
+| **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo (deploy DB pendiente)** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
-| **Operación / citas** | Cascada baja lógica cliente; archivo automático recordatorios (mascota Fallecido); validación agenda por veterinario (1 vet/cita, sin solapamiento); duración default 30 min configurable | Media |
+| **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; archivo automático recordatorios (mascota Fallecido); ~~validación agenda~~ hecho 003 | Media |
 | **Plataforma** | Multi-sucursal; migración nodos legacy inventario (coordinar móvil); dashboard KPIs centralizado | Baja–media |
 
 ---

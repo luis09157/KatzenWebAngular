@@ -86,7 +86,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       paciente_id: ['', Validators.required],
 
       // Visible en portal del dueño (app mobile)
-      oculto_portal: [false]
+      oculto_portal: [false],
+
+      // Solo staff (continuidad entre doctoras) — no mapear al portal
+      notas_internas: ['']
     });
   }
 
@@ -122,7 +125,8 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         receta: this.data.historial?.receta || '',
         medico_atendio: this.data.historial?.medico_atendio || '',
         paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || '',
-        oculto_portal: this.data.historial?.oculto_portal === true
+        oculto_portal: this.data.historial?.oculto_portal === true,
+        notas_internas: this.data.historial?.notas_internas || ''
       });
       
       // Manejar fecha y hora por separado (sin conversión de zona horaria)

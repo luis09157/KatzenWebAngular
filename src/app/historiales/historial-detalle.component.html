@@ -86,6 +86,11 @@
         <div class="detail-text-block">{{ data.notas }}</div>
       </section>
 
+      <section class="detail-section" *ngIf="data.notas_internas">
+        <h4 class="detail-section__title">Notas internas (solo staff)</h4>
+        <div class="detail-text-block">{{ data.notas_internas }}</div>
+      </section>
+
       <section class="detail-section" *ngIf="data.archivos && data.archivos.length > 0">
         <h4 class="detail-section__title">
           <mat-icon>folder</mat-icon>
