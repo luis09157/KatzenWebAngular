@@ -20,10 +20,13 @@ export interface SugerenciaIvaProducto {
 export function esVentaMayorQueCosto(
   costo: unknown,
   precioVenta: unknown,
-  options: { allowEmptyCosto?: boolean } = { allowEmptyCosto: true }
+  options: { allowEmptyCosto?: boolean; treatZeroAsEmpty?: boolean } = { allowEmptyCosto: true }
 ): boolean {
   const allowEmpty = options.allowEmptyCosto !== false;
   if (allowEmpty && (costo === null || costo === undefined || costo === '')) {
+    return true;
+  }
+  if (options.treatZeroAsEmpty && Number(costo) === 0) {
     return true;
   }
   const c = Number(costo);
@@ -48,7 +51,7 @@ export function esCostoEstrictamenteMenorQueVenta(
  */
 export function costoMenorQueVentaValidator(
   ventaControlName = 'precio_total',
-  options: { allowEmptyCosto?: boolean } = { allowEmptyCosto: true }
+  options: { allowEmptyCosto?: boolean; treatZeroAsEmpty?: boolean } = { allowEmptyCosto: true }
 ): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const parent = control.parent;
@@ -58,7 +61,8 @@ export function costoMenorQueVentaValidator(
     const precioVenta = parent.get(ventaControlName)?.value;
     if (
       esVentaMayorQueCosto(control.value, precioVenta, {
-        allowEmptyCosto: options.allowEmptyCosto !== false
+        allowEmptyCosto: options.allowEmptyCosto !== false,
+        treatZeroAsEmpty: options.treatZeroAsEmpty === true
       })
     ) {
       return null;

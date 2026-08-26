@@ -21,6 +21,12 @@ describe('precio-margen.util', () => {
       expect(esVentaMayorQueCosto(0, 100)).toBe(true);
     });
 
+    it('con treatZeroAsEmpty trata costo 0 como opcional', () => {
+      expect(esVentaMayorQueCosto(0, 230, { treatZeroAsEmpty: true })).toBe(true);
+      expect(esVentaMayorQueCosto(0, 0, { treatZeroAsEmpty: true })).toBe(true);
+      expect(esVentaMayorQueCosto(150, 200, { treatZeroAsEmpty: true })).toBe(true);
+    });
+
     it('rechaza venta = costo y venta < costo', () => {
       expect(esVentaMayorQueCosto(200, 200)).toBe(false);
       expect(esVentaMayorQueCosto(0, 0)).toBe(false);
@@ -69,6 +75,15 @@ describe('precio-margen.util', () => {
       form.get('costoEstimado')?.updateValueAndValidity();
       expect(form.get('costoEstimado')?.hasError('costoMayorOIgualVenta')).toBe(true);
       form.patchValue({ costoEstimado: 150 });
+      form.get('costoEstimado')?.updateValueAndValidity();
+      expect(form.get('costoEstimado')?.valid).toBe(true);
+    });
+
+    it('baño: costo 0 opcional con treatZeroAsEmpty', () => {
+      const form = fb.group({
+        precio_total: [230],
+        costoEstimado: [0, [costoMenorQueVentaValidator('precio_total', { treatZeroAsEmpty: true })]]
+      });
       form.get('costoEstimado')?.updateValueAndValidity();
       expect(form.get('costoEstimado')?.valid).toBe(true);
     });

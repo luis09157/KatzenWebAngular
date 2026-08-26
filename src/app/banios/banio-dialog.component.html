@@ -119,7 +119,7 @@
       </section>
 
       <section class="form-section">
-        <h3 class="form-section__title">Tamaño y costo</h3>
+        <h3 class="form-section__title">Costos y precio</h3>
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Tamaño del perro</mat-label>
@@ -127,14 +127,15 @@
               <mat-option value="">Sin especificar</mat-option>
               <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
             </mat-select>
-            <mat-hint>Prefill de costo/precio desde Finanzas</mat-hint>
+            <mat-hint>Prefill de costo y precio desde Finanzas</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Costo estimado</mat-label>
-            <input matInput type="number" formControlName="costoEstimado" min="0" step="0.01">
+            <mat-label>Costo</mat-label>
+            <input matInput type="number" formControlName="costoEstimado" min="0" step="0.01"
+                   placeholder="Opcional">
             <mat-hint *ngIf="!banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')">
-              Debe ser menor que el precio cobrado · margen en caja
+              Costo interno del servicio · debe ser menor que el precio al cliente
             </mat-hint>
             <mat-error *ngIf="banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')">
               El costo debe ser menor que el precio de venta. Si es igual o mayor, no hay ganancia.
@@ -146,23 +147,13 @@
             <input matInput type="number" [ngModel]="margenPct" [ngModelOptions]="{standalone: true}"
                    (ngModelChange)="onMargenPctChange($event)" step="0.1"
                    placeholder="Ej. 100 = duplicar costo">
-            <mat-hint>Recalcula el precio cobrado desde el costo (opcional)</mat-hint>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">Precios</h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>Precio base</mat-label>
-            <input matInput type="number" formControlName="precio_base" min="0" required (input)="calcularPrecioTotal()">
+            <mat-hint>Opcional · recalcula el precio al cliente desde el costo</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Precio cobrado (este baño)</mat-label>
+            <mat-label>Precio al cliente</mat-label>
             <input matInput type="number" formControlName="precio_total" min="0" required (input)="onPrecioTotalManual()">
-            <mat-hint>Editable por registro · sugerido: ${{ calcularPrecioTotal() }}</mat-hint>
+            <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
           </mat-form-field>
         </div>
       </section>

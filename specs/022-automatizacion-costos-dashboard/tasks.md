@@ -145,3 +145,9 @@
 - [x] `spec.md` → `done`
 - [x] Resend: no tocar (diferido)
 - [ ] Fase E (OC→egreso) queda pendiente opcional
+
+---
+
+## Nota UX baños (2026-08-26)
+
+Modal **Nuevo baño**: secciones «Tamaño y costo» + «Precios» fusionadas en un solo bloque **Costos y precio**. `precio_base` sigue en RTDB (sync interno desde precio al cliente − adicionales); ya no se muestra en UI. Costo 0 = opcional (`treatZeroAsEmpty`).

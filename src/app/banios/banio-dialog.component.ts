@@ -49,6 +49,16 @@ export class BanioDialogComponent implements OnInit {
   get muestraPickerClientePaciente(): boolean {
     return !this.esEdicion && !this.hidePatientInfo;
   }
+
+  /** Hint dinámico bajo «Precio al cliente». */
+  get hintPrecioAlCliente(): string {
+    const adicionales = this.totalServiciosAdicionales();
+    if (adicionales > 0) {
+      const base = Number(this.banioForm.get('precio_base')?.value) || 0;
+      return `Incluye $${adicionales} en servicios adicionales · base baño: $${base}`;
+    }
+    return 'Precio final que se cobra al cliente (editable por registro)';
+  }
   
   // Opciones para los selects
   tiposServicios = [
@@ -129,11 +139,11 @@ export class BanioDialogComponent implements OnInit {
       alergias_conocidas: [[]],
       comportamiento: ['tranquilo'],
       peluquero_id: ['', Validators.required],
-      precio_base: [0, [Validators.required, Validators.min(0)]],
+      precio_base: [0, [Validators.min(0)]],
       servicios_adicionales: [[]],
       precio_total: [0, [Validators.required, Validators.min(0)]],
       tamano_perro: [''],
-      costoEstimado: [null as number | null, [costoMenorQueVentaValidator()]],
+      costoEstimado: [null as number | null, [costoMenorQueVentaValidator('precio_total', { treatZeroAsEmpty: true })]],
       plantillaCostoId: [''],
       pagado: [false],
       metodo_pago: [''],
@@ -206,35 +216,6 @@ export class BanioDialogComponent implements OnInit {
     
     this.configurarCalculoPrecio();
     this.configurarValidacionCostoVsVenta();
-
-    // Debug: Log del estado del formulario
-    console.log('🔍 Estado del formulario después de inicialización:', {
-      valid: this.banioForm.valid,
-      errors: this.banioForm.errors,
-      hidePatientInfo: this.hidePatientInfo,
-      esEdicion: this.esEdicion
-    });
-
-    // Log de errores de campos específicos
-    Object.keys(this.banioForm.controls).forEach(key => {
-      const control = this.banioForm.get(key);
-      if (control && control.errors) {
-        console.log(`🔍 Error en campo ${key}:`, control.errors);
-      }
-    });
-
-    // Listener para cambios en el formulario
-    this.banioForm.statusChanges.subscribe(status => {
-      console.log('🔍 Estado del formulario cambió:', status);
-      if (status === 'INVALID') {
-        Object.keys(this.banioForm.controls).forEach(key => {
-          const control = this.banioForm.get(key);
-          if (control && control.errors) {
-            console.log(`🔍 Error en campo ${key}:`, control.errors);
-          }
-        });
-      }
-    });
 
     // Reglas de negocio: si el estado no es 'completado', no se puede marcar pagado
     const estadoCtrl = this.banioForm.get('estado');
@@ -456,16 +437,10 @@ export class BanioDialogComponent implements OnInit {
   }
 
   configurarCalculoPrecio() {
-    // Escuchar cambios en precio base y servicios adicionales para calcular precio total
-    this.banioForm.get('precio_base')?.valueChanges.subscribe(() => {
-      this.calcularPrecioTotal();
-    });
-
     this.banioForm.get('servicios_adicionales')?.valueChanges.subscribe(() => {
       this.calcularPrecioTotal();
     });
-    
-    // Calcular precio inicial
+
     setTimeout(() => {
       this.calcularPrecioTotal();
       this.revalidarCostoVsVenta();
@@ -545,12 +520,13 @@ export class BanioDialogComponent implements OnInit {
     const def = this.defaultsBanioService.defaultParaTamano(this.defaultsBanio, tamano);
     if (!def) return;
     const patch: Record<string, unknown> = {
-      costoEstimado: def.costoDefault
+      costoEstimado: def.costoDefault > 0 ? def.costoDefault : null
     };
     if (def.plantillaCostoId) {
       patch['plantillaCostoId'] = def.plantillaCostoId;
     }
-    if (def.precioSugerido != null && !this.precioTotalManual) {
+    if (def.precioSugerido != null) {
+      this.precioTotalManual = false;
       patch['precio_base'] = def.precioSugerido;
       patch['precio_total'] = def.precioSugerido;
     }
@@ -560,7 +536,25 @@ export class BanioDialogComponent implements OnInit {
 
   onPrecioTotalManual(): void {
     this.precioTotalManual = true;
+    this.sincronizarPrecioBaseDesdeTotal();
     this.revalidarCostoVsVenta();
+  }
+
+  /** RTDB legacy: precio_base = precio_total − servicios adicionales. */
+  private sincronizarPrecioBaseDesdeTotal(): void {
+    const total = Number(this.banioForm.get('precio_total')?.value) || 0;
+    const adicionales = this.totalServiciosAdicionales();
+    this.banioForm.patchValue(
+      { precio_base: Math.max(0, total - adicionales) },
+      { emitEvent: false }
+    );
+  }
+
+  private totalServiciosAdicionales(): number {
+    const servicios = this.banioForm.get('servicios_adicionales')?.value || [];
+    return servicios.reduce((sum: number, servicio: { precio?: number }) => {
+      return sum + (Number(servicio.precio) || 0);
+    }, 0);
   }
 
   // Función para actualizar precio automáticamente cuando se selecciona un servicio
@@ -579,16 +573,10 @@ export class BanioDialogComponent implements OnInit {
   }
 
   calcularPrecioTotal(): number {
-    const precioBase = this.banioForm.get('precio_base')?.value || 0;
-    const serviciosAdicionales = this.banioForm.get('servicios_adicionales')?.value || [];
+    const precioBase = Number(this.banioForm.get('precio_base')?.value) || 0;
+    const totalAdicionales = this.totalServiciosAdicionales();
+    const precioTotal = precioBase + totalAdicionales;
 
-    const totalAdicionales = serviciosAdicionales.reduce((sum: number, servicio: any) => {
-      return sum + (Number(servicio.precio) || 0);
-    }, 0);
-
-    const precioTotal = Number(precioBase) + totalAdicionales;
-
-    // Solo auto-actualizar si el usuario no overrideó precio_total
     if (!this.precioTotalManual) {
       this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
       this.revalidarCostoVsVenta();
@@ -641,10 +629,7 @@ export class BanioDialogComponent implements OnInit {
 
 
   onSubmit() {
-    console.log('🔍 Formulario válido:', this.banioForm.valid);
-    console.log('🔍 Errores del formulario:', this.banioForm.errors);
-    console.log('🔍 Estado del formulario:', this.banioForm.status);
-
+    this.sincronizarPrecioBaseDesdeTotal();
     this.revalidarCostoVsVenta();
     this.banioForm.get('costoEstimado')?.markAsTouched();
 
@@ -681,9 +666,7 @@ export class BanioDialogComponent implements OnInit {
       
       // Asegurar formato de hora válido antes de enviar
       banioData.hora_banio = this.normalizarHora(banioData.hora_banio);
-      console.log('🔍 Datos del formulario:', banioData);
-      console.log('🔍 Fecha normalizada (preservada):', banioData.fecha_banio);
-      
+
       // Limpiar datos antes de enviar
       const datosLimpios: any = {
         ...banioData,
@@ -715,11 +698,8 @@ export class BanioDialogComponent implements OnInit {
         }
       });
       
-      console.log('🔍 Datos limpios a enviar:', datosLimpios);
-      
       if (this.esEdicion) {
         // Actualizar baño existente (solo campos permitidos)
-        console.log('🔄 Actualizando baño existente...');
         const permitidos: (keyof typeof datosLimpios)[] = [
           'fecha_banio','hora_banio','tipo_servicio','estado','prioridad','observaciones',
           'alergias_conocidas','comportamiento','peluquero_id','precio_base','servicios_adicionales',
@@ -745,12 +725,9 @@ export class BanioDialogComponent implements OnInit {
         // Usar el servicio correcto dependiendo del contexto
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
         const metodoActualizar = this.hidePatientInfo ? 'actualizarBanioPaciente' : 'actualizarBanio';
-        
-        console.log('🔍 Usando servicio:', this.hidePatientInfo ? 'BaniosPacienteService' : 'BaniosService');
-        
+
         servicioAUsar[metodoActualizar](this.data.id, payload)
           .then(() => {
-            console.log('✅ Baño actualizado exitosamente');
             this.loadingService.show();
             this.dialogRef.close(true);
           })
@@ -762,17 +739,11 @@ export class BanioDialogComponent implements OnInit {
           });
       } else {
         // Crear nuevo baño
-        console.log('🔄 Creando nuevo baño...');
-        
-        // Usar el servicio correcto dependiendo del contexto
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
         const metodoCrear = this.hidePatientInfo ? 'crearBanioPaciente' : 'crearBanio';
-        
-        console.log('🔍 Usando servicio:', this.hidePatientInfo ? 'BaniosPacienteService' : 'BaniosService');
-        
+
         servicioAUsar[metodoCrear](datosLimpios)
-          .then((id) => {
-            console.log('✅ Baño creado exitosamente con ID:', id);
+          .then(() => {
             this.loadingService.show();
             this.dialogRef.close(true);
           })
