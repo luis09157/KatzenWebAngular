@@ -118,8 +118,8 @@
 ## Cierre
 
 - [x] Validación pre-entrega A–D
-- [ ] Commit + push código B–D
-- [ ] Deploy hosting + database (índice historial_clinico_id + UI)
-- [x] `spec.md` → `done` cuando QA + commit OK
+- [x] Commit + push código B–D (`47644c7`, `259cada`)
+- [x] Deploy hosting + database (2026-08-26) — índice `historial_clinico_id` + UI
+- [x] `spec.md` → `done`
 - [x] Resend: no tocar (diferido)
 - [ ] Fase E (OC→egreso) queda pendiente opcional
