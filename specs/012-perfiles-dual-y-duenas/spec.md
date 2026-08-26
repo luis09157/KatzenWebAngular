@@ -75,6 +75,7 @@ Para **activar perfil dual sin crear segunda cuenta Auth**
 
 - **Estrategia de Datos de Prueba:** mocks locales / Cypress con credencial admin existente en `cypress.env` (no rotar, no imprimir password). Smoke dual con mocks si no hay usuario dual real.
 - **Patrones UI:** login cards existentes; selector contexto estilo auth; diálogo vincular con `admin-dialog-shell`; atajos en menús admin/portal.
+- **Regla UI permanente:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, centrada/equilibrada en desktop, y responsiva; no layouts aplastados a un lado con huecos vacíos. `/auth/contexto` reutiliza `auth.component.css` (`.admin-auth-page` / `.admin-auth-card`) vía `styleUrls`.
 
 ---
 
@@ -92,9 +93,10 @@ Para **activar perfil dual sin crear segunda cuenta Auth**
 
 ## UI (rutas y layout)
 
-- `/auth/contexto` — selector Admin vs Portal
+- `/auth/contexto` — selector Admin vs Portal (shell centrado = login admin; `styleUrls` incluye `auth.component.css`)
 - Atajos en `AdminMainLayout` y `PortalLayout`
 - `/admin/usuarios` — vincular dual
+- Fix 2026-08-26: card de contexto estaba pegada a la izquierda por encapsulación CSS (clases sin estilos); corregido reutilizando el shell auth.
 
 ---
 

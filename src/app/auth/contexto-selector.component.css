@@ -1,5 +1,9 @@
+/* Extiende el shell de auth.component.css — card centrada, look teal Katzen. */
+
 .contexto-card {
+  width: 100%;
   max-width: 440px;
+  box-sizing: border-box;
 }
 
 .contexto-options {
@@ -7,6 +11,7 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .contexto-option {
@@ -15,10 +20,14 @@
   justify-content: flex-start;
   gap: 14px;
   width: 100%;
+  max-width: 100%;
   min-height: 64px;
   padding: 12px 18px !important;
   text-align: left;
   border-radius: 14px !important;
+  box-sizing: border-box;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .contexto-option mat-icon {
@@ -32,6 +41,7 @@
   align-items: flex-start;
   gap: 2px;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .contexto-option__text strong {
@@ -52,4 +62,24 @@
   background: rgba(180, 40, 40, 0.08);
   color: #8a1f1f;
   font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .contexto-card {
+    max-width: 100%;
+  }
+
+  .contexto-option {
+    min-height: 56px;
+    padding: 12px 14px !important;
+    gap: 12px;
+  }
+
+  .contexto-option__text strong {
+    font-size: 0.9rem;
+  }
+
+  .contexto-option__text small {
+    font-size: 0.75rem;
+  }
 }

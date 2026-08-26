@@ -13,6 +13,8 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 7. **Destructive action copy = "Borrar":** En UI (menús, tooltips, leyendas, SweetAlert) siempre **«Borrar»**. Nunca «Baja lógica» / «Dar de baja». Internamente sigue siendo baja lógica (`activo: false`); docs y código pueden usar ese término.
 8. **Multi-line table cells need visible vertical gap:** Celdas apiladas (fecha+hora en `.fecha-compact`, paciente+dueño en `.cell-primary`) deben tener **gap vertical visible** (≈4–8px). No apilar líneas pegadas por wrap accidental sin espaciado.
 9. **Admin layout must use available desktop width:** En viewports anchos (≥1200px) el contenido admin debe aprovechar el ancho de `.admin-content` (sin un segundo `max-width` más agresivo en `.admin-page`). Columnas de texto flexibles absorben el espacio; no dejar texto comprimido mientras sobra hueco vacío entre columnas (p. ej. entre veterinario y acciones).
+10. **Auth / portal / landing shells must stay centered and balanced:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, **centrada y equilibrada en desktop**, y **responsiva** en móvil. Prohibido layouts aplastados a un lado con huecos vacíos grandes. Páginas de auth reutilizan el shell existente (`.admin-auth-page` / `.admin-auth-card` o `.portal-login-wrap` / `.portal-login-card`) — incluir esos CSS en el componente (no solo copiar nombres de clase: la encapsulación de Angular no hereda estilos de otro componente).
+
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
 Ensure all color, padding, spacing, and elevation attributes use these tokens:
@@ -140,6 +142,13 @@ Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). A
 
 - `.admin-page` / `*-contenedor` **no** deben imponer un `max-width` más estrecho que `.admin-content`.
 - ≥1200px: columnas flexibles (`motivo`, `consulta`, nombres) absorben el ancho; scroll horizontal en estrecho sigue OK.
+
+### Auth shells (login admin, portal, selector de contexto)
+
+- Desktop: card **centrada** vertical y horizontal (`min-height: 100vh` + flex center), fondo con gradiente teal suave del shell existente.
+- Móvil: card full-width con padding lateral, botones apilados, sin overflow horizontal.
+- Referencia: `src/app/auth/auth.component.css` (admin + `/auth/contexto`), `portal-shell.scss` (`.portal-login-wrap`).
+- `/auth/contexto` debe reutilizar `styleUrls: ['./auth.component.css', ...]` — no inventar un layout distinto.
 
 ```typescript
 // src/app/core/config/admin-ui.config.ts

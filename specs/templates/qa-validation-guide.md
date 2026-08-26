@@ -63,6 +63,7 @@ Sin este checklist, la entrega **no está cerrada**.
 |-----------|-------------------|
 | Textos extremadamente largos | Notas, diagnósticos, observaciones (500+ caracteres) |
 | Diseño responsivo | No rompe layout, tablas ni modales; scroll interno si aplica |
+| Shells auth/portal/landing | Card/contenido **centrado y equilibrado** en desktop; full-width + padding en móvil; sin layout aplastado a un lado con hueco vacío |
 | Truncamiento | Si hay límite de caracteres, se muestra contador o error antes de guardar |
 | Chips/badges de estado | Pills (`.estado-badge`, etc.) se ven **completos** — sin borde derecho cortado por columna estrecha u `overflow:hidden` |
 | Nombres de persona (tabla) | Chips/texto de veterinario, cliente, doctor, dueño se ven **completos** en desktop ancho; no truncar con "..." si hay espacio (`admin-table.scss`) |
@@ -108,6 +109,7 @@ Sin este checklist, la entrega **no está cerrada**.
 | Nombres de persona en tablas | En pantallas anchas se ven **completos** (veterinario, cliente, doctor, dueño); sin ellipsis si hay espacio. Medianas: wrap ≤2 líneas; estrecho: wrap + `.table-scroll` |
 | Celdas multi-línea (fecha+hora, paciente+dueño) | Gap vertical **visible** (≈4–8px); no líneas pegadas por wrap sin aire |
 | Layout admin desktop (≥1200px) | Contenido aprovecha ancho de `.admin-content`; columnas de texto flexibles; sin huecos raros (p. ej. entre veterinario y acciones) mientras el texto se ve comprimido |
+| Shells auth / portal / landing | Coherente con design system; card centrada (V+H) en desktop; responsiva en móvil; **no** pegada a un borde con vacío grande |
 | Diálogos picker / compactos | Usan `admin-dialog-shell--picker` (espaciado `--picker`); no CRUD grandes |
 | Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`) |
 | Campos de hora | Usan `app-timepicker-field` + diálogo timepicker (no `type="time"` nativo) — `specs/004-timepicker-dialog/` |
@@ -190,6 +192,7 @@ Antes de marcar cualquier tarea de implementación o testing como completada:
 | UI — nombres persona completos (desktop) | OK / N/A / FALLO | veterinario/cliente/etc. sin ellipsis en ancho |
 | UI — celdas multi-línea (gap) | OK / N/A / FALLO | fecha+hora / paciente+dueño con gap visible |
 | UI — layout ancho desktop | OK / N/A / FALLO | aprovecha `.admin-content`; sin huecos raros |
+| UI — shells auth/portal centrados | OK / N/A / FALLO | card equilibrada desktop; responsiva; sin aplastar a un lado |
 | Modales — apertura/cierre | OK / N/A / FALLO | ... |
 | UI — diálogos --picker | OK / N/A / FALLO | ... |
 | UI — timepicker en campos hora | OK / N/A / FALLO | ... |

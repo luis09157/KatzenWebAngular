@@ -8,7 +8,8 @@ import { AppCheckService } from '../core/app-check.service';
 @Component({
   selector: 'app-contexto-selector',
   templateUrl: './contexto-selector.component.html',
-  styleUrls: ['./contexto-selector.component.css']
+  // Reutiliza el shell centrado del login admin (admin-auth-page / admin-auth-card).
+  styleUrls: ['./auth.component.css', './contexto-selector.component.css']
 })
 export class ContextoSelectorComponent implements OnInit {
   loading = true;

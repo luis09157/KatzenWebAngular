@@ -17,6 +17,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 3. **Consistencia Visual y del Sistema de Diseño (UI/UX):**
    - Todos los componentes nuevos (vistas, tablas, formularios, modales, alertas, toasts y diálogos) deben reutilizar estrictamente los patrones de Angular 17 y la arquitectura visual definida en `docs/ADMIN-UI-ARCHITECTURE.md`.
    - Está prohibido introducir librerías de estilos externas o componentes con identidades visuales ajenas al resto del sistema de la veterinaria.
+   - **Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, centrada/equilibrada en desktop, y responsiva; no layouts aplastados a un lado con huecos vacíos.**
 
 4. **Prohibición de Comandos Destructivos y Deploy:**
    - El agente no tiene permitido ejecutar comandos de despliegue a producción (`firebase deploy`), ni modificar configuraciones globales de infraestructura sin una autorización explícita y manual de **Luis Alfonso Niño Martínez**.
@@ -50,6 +51,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 - Nombres de personas en tablas (veterinario, cliente, doctor, dueño, etc.): **completos** en pantallas anchas — sin ellipsis si hay espacio; ver `admin-table.scss` y `docs/ADMIN-UI-ARCHITECTURE.md`.
 - Celdas multi-línea (fecha+hora, paciente+dueño): **gap vertical visible** (≈4–8px); no líneas pegadas.
 - Layout admin en desktop (≥1200px): aprovechar ancho de `.admin-content`; no comprimir columnas de texto mientras sobra espacio vacío.
+- Auth / portal / landing: shells centrados (vertical + horizontal en desktop), responsivos en móvil; reutilizar patrones existentes (`.admin-auth-page`, `.portal-login-wrap`); sin cards pegadas a un borde con vacío grande al otro lado.
 - Errores: `ErrorMessagesService.getUserMessage(error, contexto)`.
 - Loading async admin: `LoadingService` con mensaje contextual; overlay **nunca** trabado (`hide` en success y error). Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading y `specs/005-loading-feedback-ux/`.
 - **Copy destructivo:** en UI siempre **«Borrar»** (menús, tooltips, leyendas, SweetAlert). Nunca mostrar «Baja lógica» / «Dar de baja» al usuario. Técnicamente sigue siendo baja lógica (`activo: false`); docs/código pueden usar ese término.

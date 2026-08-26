@@ -57,6 +57,7 @@ Antes de dar por cerrada una entrega, el agente DEBE:
    - Loading con mensaje contextual (Cargando / Guardando / Eliminando / Actualizando) y **nunca** overlay trabado
    - **Timepicker dialog** donde hay campo de hora (`app-timepicker-field`)
    - **Live preview local activo** al entregar cambios UI
+   - **Shells auth/portal/landing** centrados y equilibrados en desktop, responsivos; no layouts aplastados a un lado con huecos vacíos
 
 Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.md` → `done`).
 

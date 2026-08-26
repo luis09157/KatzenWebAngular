@@ -80,6 +80,17 @@
 | Servidor local :4200 + smoke | OK | proceso |
 | Build `npm run build` | OK | exit 0 · 2026-08-26 |
 | cy:admin | OK | 23/23 |
+| UI — shells auth/portal centrados | OK | Fix `/auth/contexto`: incluye `auth.component.css`; card V+H centrada |
+| Diseño responsivo contexto | OK | full-width + padding móvil; botones apilados |
+
+### Hotfix UI — `/auth/contexto` (2026-08-26)
+
+- **Antes:** card pegada arriba-izquierda (clases `admin-auth-*` sin CSS por encapsulación).
+- **Después:** mismo shell que login admin (centrado, fondo teal, card 440px).
+- **Docs:** constitution, ADMIN-UI, admin-ui-architecture.mdc, qa-validation-guide, spec 012.
+- [x] `npm run build`
+- [x] Live preview :4200
+- [x] Commit + push + `firebase deploy --only hosting` (autorizado)
 
 ```
 npm run build → exit 0
@@ -100,3 +111,4 @@ npm run cy:admin → 23/23 PASS
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → done
 - [x] Commit + push (pedido por Luis)
+- [x] Hotfix layout contexto + hosting (2026-08-26)
