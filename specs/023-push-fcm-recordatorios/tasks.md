@@ -31,7 +31,7 @@
 | Deploy `functions:fcm:onRecordatorioWritePush` | OK sin RESEND |
 | Deploy hosting | OK https://katzen-a0e3e.web.app |
 | localhost :4200 | OK ng serve reiniciado |
-| Cypress sidenav inventario | ver tasks 027 |
+| Cypress sidenav inventario | OK 7/7 · 2026-08-26 |
 
 
 - [x] `PortalFcmService` + botón en `/portal/perfil`

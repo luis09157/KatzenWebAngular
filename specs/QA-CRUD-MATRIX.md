@@ -120,4 +120,5 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 
 - [x] hosting (UI) → https://katzen-a0e3e.web.app
 - [x] database (rules Mascota `cliente_id` + `Historiales_Notas_Internas` + `FcmTokens` 023)
-- [ ] functions:`unlinkStaffPortalCliente` / `onRecordatorioWritePush` — **BLOQUEADO** sin `RESEND_API_KEY` (Firebase exige el secret al analizar el codebase). UI desvincular tiene **fallback RTDB** operativo; push FCM queda en repo hasta setear Resend.
+- [x] functions:`onRecordatorioWritePush` — **OK** codebase `fcm` (sin Resend) · deploy 2026-08-26
+- [ ] functions portal mail (`provisionPortalClient`, etc.) — **BLOQUEADO** sin `RESEND_API_KEY`. UI desvincular tiene **fallback RTDB** operativo.
