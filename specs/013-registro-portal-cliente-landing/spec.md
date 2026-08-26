@@ -1,7 +1,7 @@
 # Spec: Registro portal cliente (admin + landing)
 
 **ID:** 013-registro-portal-cliente-landing  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-26  
 **Autor:** Overnight agent (autorizado por Luis Alfonso Niño Martínez)
 
@@ -25,10 +25,10 @@ Para **que el dueño pueda entrar sin que yo copie contraseñas**
 
 **Criterios de aceptación:**
 
-- [ ] SC-001: Al crear Cliente nuevo con correo válido → se llama `provisionPortalClient` tras guardar; loading «Guardando…»; éxito sin exponer password.
-- [ ] SC-002: Si el correo es inválido/vacío → se guarda el cliente sin provision; mensaje claro.
-- [ ] SC-003: Si provision falla (correo ya en Auth, duplicado portal, etc.) → cliente queda guardado; error comprensible vía `ErrorMessagesService`; se sugiere reintentar desde Usuarios/Pendientes.
-- [ ] SC-004: Si `emailSent: false` (p. ej. sin `RESEND_API_KEY`) → aviso explícito al admin; password nunca en UI.
+- [x] SC-001: Al crear Cliente nuevo con correo válido → se llama `provisionPortalClient` tras guardar; loading «Guardando…»; éxito sin exponer password.
+- [x] SC-002: Si el correo es inválido/vacío → se guarda el cliente sin provision; mensaje claro.
+- [x] SC-003: Si provision falla (correo ya en Auth, duplicado portal, etc.) → cliente queda guardado; error comprensible vía `ErrorMessagesService`; se sugiere reintentar desde Usuarios/Pendientes.
+- [x] SC-004: Si `emailSent: false` (p. ej. sin `RESEND_API_KEY`) → aviso explícito al admin; password nunca en UI.
 
 ### US-2 — Self-registro desde landing
 
@@ -38,11 +38,11 @@ Para **recibir acceso al portal sin pasar por recepción**
 
 **Criterios de aceptación:**
 
-- [ ] SC-005: Formulario landing (nombre, correo, teléfono?, aceptar privacidad) → callable pública `registerPortalOwner`.
-- [ ] SC-006: Crea `Katzen/Cliente` + Auth + `AuthPerfiles` (role client) + email bienvenida; **no** escritura anónima peligrosa en RTDB.
-- [ ] SC-007: Rate limit / validación en servidor; mensajes claros (correo duplicado, privacidad no aceptada).
-- [ ] SC-008: Si falta `RESEND_API_KEY` → fallo temprano con mensaje claro (no dejar cuenta sin forma de entregar password en self-service).
-- [ ] SC-009: Password temporal **nunca** retornada al cliente ni al admin ni guardada en RTDB.
+- [x] SC-005: Formulario landing (nombre, correo, teléfono?, aceptar privacidad) → callable pública `registerPortalOwner`.
+- [x] SC-006: Crea `Katzen/Cliente` + Auth + `AuthPerfiles` (role client) + email bienvenida; **no** escritura anónima peligrosa en RTDB.
+- [x] SC-007: Rate limit / validación en servidor; mensajes claros (correo duplicado, privacidad no aceptada).
+- [x] SC-008: Si falta `RESEND_API_KEY` → fallo temprano con mensaje claro (no dejar cuenta sin forma de entregar password en self-service).
+- [x] SC-009: Password temporal **nunca** retornada al cliente ni al admin ni guardada en RTDB.
 
 ### US-3 — Copy y UX
 
@@ -52,8 +52,8 @@ Para **no ver jerga técnica**
 
 **Criterios de aceptación:**
 
-- [ ] SC-010: Acciones destructivas UI con «Borrar» (sin «baja lógica» visible).
-- [ ] SC-011: Loading contextual en alta cliente; doble submit bloqueado.
+- [x] SC-010: Acciones destructivas UI con «Borrar» (sin «baja lógica» visible).
+- [x] SC-011: Loading contextual en alta cliente; doble submit bloqueado.
 
 ---
 

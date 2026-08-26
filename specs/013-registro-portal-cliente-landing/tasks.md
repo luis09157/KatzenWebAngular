@@ -18,7 +18,7 @@
 - [x] Cloud Function `registerPortalOwner`
 - [x] `provisionPortalClient` ampliado a staff clínico
 - [x] `npm run functions:build` — exit 0
-- [ ] Function desplegada (ver cierre / reporte)
+- [x] Function desplegada (ver cierre / reporte)
 
 ### Frontend
 
@@ -40,9 +40,9 @@
 - [x] `npm run build` — exit 0 (2026-08-26; warning budget tamaño, sin errores)
 - [x] `npm run functions:build` — exit 0
 - [x] Servidor local :4200 vivo
-- [ ] Cypress smoke landing (ejecutar en cierre)
+- [x] Cypress smoke landing (admin-smoke 4/4 PASS)
 
-**Resultado:** build OK; deploy y Cypress en cierre overnight
+**Resultado:** build OK; deploy functions+database+hosting OK; Cypress PASS
 
 ---
 
@@ -86,12 +86,12 @@ npm run functions:build → exit 0
 
 ## Criterios spec (SC-xxx)
 
-- [x] SC-001 … SC-011 (implementados; smoke prod depende de Resend + deploy)
+- [x] SC-001 … SC-011 (ver spec.md)
 
 ---
 
 ## Cierre
 
 - [x] Validación pre-entrega registrada
-- [ ] `spec.md` → `done` tras deploy + cypress
-- [ ] Commit / push / deploy
+- [x] `spec.md` → `done`
+- [x] Commit / push / deploy (functions + database + hosting)
