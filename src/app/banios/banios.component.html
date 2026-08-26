@@ -141,5 +141,6 @@
     <button mat-menu-item *ngIf="menuContext?.estado === 'programado'" (click)="cambiarEstado(menuContext, 'en_proceso')"><mat-icon>play_arrow</mat-icon> Iniciar baño</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'en_proceso'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
     <button mat-menu-item *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado'" (click)="marcarComoPagado(menuContext)"><mat-icon>payment</mat-icon> Marcar pagado</button>
+    <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext"><mat-icon>account_balance_wallet</mat-icon> Registrar en caja</button>
   </mat-menu>
 </div>

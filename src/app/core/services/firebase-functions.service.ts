@@ -151,6 +151,14 @@ export class FirebaseFunctionsService {
     return firstValueFrom(callable({ staffUid, clienteId }));
   }
 
+  /** Quita vínculo dual (staff solo admin). Solo admin. Spec 015. */
+  async unlinkStaffPortalCliente(staffUid: string): Promise<LinkStaffPortalResult> {
+    const callable = this.fns.httpsCallable<{ staffUid: string }, LinkStaffPortalResult>(
+      'unlinkStaffPortalCliente'
+    );
+    return firstValueFrom(callable({ staffUid }));
+  }
+
   async clearMustChangePassword(): Promise<{ success?: boolean; message?: string }> {
     const callable = this.fns.httpsCallable<Record<string, never>, { success?: boolean; message?: string }>(
       'clearMustChangePassword'

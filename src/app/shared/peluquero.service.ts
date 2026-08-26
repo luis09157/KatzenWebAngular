@@ -166,16 +166,9 @@ export class PeluqueroService {
     }
   }
 
-  // Eliminación física (solo para administradores)
-  async eliminarPeluqueroFisicamente(id: string): Promise<void> {
-    try {
-      await firstValueFrom(
-        this.db.object(`${this.COLLECTION}/${id}`).remove()
-      );
-    } catch (error) {
-      console.error('Error al eliminar peluquero físicamente:', error);
-      throw error;
-    }
+  // Eliminación física bloqueada (spec 019) — usar baja lógica
+  async eliminarPeluqueroFisicamente(_id: string): Promise<void> {
+    throw new Error('Eliminación física de peluqueros no permitida. Usa baja lógica.');
   }
 
   // ===== VALIDACIONES ESPECÍFICAS =====

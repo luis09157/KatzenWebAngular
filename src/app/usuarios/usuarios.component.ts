@@ -274,6 +274,38 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  async desvincularPortalDual(usuario: { id?: string; nombre?: string }): Promise<void> {
+    if (!usuario?.id) return;
+    const clienteId = this.getDualClienteId(usuario);
+    const result = await Swal.fire({
+      title: '¿Desvincular portal?',
+      html: `Se quitará el acceso portal de <strong>${usuario.nombre || 'este personal'}</strong>${
+        clienteId ? ` (cliente ${clienteId})` : ''
+      }. Conserva el acceso al panel admin.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, desvincular',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33'
+    });
+    if (!result.isConfirmed) return;
+
+    this.saving = true;
+    this.loadingService.show(LOADING_MESSAGES.updating);
+    try {
+      const res = await this.firebaseFunctions.unlinkStaffPortalCliente(usuario.id);
+      Swal.fire('Desvinculado', res.message || 'Portal desvinculado.', 'success');
+      this.cargarStaff();
+      this.cargarPortalClientes();
+    } catch (error) {
+      this.logger.error('Error al desvincular portal dual:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'desvincular portal dual'), 'error');
+    } finally {
+      this.loadingService.hide();
+      this.saving = false;
+    }
+  }
+
   abrirModalUsuario(usuario: any = null, modoVer: boolean = false): void {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
       ...(modoVer ? ADMIN_DIALOG_DETAIL : ADMIN_DIALOG_FORM),

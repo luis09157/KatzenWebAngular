@@ -34,7 +34,15 @@ export class CajaMovimientoDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<CajaMovimientoDialogComponent>,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    @Inject(MAT_DIALOG_DATA) public data: { fechaDefault?: string }
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      fechaDefault?: string;
+      banioId?: string;
+      concepto?: string;
+      monto?: number;
+      metodoPago?: CajaMetodoPago;
+      notas?: string;
+    }
   ) {
     this.form = this.fb.group({
       tipo: ['ingreso' as CajaTipoMovimiento, Validators.required],
@@ -50,6 +58,18 @@ export class CajaMovimientoDialogComponent implements OnInit {
   ngOnInit(): void {
     if (this.data?.fechaDefault) {
       this.form.patchValue({ fecha: this.data.fechaDefault });
+    }
+    if (this.data?.concepto) {
+      this.form.patchValue({ concepto: this.data.concepto });
+    }
+    if (this.data?.monto != null) {
+      this.form.patchValue({ monto: this.data.monto });
+    }
+    if (this.data?.metodoPago) {
+      this.form.patchValue({ metodoPago: this.data.metodoPago });
+    }
+    if (this.data?.notas) {
+      this.form.patchValue({ notas: this.data.notas });
     }
   }
 
@@ -69,16 +89,17 @@ export class CajaMovimientoDialogComponent implements OnInit {
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
       const raw = this.form.getRawValue();
-      await this.cajaService.crearMovimiento({
+      const movId = await this.cajaService.crearMovimiento({
         tipo: raw.tipo,
         concepto: String(raw.concepto).trim(),
         monto: Number(raw.monto),
         metodoPago: raw.metodoPago,
         ivaDeclarado: !!raw.ivaDeclarado,
         fecha: raw.fecha,
+        banioId: this.data?.banioId,
         notas: raw.notas ? String(raw.notas).trim() : undefined
       });
-      this.dialogRef.close(true);
+      this.dialogRef.close({ ok: true, movimientoId: movId });
       Swal.fire({
         icon: 'success',
         title: 'Movimiento registrado',

@@ -153,15 +153,8 @@ export class BaniosService {
   }
 
   eliminarBanio(id: string): Promise<void> {
-    return this.db.object<Banio>(`${this.basePath}/${id}`)
-      .remove()
-      .then(() => {
-        console.log('Baño eliminado exitosamente');
-      })
-      .catch(error => {
-        console.error('Error al eliminar baño:', error);
-        throw error;
-      });
+    /** @deprecated Spec 019 — no hard-delete; UI debe usar bajaLogicaBanio */
+    return this.bajaLogicaBanio(id);
   }
 
   bajaLogicaBanio(id: string): Promise<void> {
@@ -238,8 +231,8 @@ export class BaniosService {
   }
 
   eliminarTipoServicio(id: string): Promise<void> {
-    return this.db.object<TipoServicio>(`${this.tiposPath}/${id}`)
-      .remove();
+    /** @deprecated Spec 019 — soft-delete */
+    return this.actualizarTipoServicio(id, { activo: false });
   }
 
   // ===== CRUD PARA PRODUCTOS =====
@@ -279,8 +272,8 @@ export class BaniosService {
   }
 
   eliminarProducto(id: string): Promise<void> {
-    return this.db.object<ProductoPeluqueria>(`${this.productosPath}/${id}`)
-      .remove();
+    /** @deprecated Spec 019 — soft-delete */
+    return this.actualizarProducto(id, { activo: false });
   }
 
   // ===== MÉTODOS DE BÚSQUEDA =====

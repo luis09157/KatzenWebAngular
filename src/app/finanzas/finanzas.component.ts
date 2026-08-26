@@ -112,11 +112,48 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       disableClose: true,
       data: { fechaDefault: this.fechaFiltro }
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((ok) => {
-      if (ok) {
-        // RTDB snapshot refresca lista; no hace falta recargar manual
-      }
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((_ok) => {
+      // RTDB snapshot refresca lista
     });
+  }
+
+  exportarCsv(): void {
+    const rows = this.dataSource.filteredData?.length
+      ? this.dataSource.filteredData
+      : this.dataSource.data;
+    if (!rows.length) {
+      Swal.fire('Sin datos', 'No hay movimientos para exportar en esta fecha.', 'info');
+      return;
+    }
+    const header = ['fecha', 'concepto', 'tipo', 'metodo', 'iva', 'monto', 'notas', 'banioId'];
+    const escape = (v: unknown) => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [
+      header.join(','),
+      ...rows.map((m) =>
+        [
+          m.fecha,
+          m.concepto,
+          m.tipo,
+          this.labelMetodo(m),
+          m.ivaDeclarado ? 'declarado' : 'no_declarado',
+          Number(m.monto).toFixed(2),
+          m.notas || '',
+          m.banioId || ''
+        ]
+          .map(escape)
+          .join(',')
+      )
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `caja-${this.fechaFiltro || 'dia'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async borrar(mov: CajaMovimiento): Promise<void> {

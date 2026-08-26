@@ -29,7 +29,13 @@ specs/
 ├── 011-staff-acceso-admin-unificado/ # Todo staff = acceso admin operativo
 ├── 012-perfiles-dual-y-duenas/       # Matriz perfiles, dual post-login, vincular portal
 ├── 013-registro-portal-cliente-landing/ # Auto-provision alta + self-registro landing
-├── 014-finanzas-caja-mvp/            # Spec/plan caja (sin impl. aún)
+├── 014-finanzas-caja-mvp/            # Caja MVP + (018) CSV / baño→caja
+├── 015-desvincular-dual/             # Unlink staff↔portal
+├── 016-notas-internas-aislamiento/   # Nodo staff-only Historiales_Notas_Internas
+├── 017-fallecido-archivar-recordatorios/
+├── 018-finanzas-csv-banio-caja/
+├── 019-deprecar-remove-ui/
+├── 020-portal-mascotas-cliente-id/   # Rules query cliente_id
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

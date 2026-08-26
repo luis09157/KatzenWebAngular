@@ -104,6 +104,8 @@ export class ErrorMessagesService {
     'desactivar portal cliente': 'No se pudo desactivar el acceso al portal.',
     'reenviar acceso portal': 'No se pudo reenviar el acceso al portal.',
     'vincular portal dual': 'No se pudo vincular el portal dual al personal staff.',
+    'desvincular portal dual': 'No se pudo desvincular el portal dual del personal staff.',
+    'vincular baño a caja': 'No se pudo vincular el cobro del baño a caja.',
     'registro portal dueño': 'No se pudo completar el registro en el portal.',
     'cambiar contraseña portal': 'No se pudo cambiar la contraseña.'
   };

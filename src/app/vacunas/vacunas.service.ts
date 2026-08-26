@@ -125,9 +125,9 @@ export class VacunasService {
     return this.db.object(`Katzen/Vacunas/${id}`).update(cambios);
   }
 
-  // Eliminar vacuna
+  // Eliminar vacuna — Spec 019: nunca .remove(); siempre baja lógica
   eliminarVacuna(id: string): Promise<void> {
-    return this.db.object(`Katzen/Vacunas/${id}`).remove();
+    return this.bajaLogicaVacuna(id);
   }
 
   // Baja lógica: marcar como inactiva

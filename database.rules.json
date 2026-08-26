@@ -15,7 +15,7 @@
         }
       },
       "Mascota": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId))",
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
         ".indexOn": ["idCliente", "cliente_id", "activo", "sucursalId"],
         "$mascotaId": {
@@ -64,6 +64,14 @@
         ".indexOn": ["paciente_id", "activo"],
         "$historialId": {
           ".read": "auth != null && (auth.token.role != 'client' || (root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId && data.child('oculto_portal').val() != true && data.child('ocultoPortal').val() != true))",
+          ".write": "auth != null && auth.token.role != 'client'"
+        }
+      },
+      "Historiales_Notas_Internas": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        "$historialId": {
+          ".read": "auth != null && auth.token.role != 'client'",
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },

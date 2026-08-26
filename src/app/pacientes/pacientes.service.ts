@@ -97,7 +97,42 @@ export class PacientesService {
   }
 
   actualizarPaciente(id: string, cambios: Partial<Paciente>) {
-    return this.db.object(`Katzen/Mascota/${id}`).update(cambios);
+    const estado = String((cambios as { estado?: string }).estado || '').trim();
+    const marcarFallecido = estado.toLowerCase() === 'fallecido';
+    return this.db
+      .object(`Katzen/Mascota/${id}`)
+      .update(cambios)
+      .then(async () => {
+        if (marcarFallecido) {
+          await this.archivarRecordatoriosPorPaciente(id);
+        }
+      });
+  }
+
+  /** Spec 017: al marcar Fallecido, archivar recordatorios (baja lógica, no remove). */
+  async archivarRecordatoriosPorPaciente(pacienteId: string): Promise<number> {
+    if (!pacienteId) return 0;
+    const snap = await this.db.database
+      .ref('Katzen/Recordatorios')
+      .orderByChild('paciente_id')
+      .equalTo(pacienteId)
+      .once('value');
+    const val = snap.val() as Record<string, { activo?: boolean }> | null;
+    if (!val) return 0;
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const updates: Record<string, unknown> = {};
+    let count = 0;
+    for (const [rid, rec] of Object.entries(val)) {
+      if (rec?.activo === false) continue;
+      updates[`Katzen/Recordatorios/${rid}/activo`] = false;
+      updates[`Katzen/Recordatorios/${rid}/updated_at`] = timestamp;
+      updates[`Katzen/Recordatorios/${rid}/archivadoPorFallecido`] = true;
+      count++;
+    }
+    if (count > 0) {
+      await this.db.database.ref().update(updates);
+    }
+    return count;
   }
 
   // Baja lógica: marcar como inactivo (update parcial — no borra datos)

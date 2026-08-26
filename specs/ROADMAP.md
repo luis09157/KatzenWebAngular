@@ -97,14 +97,14 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja** | Spec/plan en `specs/014-finanzas-caja-mvp/` (MVP pendiente de implementación). | Alta — **spec draft** |
+| **Finanzas / caja** | Spec/plan en `specs/014-finanzas-caja-mvp/` + **018** CSV/baño→caja **hecho**. | Alta — **MVP + CSV/link** |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
-| **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; aislamiento RTDB hijo staff-only = fase 2. ~~`medico_atendio` obligatorio~~ hecho | Media |
+| **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |
-| **Portal / auth** | ~~Registro self-service landing~~ **013**; UI perfil dual post-login; ~~revocación sesiones~~ **hecho + deploy OK** | Media |
-| **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo (deploy DB pendiente)** | Media |
+| **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020** | Media |
+| **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
-| **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; archivo automático recordatorios (mascota Fallecido); ~~validación agenda~~ hecho 003 | Media |
+| **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |
 | **Plataforma** | Multi-sucursal; migración nodos legacy inventario (coordinar móvil); dashboard KPIs centralizado | Baja–media |
 
 ---

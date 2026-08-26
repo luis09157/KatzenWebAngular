@@ -14,10 +14,11 @@ import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { Banio } from '../shared/banio.model';
 import { LoggerService } from '../core/logger.service';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { exportToCsv } from '../core/utils/csv-export.util';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
 
 @Component({
   selector: 'app-banios',
@@ -418,6 +419,53 @@ export class BaniosComponent implements OnInit, OnDestroy {
         this.loadingService.hide();
         setTimeout(() => Swal.fire('Error', 'No se pudo marcar como pagado', 'error'), 0);
       });
+  }
+
+  /** Spec 018: registrar cobro en caja y vincular cajaMovimientoId. */
+  registrarEnCaja(banio: Banio): void {
+    if (!banio?.id) return;
+    if (banio.cajaMovimientoId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya vinculado a caja',
+        text: `Este baño ya tiene movimiento ${banio.cajaMovimientoId}. Evita doble cobro.`
+      });
+      return;
+    }
+    const metodo = (banio.metodo_pago || 'efectivo') as 'efectivo' | 'tarjeta' | 'transferencia';
+    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '560px',
+      disableClose: true,
+      data: {
+        fechaDefault: banio.fecha_banio || undefined,
+        banioId: banio.id,
+        concepto: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
+        monto: Number(banio.precio_total) || 0,
+        metodoPago: metodo,
+        notas: banio.observaciones || ''
+      }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {
+      const movId = result?.movimientoId || (result?.ok && result?.movimientoId);
+      if (!result || (!result.ok && !result.movimientoId)) return;
+      const id = result.movimientoId as string | undefined;
+      if (!id) return;
+      this.loadingService.show(LOADING_MESSAGES.updating);
+      try {
+        await this.baniosService.actualizarBanio(banio.id!, {
+          cajaMovimientoId: id,
+          pagado: true,
+          metodo_pago: metodo
+        });
+        this.cargarBanios();
+      } catch (error) {
+        this.logger.error('Error al vincular baño→caja:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular baño a caja'), 'error');
+      } finally {
+        this.loadingService.hide();
+      }
+    });
   }
 
   getEstadoColor(estado: string): string {

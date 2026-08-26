@@ -162,15 +162,8 @@ export class BaniosPacienteService {
   }
 
   eliminarBanioPaciente(id: string): Promise<void> {
-    return this.db.object<Banio>(`${this.basePath}/${id}`)
-      .remove()
-      .then(() => {
-        console.log('Baño eliminado exitosamente');
-      })
-      .catch(error => {
-        console.error('Error al eliminar baño:', error);
-        throw error;
-      });
+    /** @deprecated Spec 019 — no hard-delete */
+    return this.bajaLogicaBanioPaciente(id);
   }
 
   bajaLogicaBanioPaciente(id: string): Promise<void> {

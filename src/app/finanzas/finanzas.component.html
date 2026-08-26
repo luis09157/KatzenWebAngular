@@ -23,6 +23,10 @@
           <mat-label>Fecha</mat-label>
           <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
         </mat-form-field>
+        <button mat-stroked-button type="button" (click)="exportarCsv()" [disabled]="!dataSource.data.length">
+          <mat-icon>file_download</mat-icon>
+          Exportar CSV
+        </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevoMovimiento()">
           <mat-icon>add</mat-icon>
           Registrar cobro

@@ -15,15 +15,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SharedModule } from '../shared/shared.module';
 import { FinanzasRoutingModule } from './finanzas-routing.module';
 import { FinanzasComponent } from './finanzas.component';
-import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.component';
+import { CajaDialogModule } from './caja-dialog.module';
 
 @NgModule({
-  declarations: [FinanzasComponent, CajaMovimientoDialogComponent],
+  declarations: [FinanzasComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FinanzasRoutingModule,
     SharedModule,
+    CajaDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,

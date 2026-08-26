@@ -75,9 +75,13 @@ export class HistorialesService {
   async crearHistorial(historial: any): Promise<any> {
     try {
       const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      
+      const notasInternas = String(historial?.notas_internas || '').trim();
+      const { notas_internas: _omit, ...rest } = historial || {};
+
       const nuevoHistorial = {
-        ...historial,
+        ...rest,
+        // Spec 016: no persistir notas_internas en nodo legible por portal
+        notas_internas: null,
         created_at: timestamp,
         updated_at: timestamp,
         fecha_registro: historial.fecha_registro || timestamp,
@@ -87,6 +91,9 @@ export class HistorialesService {
 
       const ref = await this.db.list('Katzen/Historiales_Clinicos').push(nuevoHistorial);
       await stampRtdbIdAfterPush(this.db, 'Katzen/Historiales_Clinicos', ref.key);
+      if (ref.key && notasInternas) {
+        await this.guardarNotasInternas(ref.key, notasInternas);
+      }
       console.log('✅ Historial creado exitosamente:', ref.key);
       return ref;
     } catch (error) {
@@ -99,18 +106,55 @@ export class HistorialesService {
   async actualizarHistorial(id: string, cambios: any): Promise<void> {
     try {
       const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-      
-      const datosActualizados = {
-        ...cambios,
+      const hasNotas = Object.prototype.hasOwnProperty.call(cambios || {}, 'notas_internas');
+      const notasInternas = hasNotas ? String(cambios?.notas_internas || '').trim() : null;
+      const { notas_internas: _omit, ...rest } = cambios || {};
+
+      const datosActualizados: Record<string, unknown> = {
+        ...rest,
         updated_at: timestamp
       };
+      if (hasNotas) {
+        datosActualizados['notas_internas'] = null;
+      }
 
       await this.db.object(`Katzen/Historiales_Clinicos/${id}`).update(datosActualizados);
+      if (hasNotas) {
+        await this.guardarNotasInternas(id, notasInternas || '');
+      }
       console.log('✅ Historial actualizado exitosamente:', id);
     } catch (error) {
       console.error('❌ Error al actualizar historial:', error);
       throw new Error('No se pudo actualizar el historial');
     }
+  }
+
+  /** Spec 016 — notas solo staff (nodo aislado). */
+  async guardarNotasInternas(historialId: string, texto: string): Promise<void> {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    if (!texto) {
+      await this.db.object(`Katzen/Historiales_Notas_Internas/${historialId}`).update({
+        texto: '',
+        updated_at: timestamp
+      });
+      return;
+    }
+    await this.db.object(`Katzen/Historiales_Notas_Internas/${historialId}`).set({
+      texto,
+      updated_at: timestamp
+    });
+  }
+
+  async getNotasInternas(historialId: string): Promise<string> {
+    const snap = await this.db.database
+      .ref(`Katzen/Historiales_Notas_Internas/${historialId}`)
+      .once('value');
+    const privado = String(snap.val()?.texto || '').trim();
+    if (privado) return privado;
+    const legacy = await this.db.database
+      .ref(`Katzen/Historiales_Clinicos/${historialId}/notas_internas`)
+      .once('value');
+    return String(legacy.val() || '').trim();
   }
 
   /** Archiva historial en admin y oculta del portal mobile (update parcial — no remove). */

@@ -95,6 +95,15 @@
                     [disabled]="saving">
                     <mat-icon>link</mat-icon>
                   </button>
+                  <button
+                    *ngIf="isDualStaff(usuario)"
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Desvincular portal"
+                    (click)="desvincularPortalDual(usuario)"
+                    [disabled]="saving">
+                    <mat-icon>link_off</mat-icon>
+                  </button>
                   <button mat-icon-button type="button" matTooltip="Borrar" (click)="bajaLogicaUsuario(usuario.id)" [disabled]="saving"><mat-icon>delete_outline</mat-icon></button>
                 </div>
               </td>

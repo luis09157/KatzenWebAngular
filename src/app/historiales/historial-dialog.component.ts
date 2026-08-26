@@ -128,6 +128,17 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         oculto_portal: this.data.historial?.oculto_portal === true,
         notas_internas: this.data.historial?.notas_internas || ''
       });
+
+      if (this.isEditMode && this.data.historial?.id) {
+        this.historialesService
+          .getNotasInternas(this.data.historial.id)
+          .then((texto) => {
+            if (texto) {
+              this.historialForm.patchValue({ notas_internas: texto });
+            }
+          })
+          .catch(() => undefined);
+      }
       
       // Manejar fecha y hora por separado (sin conversión de zona horaria)
       if (this.data.historial?.fecha_registro) {

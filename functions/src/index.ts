@@ -136,7 +136,14 @@ async function syncClaimsForUid(uid: string): Promise<StaffClaims> {
   const snap = await db.ref(`Katzen/AuthPerfiles/${uid}`).once('value');
   const perfil = (snap.val() || null) as AuthPerfil | null;
   const claims = buildClaimsFromPerfil(perfil);
-  await admin.auth().setCustomUserClaims(uid, claims);
+  // null explícito limpia claims al desvincular dual (Auth no borra keys omitidas).
+  await admin.auth().setCustomUserClaims(uid, {
+    role: claims.role,
+    staffRole: claims.staffRole ?? null,
+    clienteId: claims.clienteId ?? null,
+    dualAccess: claims.dualAccess === true,
+    mustChangePassword: claims.mustChangePassword === true
+  });
   return claims;
 }
 
@@ -441,6 +448,97 @@ export const linkStaffPortalCliente = onCall(async (request) => {
     clienteId,
     dualAccess: claims.dualAccess === true,
     message: 'Perfil dual vinculado. El personal puede entrar al portal con la misma cuenta.'
+  };
+});
+
+interface UnlinkStaffPortalInput {
+  staffUid: string;
+}
+
+/** Admin: quita vínculo dual (staff vuelve a solo clínica; no borra Auth ni Cliente). Spec 015. */
+export const unlinkStaffPortalCliente = onCall(async (request) => {
+  if (!request.auth?.uid) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+
+  const callerAdmin = await isCallerAdmin(request.auth.uid, request.auth.token);
+  if (!callerAdmin) {
+    throw new HttpsError('permission-denied', 'Solo administradores pueden desvincular portal dual.');
+  }
+
+  const staffUid = String((request.data as UnlinkStaffPortalInput)?.staffUid || '').trim();
+  if (!staffUid) {
+    throw new HttpsError('invalid-argument', 'staffUid es requerido.');
+  }
+
+  const usuarioSnap = await db.ref(`Katzen/Usuarios/${staffUid}`).once('value');
+  if (!usuarioSnap.exists()) {
+    throw new HttpsError('not-found', 'Personal staff no encontrado.');
+  }
+
+  const perfilSnap = await db.ref(`Katzen/AuthPerfiles/${staffUid}`).once('value');
+  if (!perfilSnap.exists()) {
+    throw new HttpsError('not-found', 'Perfil de acceso no encontrado.');
+  }
+
+  const perfil = (perfilSnap.val() || {}) as AuthPerfil;
+  const clienteId = String(perfil.clienteId || '').trim();
+  const isDual =
+    perfil.role === 'dual' ||
+    (Array.isArray(perfil.roles) &&
+      perfil.roles.map((r) => String(r).toLowerCase()).includes('client') &&
+      !!clienteId);
+
+  if (!isDual) {
+    throw new HttpsError('failed-precondition', 'Este personal no tiene perfil dual activo.');
+  }
+
+  const staffRole =
+    perfil.staffRole ||
+    mapUsuarioPerfilToStaffRole(String(usuarioSnap.val()?.perfil || 'doctor'));
+
+  const timestamp = new Date().toISOString();
+
+  await db.ref(`Katzen/AuthPerfiles/${staffUid}`).update({
+    role: 'staff',
+    roles: ['staff'],
+    staffRole,
+    clienteId: null,
+    activo: true
+  });
+
+  if (clienteId) {
+    const clienteSnap = await db.ref(`Katzen/Cliente/${clienteId}`).once('value');
+    if (clienteSnap.exists()) {
+      const authUid = String(clienteSnap.val()?.authUid || '').trim();
+      if (!authUid || authUid === staffUid) {
+        await db.ref(`Katzen/Cliente/${clienteId}`).update({
+          authUid: null,
+          portalActivo: false,
+          portalUnlinkedAt: timestamp,
+          portalUnlinkedBy: request.auth.uid
+        });
+      }
+    }
+  }
+
+  const claims = await syncClaimsForUid(staffUid);
+
+  await db.ref('Katzen/PortalProvisionLog').push({
+    action: 'unlink_staff_dual',
+    clienteId: clienteId || null,
+    uid: staffUid,
+    emailSent: false,
+    createdAt: timestamp,
+    createdBy: request.auth.uid
+  });
+
+  return {
+    success: true,
+    uid: staffUid,
+    clienteId: clienteId || null,
+    dualAccess: claims.dualAccess === true,
+    message: 'Portal desvinculado. El personal conserva acceso al panel admin.'
   };
 });
 
