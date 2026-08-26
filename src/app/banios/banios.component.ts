@@ -233,7 +233,10 @@ export class BaniosComponent implements OnInit, OnDestroy {
 
   /**
    * Fuente primaria: campos del baño (`precio_total`, `pagado`, estado).
-   * Caja es refuerzo vía `pagado` / `cajaMovimientoId` — no se exige link para valor estimado.
+   * - Valor estimado / ingresos brutos: suma `precio_total` de no cancelados (aunque no haya caja).
+   * - Ingresos cobrados: pagado o vinculado a caja.
+   * - Ganancia (margen): ingresos brutos − costos del mismo set.
+   *   Si costo === precio_venta → margen 0 (esperado); el ingreso bruto igual sube.
    */
   calcularEstadisticas(): void {
     const banios = this.baniosActivos || [];
@@ -261,8 +264,10 @@ export class BaniosComponent implements OnInit, OnDestroy {
       if (b.costoEstimado == null || Number.isNaN(Number(b.costoEstimado))) return sum;
       return sum + Number(b.costoEstimado);
     }, 0);
+    // Margen sobre valor de venta del período (no solo cobrados), para que
+    // costo=venta → $0 sin ocultar que hubo ingreso bruto = valorEstimado.
     this.estadisticas.margenEstimado =
-      this.estadisticas.ingresosCobrados - this.estadisticas.costosEstimados;
+      this.estadisticas.valorEstimado - this.estadisticas.costosEstimados;
   }
 
   formatearFecha(fecha: any): string {

@@ -94,4 +94,6 @@ Cypress: admin-smoke 4 + modules 16 = 20 PASS
 | Baño sin `cajaMovimientoId` | OK | refuerzo en OwnerDashboardService |
 | Baño con `cajaMovimientoId` | OK | solo caja (sin doble conteo) |
 | Labels UI | OK | Ingresos brutos ≠ Ganancia neta |
-| Build | (pendiente en esta pasada) | |
+| Build | OK | `npm run build` exit 0 · Hash ca9db923e33fda82 |
+| Simulación 200/200 | OK | ingreso 200, ganancia 0 |
+| Live :4200 | OK | `ng serve` compiled successfully (banios chunk) |

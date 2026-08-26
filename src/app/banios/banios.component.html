@@ -19,14 +19,14 @@
   <app-admin-kpi-grid>
     <app-admin-stat-card accent="teal" [value]="estadisticas.delPeriodo" label="Baños del período" [hint]="estadisticas.totalHistorico + ' históricos'"></app-admin-stat-card>
     <app-admin-stat-card accent="green" [value]="estadisticas.completados" label="Completados" hint="En el período"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.ingresosCobrados)" label="Ingresos cobrados" hint="Pagado o en caja"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" [value]="formatMoney(estadisticas.valorEstimado)" label="Valor estimado" hint="Sin cancelados"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" [value]="formatMoney(estadisticas.valorEstimado)" label="Ingresos brutos" hint="Suma precio de venta · sin cancelados"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.ingresosCobrados)" label="Ingresos cobrados" hint="Solo pagado o en caja"></app-admin-stat-card>
   </app-admin-kpi-grid>
   <app-admin-kpi-grid class="kpi-secondary">
     <app-admin-stat-card accent="purple" [value]="estadisticas.programados" label="Programados" hint="Por realizar"></app-admin-stat-card>
     <app-admin-stat-card accent="pink" [value]="estadisticas.cancelados" label="Cancelados" hint="En el período"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.costosEstimados)" label="Costos estimados" hint="Si hay costoEstimado"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" [value]="formatMoney(estadisticas.margenEstimado)" label="Margen estimado" hint="Cobrados − costos"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.costosEstimados)" label="Costos estimados" hint="Campo costoEstimado"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" [value]="formatMoney(estadisticas.margenEstimado)" label="Ganancia (margen)" hint="Ingresos brutos − costos · si costo=venta → $0"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner

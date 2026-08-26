@@ -56,12 +56,38 @@ export class OwnerDashboardService {
         const ingresos = movPeriodo.filter((m) => m.tipo === 'ingreso');
         const egresos = movPeriodo.filter((m) => m.tipo === 'egreso');
 
-        const ventaBruta = sumMonto(ingresos);
-        const costosAsociados = ingresos.reduce((acc, m) => {
+        let ventaBruta = sumMonto(ingresos);
+        let costosAsociados = ingresos.reduce((acc, m) => {
           if (m.costoAsociado == null || Number.isNaN(Number(m.costoAsociado))) return acc;
           return acc + Number(m.costoAsociado);
         }, 0);
         const gastosOperativos = sumMonto(egresos);
+
+        const hoy = normalizeFechaIso(new Date().toISOString())!;
+        const baniosActivos = (banios || []).filter((b) => b.activo !== false);
+        const baniosPeriodo = baniosActivos.filter((b) =>
+          fechaEnRango(b.fecha_banio || b.created_at, rango)
+        );
+
+        /**
+         * Refuerzo baños sin movimiento de caja: suman precio_total a ingresos brutos
+         * y costoEstimado a costos. Evita doble conteo si ya hay `cajaMovimientoId`.
+         * Si costo === venta → ganancia del baño = 0, pero el ingreso bruto sí sube.
+         */
+        const baniosSinCaja = baniosPeriodo.filter(
+          (b) => b.estado !== 'cancelado' && !b.cajaMovimientoId
+        );
+        const ingresosBaniosSinCaja = baniosSinCaja.reduce(
+          (a, b) => a + (Number(b.precio_total) || 0),
+          0
+        );
+        const costosBaniosSinCaja = baniosSinCaja.reduce((a, b) => {
+          if (b.costoEstimado == null || Number.isNaN(Number(b.costoEstimado))) return a;
+          return a + Number(b.costoEstimado);
+        }, 0);
+        ventaBruta += ingresosBaniosSinCaja;
+        costosAsociados += costosBaniosSinCaja;
+
         const gananciaNeta = ventaBruta - costosAsociados - gastosOperativos;
 
         const financieros: OwnerKpisFinancieros = {
@@ -71,12 +97,6 @@ export class OwnerDashboardService {
           gananciaNeta,
           transaccionesPeriodo: movPeriodo.length
         };
-
-        const hoy = normalizeFechaIso(new Date().toISOString())!;
-        const baniosActivos = (banios || []).filter((b) => b.activo !== false);
-        const baniosPeriodo = baniosActivos.filter((b) =>
-          fechaEnRango(b.fecha_banio || b.created_at, rango)
-        );
         const citasActivas = (citas || []).filter((c: any) => c.activo !== false);
         const citasHoy = citasActivas.filter((c: any) => {
           const f = normalizeFechaIso(c.fecha || c.fecha_hora);
@@ -117,6 +137,11 @@ export class OwnerDashboardService {
           if (!f) continue;
           porDia.set(f, (porDia.get(f) || 0) + (Number(m.monto) || 0));
         }
+        for (const b of baniosSinCaja) {
+          const f = normalizeFechaIso(b.fecha_banio || b.created_at);
+          if (!f) continue;
+          porDia.set(f, (porDia.get(f) || 0) + (Number(b.precio_total) || 0));
+        }
         const serieIngresos = serieDiariaEnRango(
           rango,
           Array.from(porDia.entries()).map(([fecha, valor]) => ({ fecha, valor }))
@@ -124,28 +149,23 @@ export class OwnerDashboardService {
 
         const topServicios = this.topPorCategoria(ingresos);
         const topProductos = this.topProductosVenta(ingresos);
-        // Refuerzo baños sin caja: agregar valor estimado del período
-        if (!topServicios.some((t) => /baño|pelu/i.test(t.nombre))) {
-          const valorBanios = baniosPeriodo
-            .filter((b) => b.estado !== 'cancelado')
-            .reduce((a, b) => a + (Number(b.precio_total) || 0), 0);
-          if (valorBanios > 0) {
-            topServicios.push({
-              rank: topServicios.length + 1,
-              nombre: 'Baños / peluquería (estimado)',
-              detalle: `${baniosPeriodo.length} servicio(s) del período`,
-              monto: valorBanios
-            });
-            topServicios.sort((a, b) => b.monto - a.monto);
-            topServicios.forEach((t, i) => (t.rank = i + 1));
-          }
+        // Refuerzo top: baños sin categoría de caja (usa el mismo set sin doble conteo)
+        if (!topServicios.some((t) => /baño|pelu/i.test(t.nombre)) && ingresosBaniosSinCaja > 0) {
+          topServicios.push({
+            rank: topServicios.length + 1,
+            nombre: 'Baños / peluquería (estimado)',
+            detalle: `${baniosSinCaja.length} servicio(s) sin caja · precio de venta`,
+            monto: ingresosBaniosSinCaja
+          });
+          topServicios.sort((a, b) => b.monto - a.monto);
+          topServicios.forEach((t, i) => (t.rank = i + 1));
         }
 
         const resumen: OwnerDashboardSnapshot['resumen'] = [
-          { label: 'Ingresos (venta bruta)', value: ventaBruta, tone: 'ok' },
+          { label: 'Ingresos brutos (venta)', value: ventaBruta, tone: 'ok' },
           { label: 'Costos de servicio', value: costosAsociados, tone: 'cost' },
           { label: 'Gastos operativos', value: gastosOperativos, tone: 'gasto' },
-          { label: 'Ganancia neta', value: gananciaNeta, tone: 'neto' }
+          { label: 'Ganancia neta (≠ ingresos)', value: gananciaNeta, tone: 'neto' }
         ];
 
         return {

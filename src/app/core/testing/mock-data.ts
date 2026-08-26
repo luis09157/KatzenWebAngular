@@ -267,4 +267,18 @@ export const MOCK_BANIO = {
   created_by: 'mock-staff-001'
 };
 
+/**
+ * Caso costo = venta → margen 0, ingreso bruto 200 (spec 025 fix).
+ * Sin cajaMovimientoId: debe reforzar dashboard ingresos.
+ */
+export const MOCK_BANIO_COSTO_IGUAL_VENTA = {
+  ...MOCK_BANIO,
+  id: 'mock-banio-margen-cero',
+  precio_base: 200,
+  precio_total: 200,
+  costoEstimado: 200,
+  pagado: true,
+  fecha_banio: '2026-08-26'
+};
+
 
