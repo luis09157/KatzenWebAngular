@@ -93,6 +93,15 @@
           }
         }
       },
+      "FcmTokens": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
+          ".write": "auth != null && auth.uid == $uid",
+          "$tokenKey": {
+            ".validate": "newData.hasChildren(['token']) && newData.child('token').isString()"
+          }
+        }
+      },
       "ContactosWeb": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": false,

@@ -10,6 +10,8 @@ import {
 } from './portal-mail';
 import * as crypto from 'crypto';
 
+export { onRecordatorioWritePush } from './recordatorio-push';
+
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
 
