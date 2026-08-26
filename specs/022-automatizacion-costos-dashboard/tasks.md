@@ -65,7 +65,7 @@
 - [x] Guía QA (formularios defaults, diálogo baño, KPIs)
 - [x] `npm run build` OK — exit 0 (2026-08-26)
 - [x] Live preview `:4200` vivo
-- [x] Cypress smoke: admin-smoke + modules-authenticated + admin-crud-finanzas — **20/20 PASS**
+- [x] Cypress smoke: admin-smoke + crud-routes + modules-authenticated + admin-crud-finanzas + banios-flujos — **43/43 PASS** (revalidación 2026-08-26)
 - [x] Design system: KPI grid, admin-dialog-shell, loading contextual
 - [x] Tabla resultados rellenada **antes** de marcar `[x]`
 
@@ -82,7 +82,7 @@
 | Venta→caja | OK | Checkbox salida `venta_directa` |
 | Build | OK | exit 0 |
 | :4200 smoke | OK | ng serve vivo |
-| Cypress | OK | 20/20 (smoke + modules + finanzas) |
+| Cypress | OK | 43/43 (smoke, routes, modules+pensión, finanzas, baños) |
 
 ---
 

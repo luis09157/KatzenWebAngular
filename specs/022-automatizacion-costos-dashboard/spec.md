@@ -54,7 +54,7 @@ Luis pide: **automatizar + métricas inventario + baños + pensión (diseño) + 
 | `historial_clinico_id` en movimiento | Modelo + service | Campo listo; **UI historial no lo dispara** |
 | Proveedores + OC | Inventario | CRUD existente |
 | Card Finanzas en `/admin/inicio` | `dashboard.component` | **Falta** |
-| Pensión / alojamiento | — | **No existe** |
+| Pensión / alojamiento | `/admin/pension` | **Scaffold MVP (B1) en A** — lista/alta/caja; defaults tamaño + comida = B |
 | Librería de charts | `package.json` | **Ninguna** |
 
 ---
