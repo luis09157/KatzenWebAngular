@@ -85,7 +85,7 @@ Checklist automático en `tasks.md`:
 
 | Item | Descripción |
 |------|-------------|
-| E2E portal login + cambio password | `cypress/e2e/portal-*.cy.ts` |
+| E2E portal login + cambio password | `cypress/e2e/portal-guest.cy.ts` + `portal-auth-smoke.cy.ts` (`npm run cy:portal`) — auth skip sin `portalEmail`/`portalPassword` |
 | E2E usuarios portal (activar/reenviar) | mock o staging |
 | Unit tests servicios críticos | `portal-clientes.service`, `auth-profile` |
 
@@ -97,14 +97,15 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja / ops** | **014/018/021** hechos. **022 done (A–D):** valuación invent. + baño→caja + venta→caja + historial/vacuna consumo + pensión + gráficas + egresos tipificados. **E** opcional (OC→egreso). — `specs/022-automatizacion-costos-dashboard/` | Media — **E opcional** |
-| **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
+| **Finanzas / caja / ops** | **014/018/021** hechos. **022 done (A–E):** valuación + baño/venta→caja + historial/vacuna + pensión pulida + gráficas + egresos + **OC→egreso**. — `specs/022-automatizacion-costos-dashboard/` | Media — **cerrada** |
+| **Notificaciones** | ~~Push Firebase desde recordatorios~~ **023 MVP** (`onRecordatorioWritePush` + FcmTokens). Tokens portal/móvil = fase B. | Alta — **MVP hecho** |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |
-| **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020** | Media |
+| **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; **Cypress portal** guest + auth (skip sin env) | Media |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |
+| **Fiscal** | **024** preparación CFDI (datos fiscales cliente; **sin PAC/timbrar** hasta OK Luis) — `specs/024-cfdi-preparacion/` | Media — fase 1 |
 | **Plataforma** | Multi-sucursal; migración nodos legacy inventario (coordinar móvil); dashboard KPIs centralizado | Baja–media |
 
 ---

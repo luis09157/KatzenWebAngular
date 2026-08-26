@@ -50,6 +50,16 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 
 > **Correos diferidos por decisión Luis (2026-08-26):** no priorizar setup Resend ni marcar PASS de entrega hasta el **final** de lo que se construya. Seguir implementando features sin depender de correo real. Ver `specs/ROADMAP.md` → «Al final — Resend».
 
+### Verificación ciclo 2026-08-26 (agente)
+
+| Check | Resultado |
+|-------|-----------|
+| Docs AGENTS / ROADMAP / esta matrix | OK alineados |
+| Inventar `RESEND_API_KEY` | **NO** (prohibido) |
+| Secret en proyecto | Esperado **404** hasta que Luis setee |
+| Deploy functions portal mail | **BLOQUEADO** sin secret |
+| Código mail existente | OK (`portal-mail.ts`); `emailSent: false` si falta key |
+
 ### Límites honestos
 
 | Escenario | ¿Funciona? |
@@ -67,13 +77,16 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 
 ### Pasos para Luis
 
-1. Crear API key en https://resend.com  
-2. `firebase functions:secrets:set RESEND_API_KEY`  
-3. Opcional: `PORTAL_FROM_EMAIL` con dominio verificado  
-4. `npm run functions:build && firebase deploy --only functions:provisionPortalClient,functions:resendPortalClientAccess,functions:registerPortalOwner`  
-5. Probar solo al email de la cuenta Resend en modo prueba  
-6. **No marcar PASS correo a clientes** hasta dominio propio  
+1. Crear API key en https://resend.com
+2. `firebase functions:secrets:set RESEND_API_KEY`
+3. Opcional: `PORTAL_FROM_EMAIL` con dominio verificado
+4. `npm run functions:build && firebase deploy --only functions:provisionPortalClient,functions:resendPortalClientAccess,functions:registerPortalOwner`
+5. Probar solo al email de la cuenta Resend en modo prueba
+6. **No marcar PASS correo a clientes** hasta dominio propio
 
+### Decisión ciclo actual
+
+**Dejar al final.** No deploy mail. No inventar key.
 ---
 
 ## Matriz por módulo (delta)
