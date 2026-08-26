@@ -100,6 +100,6 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 
 ## Deploy (autorizado)
 
-- hosting (UI)  
-- functions: `unlinkStaffPortalCliente` (+ syncClaims null-out en shared)  
-- database (rules Mascota + Historiales_Notas_Internas)  
+- [x] hosting (UI) → https://katzen-a0e3e.web.app  
+- [x] database (rules Mascota `cliente_id` + `Historiales_Notas_Internas`)  
+- [ ] functions:`unlinkStaffPortalCliente` — **BLOQUEADO** hasta `firebase functions:secrets:set RESEND_API_KEY` (Firebase exige el secret al analizar el codebase). UI desvincular tiene **fallback RTDB** operativo.  
