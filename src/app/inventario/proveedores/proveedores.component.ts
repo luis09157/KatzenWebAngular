@@ -39,6 +39,22 @@ export class ProveedoresComponent implements OnInit, AfterViewInit, OnDestroy {
   dataSource: MatTableDataSource<Proveedor>;
   proveedores: Proveedor[] = [];
   loading = true;
+
+  get kpiTotal(): number {
+    return this.proveedores.length;
+  }
+
+  get kpiActivos(): number {
+    return this.proveedores.filter((p) => p.activo !== false).length;
+  }
+
+  get kpiSinEmail(): number {
+    return this.proveedores.filter((p) => p.activo !== false && !p.contacto_email).length;
+  }
+
+  get kpiInactivos(): number {
+    return this.proveedores.filter((p) => p.activo === false).length;
+  }
   menuContext: Proveedor | null = null;
 
   constructor(

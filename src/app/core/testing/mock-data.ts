@@ -206,4 +206,65 @@ export const MOCK_PENSION_ESTANCIA = {
   created_by: 'mock-staff'
 };
 
+/** Snapshot mock dashboard dueño (spec 025) — preview UI sin RTDB. */
+export const MOCK_OWNER_DASHBOARD = {
+  preset: 'este_mes' as const,
+  rango: { desde: '2026-08-01', hasta: '2026-08-31', label: 'Este mes (2026-08)' },
+  financieros: {
+    ventaBruta: 18500,
+    costosAsociados: 4200,
+    gastosOperativos: 3100,
+    gananciaNeta: 11200,
+    transaccionesPeriodo: 42
+  },
+  operativos: {
+    citasHoy: 5,
+    citasPeriodo: 48,
+    baniosPeriodo: 22,
+    stockBajo: 3,
+    clientesNuevosPeriodo: 7,
+    pensionActivas: 2
+  },
+  topServicios: [
+    { rank: 1, nombre: 'Baño / peluquería', detalle: '12 cobro(s)', monto: 6400 },
+    { rank: 2, nombre: 'Consulta', detalle: '18 cobro(s)', monto: 5400 },
+    { rank: 3, nombre: 'Vacuna', detalle: '6 cobro(s)', monto: 2100 }
+  ],
+  topProductos: [
+    { rank: 1, nombre: 'Croquetas premium 2kg', detalle: '4 venta(s)', monto: 1800 },
+    { rank: 2, nombre: 'Antipulgas Mock', detalle: '3 venta(s)', monto: 960 }
+  ],
+  serieIngresos: [
+    { fecha: '2026-08-01', ingresos: 400 },
+    { fecha: '2026-08-07', ingresos: 1200 },
+    { fecha: '2026-08-15', ingresos: 800 },
+    { fecha: '2026-08-21', ingresos: 1500 },
+    { fecha: '2026-08-26', ingresos: 950 }
+  ]
+};
+
+/** Baño mock para KPIs de peluquería (spec 025). */
+export const MOCK_BANIO = {
+  id: 'mock-banio-001',
+  paciente_id: 'mock-mascota-001',
+  cliente_id: 'mock-cliente-001',
+  fecha_banio: '2026-08-20',
+  hora_banio: '11:00',
+  tipo_servicio: 'baño_completo' as const,
+  estado: 'completado' as const,
+  prioridad: 'media' as const,
+  peluquero_id: 'mock-staff-001',
+  precio_base: 350,
+  precio_total: 450,
+  pagado: true,
+  metodo_pago: 'efectivo' as const,
+  tamano_perro: 'mediano' as const,
+  costoEstimado: 120,
+  duracion_estimada: 60,
+  activo: true,
+  created_at: '2026-08-20T11:00:00.000Z',
+  updated_at: '2026-08-20T12:00:00.000Z',
+  created_by: 'mock-staff-001'
+};
+
 

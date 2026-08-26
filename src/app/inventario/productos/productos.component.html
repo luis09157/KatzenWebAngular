@@ -1,4 +1,12 @@
 <div class="admin-page productos-container">
+  <p class="section-eyebrow">Resumen del catálogo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="orange" [value]="kpiTotal" label="Productos activos" hint="En catálogo"></app-admin-stat-card>
+    <app-admin-stat-card accent="pink" [value]="kpiStockBajo" label="Stock bajo" hint="Requieren reposición"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" [value]="formatMoney(kpiInvertido)" label="Invertido (costo)" hint="Stock × compra"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" [value]="formatMoney(kpiValorVenta)" label="Valor a venta" hint="Stock × precio venta"></app-admin-stat-card>
+  </app-admin-kpi-grid>
+
   <app-admin-page-banner
     accent="orange"
     icon="inventory_2"

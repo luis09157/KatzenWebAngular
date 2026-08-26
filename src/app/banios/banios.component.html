@@ -1,10 +1,32 @@
 <div class="admin-page banios-contenedor">
-  <p class="section-eyebrow">Resumen del módulo</p>
+  <p class="section-eyebrow">Resumen del módulo · {{ periodoKpiLabel }}</p>
+  <div class="kpi-periodo-bar">
+    <button
+      mat-stroked-button
+      type="button"
+      [class.periodo-activo]="periodoKpi === 'este_mes'"
+      (click)="setPeriodoKpi('este_mes')">
+      Este mes
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [class.periodo-activo]="periodoKpi === '30d'"
+      (click)="setPeriodoKpi('30d')">
+      30 días
+    </button>
+  </div>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="teal" icon="shower" [value]="estadisticas.total" label="Total baños" hint="En el sistema"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" icon="schedule" [value]="estadisticas.programados" label="Programados" hint="Por realizar"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.completados" label="Completados" hint="Finalizados"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" icon="attach_money" [value]="estadisticas.ingresos_totales" label="Ingresos totales" hint="Servicios cobrados"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" [value]="estadisticas.delPeriodo" label="Baños del período" [hint]="estadisticas.totalHistorico + ' históricos'"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" [value]="estadisticas.completados" label="Completados" hint="En el período"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.ingresosCobrados)" label="Ingresos cobrados" hint="Pagado o en caja"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" [value]="formatMoney(estadisticas.valorEstimado)" label="Valor estimado" hint="Sin cancelados"></app-admin-stat-card>
+  </app-admin-kpi-grid>
+  <app-admin-kpi-grid class="kpi-secondary">
+    <app-admin-stat-card accent="purple" [value]="estadisticas.programados" label="Programados" hint="Por realizar"></app-admin-stat-card>
+    <app-admin-stat-card accent="pink" [value]="estadisticas.cancelados" label="Cancelados" hint="En el período"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="formatMoney(estadisticas.costosEstimados)" label="Costos estimados" hint="Si hay costoEstimado"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" [value]="formatMoney(estadisticas.margenEstimado)" label="Margen estimado" hint="Cobrados − costos"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner
@@ -28,7 +50,7 @@
     accent="teal"
     title="Listado de baños"
     description="Busca por paciente, cliente o tipo de servicio."
-    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
+    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.totalHistorico + ' totales') : ''"
     [showLegend]="!loading && !!dataSource?.data?.length">
 
     <mat-form-field appearance="outline" class="buscador panel-search">

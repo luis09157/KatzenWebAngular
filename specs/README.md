@@ -40,6 +40,7 @@ specs/
 ├── 022-automatizacion-costos-dashboard/ # **done** A–E: valuación + baño/venta→caja + historial/pensión + gráficas + egresos + OC→egreso
 ├── 023-push-fcm-recordatorios/          # **done** MVP CF push + FcmTokens
 ├── 024-cfdi-preparacion/                # **done** datos fiscales; sin PAC
+├── 025-metricas-servicios-dashboard/    # KPIs por módulo + dashboard dueño `/admin/inicio`
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

@@ -1,4 +1,12 @@
 <div class="admin-page proveedores-container">
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card accent="teal" [value]="kpiTotal" label="Total proveedores" hint="En catálogo"></app-admin-stat-card>
+    <app-admin-stat-card accent="green" [value]="kpiActivos" label="Activos" hint="Disponibles"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="kpiSinEmail" label="Sin email" hint="Falta contacto"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" [value]="kpiInactivos" label="Inactivos" hint="Baja lógica"></app-admin-stat-card>
+  </app-admin-kpi-grid>
+
   <app-admin-page-banner
     accent="teal"
     icon="store"

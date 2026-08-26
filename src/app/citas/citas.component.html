@@ -1,7 +1,7 @@
 <div class="admin-page citas-contenedor">
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="purple" icon="event" [value]="dataSource.data.length" label="Total citas" hint="En el sistema"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" icon="today" [value]="getCitasHoy()" label="Citas hoy" hint="Agenda del día"></app-admin-stat-card>
     <app-admin-stat-card accent="orange" icon="schedule" [value]="getCitasPendientes()" label="Pendientes" hint="Por confirmar"></app-admin-stat-card>
     <app-admin-stat-card accent="blue" icon="check_circle" [value]="getCitasConfirmadas()" label="Confirmadas" hint="Agendadas"></app-admin-stat-card>
     <app-admin-stat-card accent="green" icon="done_all" [value]="getCitasCompletadas()" label="Completadas" hint="Atendidas"></app-admin-stat-card>

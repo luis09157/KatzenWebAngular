@@ -46,6 +46,35 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   filtroProveedorId = '';
   menuContext: Producto | null = null;
 
+  get kpiTotal(): number {
+    return this.productos.filter((p) => p.activo !== false).length;
+  }
+
+  get kpiStockBajo(): number {
+    return this.productos.filter((p) => {
+      if (p.activo === false) return false;
+      const stock = Number(p.stock_actual) || 0;
+      const min = Number(p.stock_minimo) || 0;
+      return min > 0 && stock <= min;
+    }).length;
+  }
+
+  get kpiInvertido(): number {
+    return this.productos
+      .filter((p) => p.activo !== false && (Number(p.stock_actual) || 0) > 0)
+      .reduce((a, p) => a + (Number(p.stock_actual) || 0) * (Number(p.precio_compra) || 0), 0);
+  }
+
+  get kpiValorVenta(): number {
+    return this.productos
+      .filter((p) => p.activo !== false && (Number(p.stock_actual) || 0) > 0)
+      .reduce((a, p) => a + (Number(p.stock_actual) || 0) * (Number(p.precio_venta) || 0), 0);
+  }
+
+  formatMoney(n: number): string {
+    return `$${(Number(n) || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`;
+  }
+
   constructor(
     private inventarioService: InventarioService,
     private dialog: MatDialog,

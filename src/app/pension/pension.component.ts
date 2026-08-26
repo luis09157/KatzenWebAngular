@@ -41,6 +41,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   totalActivas = 0;
   totalReservadas = 0;
+  totalFinalizadas = 0;
   ocupacionVisible = 0;
   valorEstimado = 0;
 
@@ -77,6 +78,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
           this.dataSource.data = rows;
           this.totalActivas = rows.filter((r) => r.estado === 'activa').length;
           this.totalReservadas = rows.filter((r) => r.estado === 'reservada').length;
+          this.totalFinalizadas = rows.filter((r) => r.estado === 'finalizada').length;
           this.ocupacionVisible = this.totalActivas;
           this.valorEstimado = rows
             .filter((r) => r.estado === 'activa' || r.estado === 'reservada')

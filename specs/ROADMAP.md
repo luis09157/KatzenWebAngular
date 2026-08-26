@@ -106,7 +106,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |
 | **Fiscal** | **024** preparación CFDI (datos fiscales cliente; **sin PAC/timbrar** hasta OK Luis) — `specs/024-cfdi-preparacion/` | Media — fase 1 |
-| **Plataforma** | Multi-sucursal; migración nodos legacy inventario (coordinar móvil); dashboard KPIs centralizado | Baja–media |
+| **Plataforma** | Multi-sucursal; migración nodos legacy inventario (coordinar móvil); ~~dashboard KPIs centralizado~~ **025 done** (`/admin/inicio` dueño + KPIs por módulo) | Media — **cerrada** |
 
 ---
 

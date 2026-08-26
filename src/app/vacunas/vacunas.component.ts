@@ -34,7 +34,8 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     total: 0,
     pendientes: 0,
     aplicadas: 0,
-    pacientesUnicos: 0
+    pacientesUnicos: 0,
+    delMes: 0
   };
 
   constructor(
@@ -147,6 +148,11 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     // Pacientes únicos
     const pacientesIds = [...new Set(vacunas.map(v => v.paciente_id))];
     this.estadisticas.pacientesUnicos = pacientesIds.length;
+    const mes = new Date().toISOString().slice(0, 7);
+    this.estadisticas.delMes = vacunas.filter((v) => {
+      const f = String(v.fecha_vacuna || v.fecha_aplicacion || v.created_at || '');
+      return f.slice(0, 7) === mes;
+    }).length;
   }
 
   formatearFecha(fecha: any): string {

@@ -46,6 +46,22 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Supervisor ligero (admin/doctor) — spec 007 */
   puedeAjustar = false;
 
+  get kpiTotal(): number {
+    return this.movimientos.length;
+  }
+
+  get kpiEntradas(): number {
+    return this.movimientos.filter((m) => m.tipo === 'entrada').length;
+  }
+
+  get kpiSalidas(): number {
+    return this.movimientos.filter((m) => m.tipo === 'salida').length;
+  }
+
+  get kpiMermas(): number {
+    return this.movimientos.filter((m) => m.tipo === 'merma').length;
+  }
+
   // Filtros
   filtroTexto = '';
   filtroTipo = 'todos';

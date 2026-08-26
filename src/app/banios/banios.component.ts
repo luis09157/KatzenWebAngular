@@ -19,6 +19,12 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { exportToCsv } from '../core/utils/csv-export.util';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
+import {
+  PeriodoPreset,
+  fechaEnRango,
+  formatMoneyMx,
+  resolverPeriodo
+} from '../core/utils/periodo-filtro.util';
 
 @Component({
   selector: 'app-banios',
@@ -40,12 +46,20 @@ export class BaniosComponent implements OnInit, OnDestroy {
   // Propiedades para estadísticas y loading
   loading = false;
   tablaInicializada = false;
+  private baniosActivos: Banio[] = [];
+  /** Spec 025 — mes actual default; opcional semana. */
+  periodoKpi: PeriodoPreset = 'este_mes';
   estadisticas = {
-    total: 0,
+    totalHistorico: 0,
+    delPeriodo: 0,
     programados: 0,
     en_proceso: 0,
     completados: 0,
-    ingresos_totales: 0
+    cancelados: 0,
+    ingresosCobrados: 0,
+    valorEstimado: 0,
+    costosEstimados: 0,
+    margenEstimado: 0
   };
 
   constructor(
@@ -157,8 +171,9 @@ export class BaniosComponent implements OnInit, OnDestroy {
             tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
             estado_texto: this.formatearTextoSeguro(banio.estado)
           }));
+          this.baniosActivos = baniosActivos as Banio[];
           this.actualizarTablaSegura(nuevosDatos);
-          this.calcularEstadisticas(baniosActivos);
+          this.calcularEstadisticas();
           this.loading = false;
         } catch (error) {
           this.logger.error('❌ Error al procesar datos de baños:', error);
@@ -203,15 +218,51 @@ export class BaniosComponent implements OnInit, OnDestroy {
     }
   }
 
-  calcularEstadisticas(banios: Banio[]) {
-    this.estadisticas.total = banios.length;
-    this.estadisticas.programados = banios.filter(b => b.estado === 'programado').length;
-    this.estadisticas.en_proceso = banios.filter(b => b.estado === 'en_proceso').length;
-    this.estadisticas.completados = banios.filter(b => b.estado === 'completado').length;
-    
-    this.estadisticas.ingresos_totales = banios
-      .filter(b => b.pagado)
-      .reduce((sum, b) => sum + (b.precio_total || 0), 0);
+  setPeriodoKpi(preset: 'este_mes' | '30d'): void {
+    this.periodoKpi = preset;
+    this.calcularEstadisticas();
+  }
+
+  formatMoney(n: number): string {
+    return formatMoneyMx(n, 0);
+  }
+
+  get periodoKpiLabel(): string {
+    return resolverPeriodo(this.periodoKpi).label;
+  }
+
+  /**
+   * Fuente primaria: campos del baño (`precio_total`, `pagado`, estado).
+   * Caja es refuerzo vía `pagado` / `cajaMovimientoId` — no se exige link para valor estimado.
+   */
+  calcularEstadisticas(): void {
+    const banios = this.baniosActivos || [];
+    const rango = resolverPeriodo(this.periodoKpi);
+    const delPeriodo = banios.filter((b) =>
+      fechaEnRango(b.fecha_banio || b.created_at, rango)
+    );
+    const noCancel = delPeriodo.filter((b) => b.estado !== 'cancelado');
+
+    this.estadisticas.totalHistorico = banios.length;
+    this.estadisticas.delPeriodo = delPeriodo.length;
+    this.estadisticas.programados = delPeriodo.filter((b) => b.estado === 'programado').length;
+    this.estadisticas.en_proceso = delPeriodo.filter((b) => b.estado === 'en_proceso').length;
+    this.estadisticas.completados = delPeriodo.filter((b) => b.estado === 'completado').length;
+    this.estadisticas.cancelados = delPeriodo.filter((b) => b.estado === 'cancelado').length;
+
+    this.estadisticas.valorEstimado = noCancel.reduce(
+      (sum, b) => sum + (Number(b.precio_total) || 0),
+      0
+    );
+    this.estadisticas.ingresosCobrados = noCancel
+      .filter((b) => b.pagado || !!b.cajaMovimientoId)
+      .reduce((sum, b) => sum + (Number(b.precio_total) || 0), 0);
+    this.estadisticas.costosEstimados = noCancel.reduce((sum, b) => {
+      if (b.costoEstimado == null || Number.isNaN(Number(b.costoEstimado))) return sum;
+      return sum + Number(b.costoEstimado);
+    }, 0);
+    this.estadisticas.margenEstimado =
+      this.estadisticas.ingresosCobrados - this.estadisticas.costosEstimados;
   }
 
   formatearFecha(fecha: any): string {

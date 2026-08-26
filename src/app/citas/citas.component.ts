@@ -165,6 +165,25 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 0);
   }
 
+  getCitasHoy(): number {
+    const hoy = new Date();
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const d = String(hoy.getDate()).padStart(2, '0');
+    const key = `${y}-${m}-${d}`;
+    return this.dataSource.data.filter((cita) => {
+      const raw = String(cita.fecha || cita.fecha_hora || '');
+      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10) === key;
+      const dt = new Date(raw);
+      if (isNaN(dt.getTime())) return false;
+      return (
+        dt.getFullYear() === hoy.getFullYear() &&
+        dt.getMonth() === hoy.getMonth() &&
+        dt.getDate() === hoy.getDate()
+      );
+    }).length;
+  }
+
   getCitasPendientes(): number {
     return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'pendiente').length;
   }

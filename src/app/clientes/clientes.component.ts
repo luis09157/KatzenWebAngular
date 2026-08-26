@@ -44,6 +44,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesConPacientes: number = 0;
   clientesConCorreo: number = 0;
   clientesConExpediente: number = 0;
+  clientesNuevosMes: number = 0;
 
   // Datos originales y filtrados
   todosLosClientes: any[] = [];
@@ -195,6 +196,12 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           pacientes.clienteIdsConPaciente,
           sucursalId
         );
+        const mes = new Date().toISOString().slice(0, 7);
+        this.clientesNuevosMes = (clientes || []).filter((c: any) => {
+          if (c.activo === false) return false;
+          const f = String(c.fecha_registro || c.created_at || c.fecha_creacion || '');
+          return f.slice(0, 7) === mes;
+        }).length;
       },
       error: err => this.logger.error('Error al cargar estadísticas de clientes:', err)
     });

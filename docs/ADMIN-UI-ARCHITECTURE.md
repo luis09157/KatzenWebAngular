@@ -148,18 +148,29 @@ Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). A
     <mat-icon matPrefix>search</mat-icon>
     <input matInput (keyup)="applyFilter($event)" placeholder="…" />
   </mat-form-field>
-
-  <div class="table-scroll">
-    <table mat-table … class="admin-table">…</table>
-  </div>
-</app-admin-data-panel>
 ```
 
 - **Obligatorio:** clase `.panel-search` (o `.buscador.panel-search`) en el `mat-form-field` de búsqueda/filtro dentro del panel.
 - Estilos canónicos en `admin-table.scss` / `admin-crud.scss`: `margin: 8px 28px 22px`, `width: calc(100% - 56px)`, `max-width: 420px` — alinea el campo con el padding del contenido de la tabla (sin overflow ni desfase a la izquierda).
 - **Prohibido:** márgenes locales tipo `.filter-field { margin-bottom: … }` sin el margen lateral de `.panel-search` (deja el buscador pegado al borde del card).
 - Responsive: el `width: calc(100% - 56px)` + `max-width: 420px` se adapta; no forzar anchos fijos que desborden en móvil.
-- Referencia: Clientes, Citas, Finanzas, Inventario.
+- Referencia: Clientes, Citas, Finanzas, Inventario, Pensión.
+
+### KPIs operativos (obligatorio en módulos CRUD admin)
+
+Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, historiales, inventario, pensión, finanzas, usuarios, recordatorios, etc.) **debe** exponer un `app-admin-kpi-grid` con **3–4** `app-admin-stat-card` defaults:
+
+| Tipo típico | Ejemplo |
+|-------------|---------|
+| Conteo período / total | Baños del mes, citas hoy, productos activos |
+| Económico (si hay precio/caja) | Ingresos cobrados, valor estimado, invertido stock |
+| Estado | Completados vs cancelados, pendientes, stock bajo |
+| Alerta útil | Sin correo, por caducar, abiertas OC |
+
+- **v1 defaults refinables** — no bloquear entrega por métricas “perfectas”.
+- Dinero: pasar string formateado (`$1,200`) o número; `admin-stat-card` muestra ambos.
+- Spec: `specs/025-metricas-servicios-dashboard/` · Dashboard central: `/admin/inicio`.
+- Hub de negocio (dueña): filtros de período + KPIs financieros/operativos + tops + serie diaria — **no** copiar branding de terceros; tokens Katzen.
 
 ### Layout ancho (desktop)
 

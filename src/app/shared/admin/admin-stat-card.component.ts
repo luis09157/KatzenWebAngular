@@ -16,4 +16,17 @@ export class AdminStatCardComponent {
   @Input() hint = '';
   /** Color del borde superior — estilo tarjeta premium. */
   @Input() accent: AdminStatAccent = 'teal';
+
+  /** Números con separador; strings (p. ej. $1,200.00) se muestran tal cual. */
+  get displayValue(): string {
+    if (typeof this.value === 'string') {
+      const trimmed = this.value.trim();
+      if (trimmed === '') return '0';
+      if (Number.isNaN(Number(trimmed)) || /[^\d.,\s-]/.test(trimmed)) {
+        return trimmed;
+      }
+      return Number(trimmed).toLocaleString('es-MX');
+    }
+    return (Number(this.value) || 0).toLocaleString('es-MX');
+  }
 }

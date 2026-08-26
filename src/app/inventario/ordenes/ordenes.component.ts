@@ -41,6 +41,28 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   menuContext: OrdenCompra | null = null;
 
+  get kpiTotal(): number {
+    return this.ordenes.length;
+  }
+
+  get kpiPendientes(): number {
+    return this.ordenes.filter((o) => o.estado === 'borrador' || o.estado === 'enviada').length;
+  }
+
+  get kpiRecibidas(): number {
+    return this.ordenes.filter((o) => o.estado === 'recibida' || o.estado === 'parcial').length;
+  }
+
+  get kpiMontoAbierto(): number {
+    return this.ordenes
+      .filter((o) => o.estado === 'borrador' || o.estado === 'enviada')
+      .reduce((a, o) => a + (Number(o.total) || 0), 0);
+  }
+
+  formatMoney(n: number): string {
+    return `$${(Number(n) || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`;
+  }
+
   // Filtros
   filtroEstado = 'todos';
 

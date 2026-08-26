@@ -2,3 +2,20 @@
 :host {
   display: block;
 }
+
+.kpi-periodo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.kpi-periodo-bar .periodo-activo {
+  background: var(--katzen-verde-soft, #e0f7f8);
+  border-color: var(--katzen-verde, #0a969b);
+  color: var(--katzen-verde-fuerte, #065d60);
+}
+
+.kpi-secondary {
+  margin-top: -8px;
+}

@@ -1,15 +1,215 @@
 <div class="admin-page dashboard-container" [@routeAnimations]>
-  <div *ngIf="loading" class="loading-container">
+  <div *ngIf="loading && !snap" class="loading-container">
     <mat-spinner diameter="48"></mat-spinner>
-    <p>Cargando panel...</p>
+    <p>Cargando panel…</p>
   </div>
 
-  <ng-container *ngIf="!loading">
+  <ng-container *ngIf="snap || !loading">
+    <!-- Dashboard dueño (spec 025) -->
+    <section class="owner-dash" aria-label="Dashboard de negocio">
+      <header class="owner-dash__header">
+        <div>
+          <p class="section-eyebrow">Vista de dueña / doctora</p>
+          <h1 class="owner-dash__title">Dashboard de la clínica</h1>
+          <p class="owner-dash__range" *ngIf="snap">{{ rangoLabel() }}</p>
+        </div>
+        <div class="owner-dash__filters">
+          <div class="periodo-toggle" role="group" aria-label="Período rápido">
+            <button
+              mat-stroked-button
+              type="button"
+              *ngFor="let p of presets"
+              [class.periodo-activo]="periodoPreset === p.id"
+              (click)="setPreset(p.id)">
+              {{ p.label }}
+            </button>
+          </div>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-date">
+            <mat-label>Desde</mat-label>
+            <input matInput type="date" [(ngModel)]="desdeCustom" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-date">
+            <mat-label>Hasta</mat-label>
+            <input matInput type="date" [(ngModel)]="hastaCustom" />
+          </mat-form-field>
+          <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="aplicarRangoCustom()">
+            Aplicar
+          </button>
+        </div>
+      </header>
+
+      <div *ngIf="ownerLoading" class="loading-container owner-dash__loading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Actualizando métricas…</p>
+      </div>
+
+      <ng-container *ngIf="snap && !ownerLoading">
+        <p class="section-eyebrow">Finanzas del período</p>
+        <app-admin-kpi-grid>
+          <app-admin-stat-card
+            accent="blue"
+            [value]="formatMoney(snap.financieros.ventaBruta)"
+            label="Ingresos brutos"
+            hint="Cobros en caja">
+          </app-admin-stat-card>
+          <app-admin-stat-card
+            accent="orange"
+            [value]="formatMoney(snap.financieros.costosAsociados)"
+            label="Costos de servicio"
+            hint="Solo cobros con costo">
+          </app-admin-stat-card>
+          <app-admin-stat-card
+            accent="pink"
+            [value]="formatMoney(snap.financieros.gastosOperativos)"
+            label="Gastos operativos"
+            hint="Egresos del período">
+          </app-admin-stat-card>
+          <app-admin-stat-card
+            accent="green"
+            [value]="formatMoney(snap.financieros.gananciaNeta)"
+            label="Ganancia neta"
+            hint="Ingresos − costos − gastos">
+          </app-admin-stat-card>
+        </app-admin-kpi-grid>
+
+        <p class="section-eyebrow">Operación</p>
+        <app-admin-kpi-grid>
+          <app-admin-stat-card accent="purple" [value]="snap.operativos.citasHoy" label="Citas hoy" hint="Agenda del día"></app-admin-stat-card>
+          <app-admin-stat-card accent="teal" [value]="snap.operativos.baniosPeriodo" label="Baños del período" hint="Servicios registrados"></app-admin-stat-card>
+          <app-admin-stat-card accent="orange" [value]="snap.operativos.stockBajo" label="Stock bajo" hint="Requieren reposición"></app-admin-stat-card>
+          <app-admin-stat-card accent="blue" [value]="snap.operativos.clientesNuevosPeriodo" label="Clientes nuevos" hint="Alta en el período"></app-admin-stat-card>
+        </app-admin-kpi-grid>
+
+        <div class="owner-dash__mid">
+          <app-admin-data-panel
+            accent="teal"
+            title="Resumen financiero"
+            [description]="snap.rango.label"
+            [showLegend]="false">
+            <ul class="owner-resumen">
+              <li *ngFor="let row of snap.resumen" [ngClass]="'owner-resumen__' + row.tone">
+                <span>{{ row.label }}</span>
+                <strong>{{ formatMoney(row.value) }}</strong>
+              </li>
+              <li class="owner-resumen__muted">
+                <span>Transacciones de caja</span>
+                <strong>{{ snap.financieros.transaccionesPeriodo }}</strong>
+              </li>
+              <li class="owner-resumen__muted">
+                <span>Citas en el período</span>
+                <strong>{{ snap.operativos.citasPeriodo }}</strong>
+              </li>
+              <li class="owner-resumen__muted">
+                <span>Pensión activa ahora</span>
+                <strong>{{ snap.operativos.pensionActivas }}</strong>
+              </li>
+            </ul>
+          </app-admin-data-panel>
+
+          <app-admin-data-panel
+            accent="teal"
+            title="Meta de inversión"
+            description="Próximamente — placeholder v1"
+            [showLegend]="false">
+            <div class="owner-meta">
+              <p class="owner-meta__hint">
+                Aquí podrás configurar una meta de recuperación de inversión (como en un tablero de dueña).
+                Por ahora los números reales están en finanzas y en los KPIs de arriba.
+              </p>
+              <div class="owner-meta__bar" aria-hidden="true">
+                <div class="owner-meta__fill" style="width: 0%"></div>
+              </div>
+              <p class="owner-meta__pct">Progreso 0% · configurable en una siguiente entrega</p>
+            </div>
+          </app-admin-data-panel>
+        </div>
+
+        <div class="owner-dash__lists">
+          <app-admin-data-panel
+            accent="teal"
+            title="Top servicios (caja)"
+            description="Ingresos por categoría en el período"
+            [showLegend]="false">
+            <app-admin-empty-state
+              *ngIf="!snap.topServicios.length"
+              icon="spa"
+              title="Sin cobros categorizados"
+              message="Registra ingresos en Finanzas o vincula baños/pensión a caja para ver el ranking.">
+            </app-admin-empty-state>
+            <ol class="owner-rank" *ngIf="snap.topServicios.length">
+              <li *ngFor="let item of snap.topServicios">
+                <span class="owner-rank__n">#{{ item.rank }}</span>
+                <div class="owner-rank__body">
+                  <strong>{{ item.nombre }}</strong>
+                  <span>{{ item.detalle }}</span>
+                </div>
+                <span class="owner-rank__money">{{ formatMoney(item.monto) }}</span>
+              </li>
+            </ol>
+          </app-admin-data-panel>
+
+          <app-admin-data-panel
+            accent="orange"
+            title="Top productos vendidos"
+            description="Ventas de inventario en caja"
+            [showLegend]="false">
+            <app-admin-empty-state
+              *ngIf="!snap.topProductos.length"
+              icon="inventory_2"
+              title="Sin ventas de producto"
+              message="Al registrar una salida con cobro en caja (venta_producto) aparecerá aquí.">
+            </app-admin-empty-state>
+            <ol class="owner-rank" *ngIf="snap.topProductos.length">
+              <li *ngFor="let item of snap.topProductos">
+                <span class="owner-rank__n">#{{ item.rank }}</span>
+                <div class="owner-rank__body">
+                  <strong>{{ item.nombre }}</strong>
+                  <span>{{ item.detalle }}</span>
+                </div>
+                <span class="owner-rank__money">{{ formatMoney(item.monto) }}</span>
+              </li>
+            </ol>
+          </app-admin-data-panel>
+        </div>
+
+        <app-admin-data-panel
+          accent="teal"
+          title="Ingresos por día"
+          description="Serie del período (sin librería de charts)"
+          [showLegend]="false">
+          <app-admin-empty-state
+            *ngIf="!snap.financieros.ventaBruta"
+            icon="show_chart"
+            title="Sin ingresos en el período"
+            message="Cuando haya cobros en caja verás la curva diaria aquí.">
+          </app-admin-empty-state>
+          <div class="owner-chart" *ngIf="snap.financieros.ventaBruta">
+            <svg class="owner-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <polygon *ngIf="chartAreaPoints" [attr.points]="chartAreaPoints" class="owner-chart__area"></polygon>
+              <polyline *ngIf="chartPoints" [attr.points]="chartPoints" class="owner-chart__line" fill="none"></polyline>
+            </svg>
+            <div class="owner-chart__bars" aria-label="Ingresos diarios">
+              <div class="owner-chart__col" *ngFor="let d of snap.serieIngresos">
+                <div
+                  class="owner-chart__bar"
+                  [style.height.%]="barPct(d.ingresos)"
+                  [matTooltip]="formatChartFecha(d.fecha) + ': ' + formatMoney(d.ingresos)"></div>
+              </div>
+            </div>
+            <div class="owner-chart__legend">
+              <span>Ingresos ($)</span>
+              <span>Máx. {{ formatMoney(serieMax) }}</span>
+            </div>
+          </div>
+        </app-admin-data-panel>
+      </ng-container>
+    </section>
+
     <section class="dashboard-hero">
       <p class="dashboard-hero__eyebrow">KatzenVet · Panel administrativo</p>
-      <h1 class="dashboard-hero__title">{{ getSaludo() }}</h1>
+      <h2 class="dashboard-hero__title">{{ getSaludo() }}</h2>
       <p class="dashboard-hero__lead">
-        Haz la gestión veterinaria más fácil con herramientas claras para tu clínica.
+        Accesos rápidos a cada módulo y calendario de citas.
       </p>
       <p class="dashboard-hero__date">
         {{ currentDate | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}

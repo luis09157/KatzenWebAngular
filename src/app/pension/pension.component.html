@@ -9,6 +9,7 @@
       <app-admin-stat-card accent="teal" [value]="ocupacionVisible" label="Ocupación" hint="Mascotas en alojamiento activo"></app-admin-stat-card>
       <app-admin-stat-card accent="blue" [value]="totalReservadas" label="Reservadas" hint="Pendientes de check-in"></app-admin-stat-card>
       <app-admin-stat-card accent="green" [value]="formatMoney(valorEstimado)" label="Valor estimado" hint="Reservadas + activas"></app-admin-stat-card>
+      <app-admin-stat-card accent="purple" [value]="totalFinalizadas" label="Finalizadas" hint="Check-out / cobradas"></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
