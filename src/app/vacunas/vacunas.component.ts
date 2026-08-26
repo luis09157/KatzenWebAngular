@@ -14,6 +14,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
 
 @Component({
   selector: 'app-vacunas',
@@ -452,5 +453,27 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     const meses = Math.ceil(dias / 30);
     return `En ${meses} mes${meses > 1 ? 'es' : ''}`;
+  }
+
+  /** Spec 022 — descontar dosis/producto de inventario (sin duplicar catálogo). */
+  consumirInventario(vacuna: any): void {
+    if (!vacuna) return;
+    const pacienteId = vacuna.idPaciente || vacuna.paciente_id;
+    const pacienteNombre =
+      vacuna.paciente || this.pacientesMap[pacienteId] || 'paciente';
+    this.dialog.open(SalidaDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      disableClose: true,
+      data: {
+        pacienteId,
+        pacienteNombre,
+        motivoDefault: 'uso_consulta',
+        hideRegistrarEnCaja: true,
+        observaciones: `Vacuna · ${vacuna.tipo_vacuna || vacuna.vacuna || ''} · dosis ${vacuna.dosis || ''}`.trim(),
+        titulo: 'Consumir inventario (vacuna)',
+        subtitulo: `Descuenta el producto/dosis aplicado a ${pacienteNombre}`
+      }
+    });
   }
 } 

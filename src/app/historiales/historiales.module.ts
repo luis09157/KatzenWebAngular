@@ -22,6 +22,8 @@ import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
 import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 import { SharedModule } from '../shared/shared.module';
+import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
+import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 
 @NgModule({
   declarations: [
@@ -36,6 +38,8 @@ import { SharedModule } from '../shared/shared.module';
     FormsModule,
     HistorialesRoutingModule,
     SharedModule,
+    SalidaDialogModule,
+    CajaDialogModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,

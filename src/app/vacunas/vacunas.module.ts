@@ -24,6 +24,7 @@ import { SeleccionarClienteVacunaDialogComponent } from './seleccionar-cliente-v
 
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
 import { SharedModule } from '../shared/shared.module';
+import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import { SharedModule } from '../shared/shared.module';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
-    SharedModule
+    SharedModule,
+    SalidaDialogModule
   ],
   exports: [
     VacunaDialogComponent,

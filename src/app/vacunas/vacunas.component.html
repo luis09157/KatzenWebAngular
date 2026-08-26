@@ -100,6 +100,7 @@
           <td mat-cell *matCellDef="let vacuna">
             <div class="row-actions hide-mobile">
               <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verVacuna(vacuna)"><mat-icon>visibility</mat-icon></button>
+              <button mat-icon-button type="button" matTooltip="Consumir inventario" (click)="consumirInventario(vacuna)"><mat-icon>inventory_2</mat-icon></button>
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarVacuna(vacuna)"><mat-icon>edit</mat-icon></button>
               <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarVacuna(vacuna)"><mat-icon>delete_outline</mat-icon></button>
             </div>
@@ -117,6 +118,7 @@
 
   <mat-menu #vacunaMenu="matMenu">
     <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
     <button mat-menu-item (click)="editarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="eliminarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

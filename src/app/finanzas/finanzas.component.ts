@@ -15,6 +15,7 @@ import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.componen
 import { CajaService } from './caja.service';
 import { PlantillaCostoService } from './plantilla-costo.service';
 import { DefaultsBanioService } from './defaults-banio.service';
+import { DefaultsPensionService } from './defaults-pension.service';
 import {
   DefaultsBanioPorTamano,
   TAMANO_PERRO_LABELS,
@@ -23,9 +24,18 @@ import {
   emptyDefaultsBanio
 } from './defaults-banio.models';
 import {
+  DefaultsPensionPorTamano,
+  TAMANO_PENSION_DEFAULT_LABELS,
+  TAMANOS_PENSION_ORDEN,
+  TamanoMascotaPensionDefault,
+  emptyDefaultsPension
+} from './defaults-pension.models';
+import {
   CAJA_CATEGORIA_LABELS,
   CajaCategoria,
+  CajaChartBar,
   CajaDiaKpis,
+  CajaEgresoDesglose,
   CajaMovimiento,
   CajaPeriodoModo
 } from './caja.models';
@@ -54,10 +64,20 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   loadingPlantillas = true;
   savingDefaults = false;
+  savingDefaultsPension = false;
   kpis: CajaDiaKpis = this.emptyKpis();
+  chartResumen: CajaChartBar[] = [];
+  chartEgresos: CajaEgresoDesglose[] = [];
+  chartSerie: { fecha: string; ingresos: number; egresos: number; ganancia: number }[] = [];
+  chartMax = 1;
+  serieMax = 1;
+
   defaultsForm: FormGroup;
+  defaultsPensionForm: FormGroup;
   readonly tamanosBanio = TAMANOS_PERRO_ORDEN;
   readonly tamanoLabels = TAMANO_PERRO_LABELS;
+  readonly tamanosPension = TAMANOS_PENSION_ORDEN;
+  readonly tamanoPensionLabels = TAMANO_PENSION_DEFAULT_LABELS;
 
   private todos: CajaMovimiento[] = [];
   private plantillas: PlantillaCosto[] = [];
@@ -69,6 +89,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private cajaService: CajaService,
     private plantillaService: PlantillaCostoService,
     private defaultsBanioService: DefaultsBanioService,
+    private defaultsPensionService: DefaultsPensionService,
     private fb: FormBuilder,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
@@ -78,12 +99,14 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
     this.mesFiltro = this.cajaService.mesLocalIso();
     this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
+    this.defaultsPensionForm = this.buildDefaultsPensionForm(emptyDefaultsPension());
   }
 
   ngOnInit(): void {
     this.cargar();
     this.cargarPlantillas();
     this.cargarDefaultsBanio();
+    this.cargarDefaultsPension();
   }
 
   ngAfterViewInit(): void {
@@ -151,17 +174,22 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           this.plantillas = [];
           this.plantillasDataSource.data = [];
           this.loadingPlantillas = false;
-          // Sin Swal bloqueante: rules de Finanzas pueden no estar desplegadas aún.
         }
       });
   }
 
   get periodoValor(): string {
-    return this.periodoModo === 'mes' ? this.mesFiltro : this.fechaFiltro;
+    if (this.periodoModo === 'mes') return this.mesFiltro;
+    return this.fechaFiltro;
   }
 
   get periodoLabel(): string {
-    return this.periodoModo === 'mes' ? `Mes ${this.mesFiltro}` : `Día ${this.fechaFiltro}`;
+    if (this.periodoModo === 'mes') return `Mes ${this.mesFiltro}`;
+    if (this.periodoModo === 'semana') {
+      const r = this.cajaService.rangoPeriodo('semana', this.fechaFiltro);
+      return r ? `Semana ${r.desde} → ${r.hasta}` : `Semana ${this.fechaFiltro}`;
+    }
+    return `Día ${this.fechaFiltro}`;
   }
 
   aplicarFiltroPeriodo(): void {
@@ -169,6 +197,18 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     const filtrados = this.cajaService.filtrarPorPeriodo(this.todos, this.periodoModo, valor);
     this.dataSource.data = filtrados;
     this.kpis = this.cajaService.calcularKpisPeriodo(this.todos, this.periodoModo, valor);
+    this.chartResumen = this.cajaService.chartResumen(this.kpis);
+    this.chartEgresos = this.cajaService.desgloseEgresos(this.todos, this.periodoModo, valor);
+    this.chartSerie = this.cajaService.serieDiaria(this.todos, this.periodoModo, valor);
+    this.chartMax = Math.max(
+      1,
+      ...this.chartResumen.map((b) => Math.abs(b.value)),
+      ...this.chartEgresos.map((e) => e.total)
+    );
+    this.serieMax = Math.max(
+      1,
+      ...this.chartSerie.flatMap((d) => [d.ingresos, d.egresos, Math.abs(d.ganancia)])
+    );
     if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
   }
 
@@ -190,6 +230,17 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   applyFilter(event: Event): void {
     const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.dataSource.filter = value;
+  }
+
+  /** Altura relativa de barra (0–100%). */
+  barPct(value: number, max = this.chartMax): number {
+    if (!max) return 0;
+    return Math.min(100, Math.round((Math.abs(value) / max) * 100));
+  }
+
+  formatChartFecha(iso: string): string {
+    if (!iso || iso.length < 10) return iso;
+    return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
   }
 
   nuevoMovimiento(): void {
@@ -379,6 +430,21 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private buildDefaultsPensionForm(data: DefaultsPensionPorTamano): FormGroup {
+    const row = (t: TamanoMascotaPensionDefault) =>
+      this.fb.group({
+        precioDia: [data[t]?.precioDia ?? 0, [Validators.min(0)]],
+        costoDia: [data[t]?.costoDia ?? null, [Validators.min(0)]],
+        productoComidaId: [data[t]?.productoComidaId ?? ''],
+        cantidadComidaPorDia: [data[t]?.cantidadComidaPorDia ?? null, [Validators.min(0)]]
+      });
+    return this.fb.group({
+      pequeno: row('pequeno'),
+      mediano: row('mediano'),
+      grande: row('grande')
+    });
+  }
+
   cargarDefaultsBanio(): void {
     this.defaultsBanioService
       .getDefaults()
@@ -390,6 +456,21 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (err) => {
           this.logger.error('Error defaults baño:', err);
           this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
+        }
+      });
+  }
+
+  cargarDefaultsPension(): void {
+    this.defaultsPensionService
+      .getDefaults()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (d) => {
+          this.defaultsPensionForm = this.buildDefaultsPensionForm(d);
+        },
+        error: (err) => {
+          this.logger.error('Error defaults pensión:', err);
+          this.defaultsPensionForm = this.buildDefaultsPensionForm(emptyDefaultsPension());
         }
       });
   }
@@ -429,7 +510,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.defaultsBanioService.guardarDefaults(payload);
       Swal.fire({
         icon: 'success',
-        title: 'Defaults guardados',
+        title: 'Defaults baño guardados',
         timer: 1600,
         showConfirmButton: false
       });
@@ -439,6 +520,53 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.loadingService.hide();
       this.savingDefaults = false;
+    }
+  }
+
+  async guardarDefaultsPension(): Promise<void> {
+    if (this.defaultsPensionForm.invalid) {
+      this.defaultsPensionForm.markAllAsTouched();
+      return;
+    }
+    this.savingDefaultsPension = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const raw = this.defaultsPensionForm.getRawValue();
+      const row = (t: TamanoMascotaPensionDefault) => {
+        const r = raw[t];
+        return {
+          precioDia: Number(r.precioDia) || 0,
+          costoDia:
+            r.costoDia != null && r.costoDia !== '' ? Number(r.costoDia) : undefined,
+          productoComidaId: r.productoComidaId ? String(r.productoComidaId).trim() : undefined,
+          cantidadComidaPorDia:
+            r.cantidadComidaPorDia != null && r.cantidadComidaPorDia !== ''
+              ? Number(r.cantidadComidaPorDia)
+              : undefined
+        };
+      };
+      const payload: DefaultsPensionPorTamano = {
+        pequeno: row('pequeno'),
+        mediano: row('mediano'),
+        grande: row('grande')
+      };
+      await this.defaultsPensionService.guardarDefaults(payload);
+      Swal.fire({
+        icon: 'success',
+        title: 'Defaults pensión guardados',
+        timer: 1600,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      this.logger.error('Error al guardar defaults pensión:', error);
+      Swal.fire(
+        'Error',
+        this.errorMessages.getUserMessage(error, 'guardar defaults pensión'),
+        'error'
+      );
+    } finally {
+      this.loadingService.hide();
+      this.savingDefaultsPension = false;
     }
   }
 }

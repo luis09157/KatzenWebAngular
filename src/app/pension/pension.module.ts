@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { PensionRoutingModule } from './pension-routing.module';
 import { PensionComponent } from './pension.component';
 import { PensionDialogComponent } from './pension-dialog.component';
@@ -25,6 +26,7 @@ import { PensionDialogComponent } from './pension-dialog.component';
     PensionRoutingModule,
     SharedModule,
     CajaDialogModule,
+    SalidaDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,

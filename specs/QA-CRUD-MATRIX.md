@@ -86,17 +86,20 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 | Pacientes | PASS create | PASS | PASS cond. | PASS | Swal + edit si en página |
 | Clientes | PASS | PASS | PASS | PASS | CRUD |
 | Portal provision | PASS* | — | — | revoke PASS | *emailSent puede false sin Resend |
-| Finanzas / caja | PASS | PASS | N/A | PASS | CRUD + CSV UI |
+| Finanzas / caja | PASS | PASS | N/A | PASS | CRUD + CSV UI + 022 gráficas/egresos |
+| Pensión / alojamiento | PASS | PASS | PASS | PASS | modules smoke + caja |
 | Auth contexto | — | PASS | — | — | dual selector |
 
 \* Correo portal: código OK; entrega real **BLOQUEADO** sin secret Resend.
 
 ---
 
-## SC Finanzas 014/018
+## SC Finanzas 014/018/021/022
 
 - [x] Export CSV del día  
 - [x] Vincular cobro desde baño (`cajaMovimientoId`)  
+- [x] 022 A–D: valuación invent., baño defaults, venta→caja, historial consumo, pensión, gráficas, egresos tipificados  
+- [ ] 022 E opcional: OC → egreso opt-in  
 
 ---
 

@@ -1,9 +1,12 @@
-import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
 import {
   ESTADO_PENSION_LABELS,
   EstadoPension,
@@ -19,7 +22,8 @@ import { PensionService } from './pension.service';
   styleUrls: ['./pension-dialog.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class PensionDialogComponent implements OnInit {
+export class PensionDialogComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   form: FormGroup;
   loading = false;
   esEdicion = false;
@@ -32,6 +36,7 @@ export class PensionDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private pensionService: PensionService,
+    private defaultsPension: DefaultsPensionService,
     private dialogRef: MatDialogRef<PensionDialogComponent>,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
@@ -75,6 +80,38 @@ export class PensionDialogComponent implements OnInit {
       });
     } else {
       this.form.patchValue({ fecha_ingreso: iso, estado: 'reservada' });
+    }
+
+    this.form
+      .get('tamano_mascota')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((t: TamanoMascotaPension) => this.aplicarDefaultsTamano(t));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private async aplicarDefaultsTamano(tamano: TamanoMascotaPension | ''): Promise<void> {
+    if (!tamano || this.esEdicion) return;
+    try {
+      const defaults = await this.defaultsPension.getDefaultsOnce();
+      const row = this.defaultsPension.defaultParaTamano(defaults, tamano);
+      if (!row) return;
+      const patch: Record<string, unknown> = {};
+      if (row.precioDia > 0 && !this.form.get('precio_dia')?.dirty) {
+        patch['precio_dia'] = row.precioDia;
+      }
+      if (row.costoDia != null && !this.form.get('costo_dia')?.dirty) {
+        patch['costo_dia'] = row.costoDia;
+      }
+      if (Object.keys(patch).length) {
+        this.form.patchValue(patch);
+        this.recalcularTotal();
+      }
+    } catch {
+      /* defaults opcionales */
     }
   }
 

@@ -9,12 +9,16 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
 import { SeleccionarClienteDialogComponent } from './seleccionar-cliente-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
+import { InventarioService } from '../inventario/inventario.service';
+import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
+import { CajaCategoria } from '../finanzas/caja.models';
 
 @Component({
   selector: 'app-historiales',
@@ -41,7 +45,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private loadingService: LoadingService,
     private logger: LoggerService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private inventarioService: InventarioService
   ) {}
 
   ngOnInit(): void {
@@ -460,5 +465,91 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         }
       });
+  }
+
+  /** Spec 022 — descontar stock ligado al historial (cirugía / consulta / vacuna). */
+  consumirInventario(historial: any): void {
+    if (!historial?.id) return;
+    this.dialog.open(SalidaDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      disableClose: true,
+      data: {
+        historialId: historial.id,
+        pacienteId: historial.paciente_id,
+        pacienteNombre: historial.paciente || this.pacientesMap[historial.paciente_id] || '',
+        motivoDefault: 'uso_consulta',
+        hideRegistrarEnCaja: true,
+        titulo: 'Consumir inventario',
+        subtitulo: `Historial · ${historial.paciente || 'paciente'} · insumos de consulta/cirugía/vacuna`
+      }
+    });
+  }
+
+  /** Spec 022 — cobrar con costo sugerido desde consumos o plantilla. */
+  async registrarEnCaja(historial: any): Promise<void> {
+    if (!historial?.id) return;
+    this.loadingService.show(LOADING_MESSAGES.loading);
+    let costoSugerido = 0;
+    let movimientoIds: string[] = [];
+    try {
+      const consumos = await firstValueFrom(
+        this.inventarioService.getMovimientosPorHistorial(historial.id)
+      );
+      movimientoIds = (consumos || []).map((m) => m.id!).filter(Boolean);
+      costoSugerido = this.inventarioService.sumarCostoConsumos(consumos || []);
+    } catch (err) {
+      this.logger.error('Error al leer consumos del historial:', err);
+    } finally {
+      this.loadingService.hide();
+    }
+
+    const pacienteNombre =
+      historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
+    const diag = String(historial.diagnostico_presuntivo || '').toLowerCase();
+    let categoria: CajaCategoria = 'consulta';
+    if (diag.includes('cirug') || diag.includes('qx') || diag.includes('esteriliz')) {
+      categoria = 'cirugia';
+    } else if (diag.includes('vacun')) {
+      categoria = 'vacuna';
+    }
+
+    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '640px',
+      disableClose: true,
+      data: {
+        concepto: `Consulta · ${pacienteNombre}`,
+        monto: 0,
+        metodoPago: 'efectivo' as const,
+        categoria,
+        costoAsociado: costoSugerido > 0 ? costoSugerido : undefined,
+        movimientoInventarioIds: movimientoIds.length ? movimientoIds : undefined,
+        notas:
+          costoSugerido > 0
+            ? `Costo sugerido desde ${movimientoIds.length} consumo(s) de inventario`
+            : 'Sin consumos de inventario; puedes elegir plantilla o capturar costo'
+      }
+    });
+
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {
+      const cajaId = result?.movimientoId as string | undefined;
+      if (!cajaId || !movimientoIds.length) return;
+      this.loadingService.show(LOADING_MESSAGES.updating);
+      try {
+        await Promise.all(
+          movimientoIds.map((mid) => this.inventarioService.vincularMovimientoACaja(mid, cajaId))
+        );
+      } catch (error) {
+        this.logger.error('Error al vincular consumos↔caja:', error);
+        Swal.fire(
+          'Aviso',
+          this.errorMessages.getUserMessage(error, 'vincular inventario a caja'),
+          'warning'
+        );
+      } finally {
+        this.loadingService.hide();
+      }
+    });
   }
 }

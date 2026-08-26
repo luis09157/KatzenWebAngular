@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **022** automatización costos/ops + pensión (diseño).
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **022 done (A–D)** automatización costos/ops + pensión.
 
 ---
 
@@ -635,8 +635,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | Feature | Origen | Notas |
 |---------|--------|-------|
 | **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
-| **Módulo finanzas / caja** | #19, #20 | **018/021** hechos. **022** valuación inventario + baño→caja (A) + pensión/cirugía (B) — `specs/022-automatizacion-costos-dashboard/` |
-| **Pensión / alojamiento** | ops | Hospedaje mascotas; módulo `/admin/pension` — diseño **022**; código Fase B |
+| **Módulo finanzas / caja** | #19, #20 | **018/021/022 A–D done** — `specs/022-automatizacion-costos-dashboard/` (E opcional) |
+| **Pensión / alojamiento** | ops | `/admin/pension` — **022 done** (defaults + comida opt-in) |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |
 | **Medicamentos controlados** | #13 | Salida inventario obligatoriamente ligada a historial clínico |

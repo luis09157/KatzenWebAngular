@@ -172,6 +172,8 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
       corte: 'corte',
       cirugia: 'cirugia',
       consulta: 'consulta',
+      vacuna: 'vacuna',
+      pension: 'pension',
       otro: 'otro'
     };
     const cat = mapTipo[p.tipoServicio];

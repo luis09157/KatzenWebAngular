@@ -32,7 +32,6 @@ import { ProductoDialogComponent } from './productos/producto-dialog.component';
 import { ProductoMovimientosDialogComponent } from './productos/producto-movimientos-dialog.component';
 import { DashboardInventarioComponent } from './dashboard-inventario/dashboard-inventario.component';
 import { EntradaDialogComponent } from './movimientos/entrada-dialog.component';
-import { SalidaDialogComponent } from './movimientos/salida-dialog.component';
 import { AjusteDialogComponent } from './movimientos/ajuste-dialog.component';
 import { MovimientosComponent } from './movimientos/movimientos.component';
 import { MovimientoDetalleDialogComponent } from './movimientos/movimiento-detalle-dialog.component';
@@ -45,6 +44,7 @@ import { AlertasComponent } from './alertas/alertas.component';
 import { ReportesComponent } from './reportes/reportes.component';
 import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { SalidaDialogModule } from './movimientos/salida-dialog.module';
 
 @NgModule({
   declarations: [
@@ -53,7 +53,6 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
     ProductoMovimientosDialogComponent,
     DashboardInventarioComponent,
     EntradaDialogComponent,
-    SalidaDialogComponent,
     AjusteDialogComponent,
     MovimientosComponent,
     MovimientoDetalleDialogComponent,
@@ -93,7 +92,8 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
     MatDividerModule,
     MatSlideToggleModule,
     SharedModule,
-    CajaDialogModule
+    CajaDialogModule,
+    SalidaDialogModule
   ]
 })
 export class InventarioModule { }

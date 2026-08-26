@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
+import { Observable, map, catchError, throwError, firstValueFrom, of } from 'rxjs';
 import { 
   Producto, 
   ProductoFormData,
@@ -363,6 +363,36 @@ export class InventarioService {
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         )
       );
+  }
+
+  /** Spec 022 — salidas ligadas a un historial clínico. */
+  getMovimientosPorHistorial(historialId: string): Observable<Movimiento[]> {
+    if (!historialId) {
+      return of([]);
+    }
+    return this.db
+      .list<Movimiento>(this.movimientosPath, (ref) =>
+        ref.orderByChild('historial_clinico_id').equalTo(historialId)
+      )
+      .snapshotChanges()
+      .pipe(
+        map((changes) =>
+          changes
+            .map((c) => ({ id: c.payload.key!, ...(c.payload.val() as Movimiento) }))
+            .filter((m) => m.tipo === 'salida' || m.tipo === 'merma')
+            .sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
+        )
+      );
+  }
+
+  /** Suma costo_total de salidas de un historial (sugerencia costoAsociado). */
+  sumarCostoConsumos(movimientos: Movimiento[]): number {
+    return Math.round(
+      (movimientos || []).reduce((acc, m) => acc + (Number(m.costo_total) || 0), 0) * 100
+    ) / 100;
   }
 
   getTodosLosMovimientos(): Observable<Movimiento[]> {

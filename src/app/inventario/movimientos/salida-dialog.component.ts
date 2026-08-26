@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, Optional, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
@@ -11,6 +11,22 @@ import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
 import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
+
+/** Prefill opcional al abrir desde historial / pensión / vacunas (spec 022). */
+export interface SalidaDialogData {
+  historialId?: string;
+  pacienteId?: string;
+  pacienteNombre?: string;
+  motivoDefault?: string;
+  /** Oculta checkbox venta→caja (consumo clínico). */
+  hideRegistrarEnCaja?: boolean;
+  /** Prefill producto (ej. comida pensión). */
+  productoId?: string;
+  cantidad?: number;
+  observaciones?: string;
+  titulo?: string;
+  subtitulo?: string;
+}
 
 @Component({
   selector: 'app-salida-dialog',
@@ -25,6 +41,11 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   productos: Producto[] = [];
   productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
+
+  readonly contextoHistorial: boolean;
+  readonly hideRegistrarEnCaja: boolean;
+  readonly tituloDialog: string;
+  readonly subtituloDialog: string;
 
   /** Motivo `merma` se persiste como tipo de movimiento `merma` (spec 007). */
   motivosSalida = [
@@ -43,14 +64,21 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: SalidaDialogData | null
   ) {
+    const d = data || {};
+    this.contextoHistorial = !!d.historialId;
+    this.hideRegistrarEnCaja = !!d.hideRegistrarEnCaja || this.contextoHistorial;
+    this.tituloDialog = d.titulo || '';
+    this.subtituloDialog = d.subtitulo || '';
+
     this.salidaForm = this.fb.group({
       producto_busqueda: ['', Validators.required],
       producto_id: ['', Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(1)]],
-      motivo: ['uso_consulta', Validators.required],
-      observaciones: [''],
+      cantidad: [d.cantidad && d.cantidad > 0 ? d.cantidad : 1, [Validators.required, Validators.min(1)]],
+      motivo: [d.motivoDefault || 'uso_consulta', Validators.required],
+      observaciones: [d.observaciones || ''],
       registrarEnCaja: [true]
     });
 
@@ -94,9 +122,35 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     return this.montoVentaSugerido;
   }
 
+  get tituloMostrado(): string {
+    if (this.tituloDialog) return this.tituloDialog;
+    return this.esMerma ? 'Registrar merma' : 'Registrar salida de productos';
+  }
+
+  get subtituloMostrado(): string {
+    if (this.subtituloDialog) return this.subtituloDialog;
+    if (this.contextoHistorial) {
+      const nombre = this.data?.pacienteNombre || 'paciente';
+      return `Consumo clínico ligado al historial · ${nombre}`;
+    }
+    return this.esMerma
+      ? 'Registra pérdida o caducidad. No se permite stock negativo y el motivo es obligatorio.'
+      : 'Retira unidades del inventario con motivo registrado.';
+  }
+
   cargarProductos(): void {
     this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (productos) => { this.productos = productos; },
+      next: (productos) => {
+        this.productos = productos;
+        const prefId = this.data?.productoId;
+        if (prefId) {
+          const p = productos.find((x) => x.id === prefId);
+          if (p) {
+            this.onProductoSeleccionado(p);
+            this.salidaForm.patchValue({ producto_busqueda: p });
+          }
+        }
+      },
       error: (error) => { this.logger.error('Error al cargar productos:', error); }
     });
   }
@@ -173,6 +227,11 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     return motivoObj?.etiqueta || '';
   }
 
+  /** SC-014: producto controlado / con receta exige historial clínico. */
+  private requiereHistorialClinico(producto: Producto): boolean {
+    return !!(producto.controlado || producto.requiere_receta);
+  }
+
   async guardar(): Promise<void> {
     if (this.salidaForm.invalid || !this.productoSeleccionado) {
       this.salidaForm.markAllAsTouched();
@@ -193,6 +252,16 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.requiereHistorialClinico(this.productoSeleccionado) && !this.data?.historialId) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Historial clínico requerido',
+        text: 'Este producto es controlado o requiere receta. Ábrelo desde un historial (Consumir inventario).',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
 
@@ -200,6 +269,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       const formData = this.salidaForm.value;
       const motivoTexto = this.motivosSalida.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
       const motivoCompleto = `${motivoTexto}. ${formData.observaciones || ''}`.trim();
+      const pacienteId = this.data?.pacienteId;
+      const historialId = this.data?.historialId;
 
       let movimientoId: string | undefined;
       if (formData.motivo === 'merma') {
@@ -214,8 +285,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
           formData.producto_id,
           formData.cantidad,
           motivoCompleto,
-          undefined,
-          undefined,
+          pacienteId,
+          historialId,
           undefined,
           formData.observaciones
         );
@@ -227,9 +298,14 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       this.loadingService.hide();
       this.loading = false;
 
-      if (formData.motivo === 'venta_directa' && formData.registrarEnCaja && movimientoId) {
+      if (
+        formData.motivo === 'venta_directa' &&
+        formData.registrarEnCaja &&
+        !this.hideRegistrarEnCaja &&
+        movimientoId
+      ) {
         await this.abrirCajaTrasVenta(movimientoId, formData.cantidad);
-        this.dialogRef.close(true);
+        this.dialogRef.close({ ok: true, movimientoId });
         return;
       }
 
@@ -246,7 +322,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         showConfirmButton: false
       });
 
-      this.dialogRef.close(true);
+      this.dialogRef.close({ ok: true, movimientoId });
     } catch (error) {
       this.logger.error('Error al registrar salida/merma:', error);
       const contexto = this.esMerma ? 'registrar merma' : 'registrar salida';

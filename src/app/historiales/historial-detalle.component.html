@@ -115,6 +115,23 @@
       </section>
 
       <section class="detail-section">
+        <h4 class="detail-section__title">Consumos de inventario</h4>
+        <p class="detail-item__value" *ngIf="loadingConsumos">Cargando consumos…</p>
+        <p class="detail-item__value" *ngIf="!loadingConsumos && !consumos.length">
+          Sin salidas ligadas. Usa «Consumir inventario» para descontar insumos de cirugía/consulta/vacuna.
+        </p>
+        <ul class="historial-consumos" *ngIf="!loadingConsumos && consumos.length">
+          <li *ngFor="let c of consumos">
+            <span>{{ c.cantidad }} u · {{ c.motivo || 'salida' }}</span>
+            <strong>{{ formatMoney(c.costo_total || 0) }}</strong>
+          </li>
+        </ul>
+        <p class="detail-item__value" *ngIf="consumos.length">
+          Costo total sugerido al cobrar: <strong>{{ formatMoney(costoConsumos) }}</strong>
+        </p>
+      </section>
+
+      <section class="detail-section">
         <h4 class="detail-section__title">Información de registro</h4>
         <div class="detail-grid">
           <div class="detail-item">
@@ -131,6 +148,10 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-stroked-button type="button" (click)="consumirInventario()">
+      <mat-icon>inventory_2</mat-icon>
+      Consumir inventario
+    </button>
     <button mat-button type="button" (click)="cerrar()">Cerrar</button>
   </mat-dialog-actions>
 </div>

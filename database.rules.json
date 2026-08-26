@@ -169,7 +169,7 @@
           ".indexOn": ["activo", "nombre", "codigo_barras"]
         },
         "Movimientos": {
-          ".indexOn": ["producto_id", "tipo", "created_at"]
+          ".indexOn": ["producto_id", "tipo", "created_at", "historial_clinico_id"]
         },
         "Proveedores": {
           ".indexOn": ["activo", "nombre"]

@@ -30,13 +30,20 @@
           <button
             mat-stroked-button
             type="button"
+            [class.periodo-activo]="periodoModo === 'semana'"
+            (click)="onPeriodoModoChange('semana')">
+            Semana
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
             [class.periodo-activo]="periodoModo === 'mes'"
             (click)="onPeriodoModoChange('mes')">
             Mes
           </button>
         </div>
-        <mat-form-field *ngIf="periodoModo === 'dia'" appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
-          <mat-label>Fecha</mat-label>
+        <mat-form-field *ngIf="periodoModo === 'dia' || periodoModo === 'semana'" appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
+          <mat-label>{{ periodoModo === 'semana' ? 'Día de la semana' : 'Fecha' }}</mat-label>
           <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
         </mat-form-field>
         <mat-form-field *ngIf="periodoModo === 'mes'" appearance="outline" subscriptSizing="dynamic" class="fecha-filtro">
@@ -211,6 +218,47 @@
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
+          title="Defaults pensión por tamaño"
+          description="Precio/día y costo/día. Opcional: ID de producto de comida y cantidad/día para opt-in al cobrar."
+          meta="3 tamaños"
+          [showLegend]="false">
+
+          <div class="defaults-banio-grid" *ngIf="defaultsPensionForm" [formGroup]="defaultsPensionForm">
+            <div class="defaults-banio-row defaults-pension-row" *ngFor="let t of tamanosPension" [formGroupName]="t">
+              <strong class="defaults-banio-label">{{ tamanoPensionLabels[t] }}</strong>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Precio / día</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="precioDia" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Costo / día</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="costoDia" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Producto comida (ID)</mat-label>
+                <input matInput formControlName="productoComidaId" placeholder="Opcional" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Cant. comida / día</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="cantidadComidaPorDia" />
+              </mat-form-field>
+            </div>
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              [disabled]="savingDefaultsPension"
+              (click)="guardarDefaultsPension()">
+              <mat-icon>save</mat-icon>
+              Guardar defaults pensión
+            </button>
+          </div>
+        </app-admin-data-panel>
+
+        <app-admin-data-panel
+          *ngIf="!loadingPlantillas"
+          accent="teal"
           title="Plantillas de costo"
           description="Baño, corte, cirugía… con ítems de inventario o gastos libres. Úsalas al cobrar para ver margen."
           [meta]="plantillasDataSource.data.length + ' plantillas'"
@@ -314,7 +362,7 @@
               <strong class="rent-value" [class.rent-warn]="kpis.margenEstimado < 0">{{ formatMoney(kpis.margenEstimado) }}</strong>
             </div>
             <div class="rent-card">
-              <span class="rent-label">Gastos (publicidad y otros)</span>
+              <span class="rent-label">Gastos (publicidad, gasolina…)</span>
               <strong class="rent-value rent-egreso">{{ formatMoney(kpis.totalEgresos) }}</strong>
             </div>
             <div class="rent-card rent-card--wide">
@@ -328,6 +376,77 @@
               <strong class="rent-value">{{ formatMoney(kpis.ingresosSinCosto) }}</strong>
               <span class="rent-hint">Asocia una plantilla o costo al cobrar para mejorar el margen</span>
             </div>
+          </div>
+        </app-admin-data-panel>
+
+        <app-admin-data-panel
+          accent="teal"
+          title="Gráficas del período"
+          [description]="'Ingresos, egresos y ganancia · ' + periodoLabel"
+          meta="Vista rápida para doctoras"
+          [showLegend]="false">
+
+          <div class="rent-charts">
+            <section class="rent-chart-block" aria-label="Ingresos vs egresos vs ganancia">
+              <h3 class="rent-chart-title">Resumen</h3>
+              <div class="rent-bars">
+                <div class="rent-bar-col" *ngFor="let bar of chartResumen">
+                  <div class="rent-bar-track">
+                    <div
+                      class="rent-bar-fill"
+                      [class.rent-bar-fill--ok]="bar.tone === 'ok'"
+                      [class.rent-bar-fill--egreso]="bar.tone === 'egreso'"
+                      [class.rent-bar-fill--warn]="bar.tone === 'warn'"
+                      [style.height.%]="barPct(bar.value)">
+                    </div>
+                  </div>
+                  <span class="rent-bar-value">{{ formatMoney(bar.value) }}</span>
+                  <span class="rent-bar-label">{{ bar.label }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="rent-chart-block" aria-label="Desglose de egresos" *ngIf="chartEgresos.length">
+              <h3 class="rent-chart-title">¿En qué se gastó?</h3>
+              <div class="rent-egreso-list">
+                <div class="rent-egreso-row" *ngFor="let e of chartEgresos">
+                  <div class="rent-egreso-meta">
+                    <span class="rent-egreso-name">{{ e.label }}</span>
+                    <strong>{{ formatMoney(e.total) }}</strong>
+                  </div>
+                  <div class="rent-egreso-track">
+                    <div class="rent-egreso-fill" [style.width.%]="barPct(e.total)"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <p class="rent-chart-empty" *ngIf="!chartEgresos.length">Sin egresos en este período.</p>
+
+            <section
+              class="rent-chart-block rent-chart-block--wide"
+              aria-label="Evolución diaria"
+              *ngIf="periodoModo !== 'dia' && chartSerie.length">
+              <h3 class="rent-chart-title">Día a día</h3>
+              <div class="rent-serie">
+                <div class="rent-serie-col" *ngFor="let d of chartSerie">
+                  <div class="rent-serie-stack">
+                    <div
+                      class="rent-serie-bar rent-serie-bar--ing"
+                      [style.height.%]="barPct(d.ingresos, serieMax)"
+                      [matTooltip]="'Ingresos ' + formatMoney(d.ingresos)"></div>
+                    <div
+                      class="rent-serie-bar rent-serie-bar--egr"
+                      [style.height.%]="barPct(d.egresos, serieMax)"
+                      [matTooltip]="'Egresos ' + formatMoney(d.egresos)"></div>
+                  </div>
+                  <span class="rent-serie-label">{{ formatChartFecha(d.fecha) }}</span>
+                </div>
+              </div>
+              <div class="rent-serie-legend">
+                <span class="rent-serie-legend__ing">Ingresos</span>
+                <span class="rent-serie-legend__egr">Egresos</span>
+              </div>
+            </section>
           </div>
         </app-admin-data-panel>
       </mat-tab>

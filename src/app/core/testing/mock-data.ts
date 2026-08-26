@@ -176,6 +176,15 @@ export const MOCK_DEFAULTS_BANIO_TAMANO = {
   updatedBy: 'mock-staff'
 };
 
+/** Defaults pensión por tamaño — mocks UI (spec 022 B). */
+export const MOCK_DEFAULTS_PENSION_TAMANO = {
+  pequeno: { precioDia: 200, costoDia: 60, cantidadComidaPorDia: 1 },
+  mediano: { precioDia: 280, costoDia: 90, cantidadComidaPorDia: 1 },
+  grande: { precioDia: 360, costoDia: 120, cantidadComidaPorDia: 2 },
+  updatedAt: '2026-08-26T12:00:00.000Z',
+  updatedBy: 'mock-staff'
+};
+
 /** Estancia pensión — mocks UI (spec 022 scaffold). */
 export const MOCK_PENSION_ESTANCIA = {
   id: 'mock-pension-001',

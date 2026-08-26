@@ -101,6 +101,12 @@
               <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verHistorialDetalle(historial)">
                 <mat-icon>visibility</mat-icon>
               </button>
+              <button mat-icon-button type="button" matTooltip="Consumir inventario" (click)="consumirInventario(historial)">
+                <mat-icon>inventory_2</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Registrar en caja" (click)="registrarEnCaja(historial)">
+                <mat-icon>account_balance_wallet</mat-icon>
+              </button>
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarHistorial(historial)">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -124,6 +130,8 @@
 
   <mat-menu #historialMenu="matMenu">
     <button mat-menu-item (click)="verHistorialDetalle(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
+    <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext"><mat-icon>account_balance_wallet</mat-icon> Registrar en caja</button>
     <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

@@ -1,5 +1,5 @@
-import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -7,6 +7,10 @@ import { ClientesService } from '../clientes/clientes.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
+import { InventarioService } from '../inventario/inventario.service';
+import { Movimiento } from '../shared/inventario.models';
+import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
+import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -20,6 +24,9 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
   pacienteInfo: any = null;
   clienteInfo: any = null;
   loading = true;
+  consumos: Movimiento[] = [];
+  costoConsumos = 0;
+  loadingConsumos = false;
 
   constructor(
     public dialogRef: MatDialogRef<HistorialDetalleComponent>,
@@ -27,11 +34,14 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
     private logger: LoggerService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private inventarioService: InventarioService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
     this.cargarInformacion();
+    this.cargarConsumos();
   }
 
   ngOnDestroy(): void {
@@ -71,6 +81,52 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar historial detalle'), 'error');
       }
     });
+  }
+
+  cargarConsumos(): void {
+    if (!this.data?.id) return;
+    this.loadingConsumos = true;
+    this.inventarioService
+      .getMovimientosPorHistorial(this.data.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.consumos = rows || [];
+          this.costoConsumos = this.inventarioService.sumarCostoConsumos(this.consumos);
+          this.loadingConsumos = false;
+        },
+        error: (err) => {
+          this.logger.error('Error al cargar consumos:', err);
+          this.consumos = [];
+          this.costoConsumos = 0;
+          this.loadingConsumos = false;
+        }
+      });
+  }
+
+  consumirInventario(): void {
+    if (!this.data?.id) return;
+    const ref = this.dialog.open(SalidaDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      disableClose: true,
+      data: {
+        historialId: this.data.id,
+        pacienteId: this.data.paciente_id,
+        pacienteNombre: this.getNombrePaciente(),
+        motivoDefault: 'uso_consulta',
+        hideRegistrarEnCaja: true,
+        titulo: 'Consumir inventario',
+        subtitulo: `Historial · ${this.getNombrePaciente()}`
+      }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      if (result?.ok) this.cargarConsumos();
+    });
+  }
+
+  formatMoney(n: number): string {
+    return `$${(Number(n) || 0).toFixed(2)}`;
   }
 
   cerrar() {
@@ -186,10 +242,8 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     return info.length > 0 ? info.join(', ') : 'Información no disponible';
   }
 
-  // Métodos para manejar archivos
   verArchivo(urlArchivo: string) {
     try {
-      // Abrir el archivo en una nueva pestaña del navegador
       window.open(urlArchivo, '_blank');
     } catch (error) {
       this.logger.error('Error al abrir archivo:', error);
@@ -199,15 +253,10 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
 
   descargarArchivo(urlArchivo: string) {
     try {
-      // Crear un enlace temporal para descargar el archivo
       const link = document.createElement('a');
       link.href = urlArchivo;
-      
-      // Extraer el nombre del archivo de la URL
       const nombreArchivo = this.extraerNombreArchivo(urlArchivo);
       link.download = nombreArchivo;
-      
-      // Simular click para iniciar la descarga
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -219,7 +268,6 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
 
   private extraerNombreArchivo(url: string): string {
     try {
-      // Intentar extraer el nombre del archivo de la URL
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
       const nombreArchivo = pathname.split('/').pop();
@@ -228,10 +276,9 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
         return nombreArchivo;
       }
       
-      // Si no se puede extraer, usar un nombre genérico
       return 'archivo_descargado';
     } catch (error) {
       return 'archivo_descargado';
     }
   }
-} 
+}

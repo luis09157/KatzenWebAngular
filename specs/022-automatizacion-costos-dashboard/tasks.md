@@ -40,18 +40,31 @@
 - [x] Links cruzados (`movimientoInventarioIds` / `cajaMovimientoId`)
 - [x] SC-001…004
 
-### Fase B — diseño ready; código después de A
+### Fase B — historial + pensión refinamiento
 
-- [x] Scaffold módulo pensión MVP (lista/alta/caja, StaffModule, menú, rules, Cypress) — **B1 incluido en esta entrega**
-- [ ] Consumo inventario desde historial (cirugía/vacuna)
-- [ ] Defaults pensión por tamaño (panel config)
-- [ ] Opt-in comida inventario
-- [ ] SC-011…014 (historial); SC-015…020 (pensión refinamiento)
+- [x] Scaffold módulo pensión MVP (lista/alta/caja, StaffModule, menú, rules, Cypress) — B1
+- [x] Consumo inventario desde historial (cirugía/consulta) + lista consumos en detalle
+- [x] Cobro caja desde historial con `costoAsociado` sugerido
+- [x] Vacunas: acción «Consumir inventario» (producto/dosis vía inventario)
+- [x] SC-014: producto controlado/receta exige historial
+- [x] Defaults pensión por tamaño (panel Finanzas + prefill diálogo)
+- [x] Opt-in comida inventario al cobrar pensión
+- [x] SC-011…020
 
-### Fase C / D / E
+### Fase C — gráficas
 
-- [ ] C: gráficas Rentabilidad
-- [ ] D: egresos tipificados
+- [x] Gráficas CSS en tab Rentabilidad (ingresos/egresos/ganancia + desglose + serie día a día)
+- [x] Filtros día / semana / mes
+- [x] SC-021…023
+
+### Fase D — egresos tipificados
+
+- [x] Categorías egreso: publicidad, proveedores, gasolina, operativo, otro
+- [x] Sin módulo `/admin/gastos`
+- [x] SC-024…025
+
+### Fase E (opcional, fuera de este cierre)
+
 - [ ] E: OC → egreso opt-in
 
 ---
@@ -60,29 +73,34 @@
 
 > **Quién ejecuta:** el agente. Guía: `specs/templates/qa-validation-guide.md`
 
-### Checklist pre-entrega Fase A
+### Checklist pre-entrega Fases B–D
 
-- [x] Guía QA (formularios defaults, diálogo baño, KPIs)
+- [x] Guía QA (historial consumo, pension defaults/comida, gráficas, egresos)
 - [x] `npm run build` OK — exit 0 (2026-08-26)
 - [x] Live preview `:4200` vivo
-- [x] Cypress smoke: admin-smoke + crud-routes + modules-authenticated + admin-crud-finanzas + banios-flujos — **43/43 PASS** (revalidación 2026-08-26)
-- [x] Design system: KPI grid, admin-dialog-shell, loading contextual
+- [x] Cypress smoke relevantes (finanzas, modules, routes, banios, historiales vía modules)
+- [x] Design system: KPI grid, admin-dialog-shell, loading contextual, «Borrar»
 - [x] Tabla resultados rellenada **antes** de marcar `[x]`
 
 ### Registro de resultados QA
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Docs 022 ampliada + cross-refs | OK | Commit docs `3a093f1` |
-| KPIs invertido / venta / margen | OK | Dashboard inventario |
-| Defaults baño P/M/G guardan | OK | Panel en Finanzas → Costos |
-| Alta baño tamaño + override precio | OK | Campos aditivos Banio |
-| Baño→caja con costoAsociado | OK | `registrarEnCaja` prefill |
-| Card Finanzas inicio | OK | `dashboard.component` |
-| Venta→caja | OK | Checkbox salida `venta_directa` |
+| Docs 022 + cross-refs | OK | |
+| KPIs invent. / baños / venta→caja (A) | OK | Previos |
+| Consumir inventario desde historial | OK | SalidaDialog + historialId |
+| Lista consumos en detalle | OK | Σ costo sugerido |
+| Cobro caja desde historial | OK | costoAsociado + links |
+| Vacuna → consumir inventario | OK | Acción fila |
+| Defaults pensión P/M/G | OK | Panel Finanzas |
+| Prefill pensión por tamaño | OK | Dialog |
+| Opt-in comida al cobrar | OK | Confirm + salida |
+| Gráficas Rentabilidad + semana | OK | CSS bars, sin lib |
+| Egresos proveedores/gasolina | OK | CAJA_CATEGORIAS_EGRESO |
 | Build | OK | exit 0 |
 | :4200 smoke | OK | ng serve vivo |
-| Cypress | OK | 43/43 (smoke, routes, modules+pensión, finanzas, baños) |
+| Cypress | OK | 45/45 (smoke, routes, modules, finanzas, baños, vacunas) |
+| Resend | N/A | diferido |
 
 ---
 
@@ -91,14 +109,17 @@
 - [x] SC-INV-* (Fase A)
 - [x] SC-005…010 (Fase A baños/finanzas)
 - [x] SC-001…004 (A3 venta→caja)
-- [ ] SC-011…025 documentados; código B/C/D
+- [x] SC-011…020 (Fase B)
+- [x] SC-021…023 (Fase C)
+- [x] SC-024…025 (Fase D)
 
 ---
 
 ## Cierre
 
-- [x] Validación pre-entrega Fase A completa
-- [x] Commit + push código A (`52b889b`)
-- [x] Deploy hosting + database (2026-08-26) — Pension rules + UI
-- [ ] `spec.md` permanece `in-progress` hasta historial clínico (B) / gráficas (C) / egresos (D)
+- [x] Validación pre-entrega A–D
+- [ ] Commit + push código B–D
+- [ ] Deploy hosting + database (índice historial_clinico_id + UI)
+- [x] `spec.md` → `done` cuando QA + commit OK
 - [x] Resend: no tocar (diferido)
+- [ ] Fase E (OC→egreso) queda pendiente opcional

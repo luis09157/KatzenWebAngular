@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -10,6 +10,9 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
+import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
+import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
+import { InventarioService } from '../inventario/inventario.service';
 import {
   ESTADO_PENSION_LABELS,
   PensionEstancia,
@@ -42,6 +45,8 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private pensionService: PensionService,
+    private defaultsPension: DefaultsPensionService,
+    private inventarioService: InventarioService,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
@@ -111,7 +116,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe();
   }
 
-  registrarEnCaja(estancia: PensionEstancia): void {
+  async registrarEnCaja(estancia: PensionEstancia): Promise<void> {
     if (!estancia?.id) return;
     if (estancia.cajaMovimientoId) {
       Swal.fire({
@@ -121,6 +126,72 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       return;
     }
+
+    let movimientoInventarioIds: string[] = [];
+    let costoExtraComida = 0;
+
+    const defaults = await this.defaultsPension.getDefaultsOnce().catch(() => null);
+    const row =
+      estancia.tamano_mascota && defaults
+        ? this.defaultsPension.defaultParaTamano(defaults, estancia.tamano_mascota)
+        : null;
+
+    if (row?.productoComidaId) {
+      const dias = this.pensionService.calcularDias(
+        estancia.fecha_ingreso,
+        estancia.fecha_salida_prevista || estancia.fecha_salida_real
+      );
+      const qty = Math.max(1, Math.round((row.cantidadComidaPorDia || 1) * dias));
+      const confirmComida = await Swal.fire({
+        icon: 'question',
+        title: '¿Descontar comida del inventario?',
+        text: `Producto configurado en defaults · ${qty} unidad(es) aprox. (${dias} día(s)).`,
+        showCancelButton: true,
+        confirmButtonText: 'Sí, descontar',
+        cancelButtonText: 'No, solo cobrar'
+      });
+      if (confirmComida.isConfirmed) {
+        const salidaRef = this.dialog.open(SalidaDialogComponent, {
+          ...ADMIN_DIALOG_CONFIG,
+          width: '720px',
+          disableClose: true,
+          data: {
+            pacienteId: estancia.paciente_id !== 'manual' ? estancia.paciente_id : undefined,
+            pacienteNombre: estancia.paciente,
+            motivoDefault: 'uso_consulta',
+            hideRegistrarEnCaja: true,
+            productoId: row.productoComidaId,
+            cantidad: qty,
+            observaciones: `Comida pensión · ${estancia.paciente || ''}`,
+            titulo: 'Consumo comida pensión',
+            subtitulo: 'Opt-in al cobrar estancia'
+          }
+        });
+        const salidaResult = await firstValueFrom(salidaRef.afterClosed());
+        if (salidaResult?.ok && salidaResult.movimientoId) {
+          movimientoInventarioIds = [salidaResult.movimientoId];
+          try {
+            const movs = await firstValueFrom(
+              this.inventarioService.getTodosLosMovimientos()
+            );
+            const m = (movs || []).find((x) => x.id === salidaResult.movimientoId);
+            costoExtraComida = Number(m?.costo_total) || 0;
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    }
+
+    const costoBase =
+      estancia.costo_total_estimado != null
+        ? Number(estancia.costo_total_estimado)
+        : undefined;
+    const costoAsociado =
+      costoBase != null || costoExtraComida > 0
+        ? Math.round(((costoBase || 0) + costoExtraComida) * 100) / 100
+        : undefined;
+
     const ref = this.dialog.open(CajaMovimientoDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       width: '640px',
@@ -131,10 +202,10 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         monto: Number(estancia.precio_total) || Number(estancia.precio_dia) || 0,
         metodoPago: 'efectivo' as const,
         categoria: 'pension' as const,
-        costoAsociado:
-          estancia.costo_total_estimado != null
-            ? Number(estancia.costo_total_estimado)
-            : undefined,
+        costoAsociado,
+        movimientoInventarioIds: movimientoInventarioIds.length
+          ? movimientoInventarioIds
+          : undefined,
         notas: estancia.notas || ''
       }
     });
@@ -147,6 +218,13 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
           cajaMovimientoId: id,
           estado: 'finalizada'
         });
+        if (movimientoInventarioIds.length) {
+          await Promise.all(
+            movimientoInventarioIds.map((mid) =>
+              this.inventarioService.vincularMovimientoACaja(mid, id)
+            )
+          );
+        }
       } catch (error) {
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular pensión a caja'), 'error');
       } finally {

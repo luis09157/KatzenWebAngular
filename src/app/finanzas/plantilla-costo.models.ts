@@ -1,9 +1,11 @@
-/** Plantillas de costo de servicio — spec 021. */
+/** Plantillas de costo de servicio — specs 021 + 022. */
 export type PlantillaTipoServicio =
   | 'banio'
   | 'corte'
   | 'cirugia'
   | 'consulta'
+  | 'vacuna'
+  | 'pension'
   | 'otro';
 
 export type PlantillaItemTipo = 'producto_inventario' | 'gasto_libre';
@@ -41,6 +43,8 @@ export const PLANTILLA_TIPO_LABELS: Record<PlantillaTipoServicio, string> = {
   corte: 'Corte',
   cirugia: 'Cirugía',
   consulta: 'Consulta',
+  vacuna: 'Vacuna',
+  pension: 'Pensión / alojamiento',
   otro: 'Otro'
 };
 

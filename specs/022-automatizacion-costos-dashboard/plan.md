@@ -1,14 +1,14 @@
 # Plan técnico: Automatización costos / ops financieras + pensión
 
 **Spec:** `specs/022-automatizacion-costos-dashboard/spec.md`  
-**Estado:** in-progress  
+**Estado:** done  
 **Extiende:** 014, 018, 021  
 
 ---
 
 ## Resumen
 
-Implementar el puente **Inventario (valuación) ↔ Banio (tamaño/costo) ↔ Caja/margen ↔ P&L**, y diseñar **pensión** como módulo nuevo en Fase B. Principio: hub Finanzas + Inventario + eventos que emiten movimientos económicos. **Sin ventanas redundantes.**
+Implementar el puente **Inventario (valuación) ↔ Banio (tamaño/costo) ↔ Caja/margen ↔ P&L**, y **pensión** como módulo. Principio: hub Finanzas + Inventario + eventos que emiten movimientos económicos. **Sin ventanas redundantes.** Fases A–D cerradas 2026-08-26.
 
 ---
 

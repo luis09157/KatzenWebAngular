@@ -1,7 +1,7 @@
 # Spec: Automatización costos + ops financieras (hub)
 
 **ID:** 022-automatizacion-costos-dashboard  
-**Estado:** in-progress  
+**Estado:** done  
 **Fecha:** 2026-08-26  
 **Autor:** Agent (pedido Luis Alfonso Niño Martínez)  
 **Extiende:** 014-finanzas-caja-mvp, 018-finanzas-csv-banio-caja, 021-costos-rentabilidad-clinica  
@@ -76,10 +76,10 @@ Para **saber el capital inmovilizado** sin Excel.
 
 **Criterios:**
 
-- [ ] SC-INV-001: Tres KPIs visibles en `/admin/inventario` (dashboard) — reutilizar `app-admin-kpi-grid`
-- [ ] SC-INV-002: Hint/tooltip aclara «valuación a costo» vs «a precio de venta» (no COGS FIFO)
-- [ ] SC-INV-003: Sin módulo nuevo; opcional eco en tab Rentabilidad finanzas (resumen stock)
-- [ ] SC-INV-004: Solo productos `activo`; stock ≤ 0 no suma
+- [x] SC-INV-001: Tres KPIs visibles en `/admin/inventario` (dashboard) — reutilizar `app-admin-kpi-grid`
+- [x] SC-INV-002: Hint/tooltip aclara «valuación a costo» vs «a precio de venta» (no COGS FIFO)
+- [x] SC-INV-003: Sin módulo nuevo; opcional eco en tab Rentabilidad finanzas (resumen stock)
+- [x] SC-INV-004: Solo productos `activo`; stock ≤ 0 no suma
 
 ---
 
@@ -115,10 +115,10 @@ Para no llevar dos cuadernos.
 
 **Criterios:**
 
-- [ ] SC-001: Salida `venta_directa` + opción «También registrar en caja» (default ON) → ingreso `venta_producto`
-- [ ] SC-002: Monto sugerido = `precio_venta × cantidad`; editable; IVA según producto
-- [ ] SC-003: Links cruzados opcionales
-- [ ] SC-004: Stock insuficiente → bloquear; no caja huérfana
+- [x] SC-001: Salida `venta_directa` + opción «También registrar en caja» (default ON) → ingreso `venta_producto`
+- [x] SC-002: Monto sugerido = `precio_venta × cantidad`; editable; IVA según producto
+- [x] SC-003: Links cruzados opcionales
+- [x] SC-004: Stock insuficiente → bloquear; no caja huérfana
 
 ### US-3 — Baño + defaults tamaño + caja (Fase A)
 
@@ -128,12 +128,12 @@ Para que el P&L refleje baños reales.
 
 **Criterios:**
 
-- [ ] SC-005: Config 3 tamaños en Finanzas (o panel baños) — **no** módulo nuevo
-- [ ] SC-006: Alta baño: `tamano_perro` → prefill `costoEstimado` / `precio_total` sugerido; **override** siempre
-- [ ] SC-007: `precio_total` siempre por registro (variable)
-- [ ] SC-008: «Registrar en caja» arrastra monto, categoría, `costoAsociado`, `plantillaCostoId?`
-- [ ] SC-009: Campos Banio **aditivos** (móvil OK)
-- [ ] SC-010: Card «Finanzas» en inicio admin
+- [x] SC-005: Config 3 tamaños en Finanzas (o panel baños) — **no** módulo nuevo
+- [x] SC-006: Alta baño: `tamano_perro` → prefill `costoEstimado` / `precio_total` sugerido; **override** siempre
+- [x] SC-007: `precio_total` siempre por registro (variable)
+- [x] SC-008: «Registrar en caja» arrastra monto, categoría, `costoAsociado`, `plantillaCostoId?`
+- [x] SC-009: Campos Banio **aditivos** (móvil OK)
+- [x] SC-010: Card «Finanzas» en inicio admin
 
 ### US-4 — Cirugías, vacunas, servicios clínicos (Fase B)
 
@@ -143,10 +143,10 @@ Para descontar stock y alimentar costo del cobro.
 
 **Criterios:**
 
-- [ ] SC-011: Historial → «Consumir inventario» (`historial_clinico_id`)
-- [ ] SC-012: Consumos visibles → sugerir `costoAsociado` al cobrar
-- [ ] SC-013: Plantilla `cirugia` / vacuna al cobrar + opt-in stock
-- [ ] SC-014: Producto `controlado` / `requiere_receta` → exigir historial
+- [x] SC-011: Historial → «Consumir inventario» (`historial_clinico_id`)
+- [x] SC-012: Consumos visibles → sugerir `costoAsociado` al cobrar
+- [x] SC-013: Plantilla `cirugia` / vacuna al cobrar + opt-in stock
+- [x] SC-014: Producto `controlado` / `requiere_receta` → exigir historial
 
 ### US-5 — Alojamiento / pensión (módulo nuevo — diseño Fase A docs; código Fase B)
 
@@ -157,23 +157,23 @@ Para no usar Excel ni baños como proxy.
 
 **Criterios (diseño ahora; implementación Fase B):**
 
-- [ ] SC-015: Spec + plan: nodo `Katzen/Pension/Estancias`, precios/costos por día/tamaño
-- [ ] SC-016: CRUD lista + alta + editar + «Borrar» (baja lógica)
-- [ ] SC-017: StaffModule `pension` + ruta `/admin/pension` + menú + card inicio
-- [ ] SC-018: Cobro → caja categoría `pension` + `costoAsociado`
-- [ ] SC-019: Opt-in consumo comida inventario (plantilla o ítems)
-- [ ] SC-020: **No** mezclar con Banios
+- [x] SC-015: Spec + plan: nodo `Katzen/Pension/Estancias`, precios/costos por día/tamaño
+- [x] SC-016: CRUD lista + alta + editar + «Borrar» (baja lógica)
+- [x] SC-017: StaffModule `pension` + ruta `/admin/pension` + menú + card inicio
+- [x] SC-018: Cobro → caja categoría `pension` + `costoAsociado`
+- [x] SC-019: Opt-in consumo comida inventario (plantilla o ítems)
+- [x] SC-020: **No** mezclar con Banios
 
 ### US-6 — Dashboard gráficas (Fase C)
 
-- [ ] SC-021: Gráficas ingresos vs egresos; desglose egresos; margen en el tiempo
-- [ ] SC-022: Filtros día \| semana \| mes
-- [ ] SC-023: Chart ligero / design system
+- [x] SC-021: Gráficas ingresos vs egresos; desglose egresos; margen en el tiempo
+- [x] SC-022: Filtros día \| semana \| mes
+- [x] SC-023: Chart ligero / design system
 
 ### US-7 — Gastos tipificados (Fase D)
 
-- [ ] SC-024: Categorías egreso: `publicidad` \| `proveedores` \| `gasolina` \| `operativo` \| `otro`
-- [ ] SC-025: **No** crear `/admin/gastos`
+- [x] SC-024: Categorías egreso: `publicidad` \| `proveedores` \| `gasolina` \| `operativo` \| `otro`
+- [x] SC-025: **No** crear `/admin/gastos`
 
 ---
 

@@ -1,16 +1,19 @@
-/** Movimiento de caja (ingresos / egresos). Specs 014 + 021. */
+/** Movimiento de caja (ingresos / egresos). Specs 014 + 021 + 022. */
 export type CajaTipoMovimiento = 'ingreso' | 'egreso';
 export type CajaMetodoPago = 'efectivo' | 'tarjeta' | 'transferencia';
 
-/** Categoría operativa / P&L simple (021). Opcional en legacy. */
+/** Categoría operativa / P&L simple (021/022). Opcional en legacy. */
 export type CajaCategoria =
   | 'banio'
   | 'corte'
   | 'cirugia'
   | 'venta_producto'
   | 'consulta'
+  | 'vacuna'
   | 'pension'
   | 'publicidad'
+  | 'proveedores'
+  | 'gasolina'
   | 'operativo'
   | 'otro';
 
@@ -20,9 +23,12 @@ export const CAJA_CATEGORIA_LABELS: Record<CajaCategoria, string> = {
   cirugia: 'Cirugía',
   venta_producto: 'Venta producto',
   consulta: 'Consulta',
+  vacuna: 'Vacuna',
   pension: 'Pensión / alojamiento',
   publicidad: 'Publicidad',
-  operativo: 'Gasto operativo',
+  proveedores: 'Proveedores',
+  gasolina: 'Gasolina',
+  operativo: 'Operativo / generales',
   otro: 'Otro'
 };
 
@@ -33,13 +39,16 @@ export const CAJA_CATEGORIAS_INGRESO: CajaCategoria[] = [
   'cirugia',
   'venta_producto',
   'consulta',
+  'vacuna',
   'pension',
   'otro'
 ];
 
-/** Categorías típicas de egreso. */
+/** Categorías tipificadas de egreso (022 Fase D — sin módulo Gastos). */
 export const CAJA_CATEGORIAS_EGRESO: CajaCategoria[] = [
   'publicidad',
+  'proveedores',
+  'gasolina',
   'operativo',
   'otro'
 ];
@@ -107,4 +116,19 @@ export interface CajaDiaKpis {
   ingresosSinCosto: number;
 }
 
-export type CajaPeriodoModo = 'dia' | 'mes';
+/** Día | semana (lun–dom de la fecha) | mes. Spec 022 C. */
+export type CajaPeriodoModo = 'dia' | 'semana' | 'mes';
+
+/** Punto para gráficas de rentabilidad (CSS, sin librería). */
+export interface CajaChartBar {
+  label: string;
+  value: number;
+  /** Clase CSS auxiliar (ok / egreso / warn). */
+  tone?: 'ok' | 'egreso' | 'warn' | 'muted';
+}
+
+export interface CajaEgresoDesglose {
+  categoria: CajaCategoria | 'sin_categoria';
+  label: string;
+  total: number;
+}
