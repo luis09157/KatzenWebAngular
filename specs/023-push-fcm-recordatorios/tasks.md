@@ -26,14 +26,16 @@
 
 - [x] `PortalFcmService` + botón en `/portal/perfil`
 - [x] `firebase-messaging-sw.js` en assets
-- [x] `environment.fcmVapidKey` opcional (vacío = mensaje pendiente)
+- [x] `environment.fcmVapidKey` configurado (dev + prod) — 2026-08-26
 - [ ] Deploy `onRecordatorioWritePush` — solo si no exige Resend secret (ver nota deploy MVP)
-- [ ] Smoke E2E push real — requiere VAPID + permiso navegador
+- [ ] Smoke E2E push real — requiere permiso navegador + token en RTDB
 
-### Pasos pendientes VAPID
+### VAPID (completado 2026-08-26)
 
-1. Firebase Console → Project Settings → Cloud Messaging → Web Push certificates → Generate key pair
-2. Copiar a `environment.prod.ts` → `fcmVapidKey: '...'`
-3. Redeploy hosting
-4. Portal perfil → «Activar avisos push» → verificar nodo `Katzen/FcmTokens/{uid}`
+1. [x] Firebase Console → Web Push certificates → key pair generado (Luis)
+2. [x] `environment.ts` + `environment.prod.ts` → `fcmVapidKey`
+3. [x] `firebase-messaging-sw.js` — config `katzen-a0e3e` verificada
+4. [x] `npm run build` OK (hash 5341926de8588643)
+5. [x] Deploy hosting
+6. [ ] Portal perfil → «Activar avisos push» → verificar nodo `Katzen/FcmTokens/{uid}` (smoke manual prod)
 
