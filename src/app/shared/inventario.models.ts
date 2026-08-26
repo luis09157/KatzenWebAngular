@@ -138,6 +138,8 @@ export interface Movimiento {
   paciente_id?: string;
   historial_clinico_id?: string;
   venta_id?: string;
+  /** Spec 022 — link opcional a movimiento de caja (venta→caja). */
+  cajaMovimientoId?: string;
   usuario_responsable_id: string;
   orden_compra_id?: string;
   observaciones: string;
@@ -262,7 +264,14 @@ export interface ItemConteo {
 // ==================== ESTADÍSTICAS ====================
 export interface EstadisticasInventario {
   total_productos: number;
+  /** Compat: mismo valor que invertido_costo (Σ stock × precio_compra). */
   valor_total_inventario: number;
+  /** Capital invertido a costo de compra — spec 022. */
+  invertido_costo: number;
+  /** Valuación a precio de venta — spec 022. */
+  valor_precio_venta: number;
+  /** valor_precio_venta − invertido_costo (margen potencial de stock, no utilidad de caja). */
+  margen_potencial: number;
   productos_bajo_stock: number;
   productos_por_caducar: number;
   productos_caducados: number;

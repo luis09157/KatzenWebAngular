@@ -9,6 +9,7 @@ export type CajaCategoria =
   | 'cirugia'
   | 'venta_producto'
   | 'consulta'
+  | 'pension'
   | 'publicidad'
   | 'operativo'
   | 'otro';
@@ -19,6 +20,7 @@ export const CAJA_CATEGORIA_LABELS: Record<CajaCategoria, string> = {
   cirugia: 'Cirugía',
   venta_producto: 'Venta producto',
   consulta: 'Consulta',
+  pension: 'Pensión / alojamiento',
   publicidad: 'Publicidad',
   operativo: 'Gasto operativo',
   otro: 'Otro'
@@ -31,6 +33,7 @@ export const CAJA_CATEGORIAS_INGRESO: CajaCategoria[] = [
   'cirugia',
   'venta_producto',
   'consulta',
+  'pension',
   'otro'
 ];
 
@@ -63,6 +66,8 @@ export interface CajaMovimiento {
   costoAsociado?: number;
   /** Solo ingresos con costo: monto − costoAsociado. */
   margenEstimado?: number;
+  /** Spec 022 — salidas de inventario ligadas al cobro. */
+  movimientoInventarioIds?: string[];
   activo: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -81,6 +86,8 @@ export interface CajaMovimientoFormData {
   categoria?: CajaCategoria;
   plantillaCostoId?: string;
   costoAsociado?: number;
+  /** Spec 022 — IDs de movimientos de inventario ligados. */
+  movimientoInventarioIds?: string[];
 }
 
 export interface CajaDiaKpis {

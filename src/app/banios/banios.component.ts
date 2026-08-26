@@ -447,7 +447,12 @@ export class BaniosComponent implements OnInit, OnDestroy {
         monto: Number(banio.precio_total) || 0,
         metodoPago: metodo,
         notas: banio.observaciones || '',
-        categoria: categoriaCaja
+        categoria: categoriaCaja,
+        costoAsociado:
+          banio.costoEstimado != null && !Number.isNaN(Number(banio.costoEstimado))
+            ? Number(banio.costoEstimado)
+            : undefined,
+        plantillaCostoId: banio.plantillaCostoId || undefined
       }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {

@@ -7,6 +7,14 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import { Banio } from '../shared/banio.model';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { LoadingService } from '../core/loading.service';
+import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
+import {
+  DefaultsBanioPorTamano,
+  TAMANO_PERRO_LABELS,
+  TAMANOS_PERRO_ORDEN,
+  TamanoPerroBanio,
+  emptyDefaultsBanio
+} from '../finanzas/defaults-banio.models';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -20,6 +28,11 @@ export class BanioDialogComponent implements OnInit {
   loading = false;
   esEdicion = false;
   hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
+  defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
+  readonly tamanos = TAMANOS_PERRO_ORDEN;
+  readonly tamanoLabels = TAMANO_PERRO_LABELS;
+  /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
+  private precioTotalManual = false;
   
   // Opciones para los selects
   tiposServicios = [
@@ -83,7 +96,8 @@ export class BanioDialogComponent implements OnInit {
     private baniosService: BaniosService,
     private baniosPacienteService: BaniosPacienteService,
     private usuariosService: UsuariosService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private defaultsBanioService: DefaultsBanioService
   ) {
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
@@ -102,6 +116,9 @@ export class BanioDialogComponent implements OnInit {
       precio_base: [0, [Validators.required, Validators.min(0)]],
       servicios_adicionales: [[]],
       precio_total: [0, [Validators.required, Validators.min(0)]],
+      tamano_perro: [''],
+      costoEstimado: [null as number | null],
+      plantillaCostoId: [''],
       pagado: [false],
       metodo_pago: [''],
       duracion_estimada: [60, [Validators.required, Validators.min(15)]],
@@ -114,7 +131,8 @@ export class BanioDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarUsuarios();
-    
+    void this.cargarDefaultsBanio();
+
     // Verificar si se debe ocultar la información del paciente/cliente
     this.hidePatientInfo = this.data?.hidePatientInfo || false;
     
@@ -276,6 +294,7 @@ export class BanioDialogComponent implements OnInit {
           }
 
           this.banioForm.patchValue(normalizado);
+          this.precioTotalManual = true;
           // Recalcular precio por si faltaba precio_total
           this.calcularPrecioTotal();
         }
@@ -431,6 +450,36 @@ export class BanioDialogComponent implements OnInit {
     }, 100);
   }
 
+  private async cargarDefaultsBanio(): Promise<void> {
+    try {
+      this.defaultsBanio = await this.defaultsBanioService.getDefaultsOnce();
+    } catch {
+      this.defaultsBanio = emptyDefaultsBanio();
+    }
+  }
+
+  onTamanoChange(): void {
+    const tamano = this.banioForm.get('tamano_perro')?.value as TamanoPerroBanio | '';
+    if (!tamano) return;
+    const def = this.defaultsBanioService.defaultParaTamano(this.defaultsBanio, tamano);
+    if (!def) return;
+    const patch: Record<string, unknown> = {
+      costoEstimado: def.costoDefault
+    };
+    if (def.plantillaCostoId) {
+      patch['plantillaCostoId'] = def.plantillaCostoId;
+    }
+    if (def.precioSugerido != null && !this.precioTotalManual) {
+      patch['precio_base'] = def.precioSugerido;
+      patch['precio_total'] = def.precioSugerido;
+    }
+    this.banioForm.patchValue(patch);
+  }
+
+  onPrecioTotalManual(): void {
+    this.precioTotalManual = true;
+  }
+
   // Función para actualizar precio automáticamente cuando se selecciona un servicio
   actualizarPrecioServicio(servicio: any, index: number) {
     if (servicio.servicio && servicio.servicio !== 'otro') {
@@ -449,18 +498,19 @@ export class BanioDialogComponent implements OnInit {
   calcularPrecioTotal(): number {
     const precioBase = this.banioForm.get('precio_base')?.value || 0;
     const serviciosAdicionales = this.banioForm.get('servicios_adicionales')?.value || [];
-    
+
     const totalAdicionales = serviciosAdicionales.reduce((sum: number, servicio: any) => {
       return sum + (Number(servicio.precio) || 0);
     }, 0);
-    
+
     const precioTotal = Number(precioBase) + totalAdicionales;
-    
-    // Actualizar el campo precio_total en el formulario
-    this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: true });
-    this.banioForm.get('precio_total')?.updateValueAndValidity({ onlySelf: true, emitEvent: true });
-    
-    return precioTotal;
+
+    // Solo auto-actualizar si el usuario no overrideó precio_total
+    if (!this.precioTotalManual) {
+      this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
+    }
+
+    return Number(this.banioForm.get('precio_total')?.value) || precioTotal;
   }
 
   agregarServicioAdicional() {
@@ -539,7 +589,7 @@ export class BanioDialogComponent implements OnInit {
       console.log('🔍 Fecha normalizada (preservada):', banioData.fecha_banio);
       
       // Limpiar datos antes de enviar
-      const datosLimpios = {
+      const datosLimpios: any = {
         ...banioData,
         // Asegurar que los arrays estén definidos
         servicios_adicionales: banioData.servicios_adicionales || [],
@@ -549,6 +599,18 @@ export class BanioDialogComponent implements OnInit {
         // Asegurar que productos_utilizados esté definido
         productos_utilizados: banioData.productos_utilizados || []
       };
+
+      if (datosLimpios.costoEstimado != null && datosLimpios.costoEstimado !== '') {
+        datosLimpios.costoEstimado = Number(datosLimpios.costoEstimado);
+      } else {
+        delete datosLimpios.costoEstimado;
+      }
+      if (!datosLimpios.tamano_perro) {
+        delete datosLimpios.tamano_perro;
+      }
+      if (!datosLimpios.plantillaCostoId) {
+        delete datosLimpios.plantillaCostoId;
+      }
       
       // Remover campos undefined para evitar errores de Firebase
       Object.keys(datosLimpios).forEach(key => {
@@ -565,10 +627,20 @@ export class BanioDialogComponent implements OnInit {
         const permitidos: (keyof typeof datosLimpios)[] = [
           'fecha_banio','hora_banio','tipo_servicio','estado','prioridad','observaciones',
           'alergias_conocidas','comportamiento','peluquero_id','precio_base','servicios_adicionales',
-          'precio_total','pagado','metodo_pago','duracion_estimada','tiempo_inicio','tiempo_fin','activo','updated_at','updated_by'
+          'precio_total','pagado','metodo_pago','duracion_estimada','tiempo_inicio','tiempo_fin','activo',
+          'updated_at','updated_by','tamano_perro','costoEstimado','plantillaCostoId'
         ];
         const payload: any = {};
-        permitidos.forEach(k => { if (datosLimpios[k] !== undefined) payload[k] = datosLimpios[k]; });
+        permitidos.forEach(k => { if (datosLimpios[k] !== undefined && datosLimpios[k] !== '') payload[k] = datosLimpios[k]; });
+        if (datosLimpios['costoEstimado'] != null && datosLimpios['costoEstimado'] !== '') {
+          payload.costoEstimado = Number(datosLimpios['costoEstimado']);
+        }
+        if (!datosLimpios['tamano_perro']) {
+          delete payload.tamano_perro;
+        }
+        if (!datosLimpios['plantillaCostoId']) {
+          delete payload.plantillaCostoId;
+        }
         // Si el estado no es 'completado', asegurar que pagado sea false para reflejar ingresos
         if (payload.estado && payload.estado !== 'completado') {
           payload.pagado = false;

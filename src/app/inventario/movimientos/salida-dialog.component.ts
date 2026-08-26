@@ -1,15 +1,16 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
-import { Observable } from 'rxjs';
-import { Subject } from 'rxjs';
+import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
+import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
+import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
 
 @Component({
   selector: 'app-salida-dialog',
@@ -39,6 +40,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<SalidaDialogComponent>,
+    private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private loadingService: LoadingService
@@ -48,7 +50,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       producto_id: ['', Validators.required],
       cantidad: [1, [Validators.required, Validators.min(1)]],
       motivo: ['uso_consulta', Validators.required],
-      observaciones: ['']
+      observaciones: [''],
+      registrarEnCaja: [true]
     });
 
     this.productosFiltrados = this.salidaForm.get('producto_busqueda')!.valueChanges.pipe(
@@ -68,6 +71,27 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
   get esMerma(): boolean {
     return this.salidaForm.get('motivo')?.value === 'merma';
+  }
+
+  get esVentaDirecta(): boolean {
+    return this.salidaForm.get('motivo')?.value === 'venta_directa';
+  }
+
+  get montoVentaSugerido(): number {
+    if (!this.productoSeleccionado) return 0;
+    const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
+    return Math.round((Number(this.productoSeleccionado.precio_venta) || 0) * qty * 100) / 100;
+  }
+
+  get costoVentaSugerido(): number {
+    if (!this.productoSeleccionado) return 0;
+    const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
+    return Math.round((Number(this.productoSeleccionado.precio_compra) || 0) * qty * 100) / 100;
+  }
+
+  /** Alias usado en plantilla (compat). */
+  get montoSugeridoVenta(): number {
+    return this.montoVentaSugerido;
   }
 
   cargarProductos(): void {
@@ -177,15 +201,16 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       const motivoTexto = this.motivosSalida.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
       const motivoCompleto = `${motivoTexto}. ${formData.observaciones || ''}`.trim();
 
+      let movimientoId: string | undefined;
       if (formData.motivo === 'merma') {
-        await this.inventarioService.registrarMerma(
+        movimientoId = await this.inventarioService.registrarMerma(
           formData.producto_id,
           formData.cantidad,
           motivoCompleto,
           formData.observaciones
         );
       } else {
-        await this.inventarioService.registrarSalida(
+        movimientoId = await this.inventarioService.registrarSalida(
           formData.producto_id,
           formData.cantidad,
           motivoCompleto,
@@ -198,6 +223,15 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
       const nuevoStock = this.productoSeleccionado.stock_actual - formData.cantidad;
       const tituloExito = formData.motivo === 'merma' ? 'Merma registrada' : 'Salida registrada';
+
+      this.loadingService.hide();
+      this.loading = false;
+
+      if (formData.motivo === 'venta_directa' && formData.registrarEnCaja && movimientoId) {
+        await this.abrirCajaTrasVenta(movimientoId, formData.cantidad);
+        this.dialogRef.close(true);
+        return;
+      }
 
       Swal.fire({
         icon: 'success',
@@ -217,9 +251,44 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       this.logger.error('Error al registrar salida/merma:', error);
       const contexto = this.esMerma ? 'registrar merma' : 'registrar salida';
       Swal.fire('Error', this.errorMessages.getUserMessage(error, contexto), 'error');
-    } finally {
       this.loadingService.hide();
       this.loading = false;
+    }
+  }
+
+  private async abrirCajaTrasVenta(movimientoInventarioId: string, cantidad: number): Promise<void> {
+    const producto = this.productoSeleccionado!;
+    const costo = this.costoVentaSugerido;
+    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '640px',
+      disableClose: true,
+      data: {
+        concepto: `Venta · ${producto.nombre} × ${cantidad}`,
+        monto: this.montoVentaSugerido,
+        metodoPago: 'efectivo' as const,
+        categoria: 'venta_producto' as const,
+        costoAsociado: costo > 0 ? costo : undefined,
+        movimientoInventarioIds: [movimientoInventarioId],
+        notas: producto.iva_aplicable ? 'Producto con IVA aplicable' : ''
+      }
+    });
+
+    const result = await firstValueFrom(ref.afterClosed());
+    const cajaId = result?.movimientoId as string | undefined;
+    if (cajaId) {
+      try {
+        await this.inventarioService.vincularMovimientoACaja(movimientoInventarioId, cajaId);
+      } catch (err) {
+        this.logger.error('No se pudo vincular salida↔caja:', err);
+      }
+    } else {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Salida guardada sin cobro en caja',
+        text: 'El stock ya se descontó. Puedes registrar el cobro después en Finanzas.',
+        confirmButtonText: 'Entendido'
+      });
     }
   }
 

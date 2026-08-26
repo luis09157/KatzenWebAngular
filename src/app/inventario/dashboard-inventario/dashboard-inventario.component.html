@@ -7,8 +7,33 @@
   <ng-container *ngIf="!loading">
     <p class="section-eyebrow">Resumen del módulo</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="orange" [value]="estadisticas?.total_productos || 0" label="Total productos" hint="Catálogo activo"></app-admin-stat-card>
-      <app-admin-stat-card accent="green" [value]="estadisticas?.valor_total_inventario || 0" label="Valor inventario" hint="En pesos MXN"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="estadisticas?.total_productos || 0"
+        label="Total productos"
+        hint="Catálogo activo">
+      </app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="formatMoney(estadisticas?.invertido_costo ?? estadisticas?.valor_total_inventario)"
+        label="Invertido (a costo)"
+        hint="Stock × precio compra">
+      </app-admin-stat-card>
+      <app-admin-stat-card
+        accent="green"
+        [value]="formatMoney(estadisticas?.valor_precio_venta)"
+        label="Valor a precio venta"
+        hint="Stock × precio venta">
+      </app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="formatMoney(estadisticas?.margen_potencial)"
+        label="Margen potencial"
+        hint="Venta − costo (no es caja)">
+      </app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-kpi-grid class="kpi-secondary">
       <app-admin-stat-card accent="pink" [value]="estadisticas?.productos_bajo_stock || 0" label="Stock bajo" hint="Requieren reposición"></app-admin-stat-card>
       <app-admin-stat-card accent="blue" [value]="productosPorCaducar.length" label="Por caducar" hint="Próximos 30 días"></app-admin-stat-card>
     </app-admin-kpi-grid>

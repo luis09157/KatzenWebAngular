@@ -54,6 +54,10 @@
         <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
         <span matListItemTitle>Caja / finanzas</span>
       </a>
+      <a *ngIf="canShow('pension')" mat-list-item routerLink="/admin/pension" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>hotel</mat-icon>
+        <span matListItemTitle>Pensión</span>
+      </a>
       <a *ngIf="canShow('usuarios')" mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>manage_accounts</mat-icon>
         <span matListItemTitle>Personal y portal</span>

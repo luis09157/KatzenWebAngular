@@ -95,6 +95,12 @@ const routes: Routes = [
         canActivate: [StaffRoleGuard],
         data: { staffModule: 'finanzas' }
       },
+      {
+        path: 'pension',
+        loadChildren: () => import('./pension/pension.module').then(m => m.PensionModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'pension' }
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

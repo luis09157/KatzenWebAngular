@@ -167,4 +167,34 @@ export const MOCK_PLANTILLA_COSTO = {
   createdBy: 'mock-staff'
 };
 
+/** Defaults baño por tamaño — mocks UI (spec 022). */
+export const MOCK_DEFAULTS_BANIO_TAMANO = {
+  pequeno: { costoDefault: 40, precioSugerido: 250 },
+  mediano: { costoDefault: 85, precioSugerido: 350 },
+  grande: { costoDefault: 120, precioSugerido: 450 },
+  updatedAt: '2026-08-26T12:00:00.000Z',
+  updatedBy: 'mock-staff'
+};
+
+/** Estancia pensión — mocks UI (spec 022 scaffold). */
+export const MOCK_PENSION_ESTANCIA = {
+  id: 'mock-pension-001',
+  paciente_id: 'mock-paciente-001',
+  paciente: 'Firulais Mock',
+  cliente_id: 'mock-cliente-001',
+  cliente: 'Dueño Mock',
+  fecha_ingreso: '2026-08-26',
+  fecha_salida_prevista: '2026-08-29',
+  tamano_mascota: 'mediano' as const,
+  precio_dia: 280,
+  precio_total: 840,
+  costo_dia: 90,
+  costo_total_estimado: 270,
+  estado: 'activa' as const,
+  notas: 'Trae croquetas propias',
+  activo: true,
+  created_at: '2026-08-26T12:00:00.000Z',
+  created_by: 'mock-staff'
+};
+
 

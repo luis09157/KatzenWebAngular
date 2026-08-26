@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -13,6 +14,14 @@ import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.componen
 import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
 import { CajaService } from './caja.service';
 import { PlantillaCostoService } from './plantilla-costo.service';
+import { DefaultsBanioService } from './defaults-banio.service';
+import {
+  DefaultsBanioPorTamano,
+  TAMANO_PERRO_LABELS,
+  TAMANOS_PERRO_ORDEN,
+  TamanoPerroBanio,
+  emptyDefaultsBanio
+} from './defaults-banio.models';
 import {
   CAJA_CATEGORIA_LABELS,
   CajaCategoria,
@@ -44,7 +53,11 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loading = true;
   loadingPlantillas = true;
+  savingDefaults = false;
   kpis: CajaDiaKpis = this.emptyKpis();
+  defaultsForm: FormGroup;
+  readonly tamanosBanio = TAMANOS_PERRO_ORDEN;
+  readonly tamanoLabels = TAMANO_PERRO_LABELS;
 
   private todos: CajaMovimiento[] = [];
   private plantillas: PlantillaCosto[] = [];
@@ -55,6 +68,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private cajaService: CajaService,
     private plantillaService: PlantillaCostoService,
+    private defaultsBanioService: DefaultsBanioService,
+    private fb: FormBuilder,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
@@ -62,11 +77,13 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
     this.mesFiltro = this.cajaService.mesLocalIso();
+    this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
   }
 
   ngOnInit(): void {
     this.cargar();
     this.cargarPlantillas();
+    this.cargarDefaultsBanio();
   }
 
   ngAfterViewInit(): void {
@@ -347,5 +364,81 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     if (p.precioSugeridoCliente == null) return '—';
     const m = Number(p.precioSugeridoCliente) - Number(p.costoTotalEstimado || 0);
     return this.formatMoney(m);
+  }
+
+  private buildDefaultsForm(data: DefaultsBanioPorTamano): FormGroup {
+    const row = (t: TamanoPerroBanio) =>
+      this.fb.group({
+        costoDefault: [data[t]?.costoDefault ?? 0, [Validators.min(0)]],
+        precioSugerido: [data[t]?.precioSugerido ?? null, [Validators.min(0)]]
+      });
+    return this.fb.group({
+      pequeno: row('pequeno'),
+      mediano: row('mediano'),
+      grande: row('grande')
+    });
+  }
+
+  cargarDefaultsBanio(): void {
+    this.defaultsBanioService
+      .getDefaults()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (d) => {
+          this.defaultsForm = this.buildDefaultsForm(d);
+        },
+        error: (err) => {
+          this.logger.error('Error defaults baño:', err);
+          this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
+        }
+      });
+  }
+
+  async guardarDefaultsBanio(): Promise<void> {
+    if (this.defaultsForm.invalid) {
+      this.defaultsForm.markAllAsTouched();
+      return;
+    }
+    this.savingDefaults = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const raw = this.defaultsForm.getRawValue();
+      const payload: DefaultsBanioPorTamano = {
+        pequeno: {
+          costoDefault: Number(raw.pequeno.costoDefault) || 0,
+          precioSugerido:
+            raw.pequeno.precioSugerido != null && raw.pequeno.precioSugerido !== ''
+              ? Number(raw.pequeno.precioSugerido)
+              : undefined
+        },
+        mediano: {
+          costoDefault: Number(raw.mediano.costoDefault) || 0,
+          precioSugerido:
+            raw.mediano.precioSugerido != null && raw.mediano.precioSugerido !== ''
+              ? Number(raw.mediano.precioSugerido)
+              : undefined
+        },
+        grande: {
+          costoDefault: Number(raw.grande.costoDefault) || 0,
+          precioSugerido:
+            raw.grande.precioSugerido != null && raw.grande.precioSugerido !== ''
+              ? Number(raw.grande.precioSugerido)
+              : undefined
+        }
+      };
+      await this.defaultsBanioService.guardarDefaults(payload);
+      Swal.fire({
+        icon: 'success',
+        title: 'Defaults guardados',
+        timer: 1600,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      this.logger.error('Error al guardar defaults baño:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar defaults baño'), 'error');
+    } finally {
+      this.loadingService.hide();
+      this.savingDefaults = false;
+    }
   }
 }

@@ -6,6 +6,11 @@
   margin-bottom: 32px;
 }
 
+.kpi-secondary {
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
 .dashboard-modules__heading {
   margin: 0 auto 24px;
   max-width: 720px;

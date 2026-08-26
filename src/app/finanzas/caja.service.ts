@@ -82,6 +82,9 @@ export class CajaService {
         movimiento.margenEstimado = Math.round((monto - costo) * 100) / 100;
       }
     }
+    if (data.movimientoInventarioIds?.length) {
+      movimiento.movimientoInventarioIds = [...data.movimientoInventarioIds];
+    }
 
     const ref = await this.db.list<CajaMovimiento>(this.movimientosPath).push(movimiento);
     await stampRtdbIdAfterPush(this.db, this.movimientosPath, ref.key);

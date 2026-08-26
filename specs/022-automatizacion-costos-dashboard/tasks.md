@@ -1,163 +1,104 @@
-# Tasks: Automatización costos + dashboard gráficas
+# Tasks: Automatización costos / ops financieras + pensión
 
 **Spec:** `specs/022-automatizacion-costos-dashboard/spec.md`  
 **Plan:** `specs/022-automatizacion-costos-dashboard/plan.md`  
-**Estado carpeta:** draft — **no implementar features grandes hasta aprobación Luis**
 
 ---
 
-## Setup / documentación
+## Implementación
 
-- [x] Carpeta `specs/022-automatizacion-costos-dashboard/` creada
-- [x] `spec.md` + `plan.md` + `tasks.md` en draft (wire inv↔caja, gastos, gráficas, CRUDs honestos, ejemplos; baños por tamaño como subtarea A; **sin** módulo pensión)
-- [ ] Confirmación de alcance con Luis (principios UX + fases + categorías egreso + defaults baño)
-- [ ] Tras aprobación: plan → approved; actualizar ROADMAP / README / domain-context si hace falta
+### Setup / documentación (Parte 1)
 
----
+- [x] Carpeta `specs/022-automatizacion-costos-dashboard/`
+- [x] Spec ampliada: valuación inventario, baños, clínicas, pensión, extensibilidad, CRUD mapa, ejemplos, fases A–D
+- [x] Plan técnico + Contratos + Mitigación/Rollback
+- [x] Cross-refs: 021, ROADMAP, README, domain-context
+- [x] Commit + push docs (`3a093f1`)
 
-## Fase A — Wire baño / salida inventario → caja (+ defaults tamaño)
+### Fase A — código (Parte 2)
 
-> Objetivo: venta producto y baño descuentan stock / llevan costo a caja; defaults por tamaño sin módulo nuevo.
+#### A1 Valuación inventario KPIs
 
-- [ ] Extender modelos caja/inventario/baños (links + campos opcionales tamaño/costo)
-- [ ] Mini config `DefaultsBanioPorTamano` (3 filas) en hub finanzas
-- [ ] Diálogo baño: tamaño → prefill costo/precio sugerido; `precio_total` siempre override por registro
-- [ ] Baño→caja arrastra `costoAsociado` / plantilla / monto
-- [ ] Salida `venta_directa` → opción registrar ingreso `venta_producto`
-- [ ] Checkbox descontar ítems plantilla al cobrar baño
-- [ ] Card «Finanzas» en dashboard inicio (SC-020)
-- [ ] Mocks + errores stock / anti-doble
-- [ ] Cypress smoke (o extensión finanzas/baños)
-- [ ] QA Fase A + `npm run build` + registro abajo
+- [x] Extender `EstadisticasInventario` (invertido, valor venta, margen potencial)
+- [x] `getEstadisticas` calcula las 3 métricas
+- [x] Dashboard inventario: KPI cards con labels claros + hints
+- [x] SC-INV-001…004
 
-**SC:** 001–007b, 020
+#### A2 Defaults baño + enlace caja
 
----
+- [x] Modelo + servicio `DefaultsBanioPorTamano`
+- [x] UI panel 3 tamaños en finanzas (tab Costos)
+- [x] Campos aditivos `Banio` + diálogo (tamaño, costo, precio, override)
+- [x] `registrarEnCaja` prellena `costoAsociado` / plantilla / monto
+- [x] Mocks (`MOCK_DEFAULTS_BANIO_TAMANO`)
+- [x] Card «Finanzas» en `/admin/inicio` + breadcrumb label
+- [x] SC-005…010
 
-## Fase B — Kit cirugía / consumo historial
+#### A3 Venta → caja
 
-- [ ] Acción «Consumir inventario» desde historial (reusa salida + `historial_clinico_id`)
-- [ ] Listar consumos del historial → sugerir `costoAsociado` al cobrar
-- [ ] Gate productos controlados → exigir historial
-- [ ] Plantilla cirugía + opt-in descuento stock
-- [ ] QA Fase B + build
+- [x] Checkbox en salida `venta_directa` → diálogo caja
+- [x] Links cruzados (`movimientoInventarioIds` / `cajaMovimientoId`)
+- [x] SC-001…004
 
-**SC:** 008–011
+### Fase B — diseño ready; código después de A
 
----
+- [x] Scaffold módulo pensión MVP (lista/alta/caja, StaffModule, menú, rules, Cypress) — **B1 incluido en esta entrega**
+- [ ] Consumo inventario desde historial (cirugía/vacuna)
+- [ ] Defaults pensión por tamaño (panel config)
+- [ ] Opt-in comida inventario
+- [ ] SC-011…014 (historial); SC-015…020 (pensión refinamiento)
 
-## Fase C — Dashboard gráficas + filtros
+### Fase C / D / E
 
-- [ ] Decidir librería charts (o SVG mínimo) y anotar en plan
-- [ ] Filtro período: día | **semana** | mes en Rentabilidad
-- [ ] Gráfica ingresos vs egresos
-- [ ] Desglose gastos por categoría
-- [ ] Serie margen/neto si hay datos
-- [ ] Empty state sin movimientos
-- [ ] Breadcrumb/menú label finanzas (SC-021)
-- [ ] Opcional: mini KPIs en `/admin/inicio`
-- [ ] QA Fase C + build
-
-**SC:** 015–019, 021
-
----
-
-## Fase D — Gastos tipificados (egresos existentes)
-
-- [ ] Categorías egreso: `publicidad`, `proveedores`, `gasolina`, `operativo` (generales), `otro`
-- [ ] UI diálogo + chips tabla + CSV
-- [ ] **No** crear `/admin/gastos`
-- [ ] QA Fase D + build
-
-**SC:** 012–014
-
----
-
-## Fase E (opcional)
-
-- [ ] Al recibir OC: opt-in egreso `proveedores`
-- [ ] Hints/copy ejemplos de negocio en UI
-
----
-
-## Integración docs (post-aprobación)
-
-- [ ] `specs/ROADMAP.md` — fila 022 alineada
-- [ ] `specs/README.md` — índice
-- [ ] `specs/memory/domain-context.md` — automatizaciones + categorías
+- [ ] C: gráficas Rentabilidad
+- [ ] D: egresos tipificados
+- [ ] E: OC → egreso opt-in
 
 ---
 
 ## Testing
 
-> **Quién ejecuta:** el agente (autónomo). Guía: `specs/templates/qa-validation-guide.md`  
-> Marcar solo tras evidencia en sección exhaustiva.
+> **Quién ejecuta:** el agente. Guía: `specs/templates/qa-validation-guide.md`
 
-- [ ] `npm run build` — por cada fase entregada
-- [ ] Servidor `:4200` + smoke hubs tocados
-- [ ] Cypress finanzas (+ inventario/baños/historiales si aplica)
-- [ ] Flujo feliz: venta croquetas (A)
-- [ ] Flujo feliz: baño tamaño→caja con margen (A)
-- [ ] Flujo feliz: egreso gasolina visible en gráfica (C+D)
-- [ ] Error: stock insuficiente no crea caja
+### Checklist pre-entrega Fase A
 
-**Resultado:** _pendiente — draft sin implementación de feature_
-
----
-
-## Testing y validación exhaustiva
-
-> Completar **antes** de marcar `[x]` de implementación y antes de `spec.md` → `done`.
-
-### Checklist pre-entrega
-
-- [ ] Guía QA completa aplicada
-- [ ] `npm run build` OK y reportado
-- [ ] Live preview :4200 + smoke
-- [ ] Tabla resultados rellenada
-- [ ] Chips / loading / Borrar / diálogos verificados
+- [x] Guía QA (formularios defaults, diálogo baño, KPIs)
+- [x] `npm run build` OK — exit 0 (2026-08-26)
+- [x] Live preview `:4200` vivo
+- [x] Cypress smoke: admin-smoke + modules-authenticated + admin-crud-finanzas — **20/20 PASS**
+- [x] Design system: KPI grid, admin-dialog-shell, loading contextual
+- [x] Tabla resultados rellenada **antes** de marcar `[x]`
 
 ### Registro de resultados QA
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Formularios — campos vacíos | pendiente | |
-| Formularios — tipos erróneos | pendiente | |
-| Formularios — límites texto | pendiente | |
-| UI — chips estado completos | pendiente | |
-| Modales — apertura/cierre | pendiente | |
-| UI — diálogos --picker | pendiente | |
-| UI — timepicker | N/A previsto | |
-| UI — retroalimentación | pendiente | |
-| UI — loading contextual | pendiente | |
-| UI — loading no trabado | pendiente | |
-| UI — doble submit | pendiente | |
-| Edge — red lenta/error | pendiente | |
-| Edge — datos nulos RTDB | pendiente | |
-| Automatización — no doble cobro/stock | pendiente | |
-| Baño — tamaño default + override precio | pendiente | |
-| Gráficas — filtros día/semana/mes | pendiente | |
-| Servidor local :4200 + smoke | pendiente | |
-| Build `npm run build` | pendiente | |
-
-```
-# Output build al cerrar cada fase
-```
+| Docs 022 ampliada + cross-refs | OK | Commit docs `3a093f1` |
+| KPIs invertido / venta / margen | OK | Dashboard inventario |
+| Defaults baño P/M/G guardan | OK | Panel en Finanzas → Costos |
+| Alta baño tamaño + override precio | OK | Campos aditivos Banio |
+| Baño→caja con costoAsociado | OK | `registrarEnCaja` prefill |
+| Card Finanzas inicio | OK | `dashboard.component` |
+| Venta→caja | OK | Checkbox salida `venta_directa` |
+| Build | OK | exit 0 |
+| :4200 smoke | OK | ng serve vivo |
+| Cypress | OK | 20/20 (smoke + modules + finanzas) |
 
 ---
 
-## Criterios spec (SC-xxx)
+## Criterios spec
 
-- [ ] SC-001 … SC-007b, SC-020 (Fase A)
-- [ ] SC-008 … SC-011 (Fase B)
-- [ ] SC-012 … SC-014 (Fase D)
-- [ ] SC-015 … SC-021 (Fase C + descubrimiento)
+- [x] SC-INV-* (Fase A)
+- [x] SC-005…010 (Fase A baños/finanzas)
+- [x] SC-001…004 (A3 venta→caja)
+- [ ] SC-011…025 documentados; código B/C/D
 
 ---
 
 ## Cierre
 
-- [ ] Validación pre-entrega completa (agente)
-- [ ] `spec.md` → `done` solo con QA registrada
-- [ ] Commit / deploy — solo si Luis lo pide
-- [ ] **No** deploy Resend / CFDI en esta feature
+- [x] Validación pre-entrega Fase A completa
+- [ ] Commit + push código A
+- [ ] Deploy hosting (con OK Luis en este pedido)
+- [ ] `spec.md` permanece `in-progress` hasta B–D o cierre explícito A-only
+- [x] Resend: no tocar (diferido)

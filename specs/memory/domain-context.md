@@ -635,7 +635,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | Feature | Origen | Notas |
 |---------|--------|-------|
 | **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
-| **Módulo finanzas / caja** | #19, #20 | MVP+CSV **018** + costos **021** hechos. **022** (draft): automatizar inv↔caja, egresos tipificados, gráficas, defaults baño por tamaño — sin módulos nuevos | **018/021** hechos. **022** valuación inventario + baño→caja (A) + pensión/cirugía (B) — `specs/022-automatizacion-costos-dashboard/` |
+| **Módulo finanzas / caja** | #19, #20 | **018/021** hechos. **022** valuación inventario + baño→caja (A) + pensión/cirugía (B) — `specs/022-automatizacion-costos-dashboard/` |
 | **Pensión / alojamiento** | ops | Hospedaje mascotas; módulo `/admin/pension` — diseño **022**; código Fase B |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |
 | **Notas internas historial** | #7 | Campo(s) solo staff; separados de notas visibles al dueño |

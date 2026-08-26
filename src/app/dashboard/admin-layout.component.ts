@@ -80,6 +80,9 @@ export class AdminLayoutComponent implements OnInit {
       case 'citas': return 'Citas';
       case 'historiales': return 'Historiales';
       case 'inventario': return 'Inventario';
+      case 'finanzas': return 'Finanzas';
+      case 'banios': return 'Baños';
+      case 'pension': return 'Pensión';
       default: return '';
     }
   }

@@ -61,6 +61,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
       categoria?: CajaCategoria;
       costoAsociado?: number;
       plantillaCostoId?: string;
+      movimientoInventarioIds?: string[];
     }
   ) {
     this.form = this.fb.group({
@@ -214,7 +215,8 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
         costoAsociado:
           costoRaw != null && costoRaw !== '' && !Number.isNaN(Number(costoRaw))
             ? Number(costoRaw)
-            : undefined
+            : undefined,
+        movimientoInventarioIds: this.data?.movimientoInventarioIds
       });
       this.dialogRef.close({ ok: true, movimientoId: movId });
       Swal.fire({

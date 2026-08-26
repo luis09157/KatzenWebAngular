@@ -37,7 +37,7 @@ specs/
 ├── 019-deprecar-remove-ui/
 ├── 020-portal-mascotas-cliente-id/   # Rules query cliente_id
 ├── 021-costos-rentabilidad-clinica/  # Plantillas costo + margen caja + P&L día/mes
-├── 022-automatizacion-costos-dashboard/ # Wire inv↔caja, gastos tipificados, gráficas, defaults baño (draft)
+├── 022-automatizacion-costos-dashboard/ # Valuación inv. + baño→caja + pensión (diseño) + ops A–D
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

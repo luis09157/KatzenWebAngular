@@ -1,0 +1,69 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar estancia' : 'Nueva estancia de pensión' }}</h2>
+      <p class="admin-dialog-subtitle">Alojamiento / hospedaje. El total se puede sobreescribir al cobrar.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-form-layout">
+      <mat-form-field appearance="outline">
+        <mat-label>Paciente (mascota)</mat-label>
+        <input matInput formControlName="paciente" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Cliente (dueño)</mat-label>
+        <input matInput formControlName="cliente" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha ingreso</mat-label>
+        <input matInput type="date" formControlName="fecha_ingreso" required (change)="recalcularTotal()" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Salida prevista</mat-label>
+        <input matInput type="date" formControlName="fecha_salida_prevista" (change)="recalcularTotal()" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Tamaño</mat-label>
+        <mat-select formControlName="tamano_mascota">
+          <mat-option value="">—</mat-option>
+          <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Precio / día</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="precio_dia" required (input)="recalcularTotal()" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Precio total (override)</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="precio_total" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Costo / día (opcional)</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="costo_dia" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado" required>
+          <mat-option *ngFor="let e of estados" [value]="e">{{ estadoLabels[e] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notas</mat-label>
+        <textarea matInput rows="2" formControlName="notas"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="guardar()" [disabled]="loading">
+      <mat-icon>save</mat-icon>
+      {{ loading ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </mat-dialog-actions>
+</div>

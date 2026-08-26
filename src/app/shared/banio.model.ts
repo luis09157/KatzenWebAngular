@@ -33,6 +33,12 @@ export interface Banio {
   metodo_pago?: 'efectivo' | 'tarjeta' | 'transferencia';
   /** Link opcional a `Katzen/Caja/Movimientos/{id}` (spec 014). */
   cajaMovimientoId?: string;
+  /** Spec 022 — tamaño para defaults de costo/precio (aditivo; móvil ignora). */
+  tamano_perro?: 'pequeno' | 'mediano' | 'grande';
+  /** Costo estimado del servicio (default por tamaño u override). */
+  costoEstimado?: number;
+  /** Plantilla de costo opcional (021/022). */
+  plantillaCostoId?: string;
   
   // Tiempos estimados
   duracion_estimada: number; // en minutos

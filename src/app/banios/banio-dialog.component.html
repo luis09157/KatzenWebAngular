@@ -112,16 +112,37 @@
       </section>
 
       <section class="form-section">
+        <h3 class="form-section__title">Tamaño y costo</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Tamaño del perro</mat-label>
+            <mat-select formControlName="tamano_perro" (selectionChange)="onTamanoChange()">
+              <mat-option value="">Sin especificar</mat-option>
+              <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
+            </mat-select>
+            <mat-hint>Prefill de costo/precio desde Finanzas</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Costo estimado</mat-label>
+            <input matInput type="number" formControlName="costoEstimado" min="0" step="0.01">
+            <mat-hint>Se usa al registrar en caja (margen)</mat-hint>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="form-section">
         <h3 class="form-section__title">Precios</h3>
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Precio base</mat-label>
-            <input matInput type="number" formControlName="precio_base" min="0" required>
+            <input matInput type="number" formControlName="precio_base" min="0" required (input)="calcularPrecioTotal()">
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Precio total</mat-label>
-            <input matInput [value]="calcularPrecioTotal()" readonly>
+            <mat-label>Precio cobrado (este baño)</mat-label>
+            <input matInput type="number" formControlName="precio_total" min="0" required (input)="onPrecioTotalManual()">
+            <mat-hint>Editable por registro · sugerido: ${{ calcularPrecioTotal() }}</mat-hint>
           </mat-form-field>
         </div>
       </section>

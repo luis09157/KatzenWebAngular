@@ -184,7 +184,7 @@ export class InventarioService {
   ): Promise<void> {
     console.log('🔄 Registrando entrada de producto...');
     const usuarioId = await this.currentStaff.getStaffId();
-    return this.registrarMovimiento({
+    await this.registrarMovimiento({
       tipo: 'entrada',
       producto_id: productoId,
       cantidad: cantidad,
@@ -208,15 +208,19 @@ export class InventarioService {
     historialId?: string,
     ventaId?: string,
     observaciones?: string
-  ): Promise<void> {
+  ): Promise<string> {
     console.log('🔄 Registrando salida de producto...');
     const usuarioId = await this.currentStaff.getStaffId();
+    const snap = await this.db.database.ref(`${this.productosPath}/${productoId}`).once('value');
+    const producto = snap.val() as { precio_compra?: number } | null;
+    const costoUnitario = Math.max(0, Number(producto?.precio_compra) || 0);
+    const qty = Number(cantidad) || 0;
     return this.registrarMovimiento({
       tipo: 'salida',
       producto_id: productoId,
       cantidad: cantidad,
-      costo_unitario: 0,
-      costo_total: 0,
+      costo_unitario: costoUnitario,
+      costo_total: Math.round(costoUnitario * qty * 100) / 100,
       motivo: motivo,
       paciente_id: pacienteId,
       historial_clinico_id: historialId,
@@ -234,7 +238,7 @@ export class InventarioService {
     cantidad: number,
     motivo: string,
     observaciones?: string
-  ): Promise<void> {
+  ): Promise<string> {
     console.log('🔄 Registrando merma de producto...');
     const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
@@ -261,7 +265,7 @@ export class InventarioService {
     console.log('🔄 Registrando ajuste de inventario...');
     await this.assertPuedeRegistrarAjuste();
     const usuarioId = await this.currentStaff.getStaffId();
-    return this.registrarMovimiento({
+    await this.registrarMovimiento({
       tipo: 'ajuste',
       producto_id: productoId,
       cantidad: nuevoStock,
@@ -289,7 +293,7 @@ export class InventarioService {
     }
   }
 
-  private async registrarMovimiento(movimiento: Movimiento): Promise<void> {
+  private async registrarMovimiento(movimiento: Movimiento): Promise<string> {
     try {
       console.log('🔄 Registrando movimiento:', movimiento.tipo);
 
@@ -336,10 +340,17 @@ export class InventarioService {
       console.log('✅ Movimiento registrado en Firebase');
       await this.verificarYCrearAlertas(movimiento.producto_id);
       console.log('✅ Movimiento completado exitosamente');
+      return ref.key!;
     } catch (error) {
       console.error('❌ Error al registrar movimiento:', error);
       throw error;
     }
+  }
+
+  async vincularMovimientoACaja(movimientoId: string, cajaMovimientoId: string): Promise<void> {
+    await this.db.object(`${this.movimientosPath}/${movimientoId}`).update({
+      cajaMovimientoId
+    });
   }
 
   getMovimientosPorProducto(productoId: string): Observable<Movimiento[]> {
@@ -505,14 +516,24 @@ export class InventarioService {
     try {
       console.log('📊 Calculando estadísticas...');
       const productos = await firstValueFrom(this.getProductos());
-      
+      const activos = productos.filter((p) => p.activo !== false && (p.stock_actual || 0) > 0);
+      const invertido = activos.reduce(
+        (sum, p) => sum + (Number(p.stock_actual) || 0) * (Number(p.precio_compra) || 0),
+        0
+      );
+      const valorVenta = activos.reduce(
+        (sum, p) => sum + (Number(p.stock_actual) || 0) * (Number(p.precio_venta) || 0),
+        0
+      );
+
       const stats: EstadisticasInventario = {
-        total_productos: productos.length,
-        valor_total_inventario: productos.reduce((sum, p) => 
-          sum + (p.stock_actual * p.precio_compra), 0
-        ),
-        productos_bajo_stock: productos.filter(p => 
-          p.stock_actual <= p.stock_minimo
+        total_productos: productos.filter((p) => p.activo !== false).length,
+        valor_total_inventario: invertido,
+        invertido_costo: invertido,
+        valor_precio_venta: valorVenta,
+        margen_potencial: valorVenta - invertido,
+        productos_bajo_stock: productos.filter(
+          (p) => p.activo !== false && p.stock_actual <= p.stock_minimo
         ).length,
         productos_por_caducar: 0,
         productos_caducados: 0,
@@ -520,14 +541,14 @@ export class InventarioService {
         categorias_resumen: []
       };
 
-      // Resumen por categorías
-      const categorias = [...new Set(productos.map(p => p.categoria))];
-      stats.categorias_resumen = categorias.map(cat => ({
+      // Resumen por categorías (a costo)
+      const categorias = [...new Set(productos.filter((p) => p.activo !== false).map((p) => p.categoria))];
+      stats.categorias_resumen = categorias.map((cat) => ({
         categoria: cat,
-        cantidad_productos: productos.filter(p => p.categoria === cat).length,
+        cantidad_productos: productos.filter((p) => p.activo !== false && p.categoria === cat).length,
         valor_total: productos
-          .filter(p => p.categoria === cat)
-          .reduce((sum, p) => sum + (p.stock_actual * p.precio_compra), 0)
+          .filter((p) => p.activo !== false && p.categoria === cat && (p.stock_actual || 0) > 0)
+          .reduce((sum, p) => sum + (p.stock_actual || 0) * (p.precio_compra || 0), 0)
       }));
 
       console.log('✅ Estadísticas calculadas');

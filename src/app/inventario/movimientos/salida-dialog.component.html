@@ -144,6 +144,16 @@
         <mat-icon>{{getIconoMotivo()}}</mat-icon>
         <span>{{getTextoMotivo()}}</span>
       </div>
+
+      <div class="venta-caja-box" *ngIf="esVentaDirecta">
+        <mat-checkbox formControlName="registrarEnCaja" color="primary">
+          También registrar en caja (venta)
+        </mat-checkbox>
+        <p class="venta-caja-hint" *ngIf="productoSeleccionado && salidaForm.get('registrarEnCaja')?.value">
+          Monto sugerido: ${{ montoVentaSugerido | number:'1.2-2' }}
+          · Costo: ${{ costoVentaSugerido | number:'1.2-2' }}
+        </p>
+      </div>
     </div>
 
     <!-- Observaciones -->

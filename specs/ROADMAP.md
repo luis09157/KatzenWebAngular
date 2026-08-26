@@ -97,7 +97,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 | Área | Feature | Prioridad sugerida |
 |------|---------|-------------------|
-| **Finanzas / caja / ops** | **014/018/021** hechos. **022** (draft): wire inventario↔caja, defaults baño por tamaño, consumo historial, gráficas semana/mes, egresos tipificados — **sin módulos nuevos** (`specs/022-automatizacion-costos-dashboard/`) | Alta — **siguiente: aprobar e implementar 022** |
+| **Finanzas / caja / ops** | **014/018/021** hechos. **022**: valuación inventario + baño defaults→caja (Fase A); historial/cirugía/vacuna + **pensión** módulo nuevo (Fase B); gráficas (C); egresos tipificados (D) — `specs/022-automatizacion-costos-dashboard/` | Alta — **implementar 022 A** |
 | **Notificaciones** | Push Firebase desde recordatorios (y extensión citas/portal) | Alta |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)** — autorización dual formal pendiente | Media |

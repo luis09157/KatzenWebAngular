@@ -44,6 +44,7 @@ import { RecibirOrdenDialogComponent } from './ordenes/recibir-orden-dialog.comp
 import { AlertasComponent } from './alertas/alertas.component';
 import { ReportesComponent } from './reportes/reportes.component';
 import { SharedModule } from '../shared/shared.module';
+import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 
 @NgModule({
   declarations: [
@@ -91,7 +92,8 @@ import { SharedModule } from '../shared/shared.module';
     MatMenuModule,
     MatDividerModule,
     MatSlideToggleModule,
-    SharedModule
+    SharedModule,
+    CajaDialogModule
   ]
 })
 export class InventarioModule { }

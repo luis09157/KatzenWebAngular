@@ -90,6 +90,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
       accent: 'orange'
     },
     {
+      title: 'Finanzas / caja',
+      description: 'Cobros, costos de servicio, rentabilidad y defaults de baño por tamaño.',
+      route: 'finanzas',
+      accent: 'green'
+    },
+    {
+      title: 'Pensión / alojamiento',
+      description: 'Hospedaje de mascotas: estancias, precios por día y cobro en caja.',
+      route: 'pension',
+      accent: 'teal'
+    },
+    {
       title: 'Baños y estética',
       description: 'Agenda servicios de baño, peluquería y cuidado estético por paciente.',
       route: 'banios',
