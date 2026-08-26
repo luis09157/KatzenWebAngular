@@ -98,7 +98,7 @@
 ## Cierre
 
 - [x] Validación pre-entrega Fase A completa
-- [ ] Commit + push código A
-- [ ] Deploy hosting (con OK Luis en este pedido)
-- [ ] `spec.md` permanece `in-progress` hasta B–D o cierre explícito A-only
+- [x] Commit + push código A (`52b889b`)
+- [x] Deploy hosting + database (2026-08-26) — Pension rules + UI
+- [ ] `spec.md` permanece `in-progress` hasta historial clínico (B) / gráficas (C) / egresos (D)
 - [x] Resend: no tocar (diferido)
