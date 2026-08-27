@@ -21,6 +21,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CitaDialogModule } from './cita-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
+import { HistorialesModule } from '../historiales/historiales.module';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     SharedModule,
     CitaDialogModule,
     CajaDialogModule,
-    VisitasDialogModule
+    VisitasDialogModule,
+    HistorialesModule
   ]
 })
 export class CitasModule { }

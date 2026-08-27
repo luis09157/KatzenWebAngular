@@ -140,7 +140,20 @@
   <mat-menu #historialMenu="matMenu">
     <button mat-menu-item (click)="verHistorialDetalle(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
-    <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext"><mat-icon>account_balance_wallet</mat-icon> Registrar en caja</button>
+    <button
+      mat-menu-item
+      (click)="agregarAVisita(menuContext)"
+      [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
+      <mat-icon>receipt_long</mat-icon>
+      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+    </button>
+    <button
+      mat-menu-item
+      (click)="registrarEnCaja(menuContext)"
+      [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
+      <mat-icon>account_balance_wallet</mat-icon>
+      {{ menuContext?.visitaId ? 'Cobrar en visita' : 'Registrar en caja' }}
+    </button>
     <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

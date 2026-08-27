@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError } from 'rxjs';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { debeExcluirRefuerzoIngresoServicio } from '../core/utils/cobro-integridad.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import {
   CAJA_CATEGORIA_LABELS,
@@ -271,7 +272,7 @@ export class CajaService {
     const rango = this.rangoPeriodo(modo, valor);
     if (rango && banios.length) {
       const baniosSinCaja = banios.filter((b) => {
-        if (b.activo === false || b.estado === 'cancelado' || b.cajaMovimientoId) {
+        if (b.activo === false || b.estado === 'cancelado' || debeExcluirRefuerzoIngresoServicio(b)) {
           return false;
         }
         const f = String(b.fecha_banio || b.created_at || '').slice(0, 10);
@@ -288,7 +289,7 @@ export class CajaService {
 
     if (rango && pensiones.length) {
       const pensionSinCaja = pensiones.filter((e) => {
-        if (e.activo === false || e.estado === 'cancelada' || e.cajaMovimientoId) {
+        if (e.activo === false || e.estado === 'cancelada' || e.cajaMovimientoId || e.cobradaEnVisitaId) {
           return false;
         }
         if (e.estado !== 'activa' && e.estado !== 'finalizada') {

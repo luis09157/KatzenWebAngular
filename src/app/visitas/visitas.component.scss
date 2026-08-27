@@ -47,6 +47,17 @@
     }
   }
 
+  .por-cobrar-scroll {
+    margin: 0 28px 16px;
+  }
+
+  .por-cobrar-table {
+    .mat-column-acciones {
+      text-align: right;
+      white-space: nowrap;
+    }
+  }
+
   /* Chips de estado: columna ancha para «Pago parcial» completo */
   .visitas-table {
     .mat-column-estado {

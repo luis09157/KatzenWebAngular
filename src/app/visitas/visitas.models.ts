@@ -53,6 +53,8 @@ export interface VisitaLinea {
   vacunaId?: string;
   productoId?: string;
   pensionId?: string;
+  historialId?: string;
+  movimientoInventarioId?: string;
 }
 
 export interface Visita {

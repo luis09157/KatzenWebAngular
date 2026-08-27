@@ -11,9 +11,13 @@ import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { promptMontoVisita } from '../visitas/visita-atalho.util';
+import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
 
 @Component({
   selector: 'app-vacunas',
@@ -28,6 +32,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
+  pacientesClienteMap: { [id: string]: string } = {};
   loading = false;
   estadisticas = {
     total: 0,
@@ -43,14 +48,16 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private visitasService: VisitasService
   ) {}
 
   ngOnInit(): void {
     this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: pacientes => {
-        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+        (pacientes || []).forEach((p: { id: string; nombre?: string; cliente_id?: string; idCliente?: string }) => {
           this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+          this.pacientesClienteMap[p.id] = p.cliente_id || p.idCliente || '';
         });
         this.cargarVacunas();
       },
@@ -446,6 +453,64 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     const meses = Math.ceil(dias / 30);
     return `En ${meses} mes${meses > 1 ? 'es' : ''}`;
+  }
+
+  /** Spec 040 — vacuna aplicada → ticket de visita. */
+  async agregarAVisita(vacuna: any): Promise<void> {
+    if (!vacuna?.id) return;
+    if (vacuna.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya en visita',
+        text: `Vinculada al ticket ${vacuna.visitaId}.`
+      });
+      return;
+    }
+    const est = String(vacuna.estado || '').toLowerCase();
+    const aplicada = est === 'aplicada' || est === 'completada' || vacuna.aplicada === true;
+    if (!aplicada) {
+      Swal.fire('Vacuna pendiente', 'Solo vacunas aplicadas se agregan al ticket.', 'warning');
+      return;
+    }
+    const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
+    const clienteId =
+      vacuna.cliente_id || vacuna.idCliente || this.pacientesClienteMap[pacienteId] || '';
+    if (!clienteId) {
+      Swal.fire('Falta cliente', 'No se pudo resolver el dueño de la mascota.', 'warning');
+      return;
+    }
+    const tipo = vacuna.tipo_vacuna || vacuna.vacuna || 'vacuna';
+    const monto = await promptMontoVisita(
+      'Monto de la vacuna',
+      `¿Cuánto se cobrará por ${this.getNombreVacuna(tipo)}?`,
+      Number(vacuna.precio) || 0
+    );
+    if (monto == null || !(monto > 0)) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: clienteId,
+        paciente_id: pacienteId,
+        paciente: vacuna.paciente || this.pacientesMap[pacienteId],
+        descripcion: `Vacuna · ${this.getNombreVacuna(tipo)} · ${vacuna.paciente || this.pacientesMap[pacienteId] || 'paciente'}`,
+        monto,
+        categoria: 'vacuna',
+        vacunaId: vacuna.id,
+        fecha: String(vacuna.fecha_vacuna || vacuna.fechaAplicacion || '').slice(0, 10) || undefined
+      });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: clienteId }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
+      this.cargarVacunas();
+    } catch (error) {
+      this.logger.error('Error vacuna→visita:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   /** Spec 022 — descontar dosis/producto de inventario (sin duplicar catálogo). */

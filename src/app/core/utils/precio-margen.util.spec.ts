@@ -67,7 +67,7 @@ describe('precio-margen.util', () => {
     it('baño: bloquea costo ≥ venta; vacío OK', () => {
       const form = fb.group({
         precio_total: [200],
-        costoEstimado: [null, [costoMenorQueVentaValidator('precio_total')]]
+        costoEstimado: [null as number | null, [costoMenorQueVentaValidator('precio_total')]]
       });
       form.get('costoEstimado')?.updateValueAndValidity();
       expect(form.get('costoEstimado')?.valid).toBe(true);

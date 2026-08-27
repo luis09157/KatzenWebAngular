@@ -20,6 +20,9 @@ import {
 } from './pension.models';
 import { PensionDialogComponent } from './pension-dialog.component';
 import { PensionService } from './pension.service';
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { promptMontoVisita } from '../visitas/visita-atalho.util';
 
 @Component({
   selector: 'app-pension',
@@ -52,7 +55,8 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private visitasService: VisitasService
   ) {}
 
   ngOnInit(): void {
@@ -131,7 +135,12 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   puedeCobrar(row: PensionEstancia): boolean {
-    return !row.cajaMovimientoId && (row.estado === 'activa' || row.estado === 'finalizada');
+    return (
+      !row.cajaMovimientoId &&
+      !row.visitaId &&
+      !row.cobradaEnVisitaId &&
+      (row.estado === 'activa' || row.estado === 'finalizada')
+    );
   }
 
   nueva(): void {
@@ -220,6 +229,14 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'info',
         title: 'Ya vinculado a caja',
         text: `Esta estancia ya tiene movimiento ${estancia.cajaMovimientoId}.`
+      });
+      return;
+    }
+    if (estancia.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cobro en ticket de visita',
+        text: `Estancia en ticket ${estancia.visitaId}. Cobra desde Visitas.`
       });
       return;
     }
@@ -330,6 +347,53 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadingService.hide();
       }
     });
+  }
+
+  /** Spec 040 — pensión sin cobro → ticket del día. */
+  async agregarAVisita(estancia: PensionEstancia): Promise<void> {
+    if (!estancia?.id) return;
+    if (estancia.cajaMovimientoId || estancia.visitaId || estancia.cobradaEnVisitaId) {
+      Swal.fire('info', 'Esta estancia ya está cobrada o en un ticket.', 'info');
+      return;
+    }
+    if (!estancia.cliente_id) {
+      Swal.fire('Falta cliente', 'La estancia necesita cliente_id.', 'warning');
+      return;
+    }
+    let monto = Number(estancia.precio_total) || Number(estancia.precio_dia) || 0;
+    monto =
+      (await promptMontoVisita(
+        'Monto de pensión',
+        '¿Cuánto se cobrará por esta estancia en el ticket?',
+        monto
+      )) ?? 0;
+    if (!(monto > 0)) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: estancia.cliente_id,
+        cliente: estancia.cliente,
+        paciente_id: estancia.paciente_id !== 'manual' ? estancia.paciente_id : undefined,
+        paciente: estancia.paciente,
+        descripcion: `Pensión · ${estancia.paciente || 'mascota'}`,
+        monto,
+        categoria: 'pension',
+        pensionId: estancia.id,
+        fecha: estancia.fecha_ingreso
+      });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_CONFIG,
+        width: '720px',
+        data: { visita: visita || undefined }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
+      this.cargar();
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   async borrar(estancia: PensionEstancia): Promise<void> {

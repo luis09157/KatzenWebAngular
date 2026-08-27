@@ -1,1 +1,40 @@
-/* Estilos globales: src/styles/admin-dialog.scss — panelClass: admin-dialog-panel */
+/* Overlay CDK — encapsulation: None */
+.venta-caja-box {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid #d1e7e8;
+  border-radius: 12px;
+  background: #f4fbfb;
+}
+
+.venta-caja-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #065d60;
+}
+
+.destino-cobro-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.venta-caja-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.cliente-ticket-box {
+  margin-top: 12px;
+}
+
+.cliente-tel {
+  color: #64748b;
+  font-size: 12px;
+}

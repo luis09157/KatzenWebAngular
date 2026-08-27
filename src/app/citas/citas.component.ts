@@ -21,7 +21,11 @@ import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { VisitaDiaFlujoService } from '../visitas/visita-dia-flujo.service';
+import { HistorialDialogComponent } from '../historiales/historial-dialog.component';
+import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-citas',
@@ -52,7 +56,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private loadingService: LoadingService,
     private sucursalContext: SucursalContextService,
     private authProfile: AuthProfileService,
-    private visitasService: VisitasService
+    private visitasService: VisitasService,
+    private visitaDiaFlujo: VisitaDiaFlujoService
   ) {}
 
   ngOnInit(): void {
@@ -309,6 +314,11 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingService.show(LOADING_MESSAGES.updating);
     this.citasService.guardarCita(citaActualizada)
       .then(() => {
+        this.cargarCitas();
+        if (estadoNorm === 'completada') {
+          void this.flujoVisitaDelDia(citaActualizada);
+          return;
+        }
         setTimeout(() => {
           Swal.fire({
             title: '¡Éxito!',
@@ -317,7 +327,6 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
             timer: 2000,
             showConfirmButton: false
           });
-          this.cargarCitas();
         }, 0);
       })
       .catch(error => {
@@ -373,6 +382,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   abrirModalCita(cita: any = null, modoVer: boolean = false) {
+    const eraCompletada = String(cita?.estado || '').toLowerCase() === 'completada';
     const dialogRef = this.dialog.open(CitaDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       data: { cita, modoVer }
@@ -382,6 +392,12 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadingService.show(LOADING_MESSAGES.saving);
         this.citasService.guardarCita(result)
           .then(() => {
+            this.cargarCitas();
+            const nuevaCompletada = String(result.estado || '').toLowerCase() === 'completada';
+            if (nuevaCompletada && !eraCompletada) {
+              void this.flujoVisitaDelDia({ ...cita, ...result });
+              return;
+            }
             setTimeout(() => {
               Swal.fire({
                 title: '¡Éxito!',
@@ -389,7 +405,6 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                 icon: 'success',
                 confirmButtonText: 'Entendido'
               });
-              this.cargarCitas();
             }, 0);
           })
           .catch(error => {
@@ -480,6 +495,22 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         icon: 'info',
         title: 'Ya vinculado a caja',
         text: `Esta cita ya tiene movimiento ${cita.cajaMovimientoId}. Evita doble cobro.`
+      });
+      return;
+    }
+    if (cita.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cobro en ticket de visita',
+        text: `Esta cita está en el ticket ${cita.visitaId}. Cobra desde Visitas para evitar doble cobro.`
+      });
+      return;
+    }
+    if (cita.cobrada) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya cobrada',
+        text: 'Esta cita ya fue cobrada vía ticket de visita.'
       });
       return;
     }
@@ -597,6 +628,108 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (error) {
       this.logger.error('Error cita→visita:', error);
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  /** Spec 041 — flujo guiado post-cita completada. */
+  private async flujoVisitaDelDia(cita: any): Promise<void> {
+    const ctx = {
+      id: cita.id,
+      cliente_id: cita.cliente_id,
+      cliente: cita.cliente || this.clientesMap[cita.cliente_id],
+      paciente_id: cita.paciente_id,
+      paciente: cita.paciente || this.pacientesMap[cita.paciente_id],
+      motivo: cita.motivo,
+      fecha: cita.fecha,
+      fecha_hora: cita.fecha_hora,
+      precio: cita.precio,
+      monto: cita.monto,
+      visitaId: cita.visitaId,
+      cajaMovimientoId: cita.cajaMovimientoId,
+      cobrada: cita.cobrada
+    };
+    const accion = await this.visitaDiaFlujo.ofrecerFlujo(ctx);
+    if (!accion) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Cita completada',
+        timer: 1400,
+        showConfirmButton: false
+      });
+      return;
+    }
+    if (accion === 'omitir') return;
+
+    let historialId: string | undefined;
+    if (accion === 'historial' || accion === 'historial_ticket') {
+      historialId = await this.abrirHistorialDesdeCita(cita);
+    }
+    if (accion === 'ticket') {
+      await this.agregarAVisita(cita);
+    } else if (accion === 'historial_ticket') {
+      if (historialId) {
+        await this.agregarLineaHistorialAVisita(cita, historialId);
+      } else {
+        await this.agregarAVisita(cita);
+      }
+    }
+  }
+
+  private async abrirHistorialDesdeCita(cita: any): Promise<string | undefined> {
+    const ref = this.dialog.open(HistorialDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: {
+        paciente_id: cita.paciente_id,
+        cliente_id: cita.cliente_id,
+        paciente: cita.paciente || this.pacientesMap[cita.paciente_id],
+        cliente: cita.cliente || this.clientesMap[cita.cliente_id],
+        motivo_consulta: cita.motivo,
+        cita_id: cita.id
+      }
+    });
+    const result = await firstValueFrom(ref.afterClosed());
+    if (!result || result === true) return undefined;
+    return (result as { id?: string }).id;
+  }
+
+  private async agregarLineaHistorialAVisita(cita: any, historialId: string): Promise<void> {
+    if (!cita?.cliente_id) return;
+    const paciente = cita.paciente || this.pacientesMap[cita.paciente_id] || 'paciente';
+    const cliente = cita.cliente || this.clientesMap[cita.cliente_id] || '';
+    let monto = Number(cita.precio) || Number(cita.monto) || 0;
+    monto =
+      (await promptMontoVisita(
+        'Monto de la consulta',
+        '¿Cuánto se cobrará en el ticket?',
+        monto
+      )) ?? 0;
+    if (!(monto > 0)) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: cita.cliente_id,
+        cliente,
+        paciente_id: cita.paciente_id,
+        paciente,
+        descripcion: `Consulta · ${paciente} · ${cita.motivo || 'cita'}`,
+        monto,
+        categoria: 'consulta',
+        citaId: cita.id,
+        historialId,
+        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined
+      });
+      await this.citasService.guardarCita({ ...cita, visitaId });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente }
+      });
+      Swal.fire({ icon: 'success', title: 'Historial y ticket listos', timer: 1600, showConfirmButton: false });
+      this.cargarCitas();
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'visita del día'), 'error');
     } finally {
       this.loadingService.hide();
     }

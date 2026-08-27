@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { debeExcluirRefuerzoIngresoServicio } from '../core/utils/cobro-integridad.util';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMovimiento } from '../finanzas/caja.models';
 import { BaniosService } from '../banios/banios.service';
@@ -72,7 +73,9 @@ export class OwnerDashboardService {
     const gastosOperativos = sumMonto(egresos);
 
     const baniosActivos = (banios || []).filter((b) => b.activo !== false && b.estado !== 'cancelado');
-    const baniosSinCaja = baniosActivos.filter((b) => !b.cajaMovimientoId);
+    const baniosSinCaja = baniosActivos.filter(
+      (b) => !debeExcluirRefuerzoIngresoServicio(b)
+    );
     ventaBruta += baniosSinCaja.reduce((a, b) => a + (Number(b.precio_total) || 0), 0);
     costosAsociados += baniosSinCaja.reduce((a, b) => {
       if (b.costoEstimado == null || Number.isNaN(Number(b.costoEstimado))) return a;
@@ -118,11 +121,10 @@ export class OwnerDashboardService {
 
         /**
          * Refuerzo baños sin movimiento de caja: suman precio_total a ingresos brutos
-         * y costoEstimado a costos. Evita doble conteo si ya hay `cajaMovimientoId`.
-         * Si costo === venta → ganancia del baño = 0, pero el ingreso bruto sí sube.
+         * y costoEstimado a costos. Excluye los que ya tienen caja o están en ticket (039).
          */
         const baniosSinCaja = baniosPeriodo.filter(
-          (b) => b.estado !== 'cancelado' && !b.cajaMovimientoId
+          (b) => b.estado !== 'cancelado' && !debeExcluirRefuerzoIngresoServicio(b)
         );
         const ingresosBaniosSinCaja = baniosSinCaja.reduce(
           (a, b) => a + (Number(b.precio_total) || 0),

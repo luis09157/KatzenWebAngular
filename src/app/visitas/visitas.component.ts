@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, combineLatest } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -9,12 +9,22 @@ import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { BaniosService } from '../banios/banios.service';
+import { CitasService } from '../citas/citas.service';
+import { ClientesService } from '../clientes/clientes.service';
+import { HistorialesService } from '../historiales/historiales.service';
+import { PacientesService } from '../pacientes/pacientes.service';
+import { PensionService } from '../pension/pension.service';
+import { VacunasService } from '../vacunas/vacunas.service';
 import { Visita, VISITA_ESTADO_LABELS } from './visitas.models';
 import { VisitasService } from './visitas.service';
 import { calcularVisitaKpis, hoyLocalIsoDate } from './visitas.util';
 import { VisitaDialogComponent } from './visita-dialog.component';
+import { PorCobrarItem } from './por-cobrar-hoy.models';
+import { buildPorCobrarHoy, totalPorCobrarHoy } from './por-cobrar-hoy.util';
+import { promptMontoVisita } from './visita-atalho.util';
 
-export type VisitasFiltroRapido = 'todas' | 'hoy' | 'abiertas' | 'deudas';
+export type VisitasFiltroRapido = 'todas' | 'hoy' | 'abiertas' | 'deudas' | 'por_cobrar';
 
 @Component({
   selector: 'app-visitas',
@@ -39,11 +49,23 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   conSaldoCount = 0;
   saldoPorCobrar = 0;
   cerradasHoy = 0;
+  porCobrarItems: PorCobrarItem[] = [];
+  porCobrarTotal = 0;
+  porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
 
   readonly estadoLabels = VISITA_ESTADO_LABELS;
+  private clientesMap: Record<string, string> = {};
+  private pacientesClienteMap: Record<string, { cliente_id: string; nombre?: string }> = {};
 
   constructor(
     private visitasService: VisitasService,
+    private baniosService: BaniosService,
+    private citasService: CitasService,
+    private pensionService: PensionService,
+    private vacunasService: VacunasService,
+    private historialesService: HistorialesService,
+    private clientesService: ClientesService,
+    private pacientesService: PacientesService,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
@@ -62,6 +84,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     };
     this.cargar();
+    this.cargarPorCobrarHoy();
   }
 
   ngAfterViewInit(): void {
@@ -122,6 +145,15 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'deudas':
         base = base.filter((v) => (Number(v.saldo) || 0) > 0);
         break;
+      case 'por_cobrar':
+        base = base.filter(
+          (v) =>
+            v.fecha === hoy &&
+            (Number(v.saldo) || 0) > 0 &&
+            v.estado !== 'cancelada' &&
+            v.estado !== 'cerrada'
+        );
+        break;
       default:
         break;
     }
@@ -148,6 +180,125 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         return 'inactivo';
       default:
         return 'pendiente';
+    }
+  }
+
+  private cargarPorCobrarHoy(): void {
+    combineLatest([
+      this.visitasService.getVisitas(),
+      this.baniosService.getBanios(),
+      this.citasService.getCitas(),
+      this.pensionService.getEstancias(),
+      this.vacunasService.getVacunas(),
+      this.historialesService.getHistoriales(),
+      this.clientesService.getClientes(),
+      this.pacientesService.getPacientes()
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([visitas, banios, citas, pensiones, vacunas, historiales, clientes, pacientes]) => {
+          this.clientesMap = {};
+          (clientes || []).forEach((c: any) => {
+            if (c?.id) this.clientesMap[c.id] = c.nombre || c.nombre_completo || '';
+          });
+          this.pacientesClienteMap = {};
+          (pacientes || []).forEach((p: any) => {
+            if (!p?.id) return;
+            const cid = p.cliente_id || p.idCliente || '';
+            this.pacientesClienteMap[p.id] = {
+              cliente_id: cid,
+              nombre: p.nombre
+            };
+          });
+          const hoy = hoyLocalIsoDate();
+          this.porCobrarItems = buildPorCobrarHoy({
+            hoy,
+            visitas: visitas || [],
+            banios: banios || [],
+            citas: citas || [],
+            pensiones: pensiones || [],
+            vacunas: vacunas || [],
+            historiales: historiales || [],
+            clientesMap: this.clientesMap,
+            pacientesClienteMap: this.pacientesClienteMap
+          });
+          this.porCobrarTotal = totalPorCobrarHoy(this.porCobrarItems);
+        },
+        error: (err) => this.logger.error('Por cobrar hoy:', err)
+      });
+  }
+
+  tipoPorCobrarLabel(tipo: string): string {
+    const map: Record<string, string> = {
+      visita: 'Ticket',
+      banio: 'Baño',
+      cita: 'Cita',
+      pension: 'Pensión',
+      vacuna: 'Vacuna',
+      historial: 'Historial'
+    };
+    return map[tipo] || tipo;
+  }
+
+  async accionPorCobrar(item: PorCobrarItem): Promise<void> {
+    if (item.accion === 'abrir_ticket' && item.visitaId) {
+      const visita = await this.visitasService.getVisita(item.visitaId);
+      if (visita) {
+        this.editar(visita);
+      }
+      return;
+    }
+    let monto = item.monto;
+    if (!(monto > 0)) {
+      monto =
+        (await promptMontoVisita(
+          'Monto del servicio',
+          `¿Cuánto se cobrará por ${item.descripcion}?`,
+          0
+        )) ?? 0;
+      if (!(monto > 0)) return;
+    }
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const cat =
+        item.tipo === 'banio'
+          ? 'banio'
+          : item.tipo === 'pension'
+            ? 'pension'
+            : item.tipo === 'vacuna'
+              ? 'vacuna'
+              : item.tipo === 'historial'
+                ? 'consulta'
+                : 'consulta';
+      const opts: Parameters<VisitasService['agregarServicioAVisita']>[0] = {
+        cliente_id: item.cliente_id,
+        cliente: item.cliente,
+        paciente_id: item.paciente_id,
+        paciente: item.paciente,
+        descripcion: item.descripcion,
+        monto,
+        categoria: cat as any,
+        fecha: item.fecha
+      };
+      if (item.tipo === 'banio') opts.banioId = item.id;
+      if (item.tipo === 'cita') opts.citaId = item.id;
+      if (item.tipo === 'pension') opts.pensionId = item.id;
+      if (item.tipo === 'vacuna') opts.vacunaId = item.id;
+      if (item.tipo === 'historial') opts.historialId = item.id;
+
+      const { visitaId } = await this.visitasService.agregarServicioAVisita(opts);
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      this.cargar();
+      this.cargarPorCobrarHoy();
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
     }
   }
 

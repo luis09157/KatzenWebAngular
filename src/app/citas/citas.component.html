@@ -120,9 +120,9 @@
       mat-menu-item
       *ngIf="menuContext?.estado?.toLowerCase() === 'completada'"
       (click)="registrarEnCaja(menuContext)"
-      [disabled]="!menuContext">
+      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.visitaId || menuContext?.cobrada">
       <mat-icon>account_balance_wallet</mat-icon>
-      {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : 'Registrar en caja' }}
+      {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : menuContext?.visitaId ? 'Cobrar en visita' : menuContext?.cobrada ? 'Ya cobrada' : 'Registrar en caja' }}
     </button>
     <button
       mat-menu-item

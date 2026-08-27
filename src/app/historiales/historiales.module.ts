@@ -23,6 +23,7 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
     SharedModule,
     SalidaDialogModule,
     CajaDialogModule,
+    VisitasDialogModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,

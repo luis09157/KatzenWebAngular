@@ -120,6 +120,13 @@
   <mat-menu #vacunaMenu="matMenu">
     <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
+    <button
+      mat-menu-item
+      (click)="agregarAVisita(menuContext)"
+      [disabled]="!menuContext || menuContext?.visitaId || (menuContext?.estado !== 'aplicada' && menuContext?.estado !== 'completada' && menuContext?.aplicada !== true)">
+      <mat-icon>receipt_long</mat-icon>
+      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+    </button>
     <button mat-menu-item (click)="editarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="eliminarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

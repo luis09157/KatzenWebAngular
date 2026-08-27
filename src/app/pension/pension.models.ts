@@ -24,6 +24,9 @@ export interface PensionEstancia {
   notas?: string;
   cajaMovimientoId?: string;
   plantillaCostoId?: string;
+  /** Spec 039/040 — ticket de visita. */
+  visitaId?: string;
+  cobradaEnVisitaId?: string;
   activo: boolean;
   created_at: string;
   updated_at?: string;

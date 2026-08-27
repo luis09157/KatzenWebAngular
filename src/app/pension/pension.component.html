@@ -108,6 +108,14 @@
                 <button
                   mat-icon-button
                   type="button"
+                  matTooltip="Agregar a visita"
+                  *ngIf="puedeCobrar(row)"
+                  (click)="agregarAVisita(row)">
+                  <mat-icon>receipt_long</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
                   matTooltip="Registrar en caja"
                   *ngIf="puedeCobrar(row)"
                   (click)="registrarEnCaja(row)">

@@ -17,6 +17,7 @@ import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.modu
 import { PensionRoutingModule } from './pension-routing.module';
 import { PensionComponent } from './pension.component';
 import { PensionDialogModule } from './pension-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [PensionComponent],
@@ -28,6 +29,7 @@ import { PensionDialogModule } from './pension-dialog.module';
     CajaDialogModule,
     SalidaDialogModule,
     PensionDialogModule,
+    VisitasDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,

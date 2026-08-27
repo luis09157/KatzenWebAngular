@@ -143,15 +143,43 @@
       </div>
 
       <div class="venta-caja-box" *ngIf="esVentaDirecta && !hideRegistrarEnCaja">
-        <mat-checkbox formControlName="registrarEnCaja" color="primary">
-          También registrar en caja (venta)
-        </mat-checkbox>
-        <p class="venta-caja-hint" *ngIf="productoSeleccionado && salidaForm.get('registrarEnCaja')?.value">
+        <p class="venta-caja-label">Destino del cobro</p>
+        <mat-radio-group formControlName="destinoCobro" class="destino-cobro-group">
+          <mat-radio-button value="caja" color="primary">Registrar en caja</mat-radio-button>
+          <mat-radio-button value="visita" color="primary">Agregar a ticket de visita</mat-radio-button>
+        </mat-radio-group>
+        <p class="venta-caja-hint" *ngIf="productoSeleccionado && salidaForm.get('destinoCobro')?.value === 'caja'">
           Monto sugerido: ${{ montoVentaSugerido | number:'1.2-2' }}
           · Costo: ${{ costoVentaSugerido | number:'1.2-2' }}
           <ng-container *ngIf="productoSeleccionado.iva_aplicable">
             · Con IVA ({{ productoSeleccionado.tasa_iva || 16 }}%): ${{ montoVentaConIvaSugerido | number:'1.2-2' }}
           </ng-container>
+        </p>
+        <p class="venta-caja-hint" *ngIf="productoSeleccionado && destinoEsVisita">
+          Se agregará al ticket del día del cliente · monto sugerido: ${{ montoVentaFinal() | number:'1.2-2' }}
+        </p>
+        <div class="cliente-ticket-box" *ngIf="destinoEsVisita && requiereSelectorCliente">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Cliente (dueño del ticket)</mat-label>
+            <input
+              matInput
+              formControlName="cliente_busqueda"
+              [matAutocomplete]="autoCliente"
+              placeholder="Busca por nombre o teléfono" />
+            <mat-icon matSuffix>person_search</mat-icon>
+          </mat-form-field>
+          <mat-autocomplete
+            #autoCliente="matAutocomplete"
+            [displayWith]="displayCliente.bind(this)"
+            (optionSelected)="onClienteSeleccionado($event.option.value)">
+            <mat-option *ngFor="let c of clientesFiltrados | async" [value]="c">
+              {{ nombreCliente(c) }}
+              <span class="cliente-tel" *ngIf="c.telefono"> · {{ c.telefono }}</span>
+            </mat-option>
+          </mat-autocomplete>
+        </div>
+        <p class="venta-caja-hint cliente-resuelto" *ngIf="destinoEsVisita && clienteIdResuelto">
+          Cliente: <strong>{{ clienteNombreResuelto || clienteIdResuelto }}</strong>
         </p>
       </div>
       <p class="venta-caja-hint" *ngIf="contextoHistorial">

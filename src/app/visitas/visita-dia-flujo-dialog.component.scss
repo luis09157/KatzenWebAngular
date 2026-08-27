@@ -1,0 +1,22 @@
+.visita-dia-flujo-dialog {
+  .visita-dia-flujo-body {
+    padding: 0 28px 8px;
+  }
+
+  .visita-dia-flujo-lead {
+    margin: 0 0 16px;
+    color: #334155;
+    line-height: 1.5;
+  }
+
+  .visita-dia-flujo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    button {
+      justify-content: flex-start;
+      gap: 8px;
+    }
+  }
+}

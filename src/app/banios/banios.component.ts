@@ -459,6 +459,14 @@ export class BaniosComponent implements OnInit, OnDestroy {
   }
 
   marcarComoPagado(banio: any) {
+    if (banio?.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cobro en ticket de visita',
+        text: `Este baño está en el ticket ${banio.visitaId}. Registra el pago desde Visitas.`
+      });
+      return;
+    }
     this.loadingService.show();
     this.baniosService.marcarComoPagado(banio.id)
       .then(() => {
@@ -483,6 +491,14 @@ export class BaniosComponent implements OnInit, OnDestroy {
         icon: 'info',
         title: 'Ya vinculado a caja',
         text: `Este baño ya tiene movimiento ${banio.cajaMovimientoId}. Evita doble cobro.`
+      });
+      return;
+    }
+    if (banio.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cobro en ticket de visita',
+        text: `Este baño está en el ticket ${banio.visitaId}. Cobra desde Visitas para evitar doble cobro.`
       });
       return;
     }

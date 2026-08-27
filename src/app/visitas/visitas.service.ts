@@ -116,15 +116,29 @@ export class VisitasService {
       estado: patch.estado ?? current.estado
     });
 
+    const nuevoEstado = patch.estado === 'cancelada' ? 'cancelada' : calc.estado;
     await this.db.object(`${this.path}/${id}`).update({
       ...patch,
       lineas: mergedLineas,
       total: calc.total,
       pagado: calc.pagado,
       saldo: calc.saldo,
-      estado: patch.estado === 'cancelada' ? 'cancelada' : calc.estado,
+      estado: nuevoEstado,
       updated_at: new Date().toISOString()
     });
+
+    if (nuevoEstado === 'cerrada') {
+      await this.propagarCobroServiciosOrigen({
+        ...current,
+        ...patch,
+        id,
+        lineas: mergedLineas,
+        estado: nuevoEstado,
+        pagado: calc.pagado,
+        saldo: calc.saldo,
+        total: calc.total
+      });
+    }
 
     await this.syncSaldoCliente(current.cliente_id);
   }
@@ -145,7 +159,9 @@ export class VisitasService {
       banioId: linea.banioId,
       vacunaId: linea.vacunaId,
       productoId: linea.productoId,
-      pensionId: linea.pensionId
+      pensionId: linea.pensionId,
+      historialId: linea.historialId,
+      movimientoInventarioId: linea.movimientoInventarioId
     };
     await this.setLineas(id, [...(visita.lineas || []), next]);
   }
@@ -205,6 +221,10 @@ export class VisitasService {
     citaId?: string;
     banioId?: string;
     pensionId?: string;
+    vacunaId?: string;
+    historialId?: string;
+    productoId?: string;
+    movimientoInventarioId?: string;
     fecha?: string;
   }): Promise<{ visitaId: string; lineaId: string }> {
     const visita = await this.obtenerOCrearVisitaDelDia(opts);
@@ -216,7 +236,11 @@ export class VisitasService {
       categoria: opts.categoria,
       citaId: opts.citaId,
       banioId: opts.banioId,
-      pensionId: opts.pensionId
+      pensionId: opts.pensionId,
+      vacunaId: opts.vacunaId,
+      historialId: opts.historialId,
+      productoId: opts.productoId,
+      movimientoInventarioId: opts.movimientoInventarioId
     });
     if (opts.paciente_id && !visita.paciente_id) {
       await this.db.object(`${this.path}/${visita.id}`).update({
@@ -225,7 +249,44 @@ export class VisitasService {
         updated_at: new Date().toISOString()
       });
     }
+    await this.marcarVisitaIdEnOrigen(visita.id!, opts);
     return { visitaId: visita.id!, lineaId };
+  }
+
+  /** Spec 040 — vincula entidad origen al ticket (evita doble línea). */
+  private async marcarVisitaIdEnOrigen(
+    visitaId: string,
+    opts: {
+      citaId?: string;
+      banioId?: string;
+      pensionId?: string;
+      vacunaId?: string;
+      historialId?: string;
+      movimientoInventarioId?: string;
+    }
+  ): Promise<void> {
+    const now = new Date().toISOString();
+    const patch = { visitaId, updated_at: now };
+    if (opts.banioId) {
+      await this.db.object(`Katzen/Banios/${opts.banioId}`).update(patch);
+    }
+    if (opts.citaId) {
+      await this.db.object(`Katzen/Citas/${opts.citaId}`).update(patch);
+    }
+    if (opts.pensionId) {
+      await this.db.object(`Katzen/Pension/Estancias/${opts.pensionId}`).update(patch);
+    }
+    if (opts.vacunaId) {
+      await this.db.object(`Katzen/Vacunas/${opts.vacunaId}`).update(patch);
+    }
+    if (opts.historialId) {
+      await this.db.object(`Katzen/Historiales_Clinicos/${opts.historialId}`).update(patch);
+    }
+    if (opts.movimientoInventarioId) {
+      await this.db
+        .object(`Katzen/Inventario/Movimientos/${opts.movimientoInventarioId}`)
+        .update({ visitaId, updated_at: now });
+    }
   }
 
   async registrarPago(
@@ -288,6 +349,60 @@ export class VisitasService {
     const saldo = agregarSaldoCliente(visitas || []);
     await this.clientesService.actualizarCliente(clienteId, { saldoPendiente: saldo });
     return saldo;
+  }
+
+  /**
+   * Spec 039: al cerrar ticket, marca baños/citas/pensión origen como cobrados
+   * (sin duplicar movimiento de caja en el servicio).
+   */
+  private async propagarCobroServiciosOrigen(visita: Visita): Promise<void> {
+    if (!visita?.id || visita.estado !== 'cerrada') return;
+    const now = new Date().toISOString();
+    const lineas = visita.lineas || [];
+
+    for (const linea of lineas) {
+      if (linea.banioId) {
+        await this.db.object(`Katzen/Banios/${linea.banioId}`).update({
+          pagado: true,
+          updated_at: now
+        });
+      }
+      if (linea.citaId) {
+        await this.db.object(`Katzen/Citas/${linea.citaId}`).update({
+          cobrada: true,
+          cobradaEnVisitaId: visita.id,
+          updated_at: now
+        });
+      }
+      if (linea.pensionId) {
+        await this.db.object(`Katzen/Pension/Estancias/${linea.pensionId}`).update({
+          cobradaEnVisitaId: visita.id,
+          updated_at: now
+        });
+      }
+      if (linea.vacunaId) {
+        await this.db.object(`Katzen/Vacunas/${linea.vacunaId}`).update({
+          cobradaEnVisitaId: visita.id,
+          updated_at: now
+        });
+      }
+      if (linea.historialId) {
+        await this.db.object(`Katzen/Historiales_Clinicos/${linea.historialId}`).update({
+          cobradaEnVisitaId: visita.id,
+          cobrada: true,
+          updated_at: now
+        });
+      }
+      if (linea.movimientoInventarioId) {
+        const cajaIds = visita.cajaMovimientoIds || [];
+        const cajaId = cajaIds.length ? cajaIds[cajaIds.length - 1] : undefined;
+        const patch: Record<string, string> = { updated_at: now };
+        if (cajaId) patch['cajaMovimientoId'] = cajaId;
+        await this.db
+          .object(`Katzen/Inventario/Movimientos/${linea.movimientoInventarioId}`)
+          .update(patch);
+      }
+    }
   }
 
   private normalize(id: string, raw: Visita): Visita {

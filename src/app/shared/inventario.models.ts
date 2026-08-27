@@ -145,6 +145,8 @@ export interface Movimiento {
   venta_id?: string;
   /** Spec 022 — link opcional a movimiento de caja (venta→caja). */
   cajaMovimientoId?: string;
+  /** Spec 042 — ticket de visita del día. */
+  visitaId?: string;
   usuario_responsable_id: string;
   orden_compra_id?: string;
   observaciones: string;

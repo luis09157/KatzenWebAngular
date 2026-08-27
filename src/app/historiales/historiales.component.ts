@@ -23,6 +23,10 @@ import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.c
 import { InventarioService } from '../inventario/inventario.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
 import { CajaCategoria } from '../finanzas/caja.models';
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { promptMontoVisita } from '../visitas/visita-atalho.util';
+import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
 
 @Component({
   selector: 'app-historiales',
@@ -36,6 +40,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
+  pacientesClienteMap: { [id: string]: string } = {};
   estadisticas: any = {
     total: 0,
     activos: 0,
@@ -59,7 +64,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     private loadingService: LoadingService,
     private logger: LoggerService,
     private errorMessages: ErrorMessagesService,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private visitasService: VisitasService
   ) {}
 
   ngOnInit(): void {
@@ -140,6 +146,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         next: (pacientes) => {
           (pacientes || []).forEach(p => {
             this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+            this.pacientesClienteMap[p.id] = (p as any).cliente_id || (p as any).idCliente || '';
           });
           this.cargarHistoriales();
         },
@@ -510,6 +517,16 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Spec 022 — cobrar con costo sugerido desde consumos o plantilla. */
   async registrarEnCaja(historial: any): Promise<void> {
     if (!historial?.id) return;
+    if (bloquearCobroDirectoEnCaja(historial) || historial.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cobro en ticket de visita',
+        text: historial.visitaId
+          ? `Historial en ticket ${historial.visitaId}. Cobra desde Visitas.`
+          : 'Este historial ya fue cobrado.'
+      });
+      return;
+    }
     this.loadingService.show(LOADING_MESSAGES.loading);
     let costoSugerido = 0;
     let movimientoIds: string[] = [];
@@ -572,5 +589,53 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadingService.hide();
       }
     });
+  }
+
+  /** Spec 040 — historial clínico → ticket del día. */
+  async agregarAVisita(historial: any): Promise<void> {
+    if (!historial?.id) return;
+    if (historial.visitaId || historial.cobradaEnVisitaId || historial.cajaMovimientoId) {
+      Swal.fire('info', 'Este historial ya está en un ticket o fue cobrado.', 'info');
+      return;
+    }
+    const clienteId =
+      historial.cliente_id || this.pacientesClienteMap[historial.paciente_id] || '';
+    if (!clienteId) {
+      Swal.fire('Falta cliente', 'No se pudo resolver el dueño del paciente.', 'warning');
+      return;
+    }
+    const pacienteNombre =
+      historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
+    const monto = await promptMontoVisita(
+      'Monto de la consulta',
+      `¿Cuánto se cobrará por el historial de ${pacienteNombre}?`,
+      0
+    );
+    if (monto == null || !(monto > 0)) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const diag = String(historial.diagnostico_presuntivo || 'consulta').slice(0, 60);
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: clienteId,
+        paciente_id: historial.paciente_id,
+        paciente: pacienteNombre,
+        descripcion: `Consulta · ${pacienteNombre} · ${diag}`,
+        monto,
+        categoria: 'consulta',
+        historialId: historial.id,
+        fecha: String(historial.fecha_registro || '').slice(0, 10) || undefined
+      });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: clienteId }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregado a visita', timer: 1400, showConfirmButton: false });
+      this.cargarHistoriales();
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 }

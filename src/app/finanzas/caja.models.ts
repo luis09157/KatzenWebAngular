@@ -154,6 +154,7 @@ export interface BanioIngresoRefuerzo {
   created_at?: string;
   estado?: string;
   cajaMovimientoId?: string;
+  visitaId?: string;
   activo?: boolean;
 }
 
@@ -163,5 +164,6 @@ export interface PensionIngresoRefuerzo {
   fecha_ingreso?: string;
   estado?: string;
   cajaMovimientoId?: string;
+  cobradaEnVisitaId?: string;
   activo?: boolean;
 }

@@ -1,0 +1,53 @@
+<div class="admin-dialog-shell admin-dialog-shell--picker visita-dia-flujo-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Visita del día</h2>
+      <p class="admin-dialog-subtitle">
+        Cita completada · {{ pacienteLabel }} · {{ clienteLabel }}
+      </p>
+    </div>
+    <button
+      mat-icon-button
+      type="button"
+      class="admin-dialog-close"
+      aria-label="Cerrar"
+      (click)="omitir()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="admin-dialog-body visita-dia-flujo-body">
+    <p class="visita-dia-flujo-lead">
+      Motivo: <strong>{{ motivoLabel }}</strong>. ¿Qué sigue en la consulta?
+    </p>
+    <div class="visita-dia-flujo-actions">
+      <button mat-stroked-button color="primary" type="button" (click)="elegir('historial')">
+        <mat-icon>medical_information</mat-icon>
+        Registrar historial clínico
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        type="button"
+        *ngIf="puedeTicket"
+        (click)="elegir('ticket')">
+        <mat-icon>receipt_long</mat-icon>
+        Agregar consulta al ticket
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal"
+        type="button"
+        *ngIf="puedeTicket"
+        (click)="elegir('historial_ticket')">
+        <mat-icon>playlist_add_check</mat-icon>
+        Historial + ticket
+      </button>
+    </div>
+  </div>
+
+  <div class="admin-dialog-footer">
+    <button mat-button type="button" (click)="omitir()">Después</button>
+  </div>
+</div>

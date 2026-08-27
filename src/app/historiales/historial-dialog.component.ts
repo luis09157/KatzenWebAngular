@@ -120,7 +120,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       if (!this.isEditMode && this.data.paciente_id) {
         this.cargarInformacionPaciente(this.data.paciente_id);
         this.historialForm.patchValue({
-          paciente_id: this.data.paciente_id
+          paciente_id: this.data.paciente_id,
+          cliente_id: this.data.cliente_id || '',
+          cliente: this.data.cliente || '',
+          paciente_nombre: this.data.paciente || ''
         });
         this.historialForm.get('paciente_id')?.clearValidators();
         this.historialForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
@@ -135,7 +138,9 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
       this.historialForm.patchValue({
         // Nuevos campos
-        historia_clinica: this.data.historial?.historia_clinica || '',
+        historia_clinica:
+          this.data.historial?.historia_clinica ||
+          (this.data.motivo_consulta ? `Motivo de consulta: ${this.data.motivo_consulta}` : ''),
         diagnostico_presuntivo: this.data.historial?.diagnostico_presuntivo || '',
         manejo_terapeutico: this.data.historial?.manejo_terapeutico || '',
         peso: this.data.historial?.peso || '',
@@ -274,6 +279,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         } else {
           // Si no hay archivos, establecer como array vacío
           historialData.archivos = [];
+        }
+
+        if (this.data?.cita_id && !this.isEditMode) {
+          historialData.cita_id = this.data.cita_id;
         }
         
         if (this.isEditMode && this.data.historial?.id) {

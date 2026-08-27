@@ -18,7 +18,53 @@
       <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">
         <app-admin-stat-card accent="green" [value]="formatMoney(saldoPorCobrar)" label="Saldo por cobrar" hint="Clic = solo deudas"></app-admin-stat-card>
       </button>
+      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'por_cobrar'" (click)="setFiltroRapido('por_cobrar')">
+        <app-admin-stat-card accent="purple" [value]="porCobrarItems.length" label="Por cobrar hoy" [hint]="formatMoney(porCobrarTotal)"></app-admin-stat-card>
+      </button>
     </app-admin-kpi-grid>
+
+    <app-admin-data-panel
+      *ngIf="porCobrarItems.length"
+      accent="purple"
+      title="Por cobrar hoy"
+      description="Tickets abiertos y servicios sueltos del día sin cobro en caja"
+      [showLegend]="false">
+      <div class="table-scroll por-cobrar-scroll">
+        <table mat-table [dataSource]="porCobrarItems" class="admin-table por-cobrar-table">
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let row">{{ tipoPorCobrarLabel(row.tipo) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="cell-primary">
+                <span>{{ row.cliente || '—' }}</span>
+                <span class="cell-secondary">{{ row.paciente || '' }}</span>
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="descripcion">
+            <th mat-header-cell *matHeaderCellDef>Servicio</th>
+            <td mat-cell *matCellDef="let row">{{ row.descripcion }}</td>
+          </ng-container>
+          <ng-container matColumnDef="monto">
+            <th mat-header-cell *matHeaderCellDef>Monto</th>
+            <td mat-cell *matCellDef="let row">{{ row.monto > 0 ? formatMoney(row.monto) : '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-stroked-button color="primary" type="button" (click)="accionPorCobrar(row)">
+                {{ row.accion === 'abrir_ticket' ? 'Abrir ticket' : 'Agregar a ticket' }}
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="porCobrarColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: porCobrarColumns"></tr>
+        </table>
+      </div>
+    </app-admin-data-panel>
 
     <app-admin-page-banner
       accent="teal"
@@ -47,6 +93,7 @@
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">Hoy</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">Abiertas</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">Con saldo</button>
+        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'por_cobrar'" (click)="setFiltroRapido('por_cobrar')">Por cobrar hoy</button>
       </div>
 
       <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">

@@ -9,8 +9,13 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
-import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
+import { VisitasService } from '../../visitas/visitas.service';
+import { VisitaDialogComponent } from '../../visitas/visita-dialog.component';
+import { promptMontoVisita } from '../../visitas/visita-atalho.util';
+import { ClientesService } from '../../clientes/clientes.service';
+import { Cliente } from '../../core/models';
 import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.util';
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { normalizeAlergias } from '../../shared/alergias/alergias.util';
@@ -29,6 +34,9 @@ export interface SalidaDialogData {
   observaciones?: string;
   titulo?: string;
   subtitulo?: string;
+  /** Spec 042 — cliente para ticket (opcional si hay paciente). */
+  cliente_id?: string;
+  clienteNombre?: string;
 }
 
 @Component({
@@ -43,7 +51,12 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   loading = false;
   productos: Producto[] = [];
   productosFiltrados: Observable<Producto[]>;
+  clientesFiltrados: Observable<Cliente[]>;
   productoSeleccionado: Producto | null = null;
+  clientes: Cliente[] = [];
+  /** Cliente resuelto (prefill o paciente). */
+  clienteIdResuelto = '';
+  clienteNombreResuelto = '';
   /** Spec 034 — alerta si hay vínculo paciente. */
   alergiasPaciente: string[] = [];
 
@@ -71,6 +84,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private loadingService: LoadingService,
     private pacientesService: PacientesService,
+    private clientesService: ClientesService,
+    private visitasService: VisitasService,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: SalidaDialogData | null
   ) {
     const d = data || {};
@@ -85,17 +100,48 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       cantidad: [d.cantidad && d.cantidad > 0 ? d.cantidad : 1, [Validators.required, Validators.min(1)]],
       motivo: [d.motivoDefault || 'uso_consulta', Validators.required],
       observaciones: [d.observaciones || ''],
-      registrarEnCaja: [true]
+      destinoCobro: ['caja' as 'caja' | 'visita'],
+      cliente_busqueda: [''],
+      cliente_id: [d.cliente_id || ''],
+      cliente_nombre: [d.clienteNombre || '']
     });
 
     this.productosFiltrados = this.salidaForm.get('producto_busqueda')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filtrarProductos(value || ''))
     );
+    this.clientesFiltrados = this.salidaForm.get('cliente_busqueda')!.valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        if (typeof value === 'string') return this._filtrarClientes(value);
+        if (value && typeof value === 'object') {
+          return this._filtrarClientes(this.nombreCliente(value as Cliente));
+        }
+        return this._filtrarClientes('');
+      })
+    );
+  }
+
+  get requiereSelectorCliente(): boolean {
+    return this.esVentaDirecta && this.salidaForm.get('destinoCobro')?.value === 'visita' && !this.clienteIdResuelto;
+  }
+
+  get destinoEsVisita(): boolean {
+    return this.esVentaDirecta && this.salidaForm.get('destinoCobro')?.value === 'visita';
   }
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.cargarClientes();
+    if (this.data?.cliente_id) {
+      this.clienteIdResuelto = this.data.cliente_id;
+      this.clienteNombreResuelto = this.data.clienteNombre || '';
+      this.salidaForm.patchValue({
+        cliente_id: this.clienteIdResuelto,
+        cliente_nombre: this.clienteNombreResuelto,
+        cliente_busqueda: this.clienteNombreResuelto
+      });
+    }
     const pid = this.data?.pacienteId;
     if (pid) {
       this.pacientesService
@@ -104,6 +150,16 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (p) => {
             this.alergiasPaciente = normalizeAlergias(p);
+            const cid = (p as any)?.cliente_id || (p as any)?.idCliente || '';
+            if (cid && !this.clienteIdResuelto) {
+              this.clienteIdResuelto = cid;
+              this.clienteNombreResuelto =
+                (p as any)?.nombreCliente || (p as any)?.cliente || '';
+              this.salidaForm.patchValue({
+                cliente_id: cid,
+                cliente_nombre: this.clienteNombreResuelto
+              });
+            }
           },
           error: () => {
             this.alergiasPaciente = [];
@@ -184,6 +240,64 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       },
       error: (error) => { this.logger.error('Error al cargar productos:', error); }
     });
+  }
+
+  cargarClientes(): void {
+    this.clientesService
+      .getClientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (clientes) => {
+          this.clientes = (clientes || []).filter((c) => c.activo !== false);
+        },
+        error: (err) => this.logger.error('Error al cargar clientes:', err)
+      });
+  }
+
+  private _filtrarClientes(valor: string): Cliente[] {
+    const filtro = valor.toLowerCase();
+    if (!filtro) return this.clientes.slice(0, 40);
+    return this.clientes
+      .filter((c) => {
+        const nombre = this.nombreCliente(c).toLowerCase();
+        const tel = String(c.telefono || '').toLowerCase();
+        return nombre.includes(filtro) || tel.includes(filtro);
+      })
+      .slice(0, 40);
+  }
+
+  displayCliente(cliente: Cliente | null): string {
+    if (!cliente) return '';
+    return this.nombreCliente(cliente);
+  }
+
+  onClienteSeleccionado(cliente: Cliente): void {
+    if (!cliente?.id) return;
+    this.clienteIdResuelto = cliente.id;
+    this.clienteNombreResuelto = this.nombreCliente(cliente);
+    this.salidaForm.patchValue({
+      cliente_id: cliente.id,
+      cliente_nombre: this.clienteNombreResuelto
+    });
+  }
+
+  nombreCliente(cliente: Cliente): string {
+    return String(cliente.nombre || (cliente as Record<string, unknown>)['nombre_completo'] || '');
+  }
+
+  private resolverClienteId(formData: Record<string, unknown>): string {
+    return (
+      this.clienteIdResuelto ||
+      String(formData['cliente_id'] || '').trim()
+    );
+  }
+
+  montoVentaFinal(): number {
+    if (!this.productoSeleccionado) return 0;
+    if (this.productoSeleccionado.iva_aplicable) {
+      return this.montoVentaConIvaSugerido;
+    }
+    return this.montoVentaSugerido;
   }
 
   private _filtrarProductos(valor: string): Producto[] {
@@ -293,11 +407,23 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const formData = this.salidaForm.value;
+    if (
+      formData.motivo === 'venta_directa' &&
+      formData.destinoCobro === 'visita' &&
+      !this.hideRegistrarEnCaja
+    ) {
+      const clienteId = this.resolverClienteId(formData);
+      if (!clienteId) {
+        Swal.fire('Cliente requerido', 'Selecciona el cliente dueño del ticket.', 'warning');
+        return;
+      }
+    }
+
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
 
     try {
-      const formData = this.salidaForm.value;
       const motivoTexto = this.motivosSalida.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
       const motivoCompleto = `${motivoTexto}. ${formData.observaciones || ''}`.trim();
       const pacienteId = this.data?.pacienteId;
@@ -331,11 +457,22 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
       if (
         formData.motivo === 'venta_directa' &&
-        formData.registrarEnCaja &&
+        formData.destinoCobro === 'caja' &&
         !this.hideRegistrarEnCaja &&
         movimientoId
       ) {
         await this.abrirCajaTrasVenta(movimientoId, formData.cantidad);
+        this.dialogRef.close({ ok: true, movimientoId });
+        return;
+      }
+
+      if (
+        formData.motivo === 'venta_directa' &&
+        formData.destinoCobro === 'visita' &&
+        !this.hideRegistrarEnCaja &&
+        movimientoId
+      ) {
+        await this.abrirVisitaTrasVenta(movimientoId, formData.cantidad, formData);
         this.dialogRef.close({ ok: true, movimientoId });
         return;
       }
@@ -396,6 +533,77 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         text: 'El stock ya se descontó. Puedes registrar el cobro después en Finanzas.',
         confirmButtonText: 'Entendido'
       });
+    }
+  }
+
+  /** Spec 042 — venta directa → línea en ticket de visita del día. */
+  private async abrirVisitaTrasVenta(
+    movimientoInventarioId: string,
+    cantidad: number,
+    formData: Record<string, unknown>
+  ): Promise<void> {
+    const producto = this.productoSeleccionado!;
+    const clienteId = this.resolverClienteId(formData);
+    const clienteNombre =
+      this.clienteNombreResuelto ||
+      String(formData['cliente_nombre'] || '').trim();
+    const pacienteId = this.data?.pacienteId;
+    const pacienteNombre = this.data?.pacienteNombre;
+
+    let monto = this.montoVentaFinal();
+    monto =
+      (await promptMontoVisita(
+        'Monto de la venta',
+        `¿Cuánto se cobrará por ${producto.nombre} × ${cantidad}?`,
+        monto
+      )) ?? 0;
+    if (!(monto > 0)) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Salida registrada sin ticket',
+        text: 'El stock se descontó. Agrega la venta al ticket manualmente desde Visitas.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: clienteId,
+        cliente: clienteNombre,
+        paciente_id: pacienteId,
+        paciente: pacienteNombre,
+        descripcion: `Venta · ${producto.nombre} × ${cantidad}`,
+        monto,
+        categoria: 'venta_producto',
+        productoId: producto.id,
+        movimientoInventarioId
+      });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: {
+          visita: visita || undefined,
+          cliente_id: clienteId,
+          cliente: clienteNombre
+        }
+      });
+      await Swal.fire({
+        icon: 'success',
+        title: 'Agregado al ticket',
+        timer: 1400,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      this.logger.error('No se pudo agregar venta→visita:', err);
+      await Swal.fire(
+        'Error',
+        this.errorMessages.getUserMessage(err, 'agregar venta a visita'),
+        'error'
+      );
+    } finally {
+      this.loadingService.hide();
     }
   }
 

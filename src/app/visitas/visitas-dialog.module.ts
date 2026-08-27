@@ -13,10 +13,11 @@ import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitaDialogComponent } from './visita-dialog.component';
 import { ClienteCuentaDialogComponent } from './cliente-cuenta-dialog.component';
+import { VisitaDiaFlujoDialogComponent } from './visita-dia-flujo-dialog.component';
 
 /** Diálogos de visitas — usable desde clientes, citas, baños, expediente. */
 @NgModule({
-  declarations: [VisitaDialogComponent, ClienteCuentaDialogComponent],
+  declarations: [VisitaDialogComponent, ClienteCuentaDialogComponent, VisitaDiaFlujoDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -31,6 +32,6 @@ import { ClienteCuentaDialogComponent } from './cliente-cuenta-dialog.component'
     SharedModule,
     CajaDialogModule
   ],
-  exports: [VisitaDialogComponent, ClienteCuentaDialogComponent]
+  exports: [VisitaDialogComponent, ClienteCuentaDialogComponent, VisitaDiaFlujoDialogComponent]
 })
 export class VisitasDialogModule {}

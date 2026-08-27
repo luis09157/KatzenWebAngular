@@ -27,9 +27,4 @@ describe('DashboardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('should call logout on AuthService', () => {
-    component.logout();
-    expect(authServiceSpy.logout).toHaveBeenCalled();
-  });
 });

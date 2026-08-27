@@ -23,6 +23,7 @@ import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.modu
     MatProgressSpinnerModule,
     MatCheckboxModule,
     SharedModule,
-    SalidaDialogModule
+    SalidaDialogModule,
+    VisitasDialogModule
   ],
   exports: [
     VacunaDialogComponent
