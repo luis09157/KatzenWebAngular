@@ -31,6 +31,7 @@ import { AdminEstadoClassPipe } from './pipes/admin-estado-class.pipe';
 import { AdminPrioridadClassPipe } from './pipes/admin-prioridad-class.pipe';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -61,7 +62,8 @@ import { MatMenuModule } from '@angular/material/menu';
     MatButtonToggleModule,
     MatAutocompleteModule,
     MatCardModule,
-    MatMenuModule
+    MatMenuModule,
+    RouterModule
   ],
   providers: [
     DiagnosticosService,
@@ -94,7 +96,8 @@ import { MatMenuModule } from '@angular/material/menu';
     ClientePacientePickerComponent,
     MatAutocompleteModule,
     MatCardModule,
-    MatMenuModule
+    MatMenuModule,
+    RouterModule
   ]
 })
 export class SharedModule { }

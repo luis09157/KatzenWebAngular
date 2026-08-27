@@ -9,7 +9,7 @@
     <app-admin-kpi-grid>
       <app-admin-stat-card accent="green" [value]="formatMoney(kpis.neto)" label="Neto caja" hint="Ingresos − egresos"></app-admin-stat-card>
       <app-admin-stat-card accent="teal" [value]="formatMoney(kpis.totalIngresos)" label="Ingresos" hint="Cobros del período"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" [value]="formatMoney(kpis.margenEstimado)" label="Margen estimado" hint="Solo cobros con costo"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" [value]="formatMoney(kpis.margenEstimado)" label="Margen estimado" hint="Solo cobros con costo · sin costo → no entra aquí"></app-admin-stat-card>
       <app-admin-stat-card accent="orange" [value]="formatMoney(kpis.totalEgresos)" label="Gastos" hint="Egresos del período"></app-admin-stat-card>
     </app-admin-kpi-grid>
 
@@ -274,7 +274,7 @@
           *ngIf="!loadingPlantillas"
           accent="teal"
           title="Defaults baño por tamaño"
-          description="Costo y precio sugerido para pequeño / mediano / grande. Al registrar un baño puedes sobreescribirlos."
+          description="Costo, precio sugerido y plantilla opcional (P/M/G). El modal de baño prellena al elegir tamaño; 0 = sin tarifa."
           meta="3 tamaños"
           [showLegend]="false">
 
@@ -288,6 +288,15 @@
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label>Precio sugerido</mat-label>
                 <input matInput type="number" min="0" step="0.01" formControlName="precioSugerido" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="defaults-plantilla">
+                <mat-label>Plantilla (opcional)</mat-label>
+                <mat-select formControlName="plantillaCostoId">
+                  <mat-option value="">Sin plantilla</mat-option>
+                  <mat-option *ngFor="let p of plantillasBanio" [value]="p.id">
+                    {{ p.nombre }} · ${{ p.costoTotalEstimado | number:'1.0-0' }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
             </div>
             <button

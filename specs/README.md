@@ -44,6 +44,7 @@ specs/
 ├── 026-proveedores-menu-visibilidad/    # Proveedores en sidenav + enlace desde producto
 ├── 027-menu-visibilidad-modulos/        # Sub-ítems inventario en sidenav (026 follow-up)
 ├── 028-portal-banos-finanzas-servicio/  # Portal baños read-only + tab ingresos por servicio
+├── 031-interconexion-modulos/           # **done** grafo IDs + atajos + portal pensión/recordatorios
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

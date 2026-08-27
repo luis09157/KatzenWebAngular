@@ -47,7 +47,14 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<PensionDialogComponent>,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    @Inject(MAT_DIALOG_DATA) public data: { estancia?: PensionEstancia }
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      estancia?: PensionEstancia;
+      paciente_id?: string;
+      cliente_id?: string;
+      paciente?: string;
+      cliente?: string;
+    }
   ) {
     this.form = this.fb.group({
       paciente: [''],
@@ -86,7 +93,14 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         notas: e.notas || ''
       });
     } else {
-      this.form.patchValue({ fecha_ingreso: iso, estado: 'reservada' });
+      this.form.patchValue({
+        fecha_ingreso: iso,
+        estado: 'reservada',
+        paciente_id: this.data?.paciente_id || '',
+        cliente_id: this.data?.cliente_id || '',
+        paciente: this.data?.paciente || '',
+        cliente: this.data?.cliente || ''
+      });
     }
 
     this.form

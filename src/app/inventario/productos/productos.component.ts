@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
 import { ProductoDialogComponent } from './producto-dialog.component';
+import { OrdenDialogComponent } from '../ordenes/orden-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
@@ -161,6 +162,21 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) this.cargarProductos();
     });
+  }
+
+  /** Spec 031: producto con stock bajo → OC prefilled. */
+  crearOrdenCompra(producto: Producto): void {
+    if (!producto?.id) return;
+    const dialogRef = this.dialog.open(OrdenDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      disableClose: true,
+      data: {
+        productoId: producto.id,
+        proveedorId: producto.proveedor_principal_id || undefined,
+        cantidad: Math.max(1, Number(producto.stock_minimo) || 1)
+      }
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe();
   }
 
   async eliminarProducto(producto: Producto): Promise<void> {

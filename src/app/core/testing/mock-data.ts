@@ -394,6 +394,30 @@ export const MOCK_PORTAL_BANIOS = [
   }
 ];
 
+/** Portal pensión / recordatorios (spec 031) — sin costos ni caja. */
+export const MOCK_PORTAL_PENSION = {
+  id: MOCK_PENSION_ESTANCIA.id,
+  paciente_id: MOCK_MASCOTA.id!,
+  cliente_id: MOCK_CLIENTE.id!,
+  fecha_ingreso: MOCK_PENSION_ESTANCIA.fecha_ingreso,
+  fecha_salida_prevista: MOCK_PENSION_ESTANCIA.fecha_salida_prevista,
+  estado: 'activa',
+  estado_label: 'Activa',
+  notas: MOCK_PENSION_ESTANCIA.notas,
+  paciente: MOCK_PENSION_ESTANCIA.paciente,
+  cliente: MOCK_PENSION_ESTANCIA.cliente
+};
+
+export const MOCK_PORTAL_RECORDATORIO = {
+  id: 'mock-recordatorio-001',
+  paciente_id: MOCK_MASCOTA.id!,
+  titulo: 'Refuerzo vacuna',
+  fecha: '2026-09-15',
+  estado: 'pendiente',
+  tipo: 'vacuna',
+  notas: 'Traer cartilla'
+};
+
 /** Meta de inversión dashboard (spec 030). */
 export const MOCK_INVERSION_META = {
   montoMeta: 500000,

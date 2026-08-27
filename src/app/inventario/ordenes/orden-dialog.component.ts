@@ -1,12 +1,18 @@
-import { Component, OnInit, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, OnInit, Optional, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Proveedor, Producto, OrdenCompraFormData } from '../../shared/inventario.models';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+
+export interface OrdenDialogPrefill {
+  productoId?: string;
+  proveedorId?: string;
+  cantidad?: number;
+}
 
 @Component({
   selector: 'app-orden-dialog',
@@ -26,7 +32,8 @@ export class OrdenDialogComponent implements OnInit {
     private fb: FormBuilder,
     private inventarioService: InventarioService,
     public dialogRef: MatDialogRef<OrdenDialogComponent>,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: OrdenDialogPrefill | null
   ) {
     this.ordenForm = this.fb.group({
       proveedor_id: ['', Validators.required],
@@ -38,15 +45,13 @@ export class OrdenDialogComponent implements OnInit {
 
     this.productosFiltrados = this.ordenForm.get('proveedor_id')!.valueChanges.pipe(
       startWith(''),
-      map(value => this.productos)
+      map(() => this.productos)
     );
   }
 
   ngOnInit(): void {
-    console.log('🚀 Orden Dialog cargado');
     this.cargarDatos();
-    
-    // Establecer fecha mínima de entrega (mañana)
+
     const manana = new Date();
     manana.setDate(manana.getDate() + 1);
     this.ordenForm.patchValue({
@@ -55,11 +60,12 @@ export class OrdenDialogComponent implements OnInit {
   }
 
   cargarDatos(): void {
-    // Cargar proveedores
     this.inventarioService.getProveedores().subscribe({
       next: (proveedores) => {
         this.proveedores = proveedores.filter(p => p.activo);
-        console.log('✅ Proveedores cargados:', proveedores.length);
+        if (this.data?.proveedorId) {
+          this.ordenForm.patchValue({ proveedor_id: this.data.proveedorId });
+        }
       },
       error: (error) => {
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar proveedores orden'), 'error');
@@ -69,11 +75,41 @@ export class OrdenDialogComponent implements OnInit {
     this.inventarioService.getProductos().subscribe({
       next: (productos) => {
         this.productos = productos.filter(p => p.activo);
+        this.aplicarPrefillProducto();
       },
       error: (error) => {
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar productos orden'), 'error');
       }
     });
+  }
+
+  private aplicarPrefillProducto(): void {
+    const productoId = this.data?.productoId;
+    if (!productoId) return;
+    const producto = this.productos.find((p) => p.id === productoId);
+    if (!producto) return;
+
+    if (!this.data?.proveedorId && producto.proveedor_principal_id) {
+      this.ordenForm.patchValue({ proveedor_id: producto.proveedor_principal_id });
+    }
+
+    if (this.productosArray.length === 0) {
+      this.agregarProducto();
+    }
+    const group = this.productosArray.at(0) as FormGroup;
+    const qty = Math.max(1, Number(this.data?.cantidad) || Math.max(1, Number(producto.stock_minimo) || 1));
+    group.patchValue({
+      producto_id: producto.id,
+      producto_nombre: producto.nombre,
+      cantidad: qty,
+      precio_unitario: Number(producto.precio_compra) || 0
+    });
+    this.calcularSubtotal(group);
+    if (!this.ordenForm.get('observaciones')?.value) {
+      this.ordenForm.patchValue({
+        observaciones: `Reposición stock · ${producto.nombre}`
+      });
+    }
   }
 
   get productosArray(): FormArray {
@@ -89,7 +125,6 @@ export class OrdenDialogComponent implements OnInit {
       subtotal: [{ value: 0, disabled: true }]
     });
 
-    // Auto-calcular subtotal
     productoGroup.get('cantidad')?.valueChanges.subscribe(() => {
       this.calcularSubtotal(productoGroup);
     });
@@ -106,7 +141,6 @@ export class OrdenDialogComponent implements OnInit {
   }
 
   onProductoSeleccionado(productoGroup: FormGroup, producto: Producto): void {
-    console.log('🔍 Producto seleccionado:', producto.nombre);
     productoGroup.patchValue({
       producto_id: producto.id,
       producto_nombre: producto.nombre,
@@ -147,9 +181,9 @@ export class OrdenDialogComponent implements OnInit {
 
   private _filtrarProductos(valor: string): Producto[] {
     if (typeof valor !== 'string') return this.productos;
-    
+
     const filtro = valor.toLowerCase();
-    return this.productos.filter(p => 
+    return this.productos.filter(p =>
       p.nombre.toLowerCase().includes(filtro) ||
       p.codigo_barras.toLowerCase().includes(filtro)
     );
@@ -159,7 +193,7 @@ export class OrdenDialogComponent implements OnInit {
     if (this.ordenForm.invalid || this.productosArray.length === 0) {
       this.ordenForm.markAllAsTouched();
       this.productosArray.controls.forEach(c => c.markAllAsTouched());
-      
+
       if (this.productosArray.length === 0) {
         Swal.fire('Productos Requeridos', 'Agrega al menos un producto a la orden', 'warning');
       } else {
@@ -172,8 +206,7 @@ export class OrdenDialogComponent implements OnInit {
 
     try {
       const formData = this.ordenForm.getRawValue();
-      
-      // Preparar productos
+
       const productosFormateados = formData.productos.map((p: any) => ({
         producto_id: p.producto_id,
         cantidad_solicitada: p.cantidad,
@@ -192,9 +225,7 @@ export class OrdenDialogComponent implements OnInit {
         observaciones: formData.observaciones || ''
       };
 
-      console.log('🔄 Creando orden...');
       await this.inventarioService.crearOrdenCompra(ordenData);
-      console.log('✅ Orden creada');
 
       Swal.fire({
         icon: 'success',
@@ -206,7 +237,6 @@ export class OrdenDialogComponent implements OnInit {
 
       this.dialogRef.close(true);
     } catch (error) {
-      console.error('❌ Error al crear orden:', error);
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar orden'), 'error');
     } finally {
       this.loading = false;
@@ -237,4 +267,3 @@ export class OrdenDialogComponent implements OnInit {
     return !!(control && control.hasError(error) && (control.dirty || control.touched));
   }
 }
-

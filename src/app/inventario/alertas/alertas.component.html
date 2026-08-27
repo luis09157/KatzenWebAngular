@@ -88,6 +88,14 @@
             <button
               mat-icon-button
               type="button"
+              matTooltip="Crear orden de compra"
+              *ngIf="alerta.tipo === 'stock_bajo' || alerta.tipo === 'punto_reorden'"
+              (click)="crearOrdenDesdeAlerta(alerta)">
+              <mat-icon>shopping_cart</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
               matTooltip="Resolver"
               *ngIf="alerta.estado !== 'resuelta'"
               (click)="resolverAlerta(alerta)">

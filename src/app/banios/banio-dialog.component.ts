@@ -15,6 +15,9 @@ import {
   TamanoPerroBanio,
   emptyDefaultsBanio
 } from '../finanzas/defaults-banio.models';
+import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
+import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
+import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
 import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from './banio-costo.validators';
 import {
   calcularMargenPorcentaje,
@@ -23,6 +26,8 @@ import {
 import {
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -37,6 +42,10 @@ export class BanioDialogComponent implements OnInit {
   esEdicion = false;
   hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
   defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
+  plantillasCosto: PlantillaCosto[] = [];
+  /** Hint cuando no hay defaults ni plantilla (spec 031). */
+  prefillHint = '';
+  private defaultsListos = false;
   readonly tamanos = TAMANOS_PERRO_ORDEN;
   readonly tamanoLabels = TAMANO_PERRO_LABELS;
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
@@ -123,7 +132,8 @@ export class BanioDialogComponent implements OnInit {
     private baniosPacienteService: BaniosPacienteService,
     private usuariosService: UsuariosService,
     private loadingService: LoadingService,
-    private defaultsBanioService: DefaultsBanioService
+    private defaultsBanioService: DefaultsBanioService,
+    private plantillaCostoService: PlantillaCostoService
   ) {
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
@@ -496,9 +506,21 @@ export class BanioDialogComponent implements OnInit {
 
   private async cargarDefaultsBanio(): Promise<void> {
     try {
-      this.defaultsBanio = await this.defaultsBanioService.getDefaultsOnce();
+      const [defaults, plantillas] = await Promise.all([
+        this.defaultsBanioService.getDefaultsOnce(),
+        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(() => [])
+      ]);
+      this.defaultsBanio = defaults;
+      this.plantillasCosto = plantillas || [];
     } catch {
       this.defaultsBanio = emptyDefaultsBanio();
+      this.plantillasCosto = [];
+    } finally {
+      this.defaultsListos = true;
+      const tamano = this.banioForm.get('tamano_perro')?.value as TamanoPerroBanio | '';
+      if (tamano && !this.esEdicion) {
+        this.onTamanoChange();
+      }
     }
   }
 
@@ -516,21 +538,35 @@ export class BanioDialogComponent implements OnInit {
 
   onTamanoChange(): void {
     const tamano = this.banioForm.get('tamano_perro')?.value as TamanoPerroBanio | '';
-    if (!tamano) return;
-    const def = this.defaultsBanioService.defaultParaTamano(this.defaultsBanio, tamano);
-    if (!def) return;
-    const patch: Record<string, unknown> = {
-      costoEstimado: def.costoDefault > 0 ? def.costoDefault : null
-    };
-    if (def.plantillaCostoId) {
-      patch['plantillaCostoId'] = def.plantillaCostoId;
+    if (!tamano) {
+      this.prefillHint = '';
+      return;
     }
-    if (def.precioSugerido != null) {
+    if (!this.defaultsListos) {
+      this.prefillHint = 'Cargando tarifas de Finanzas…';
+      return;
+    }
+    const prefill = resolverPrefillBanioPorTamano(tamano, this.defaultsBanio, this.plantillasCosto);
+    if (prefill.fuente === 'ninguno') {
+      this.prefillHint =
+        'Sin tarifa para este tamaño. Configura defaults o una plantilla en Finanzas → Costos de servicio.';
+      return;
+    }
+    this.prefillHint =
+      prefill.fuente === 'plantilla'
+        ? 'Prefill desde plantilla de costo (Finanzas).'
+        : 'Prefill desde defaults baño (Finanzas).';
+    const patch: Record<string, unknown> = {
+      costoEstimado: prefill.costoEstimado,
+      plantillaCostoId: prefill.plantillaCostoId || ''
+    };
+    if (prefill.precioSugerido != null) {
       this.precioTotalManual = false;
-      patch['precio_base'] = def.precioSugerido;
-      patch['precio_total'] = def.precioSugerido;
+      patch['precio_base'] = prefill.precioSugerido;
+      patch['precio_total'] = prefill.precioSugerido;
     }
     this.banioForm.patchValue(patch);
+    this.calcularPrecioTotal();
     this.revalidarCostoVsVenta();
   }
 

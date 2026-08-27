@@ -151,3 +151,5 @@
 ## Nota UX baños (2026-08-26)
 
 Modal **Nuevo baño**: secciones «Tamaño y costo» + «Precios» fusionadas en un solo bloque **Costos y precio**. `precio_base` sigue en RTDB (sync interno desde precio al cliente − adicionales); ya no se muestra en UI. Costo 0 = opcional (`treatZeroAsEmpty`).
+
+**Validación 2026-08-26:** `npm run build` exit 0 · commit `3a7a41f` · push + deploy hosting OK · `:4200` vivo.

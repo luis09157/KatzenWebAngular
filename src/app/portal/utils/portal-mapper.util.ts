@@ -105,6 +105,44 @@ export function mapBanio(id: string, raw: Record<string, unknown>) {
   };
 }
 
+const ESTADO_PENSION_LABELS: Record<string, string> = {
+  reservada: 'Reservada',
+  activa: 'Activa',
+  finalizada: 'Finalizada',
+  cancelada: 'Cancelada'
+};
+
+/** Pensión — solo lectura portal (sin costos / caja). */
+export function mapPension(id: string, raw: Record<string, unknown>) {
+  const estado = String(raw['estado'] || 'reservada');
+  return {
+    id,
+    paciente_id: raw['paciente_id'] || raw['idPaciente'] || '',
+    cliente_id: raw['cliente_id'] || raw['idCliente'] || '',
+    fecha_ingreso: raw['fecha_ingreso'] || '',
+    fecha_salida_prevista: raw['fecha_salida_prevista'] || '',
+    fecha_salida_real: raw['fecha_salida_real'] || '',
+    estado,
+    estado_label: ESTADO_PENSION_LABELS[estado] || estado,
+    notas: raw['notas'] || raw['observaciones'] || '',
+    paciente: raw['paciente'] || '',
+    cliente: raw['cliente'] || ''
+  };
+}
+
+/** Recordatorio clínico — portal dueño. */
+export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
+  return {
+    id,
+    paciente_id: raw['paciente_id'] || raw['idPaciente'] || '',
+    titulo: raw['titulo'] || raw['tipo'] || raw['motivo'] || 'Recordatorio',
+    fecha: raw['fechaRecordatorio'] || raw['fecha'] || raw['fecha_hora'] || '',
+    estado: raw['estado'] || 'pendiente',
+    notas: raw['notas'] || raw['descripcion'] || raw['mensaje'] || '',
+    tipo: raw['tipo'] || ''
+  };
+}
+
 export function mapMascota(id: string, raw: Record<string, unknown>) {
   return {
     id,

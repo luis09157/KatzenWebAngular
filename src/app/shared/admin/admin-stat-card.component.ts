@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-export type AdminStatAccent = 'teal' | 'blue' | 'purple' | 'pink' | 'green' | 'orange';
+export type AdminStatAccent = 'teal' | 'blue' | 'purple' | 'pink' | 'green' | 'orange' | 'red';
 
 @Component({
   selector: 'app-admin-stat-card',
@@ -16,6 +16,8 @@ export class AdminStatCardComponent {
   @Input() hint = '';
   /** Color del borde superior — estilo tarjeta premium. */
   @Input() accent: AdminStatAccent = 'teal';
+  /** Ruta admin opcional (spec 031 — KPIs clickables). */
+  @Input() link: string | null = null;
 
   /** Números con separador; strings (p. ej. $1,200.00) se muestran tal cual. */
   get displayValue(): string {

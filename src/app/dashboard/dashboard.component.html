@@ -51,34 +51,38 @@
             accent="blue"
             [value]="formatMoney(snap.financieros.ventaBruta)"
             label="Ingresos brutos"
-            hint="Caja + baños (precio de venta)">
+            hint="Caja + baños (precio de venta)"
+            link="/admin/finanzas">
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="orange"
             [value]="formatMoney(snap.financieros.costosAsociados)"
             label="Costos de servicio"
-            hint="Caja + costoEstimado baños">
+            hint="Caja + costoEstimado baños"
+            link="/admin/finanzas">
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="pink"
             [value]="formatMoney(snap.financieros.gastosOperativos)"
             label="Gastos operativos"
-            hint="Egresos del período">
+            hint="Egresos del período"
+            link="/admin/finanzas">
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="green"
             [value]="formatMoney(snap.financieros.gananciaNeta)"
             label="Ganancia neta"
-            hint="Ingresos − costos − gastos · si costo=venta → ≈$0">
+            hint="Ingresos − costos − gastos · si costo=venta → ≈$0"
+            link="/admin/finanzas">
           </app-admin-stat-card>
         </app-admin-kpi-grid>
 
         <p class="section-eyebrow">Operación</p>
         <app-admin-kpi-grid>
-          <app-admin-stat-card accent="purple" [value]="snap.operativos.citasHoy" label="Citas hoy" hint="Agenda del día"></app-admin-stat-card>
-          <app-admin-stat-card accent="teal" [value]="snap.operativos.baniosPeriodo" label="Baños del período" hint="Servicios registrados"></app-admin-stat-card>
-          <app-admin-stat-card accent="orange" [value]="snap.operativos.stockBajo" label="Stock bajo" hint="Requieren reposición"></app-admin-stat-card>
-          <app-admin-stat-card accent="blue" [value]="snap.operativos.clientesNuevosPeriodo" label="Clientes nuevos" hint="Alta en el período"></app-admin-stat-card>
+          <app-admin-stat-card accent="purple" [value]="snap.operativos.citasHoy" label="Citas hoy" hint="Agenda del día" link="/admin/citas"></app-admin-stat-card>
+          <app-admin-stat-card accent="teal" [value]="snap.operativos.baniosPeriodo" label="Baños del período" hint="Servicios registrados" link="/admin/banios"></app-admin-stat-card>
+          <app-admin-stat-card accent="orange" [value]="snap.operativos.stockBajo" label="Stock bajo" hint="Requieren reposición" link="/admin/inventario/alertas"></app-admin-stat-card>
+          <app-admin-stat-card accent="blue" [value]="snap.operativos.clientesNuevosPeriodo" label="Clientes nuevos" hint="Alta en el período" link="/admin/clientes"></app-admin-stat-card>
         </app-admin-kpi-grid>
 
         <div class="owner-dash__mid">

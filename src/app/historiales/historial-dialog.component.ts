@@ -206,6 +206,15 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   cargarInformacionPaciente(pacienteId: string) {
     this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
       this.pacienteInfo = paciente;
+      if (paciente && !this.isEditMode) {
+        const clienteId = String((paciente as any).cliente_id || (paciente as any).idCliente || '');
+        this.historialForm.patchValue({
+          paciente_id: pacienteId,
+          paciente_nombre: paciente.nombre || '',
+          cliente_id: this.data?.cliente_id || clienteId,
+          cliente: this.data?.cliente || this.historialForm.get('cliente')?.value || ''
+        });
+      }
     });
   }
 

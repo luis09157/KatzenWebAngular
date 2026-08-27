@@ -20,9 +20,14 @@ import { VacunaDialogComponent } from '../vacunas/vacuna-dialog.component';
 import { VacunaDetalleComponent } from '../vacunas/vacuna-detalle.component';
 import { HistorialDetalleComponent } from '../historiales/historial-detalle.component';
 import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-detalle.component';
+import { CitaDialogComponent } from '../citas/cita-dialog.component';
+import { CitasService } from '../citas/citas.service';
+import { PensionDialogComponent } from '../pension/pension-dialog.component';
+import { BaniosPacienteComponent } from './banios-paciente.component';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { getPacienteClienteId as resolvePacienteClienteId } from '../core/utils/paciente-cliente.util';
 
 @Component({
@@ -34,6 +39,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(BaniosPacienteComponent) baniosPacienteCmp?: BaniosPacienteComponent;
 
   // Propiedades para la nueva vista
   searchTerm: string = '';
@@ -78,10 +84,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
     private recordatoriosService: RecordatoriosService,
     private vacunasService: VacunasService,
     private baniosPacienteService: BaniosPacienteService,
+    private citasService: CitasService,
     private dialog: MatDialog,
     private router: Router,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
@@ -356,9 +364,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { 
+      data: {
         paciente_id: this.pacienteSeleccionado.id,
-        desdePaciente: true // Flag para indicar que viene desde la página del paciente
+        cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
+        paciente: this.pacienteSeleccionado.nombre,
+        cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
+        desdePaciente: true
       }
     });
 
@@ -498,10 +509,13 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { 
-        historial: null, 
+      data: {
+        historial: null,
         modoVer: false,
-        paciente_id: this.pacienteSeleccionado.id 
+        paciente_id: this.pacienteSeleccionado.id,
+        cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
+        paciente: this.pacienteSeleccionado.nombre,
+        cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado)
       }
     });
 
@@ -750,7 +764,14 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { paciente_id: this.pacienteSeleccionado.id }
+      data: {
+        paciente_id: this.pacienteSeleccionado.id,
+        idPaciente: this.pacienteSeleccionado.id,
+        cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
+        idCliente: this.getPacienteClienteId(this.pacienteSeleccionado),
+        paciente: this.pacienteSeleccionado.nombre,
+        cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado)
+      }
     });
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
@@ -878,6 +899,92 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.dialog.open(RecordatorioDetalleComponent, {
       ...ADMIN_DIALOG_DETAIL,
       data: recordatorio
+    });
+  }
+
+  /** Prefill cliente+paciente para diálogos desde expediente (spec 031). */
+  private expedienteIds(): {
+    paciente_id: string;
+    cliente_id: string;
+    paciente: string;
+    cliente: string;
+  } | null {
+    if (!this.pacienteSeleccionado?.id) return null;
+    return {
+      paciente_id: this.pacienteSeleccionado.id,
+      cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
+      paciente: this.pacienteSeleccionado.nombre || '',
+      cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado)
+    };
+  }
+
+  agregarCitaDesdeExpediente(): void {
+    const ids = this.expedienteIds();
+    if (!ids) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+    const dialogRef = this.dialog.open(CitaDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      data: {
+        modoVer: false,
+        cita: {
+          cliente_id: ids.cliente_id,
+          paciente_id: ids.paciente_id,
+          paciente: ids.paciente,
+          nombreCliente: ids.cliente
+        }
+      }
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      if (!result) return;
+      this.loadingService.show(LOADING_MESSAGES.saving);
+      this.citasService
+        .guardarCita(result)
+        .then(() => {
+          Swal.fire({ icon: 'success', title: 'Cita guardada', timer: 1600, showConfirmButton: false });
+          this.cargarLogActividades(ids.paciente_id);
+        })
+        .catch((error) => {
+          this.logger.error('Error al guardar cita desde expediente:', error);
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar cita'), 'error');
+        })
+        .finally(() => this.loadingService.hide());
+    });
+  }
+
+  agregarBanioDesdeExpediente(): void {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+    if (this.baniosPacienteCmp) {
+      this.baniosPacienteCmp.agregarBanio();
+      return;
+    }
+    Swal.fire({
+      icon: 'info',
+      title: 'Abre la pestaña Baños',
+      text: 'Usa «Nuevo baño» en la pestaña Baños del expediente.'
+    });
+  }
+
+  agregarPensionDesdeExpediente(): void {
+    const ids = this.expedienteIds();
+    if (!ids) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+    this.dialog.open(PensionDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '720px',
+      disableClose: true,
+      data: {
+        paciente_id: ids.paciente_id,
+        cliente_id: ids.cliente_id,
+        paciente: ids.paciente,
+        cliente: ids.cliente
+      }
     });
   }
 

@@ -3,7 +3,9 @@ import {
   isVisibleInClientPortal,
   mapBanio,
   mapHistorial,
-  mapMascota
+  mapMascota,
+  mapPension,
+  mapRecordatorio
 } from './portal-mapper.util';
 
 describe('portal-mapper.util', () => {
@@ -69,6 +71,42 @@ describe('portal-mapper.util', () => {
       expect(Object.prototype.hasOwnProperty.call(mapped, 'precio_total')).toBeFalse();
       expect(Object.prototype.hasOwnProperty.call(mapped, 'costoEstimado')).toBeFalse();
       expect(Object.prototype.hasOwnProperty.call(mapped, 'cajaMovimientoId')).toBeFalse();
+    });
+  });
+
+  describe('mapPension (031 portal read-only)', () => {
+    it('maps dates/estado and omits costos', () => {
+      const mapped = mapPension('p1', {
+        paciente_id: 'm1',
+        cliente_id: 'c1',
+        fecha_ingreso: '2026-08-20',
+        fecha_salida_prevista: '2026-08-25',
+        estado: 'activa',
+        precio_total: 900,
+        costo_total_estimado: 200,
+        cajaMovimientoId: 'caja-x',
+        notas: 'Croquetas'
+      }) as Record<string, unknown>;
+
+      expect(mapped['estado_label']).toBe('Activa');
+      expect(mapped['notas']).toBe('Croquetas');
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'precio_total')).toBeFalse();
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'cajaMovimientoId')).toBeFalse();
+    });
+  });
+
+  describe('mapRecordatorio (031)', () => {
+    it('maps titulo y fecha', () => {
+      const mapped = mapRecordatorio('r1', {
+        paciente_id: 'm1',
+        titulo: 'Refuerzo rabia',
+        fechaRecordatorio: '2026-09-01',
+        estado: 'pendiente',
+        tipo: 'vacuna'
+      });
+      expect(mapped.titulo).toBe('Refuerzo rabia');
+      expect(mapped.fecha).toBe('2026-09-01');
+      expect(mapped.tipo).toBe('vacuna');
     });
   });
 

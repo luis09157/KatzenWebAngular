@@ -92,6 +92,28 @@
                 {{ item.observaciones }}
               </div>
             </ng-container>
+
+            <ng-container *ngIf="seccion === 'pension'">
+              <div class="portal-data-field" *ngIf="item.fecha_salida_prevista">
+                <strong>Salida prevista</strong>
+                {{ formatDate(item.fecha_salida_prevista) }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.notas">
+                <strong>Notas</strong>
+                {{ item.notas }}
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="seccion === 'recordatorios'">
+              <div class="portal-data-field" *ngIf="item.tipo">
+                <strong>Tipo</strong>
+                {{ item.tipo }}
+              </div>
+              <div class="portal-data-field" *ngIf="item.notas">
+                <strong>Detalle</strong>
+                {{ item.notas }}
+              </div>
+            </ng-container>
           </div>
         </div>
       </article>

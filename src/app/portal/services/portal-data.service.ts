@@ -10,6 +10,8 @@ import {
   mapMascota,
   mapNotificacion,
   mapBanio,
+  mapPension,
+  mapRecordatorio,
   mapVacuna
 } from '../utils/portal-mapper.util';
 import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
@@ -116,6 +118,32 @@ export class PortalDataService {
       });
   }
 
+  async getPensionPorMascota(mascotaId: string) {
+    const snap = await firstValueFrom(
+      this.db.list('Katzen/Pension/Estancias', ref =>
+        ref.orderByChild('paciente_id').equalTo(mascotaId)
+      ).snapshotChanges().pipe(take(1))
+    );
+
+    return snap
+      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
+      .map(a => mapPension(a.key!, a.payload.val() as Record<string, unknown>))
+      .sort((a, b) => String(b.fecha_ingreso).localeCompare(String(a.fecha_ingreso)));
+  }
+
+  async getRecordatoriosPorMascota(mascotaId: string) {
+    const snap = await firstValueFrom(
+      this.db.list('Katzen/Recordatorios', ref =>
+        ref.orderByChild('paciente_id').equalTo(mascotaId)
+      ).snapshotChanges().pipe(take(1))
+    );
+
+    return snap
+      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
+      .map(a => mapRecordatorio(a.key!, a.payload.val() as Record<string, unknown>))
+      .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+  }
+
   async getHistorialesPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
       this.db.list('Katzen/Historiales_Clinicos', ref =>
@@ -144,17 +172,21 @@ export class PortalDataService {
   }
 
   async getCounts(mascotaId: string) {
-    const [vacunas, citas, historiales, banos] = await Promise.all([
+    const [vacunas, citas, historiales, banos, pension, recordatorios] = await Promise.all([
       this.getVacunasPorMascota(mascotaId),
       this.getCitasPorMascota(mascotaId),
       this.getHistorialesPorMascota(mascotaId),
-      this.getBaniosPorMascota(mascotaId)
+      this.getBaniosPorMascota(mascotaId),
+      this.getPensionPorMascota(mascotaId),
+      this.getRecordatoriosPorMascota(mascotaId)
     ]);
     return {
       vacunas: vacunas.length,
       citas: citas.length,
       historiales: historiales.length,
-      banos: banos.length
+      banos: banos.length,
+      pension: pension.length,
+      recordatorios: recordatorios.length
     };
   }
 }

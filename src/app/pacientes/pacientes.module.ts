@@ -44,6 +44,9 @@ import { PacienteDialogComponent } from './paciente-dialog.component';
 import { BaniosPacienteComponent } from './banios-paciente.component';
 import { RecordatoriosModule } from '../recordatorios/recordatorios.module';
 import { VacunasModule } from '../vacunas/vacunas.module';
+import { HistorialesModule } from '../historiales/historiales.module';
+import { CitaDialogModule } from '../citas/cita-dialog.module';
+import { PensionDialogModule } from '../pension/pension-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
@@ -60,6 +63,9 @@ import { SharedModule } from '../shared/shared.module';
     SharedModule,
     RecordatoriosModule,
     VacunasModule,
+    HistorialesModule,
+    CitaDialogModule,
+    PensionDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

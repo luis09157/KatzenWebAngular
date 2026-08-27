@@ -15,6 +15,7 @@ import { LoggerService } from '../core/logger.service';
 import { LOADING_MESSAGES, LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
+import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
@@ -464,6 +465,61 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
           })
           .finally(() => this.loadingService.hide());
       }
+    });
+  }
+
+  /** Spec 031: cobro desde cita completada → caja (categoría consulta). */
+  registrarEnCaja(cita: any): void {
+    if (!cita?.id) return;
+    if (cita.cajaMovimientoId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya vinculado a caja',
+        text: `Esta cita ya tiene movimiento ${cita.cajaMovimientoId}. Evita doble cobro.`
+      });
+      return;
+    }
+    const estado = String(cita.estado || '').toLowerCase();
+    if (estado !== 'completada') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Completa la cita primero',
+        text: 'Solo las citas completadas se registran en caja desde este atajo.'
+      });
+      return;
+    }
+    const paciente = cita.paciente || this.pacientesMap[cita.paciente_id] || 'paciente';
+    const cliente = cita.cliente || this.clientesMap[cita.cliente_id] || '';
+    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '640px',
+      disableClose: true,
+      data: {
+        fechaDefault: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
+        citaId: cita.id,
+        clienteId: cita.cliente_id || undefined,
+        concepto: `Consulta · ${paciente}${cliente ? ` · ${cliente}` : ''} · ${cita.motivo || 'cita'}`,
+        monto: Number(cita.precio) || Number(cita.monto) || 0,
+        metodoPago: 'efectivo',
+        notas: cita.observaciones || '',
+        categoria: 'consulta' as const
+      }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      const id = result?.movimientoId as string | undefined;
+      if (!result || (!result.ok && !id) || !id) return;
+      this.loadingService.show(LOADING_MESSAGES.updating);
+      this.citasService
+        .guardarCita({ ...cita, cajaMovimientoId: id })
+        .then(() => {
+          Swal.fire({ icon: 'success', title: 'Cita vinculada a caja', timer: 1600, showConfirmButton: false });
+          this.cargarCitas();
+        })
+        .catch((error) => {
+          this.logger.error('Error al vincular cita→caja:', error);
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular cita a caja'), 'error');
+        })
+        .finally(() => this.loadingService.hide());
     });
   }
 }

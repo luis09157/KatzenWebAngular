@@ -12,6 +12,7 @@ import {
   CajaEgresoDesglose,
   CajaIngresoDesglose,
   BanioIngresoRefuerzo,
+  PensionIngresoRefuerzo,
   CajaMetodoPago,
   CajaMovimiento,
   CajaMovimientoFormData,
@@ -73,6 +74,12 @@ export class CajaService {
 
     if (data.banioId) {
       movimiento.banioId = data.banioId;
+    }
+    if (data.citaId) {
+      movimiento.citaId = data.citaId;
+    }
+    if (data.clienteId) {
+      movimiento.clienteId = data.clienteId;
     }
     if (data.notas?.trim()) {
       movimiento.notas = data.notas.trim();
@@ -237,13 +244,14 @@ export class CajaService {
   }
 
   /**
-   * Ingresos por categoría/servicio. Refuerza baños sin movimiento de caja (spec 028 / owner-dashboard).
+   * Ingresos por categoría/servicio. Refuerza baños y pensión sin movimiento de caja (028 / 031).
    */
   desgloseIngresosPorServicio(
     movimientos: CajaMovimiento[],
     modo: CajaPeriodoModo,
     valor: string,
-    banios: BanioIngresoRefuerzo[] = []
+    banios: BanioIngresoRefuerzo[] = [],
+    pensiones: PensionIngresoRefuerzo[] = []
   ): CajaIngresoDesglose[] {
     const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter(
       (m) => m.tipo === 'ingreso'
@@ -272,6 +280,26 @@ export class CajaService {
         cur.total += extra;
         cur.count += baniosSinCaja.length;
         map.set('banio', cur);
+      }
+    }
+
+    if (rango && pensiones.length) {
+      const pensionSinCaja = pensiones.filter((e) => {
+        if (e.activo === false || e.estado === 'cancelada' || e.cajaMovimientoId) {
+          return false;
+        }
+        if (e.estado !== 'activa' && e.estado !== 'finalizada') {
+          return false;
+        }
+        const f = String(e.fecha_ingreso || '').slice(0, 10);
+        return f >= rango.desde && f <= rango.hasta;
+      });
+      if (pensionSinCaja.length) {
+        const extra = pensionSinCaja.reduce((a, e) => a + (Number(e.precio_total) || 0), 0);
+        const cur = map.get('pension') || { total: 0, count: 0 };
+        cur.total += extra;
+        cur.count += pensionSinCaja.length;
+        map.set('pension', cur);
       }
     }
 

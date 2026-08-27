@@ -16,10 +16,10 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { PensionRoutingModule } from './pension-routing.module';
 import { PensionComponent } from './pension.component';
-import { PensionDialogComponent } from './pension-dialog.component';
+import { PensionDialogModule } from './pension-dialog.module';
 
 @NgModule({
-  declarations: [PensionComponent, PensionDialogComponent],
+  declarations: [PensionComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -27,6 +27,7 @@ import { PensionDialogComponent } from './pension-dialog.component';
     SharedModule,
     CajaDialogModule,
     SalidaDialogModule,
+    PensionDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,

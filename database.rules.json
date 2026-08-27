@@ -215,10 +215,16 @@
         }
       },
       "Pension": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
         "Estancias": {
-          ".indexOn": ["estado", "fecha_ingreso", "paciente_id", "cliente_id", "activo"]
+          ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+          ".write": "auth != null && auth.token.role != 'client'",
+          ".indexOn": ["estado", "fecha_ingreso", "paciente_id", "cliente_id", "activo"],
+          "$estanciaId": {
+            ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+            ".write": "auth != null && auth.token.role != 'client'"
+          }
         }
       },
       "Gasolina": {

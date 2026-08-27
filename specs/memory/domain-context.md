@@ -13,7 +13,7 @@ KatzenVet es el sistema web de una clínica veterinaria con tres superficies:
 |------------|-----------|----------|-----------|
 | **Landing** | `/`, `/privacidad` | Público | Marketing, contacto, captura de leads |
 | **Admin** | `/admin/*` | Staff clínica | Operación diaria: clientes, pacientes, citas, clínica, inventario, usuarios |
-| **Portal** | `/portal/*` | Dueños de mascotas | Consulta de mascotas, vacunas, citas, historial clínico visible, notificaciones |
+| **Portal** | `/portal/*` | Dueños de mascotas | Consulta de mascotas, vacunas, citas, historial clínico visible, baños, pensión, recordatorios, notificaciones |
 
 **Backend:** Firebase Auth + Realtime Database (`Katzen/*`) + Cloud Functions v2 (`us-central1`).
 

@@ -91,6 +91,8 @@ export interface CajaMovimientoFormData {
   concepto: string;
   fecha: string;
   banioId?: string;
+  citaId?: string;
+  clienteId?: string;
   notas?: string;
   categoria?: CajaCategoria;
   plantillaCostoId?: string;
@@ -146,6 +148,15 @@ export interface BanioIngresoRefuerzo {
   precio_total?: number;
   fecha_banio?: string;
   created_at?: string;
+  estado?: string;
+  cajaMovimientoId?: string;
+  activo?: boolean;
+}
+
+/** Estancia pensión mínima para refuerzo ingresos sin caja (spec 031). */
+export interface PensionIngresoRefuerzo {
+  precio_total?: number;
+  fecha_ingreso?: string;
   estado?: string;
   cajaMovimientoId?: string;
   activo?: boolean;

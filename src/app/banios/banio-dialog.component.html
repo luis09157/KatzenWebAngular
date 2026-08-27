@@ -127,7 +127,7 @@
               <mat-option value="">Sin especificar</mat-option>
               <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
             </mat-select>
-            <mat-hint>Prefill de costo y precio desde Finanzas</mat-hint>
+            <mat-hint>{{ prefillHint || 'Prefill de costo y precio desde Finanzas (defaults o plantilla)' }}</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline">

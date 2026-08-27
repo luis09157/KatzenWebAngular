@@ -101,7 +101,8 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Notificaciones** | ~~Push Firebase desde recordatorios~~ **023 MVP** (`onRecordatorioWritePush` codebase **fcm** + FcmTokens). Deploy FCM **sin Resend** vía `functions-fcm/`. | Alta — **MVP hecho** |
 | **Historial clínico** | ~~Notas internas solo médicos~~ **MVP 010**; ~~aislamiento RTDB~~ **016** nodo staff-only. ~~`medico_atendio` obligatorio~~ hecho | Media |
 | **Inventario** | Salida ligada a historial para medicamentos controlados; ~~política mermas~~ **Hecho (MVP 007)**; ~~Proveedores visibles en menú~~ **026**; ~~sub-ítems inventario en sidenav~~ **027** (productos, movimientos, OC, alertas, reportes) — autorización dual formal pendiente | Media |
-| **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; **Cypress portal** guest + auth (skip sin env) | Media |
+| **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; ~~portal baños~~ **028**; ~~interconexión + pensión/recordatorios portal~~ **031**; **Cypress portal** guest + auth (skip sin env) | Media |
+| **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |

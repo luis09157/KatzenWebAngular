@@ -51,6 +51,7 @@
 .kpi-card--pink { border-top-color: #ad067e; }
 .kpi-card--green { border-top-color: #00897b; }
 .kpi-card--orange { border-top-color: #f57c00; }
+.kpi-card--red { border-top-color: #d32f2f; }
 
 .kpi-card--teal:hover { border-color: #0a969b; }
 .kpi-card--blue:hover { border-color: #1e88e5; }
@@ -58,3 +59,16 @@
 .kpi-card--pink:hover { border-color: #ad067e; }
 .kpi-card--green:hover { border-color: #00897b; }
 .kpi-card--orange:hover { border-color: #f57c00; }
+.kpi-card--red:hover { border-color: #d32f2f; }
+
+a.kpi-card--link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+a.kpi-card--link:focus-visible {
+  outline: 2px solid var(--katzen-verde, #0a969b);
+  outline-offset: 2px;
+}

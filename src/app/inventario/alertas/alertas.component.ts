@@ -2,11 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Alerta, Producto } from '../../shared/inventario.models';
+import { OrdenDialogComponent } from '../ordenes/orden-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-alertas',
@@ -42,6 +45,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
   constructor(
     private inventarioService: InventarioService,
     private router: Router,
+    private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService
   ) {}
@@ -117,6 +121,38 @@ export class AlertasComponent implements OnInit, OnDestroy {
 
   getProductoUnidad(productoId: string): string {
     return this.productos.get(productoId)?.unidad_medida || '';
+  }
+
+  verProducto(productoId: string): void {
+    this.router.navigate(['/admin/inventario/productos'], {
+      queryParams: { highlight: productoId }
+    });
+  }
+
+  /** Spec 031: stock bajo → OC con producto (y proveedor principal si existe). */
+  crearOrdenDesdeAlerta(alerta: Alerta): void {
+    if (!alerta?.producto_id) return;
+    const producto = this.productos.get(alerta.producto_id);
+    const ref = this.dialog.open(OrdenDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      disableClose: true,
+      data: {
+        productoId: alerta.producto_id,
+        proveedorId: producto?.proveedor_principal_id || undefined,
+        cantidad: Math.max(1, Number(producto?.stock_minimo) || 1)
+      }
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((ok) => {
+      if (ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Orden creada',
+          text: 'Puedes verla en Órdenes de compra.',
+          timer: 1800,
+          showConfirmButton: false
+        });
+      }
+    });
   }
 
   getColorAlerta(prioridad: string): string {
@@ -200,12 +236,6 @@ export class AlertasComponent implements OnInit, OnDestroy {
         Swal.fire('Error', this.errorMessages.getUserMessage(error, 'resolver alerta'), 'error');
       }
     }
-  }
-
-  verProducto(productoId: string): void {
-    this.router.navigate(['/admin/inventario/productos'], {
-      queryParams: { productoId }
-    });
   }
 
   getEstadisticas() {

@@ -79,6 +79,26 @@
           <mat-icon>arrow_back</mat-icon>
           Volver a buscar
         </button>
+        <button mat-stroked-button type="button" matTooltip="Nueva cita" (click)="agregarCitaDesdeExpediente()">
+          <mat-icon>event</mat-icon>
+          Cita
+        </button>
+        <button mat-stroked-button type="button" matTooltip="Nuevo historial" (click)="agregarHistorialClinico()">
+          <mat-icon>medical_services</mat-icon>
+          Historial
+        </button>
+        <button mat-stroked-button type="button" matTooltip="Nueva vacuna" (click)="agregarVacuna()">
+          <mat-icon>vaccines</mat-icon>
+          Vacuna
+        </button>
+        <button mat-stroked-button type="button" matTooltip="Nuevo baño" (click)="agregarBanioDesdeExpediente()">
+          <mat-icon>shower</mat-icon>
+          Baño
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="agregarPensionDesdeExpediente()">
+          <mat-icon>hotel</mat-icon>
+          Pensión
+        </button>
       </div>
     </app-admin-page-banner>
 
@@ -273,6 +293,7 @@
                 <app-banios-paciente
                   [pacienteId]="pacienteSeleccionado?.id"
                   [pacienteNombre]="pacienteSeleccionado?.nombre"
+                  [clienteId]="getPacienteClienteId(pacienteSeleccionado)"
                   [clienteNombre]="getClienteNombreFromPaciente(pacienteSeleccionado)"
                   (banioCreado)="onBanioCreado($event)"
                   (banioActualizado)="onBanioActualizado($event)"

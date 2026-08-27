@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 import { InventarioService } from '../inventario.service';
 import { OrdenCompra, Proveedor } from '../../shared/inventario.models';
 import { OrdenDialogComponent } from './orden-dialog.component';
@@ -79,13 +80,20 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
     private inventarioService: InventarioService,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private route: ActivatedRoute
   ) {
     this.dataSource = new MatTableDataSource<OrdenCompra>([]);
   }
 
   ngOnInit(): void {
     this.cargarDatos();
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const productoId = params.get('productoId') || params.get('producto');
+      if (productoId) {
+        this.abrirOrdenConProducto(productoId, params.get('proveedorId') || undefined);
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -140,6 +148,17 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(OrdenDialogComponent, {
       ...ADMIN_DIALOG_FORM,
       disableClose: true
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) this.cargarDatos();
+    });
+  }
+
+  private abrirOrdenConProducto(productoId: string, proveedorId?: string): void {
+    const dialogRef = this.dialog.open(OrdenDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      disableClose: true,
+      data: { productoId, proveedorId }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
       if (result) this.cargarDatos();

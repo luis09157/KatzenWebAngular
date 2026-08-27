@@ -43,6 +43,7 @@ import {
 import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models';
 import { BaniosService } from '../banios/banios.service';
 import { Banio } from '../shared/banio.model';
+import { PensionService } from '../pension/pension.service';
 
 @Component({
   selector: 'app-finanzas',
@@ -89,6 +90,19 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   private todos: CajaMovimiento[] = [];
   private todosBanios: Banio[] = [];
   private plantillas: PlantillaCosto[] = [];
+  private todosPension: Array<{
+    precio_total?: number;
+    fecha_ingreso?: string;
+    estado?: string;
+    cajaMovimientoId?: string;
+    activo?: boolean;
+  }> = [];
+
+  get plantillasBanio(): PlantillaCosto[] {
+    return this.plantillas.filter(
+      (p) => p.activo !== false && (p.tipoServicio === 'banio' || p.tipoServicio === 'corte')
+    );
+  }
 
   readonly categoriaLabels = CAJA_CATEGORIA_LABELS;
   readonly plantillaTipoLabels = PLANTILLA_TIPO_LABELS;
@@ -99,6 +113,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private defaultsBanioService: DefaultsBanioService,
     private defaultsPensionService: DefaultsPensionService,
     private baniosService: BaniosService,
+    private pensionService: PensionService,
     private fb: FormBuilder,
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
@@ -114,6 +129,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.cargar();
     this.cargarBanios();
+    this.cargarPension();
     this.cargarPlantillas();
     this.cargarDefaultsBanio();
     this.cargarDefaultsPension();
@@ -158,6 +174,22 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (error) => {
           this.logger.error('Error al cargar baños para ingresos:', error);
           this.todosBanios = [];
+        }
+      });
+  }
+
+  cargarPension(): void {
+    this.pensionService
+      .getEstancias()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.todosPension = rows || [];
+          this.aplicarFiltroPeriodo();
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar pensión para ingresos:', error);
+          this.todosPension = [];
         }
       });
   }
@@ -229,7 +261,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.todos,
       this.periodoModo,
       valor,
-      this.todosBanios
+      this.todosBanios,
+      this.todosPension
     );
     this.totalIngresosServicio = this.chartIngresosServicio.reduce(
       (acc, row) => acc + (Number(row.total) || 0),
@@ -461,7 +494,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     const row = (t: TamanoPerroBanio) =>
       this.fb.group({
         costoDefault: [data[t]?.costoDefault ?? 0, [Validators.min(0)]],
-        precioSugerido: [data[t]?.precioSugerido ?? null, [Validators.min(0)]]
+        precioSugerido: [data[t]?.precioSugerido ?? null, [Validators.min(0)]],
+        plantillaCostoId: [data[t]?.plantillaCostoId ?? '']
       });
     return this.fb.group({
       pequeno: row('pequeno'),
@@ -530,21 +564,24 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           precioSugerido:
             raw.pequeno.precioSugerido != null && raw.pequeno.precioSugerido !== ''
               ? Number(raw.pequeno.precioSugerido)
-              : undefined
+              : undefined,
+          plantillaCostoId: raw.pequeno.plantillaCostoId || undefined
         },
         mediano: {
           costoDefault: Number(raw.mediano.costoDefault) || 0,
           precioSugerido:
             raw.mediano.precioSugerido != null && raw.mediano.precioSugerido !== ''
               ? Number(raw.mediano.precioSugerido)
-              : undefined
+              : undefined,
+          plantillaCostoId: raw.mediano.plantillaCostoId || undefined
         },
         grande: {
           costoDefault: Number(raw.grande.costoDefault) || 0,
           precioSugerido:
             raw.grande.precioSugerido != null && raw.grande.precioSugerido !== ''
               ? Number(raw.grande.precioSugerido)
-              : undefined
+              : undefined,
+          plantillaCostoId: raw.grande.plantillaCostoId || undefined
         }
       };
       await this.defaultsBanioService.guardarDefaults(payload);

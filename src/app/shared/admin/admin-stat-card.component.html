@@ -1,5 +1,17 @@
-<div class="kpi-card" [ngClass]="'kpi-card--' + accent">
+<a
+  *ngIf="link; else staticCard"
+  class="kpi-card kpi-card--link"
+  [ngClass]="'kpi-card--' + accent"
+  [routerLink]="link"
+  [attr.aria-label]="label + ': ir al módulo'">
   <span class="kpi-label">{{ label }}</span>
   <div class="kpi-value">{{ displayValue }}</div>
   <div class="kpi-hint" *ngIf="hint">{{ hint }}</div>
-</div>
+</a>
+<ng-template #staticCard>
+  <div class="kpi-card" [ngClass]="'kpi-card--' + accent">
+    <span class="kpi-label">{{ label }}</span>
+    <div class="kpi-value">{{ displayValue }}</div>
+    <div class="kpi-hint" *ngIf="hint">{{ hint }}</div>
+  </div>
+</ng-template>

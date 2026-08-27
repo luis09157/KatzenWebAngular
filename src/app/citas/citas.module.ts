@@ -16,14 +16,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { CitaDialogComponent } from './cita-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CitaDialogModule } from './cita-dialog.module';
+import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 
 @NgModule({
   declarations: [
-    CitasComponent,
-    CitaDialogComponent
+    CitasComponent
   ],
   imports: [
     CommonModule,
@@ -43,7 +43,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
-    SharedModule
+    SharedModule,
+    CitaDialogModule,
+    CajaDialogModule
   ]
 })
 export class CitasModule { }

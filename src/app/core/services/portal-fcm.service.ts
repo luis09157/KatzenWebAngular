@@ -23,7 +23,7 @@ export class PortalFcmService {
     private logger: LoggerService
   ) {}
 
-  /** Spec 023 fase B — requiere `environment.fcmVapidKey` y SW en `/firebase-messaging-sw.js`. */
+  /** Spec 023 / 031 — VAPID + SW listo; no re-pide permiso si ya está granted. */
   async registerPortalToken(): Promise<{ status: PortalFcmStatus; detail?: string }> {
     if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
       return { status: 'unsupported', detail: 'Este navegador no soporta notificaciones push.' };
@@ -44,14 +44,22 @@ export class PortalFcmService {
     }
 
     try {
-      const permission = await Notification.requestPermission();
+      let permission = Notification.permission;
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
       if (permission !== 'granted') {
         return { status: 'denied', detail: 'Permiso de notificaciones denegado.' };
       }
 
-      await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+
       this.messaging = this.messaging ?? firebase.messaging();
-      const token = await this.messaging.getToken({ vapidKey });
+      const token = await this.messaging.getToken({
+        vapidKey,
+        serviceWorkerRegistration: registration
+      });
       if (!token) {
         return { status: 'error', detail: 'No se pudo obtener el token FCM.' };
       }

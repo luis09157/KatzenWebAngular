@@ -49,3 +49,11 @@
 5. [x] Deploy hosting
 6. [ ] Portal perfil → «Activar avisos push» → verificar nodo `Katzen/FcmTokens/{uid}` (smoke manual prod)
 
+### Smoke FCM Angular (spec 031 / 2026-08-26)
+
+1. Abrir `/portal/perfil` en Chrome (HTTPS o localhost).
+2. Si el permiso ya está **granted**, el botón no debe volver a mostrar el prompt nativo.
+3. Tras «Activar avisos», confirmar en RTDB `Katzen/FcmTokens/{uid}/web_*` con `platform: portal_web`.
+4. Crear/editar un `Recordatorios` activo de la mascota → function `onRecordatorioWritePush` (codebase `fcm`) debe intentar envío si hay token.
+5. Fallo típico corregido en 031: `getToken` ahora espera `navigator.serviceWorker.ready` y pasa `serviceWorkerRegistration`.
+

@@ -55,6 +55,8 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
       tipo?: CajaTipoMovimiento;
       fechaDefault?: string;
       banioId?: string;
+      citaId?: string;
+      clienteId?: string;
       concepto?: string;
       monto?: number;
       metodoPago?: CajaMetodoPago;
@@ -215,6 +217,8 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
         ivaDeclarado: !!raw.ivaDeclarado,
         fecha: raw.fecha,
         banioId: this.data?.banioId,
+        citaId: this.data?.citaId,
+        clienteId: this.data?.clienteId,
         notas: raw.notas ? String(raw.notas).trim() : undefined,
         categoria: raw.categoria,
         plantillaCostoId: raw.plantillaCostoId || undefined,

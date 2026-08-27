@@ -5,7 +5,13 @@ import { PortalSessionService } from '../services/portal-session.service';
 import { chipClassForEstado, formatDisplayDate } from '../utils/portal-display.util';
 import { PORTAL_ACCESS_ERROR, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 
-export type PortalListSection = 'vacunas' | 'citas' | 'historial' | 'banos';
+export type PortalListSection =
+  | 'vacunas'
+  | 'citas'
+  | 'historial'
+  | 'banos'
+  | 'pension'
+  | 'recordatorios';
 
 @Component({
   selector: 'app-portal-list-section',
@@ -28,7 +34,9 @@ export class PortalListSectionComponent implements OnInit {
       vacunas: 'vaccines',
       citas: 'event',
       historial: 'medical_services',
-      banos: 'content_cut'
+      banos: 'content_cut',
+      pension: 'home',
+      recordatorios: 'notifications'
     };
     return icons[this.seccion];
   }
@@ -38,7 +46,9 @@ export class PortalListSectionComponent implements OnInit {
       vacunas: 'No hay vacunas registradas',
       citas: 'No hay citas registradas',
       historial: 'No hay historial clínico visible',
-      banos: 'No hay baños ni peluquería registrados'
+      banos: 'No hay baños ni peluquería registrados',
+      pension: 'No hay estancias de pensión',
+      recordatorios: 'No hay recordatorios'
     };
     return msgs[this.seccion];
   }
@@ -61,9 +71,11 @@ export class PortalListSectionComponent implements OnInit {
       vacunas: 'Vacunas',
       citas: 'Citas',
       historial: 'Historial clínico',
-      banos: 'Baños y peluquería'
+      banos: 'Baños y peluquería',
+      pension: 'Pensión',
+      recordatorios: 'Recordatorios'
     };
-    this.titulo = titulos[this.seccion];
+    this.titulo = titulos[this.seccion] || 'Expediente';
 
     try {
       const session = await this.portalSession.resolveSession();
@@ -84,6 +96,10 @@ export class PortalListSectionComponent implements OnInit {
         this.items = await this.portalData.getCitasPorMascota(this.mascotaId);
       } else if (this.seccion === 'banos') {
         this.items = await this.portalData.getBaniosPorMascota(this.mascotaId);
+      } else if (this.seccion === 'pension') {
+        this.items = await this.portalData.getPensionPorMascota(this.mascotaId);
+      } else if (this.seccion === 'recordatorios') {
+        this.items = await this.portalData.getRecordatoriosPorMascota(this.mascotaId);
       } else {
         this.items = await this.portalData.getHistorialesPorMascota(this.mascotaId);
       }
@@ -98,6 +114,10 @@ export class PortalListSectionComponent implements OnInit {
     if (this.seccion === 'vacunas') return String(item['vacuna'] || 'Vacuna');
     if (this.seccion === 'citas') return String(item['motivo'] || 'Cita');
     if (this.seccion === 'banos') return String(item['tipo_servicio_label'] || 'Baño');
+    if (this.seccion === 'pension') {
+      return `Pensión · ${item['estado_label'] || item['estado'] || ''}`;
+    }
+    if (this.seccion === 'recordatorios') return String(item['titulo'] || 'Recordatorio');
     return String(item['diagnostico'] || 'Consulta');
   }
 
@@ -109,12 +129,25 @@ export class PortalListSectionComponent implements OnInit {
       const fecha = this.formatDate(String(item['fecha_banio'] || ''));
       return hora ? `${fecha} · ${hora}` : fecha;
     }
+    if (this.seccion === 'pension') {
+      const ingreso = this.formatDate(String(item['fecha_ingreso'] || ''));
+      const salida = this.formatDate(
+        String(item['fecha_salida_real'] || item['fecha_salida_prevista'] || '')
+      );
+      return salida ? `${ingreso} → ${salida}` : ingreso;
+    }
+    if (this.seccion === 'recordatorios') return this.formatDate(String(item['fecha'] || ''));
     return this.formatDate(String(item['fecha_registro'] || ''));
   }
 
   itemEstado(item: Record<string, unknown>): string | null {
-    if (this.seccion === 'citas' || this.seccion === 'banos') {
-      const estado = String(item['estado'] || '').trim();
+    if (
+      this.seccion === 'citas' ||
+      this.seccion === 'banos' ||
+      this.seccion === 'pension' ||
+      this.seccion === 'recordatorios'
+    ) {
+      const estado = String(item['estado_label'] || item['estado'] || '').trim();
       return estado || null;
     }
     return null;

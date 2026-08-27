@@ -19,6 +19,7 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   @Input() pacienteId: string = '';
   @Input() pacienteNombre: string = '';
+  @Input() clienteId: string = '';
   @Input() clienteNombre: string = '';
   @Output() banioCreado = new EventEmitter<any>();
   @Output() banioActualizado = new EventEmitter<any>();
@@ -169,11 +170,12 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
       data: {
         paciente_id: this.pacienteId,
         paciente: this.pacienteNombre,
+        cliente_id: this.clienteId,
         cliente: this.clienteNombre,
         paciente_nombre: this.pacienteNombre,
         cliente_nombre: this.clienteNombre,
         isEditMode: false,
-        hidePatientInfo: true // Flag para ocultar campos de paciente/cliente
+        hidePatientInfo: true
       }
     });
 
@@ -194,10 +196,12 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
         ...banio,
         paciente: this.pacienteNombre,
         cliente: this.clienteNombre,
+        paciente_id: banio.paciente_id || this.pacienteId,
+        cliente_id: (banio as any).cliente_id || this.clienteId,
         paciente_nombre: this.pacienteNombre,
         cliente_nombre: this.clienteNombre,
         isEditMode: true,
-        hidePatientInfo: true // Flag para ocultar campos de paciente/cliente
+        hidePatientInfo: true
       }
     });
 
