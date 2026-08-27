@@ -1,13 +1,13 @@
 <div class="admin-page visitas-contenedor">
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="48"></mat-spinner>
-    <p>Cargando visitas…</p>
+    <p>Cargando cuenta del día…</p>
   </div>
 
   <ng-container *ngIf="!loading">
     <app-admin-kpi-grid>
       <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">
-        <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Visitas hoy" hint="Clic para filtrar"></app-admin-stat-card>
+        <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Cuentas hoy" hint="Clic para filtrar"></app-admin-stat-card>
       </button>
       <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">
         <app-admin-stat-card accent="blue" [value]="abiertas + parciales" label="Abiertas / parciales" hint="Sin cerrar"></app-admin-stat-card>
@@ -69,8 +69,8 @@
     <app-admin-page-banner
       accent="teal"
       icon="receipt_long"
-      title="Visitas / tickets"
-      subtitle="Agrupa cobros del día y controla saldo pendiente del cliente.">
+      title="Cuenta del día"
+      subtitle="Aquí cobras lo del día: baños, consultas y productos en un solo ticket.">
       <div bannerActions>
         <button
           mat-stroked-button
@@ -82,12 +82,12 @@
         </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
           <mat-icon>add</mat-icon>
-          Nueva visita
+          Nueva cuenta
         </button>
       </div>
     </app-admin-page-banner>
 
-    <app-admin-data-panel accent="teal" title="Tickets" description="Visitas del día y cuenta corriente" [showLegend]="false">
+    <app-admin-data-panel accent="teal" title="Tickets del día" description="Elige un ticket o crea uno nuevo para cobrar" [showLegend]="false">
       <div class="visitas-quick-filters panel-search">
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'todas'" (click)="setFiltroRapido('todas')">Todas</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">Hoy</button>
@@ -114,7 +114,8 @@
             <td mat-cell *matCellDef="let row">
               <div class="cell-primary">
                 <span>{{ row.cliente || '—' }}</span>
-                <span class="cell-secondary">{{ row.paciente || 'Sin paciente' }}</span>
+                <span class="cell-secondary" *ngIf="row.esMostrador || row.cliente_id === '__mostrador__'">Venta de mostrador</span>
+                <span class="cell-secondary" *ngIf="!(row.esMostrador || row.cliente_id === '__mostrador__')">{{ row.paciente || 'Sin paciente' }}</span>
               </div>
             </td>
           </ng-container>
@@ -154,6 +155,18 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              <app-admin-empty-state
+                icon="receipt_long"
+                title="Aún no hay cuentas del día"
+                message="Crea una cuenta para cobrar baño, consulta o productos juntos. Si ya hay un baño pendiente, ábrela con el dueño y usa «Incluir»."
+                actionLabel="Nueva cuenta"
+                (action)="nueva()">
+              </app-admin-empty-state>
+            </td>
+          </tr>
         </table>
       </div>
 

@@ -792,11 +792,11 @@ export class BanioDialogComponent implements OnInit {
         const metodoCrear = this.hidePatientInfo ? 'crearBanioPaciente' : 'crearBanio';
 
         servicioAUsar[metodoCrear](datosLimpios)
-          .then(async () => {
+          .then(async (nuevoId: string) => {
             const pid = String(datosLimpios.paciente_id || this.banioForm.get('paciente_id')?.value || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
             this.loadingService.show();
-            this.dialogRef.close(true);
+            this.dialogRef.close({ created: true, id: nuevoId });
           })
           .catch(error => {
             console.error('❌ Error al crear baño:', error);

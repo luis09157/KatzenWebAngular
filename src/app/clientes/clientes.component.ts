@@ -315,6 +315,37 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     return nombre || 'Sin nombre';
   }
 
+  /** Spec 047 — chip portal en listado. */
+  portalChipLabel(cliente: any): string {
+    const mail = String(cliente?.portalEmail || cliente?.correo || '').trim().toLowerCase();
+    const tieneMail = !!mail && mail !== 'no proporcionado';
+    if (cliente?.portalActivo === true && cliente?.authUid) {
+      return 'Portal';
+    }
+    if (!tieneMail) {
+      return 'Sin correo';
+    }
+    if (cliente?.authUid && cliente?.portalActivo === false) {
+      return 'Portal off';
+    }
+    return 'Sin portal';
+  }
+
+  portalChipClass(cliente: any): string {
+    const mail = String(cliente?.portalEmail || cliente?.correo || '').trim().toLowerCase();
+    const tieneMail = !!mail && mail !== 'no proporcionado';
+    if (cliente?.portalActivo === true && cliente?.authUid) {
+      return 'estado-badge--success';
+    }
+    if (!tieneMail) {
+      return 'estado-badge--pending';
+    }
+    if (cliente?.authUid && cliente?.portalActivo === false) {
+      return 'estado-badge--neutral';
+    }
+    return 'estado-badge--info';
+  }
+
   getTelefono(cliente: any): string {
     const telefono = (cliente?.telefono || '').trim();
     return telefono || 'N/P';

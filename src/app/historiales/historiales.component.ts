@@ -520,9 +520,9 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (bloquearCobroDirectoEnCaja(historial) || historial.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Cobro en ticket de visita',
+        title: 'Cobro en cuenta del día',
         text: historial.visitaId
-          ? `Historial en ticket ${historial.visitaId}. Cobra desde Visitas.`
+          ? `Historial en ticket ${historial.visitaId}. Cobra desde Cuenta del día.`
           : 'Este historial ya fue cobrado.'
       });
       return;

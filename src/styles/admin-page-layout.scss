@@ -208,16 +208,37 @@
 }
 
 @media (max-width: 768px) {
+  .admin-content .admin-page,
+  .admin-content [class$='-contenedor'],
+  .admin-content .clientes-page {
+    padding: 0;
+  }
+
   .admin-content .admin-toolbar,
   .admin-content .toolbar {
     flex-direction: column;
     align-items: stretch;
+    padding: 12px 14px;
+  }
+
+  .admin-content .admin-toolbar__search,
+  .admin-content .toolbar__search {
+    max-width: none;
   }
 
   .admin-content .admin-toolbar__actions,
   .admin-content .toolbar__actions {
     margin-left: 0;
     width: 100%;
-    justify-content: flex-end;
+    justify-content: stretch;
+  }
+
+  .admin-content .admin-toolbar__actions > button,
+  .admin-content .toolbar__actions > button {
+    flex: 1 1 auto;
+  }
+
+  .admin-content .empty-state {
+    padding: 36px 16px;
   }
 }

@@ -11,7 +11,7 @@
     accent="teal"
     icon="store"
     title="Proveedores"
-    subtitle="Gestión de proveedores, contactos y condiciones comerciales.">
+    subtitle="Quién te surte. Primero el proveedor, luego órdenes de compra y entradas de stock.">
     <div bannerActions>
       <button mat-stroked-button type="button" (click)="exportarExcel()">
         <mat-icon>file_download</mat-icon>
@@ -27,7 +27,7 @@
   <app-admin-data-panel
     accent="teal"
     title="Listado de proveedores"
-    description="Busca por nombre, contacto, teléfono o email."
+    description="Sin proveedor no puedes armar una orden de compra clara."
     [showLegend]="false">
 
     <mat-form-field appearance="outline" class="buscador panel-search">
@@ -128,8 +128,8 @@
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             <app-admin-empty-state
               icon="store"
-              title="No hay proveedores registrados"
-              message="Agrega tu primer proveedor para gestionar órdenes de compra."
+              title="Aún no hay proveedores"
+              message="Agrega un proveedor (nombre y contacto). Después podrás crear órdenes de compra."
               actionLabel="Nuevo proveedor"
               (action)="nuevoProveedor()">
             </app-admin-empty-state>

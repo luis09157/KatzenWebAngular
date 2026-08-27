@@ -126,6 +126,10 @@
   color: #6b7280 !important;
 }
 
+.admin-dialog-panel app-producto-dialog mat-dialog-content.admin-dialog-body:has(.admin-dialog-layout) {
+  padding: 0 !important;
+}
+
 .admin-dialog-panel app-producto-dialog mat-dialog-content.admin-dialog-body,
 .admin-dialog-panel app-proveedor-dialog mat-dialog-content.admin-dialog-body,
 .admin-dialog-panel app-entrada-dialog mat-dialog-content.admin-dialog-body,
@@ -433,6 +437,14 @@
   border: 1px dashed #d1d5db;
   border-radius: 10px;
   background: #fafafa;
+}
+
+.admin-dialog-panel app-orden-dialog .producto-select {
+  min-width: 0;
+}
+
+.admin-dialog-panel app-orden-dialog .producto-select .producto-picker__field {
+  width: 100%;
 }
 
 .admin-dialog-panel app-orden-dialog .total-section {

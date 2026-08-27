@@ -16,7 +16,7 @@
       accent="teal"
       icon="hotel"
       title="Pensión / alojamiento"
-      subtitle="Check-in, check-out, ocupación visible y cobro en caja.">
+      subtitle="Check-in y check-out aquí. El cobro se hace en Cuenta del día o caja.">
       <div bannerActions>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
           <mat-icon>add</mat-icon>
@@ -108,7 +108,7 @@
                 <button
                   mat-icon-button
                   type="button"
-                  matTooltip="Agregar a visita"
+                  matTooltip="Agregar a cuenta del día"
                   *ngIf="puedeCobrar(row)"
                   (click)="agregarAVisita(row)">
                   <mat-icon>receipt_long</mat-icon>

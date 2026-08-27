@@ -81,6 +81,10 @@
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
             <td mat-cell *matCellDef="let c">
               <span class="cell-nombre">{{ getNombreCompleto(c) }}</span>
+              <span
+                class="estado-badge portal-chip"
+                [class]="portalChipClass(c)"
+                *ngIf="c.id">{{ portalChipLabel(c) }}</span>
             </td>
           </ng-container>
 
@@ -140,7 +144,7 @@
                 <button mat-icon-button type="button" matTooltip="Cuenta corriente" (click)="verCuentaCorriente(c)">
                   <mat-icon>account_balance</mat-icon>
                 </button>
-                <button mat-icon-button type="button" matTooltip="Nueva visita" (click)="nuevaVisitaCliente(c)">
+                <button mat-icon-button type="button" matTooltip="Nueva cuenta del día" (click)="nuevaVisitaCliente(c)">
                   <mat-icon>receipt_long</mat-icon>
                 </button>
                 <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCliente(c)">
@@ -180,7 +184,7 @@
   <mat-menu #rowMenu="matMenu">
     <button mat-menu-item (click)="verCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
     <button mat-menu-item (click)="verCuentaCorriente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>account_balance</mat-icon> Cuenta corriente</button>
-    <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>receipt_long</mat-icon> Nueva visita</button>
+    <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>receipt_long</mat-icon> Nueva cuenta del día</button>
     <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaCliente(clienteMenuContext?.id)" [disabled]="!clienteMenuContext || saving"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

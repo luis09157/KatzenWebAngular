@@ -941,6 +941,42 @@ const REGISTER_RATE_MAX_IP = 5;
 const REGISTER_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 h
 const REGISTER_RATE_MAX_EMAIL = 3;
 
+/**
+ * Spec 047: Cliente clínico sin portal usable, mismo correo normalizado.
+ * Preferir ficha con expediente / más datos; no tocar los que ya tienen portal activo.
+ */
+async function findClienteLinkableByEmail(
+  email: string
+): Promise<{ id: string; cliente: Record<string, unknown> } | null> {
+  const snap = await db.ref('Katzen/Cliente').orderByChild('correo').equalTo(email).once('value');
+  const val = snap.val() as Record<string, Record<string, unknown>> | null;
+  if (!val) {
+    return null;
+  }
+
+  const candidates: Array<{ id: string; cliente: Record<string, unknown>; score: number }> = [];
+  for (const [id, cliente] of Object.entries(val)) {
+    if (!cliente || typeof cliente !== 'object') continue;
+    if (cliente['activo'] === false) continue;
+    if (cliente['portalActivo'] === true && cliente['authUid']) continue;
+    const correoNorm = correoClienteValido(cliente['correo']);
+    const portalMailNorm = correoClienteValido(cliente['portalEmail']);
+    if (correoNorm !== email && portalMailNorm !== email) continue;
+
+    let score = 0;
+    if (String(cliente['expediente'] || '').trim()) score += 3;
+    if (String(cliente['telefono'] || '').trim()) score += 1;
+    if (String(cliente['direccion'] || cliente['calle'] || '').trim()) score += 1;
+    candidates.push({ id, cliente: { ...cliente, id }, score });
+  }
+
+  if (!candidates.length) {
+    return null;
+  }
+  candidates.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  return { id: candidates[0].id, cliente: candidates[0].cliente };
+}
+
 function clipStr(value: unknown, max: number): string {
   return String(value ?? '')
     .trim()
@@ -984,8 +1020,9 @@ async function assertRegisterRateLimit(ip: string, email: string): Promise<void>
 
 /**
  * Callable pública: self-registro dueño desde landing.
- * Crea Cliente + Auth + AuthPerfiles y envía correo (exige RESEND_API_KEY).
- * No retorna password.
+ * Spec 047 ola 2: si ya existe Cliente clínico con el mismo correo y sin portal usable,
+ * vincula Auth a esa ficha (no crea dueño duplicado).
+ * Password nunca retornada; exige Resend.
  */
 export const registerPortalOwner = onCall(
   { invoker: 'public', cors: true, ...portalMailSecrets },
@@ -1048,55 +1085,93 @@ export const registerPortalOwner = onCall(
     }
   }
 
-  // Otro cliente activo con mismo correo + portal
-  const dupSnap = await db.ref('Katzen/Cliente').orderByChild('correo').equalTo(email).once('value');
-  const dupVal = dupSnap.val() as Record<string, Record<string, unknown>> | null;
-  if (dupVal) {
-    for (const other of Object.values(dupVal)) {
-      if (other.activo !== false && other.portalActivo === true) {
-        throw new HttpsError('already-exists', 'Ya existe un cliente con este correo en el portal.');
+  const linkTarget = await findClienteLinkableByEmail(email);
+  if (!linkTarget) {
+    // Otro cliente activo con mismo correo + portal (sin candidato linkable)
+    const dupSnap = await db.ref('Katzen/Cliente').orderByChild('correo').equalTo(email).once('value');
+    const dupVal = dupSnap.val() as Record<string, Record<string, unknown>> | null;
+    if (dupVal) {
+      for (const other of Object.values(dupVal)) {
+        if (other.activo !== false && other.portalActivo === true) {
+          throw new HttpsError('already-exists', 'Ya existe un cliente con este correo en el portal.');
+        }
       }
     }
   }
 
-  const clienteId = crypto.randomUUID();
+  const linkedExisting = !!linkTarget;
+  const clienteId = linkedExisting ? linkTarget!.id : crypto.randomUUID();
   const password = generateSecurePassword(16);
   const timestamp = new Date().toISOString();
-  const displayName = [nombre, apellidoPaterno].filter(Boolean).join(' ').trim();
+  const displayName = linkedExisting
+    ? clienteNombre(linkTarget!.cliente)
+    : [nombre, apellidoPaterno].filter(Boolean).join(' ').trim();
   let uid = '';
   let createdAuth = false;
-  let wroteCliente = false;
+  let wroteNewCliente = false;
+  let patchedExistingCliente = false;
+  const prevPortalPatch: Record<string, unknown> | null = linkedExisting
+    ? {
+        authUid: linkTarget!.cliente['authUid'] ?? null,
+        portalActivo: linkTarget!.cliente['portalActivo'] ?? null,
+        portalProvisionedAt: linkTarget!.cliente['portalProvisionedAt'] ?? null,
+        portalProvisionedBy: linkTarget!.cliente['portalProvisionedBy'] ?? null,
+        portalEmail: linkTarget!.cliente['portalEmail'] ?? null,
+        mustChangePassword: linkTarget!.cliente['mustChangePassword'] ?? null,
+        portalLinkedFrom: linkTarget!.cliente['portalLinkedFrom'] ?? null
+      }
+    : null;
 
   try {
     const userRecord = await admin.auth().createUser({
       email,
       password,
-      displayName,
+      displayName: displayName || nombre,
       disabled: false
     });
     uid = userRecord.uid;
     createdAuth = true;
 
-    const clientePayload: Record<string, unknown> = {
-      id: clienteId,
-      nombre,
-      apellidoPaterno: apellidoPaterno || '',
-      apellidoMaterno: '',
-      correo: email,
-      telefono: telefono || '',
-      activo: true,
-      fecha_registro: timestamp,
-      authUid: uid,
-      portalActivo: true,
-      portalProvisionedAt: timestamp,
-      portalProvisionedBy: 'self_register',
-      portalEmail: email,
-      mustChangePassword: true,
-      origenRegistro: 'landing'
-    };
+    if (linkedExisting) {
+      const updates: Record<string, unknown> = {
+        authUid: uid,
+        portalActivo: true,
+        portalProvisionedAt: timestamp,
+        portalProvisionedBy: 'self_register_match',
+        portalEmail: email,
+        mustChangePassword: true,
+        portalLinkedFrom: 'self_register_match',
+        correo: email
+      };
+      const telClinic = String(linkTarget!.cliente['telefono'] || '').trim();
+      if ((!telClinic || telClinic.toLowerCase() === 'n/p') && telefono) {
+        updates['telefono'] = telefono;
+      }
+      await db.ref(`Katzen/Cliente/${clienteId}`).update(updates);
+      patchedExistingCliente = true;
+    } else {
+      const clientePayload: Record<string, unknown> = {
+        id: clienteId,
+        nombre,
+        apellidoPaterno: apellidoPaterno || '',
+        apellidoMaterno: '',
+        correo: email,
+        telefono: telefono || '',
+        activo: true,
+        fecha_registro: timestamp,
+        authUid: uid,
+        portalActivo: true,
+        portalProvisionedAt: timestamp,
+        portalProvisionedBy: 'self_register',
+        portalEmail: email,
+        mustChangePassword: true,
+        origenRegistro: 'landing',
+        portalLinkedFrom: 'self_register_new'
+      };
 
-    await db.ref(`Katzen/Cliente/${clienteId}`).set(clientePayload);
-    wroteCliente = true;
+      await db.ref(`Katzen/Cliente/${clienteId}`).set(clientePayload);
+      wroteNewCliente = true;
+    }
 
     const authPerfil: AuthPerfil = {
       authUid: uid,
@@ -1116,10 +1191,14 @@ export const registerPortalOwner = onCall(
     );
 
     if (!mail.sent) {
-      // Self-service exige correo; rollback para no dejar cuenta sin forma de entregar password.
+      // Self-service exige correo; rollback Auth. Nunca borrar ficha clínica existente.
       await admin.auth().deleteUser(uid).catch(() => undefined);
       await db.ref(`Katzen/AuthPerfiles/${uid}`).remove().catch(() => undefined);
-      await db.ref(`Katzen/Cliente/${clienteId}`).remove().catch(() => undefined);
+      if (wroteNewCliente) {
+        await db.ref(`Katzen/Cliente/${clienteId}`).remove().catch(() => undefined);
+      } else if (patchedExistingCliente && prevPortalPatch) {
+        await db.ref(`Katzen/Cliente/${clienteId}`).update(prevPortalPatch).catch(() => undefined);
+      }
       throw new HttpsError(
         'failed-precondition',
         mail.reason ||
@@ -1128,13 +1207,14 @@ export const registerPortalOwner = onCall(
     }
 
     await db.ref(`Katzen/PortalProvisionLog`).push({
-      action: 'self_register',
+      action: linkedExisting ? 'self_register_link' : 'self_register',
       clienteId,
       uid,
       email,
       emailSent: true,
+      linkedExisting,
       createdAt: timestamp,
-      createdBy: 'self_register',
+      createdBy: linkedExisting ? 'self_register_match' : 'self_register',
       ip: ip.slice(0, 64)
     });
 
@@ -1143,15 +1223,20 @@ export const registerPortalOwner = onCall(
       clienteId,
       email,
       emailSent: true,
-      message: 'Cuenta creada. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+      linkedExisting,
+      message: linkedExisting
+        ? 'Encontramos tu ficha en la clínica y la vinculamos a tu cuenta. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+        : 'Cuenta creada. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
     };
   } catch (err: unknown) {
     if (createdAuth && uid) {
       await admin.auth().deleteUser(uid).catch(() => undefined);
       await db.ref(`Katzen/AuthPerfiles/${uid}`).remove().catch(() => undefined);
     }
-    if (wroteCliente) {
+    if (wroteNewCliente) {
       await db.ref(`Katzen/Cliente/${clienteId}`).remove().catch(() => undefined);
+    } else if (patchedExistingCliente && prevPortalPatch) {
+      await db.ref(`Katzen/Cliente/${clienteId}`).update(prevPortalPatch).catch(() => undefined);
     }
     if (err instanceof HttpsError) throw err;
     const message = err instanceof Error ? err.message : 'No se pudo completar el registro.';

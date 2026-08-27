@@ -27,6 +27,7 @@ import { AdminKpiGridComponent } from './admin/admin-kpi-grid.component';
 import { AdminDataPanelComponent } from './admin/admin-data-panel.component';
 import { AdminModuleCardComponent } from './admin/admin-module-card.component';
 import { ClientePacientePickerComponent } from './admin/cliente-paciente-picker.component';
+import { ProductoPickerComponent } from './admin/producto-picker.component';
 import { StaffPickerComponent } from './admin/staff-picker.component';
 import { AdminEstadoClassPipe } from './pipes/admin-estado-class.pipe';
 import { AdminPrioridadClassPipe } from './pipes/admin-prioridad-class.pipe';
@@ -50,6 +51,7 @@ import { RouterModule } from '@angular/router';
     AdminEstadoClassPipe,
     AdminPrioridadClassPipe,
     ClientePacientePickerComponent,
+    ProductoPickerComponent,
     StaffPickerComponent,
     AlergiasAlertaComponent,
     AlergiasEditorComponent
@@ -100,6 +102,7 @@ import { RouterModule } from '@angular/router';
     AdminEstadoClassPipe,
     AdminPrioridadClassPipe,
     ClientePacientePickerComponent,
+    ProductoPickerComponent,
     StaffPickerComponent,
     AlergiasAlertaComponent,
     AlergiasEditorComponent,

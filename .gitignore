@@ -161,5 +161,10 @@ firebase-debug.*.log
 cypress.env.json
 cypress.env.smoke-roles.json
 
+# Importaciones / dumps RTDB (datos personales — no commitear)
+data/imports/
+*.xlsx
+Katzen supermamalon*.xlsx
+
 # Angular specific
 .angular/ 

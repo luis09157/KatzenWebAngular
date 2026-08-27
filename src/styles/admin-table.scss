@@ -9,6 +9,8 @@
   overflow-y: hidden;
   background: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .admin-content .table-scroll table {
@@ -88,6 +90,29 @@
   display: block;
   margin: 8px 28px 22px !important;
   width: calc(100% - 56px) !important;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+/* Toolbar con búsqueda + controles (p. ej. catálogo productos) */
+.admin-content .catalogo-toolbar.panel-search,
+.admin-content .panel-toolbar.panel-search {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 16px;
+  max-width: none;
+  width: calc(100% - 56px) !important;
+}
+
+.admin-content .catalogo-toolbar.panel-search > .buscador,
+.admin-content .panel-toolbar.panel-search > .buscador,
+.admin-content .catalogo-toolbar.panel-search > .mat-mdc-form-field,
+.admin-content .panel-toolbar.panel-search > .mat-mdc-form-field {
+  flex: 1 1 220px;
+  min-width: 0;
+  margin: 0 !important;
+  width: auto !important;
   max-width: 420px;
 }
 
@@ -487,6 +512,19 @@
   .admin-content .hide-mobile {
     display: none !important;
   }
+
+  .admin-content .panel-search,
+  .admin-content .buscador.panel-search,
+  .admin-content .catalogo-toolbar.panel-search,
+  .admin-content .panel-toolbar.panel-search {
+    margin: 8px 16px 18px !important;
+    width: calc(100% - 32px) !important;
+  }
+
+  .admin-content .table-scroll {
+    margin: 0;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Historiales — columnas legibles */
@@ -524,4 +562,158 @@
   min-width: 148px !important;
   max-width: 168px !important;
   overflow: visible !important;
+}
+
+/* ── Clientes: 8 columnas + 5 acciones → min-width real + scroll; sin truncar cabeceras ── */
+.admin-content .clientes-table {
+  min-width: 1280px !important;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.admin-content .clientes-table .mat-mdc-header-cell {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.admin-content .clientes-table .mat-column-nombre,
+.admin-content .clientes-table .mat-mdc-column-nombre {
+  width: 16% !important;
+  min-width: 168px !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+.admin-content .clientes-table .cell-nombre {
+  display: block;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.admin-content .clientes-table .mat-column-expediente,
+.admin-content .clientes-table .mat-mdc-column-expediente {
+  width: 118px !important;
+  min-width: 118px !important;
+  max-width: 132px !important;
+}
+
+.admin-content .clientes-table .badge-expediente {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.admin-content .clientes-table .mat-column-telefono,
+.admin-content .clientes-table .mat-mdc-column-telefono {
+  width: 132px !important;
+  min-width: 128px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+.admin-content .clientes-table .mat-column-correo,
+.admin-content .clientes-table .mat-mdc-column-correo {
+  width: 18% !important;
+  min-width: 200px !important;
+  overflow: visible !important;
+}
+
+.admin-content .clientes-table .mat-column-correo span {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.admin-content .clientes-table .mat-column-saldo,
+.admin-content .clientes-table .mat-mdc-column-saldo {
+  width: 108px !important;
+  min-width: 100px !important;
+  overflow: visible !important;
+}
+
+.admin-content .clientes-table .mat-column-ubicacion,
+.admin-content .clientes-table .mat-mdc-column-ubicacion {
+  width: 16% !important;
+  min-width: 160px !important;
+  overflow: visible !important;
+}
+
+.admin-content .clientes-table .mat-column-ubicacion span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.admin-content .clientes-table .mat-column-estado,
+.admin-content .clientes-table .mat-mdc-column-estado {
+  width: 128px !important;
+  min-width: 128px !important;
+  max-width: 148px !important;
+  overflow: visible !important;
+}
+
+/* 5 icon-buttons (~36px) + padding → ~200px (regla global 132px no alcanza) */
+.admin-content .clientes-table th.mat-column-acciones,
+.admin-content .clientes-table td.mat-column-acciones,
+.admin-content .clientes-table .mat-mdc-header-cell.mat-column-acciones,
+.admin-content .clientes-table .mat-mdc-cell.mat-column-acciones,
+.admin-content .clientes-table .mat-mdc-column-acciones {
+  width: 200px !important;
+  min-width: 200px !important;
+  max-width: 200px !important;
+  display: table-cell !important;
+  overflow: visible !important;
+  vertical-align: middle !important;
+}
+
+.admin-content .clientes-table td.mat-column-acciones .row-actions {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  width: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .admin-content .table-scroll:has(.clientes-table) {
+    margin: 0 12px 16px;
+  }
+
+  .admin-content .clientes-table {
+    min-width: 1100px !important;
+  }
+
+  .admin-content .clientes-table th.mat-column-acciones,
+  .admin-content .clientes-table td.mat-column-acciones,
+  .admin-content .clientes-table .mat-mdc-header-cell.mat-column-acciones,
+  .admin-content .clientes-table .mat-mdc-cell.mat-column-acciones,
+  .admin-content .clientes-table .mat-mdc-column-acciones {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  .admin-content .clientes-table .mat-column-nombre,
+  .admin-content .clientes-table .mat-mdc-column-nombre {
+    min-width: 200px !important;
+    width: 18% !important;
+  }
+
+  .admin-content .clientes-table .mat-column-correo,
+  .admin-content .clientes-table .mat-mdc-column-correo {
+    min-width: 220px !important;
+  }
 }

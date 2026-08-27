@@ -235,8 +235,8 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     if (estancia.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Cobro en ticket de visita',
-        text: `Estancia en ticket ${estancia.visitaId}. Cobra desde Visitas.`
+        title: 'Cobro en cuenta del día',
+        text: `Estancia en ticket ${estancia.visitaId}. Cobra desde Cuenta del día.`
       });
       return;
     }

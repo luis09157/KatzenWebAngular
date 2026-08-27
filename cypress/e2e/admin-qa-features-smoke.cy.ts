@@ -69,7 +69,7 @@ describe('Admin QA features smoke (003/004/005/007)', () => {
       cy.contains('button', 'Registrar merma').should('be.disabled');
     });
 
-    cy.get('mat-dialog-container input[formControlName="producto_busqueda"], mat-dialog-container input').first().then(($input) => {
+    cy.get('mat-dialog-container [data-cy="producto-picker"], mat-dialog-container input[formControlName="producto_busqueda"], mat-dialog-container input').first().then(($input) => {
       if ($input.length) {
         cy.wrap($input).click({ force: true }).type('a', { force: true });
       }

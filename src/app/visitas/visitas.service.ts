@@ -21,6 +21,7 @@ import {
   recalcularVisita,
   roundMoney
 } from './visitas.util';
+import { esClienteMostrador } from './visita-mostrador.util';
 
 @Injectable({ providedIn: 'root' })
 export class VisitasService {
@@ -93,6 +94,7 @@ export class VisitasService {
       notas: data.notas || '',
       atendidoPorUid: data.atendidoPorUid || undefined,
       atendidoPorNombre: data.atendidoPorNombre || undefined,
+      esMostrador: data.esMostrador === true || esClienteMostrador(data.cliente_id) || undefined,
       activo: true,
       created_at: now,
       updated_at: now,
@@ -100,6 +102,7 @@ export class VisitasService {
     };
     const ref = await this.db.list<Visita>(this.path).push(payload);
     await stampRtdbIdAfterPush(this.db, this.path, ref.key);
+    await this.vincularOrigenesDesdeLineas(ref.key!, lineas);
     await this.syncSaldoCliente(data.cliente_id);
     return ref.key!;
   }
@@ -127,6 +130,10 @@ export class VisitasService {
       updated_at: new Date().toISOString()
     });
 
+    if (patch.lineas != null) {
+      await this.vincularOrigenesDesdeLineas(id, mergedLineas);
+    }
+
     if (nuevoEstado === 'cerrada') {
       await this.propagarCobroServiciosOrigen({
         ...current,
@@ -140,7 +147,12 @@ export class VisitasService {
       });
     }
 
-    await this.syncSaldoCliente(current.cliente_id);
+    await this.syncSaldoCliente(
+      patch.cliente_id != null ? String(patch.cliente_id) : current.cliente_id
+    );
+    if (patch.cliente_id != null && patch.cliente_id !== current.cliente_id) {
+      await this.syncSaldoCliente(current.cliente_id);
+    }
   }
 
   async setLineas(id: string, lineas: VisitaLinea[]): Promise<void> {
@@ -159,6 +171,7 @@ export class VisitasService {
       banioId: linea.banioId,
       vacunaId: linea.vacunaId,
       productoId: linea.productoId,
+      cantidad: linea.cantidad,
       pensionId: linea.pensionId,
       historialId: linea.historialId,
       movimientoInventarioId: linea.movimientoInventarioId
@@ -253,6 +266,20 @@ export class VisitasService {
     return { visitaId: visita.id!, lineaId };
   }
 
+  /** Spec 045 — marca visitaId en baños/citas/etc. referenciados en líneas. */
+  async vincularOrigenesDesdeLineas(visitaId: string, lineas: VisitaLinea[] | null | undefined): Promise<void> {
+    for (const linea of lineas || []) {
+      await this.marcarVisitaIdEnOrigen(visitaId, {
+        banioId: linea.banioId,
+        citaId: linea.citaId,
+        pensionId: linea.pensionId,
+        vacunaId: linea.vacunaId,
+        historialId: linea.historialId,
+        movimientoInventarioId: linea.movimientoInventarioId
+      });
+    }
+  }
+
   /** Spec 040 — vincula entidad origen al ticket (evita doble línea). */
   private async marcarVisitaIdEnOrigen(
     visitaId: string,
@@ -344,7 +371,7 @@ export class VisitasService {
   }
 
   async syncSaldoCliente(clienteId: string): Promise<number> {
-    if (!clienteId) return 0;
+    if (!clienteId || esClienteMostrador(clienteId)) return 0;
     const visitas = await firstValueFrom(this.getVisitasPorCliente(clienteId).pipe(take(1)));
     const saldo = agregarSaldoCliente(visitas || []);
     await this.clientesService.actualizarCliente(clienteId, { saldoPendiente: saldo });

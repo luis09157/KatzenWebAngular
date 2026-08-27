@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **035** staff UID por acto clínico.
+**Última revisión:** 2026-08-27 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **045/046** cuenta del día + UX guiada.
 
 ---
 
@@ -216,15 +216,15 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8 `Katzen/Inventario/*`
 
-**Productos:** `codigo_barras` único, `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria`, `fecha_caducidad`, `activo`.
+**Productos:** `codigo_barras` único (interno `KZ-…` o EAN de fábrica — **043**), `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria` (incluye `vacuna` aditivo **043**), `unidad_medida` (incluye tableta/cápsula/frasco/dosis **043**), `imagen_url?` (Storage `Inventario/Productos/{id}/` **043**), `fecha_caducidad`, `activo`. El QR no se persiste: se genera desde `codigo_barras`.
 
 **Regla precio (2026-08-26):** al crear/editar producto, `precio_venta` debe ser **estrictamente mayor** que `precio_compra` (margen positivo). UI: campo margen % recalcula venta = costo × (1 + %). No guardar si costo ≥ venta.
 
-**IVA productos (control interno, México — 2026-08-26):** no es facturación PAC/CFDI. Staff marca `iva_aplicable` + `tasa_iva`. Defaults sugeridos por categoría: `medicamento` / `quirurgico` / `diagnostico` → sin IVA / tasa 0 (muchos medicamentos van exentos o tasa 0%; staff confirma); `alimento` / `accesorio` / `peluqueria` → IVA 16% sugerido. UI muestra preview «precio con IVA».
+**IVA productos (control interno, México — 2026-08-26):** no es facturación PAC/CFDI. Staff marca `iva_aplicable` + `tasa_iva`. Defaults sugeridos por categoría: `medicamento` / `vacuna` / `quirurgico` / `diagnostico` → sin IVA / tasa 0 (muchos medicamentos van exentos o tasa 0%; staff confirma); `alimento` / `accesorio` / `peluqueria` → IVA 16% sugerido. UI muestra preview «precio con IVA».
 
 **Valuación stock (KPIs — 022):** `invertido_costo = Σ stock × precio_compra`; `valor_precio_venta = Σ stock × precio_venta`; `margen_potencial = venta − costo`. No es COGS FIFO ni utilidad de caja.
 
-**Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia. Link opcional `cajaMovimientoId` / caja↔`movimientoInventarioIds` (022).
+**Movimientos:** Transacción RTDB atómica sobre stock. Salida rechazada si stock insuficiente. Tipos: entrada, salida, ajuste, merma, devolucion, transferencia. Link opcional `cajaMovimientoId` / caja↔`movimientoInventarioIds` (022). UI: `app-producto-picker` unificado (**044**) en entrada/salida/ajuste/OC.
 
 **Órdenes de compra:** Estados borrador → enviada → parcial/recibida/cancelada. Recepción dispara entradas de inventario.
 
@@ -250,9 +250,15 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño + opt-in comida. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
 
-### 3.8d `Katzen/Visitas/{visitaId}` (spec 032)
+### 3.8d `Katzen/Visitas/{visitaId}` (spec 032 · hub **045** · UX **046**)
 
-Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]`, `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`. Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
+**Nombre de negocio (UI):** “Cuenta del día” / “Ticket de cobro” (la ruta puede seguir `/admin/visitas`).
+
+Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?`), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
+
+**Modelo mental:** Peluquería / citas / inventario = **operación**; Visitas = **cuenta (dinero del dueño)**; Caja = **pago**. No cobrar el mismo baño en caja y en ticket.
+
+Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
 
 ### 3.9 Auth y usuarios
 
@@ -273,6 +279,19 @@ Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado
 ---
 
 ## 4. Reglas de negocio implícitas
+
+### 4.0 UX admin — principios (spec **046**)
+
+Prioridad de producto 2026-08-27: el admin debe sentirse **simple, guiado y tipo móvil**, no un ERP denso.
+
+1. **Un trabajo por pantalla:** baño ≠ cobro; cobro = cuenta del día / caja.
+2. **“Te falta X primero”:** si falta dueño/mascota/líneas, mensaje claro + CTA (no solo validación roja).
+3. **Orden natural:** cliente → paciente (si aplica) → servicio/producto → cuenta del día → pago.
+4. **Walk-in petshop:** se puede vender **sin cliente registrado** (`esMostrador` + `cliente_id` sentinel `__mostrador__`); si hay cliente, mejor (historial / CxC / ticket).
+5. **Empty states útiles:** qué es la pantalla + 1–2 acciones.
+6. **Lenguaje de clínica:** “Cuenta del día”, “Incluir en la cuenta”, “Venta de mostrador”.
+
+Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-visita-hub-pos-grid/`.
 
 ### 4.1 Patrones transversales
 
@@ -432,8 +451,8 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 | `syncMyClaims` | Autenticado | Sincroniza claims desde AuthPerfiles |
 | `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
 | `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
-| `provisionPortalClient` | Staff clínica | Activa portal + email bienvenida (alta cliente / Usuarios) |
-| `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend) |
+| `provisionPortalClient` | Staff clínica | Activa portal + email bienvenida (alta cliente / Usuarios / **ficha cliente 047**) |
+| `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend); **047 ola 2:** vincular si correo ya existe en clínica |
 | `linkStaffPortalCliente` | Admin | Vincula Cliente a staff (dual) |
 | `deactivatePortalClient` | Admin | Desactiva portal |
 | `resendPortalClientAccess` | Admin | Nueva contraseña temporal |
@@ -701,6 +720,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | ~~**Vacuna → recordatorio auto**~~ | #11b | **Hecho** — `specs/033-vacuna-recordatorio-auto/` |
 | ~~**Alergias cruzadas mascota**~~ | ops / 031 | **Hecho** — `specs/034-alergias-cruzadas-mascota/` (Mascota.alergias + alertas + portal read) |
 | ~~**Staff UID por acto clínico**~~ | ops | **Hecho** — `specs/035-staff-uid-acto/` (picker + UID + nombre denorm en citas/historiales/vacunas/baños/visitas) |
-| **Staff UID por acto clínico** | ops | Quién aplicó vacuna / historial con UID Auth |
+| **Cuenta del día (hub ticket)** | ops / CxC | **045** in_progress — pendientes baño + venta producto + grid catálogo |
+| **UX intuitiva guiada** | UX | **046** draft — “te falta X”, walk-in, empty states, sensación móvil |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

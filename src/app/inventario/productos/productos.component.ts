@@ -9,6 +9,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
 import { ProductoDialogComponent } from './producto-dialog.component';
+import {
+  etiquetaCategoriaProducto,
+  generarQrDataUrl,
+  imprimirEtiquetaProducto
+} from './producto-identificacion.util';
 import { OrdenDialogComponent } from '../ordenes/orden-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
@@ -29,6 +34,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly pageSize = 50;
 
   displayedColumns: string[] = [
+    'foto',
     'codigo_barras',
     'nombre',
     'categoria',
@@ -46,6 +52,13 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = true;
   filtroProveedorId = '';
   menuContext: Producto | null = null;
+  /** Spec 045/046 — catálogo tipo POS. */
+  vistaCatalogo: 'lista' | 'cuadricula' = 'cuadricula';
+
+  get productosFiltrados(): Producto[] {
+    if (!this.dataSource) return this.productos;
+    return this.dataSource.filteredData;
+  }
 
   get kpiTotal(): number {
     return this.productos.filter((p) => p.activo !== false).length;
@@ -238,6 +251,30 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
       ...ADMIN_DIALOG_FORM,
       data: { producto }
     });
+  }
+
+  etiquetaCategoria(categoria: string): string {
+    return etiquetaCategoriaProducto(categoria);
+  }
+
+  async imprimirQr(producto: Producto): Promise<void> {
+    const codigo = String(producto.codigo_barras || '').trim();
+    if (codigo.length < 3) {
+      Swal.fire('Sin código', 'Este producto no tiene un código válido para el QR.', 'info');
+      return;
+    }
+    try {
+      const qr = await generarQrDataUrl(codigo);
+      imprimirEtiquetaProducto({
+        nombre: producto.nombre,
+        codigo,
+        presentacion: producto.presentacion,
+        qrDataUrl: qr
+      });
+    } catch (error) {
+      this.logger.error('No se pudo generar el QR', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'generar QR'), 'error');
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { BaniosService } from './banios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -375,6 +376,9 @@ export class BaniosComponent implements OnInit, OnDestroy {
         if (result) {
           this.loadingService.hide();
           this.cargarBanios();
+          if (result?.created && result?.id) {
+            void this.ofertarTicketTrasAlta(result.id);
+          }
         }
       });
     } else {
@@ -388,6 +392,9 @@ export class BaniosComponent implements OnInit, OnDestroy {
         if (result) {
           this.loadingService.hide();
           this.cargarBanios();
+          if (result?.created && result?.id) {
+            void this.ofertarTicketTrasAlta(result.id);
+          }
         }
       });
     }
@@ -462,8 +469,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
     if (banio?.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Cobro en ticket de visita',
-        text: `Este baño está en el ticket ${banio.visitaId}. Registra el pago desde Visitas.`
+        title: 'Cobro en cuenta del día',
+        text: `Este baño está en el ticket ${banio.visitaId}. Registra el pago desde Cuenta del día.`
       });
       return;
     }
@@ -497,8 +504,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
     if (banio.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Cobro en ticket de visita',
-        text: `Este baño está en el ticket ${banio.visitaId}. Cobra desde Visitas para evitar doble cobro.`
+        title: 'Cobro en cuenta del día',
+        text: `Este baño está en el ticket ${banio.visitaId}. Cobra desde Cuenta del día para evitar doble cobro.`
       });
       return;
     }
@@ -547,6 +554,40 @@ export class BaniosComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Spec 045/046 — tras crear baño, ofrecer incluirlo en la cuenta del día. */
+  private async ofertarTicketTrasAlta(banioId: string): Promise<void> {
+    const id = String(banioId || '').trim();
+    if (!id) return;
+    const ask = await Swal.fire({
+      icon: 'question',
+      title: '¿Agregar a la cuenta del día?',
+      html:
+        'El baño quedó registrado. Puedes incluirlo ahora en el <strong>ticket de cobro</strong> del cliente (cuándo + monto) o hacerlo después desde el menú «Agregar a cuenta».',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, agregar al ticket',
+      cancelButtonText: 'Ahora no'
+    });
+    if (!ask.isConfirmed) return;
+
+    let banio = this.baniosActivos.find(b => b.id === id);
+    if (!banio) {
+      try {
+        banio = (await firstValueFrom(this.baniosService.getBanioById(id).pipe(take(1)))) || undefined;
+      } catch {
+        banio = undefined;
+      }
+    }
+    if (!banio?.id) {
+      Swal.fire(
+        'No encontrado',
+        'No se pudo cargar el baño recién creado. Usa «Agregar a cuenta» en la lista.',
+        'info'
+      );
+      return;
+    }
+    await this.agregarAVisita(banio);
+  }
+
   /** Spec 032: baño sin cobro → ticket de visita. */
   async agregarAVisita(banio: Banio): Promise<void> {
     if (!banio?.id) return;
@@ -583,7 +624,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
         inputAttributes: { min: '0.01', step: '0.01' },
         inputValue: '',
         showCancelButton: true,
-        confirmButtonText: 'Agregar a visita',
+        confirmButtonText: 'Agregar a cuenta',
         cancelButtonText: 'Cancelar',
         inputValidator: (value) => {
           const n = Number(value);

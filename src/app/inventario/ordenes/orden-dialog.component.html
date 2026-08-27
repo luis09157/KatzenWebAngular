@@ -54,18 +54,14 @@
         <div *ngFor="let producto of productosArray.controls; let i = index" 
              [formGroupName]="i" class="producto-item">
           <div class="producto-row">
-            <mat-form-field appearance="outline" class="producto-select">
-              <mat-label>Producto</mat-label>
-              <input matInput formControlName="producto_nombre" 
-                     [matAutocomplete]="auto" placeholder="Buscar...">
-              <mat-autocomplete #auto="matAutocomplete" 
-                                [displayWith]="displayProducto.bind(this)"
-                                (optionSelected)="onProductoSeleccionado(producto, $event.option.value)">
-                <mat-option *ngFor="let p of getProductosFiltradosArray(i) | async" [value]="p">
-                  {{p.nombre}} - {{p.presentacion}}
-                </mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
+            <div class="producto-select">
+              <app-producto-picker
+                [formGroup]="grupoProducto(i)"
+                [compact]="true"
+                label="Producto"
+                (selectionChange)="onProductoSeleccionado(grupoProducto(i), $event)">
+              </app-producto-picker>
+            </div>
 
             <mat-form-field appearance="outline" class="cantidad-field">
               <mat-label>Cantidad</mat-label>

@@ -793,12 +793,15 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.registerForm.reset({ acceptPrivacy: false });
       this.closePortalRegister();
+      const linked = result.linkedExisting === true;
       Swal.fire({
         icon: 'success',
-        title: '¡Registro listo!',
+        title: linked ? '¡Ya te encontramos en la clínica!' : '¡Registro listo!',
         text:
           result.message ||
-          'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.',
+          (linked
+            ? 'Vinculamos tu ficha clínica a tu cuenta. Revisa tu correo para la contraseña temporal.'
+            : 'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'),
         confirmButtonText: 'Ir al portal',
         confirmButtonColor: '#3b9a9c'
       }).then(res => {

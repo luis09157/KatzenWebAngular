@@ -225,7 +225,9 @@ export class InventarioService {
     pacienteId?: string,
     historialId?: string,
     ventaId?: string,
-    observaciones?: string
+    observaciones?: string,
+    /** Spec 042/045 — ticket de visita del día. */
+    visitaId?: string
   ): Promise<string> {
     console.log('🔄 Registrando salida de producto...');
     const usuarioId = await this.currentStaff.getStaffId();
@@ -243,6 +245,7 @@ export class InventarioService {
       paciente_id: pacienteId,
       historial_clinico_id: historialId,
       venta_id: ventaId,
+      visitaId: visitaId || undefined,
       usuario_responsable_id: usuarioId,
       observaciones: observaciones || '',
       cantidad_anterior: 0,

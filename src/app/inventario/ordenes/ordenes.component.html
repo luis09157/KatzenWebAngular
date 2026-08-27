@@ -11,7 +11,7 @@
     accent="purple"
     icon="shopping_cart"
     title="Órdenes de compra"
-    subtitle="Gestión de pedidos a proveedores y recepción de mercancía.">
+    subtitle="Pide mercancía al proveedor. Al recibir, el stock sube. Si falta proveedor, créalo primero.">
     <div bannerActions>
       <button mat-stroked-button type="button" (click)="exportarExcel()">
         <mat-icon>file_download</mat-icon>
@@ -27,7 +27,7 @@
   <app-admin-data-panel
     accent="purple"
     title="Listado de órdenes"
-    description="Filtra por estado y gestiona recepciones."
+    description="Orden = proveedor + productos. Luego «Recibir» para entrar stock."
     [showLegend]="false">
 
     <mat-form-field appearance="outline" class="filtro-estado panel-search">
@@ -112,8 +112,8 @@
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             <app-admin-empty-state
               icon="shopping_cart"
-              title="No hay órdenes registradas"
-              message="Crea una orden de compra para pedir productos a tus proveedores."
+              title="Aún no hay órdenes"
+              message="Elige un proveedor y los productos a pedir. Cuando llegue la mercancía, recíbela aquí."
               actionLabel="Nueva orden"
               (action)="nuevaOrden()">
             </app-admin-empty-state>

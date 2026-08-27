@@ -1,9 +1,9 @@
 <div class="admin-dialog-shell visita-dialog">
   <header class="admin-dialog-header no-print">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">{{ esEdicion ? 'Ticket de visita' : 'Nueva visita' }}</h2>
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Cuenta del día' : 'Nueva cuenta del día' }}</h2>
       <p class="admin-dialog-subtitle">
-        Agrupa cobros del día. Estado:
+        Paso a paso: dueño → líneas (baño/producto/consulta) → cobrar. Estado:
         <span class="estado-badge" [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
           {{ estadoLabels[totales.estado] || estadoLabel }}
         </span>
@@ -17,13 +17,37 @@
   <mat-dialog-content class="admin-dialog-body">
     <div class="visita-print-sheet" id="visita-print-sheet">
       <div class="print-only print-brand">
-        <h1>KatzenVet — Ticket de visita</h1>
+        <h1>KatzenVet — Cuenta del día</h1>
         <p>{{ form.get('fecha')?.value }} · {{ form.get('cliente')?.value || 'Cliente' }}</p>
         <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
       </div>
 
       <form [formGroup]="form" class="admin-form-layout no-print">
+        <div class="mostrador-bar no-print" *ngIf="!soloLectura">
+          <ng-container *ngIf="!modoMostrador; else mostradorActivo">
+            <p class="flow-hint-inline" *ngIf="!form.get('cliente_id')?.value">
+              Paso 1: elige el dueño. Si es compra de petshop sin registro, usa venta de mostrador.
+            </p>
+            <button mat-stroked-button type="button" class="mostrador-btn" (click)="activarVentaMostrador()">
+              <mat-icon>storefront</mat-icon>
+              Venta de mostrador (sin cliente)
+            </button>
+          </ng-container>
+          <ng-template #mostradorActivo>
+            <div class="mostrador-activo">
+              <span class="estado-badge muted">Sin cliente · venta de mostrador</span>
+              <p class="flow-hint-inline" style="margin:8px 0 0">
+                Puedes cobrar igual. Si es cliente de la clínica, vincúlalo para historial y saldo.
+              </p>
+              <button mat-stroked-button color="primary" type="button" (click)="vincularClienteReal()">
+                <mat-icon>person_search</mat-icon>
+                ¿Es cliente? Vincular
+              </button>
+            </div>
+          </ng-template>
+        </div>
         <app-cliente-paciente-picker
+          *ngIf="!modoMostrador"
           class="full-width"
           [formGroup]="form"
           (selectionChange)="onClientePacienteSelected($event)">
@@ -59,6 +83,21 @@
         Al cobrar puedes registrar el total o un abono parcial (deja el monto menor en caja).
       </p>
 
+      <section class="pendientes-box no-print" *ngIf="!soloLectura && pendientesBanio.length">
+        <h3 class="section-title">Pendientes de hoy (peluquería)</h3>
+        <p class="hint-empty" style="margin-top:0">Baños ya registrados para este cliente que aún no están en un ticket.</p>
+        <div class="pendiente-row" *ngFor="let p of pendientesBanio">
+          <div class="linea-main">
+            <span class="linea-desc">{{ p.paciente || 'Mascota' }} · {{ p.tipo_servicio || 'baño' }}</span>
+            <span class="estado-badge muted">{{ formatMoney(p.precio_total) }}</span>
+          </div>
+          <button mat-stroked-button color="primary" type="button" (click)="incluirBanioPendiente(p)">
+            <mat-icon>add_shopping_cart</mat-icon>
+            Incluir en ticket
+          </button>
+        </div>
+      </section>
+
       <h3 class="section-title">Líneas del ticket</h3>
       <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
         <div class="linea-row" *ngFor="let l of lineas">
@@ -81,7 +120,7 @@
         </div>
       </div>
       <ng-template #sinLineas>
-        <p class="hint-empty">Sin líneas. Usa un atajo o agrega consulta, vacuna, baño u otro cobro.</p>
+        <p class="hint-empty">Sin líneas. Incluye un baño pendiente, vende un producto o agrega consulta/vacuna.</p>
       </ng-template>
     </div>
 
@@ -97,7 +136,28 @@
       </button>
     </div>
 
-    <form [formGroup]="lineaForm" class="linea-add admin-form-layout no-print" *ngIf="!soloLectura">
+    <form
+      [formGroup]="productoForm"
+      class="linea-add producto-add admin-form-layout no-print"
+      *ngIf="!soloLectura && mostrandoProducto">
+      <app-producto-picker
+        class="full-width"
+        [formGroup]="productoForm"
+        label="Producto a vender"
+        (selectionChange)="onProductoSeleccionado($event)">
+      </app-producto-picker>
+      <mat-form-field appearance="outline">
+        <mat-label>Cantidad</mat-label>
+        <input matInput type="number" min="1" step="1" formControlName="cantidad" />
+      </mat-form-field>
+      <button mat-stroked-button color="primary" type="button" (click)="agregarProductoAlTicket()">
+        <mat-icon>add</mat-icon>
+        Agregar al ticket
+      </button>
+      <button mat-button type="button" (click)="cancelarProducto()">Cancelar</button>
+    </form>
+
+    <form [formGroup]="lineaForm" class="linea-add admin-form-layout no-print" *ngIf="!soloLectura && !mostrandoProducto">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Descripción</mat-label>
         <input matInput formControlName="descripcion" placeholder="Ej. Consulta general" />
@@ -137,7 +197,8 @@
       color="primary"
       type="button"
       (click)="guardar()"
-      [disabled]="loading || soloLectura || form.invalid">
+      [disabled]="!puedeGuardar"
+      [matTooltip]="guardarBloqueoHint">
       <mat-icon>save</mat-icon>
       {{ loading ? 'Guardando…' : 'Guardar' }}
     </button>
@@ -147,9 +208,13 @@
       class="btn-primary-teal"
       type="button"
       (click)="cobrar()"
-      [disabled]="loading || soloLectura || form.invalid || totales.saldo <= 0">
+      [disabled]="!puedeCobrar"
+      [matTooltip]="cobrarBloqueoHint">
       <mat-icon>point_of_sale</mat-icon>
       {{ cobrarLabel }}
     </button>
   </mat-dialog-actions>
+  <p class="flow-hint no-print" *ngIf="!soloLectura && accionBloqueoHint">
+    {{ accionBloqueoHint }}
+  </p>
 </div>

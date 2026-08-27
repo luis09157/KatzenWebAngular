@@ -18,11 +18,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
@@ -84,6 +87,8 @@ import { SalidaDialogModule } from './movimientos/salida-dialog.module';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
+    AngularFireStorageModule,
     MatBadgeModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -91,6 +96,7 @@ import { SalidaDialogModule } from './movimientos/salida-dialog.module';
     MatMenuModule,
     MatDividerModule,
     MatSlideToggleModule,
+    MatButtonToggleModule,
     SharedModule,
     CajaDialogModule,
     SalidaDialogModule

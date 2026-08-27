@@ -40,8 +40,8 @@
   <app-admin-page-banner
     accent="teal"
     icon="spa"
-    title="Administración de Peluquería"
-    subtitle="Gestiona todos los servicios de baño y peluquería.">
+    title="Peluquería / baños"
+    subtitle="Registra el servicio aquí. El cobro va en Cuenta del día (puedes agregarlo al terminar).">
     <div bannerActions>
       <button mat-stroked-button (click)="exportarCsv()">
         <mat-icon>download</mat-icon>
@@ -57,7 +57,7 @@
   <app-admin-data-panel
     accent="teal"
     title="Listado de baños"
-    description="Busca por paciente, cliente o tipo de servicio."
+    description="Primero dueño y mascota. Luego tipo de servicio y precio."
     [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.totalHistorico + ' totales') : ''"
     [showLegend]="!loading && !!dataSource?.data?.length">
 
@@ -75,9 +75,9 @@
     <app-admin-empty-state
       *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="shower"
-      title="No hay baños"
-      message="No se han encontrado baños registrados."
-      actionLabel="Agregar primer baño"
+      title="Aún no hay baños"
+      message="Registra un baño con dueño y mascota. Al terminar puedes incluirlo en la cuenta del día para cobrar."
+      actionLabel="Nuevo baño"
       (action)="abrirModalBanio()">
     </app-admin-empty-state>
 
@@ -174,14 +174,14 @@
     <button mat-menu-item *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado' && !menuContext?.visitaId" (click)="marcarComoPagado(menuContext)"><mat-icon>payment</mat-icon> Marcar pagado</button>
     <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.visitaId">
       <mat-icon>account_balance_wallet</mat-icon>
-      {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : menuContext?.visitaId ? 'Cobrar en visita' : 'Registrar en caja' }}
+      {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : menuContext?.visitaId ? 'Cobrar en cuenta' : 'Registrar en caja' }}
     </button>
     <button
       mat-menu-item
       (click)="agregarAVisita(menuContext)"
       [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId">
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+      {{ menuContext?.visitaId ? 'Ya en cuenta' : 'Agregar a cuenta' }}
     </button>
   </mat-menu>
 </div>

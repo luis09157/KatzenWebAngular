@@ -3,12 +3,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto, Proveedor } from '../../shared/inventario.models';
-import { Observable } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
+import { ProductoSelection } from '../../shared/admin/producto-picker.models';
 
 @Component({
   selector: 'app-entrada-dialog',
@@ -20,9 +20,7 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   entradaForm: FormGroup;
   loading = false;
-  productos: Producto[] = [];
   proveedores: Proveedor[] = [];
-  productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
 
   constructor(
@@ -33,7 +31,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
     private logger: LoggerService
   ) {
     this.entradaForm = this.fb.group({
-      producto_busqueda: ['', Validators.required],
       producto_id: ['', Validators.required],
       cantidad: [1, [Validators.required, Validators.min(1)]],
       costo_unitario: [0, [Validators.required, Validators.min(0)]],
@@ -43,12 +40,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
       numero_factura: [''],
       observaciones: ['']
     });
-
-    // Inicializar el observable de productos filtrados
-    this.productosFiltrados = this.entradaForm.get('producto_busqueda')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filtrarProductos(value || ''))
-    );
   }
 
   ngOnInit(): void {
@@ -61,13 +52,6 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
   }
 
   cargarDatos(): void {
-    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (productos) => { this.productos = productos; },
-      error: (error) => {
-        this.logger.error('Error al cargar productos:', error);
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
-      }
-    });
     this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
       next: (proveedores) => { this.proveedores = proveedores; },
       error: (error) => {
@@ -77,23 +61,10 @@ export class EntradaDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  private _filtrarProductos(valor: string): Producto[] {
-    if (typeof valor !== 'string') return this.productos;
-    
-    const filtro = valor.toLowerCase();
-    return this.productos.filter(p => 
-      p.nombre.toLowerCase().includes(filtro) ||
-      p.codigo_barras.toLowerCase().includes(filtro) ||
-      p.marca.toLowerCase().includes(filtro)
-    );
-  }
-
-  displayProducto(producto: Producto | null): string {
-    return producto ? `${producto.nombre} - ${producto.presentacion}` : '';
-  }
-
-  onProductoSeleccionado(producto: Producto): void {
+  onProductoSeleccionado(sel: ProductoSelection): void {
+    const producto = sel.producto;
     this.productoSeleccionado = producto;
+    if (!producto) return;
     this.entradaForm.patchValue({
       producto_id: producto.id,
       costo_unitario: producto.precio_compra,

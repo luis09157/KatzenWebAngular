@@ -1,0 +1,63 @@
+<section
+  class="producto-picker"
+  [class.producto-picker--compact]="compact"
+  [class.producto-picker--disabled]="disabled">
+  <mat-form-field appearance="outline" class="producto-picker__field">
+    <mat-label>{{ label }}</mat-label>
+    <mat-icon matPrefix>inventory_2</mat-icon>
+    <input
+      matInput
+      data-cy="producto-picker"
+      [formControl]="productoSearch"
+      [matAutocomplete]="autoProducto"
+      [placeholder]="placeholder"
+      [readonly]="disabled"
+      (blur)="onBlur()"
+    />
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      *ngIf="productoSeleccionado && !disabled"
+      (click)="limpiarProducto()"
+      aria-label="Cambiar producto">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-autocomplete
+      #autoProducto="matAutocomplete"
+      [displayWith]="displayProducto"
+      (optionSelected)="onProductoSelected($event.option.value)">
+      <mat-option *ngIf="cargando" disabled>Cargando productos…</mat-option>
+      <mat-option *ngFor="let producto of filteredProductos | async" [value]="producto">
+        <div class="producto-picker__option">
+          <img
+            *ngIf="producto.imagen_url"
+            class="producto-picker__thumb"
+            [src]="producto.imagen_url"
+            alt=""
+            decoding="async">
+          <span *ngIf="!producto.imagen_url" class="producto-picker__thumb producto-picker__thumb--empty" aria-hidden="true">
+            <mat-icon>inventory_2</mat-icon>
+          </span>
+          <div class="producto-picker__meta">
+            <span class="producto-picker__nombre">{{ producto.nombre }}</span>
+            <span class="producto-picker__info">
+              {{ producto.codigo_barras }}
+              <ng-container *ngIf="producto.marca"> · {{ producto.marca }}</ng-container>
+              <ng-container *ngIf="producto.presentacion"> · {{ producto.presentacion }}</ng-container>
+            </span>
+            <span
+              *ngIf="showStock"
+              class="producto-picker__stock"
+              [class.producto-picker__stock--bajo]="stockBajo(producto)"
+              [class.producto-picker__stock--sin]="sinStock(producto)">
+              Stock: {{ producto.stock_actual }} {{ producto.unidad_medida }}
+            </span>
+          </div>
+        </div>
+      </mat-option>
+    </mat-autocomplete>
+    <mat-hint *ngIf="!productoSeleccionado && !showRequiredError">Escribe nombre o pega el código / QR</mat-hint>
+    <mat-error *ngIf="showRequiredError">Selecciona un producto del catálogo</mat-error>
+  </mat-form-field>
+</section>

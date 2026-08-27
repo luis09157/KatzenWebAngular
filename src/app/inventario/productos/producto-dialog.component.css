@@ -1,1 +1,33 @@
-/* Estilos globales: src/styles/admin-dialog.scss — panelClass: admin-dialog-panel */
+/* Estilos locales del diálogo de producto (QR / foto). El chrome vive en admin-dialog.scss. */
+
+.producto-ident-qr {
+  width: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.producto-ident-qr img {
+  display: block;
+  width: 96px;
+  height: 96px;
+}
+
+.producto-ident-qr button {
+  width: 100%;
+  min-height: 36px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.producto-ident-qr mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 2px;
+}

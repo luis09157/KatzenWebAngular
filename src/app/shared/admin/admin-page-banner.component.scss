@@ -103,10 +103,36 @@
   --mdc-protected-button-label-text-color: #fff;
 }
 
+@media (max-width: 900px) {
+  .admin-banner {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+
+  .banner-text h2 {
+    font-size: 1.125rem;
+  }
+
+  .banner-text p {
+    font-size: 0.875rem;
+  }
+}
+
 @media (max-width: 640px) {
   .admin-banner {
     flex-direction: column;
     align-items: stretch;
+    padding: 14px 14px;
+    border-radius: 12px;
+  }
+
+  .banner-content {
+    gap: 12px;
+  }
+
+  .banner-icon {
+    width: 40px;
+    height: 40px;
   }
 
   .banner-actions {
@@ -114,6 +140,7 @@
   }
 
   .banner-actions button {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 }

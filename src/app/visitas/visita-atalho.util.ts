@@ -15,7 +15,7 @@ export async function promptMontoVisita(
     inputAttributes: { min: '0.01', step: '0.01' },
     inputValue: sugerido && sugerido > 0 ? String(sugerido) : '',
     showCancelButton: true,
-    confirmButtonText: 'Agregar a visita',
+    confirmButtonText: 'Agregar a cuenta',
     cancelButtonText: 'Cancelar',
     inputValidator: (value) => {
       const n = Number(value);

@@ -1,20 +1,25 @@
 // ==================== TIPOS Y ENUMS ====================
-export type CategoriaProducto = 
-  | 'medicamento' 
-  | 'quirurgico' 
-  | 'alimento' 
-  | 'peluqueria' 
-  | 'diagnostico' 
+export type CategoriaProducto =
+  | 'medicamento'
+  | 'vacuna'
+  | 'quirurgico'
+  | 'alimento'
+  | 'peluqueria'
+  | 'diagnostico'
   | 'accesorio';
 
-export type UnidadMedida = 
-  | 'unidad' 
-  | 'ml' 
-  | 'gr' 
-  | 'kg' 
-  | 'litro' 
-  | 'caja' 
-  | 'paquete';
+export type UnidadMedida =
+  | 'unidad'
+  | 'ml'
+  | 'gr'
+  | 'kg'
+  | 'litro'
+  | 'caja'
+  | 'paquete'
+  | 'tableta'
+  | 'capsula'
+  | 'frasco'
+  | 'dosis';
 
 export type TipoMovimiento = 
   | 'entrada' 
@@ -110,6 +115,8 @@ export interface ProductoFormData {
   proveedor_principal_id: string;
   requiere_receta: boolean;
   controlado: boolean;
+  /** Spec 043 — URL Storage opcional. */
+  imagen_url?: string;
 }
 
 // ==================== LOTE ====================

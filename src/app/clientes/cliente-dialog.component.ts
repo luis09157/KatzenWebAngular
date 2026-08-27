@@ -5,11 +5,14 @@ import { HttpClient } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { ClientesService } from './clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
-import { Observable, map } from 'rxjs';
+import { Observable, map, firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { LoggerService } from '../core/logger.service';
+import { LOADING_MESSAGES } from '../core/loading.service';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -26,7 +29,8 @@ export class ClienteDialogComponent implements OnInit {
   todosLosClientes: any[] = [];
   pacientesRelacionados: any[] = [];
   cargandoPacientes: boolean = false;
-  
+  portalActionBusy = false;
+
   // Propiedades para carga de imágenes
   selectedFile: File | null = null;
   imagePreview: string | null = null;
@@ -44,7 +48,9 @@ export class ClienteDialogComponent implements OnInit {
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
     private errorMessages: ErrorMessagesService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private firebaseFunctions: FirebaseFunctionsService,
+    private logger: LoggerService
   ) {
     this.modoVer = data.modoVer;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
@@ -136,6 +142,142 @@ export class ClienteDialogComponent implements OnInit {
       partes.push(`Exp. ${expediente}`);
     }
     return partes.length ? partes.join(' · ') : 'Cliente registrado';
+  }
+
+  /** Spec 047 — estado portal en ficha (solo lectura). */
+  get correoPortal(): string {
+    const c = this.data?.cliente;
+    const mail = String(c?.portalEmail || c?.correo || '').trim();
+    return mail && mail.toLowerCase() !== 'no proporcionado' ? mail : '';
+  }
+
+  get tienePortalActivo(): boolean {
+    const c = this.data?.cliente;
+    return !!(c?.portalActivo === true && c?.authUid);
+  }
+
+  get faltaCorreoParaPortal(): boolean {
+    return !this.correoPortal && !this.tienePortalActivo;
+  }
+
+  get puedeEnviarAccesoPortal(): boolean {
+    return !!(this.data?.cliente?.id && this.correoPortal && !this.tienePortalActivo);
+  }
+
+  get puedeReenviarAccesoPortal(): boolean {
+    return !!(this.data?.cliente?.id && this.correoPortal && this.tienePortalActivo);
+  }
+
+  get portalEstadoLabel(): string {
+    if (this.tienePortalActivo) {
+      return 'Portal activo';
+    }
+    if (!this.correoPortal) {
+      return 'Sin correo';
+    }
+    if (this.data?.cliente?.authUid && this.data?.cliente?.portalActivo === false) {
+      return 'Portal desactivado';
+    }
+    return 'Sin portal';
+  }
+
+  get portalEstadoClass(): string {
+    if (this.tienePortalActivo) {
+      return 'estado-badge--success';
+    }
+    if (!this.correoPortal) {
+      return 'estado-badge--pending';
+    }
+    if (this.data?.cliente?.authUid && this.data?.cliente?.portalActivo === false) {
+      return 'estado-badge--neutral';
+    }
+    return 'estado-badge--info';
+  }
+
+  async enviarAccesoPortal(): Promise<void> {
+    const id = this.data?.cliente?.id;
+    if (!id || !this.puedeEnviarAccesoPortal || this.portalActionBusy) {
+      return;
+    }
+    const confirm = await Swal.fire({
+      title: '¿Enviar acceso al portal?',
+      html: `Se creará (o reactivará) la cuenta y se enviará una contraseña temporal a <strong>${this.correoPortal}</strong>. Tú no verás esa contraseña.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Enviar acceso',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) {
+      return;
+    }
+    this.portalActionBusy = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const res = await this.firebaseFunctions.provisionPortalClient(id);
+      this.data.cliente = {
+        ...this.data.cliente,
+        portalActivo: true,
+        portalEmail: this.correoPortal
+      };
+      try {
+        const fresh = await firstValueFrom(this.clientesService.getCliente(id));
+        if (fresh) {
+          this.data.cliente = { ...this.data.cliente, ...fresh, id };
+        }
+      } catch {
+        /* UI ya muestra portal activo de forma optimista */
+      }
+      this.loadingService.hide();
+      await Swal.fire({
+        icon: res.emailSent ? 'success' : 'warning',
+        title: res.emailSent ? 'Acceso enviado' : 'Portal activado (sin correo)',
+        text: res.message || 'Cuenta lista. El dueño debe revisar su bandeja.',
+        footer: res.emailSent
+          ? undefined
+          : 'Si Resend está en modo prueba, el correo solo llega a la cuenta Resend.'
+      });
+    } catch (error) {
+      this.logger.error('Error al enviar acceso portal desde ficha cliente:', error);
+      this.loadingService.hide();
+      await Swal.fire('Error', this.errorMessages.getUserMessage(error, 'activar portal cliente'), 'error');
+    } finally {
+      this.portalActionBusy = false;
+    }
+  }
+
+  async reenviarAccesoPortal(): Promise<void> {
+    const id = this.data?.cliente?.id;
+    if (!id || !this.puedeReenviarAccesoPortal || this.portalActionBusy) {
+      return;
+    }
+    const confirm = await Swal.fire({
+      title: '¿Reenviar acceso?',
+      text: 'Se generará una nueva contraseña temporal y se enviará al correo del cliente. Tú no la verás.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Reenviar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) {
+      return;
+    }
+    this.portalActionBusy = true;
+    this.loadingService.show(LOADING_MESSAGES.updating);
+    try {
+      const res = await this.firebaseFunctions.resendPortalClientAccess(id);
+      this.loadingService.hide();
+      await Swal.fire({
+        icon: res.emailSent ? 'success' : 'warning',
+        title: res.emailSent ? 'Acceso reenviado' : 'Contraseña renovada (sin correo)',
+        text: res.message || 'Listo.'
+      });
+    } catch (error) {
+      this.logger.error('Error al reenviar acceso portal desde ficha cliente:', error);
+      this.loadingService.hide();
+      await Swal.fire('Error', this.errorMessages.getUserMessage(error, 'reenviar acceso portal'), 'error');
+    } finally {
+      this.portalActionBusy = false;
+    }
   }
 
   ngOnInit() {

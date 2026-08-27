@@ -501,8 +501,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     if (cita.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Cobro en ticket de visita',
-        text: `Esta cita está en el ticket ${cita.visitaId}. Cobra desde Visitas para evitar doble cobro.`
+        title: 'Cobro en cuenta del día',
+        text: `Esta cita está en el ticket ${cita.visitaId}. Cobra desde Cuenta del día para evitar doble cobro.`
       });
       return;
     }
@@ -510,7 +510,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya cobrada',
-        text: 'Esta cita ya fue cobrada vía ticket de visita.'
+        text: 'Esta cita ya fue cobrada vía cuenta del día.'
       });
       return;
     }
@@ -593,7 +593,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         inputAttributes: { min: '0.01', step: '0.01' },
         inputValue: '',
         showCancelButton: true,
-        confirmButtonText: 'Agregar a visita',
+        confirmButtonText: 'Agregar a cuenta',
         cancelButtonText: 'Cancelar',
         inputValidator: (value) => {
           const n = Number(value);

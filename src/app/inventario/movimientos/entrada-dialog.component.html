@@ -13,34 +13,10 @@
     <mat-dialog-content class="admin-dialog-body">
       <section class="form-section highlight">
         <h3 class="form-section__title">Producto</h3>
-
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Buscar producto</mat-label>
-            <input matInput
-                   formControlName="producto_busqueda"
-                   [matAutocomplete]="autoProducto"
-                   placeholder="Escribe el nombre, código o marca">
-            <mat-icon matSuffix>search</mat-icon>
-            <mat-error *ngIf="hasError('producto_busqueda', 'required')">
-              Selecciona un producto
-            </mat-error>
-          </mat-form-field>
-        </div>
-
-        <mat-autocomplete #autoProducto="matAutocomplete"
-                          [displayWith]="displayProducto.bind(this)"
-                          (optionSelected)="onProductoSeleccionado($event.option.value)">
-          <mat-option *ngFor="let producto of productosFiltrados | async" [value]="producto">
-            <div class="producto-option">
-              <span class="producto-nombre">{{ producto.nombre }}</span>
-              <span class="producto-info">{{ producto.marca }} - {{ producto.presentacion }}</span>
-              <span class="producto-stock" [class.stock-bajo]="producto.stock_actual <= producto.stock_minimo">
-                Stock: {{ producto.stock_actual }} {{ producto.unidad_medida }}
-              </span>
-            </div>
-          </mat-option>
-        </mat-autocomplete>
+        <app-producto-picker
+          [formGroup]="entradaForm"
+          (selectionChange)="onProductoSeleccionado($event)">
+        </app-producto-picker>
 
         <div class="producto-info-box" *ngIf="productoSeleccionado">
           <div class="info-row">

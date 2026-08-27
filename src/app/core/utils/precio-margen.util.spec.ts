@@ -96,6 +96,12 @@ describe('precio-margen.util', () => {
       expect(s.tasa_iva).toBe(0);
     });
 
+    it('vacuna → sin IVA / tasa 0 (igual que medicamento)', () => {
+      const s = sugerirIvaPorCategoria('vacuna');
+      expect(s.iva_aplicable).toBe(false);
+      expect(s.tasa_iva).toBe(0);
+    });
+
     it('accesorio → IVA 16', () => {
       const s = sugerirIvaPorCategoria('accesorio');
       expect(s.iva_aplicable).toBe(true);

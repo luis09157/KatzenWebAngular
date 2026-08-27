@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
 .kpi-filter {
@@ -25,4 +26,16 @@
   }
 }
 
-/* Estilos específicos mínimos — layout global en admin-page-layout.scss */
+.portal-chip {
+  display: inline-flex !important;
+  margin-top: 6px;
+  margin-left: 0;
+  font-size: 0.6875rem !important;
+  vertical-align: middle;
+}
+
+.cell-nombre {
+  display: block;
+}
+
+/* Layout de columnas de la tabla: `src/styles/admin-table.scss` (.clientes-table) */

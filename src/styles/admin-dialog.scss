@@ -1371,3 +1371,64 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Diálogos: caben en viewport estrecho / tablet */
+@media (max-width: 900px) {
+  .cdk-overlay-pane.admin-dialog-panel {
+    max-width: calc(100vw - 24px) !important;
+    width: min(100%, var(--mat-dialog-container-max-width, 720px)) !important;
+  }
+
+  .admin-dialog-panel .mat-mdc-dialog-surface,
+  .admin-dialog-panel .mdc-dialog__surface,
+  .admin-dialog-panel .mat-mdc-dialog-surface > *,
+  .admin-dialog-panel .mdc-dialog__surface > *,
+  .admin-dialog-shell {
+    max-height: min(92vh, 100dvh) !important;
+  }
+
+  .admin-dialog-header,
+  .admin-dialog-panel .dialog-header {
+    padding: 16px 18px !important;
+  }
+
+  .admin-dialog-title {
+    font-size: 1.125rem !important;
+  }
+
+  .admin-dialog-panel .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cdk-overlay-pane.admin-dialog-panel {
+    max-width: calc(100vw - 12px) !important;
+    margin: 6px !important;
+  }
+
+  .admin-dialog-panel .mat-mdc-dialog-surface,
+  .admin-dialog-panel .mdc-dialog__surface {
+    border-radius: 12px !important;
+    max-height: min(96vh, 100dvh) !important;
+  }
+
+  mat-dialog-actions,
+  .dialog-actions,
+  .admin-dialog-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 12px 14px 16px !important;
+  }
+
+  mat-dialog-actions .mat-mdc-button-base,
+  .admin-dialog-actions .mat-mdc-button-base {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .admin-form-layout,
+  .admin-dialog-layout {
+    padding: 14px !important;
+  }
+}

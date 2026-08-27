@@ -19,6 +19,7 @@ import { Cliente } from '../../core/models';
 import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.util';
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { normalizeAlergias } from '../../shared/alergias/alergias.util';
+import { ProductoSelection } from '../../shared/admin/producto-picker.models';
 
 /** Prefill opcional al abrir desde historial / pensión / vacunas (spec 022). */
 export interface SalidaDialogData {
@@ -49,8 +50,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   salidaForm: FormGroup;
   loading = false;
-  productos: Producto[] = [];
-  productosFiltrados: Observable<Producto[]>;
   clientesFiltrados: Observable<Cliente[]>;
   productoSeleccionado: Producto | null = null;
   clientes: Cliente[] = [];
@@ -95,7 +94,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     this.subtituloDialog = d.subtitulo || '';
 
     this.salidaForm = this.fb.group({
-      producto_busqueda: ['', Validators.required],
       producto_id: ['', Validators.required],
       cantidad: [d.cantidad && d.cantidad > 0 ? d.cantidad : 1, [Validators.required, Validators.min(1)]],
       motivo: [d.motivoDefault || 'uso_consulta', Validators.required],
@@ -106,10 +104,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       cliente_nombre: [d.clienteNombre || '']
     });
 
-    this.productosFiltrados = this.salidaForm.get('producto_busqueda')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filtrarProductos(value || ''))
-    );
     this.clientesFiltrados = this.salidaForm.get('cliente_busqueda')!.valueChanges.pipe(
       startWith(''),
       map((value) => {
@@ -131,8 +125,10 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.cargarProductos();
     this.cargarClientes();
+    if (this.data?.productoId) {
+      this.salidaForm.patchValue({ producto_id: this.data.productoId });
+    }
     if (this.data?.cliente_id) {
       this.clienteIdResuelto = this.data.cliente_id;
       this.clienteNombreResuelto = this.data.clienteNombre || '';
@@ -225,23 +221,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       : 'Retira unidades del inventario con motivo registrado.';
   }
 
-  cargarProductos(): void {
-    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (productos) => {
-        this.productos = productos;
-        const prefId = this.data?.productoId;
-        if (prefId) {
-          const p = productos.find((x) => x.id === prefId);
-          if (p) {
-            this.onProductoSeleccionado(p);
-            this.salidaForm.patchValue({ producto_busqueda: p });
-          }
-        }
-      },
-      error: (error) => { this.logger.error('Error al cargar productos:', error); }
-    });
-  }
-
   cargarClientes(): void {
     this.clientesService
       .getClientes()
@@ -300,23 +279,10 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     return this.montoVentaSugerido;
   }
 
-  private _filtrarProductos(valor: string): Producto[] {
-    if (typeof valor !== 'string') return this.productos;
-
-    const filtro = valor.toLowerCase();
-    return this.productos.filter(p =>
-      p.nombre.toLowerCase().includes(filtro) ||
-      p.codigo_barras.toLowerCase().includes(filtro) ||
-      p.marca.toLowerCase().includes(filtro)
-    );
-  }
-
-  displayProducto(producto: Producto | null): string {
-    return producto ? `${producto.nombre} - ${producto.presentacion}` : '';
-  }
-
-  onProductoSeleccionado(producto: Producto): void {
+  onProductoSeleccionado(sel: ProductoSelection): void {
+    const producto = sel.producto;
     this.productoSeleccionado = producto;
+    if (!producto) return;
     this.salidaForm.patchValue({
       producto_id: producto.id
     });
@@ -561,7 +527,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       await Swal.fire({
         icon: 'info',
         title: 'Salida registrada sin ticket',
-        text: 'El stock se descontó. Agrega la venta al ticket manualmente desde Visitas.',
+        text: 'El stock se descontó. Agrega la venta a la cuenta del día manualmente desde Cuenta del día.',
         confirmButtonText: 'Entendido'
       });
       return;

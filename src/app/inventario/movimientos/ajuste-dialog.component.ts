@@ -3,15 +3,14 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
-import { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
+import { ProductoSelection } from '../../shared/admin/producto-picker.models';
 
 @Component({
   selector: 'app-ajuste-dialog',
@@ -23,8 +22,6 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   ajusteForm: FormGroup;
   loading = false;
-  productos: Producto[] = [];
-  productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
   /** Supervisor ligero: administrador | doctor (spec 007). */
   puedeAjustar = false;
@@ -48,21 +45,15 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
     private authProfile: AuthProfileService
   ) {
     this.ajusteForm = this.fb.group({
-      producto_busqueda: ['', Validators.required],
       producto_id: ['', Validators.required],
       stock_fisico: [0, [Validators.required, Validators.min(0)]],
       motivo: ['conteo_fisico', Validators.required],
       observaciones: ['']
     });
-
-    this.productosFiltrados = this.ajusteForm.get('producto_busqueda')!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filtrarProductos(value || ''))
-    );
   }
 
   ngOnInit(): void {
-    this.cargarPermisoYProductos();
+    this.cargarPermiso();
   }
 
   ngOnDestroy(): void {
@@ -70,7 +61,7 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private async cargarPermisoYProductos(): Promise<void> {
+  private async cargarPermiso(): Promise<void> {
     try {
       const role = await this.authProfile.getEffectiveStaffRole();
       this.puedeAjustar = staffRoleIsVeterinarioOperativo(role);
@@ -82,40 +73,17 @@ export class AjusteDialogComponent implements OnInit, OnDestroy {
           confirmButtonColor: '#f44336'
         });
         this.dialogRef.close(false);
-        return;
       }
     } catch (error) {
       this.logger.error('Error al resolver rol para ajuste:', error);
       this.dialogRef.close(false);
-      return;
     }
-    this.cargarProductos();
   }
 
-  cargarProductos(): void {
-    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (productos) => { this.productos = productos; },
-      error: (error) => { this.logger.error('Error al cargar productos:', error); }
-    });
-  }
-
-  private _filtrarProductos(valor: string): Producto[] {
-    if (typeof valor !== 'string') return this.productos;
-
-    const filtro = valor.toLowerCase();
-    return this.productos.filter(p =>
-      p.nombre.toLowerCase().includes(filtro) ||
-      p.codigo_barras.toLowerCase().includes(filtro) ||
-      p.marca.toLowerCase().includes(filtro)
-    );
-  }
-
-  displayProducto(producto: Producto | null): string {
-    return producto ? `${producto.nombre} - ${producto.presentacion}` : '';
-  }
-
-  onProductoSeleccionado(producto: Producto): void {
+  onProductoSeleccionado(sel: ProductoSelection): void {
+    const producto = sel.producto;
     this.productoSeleccionado = producto;
+    if (!producto) return;
     this.ajusteForm.patchValue({
       producto_id: producto.id,
       stock_fisico: producto.stock_actual

@@ -461,7 +461,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     if (vacuna.visitaId) {
       Swal.fire({
         icon: 'info',
-        title: 'Ya en visita',
+        title: 'Ya en cuenta del día',
         text: `Vinculada al ticket ${vacuna.visitaId}.`
       });
       return;

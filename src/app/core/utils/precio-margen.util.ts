@@ -123,7 +123,7 @@ export function calcularVentaDesdeMargen(costo: unknown, margenPct: unknown): nu
  */
 export function sugerirIvaPorCategoria(categoria: CategoriaProducto | string | null | undefined): SugerenciaIvaProducto {
   const cat = String(categoria || '').toLowerCase();
-  if (cat === 'medicamento' || cat === 'quirurgico' || cat === 'diagnostico') {
+  if (cat === 'medicamento' || cat === 'vacuna' || cat === 'quirurgico' || cat === 'diagnostico') {
     return {
       iva_aplicable: false,
       tasa_iva: 0,

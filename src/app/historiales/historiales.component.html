@@ -18,8 +18,8 @@
   <app-admin-page-banner
     accent="pink"
     icon="medical_services"
-    title="Administración de Historiales Clínicos"
-    subtitle="Gestiona todos los historiales médicos de los pacientes.">
+    title="Historiales clínicos"
+    subtitle="Documenta la consulta. El cobro se agrega a Cuenta del día.">
     <div bannerActions>
       <button mat-stroked-button color="accent" (click)="ejecutarMigracion()" *ngIf="necesitaMigracion">
         <mat-icon>sync</mat-icon>
@@ -53,9 +53,9 @@
     <app-admin-empty-state
       *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="medical_services"
-      title="No hay historiales"
-      message="No se han encontrado historiales registrados."
-      actionLabel="Agregar primer historial"
+      title="Aún no hay historiales"
+      message="Abre un historial con paciente. Luego puedes incluir el cobro en la cuenta del día."
+      actionLabel="Nuevo historial"
       (action)="abrirModalHistorial()">
     </app-admin-empty-state>
 
@@ -145,14 +145,14 @@
       (click)="agregarAVisita(menuContext)"
       [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+      {{ menuContext?.visitaId ? 'Ya en cuenta' : 'Agregar a cuenta' }}
     </button>
     <button
       mat-menu-item
       (click)="registrarEnCaja(menuContext)"
       [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
       <mat-icon>account_balance_wallet</mat-icon>
-      {{ menuContext?.visitaId ? 'Cobrar en visita' : 'Registrar en caja' }}
+      {{ menuContext?.visitaId ? 'Cobrar en cuenta' : 'Registrar en caja' }}
     </button>
     <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>

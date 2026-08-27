@@ -17,7 +17,7 @@
       accent="orange"
       icon="notifications_active"
       title="Alertas de inventario"
-      subtitle="Stock bajo, caducidad y punto de reorden.">
+      subtitle="Avisos de stock bajo o caducidad. Desde aquí puedes crear una orden de compra.">
       <div bannerActions>
         <button mat-stroked-button type="button" (click)="generarAlertasAutomaticas()">
           <mat-icon>auto_fix_high</mat-icon>
@@ -34,7 +34,7 @@
     <app-admin-data-panel
       accent="orange"
       title="Listado de alertas"
-      description="Filtra por tipo y prioridad."
+      description="Si no ves alertas, genera las automáticas o revisa el catálogo de productos."
       [meta]="alertasFiltradas.length + ' alertas'"
       [showLegend]="false">
 
@@ -60,8 +60,10 @@
       <app-admin-empty-state
         *ngIf="alertasFiltradas.length === 0"
         icon="check_circle"
-        title="Sin alertas"
-        message="Todo bajo control en el inventario con estos filtros.">
+        title="Sin alertas con estos filtros"
+        message="Todo en orden, o aún no se generaron. Puedes generar alertas automáticas o ir al catálogo."
+        actionLabel="Generar alertas"
+        (action)="generarAlertasAutomaticas()">
       </app-admin-empty-state>
 
       <div class="alertas-lista" *ngIf="alertasFiltradas.length > 0">

@@ -2,11 +2,10 @@ import { Component, Inject, OnInit, Optional, ViewEncapsulation } from '@angular
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
-import { Proveedor, Producto, OrdenCompraFormData } from '../../shared/inventario.models';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Proveedor } from '../../shared/inventario.models';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
+import { ProductoSelection } from '../../shared/admin/producto-picker.models';
 
 export interface OrdenDialogPrefill {
   productoId?: string;
@@ -25,8 +24,6 @@ export class OrdenDialogComponent implements OnInit {
   loading = false;
 
   proveedores: Proveedor[] = [];
-  productos: Producto[] = [];
-  productosFiltrados: Observable<Producto[]>;
 
   constructor(
     private fb: FormBuilder,
@@ -42,11 +39,6 @@ export class OrdenDialogComponent implements OnInit {
       productos: this.fb.array([]),
       observaciones: ['']
     });
-
-    this.productosFiltrados = this.ordenForm.get('proveedor_id')!.valueChanges.pipe(
-      startWith(''),
-      map(() => this.productos)
-    );
   }
 
   ngOnInit(): void {
@@ -66,19 +58,10 @@ export class OrdenDialogComponent implements OnInit {
         if (this.data?.proveedorId) {
           this.ordenForm.patchValue({ proveedor_id: this.data.proveedorId });
         }
-      },
-      error: (error) => {
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar proveedores orden'), 'error');
-      }
-    });
-
-    this.inventarioService.getProductos().subscribe({
-      next: (productos) => {
-        this.productos = productos.filter(p => p.activo);
         this.aplicarPrefillProducto();
       },
       error: (error) => {
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar productos orden'), 'error');
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar proveedores orden'), 'error');
       }
     });
   }
@@ -86,30 +69,17 @@ export class OrdenDialogComponent implements OnInit {
   private aplicarPrefillProducto(): void {
     const productoId = this.data?.productoId;
     if (!productoId) return;
-    const producto = this.productos.find((p) => p.id === productoId);
-    if (!producto) return;
-
-    if (!this.data?.proveedorId && producto.proveedor_principal_id) {
-      this.ordenForm.patchValue({ proveedor_id: producto.proveedor_principal_id });
-    }
 
     if (this.productosArray.length === 0) {
       this.agregarProducto();
     }
     const group = this.productosArray.at(0) as FormGroup;
-    const qty = Math.max(1, Number(this.data?.cantidad) || Math.max(1, Number(producto.stock_minimo) || 1));
+    if (group.get('producto_id')?.value) return;
+    const qty = Math.max(1, Number(this.data?.cantidad) || 1);
     group.patchValue({
-      producto_id: producto.id,
-      producto_nombre: producto.nombre,
-      cantidad: qty,
-      precio_unitario: Number(producto.precio_compra) || 0
+      producto_id: productoId,
+      cantidad: qty
     });
-    this.calcularSubtotal(group);
-    if (!this.ordenForm.get('observaciones')?.value) {
-      this.ordenForm.patchValue({
-        observaciones: `Reposición stock · ${producto.nombre}`
-      });
-    }
   }
 
   get productosArray(): FormArray {
@@ -140,13 +110,37 @@ export class OrdenDialogComponent implements OnInit {
     this.calcularTotal();
   }
 
-  onProductoSeleccionado(productoGroup: FormGroup, producto: Producto): void {
+  onProductoSeleccionado(productoGroup: FormGroup, sel: ProductoSelection): void {
+    const producto = sel.producto;
+    if (!producto) {
+      productoGroup.patchValue({ producto_id: '', producto_nombre: '', precio_unitario: 0 });
+      this.calcularSubtotal(productoGroup);
+      return;
+    }
     productoGroup.patchValue({
       producto_id: producto.id,
       producto_nombre: producto.nombre,
       precio_unitario: producto.precio_compra
     });
+    if (!this.data?.cantidad && this.data?.productoId === producto.id) {
+      const qty = Math.max(1, Number(producto.stock_minimo) || 1);
+      if (Number(productoGroup.get('cantidad')?.value) === 1) {
+        productoGroup.patchValue({ cantidad: qty });
+      }
+    }
+    if (!this.data?.proveedorId && producto.proveedor_principal_id && !this.ordenForm.get('proveedor_id')?.value) {
+      this.ordenForm.patchValue({ proveedor_id: producto.proveedor_principal_id });
+    }
+    if (!this.ordenForm.get('observaciones')?.value && this.data?.productoId === producto.id) {
+      this.ordenForm.patchValue({
+        observaciones: `Reposición stock · ${producto.nombre}`
+      });
+    }
     this.calcularSubtotal(productoGroup);
+  }
+
+  grupoProducto(index: number): FormGroup {
+    return this.productosArray.at(index) as FormGroup;
   }
 
   calcularSubtotal(productoGroup: FormGroup): void {
@@ -165,28 +159,6 @@ export class OrdenDialogComponent implements OnInit {
       total += cantidad * precioUnitario;
     });
     return total;
-  }
-
-  displayProducto(producto: Producto | null): string {
-    return producto ? producto.nombre : '';
-  }
-
-  getProductosFiltradosArray(index: number): Observable<Producto[]> {
-    const productoControl = this.productosArray.at(index).get('producto_nombre');
-    return productoControl!.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filtrarProductos(value || ''))
-    );
-  }
-
-  private _filtrarProductos(valor: string): Producto[] {
-    if (typeof valor !== 'string') return this.productos;
-
-    const filtro = valor.toLowerCase();
-    return this.productos.filter(p =>
-      p.nombre.toLowerCase().includes(filtro) ||
-      p.codigo_barras.toLowerCase().includes(filtro)
-    );
   }
 
   async guardar(): Promise<void> {

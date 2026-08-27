@@ -52,6 +52,8 @@ export interface VisitaLinea {
   banioId?: string;
   vacunaId?: string;
   productoId?: string;
+  /** Spec 045 — unidades vendidas (aditivo; UI ticket). */
+  cantidad?: number;
   pensionId?: string;
   historialId?: string;
   movimientoInventarioId?: string;
@@ -74,6 +76,8 @@ export interface Visita {
   /** Spec 035 — staff que atendió (opcional). */
   atendidoPorUid?: string;
   atendidoPorNombre?: string;
+  /** Spec 046 — venta de mostrador sin cliente real. */
+  esMostrador?: boolean;
   activo: boolean;
   created_at: string;
   updated_at?: string;
@@ -91,6 +95,8 @@ export interface VisitaFormData {
   atendidoPorUid?: string;
   atendidoPorNombre?: string;
   lineas?: VisitaLinea[];
+  /** Spec 046 */
+  esMostrador?: boolean;
 }
 
 export interface VisitaKpis {

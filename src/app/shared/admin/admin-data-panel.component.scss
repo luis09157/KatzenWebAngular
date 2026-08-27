@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
 .data-panel {
@@ -92,8 +93,49 @@
 
 .data-panel-body {
   padding: 12px 0 20px;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
   .hide-mobile { display: none !important; }
+
+  .data-panel-header {
+    padding: 18px 16px 0;
+    gap: 12px;
+  }
+
+  .data-panel-header h3 {
+    font-size: 1rem;
+  }
+
+  .data-panel-header p {
+    font-size: 0.875rem;
+  }
+
+  .data-toolbar {
+    padding: 0 16px 4px;
+  }
+
+  .data-panel-body {
+    padding: 8px 0 16px;
+  }
+
+  .action-legend {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .data-panel {
+    border-radius: 12px !important;
+  }
+
+  .data-panel-header {
+    padding: 14px 12px 0;
+  }
+
+  .data-panel-meta {
+    white-space: normal;
+  }
 }

@@ -71,6 +71,8 @@ export interface RegisterPortalOwnerResult {
   emailSent?: boolean;
   clienteId?: string;
   email?: string;
+  /** Spec 047: true si se vinculó a ficha clínica existente. */
+  linkedExisting?: boolean;
 }
 
 export interface LinkStaffPortalInput {

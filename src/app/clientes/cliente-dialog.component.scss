@@ -311,6 +311,48 @@
   }
 }
 
+.admin-dialog-panel app-cliente-dialog .detail-section--portal {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px dashed #99f6e4;
+  border-radius: 12px;
+  background: #f0fdfa;
+}
+
+.admin-dialog-panel app-cliente-dialog .portal-access-hint {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: #0f766e;
+  line-height: 1.45;
+}
+
+.admin-dialog-panel app-cliente-dialog .portal-access-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.admin-dialog-panel app-cliente-dialog .portal-access-email {
+  font-size: 0.875rem;
+  color: #334155;
+  word-break: break-word;
+}
+
+.admin-dialog-panel app-cliente-dialog .portal-access-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-dialog-panel app-cliente-dialog .portal-access-cta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #92400e;
+}
+
 @media (max-width: 640px) {
   .admin-dialog-panel app-cliente-dialog .admin-dialog-layout,
   .admin-dialog-panel app-cliente-dialog .admin-dialog-layout--readonly {

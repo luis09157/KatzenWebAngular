@@ -2,7 +2,7 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar baño' : 'Nuevo baño' }}</h2>
-      <p class="admin-dialog-subtitle">Programación, servicio, precios y observaciones clínicas.</p>
+      <p class="admin-dialog-subtitle">Paso 1: dueño y mascota. Luego servicio y precio. El cobro se hace en Cuenta del día.</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -11,6 +11,9 @@
 
   <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="admin-dialog-body">
+      <p class="banio-flow-hint" *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value">
+        Primero elige o crea el dueño. Después la mascota.
+      </p>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"

@@ -2,7 +2,7 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ modoEdicion ? 'Editar producto' : 'Nuevo producto' }}</h2>
-      <p class="admin-dialog-subtitle">Catálogo, stock, precios y ubicación en almacén.</p>
+      <p class="admin-dialog-subtitle">Foto opcional, código/QR y datos de stock. Cambia la categoría para sugerencias de clínica.</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -11,13 +11,51 @@
 
   <mat-dialog-content class="admin-dialog-body">
   <form [formGroup]="productoForm" class="producto-form">
+    <div class="admin-dialog-layout">
+      <aside class="admin-dialog-aside">
+        <div class="admin-dialog-photo">
+          <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del producto" decoding="async">
+          <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Sin foto</span>
+          </div>
+          <button
+            *ngIf="imagePreview"
+            mat-icon-button
+            type="button"
+            class="admin-dialog-photo__remove"
+            (click)="removeImage()"
+            aria-label="Quitar foto">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+        <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading || loading">
+          <mat-icon>photo_camera</mat-icon>
+          {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
+        </button>
+        <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+
+        <div class="producto-ident-qr" *ngIf="qrDataUrl">
+          <img [src]="qrDataUrl" alt="Código QR del producto">
+          <button mat-stroked-button type="button" (click)="imprimirEtiqueta()">
+            <mat-icon>print</mat-icon>
+            Imprimir QR
+          </button>
+        </div>
+      </aside>
+
+      <div class="admin-dialog-form">
     <section class="form-section">
       <h3 class="form-section__title">Información básica</h3>
       <div class="form-grid">
         <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Código de Barras</mat-label>
-          <input matInput formControlName="codigo_barras" placeholder="Ej: 7501234567890">
-          <mat-icon matSuffix>barcode</mat-icon>
+          <mat-label>Código / barras</mat-label>
+          <input matInput formControlName="codigo_barras" placeholder="Se genera solo; pega el EAN si el empaque ya lo trae">
+          <button mat-icon-button matSuffix type="button" matTooltip="Generar código interno" (click)="regenerarCodigo()" aria-label="Generar código">
+            <mat-icon>autorenew</mat-icon>
+          </button>
+          <mat-hint>QR usa este mismo valor. Regenerar si no trae código de fábrica.</mat-hint>
           <mat-error *ngIf="hasError('codigo_barras', 'required')">{{getErrorMessage('codigo_barras')}}</mat-error>
           <mat-error *ngIf="hasError('codigo_barras', 'minlength') || hasError('codigo_barras', 'maxlength')">
             {{getErrorMessage('codigo_barras')}}
@@ -26,21 +64,21 @@
 
         <mat-form-field appearance="outline" class="full-span">
           <mat-label>Nombre del Producto</mat-label>
-          <input matInput formControlName="nombre" placeholder="Ej: Amoxicilina 500mg">
+          <input matInput formControlName="nombre" placeholder="Ej: Amoxicilina 500 mg, Croquetas adultas 2 kg">
           <mat-error *ngIf="hasError('nombre', 'required')">{{getErrorMessage('nombre')}}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-span">
           <mat-label>Descripción</mat-label>
-          <textarea matInput formControlName="descripcion" rows="3" 
-                    placeholder="Descripción detallada del producto"></textarea>
+          <textarea matInput formControlName="descripcion" rows="3"
+                    placeholder="Opcional: concentración, especie, vía de administración"></textarea>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Categoría</mat-label>
           <mat-select formControlName="categoria">
             <mat-option *ngFor="let cat of categorias" [value]="cat">
-              {{cat | titlecase}}
+              {{ etiquetaCategoria[cat] }}
             </mat-option>
           </mat-select>
           <mat-icon matSuffix>category</mat-icon>
@@ -48,20 +86,19 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Subcategoría</mat-label>
-          <input matInput formControlName="subcategoria" placeholder="Ej: Antibióticos">
+          <input matInput formControlName="subcategoria" [placeholder]="hintSubcategoria">
         </mat-form-field>
       </div>
 
       <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Marca</mat-label>
-          <input matInput formControlName="marca" placeholder="Ej: Pfizer">
-          <mat-error *ngIf="hasError('marca', 'required')">{{getErrorMessage('marca')}}</mat-error>
+          <input matInput formControlName="marca" placeholder="Opcional — si está vacío se guarda S/M">
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Presentación</mat-label>
-          <input matInput formControlName="presentacion" placeholder="Ej: Caja con 10 tabletas">
+          <input matInput formControlName="presentacion" placeholder="Ej: Caja 10 tabletas, frasco 100 ml">
           <mat-error *ngIf="hasError('presentacion', 'required')">{{getErrorMessage('presentacion')}}</mat-error>
         </mat-form-field>
       </div>
@@ -74,7 +111,7 @@
           <mat-label>Unidad de Medida</mat-label>
           <mat-select formControlName="unidad_medida">
             <mat-option *ngFor="let unidad of unidadesMedida" [value]="unidad">
-              {{unidad | titlecase}}
+              {{ etiquetaUnidad[unidad] }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -105,7 +142,7 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Ubicación en Almacén</mat-label>
-          <input matInput formControlName="ubicacion_almacen" placeholder="Ej: Estante A3">
+          <input matInput formControlName="ubicacion_almacen" placeholder="Ej: Refrigerador 1, Estante A3">
           <mat-icon matSuffix>location_on</mat-icon>
         </mat-form-field>
       </div>
@@ -221,6 +258,8 @@
         </mat-checkbox>
       </div>
     </section>
+      </div>
+    </div>
   </form>
 </mat-dialog-content>
 

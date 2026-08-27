@@ -4,9 +4,7 @@ import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
 import { Banio, TipoServicio, ProductoPeluqueria } from '../shared/banio.model';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class BaniosService {
   private readonly basePath = 'Katzen/Banios';
   private readonly tiposPath = 'Katzen/TiposServiciosPeluqueria';

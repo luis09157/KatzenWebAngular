@@ -125,6 +125,47 @@
             </div>
           </section>
 
+          <section class="detail-section detail-section--portal">
+            <h4 class="detail-section__title">
+              <mat-icon>language</mat-icon>
+              Acceso al portal
+            </h4>
+            <p class="portal-access-hint">
+              El dueño ve en el portal las mascotas y datos de <strong>esta</strong> ficha clínica.
+              La contraseña temporal solo llega por correo; aquí no se muestra.
+            </p>
+            <div class="portal-access-row">
+              <span class="estado-badge" [class]="portalEstadoClass">{{ portalEstadoLabel }}</span>
+              <span class="portal-access-email" *ngIf="correoPortal">{{ correoPortal }}</span>
+            </div>
+            <div class="portal-access-actions">
+              <button
+                *ngIf="puedeEnviarAccesoPortal"
+                mat-raised-button
+                color="primary"
+                class="btn-primary-teal"
+                type="button"
+                [disabled]="portalActionBusy"
+                (click)="enviarAccesoPortal()">
+                <mat-icon>send</mat-icon>
+                Enviar acceso al portal
+              </button>
+              <button
+                *ngIf="puedeReenviarAccesoPortal"
+                mat-stroked-button
+                color="primary"
+                type="button"
+                [disabled]="portalActionBusy"
+                (click)="reenviarAccesoPortal()">
+                <mat-icon>mark_email_read</mat-icon>
+                Reenviar acceso
+              </button>
+              <p class="portal-access-cta" *ngIf="faltaCorreoParaPortal">
+                Agrega un correo en <strong>Editar</strong> para poder enviarle el acceso.
+              </p>
+            </div>
+          </section>
+
           <section class="detail-section detail-section--mascotas">
             <h4 class="detail-section__title">
               <mat-icon>pets</mat-icon>
