@@ -103,4 +103,4 @@ Warning: bundle initial budget (histórico, no bloqueante).
 
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → `done`
-- [ ] Commit + push + deploy hosting (+ database) — en curso (pedido Luis)
+- [x] Commit + push + deploy hosting (+ database) — pedido Luis (2026-08-26)
