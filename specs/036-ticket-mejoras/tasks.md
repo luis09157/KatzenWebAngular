@@ -67,4 +67,6 @@ Warning: bundle initial budget (histórico, no bloqueante).
 
 - [x] Validación pre-entrega
 - [x] `spec.md` → done
-- [ ] Commit + push + deploy hosting (autorizado Luis)
+- [x] Commit + push + deploy hosting (autorizado Luis)
+
+**Deploy hosting:** 2026-08-26 → https://katzen-a0e3e.web.app (commit `ddc0e31`)
