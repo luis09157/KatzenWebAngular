@@ -51,6 +51,14 @@ describe('portal-mapper.util', () => {
     it('defaults activo to true', () => {
       expect(mapMascota('m1', { nombre: 'X' }).activo).toBeTrue();
     });
+
+    it('maps alergias array (spec 034)', () => {
+      const m = mapMascota('m1', {
+        nombre: 'Luna',
+        alergias: ['Penicilina', 'Shampoo']
+      });
+      expect(m.alergias).toEqual(['Penicilina', 'Shampoo']);
+    });
   });
 
   describe('mapBanio (028 portal read-only)', () => {

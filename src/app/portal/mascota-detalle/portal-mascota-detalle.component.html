@@ -46,6 +46,17 @@
           <span>Visitas</span>
         </div>
       </div>
+
+      <section class="portal-alergias-card" *ngIf="alergiasLista.length" aria-label="Alergias de la mascota">
+        <div class="portal-alergias-card__head">
+          <mat-icon>warning_amber</mat-icon>
+          <h3>Alergias</h3>
+        </div>
+        <p class="portal-alergias-card__hint">Información del expediente (solo consulta).</p>
+        <ul class="portal-alergias-card__list">
+          <li *ngFor="let a of alergiasLista">{{ a }}</li>
+        </ul>
+      </section>
     </div>
   </aside>
 

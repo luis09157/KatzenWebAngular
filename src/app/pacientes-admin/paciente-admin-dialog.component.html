@@ -60,6 +60,11 @@
             </div>
           </section>
 
+          <section class="detail-section" *ngIf="alergiasLista.length">
+            <h4 class="detail-section__title">Alergias</h4>
+            <app-alergias-alerta [alergias]="alergiasLista"></app-alergias-alerta>
+          </section>
+
           <section class="detail-section">
             <h4 class="detail-section__title">Dueño</h4>
             <div class="detail-grid">
@@ -180,6 +185,14 @@
                 </mat-form-field>
               </ng-container>
             </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Alergias</h3>
+            <p class="form-section__hint" style="margin:0 0 10px;font-size:0.8125rem;color:var(--admin-muted,#6b7280)">
+              Fuente de verdad del expediente. Se muestran como alerta en historiales, baños, vacunas y visitas.
+            </p>
+            <app-alergias-editor [(alergias)]="alergiasLista"></app-alergias-editor>
           </section>
 
           <section class="form-section">

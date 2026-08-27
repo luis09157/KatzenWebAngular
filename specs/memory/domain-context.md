@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **022 done (A–D)** automatización costos/ops + pensión.
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **034** alergias cruzadas mascota.
 
 ---
 
@@ -132,6 +132,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `activo` | boolean | Baja lógica |
 | `estado` | string | Valor `Fallecido` archiva recordatorios automáticamente (conservar histórico) |
 | `foto`, `imageUrl`, `rutaImagen` | string | Portal mapea varios alias |
+| `alergias?` | string[] | **034** fuente de verdad alergias (aditivo); UI chips + alerta cruzada |
+| `alergiasTexto?` | string | **034** legacy/texto libre; lectura normalizada junto a `alergias` |
 | `fecha_creacion`, `fechaBaja` | string | |
 | `sucursalId` | string | Stamp en altas |
 
@@ -204,6 +206,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `tamano_perro?` | enum | `pequeno` \| `mediano` \| `grande` — **022** (aditivo) |
 | `costoEstimado?`, `plantillaCostoId?` | number/string | **022** — default por tamaño + override; enlace a caja/margen. **Regla UI (2026-08-26):** si se captura costo, debe ser **estrictamente menor** que `precio_total` (no guardar si costo ≥ venta). |
 | `cajaMovimientoId?` | string | Link a `Caja/Movimientos` (018) |
+| `alergias_conocidas?` | string[] | Snapshot; **034** sync hacia `Mascota.alergias` al guardar baño |
 | `activo` | boolean | Baja lógica |
 
 ### 3.8 `Katzen/Inventario/*`
@@ -346,6 +349,7 @@ Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado
 - Cancelar revierte `pagado: false` (código actual).
 - **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
 - **Costo vs venta (2026-08-26):** al crear/editar baño, `costoEstimado` (si se informa) debe ser **estrictamente menor** que `precio_total`. Si costo ≥ venta → no guardar; mensaje en formulario («El costo debe ser menor que el precio de venta»). Datos legacy con costo=venta siguen leyéndose en KPIs con margen 0. Margen % opcional en UI recalcula `precio_total` desde costo.
+- **Alergias (034):** fuente de verdad en `Mascota.alergias`; baño muestra alerta + editor y al guardar sincroniza a la mascota; `alergias_conocidas` queda como snapshot.
 
 ### 4.9b Precios, márgenes e IVA (global admin)
 
@@ -611,6 +615,7 @@ flowchart TD
 | 10 | Recordatorios → push notification | **Sí** — Firebase push notification | Confirmado · 023 |
 | 11 | Mascota Fallecido | Archivar recordatorios automáticamente (evitar recordar a dueños); conservar registros históricos | Confirmado · 017 |
 | 11b | Vacuna → recordatorio refuerzo | Auto-crear pendiente con `proximaAplicacion` / intervalo; cancelar al borrar vacuna | Confirmado · **033** |
+| 11c | Alergias cruzadas mascota | Fuente de verdad en `Mascota.alergias`; alerta en historial/baño/vacuna/visita; portal lectura; sin hard-block | Confirmado · **034** |
 
 ### Inventario
 
@@ -687,6 +692,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | **Migración nodos legacy inventario** | #15 | Coordinar con app móvil post-mejoras web |
 | **Multi-sucursal** | #21 | Cuando crezca operación |
 | ~~**Política mermas inventario**~~ | #12 | **Hecho (MVP)** — `specs/007-politica-mermas-inventario/`; autorización dual formal pendiente |
-| ~~**`medico_atendio` obligatorio en historial**~~ | #8 | **Hecho** — `Validators.required` en `historial-dialog`; posible regla RTDB futura |
+| ~~**Vacuna → recordatorio auto**~~ | #11b | **Hecho** — `specs/033-vacuna-recordatorio-auto/` |
+| ~~**Alergias cruzadas mascota**~~ | ops / 031 | **Hecho** — `specs/034-alergias-cruzadas-mascota/` (Mascota.alergias + alertas + portal read) |
+| **Staff UID por acto clínico** | ops | Quién aplicó vacuna / historial con UID Auth |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

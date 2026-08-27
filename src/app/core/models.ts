@@ -20,6 +20,10 @@ export interface Paciente {
   fecha_creacion?: string;
   fecha_registro?: string;
   created_at?: string;
+  /** Spec 034 — fuente de verdad de alergias (aditivo). */
+  alergias?: string[];
+  /** Legacy / texto libre; se normaliza en lectura junto a `alergias`. */
+  alergiasTexto?: string;
   [key: string]: unknown;
 }
 

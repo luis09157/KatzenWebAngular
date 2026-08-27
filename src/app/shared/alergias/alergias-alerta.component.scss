@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+.alergias-alerta {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  border-radius: var(--admin-radius-md, 10px);
+  border: 1px solid #f0c36d;
+  background: linear-gradient(180deg, #fff8e8 0%, #fff3d6 100%);
+  color: #5c4813;
+}
+
+.alergias-alerta__icon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(217, 119, 6, 0.15);
+  color: #b45309;
+}
+
+.alergias-alerta__icon mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.alergias-alerta__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.alergias-alerta__title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.alergias-alerta__msg {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b5420;
+}
+
+.alergias-alerta__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.alergias-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e8c57a;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #7a4e0e;
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+}

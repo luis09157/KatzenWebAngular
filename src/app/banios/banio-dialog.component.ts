@@ -26,6 +26,8 @@ import {
 import {
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { normalizeAlergias } from '../shared/alergias/alergias.util';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -43,6 +45,8 @@ export class BanioDialogComponent implements OnInit {
   hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
   defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
   plantillasCosto: PlantillaCosto[] = [];
+  /** Spec 034 — alergias canónicas desde Mascota (editor + alerta). */
+  alergiasPaciente: string[] = [];
   /** Hint cuando no hay defaults ni plantilla (spec 031). */
   prefillHint = '';
   private defaultsListos = false;
@@ -111,19 +115,6 @@ export class BanioDialogComponent implements OnInit {
     { value: 'mascarilla_hidratante', label: 'Mascarilla Hidratante', precio: 90 }
   ];
 
-  // Opciones predefinidas para alergias
-  tiposAlergias = [
-    { value: 'shampoo_comun', label: 'Shampoo Común' },
-    { value: 'perfume', label: 'Perfume' },
-    { value: 'productos_quimicos', label: 'Productos Químicos' },
-    { value: 'alergenos_ambientales', label: 'Alergenos Ambientales' },
-    { value: 'alimentos', label: 'Alimentos' },
-    { value: 'medicamentos', label: 'Medicamentos' }
-  ];
-
-  // Array para almacenar alergias específicas
-  alergiasEspecificas: string[] = [];
-
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<BanioDialogComponent>,
@@ -133,7 +124,8 @@ export class BanioDialogComponent implements OnInit {
     private usuariosService: UsuariosService,
     private loadingService: LoadingService,
     private defaultsBanioService: DefaultsBanioService,
-    private plantillaCostoService: PlantillaCostoService
+    private plantillaCostoService: PlantillaCostoService,
+    private pacientesService: PacientesService
   ) {
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
@@ -201,6 +193,7 @@ export class BanioDialogComponent implements OnInit {
           cliente: this.data.cliente,
           created_by: 'system'
         });
+        void this.cargarAlergiasDesdeMascota(this.data.paciente_id);
       } else {
         this.banioForm.patchValue({ created_by: 'system' });
       }
@@ -310,6 +303,12 @@ export class BanioDialogComponent implements OnInit {
           // Recalcular precio por si faltaba precio_total
           this.calcularPrecioTotal();
           this.revalidarCostoVsVenta();
+          const pid = String(normalizado.paciente_id || this.data.paciente_id || '');
+          if (pid) {
+            void this.cargarAlergiasDesdeMascota(pid, normalizeAlergias(normalizado.alergias_conocidas));
+          } else {
+            this.setAlergiasPaciente(normalizeAlergias(normalizado.alergias_conocidas));
+          }
         }
         // Si por alguna razón no llegó el registro (null), intentar poblar al menos la fecha desde la fila
         else if (this.data && this.data.fecha_banio) {
@@ -534,6 +533,49 @@ export class BanioDialogComponent implements OnInit {
       this.banioForm.patchValue({ tamano_perro: tamano });
       this.onTamanoChange();
     }
+    const fromPaciente = normalizeAlergias(sel.pacienteData);
+    if (fromPaciente.length) {
+      this.setAlergiasPaciente(fromPaciente);
+    } else if (sel.paciente_id) {
+      void this.cargarAlergiasDesdeMascota(sel.paciente_id);
+    } else {
+      this.setAlergiasPaciente([]);
+    }
+  }
+
+  onAlergiasPacienteChange(lista: string[]): void {
+    this.setAlergiasPaciente(lista);
+  }
+
+  private setAlergiasPaciente(lista: string[]): void {
+    this.alergiasPaciente = normalizeAlergias(lista);
+    this.banioForm.patchValue({ alergias_conocidas: this.alergiasPaciente }, { emitEvent: false });
+  }
+
+  private async cargarAlergiasDesdeMascota(
+    pacienteId: string,
+    fallbackBanio: string[] = []
+  ): Promise<void> {
+    if (!pacienteId) {
+      this.setAlergiasPaciente(fallbackBanio);
+      return;
+    }
+    try {
+      const paciente = await firstValueFrom(this.pacientesService.getPaciente(pacienteId).pipe(take(1)));
+      const fromMascota = normalizeAlergias(paciente);
+      this.setAlergiasPaciente(fromMascota.length ? fromMascota : fallbackBanio);
+    } catch {
+      this.setAlergiasPaciente(fallbackBanio);
+    }
+  }
+
+  private async sincronizarAlergiasMascota(pacienteId: string, alergias: string[]): Promise<void> {
+    if (!pacienteId) return;
+    try {
+      await this.pacientesService.actualizarPaciente(pacienteId, { alergias: normalizeAlergias(alergias) });
+    } catch (err) {
+      console.warn('No se pudieron sincronizar alergias a Mascota:', err);
+    }
   }
 
   onTamanoChange(): void {
@@ -641,29 +683,6 @@ export class BanioDialogComponent implements OnInit {
     this.calcularPrecioTotal();
   }
 
-  agregarAlergia() {
-    const alergiasActuales = this.banioForm.get('alergias_conocidas')?.value || [];
-    const nuevaAlergia = '';
-    
-    this.banioForm.patchValue({
-      alergias_conocidas: [...alergiasActuales, nuevaAlergia]
-    });
-    
-    // Agregar espacio para alergia específica
-    this.alergiasEspecificas.push('');
-  }
-
-  removerAlergia(index: number) {
-    const alergiasActuales = this.banioForm.get('alergias_conocidas')?.value || [];
-    alergiasActuales.splice(index, 1);
-    this.banioForm.patchValue({ alergias_conocidas: alergiasActuales });
-    
-    // Remover alergia específica correspondiente
-    this.alergiasEspecificas.splice(index, 1);
-  }
-
-
-
   onSubmit() {
     this.sincronizarPrecioBaseDesdeTotal();
     this.revalidarCostoVsVenta();
@@ -704,11 +723,12 @@ export class BanioDialogComponent implements OnInit {
       banioData.hora_banio = this.normalizarHora(banioData.hora_banio);
 
       // Limpiar datos antes de enviar
+      const alergiasSync = normalizeAlergias(this.alergiasPaciente);
       const datosLimpios: any = {
         ...banioData,
         // Asegurar que los arrays estén definidos
         servicios_adicionales: banioData.servicios_adicionales || [],
-        alergias_conocidas: banioData.alergias_conocidas || [],
+        alergias_conocidas: alergiasSync,
         // Asegurar que el campo created_by esté presente
         created_by: banioData.created_by || 'system',
         // Asegurar que productos_utilizados esté definido
@@ -763,7 +783,9 @@ export class BanioDialogComponent implements OnInit {
         const metodoActualizar = this.hidePatientInfo ? 'actualizarBanioPaciente' : 'actualizarBanio';
 
         servicioAUsar[metodoActualizar](this.data.id, payload)
-          .then(() => {
+          .then(async () => {
+            const pid = String(this.banioForm.get('paciente_id')?.value || this.data.paciente_id || '');
+            await this.sincronizarAlergiasMascota(pid, alergiasSync);
             this.loadingService.show();
             this.dialogRef.close(true);
           })
@@ -779,7 +801,9 @@ export class BanioDialogComponent implements OnInit {
         const metodoCrear = this.hidePatientInfo ? 'crearBanioPaciente' : 'crearBanio';
 
         servicioAUsar[metodoCrear](datosLimpios)
-          .then(() => {
+          .then(async () => {
+            const pid = String(datosLimpios.paciente_id || this.banioForm.get('paciente_id')?.value || '');
+            await this.sincronizarAlergiasMascota(pid, alergiasSync);
             this.loadingService.show();
             this.dialogRef.close(true);
           })

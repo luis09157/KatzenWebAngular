@@ -1,14 +1,16 @@
 import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, firstValueFrom } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
+import { PacientesService } from '../pacientes/pacientes.service';
+import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
   Visita,
   VisitaLinea,
@@ -37,6 +39,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   lineas: VisitaLinea[] = [];
   pagado = 0;
   estadoLabel = VISITA_ESTADO_LABELS.abierta;
+  /** Spec 034 */
+  alergiasPaciente: string[] = [];
 
   readonly categoriaLabels = VISITA_LINEA_CATEGORIA_LABELS;
   readonly categorias: VisitaLineaCategoria[] = [
@@ -61,6 +65,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<VisitaDialogComponent>,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
+    private pacientesService: PacientesService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       visita?: Visita;
@@ -107,6 +112,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         this.form.disable();
         this.lineaForm.disable();
       }
+      if (v.paciente_id) {
+        void this.cargarAlergias(v.paciente_id);
+      }
     } else {
       this.form.patchValue({
         cliente_id: this.data?.cliente_id || '',
@@ -115,6 +123,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         paciente: this.data?.paciente || '',
         fecha: this.data?.fecha || hoyLocalIsoDate()
       });
+      if (this.data?.paciente_id) {
+        void this.cargarAlergias(this.data.paciente_id);
+      }
     }
   }
 
@@ -130,6 +141,23 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       paciente_id: sel.paciente_id || '',
       paciente: sel.paciente || ''
     });
+    const fromSel = normalizeAlergias(sel.pacienteData);
+    if (fromSel.length) {
+      this.alergiasPaciente = fromSel;
+    } else if (sel.paciente_id) {
+      void this.cargarAlergias(sel.paciente_id);
+    } else {
+      this.alergiasPaciente = [];
+    }
+  }
+
+  private async cargarAlergias(pacienteId: string): Promise<void> {
+    try {
+      const p = await firstValueFrom(this.pacientesService.getPaciente(pacienteId).pipe(take(1)));
+      this.alergiasPaciente = normalizeAlergias(p);
+    } catch {
+      this.alergiasPaciente = [];
+    }
   }
 
   agregarLineaLocal(): void {

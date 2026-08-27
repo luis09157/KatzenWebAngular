@@ -1,0 +1,35 @@
+<section class="alergias-editor" [class.alergias-editor--readonly]="readonly">
+  <ul class="alergias-editor__chips" *ngIf="lista.length; else vacio">
+    <li class="alergias-editor__chip" *ngFor="let a of lista; let i = index">
+      <span>{{ a }}</span>
+      <button
+        *ngIf="!readonly"
+        type="button"
+        mat-icon-button
+        class="alergias-editor__remove"
+        (click)="quitar(i)"
+        [attr.aria-label]="'Quitar ' + a">
+        <mat-icon>close</mat-icon>
+      </button>
+    </li>
+  </ul>
+  <ng-template #vacio>
+    <p class="alergias-editor__empty">Sin alergias registradas</p>
+  </ng-template>
+
+  <div class="alergias-editor__add" *ngIf="!readonly">
+    <mat-form-field appearance="outline" class="alergias-editor__field">
+      <mat-label>Agregar alergia</mat-label>
+      <input
+        matInput
+        [(ngModel)]="nueva"
+        [placeholder]="placeholder"
+        (keydown)="onKeydown($event)"
+        maxlength="80" />
+    </mat-form-field>
+    <button mat-stroked-button type="button" (click)="agregar()" [disabled]="!nueva.trim()">
+      <mat-icon>add</mat-icon>
+      Agregar
+    </button>
+  </div>
+</section>

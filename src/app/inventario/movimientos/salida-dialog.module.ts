@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { CajaDialogModule } from '../../finanzas/caja-dialog.module';
+import { SharedModule } from '../../shared/shared.module';
 import { SalidaDialogComponent } from './salida-dialog.component';
 
 @NgModule({
@@ -27,7 +28,8 @@ import { SalidaDialogComponent } from './salida-dialog.component';
     MatIconModule,
     MatAutocompleteModule,
     MatProgressSpinnerModule,
-    CajaDialogModule
+    CajaDialogModule,
+    SharedModule
   ],
   exports: [SalidaDialogComponent]
 })

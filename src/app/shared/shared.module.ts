@@ -29,6 +29,8 @@ import { AdminModuleCardComponent } from './admin/admin-module-card.component';
 import { ClientePacientePickerComponent } from './admin/cliente-paciente-picker.component';
 import { AdminEstadoClassPipe } from './pipes/admin-estado-class.pipe';
 import { AdminPrioridadClassPipe } from './pipes/admin-prioridad-class.pipe';
+import { AlergiasAlertaComponent } from './alergias/alergias-alerta.component';
+import { AlergiasEditorComponent } from './alergias/alergias-editor.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
@@ -46,7 +48,9 @@ import { RouterModule } from '@angular/router';
     AdminModuleCardComponent,
     AdminEstadoClassPipe,
     AdminPrioridadClassPipe,
-    ClientePacientePickerComponent
+    ClientePacientePickerComponent,
+    AlergiasAlertaComponent,
+    AlergiasEditorComponent
   ],
   imports: [
     CommonModule,
@@ -94,6 +98,8 @@ import { RouterModule } from '@angular/router';
     AdminEstadoClassPipe,
     AdminPrioridadClassPipe,
     ClientePacientePickerComponent,
+    AlergiasAlertaComponent,
+    AlergiasEditorComponent,
     MatAutocompleteModule,
     MatCardModule,
     MatMenuModule,

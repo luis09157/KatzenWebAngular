@@ -49,6 +49,8 @@ export const MOCK_MASCOTA: Paciente = {
   cliente_id: MOCK_CLIENTE.id,
   activo: true,
   fecha_creacion: '2026-01-15T10:00:00.000Z',
+  /** Spec 034 — alergias canónicas en expediente. */
+  alergias: ['Penicilina', 'Shampoo común'],
 };
 
 /** Cliente adicional para probar autocomplete «Luis» (spec 029). */

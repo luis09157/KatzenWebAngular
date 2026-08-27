@@ -12,6 +12,8 @@ import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 import { ADMIN_DIALOG_CONFIG } from '../../core/config/admin-ui.config';
 import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
 import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.util';
+import { PacientesService } from '../../pacientes/pacientes.service';
+import { normalizeAlergias } from '../../shared/alergias/alergias.util';
 
 /** Prefill opcional al abrir desde historial / pensión / vacunas (spec 022). */
 export interface SalidaDialogData {
@@ -42,6 +44,8 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   productos: Producto[] = [];
   productosFiltrados: Observable<Producto[]>;
   productoSeleccionado: Producto | null = null;
+  /** Spec 034 — alerta si hay vínculo paciente. */
+  alergiasPaciente: string[] = [];
 
   readonly contextoHistorial: boolean;
   readonly hideRegistrarEnCaja: boolean;
@@ -66,6 +70,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private loadingService: LoadingService,
+    private pacientesService: PacientesService,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: SalidaDialogData | null
   ) {
     const d = data || {};
@@ -91,6 +96,20 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarProductos();
+    const pid = this.data?.pacienteId;
+    if (pid) {
+      this.pacientesService
+        .getPaciente(pid)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (p) => {
+            this.alergiasPaciente = normalizeAlergias(p);
+          },
+          error: () => {
+            this.alergiasPaciente = [];
+          }
+        });
+    }
   }
 
   ngOnDestroy(): void {

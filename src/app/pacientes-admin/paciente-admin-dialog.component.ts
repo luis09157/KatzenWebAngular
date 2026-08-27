@@ -9,6 +9,7 @@ import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
+import { normalizeAlergias } from '../shared/alergias/alergias.util';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -21,6 +22,8 @@ export class PacienteAdminDialogComponent implements OnInit {
   isEditMode = false;
   isViewMode = false;
   loading = false;
+  /** Spec 034 — lista editable de alergias (fuente de verdad Mascota). */
+  alergiasLista: string[] = [];
 
   especies = ['CANINO', 'FELINO', 'AVE', 'REPTIL', 'OTRO'];
   sexos = ['Macho Entero', 'Macho Castrado', 'Hembra Entera', 'Hembra Esterilizada'];
@@ -145,6 +148,7 @@ export class PacienteAdminDialogComponent implements OnInit {
       delete formData.edad;
       console.log('🔍 Datos del paciente antes de patchValue:', formData);
       this.pacienteForm.patchValue(formData);
+      this.alergiasLista = normalizeAlergias(pacienteData);
       
       // Luego asignar la fecha específicamente con setTimeout para asegurar que el datepicker esté listo
       if (fechaConvertida) {
@@ -365,7 +369,8 @@ export class PacienteAdminDialogComponent implements OnInit {
           cliente_id: formValues.idCliente,
           imageUrl: imageUrl,
           imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.paciente?.imageFileName || ''),
-          fecha: new Date().toLocaleString('es-ES')
+          fecha: new Date().toLocaleString('es-ES'),
+          alergias: normalizeAlergias(this.alergiasLista)
         };
 
         if (this.isEditMode || this.isViewMode) {

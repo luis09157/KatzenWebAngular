@@ -14,6 +14,7 @@ export class PortalMascotaDetalleComponent implements OnInit {
   errorMessage = '';
   mascotaId = '';
   mascota: any = null;
+  alergiasLista: string[] = [];
   counts = {
     vacunas: 0,
     citas: 0,
@@ -52,6 +53,9 @@ export class PortalMascotaDetalleComponent implements OnInit {
       }
 
       this.metaLine = this.buildMetaLine(this.mascota);
+      this.alergiasLista = Array.isArray(this.mascota.alergias)
+        ? this.mascota.alergias.map((a: unknown) => String(a).trim()).filter(Boolean)
+        : [];
       this.counts = await this.portalData.getCounts(this.mascotaId);
     } catch {
       this.errorMessage = PORTAL_LOAD_ERROR;

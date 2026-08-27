@@ -1,0 +1,12 @@
+<div class="alergias-alerta" *ngIf="visible" role="alert">
+  <div class="alergias-alerta__icon" aria-hidden="true">
+    <mat-icon>warning_amber</mat-icon>
+  </div>
+  <div class="alergias-alerta__body">
+    <strong class="alergias-alerta__title">{{ titulo }}</strong>
+    <p class="alergias-alerta__msg">{{ mensaje }}</p>
+    <ul class="alergias-alerta__chips">
+      <li class="alergias-chip" *ngFor="let a of lista">{{ a }}</li>
+    </ul>
+  </div>
+</div>

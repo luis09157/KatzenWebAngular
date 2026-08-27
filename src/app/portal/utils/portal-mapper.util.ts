@@ -180,6 +180,13 @@ export function mapVisita(id: string, raw: Record<string, unknown>) {
 }
 
 export function mapMascota(id: string, raw: Record<string, unknown>) {
+  const alergiasRaw = raw['alergias'] ?? raw['alergiasTexto'] ?? raw['alergias_texto'];
+  let alergias: string[] = [];
+  if (Array.isArray(alergiasRaw)) {
+    alergias = alergiasRaw.map(a => String(a ?? '').trim()).filter(Boolean);
+  } else if (typeof alergiasRaw === 'string' && alergiasRaw.trim()) {
+    alergias = alergiasRaw.split(/[,;\n|]+/).map(s => s.trim()).filter(Boolean);
+  }
   return {
     id,
     nombre: raw['nombre'] || 'Sin nombre',
@@ -190,6 +197,7 @@ export function mapMascota(id: string, raw: Record<string, unknown>) {
     peso: raw['peso'] || '',
     imageUrl: raw['imageUrl'] || raw['rutaImagen'] || '',
     idCliente: raw['idCliente'] || raw['cliente_id'] || '',
-    activo: raw['activo'] !== false
+    activo: raw['activo'] !== false,
+    alergias
   };
 }

@@ -28,6 +28,8 @@
         </p>
       </div>
 
+      <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+
       <section class="form-section">
         <h3 class="form-section__title">
           Programación
@@ -214,37 +216,16 @@
 
       <section class="form-section">
         <h3 class="form-section__title">
-          Alergias conocidas
-          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          Alergias del paciente
+          <span class="form-section__badge form-section__badge--optional">Expediente</span>
         </h3>
-        <div class="dynamic-list">
-          <div class="dynamic-list__row"
-               *ngFor="let alergia of banioForm.get('alergias_conocidas')?.value; let i = index">
-            <div class="form-grid form-grid--compact">
-              <mat-form-field appearance="outline">
-                <mat-label>Alergia</mat-label>
-                <mat-select [(ngModel)]="banioForm.get('alergias_conocidas')?.value[i]" [ngModelOptions]="{standalone: true}">
-                  <mat-option *ngFor="let tipoAlergia of tiposAlergias" [value]="tipoAlergia.value">
-                    {{ tipoAlergia.label }}
-                  </mat-option>
-                  <mat-option value="otra">Otra (especificar)</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" *ngIf="banioForm.get('alergias_conocidas')?.value[i] === 'otra'">
-                <mat-label>Especificar alergia</mat-label>
-                <input matInput [(ngModel)]="alergiasEspecificas[i]" [ngModelOptions]="{standalone: true}" placeholder="Describir alergia">
-              </mat-form-field>
-            </div>
-            <button mat-icon-button type="button" color="warn" (click)="removerAlergia(i)" aria-label="Quitar alergia">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-          <button mat-stroked-button type="button" (click)="agregarAlergia()" class="dynamic-list__add">
-            <mat-icon>add</mat-icon>
-            Agregar alergia
-          </button>
-        </div>
+        <p class="form-section__hint" style="margin:0 0 10px;font-size:0.8125rem;color:var(--admin-muted,#6b7280)">
+          Se guardan en la mascota (fuente de verdad) y como snapshot en el baño.
+        </p>
+        <app-alergias-editor
+          [alergias]="alergiasPaciente"
+          (alergiasChange)="onAlergiasPacienteChange($event)">
+        </app-alergias-editor>
       </section>
 
       <section class="form-section">

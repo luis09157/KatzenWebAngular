@@ -98,7 +98,7 @@ Priorizado por ROI para una clínica veterinaria típica (no pedido aún; **back
 | 2 | **Deuda / saldo cliente** (crédito, pagos parciales) | Sin CxC no hay control de «me debe el baño» | Alta | **032 done** |
 | 3 | **Refuerzo vacuna → recordatorio automático** | El campo `proximaAplicacion` existe; no siempre crea `Recordatorios` | Alta | **033 done** |
 | 4 | **Consentimientos / autorización** (cirugía, eutanasia, internado) | Riesgo legal; no hay nodo ni UI | Media | backlog |
-| 5 | **Alergias cruzadas** (mascota ↔ baño ↔ historial ↔ productos) | Baño tiene `alergias_conocidas` local; no pisa expediente ni alerta al agendar | Media | backlog |
+| 5 | ~~**Alergias cruzadas** (mascota ↔ baño ↔ historial ↔ productos)~~ | **Hecho 034** — `Mascota.alergias` + `app-alergias-alerta` | — | done |
 | 6 | **Venta de producto ligada a paciente** | Salida inventario `venta_directa` no exige `paciente_id` | Media | backlog |
 | 7 | **Staff responsable por acto** (UID, no solo nombre libre `veterinario` / `medico_atendio`) | Auditoría y comisión; hoy es texto | Media | backlog |
 | 8 | **Auditoría quién editó** (created_by / updated_by inconsistente) | Disputas de cobro y clínica | Media | backlog |

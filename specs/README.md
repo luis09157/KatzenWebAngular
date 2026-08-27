@@ -46,6 +46,8 @@ specs/
 ├── 028-portal-banos-finanzas-servicio/  # Portal baños read-only + tab ingresos por servicio
 ├── 031-interconexion-modulos/           # **done** grafo IDs + atajos + portal pensión/recordatorios
 ├── 032-ticket-visita-saldo-cliente/     # **done** ticket visita + CxC + portal visitas
+├── 033-vacuna-recordatorio-auto/       # **done** vacuna → recordatorio refuerzo
+├── 034-alergias-cruzadas-mascota/      # alergias canónicas + alertas cruzadas + portal
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
