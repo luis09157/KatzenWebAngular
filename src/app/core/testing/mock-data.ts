@@ -530,6 +530,41 @@ export const MOCK_PORTAL_VISITA = {
   cliente: 'Ana Pérez'
 };
 
+/** Spec 037 — consentimiento clínico. */
+export const MOCK_CONSENTIMIENTO = {
+  id: 'mock-consent-001',
+  cliente_id: MOCK_CLIENTE.id!,
+  cliente: 'Ana Pérez',
+  paciente_id: MOCK_MASCOTA.id!,
+  paciente: MOCK_MASCOTA.nombre,
+  tipo: 'cirugia' as const,
+  fecha: '2026-08-26',
+  firmado_por: 'Ana Pérez',
+  parentesco: 'Dueña',
+  staff_uid: 'mock-staff-001',
+  staff_nombre: 'Dr. Juan Pérez Mock',
+  notas: 'Consentimiento informado prequirúrgico',
+  estado: 'vigente' as const,
+  activo: true,
+  created_at: '2026-08-26T16:00:00.000Z'
+};
+
+export const MOCK_PORTAL_CONSENTIMIENTO = {
+  id: MOCK_CONSENTIMIENTO.id,
+  paciente_id: MOCK_CONSENTIMIENTO.paciente_id,
+  cliente_id: MOCK_CONSENTIMIENTO.cliente_id,
+  fecha: MOCK_CONSENTIMIENTO.fecha,
+  tipo: MOCK_CONSENTIMIENTO.tipo,
+  tipo_label: 'Cirugía',
+  estado: 'vigente',
+  estado_label: 'Vigente',
+  firmado_por: MOCK_CONSENTIMIENTO.firmado_por,
+  parentesco: MOCK_CONSENTIMIENTO.parentesco,
+  notas: MOCK_CONSENTIMIENTO.notas,
+  paciente: MOCK_CONSENTIMIENTO.paciente,
+  cliente: MOCK_CONSENTIMIENTO.cliente
+};
+
 /** Meta de inversión dashboard (spec 030). */
 export const MOCK_INVERSION_META = {
   montoMeta: 500000,

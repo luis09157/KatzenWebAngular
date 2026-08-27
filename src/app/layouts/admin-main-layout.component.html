@@ -89,6 +89,10 @@
         <mat-icon matListItemIcon>receipt_long</mat-icon>
         <span matListItemTitle>Visitas / tickets</span>
       </a>
+      <a *ngIf="canShow('consentimientos')" mat-list-item routerLink="/admin/consentimientos" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
+        <span matListItemTitle>Consentimientos</span>
+      </a>
       <a *ngIf="canShow('pension')" mat-list-item routerLink="/admin/pension" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>hotel</mat-icon>
         <span matListItemTitle>Pensión</span>

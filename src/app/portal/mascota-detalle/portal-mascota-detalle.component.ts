@@ -23,6 +23,7 @@ export class PortalMascotaDetalleComponent implements OnInit {
     pension: 0,
     recordatorios: 0,
     visitas: 0,
+    consentimientos: 0,
     saldoPendiente: 0
   };
   metaLine = '';
@@ -65,7 +66,15 @@ export class PortalMascotaDetalleComponent implements OnInit {
   }
 
   ir(
-    seccion: 'vacunas' | 'citas' | 'historial' | 'banos' | 'pension' | 'recordatorios' | 'visitas'
+    seccion:
+      | 'vacunas'
+      | 'citas'
+      | 'historial'
+      | 'banos'
+      | 'pension'
+      | 'recordatorios'
+      | 'visitas'
+      | 'consentimientos'
   ): void {
     this.router.navigate(['/portal/mascotas', this.mascotaId, seccion]);
   }

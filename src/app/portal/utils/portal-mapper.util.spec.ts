@@ -6,7 +6,8 @@ import {
   mapMascota,
   mapPension,
   mapRecordatorio,
-  mapVisita
+  mapVisita,
+  mapConsentimiento
 } from './portal-mapper.util';
 
 describe('portal-mapper.util', () => {
@@ -152,6 +153,24 @@ describe('portal-mapper.util', () => {
       expect(mapped['saldo']).toBe(450);
       expect(mapped['lineas_count']).toBe(1);
       expect(Object.prototype.hasOwnProperty.call(mapped, 'cajaMovimientoIds')).toBeFalse();
+    });
+  });
+
+  describe('mapConsentimiento (037 portal)', () => {
+    it('maps tipo y firmante', () => {
+      const mapped = mapConsentimiento('c1', {
+        paciente_id: 'm1',
+        cliente_id: 'cli1',
+        fecha: '2026-08-26',
+        tipo: 'cirugia',
+        estado: 'vigente',
+        firmado_por: 'Ana Pérez',
+        notas: 'OK'
+      }) as Record<string, unknown>;
+
+      expect(mapped['tipo_label']).toBe('Cirugía');
+      expect(mapped['estado_label']).toBe('Vigente');
+      expect(mapped['firmado_por']).toBe('Ana Pérez');
     });
   });
 

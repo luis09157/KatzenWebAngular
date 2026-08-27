@@ -107,6 +107,13 @@ const routes: Routes = [
         canActivate: [StaffRoleGuard],
         data: { staffModule: 'visitas' }
       },
+      {
+        path: 'consentimientos',
+        loadChildren: () =>
+          import('./consentimientos/consentimientos.module').then(m => m.ConsentimientosModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'consentimientos' }
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

@@ -50,7 +50,7 @@ specs/
 ├── 034-alergias-cruzadas-mascota/      # alergias canónicas + alertas cruzadas + portal
 ├── 035-staff-uid-acto/                 # **done** staff UID/nombre por acto clínico
 ├── 036-ticket-mejoras/                 # mejoras ticket (filtros, print, presets, CxC)
-├── 037-consentimientos-clinicos/       # **draft** siguiente tras 036
+├── 037-consentimientos-clinicos/       # **done** consentimientos admin + portal
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

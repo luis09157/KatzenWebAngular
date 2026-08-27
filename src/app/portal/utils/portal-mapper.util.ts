@@ -179,6 +179,42 @@ export function mapVisita(id: string, raw: Record<string, unknown>) {
   };
 }
 
+const TIPO_CONSENTIMIENTO_LABELS: Record<string, string> = {
+  cirugia: 'Cirugía',
+  anestesia: 'Anestesia',
+  egreso: 'Egreso / alta',
+  hospitalizacion: 'Hospitalización',
+  eutanasia: 'Eutanasia',
+  tratamiento: 'Tratamiento',
+  otro: 'Otro'
+};
+
+const ESTADO_CONSENTIMIENTO_LABELS: Record<string, string> = {
+  vigente: 'Vigente',
+  revocado: 'Revocado'
+};
+
+/** Consentimiento clínico — portal read-only. Spec 037. */
+export function mapConsentimiento(id: string, raw: Record<string, unknown>) {
+  const tipo = String(raw['tipo'] || 'otro');
+  const estado = String(raw['estado'] || 'vigente');
+  return {
+    id,
+    paciente_id: raw['paciente_id'] || '',
+    cliente_id: raw['cliente_id'] || '',
+    fecha: raw['fecha'] || '',
+    tipo,
+    tipo_label: TIPO_CONSENTIMIENTO_LABELS[tipo] || tipo,
+    estado,
+    estado_label: ESTADO_CONSENTIMIENTO_LABELS[estado] || estado,
+    firmado_por: raw['firmado_por'] || '',
+    parentesco: raw['parentesco'] || '',
+    notas: raw['notas'] || '',
+    paciente: raw['paciente'] || '',
+    cliente: raw['cliente'] || ''
+  };
+}
+
 export function mapMascota(id: string, raw: Record<string, unknown>) {
   const alergiasRaw = raw['alergias'] ?? raw['alergiasTexto'] ?? raw['alergias_texto'];
   let alergias: string[] = [];

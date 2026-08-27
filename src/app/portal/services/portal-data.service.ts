@@ -13,6 +13,7 @@ import {
   mapPension,
   mapRecordatorio,
   mapVisita,
+  mapConsentimiento,
   mapVacuna
 } from '../utils/portal-mapper.util';
 import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
@@ -158,6 +159,19 @@ export class PortalDataService {
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
+  async getConsentimientosPorMascota(mascotaId: string) {
+    const snap = await firstValueFrom(
+      this.db.list('Katzen/Consentimientos', ref =>
+        ref.orderByChild('paciente_id').equalTo(mascotaId)
+      ).snapshotChanges().pipe(take(1))
+    );
+
+    return snap
+      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
+      .map(a => mapConsentimiento(a.key!, a.payload.val() as Record<string, unknown>))
+      .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+  }
+
   async getHistorialesPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
       this.db.list('Katzen/Historiales_Clinicos', ref =>
@@ -186,15 +200,17 @@ export class PortalDataService {
   }
 
   async getCounts(mascotaId: string) {
-    const [vacunas, citas, historiales, banos, pension, recordatorios, visitas] = await Promise.all([
-      this.getVacunasPorMascota(mascotaId),
-      this.getCitasPorMascota(mascotaId),
-      this.getHistorialesPorMascota(mascotaId),
-      this.getBaniosPorMascota(mascotaId),
-      this.getPensionPorMascota(mascotaId),
-      this.getRecordatoriosPorMascota(mascotaId),
-      this.getVisitasPorMascota(mascotaId)
-    ]);
+    const [vacunas, citas, historiales, banos, pension, recordatorios, visitas, consentimientos] =
+      await Promise.all([
+        this.getVacunasPorMascota(mascotaId),
+        this.getCitasPorMascota(mascotaId),
+        this.getHistorialesPorMascota(mascotaId),
+        this.getBaniosPorMascota(mascotaId),
+        this.getPensionPorMascota(mascotaId),
+        this.getRecordatoriosPorMascota(mascotaId),
+        this.getVisitasPorMascota(mascotaId),
+        this.getConsentimientosPorMascota(mascotaId)
+      ]);
     return {
       vacunas: vacunas.length,
       citas: citas.length,
@@ -203,6 +219,7 @@ export class PortalDataService {
       pension: pension.length,
       recordatorios: recordatorios.length,
       visitas: visitas.length,
+      consentimientos: consentimientos.length,
       saldoPendiente: visitas.reduce((s, v) => s + Math.max(0, Number(v.saldo) || 0), 0)
     };
   }

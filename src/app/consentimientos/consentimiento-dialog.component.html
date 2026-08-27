@@ -1,0 +1,86 @@
+<div class="admin-dialog-shell consentimiento-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar consentimiento' : 'Nuevo consentimiento' }}</h2>
+      <p class="admin-dialog-subtitle">Autorización informada ligada a cliente y paciente.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded admin-form-layout">
+      <app-cliente-paciente-picker
+        *ngIf="!esEdicion"
+        class="full-width"
+        [formGroup]="form"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
+      <div class="entity-summary entity-summary--compact full-width" *ngIf="esEdicion">
+        <h3 class="entity-summary__name">{{ form.get('paciente')?.value || 'Paciente' }}</h3>
+        <p class="entity-summary__meta">Cliente: {{ form.get('cliente')?.value || '—' }}</p>
+      </div>
+      <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo" required>
+          <mat-option *ngFor="let t of tipos" [value]="t">{{ tipoLabels[t] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" formControlName="fecha" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Firmado por</mat-label>
+        <input matInput formControlName="firmado_por" required maxlength="120" placeholder="Nombre del dueño o tutor" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Parentesco (opcional)</mat-label>
+        <input matInput formControlName="parentesco" maxlength="80" placeholder="Dueño, tutor, etc." />
+      </mat-form-field>
+
+      <app-staff-picker
+        class="full-width"
+        [formGroup]="form"
+        [fields]="staffPickerFields"
+        roleFilter="all"
+        label="Registrado por"
+        [required]="false"
+        [prefillCurrentUser]="!esEdicion"
+        hint="Staff que registró el consentimiento.">
+      </app-staff-picker>
+
+      <mat-form-field appearance="outline" *ngIf="esEdicion">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado">
+          <mat-option value="vigente">{{ estadoLabels.vigente }}</mat-option>
+          <mat-option value="revocado">{{ estadoLabels.revocado }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notas</mat-label>
+        <textarea matInput rows="3" formControlName="notas" maxlength="800"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions" align="end">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      (click)="guardar()"
+      [disabled]="loading || form.invalid">
+      {{ esEdicion ? 'Guardar' : 'Registrar' }}
+    </button>
+  </mat-dialog-actions>
+</div>

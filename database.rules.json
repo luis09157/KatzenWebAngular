@@ -216,6 +216,15 @@
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },
+      "Consentimientos": {
+        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["cliente_id", "paciente_id", "fecha", "tipo", "estado", "activo"],
+        "$consentimientoId": {
+          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role != 'client'"
+        }
+      },
       "Finanzas": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'",

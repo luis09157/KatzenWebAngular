@@ -12,7 +12,8 @@ export type PortalListSection =
   | 'banos'
   | 'pension'
   | 'recordatorios'
-  | 'visitas';
+  | 'visitas'
+  | 'consentimientos';
 
 @Component({
   selector: 'app-portal-list-section',
@@ -38,7 +39,8 @@ export class PortalListSectionComponent implements OnInit {
       banos: 'content_cut',
       pension: 'home',
       recordatorios: 'notifications',
-      visitas: 'receipt_long'
+      visitas: 'receipt_long',
+      consentimientos: 'assignment_turned_in'
     };
     return icons[this.seccion];
   }
@@ -51,7 +53,8 @@ export class PortalListSectionComponent implements OnInit {
       banos: 'No hay baños ni peluquería registrados',
       pension: 'No hay estancias de pensión',
       recordatorios: 'No hay recordatorios',
-      visitas: 'No hay visitas ni tickets'
+      visitas: 'No hay visitas ni tickets',
+      consentimientos: 'No hay consentimientos registrados'
     };
     return msgs[this.seccion];
   }
@@ -77,7 +80,8 @@ export class PortalListSectionComponent implements OnInit {
       banos: 'Baños y peluquería',
       pension: 'Pensión',
       recordatorios: 'Recordatorios',
-      visitas: 'Visitas / cuenta'
+      visitas: 'Visitas / cuenta',
+      consentimientos: 'Consentimientos'
     };
     this.titulo = titulos[this.seccion] || 'Expediente';
 
@@ -106,6 +110,8 @@ export class PortalListSectionComponent implements OnInit {
         this.items = await this.portalData.getRecordatoriosPorMascota(this.mascotaId);
       } else if (this.seccion === 'visitas') {
         this.items = await this.portalData.getVisitasPorMascota(this.mascotaId);
+      } else if (this.seccion === 'consentimientos') {
+        this.items = await this.portalData.getConsentimientosPorMascota(this.mascotaId);
       } else {
         this.items = await this.portalData.getHistorialesPorMascota(this.mascotaId);
       }
@@ -127,6 +133,9 @@ export class PortalListSectionComponent implements OnInit {
     if (this.seccion === 'visitas') {
       const saldo = Number(item['saldo']) || 0;
       return `Visita · saldo $${saldo.toFixed(2)}`;
+    }
+    if (this.seccion === 'consentimientos') {
+      return String(item['tipo_label'] || item['tipo'] || 'Consentimiento');
     }
     return String(item['diagnostico'] || 'Consulta');
   }
@@ -152,6 +161,11 @@ export class PortalListSectionComponent implements OnInit {
       const pagado = Number(item['pagado']) || 0;
       return `${this.formatDate(String(item['fecha'] || ''))} · total $${total.toFixed(2)} · pagado $${pagado.toFixed(2)}`;
     }
+    if (this.seccion === 'consentimientos') {
+      const firmante = String(item['firmado_por'] || '').trim();
+      const fecha = this.formatDate(String(item['fecha'] || ''));
+      return firmante ? `${fecha} · Firmó: ${firmante}` : fecha;
+    }
     return this.formatDate(String(item['fecha_registro'] || ''));
   }
 
@@ -161,7 +175,8 @@ export class PortalListSectionComponent implements OnInit {
       this.seccion === 'banos' ||
       this.seccion === 'pension' ||
       this.seccion === 'recordatorios' ||
-      this.seccion === 'visitas'
+      this.seccion === 'visitas' ||
+      this.seccion === 'consentimientos'
     ) {
       const estado = String(item['estado_label'] || item['estado'] || '').trim();
       return estado || null;

@@ -104,7 +104,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; ~~portal baños~~ **028**; ~~interconexión + pensión/recordatorios portal~~ **031**; **Cypress portal** guest + auth (skip sin env) | Media |
 | **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Finanzas / CxC** | **032 done** ticket+CxC. **036 done:** mejoras ticket (filtros KPI, presets, print, anti-huérfana, CxC clientes) — `specs/036-ticket-mejoras/`. | Alta — **036 cerrada** |
-| **Ops clínicas** | **033–035 done.** Siguiente: **037 consentimientos** (stub) — `specs/037-consentimientos-clinicos/`. Luego Resend al final. | Alta |
+| **Ops clínicas** | **033–037 done** (vacuna→recordatorio, alergias, staff UID, ticket mejoras, **consentimientos**). Siguiente: **Resend / correo portal al final**. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |
