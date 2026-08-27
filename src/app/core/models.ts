@@ -58,8 +58,9 @@ export interface Cita {
   hora?: string;
   motivo?: string;
   estado?: string;
-  /** Nombre del doctor asignado (formulario admin). */
+  /** Nombre del doctor asignado (display / legacy). */
   veterinario?: string;
+  /** Spec 035 — UID Auth del staff (`Katzen/Usuarios/{uid}`). */
   veterinario_id?: string;
   /** Duración del slot en minutos; default web 30. Campo aditivo RTDB. */
   duracion_minutos?: number;
@@ -76,6 +77,10 @@ export interface Historial {
   diagnostico_presuntivo?: string;
   manejo_terapeutico?: string;
   receta?: string;
+  /** Nombre del médico (display / legacy). */
+  medico_atendio?: string;
+  /** Spec 035 — UID Auth del médico que atendió. */
+  medico_atendio_uid?: string;
   /** Notas solo staff/médicos — no mostrar en portal ni app móvil. */
   notas_internas?: string;
   activo?: boolean;

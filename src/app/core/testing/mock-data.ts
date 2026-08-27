@@ -323,6 +323,7 @@ export const MOCK_BANIO = {
   estado: 'completado' as const,
   prioridad: 'media' as const,
   peluquero_id: 'mock-staff-001',
+  peluquero: 'María Peluquera Mock',
   precio_base: 350,
   precio_total: 450,
   pagado: true,
@@ -420,6 +421,21 @@ export const MOCK_PORTAL_RECORDATORIO = {
   notas: 'Traer cartilla'
 };
 
+export const MOCK_HISTORIAL = {
+  id: 'mock-historial-001',
+  paciente_id: MOCK_MASCOTA.id!,
+  historia_clinica: 'Consulta mock',
+  diagnostico_presuntivo: 'Dermatitis',
+  manejo_terapeutico: 'Antihistamínico',
+  peso: '8',
+  tr: '38.5',
+  hallazgos: 'Sin hallazgos graves',
+  medico_atendio: 'Dr. Juan Pérez Mock',
+  medico_atendio_uid: 'mock-staff-001',
+  fecha_registro: '2026-08-26 10:00:00',
+  activo: true
+};
+
 /** Spec 033 — vacuna con próxima + recordatorio auto enlazado. */
 export const MOCK_VACUNA = {
   id: 'mock-vacuna-001',
@@ -434,6 +450,8 @@ export const MOCK_VACUNA = {
   intervalo: 365,
   aplicada: true,
   recordatorio: true,
+  veterinario: 'Dr. Juan Pérez Mock',
+  veterinario_id: 'mock-staff-001',
   activo: true
 };
 
@@ -463,6 +481,8 @@ export const MOCK_VISITA = {
   paciente: MOCK_MASCOTA.nombre,
   fecha: '2026-08-26',
   estado: 'abierta' as const,
+  atendidoPorUid: 'mock-staff-001',
+  atendidoPorNombre: 'Dr. Juan Pérez Mock',
   lineas: [
     {
       id: 'ln-1',

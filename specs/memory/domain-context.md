@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **034** alergias cruzadas mascota.
+**Última revisión:** 2026-08-26 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **035** staff UID por acto clínico.
 
 ---
 
@@ -145,7 +145,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `fecha`, `fecha_hora`, `hora` | string | Fechas futuras en alta por defecto; fechas pasadas solo veterinarias (admin operativo) |
 | `motivo` | string | Catálogo fijo en `cita-dialog` |
 | `estado` | enum | `pendiente`, `confirmada`, `completada`, `cancelada` |
-| `veterinario` | string | Nombre del doctor (no UID); **obligatorio** — un veterinario por cita |
+| `veterinario` | string | Nombre display del doctor (legacy + denorm); **obligatorio** en UI |
+| `veterinario_id?` | string | **035** UID Auth staff (`Katzen/Usuarios/{uid}`); aditivo |
 | `duracion_minutos` | number | Default **30** al agendar; editable por el usuario |
 | `motivo_cancelacion` | string | Obligatorio al cancelar; visible en portal |
 | `observaciones` | string | |
@@ -162,7 +163,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `paciente_id` | string | |
 | `diagnostico_presuntivo`, `manejo_terapeutico`, `receta` | string | Campos clínicos principales |
 | `historia_clinica`, `hallazgos`, `estudios_solicitados` | string | Legacy / ampliados |
-| `medico_atendio` | string | **Obligatorio** — veterinario que atendió (auditoría y trazabilidad) |
+| `medico_atendio` | string | **Obligatorio** — nombre display del veterinario que atendió |
+| `medico_atendio_uid?` | string | **035** UID Auth del médico; aditivo; picker `app-staff-picker` |
 | `fecha_registro`, `created_at`, `updated_at` | string | |
 | `activo` | boolean | Baja lógica admin |
 | `oculto_portal` / `ocultoPortal` | boolean | Oculta en portal y app móvil |
@@ -177,6 +179,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `vacuna` / `nombre` | string | Nombre del biológico |
 | `dosis`, `fechaAplicacion`, `fechaRegistro` | varios | Duplicados bloqueados por vacuna+fecha |
 | `aplicada` | boolean | Marcar aplicada actualiza fecha |
+| `veterinario?` | string | Nombre display (legacy + denorm) |
+| `veterinario_id?` | string | **035** UID Auth staff; aditivo |
 | `recordatorio`, `intervalo`, `proximaAplicacion` | varios | **033:** con `proximaAplicacion` (o intervalo) se auto-crea `Recordatorios` pendiente |
 | `activo` | boolean | Baja lógica preferida; `eliminarVacuna` con `remove()` es legacy — no usar |
 
@@ -201,7 +205,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `fecha_banio`, `hora_banio` | string | No duplicar paciente+fecha+hora |
 | `tipo_servicio` | enum | baño_básico, baño_completo, corte_pelo, … |
 | `estado` | enum | programado, en_proceso, completado, cancelado |
-| `peluquero_id` | string | Conflicto de horario validado |
+| `peluquero_id` | string | UID staff; conflicto de horario validado |
+| `peluquero?` | string | **035** nombre denormalizado al guardar |
 | `precio_base`, `precio_total`, `pagado` | number/bool | Cancelar revierte `pagado: false`; **precio_total se captura por registro** (varía; no forzar fijo) |
 | `tamano_perro?` | enum | `pequeno` \| `mediano` \| `grande` — **022** (aditivo) |
 | `costoEstimado?`, `plantillaCostoId?` | number/string | **022** — default por tamaño + override; enlace a caja/margen. **Regla UI (2026-08-26):** si se captura costo, debe ser **estrictamente menor** que `precio_total` (no guardar si costo ≥ venta). |
@@ -247,7 +252,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8d `Katzen/Visitas/{visitaId}` (spec 032)
 
-Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]`, `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `activo`. Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
+Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]`, `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`. Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
 
 ### 3.9 Auth y usuarios
 
@@ -616,6 +621,7 @@ flowchart TD
 | 11 | Mascota Fallecido | Archivar recordatorios automáticamente (evitar recordar a dueños); conservar registros históricos | Confirmado · 017 |
 | 11b | Vacuna → recordatorio refuerzo | Auto-crear pendiente con `proximaAplicacion` / intervalo; cancelar al borrar vacuna | Confirmado · **033** |
 | 11c | Alergias cruzadas mascota | Fuente de verdad en `Mascota.alergias`; alerta en historial/baño/vacuna/visita; portal lectura; sin hard-block | Confirmado · **034** |
+| 11d | Staff UID por acto clínico | Guardar UID Auth + nombre denorm en citas/historiales/vacunas/baños/visitas; legacy solo nombre sigue legible | Confirmado · **035** |
 
 ### Inventario
 
@@ -694,6 +700,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | ~~**Política mermas inventario**~~ | #12 | **Hecho (MVP)** — `specs/007-politica-mermas-inventario/`; autorización dual formal pendiente |
 | ~~**Vacuna → recordatorio auto**~~ | #11b | **Hecho** — `specs/033-vacuna-recordatorio-auto/` |
 | ~~**Alergias cruzadas mascota**~~ | ops / 031 | **Hecho** — `specs/034-alergias-cruzadas-mascota/` (Mascota.alergias + alertas + portal read) |
+| ~~**Staff UID por acto clínico**~~ | ops | **Hecho** — `specs/035-staff-uid-acto/` (picker + UID + nombre denorm en citas/historiales/vacunas/baños/visitas) |
 | **Staff UID por acto clínico** | ops | Quién aplicó vacuna / historial con UID Auth |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

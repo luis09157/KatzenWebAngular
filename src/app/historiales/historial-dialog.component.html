@@ -210,15 +210,16 @@
           <span class="form-section__badge">Requerido</span>
         </h3>
         <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Selecciona el médico veterinario</mat-label>
-            <mat-select formControlName="medico_atendio" [disabled]="cargandoDoctores">
-              <mat-option *ngIf="cargandoDoctores" value="" disabled>Cargando doctores…</mat-option>
-              <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">{{ doctor.nombre }}</mat-option>
-              <mat-option *ngIf="!cargandoDoctores && doctores.length === 0" value="" disabled>No hay doctores disponibles</mat-option>
-            </mat-select>
-            <mat-error *ngIf="historialForm.get('medico_atendio')?.hasError('required')">El médico es requerido</mat-error>
-          </mat-form-field>
+          <app-staff-picker
+            class="full-span"
+            [formGroup]="historialForm"
+            [fields]="staffPickerFields"
+            roleFilter="doctor"
+            label="Médico veterinario"
+            [required]="true"
+            [prefillCurrentUser]="!isEditMode"
+            hint="Se guarda el UID del médico y el nombre para compatibilidad.">
+          </app-staff-picker>
         </div>
       </section>
 

@@ -4,10 +4,8 @@ import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators }
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
@@ -18,7 +16,7 @@ import {
 import {
   ClientePacientePickerFields
 } from '../shared/admin/cliente-paciente-picker.models';
-import Swal from 'sweetalert2';
+import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -49,7 +47,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   modoVer = false;
   clientes: any[] = [];
   pacientes: any[] = [];
-  doctores: any[] = [];
   motivos: string[] = [
     'Consulta General',
     'Vacunación',
@@ -83,6 +80,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     clienteNombre: 'nombreCliente',
     pacienteNombre: 'paciente'
   };
+  readonly staffPickerFields: StaffPickerFields = {
+    uidField: 'veterinario_id',
+    nombreField: 'veterinario'
+  };
   /** doctor | administrador pueden fechas pasadas */
   puedeAgendarFechaPasada = false;
   readonly duracionDefault = CITA_DURACION_DEFAULT_MIN;
@@ -93,9 +94,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
-    private usuariosService: UsuariosService,
     private dateAdapter: DateAdapter<any>,
-    private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private authProfile: AuthProfileService
   ) {
@@ -143,7 +142,8 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       hora: [hora, [Validators.required, this.validarHora.bind(this)]],
       motivo: [data.cita?.motivo || '', Validators.required],
       estado: [data.cita?.estado || 'pendiente', Validators.required],
-      veterinario: [data.cita?.veterinario || '', Validators.required],
+      veterinario: [data.cita?.veterinario || ''],
+      veterinario_id: [data.cita?.veterinario_id || '', Validators.required],
       duracion_minutos: [
         duracionInicial,
         [Validators.required, Validators.min(CITA_DURACION_MINIMA_MIN)]
@@ -245,7 +245,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       this.cargarClientes();
       this.cargarPacientes();
     }
-    this.cargarDoctores();
 
     if (this.data.cita) {
       this.establecerValoresEdicion();
@@ -292,20 +291,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  cargarDoctores() {
-    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
-      next: usuarios => {
-        this.doctores = (usuarios || []).filter(usuario =>
-          usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a'
-        );
-      },
-      error: error => {
-        this.logger.error('Error al cargar doctores en cita:', error);
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar doctores cita'), 'error');
-      }
-    });
-  }
-
   async guardar() {
     this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
     if (this.citaForm.invalid) {
@@ -324,6 +309,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     }
 
     formValue.veterinario = String(formValue.veterinario || '').trim();
+    formValue.veterinario_id = String(formValue.veterinario_id || '').trim();
     formValue.duracion_minutos = Number(formValue.duracion_minutos) || CITA_DURACION_DEFAULT_MIN;
 
     if (String(formValue.estado).toLowerCase() !== 'cancelada') {
@@ -379,7 +365,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       !!this.citaForm.get('fecha')?.value &&
       !!this.citaForm.get('hora')?.value &&
       !!this.citaForm.get('motivo')?.value &&
-      !!this.citaForm.get('veterinario')?.value &&
+      (!!this.citaForm.get('veterinario_id')?.value || !!this.citaForm.get('veterinario')?.value) &&
       Number(this.citaForm.get('duracion_minutos')?.value) >= CITA_DURACION_MINIMA_MIN;
   }
 
@@ -398,6 +384,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       motivo: cita.motivo || '',
       estado: cita.estado || 'pendiente',
       veterinario: cita.veterinario || '',
+      veterinario_id: cita.veterinario_id || '',
       duracion_minutos:
         cita.duracion_minutos != null && Number(cita.duracion_minutos) >= CITA_DURACION_MINIMA_MIN
           ? Number(cita.duracion_minutos)

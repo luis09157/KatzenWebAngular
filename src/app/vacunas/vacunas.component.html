@@ -91,7 +91,8 @@
         <ng-container matColumnDef="veterinario">
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
           <td mat-cell *matCellDef="let vacuna">
-            <span class="tag tag-muted">{{ vacuna.veterinario || 'N/A' }}</span>
+            <span class="tag tag-muted" *ngIf="vacuna.veterinario; else sinVetVac">Atendido por · {{ vacuna.veterinario }}</span>
+            <ng-template #sinVetVac><span class="tag tag-muted">N/A</span></ng-template>
           </td>
         </ng-container>
 

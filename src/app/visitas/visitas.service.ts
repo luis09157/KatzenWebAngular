@@ -91,6 +91,8 @@ export class VisitasService {
       saldo: calc.saldo,
       cajaMovimientoIds: [],
       notas: data.notas || '',
+      atendidoPorUid: data.atendidoPorUid || undefined,
+      atendidoPorNombre: data.atendidoPorNombre || undefined,
       activo: true,
       created_at: now,
       updated_at: now,

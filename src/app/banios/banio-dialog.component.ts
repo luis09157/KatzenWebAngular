@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
 import { Banio } from '../shared/banio.model';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { LoadingService } from '../core/loading.service';
@@ -26,6 +25,7 @@ import {
 import {
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
@@ -39,7 +39,6 @@ import { take } from 'rxjs/operators';
 })
 export class BanioDialogComponent implements OnInit {
   banioForm: FormGroup;
-  usuarios: any[] = [];
   loading = false;
   esEdicion = false;
   hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
@@ -52,6 +51,10 @@ export class BanioDialogComponent implements OnInit {
   private defaultsListos = false;
   readonly tamanos = TAMANOS_PERRO_ORDEN;
   readonly tamanoLabels = TAMANO_PERRO_LABELS;
+  readonly staffPickerFields: StaffPickerFields = {
+    uidField: 'peluquero_id',
+    nombreField: 'peluquero'
+  };
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
   private precioTotalManual = false;
   /** Evita bucles al sincronizar margen % ↔ precio_total. */
@@ -121,7 +124,6 @@ export class BanioDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private baniosService: BaniosService,
     private baniosPacienteService: BaniosPacienteService,
-    private usuariosService: UsuariosService,
     private loadingService: LoadingService,
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
@@ -141,6 +143,7 @@ export class BanioDialogComponent implements OnInit {
       alergias_conocidas: [[]],
       comportamiento: ['tranquilo'],
       peluquero_id: ['', Validators.required],
+      peluquero: [''],
       precio_base: [0, [Validators.min(0)]],
       servicios_adicionales: [[]],
       precio_total: [0, [Validators.required, Validators.min(0)]],
@@ -158,7 +161,6 @@ export class BanioDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarUsuarios();
     void this.cargarDefaultsBanio();
 
     // Verificar si se debe ocultar la información del paciente/cliente
@@ -239,17 +241,6 @@ export class BanioDialogComponent implements OnInit {
         pagadoCtrl.disable({ emitEvent: false });
       }
     }
-  }
-
-  cargarUsuarios() {
-    this.usuariosService.getUsuarios().subscribe(usuarios => {
-      this.usuarios = (usuarios || []).filter(u => u.activo !== false);
-      // Si falta peluquero_id, usar el primero disponible para no bloquear el guardado
-      const peluqueroControl = this.banioForm.get('peluquero_id');
-      if (peluqueroControl && !peluqueroControl.value && this.usuarios.length > 0) {
-        peluqueroControl.patchValue(this.usuarios[0].id);
-      }
-    });
   }
 
   cargarDatosBanio() {
@@ -758,7 +749,7 @@ export class BanioDialogComponent implements OnInit {
         // Actualizar baño existente (solo campos permitidos)
         const permitidos: (keyof typeof datosLimpios)[] = [
           'fecha_banio','hora_banio','tipo_servicio','estado','prioridad','observaciones',
-          'alergias_conocidas','comportamiento','peluquero_id','precio_base','servicios_adicionales',
+          'alergias_conocidas','comportamiento','peluquero_id','peluquero','precio_base','servicios_adicionales',
           'precio_total','pagado','metodo_pago','duracion_estimada','tiempo_inicio','tiempo_fin','activo',
           'updated_at','updated_by','tamano_perro','costoEstimado','plantillaCostoId'
         ];

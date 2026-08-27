@@ -9,6 +9,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
+import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
@@ -41,6 +42,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   estadoLabel = VISITA_ESTADO_LABELS.abierta;
   /** Spec 034 */
   alergiasPaciente: string[] = [];
+  readonly staffPickerFields: StaffPickerFields = {
+    uidField: 'atendidoPorUid',
+    nombreField: 'atendidoPorNombre'
+  };
 
   readonly categoriaLabels = VISITA_LINEA_CATEGORIA_LABELS;
   readonly categorias: VisitaLineaCategoria[] = [
@@ -82,7 +87,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       cliente: [''],
       cliente_id: ['', Validators.required],
       fecha: [hoyLocalIsoDate(), Validators.required],
-      notas: ['']
+      notas: [''],
+      atendidoPorUid: [''],
+      atendidoPorNombre: ['']
     });
     this.lineaForm = this.fb.group({
       descripcion: ['', [Validators.required, Validators.minLength(2)]],
@@ -105,7 +112,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         paciente_id: v.paciente_id || '',
         paciente: v.paciente || '',
         fecha: v.fecha,
-        notas: v.notas || ''
+        notas: v.notas || '',
+        atendidoPorUid: v.atendidoPorUid || '',
+        atendidoPorNombre: v.atendidoPorNombre || ''
       });
       if (v.estado === 'cerrada' || v.estado === 'cancelada') {
         this.soloLectura = true;
@@ -206,6 +215,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         paciente: raw.paciente || '',
         fecha: raw.fecha,
         notas: raw.notas || '',
+        atendidoPorUid: raw.atendidoPorUid || undefined,
+        atendidoPorNombre: raw.atendidoPorNombre || undefined,
         lineas: this.lineas
       });
       return this.visitaId;
@@ -217,6 +228,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       paciente: raw.paciente || '',
       fecha: raw.fecha,
       notas: raw.notas || '',
+      atendidoPorUid: raw.atendidoPorUid || undefined,
+      atendidoPorNombre: raw.atendidoPorNombre || undefined,
       lineas: this.lineas
     });
     this.visitaId = id;

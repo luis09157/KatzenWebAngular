@@ -1,0 +1,23 @@
+<div class="staff-picker" [formGroup]="formGroup">
+  <mat-form-field appearance="outline" class="staff-picker__field">
+    <mat-label>{{ label }}</mat-label>
+    <mat-select
+      [formControl]="uidSelect"
+      [required]="required"
+      (blur)="onBlur()"
+      (closed)="onBlur()">
+      <mat-option *ngIf="cargando" value="" disabled>Cargando personal…</mat-option>
+      <mat-option *ngIf="!cargando && errorCarga" value="" disabled>
+        No se pudo cargar el personal
+      </mat-option>
+      <mat-option *ngIf="!cargando && !errorCarga && staff.length === 0" value="" disabled>
+        No hay personal disponible
+      </mat-option>
+      <mat-option *ngFor="let u of staff" [value]="u.id">
+        {{ u.nombre || u.correo || u.id }}
+      </mat-option>
+    </mat-select>
+    <mat-hint *ngIf="hint">{{ hint }}</mat-hint>
+    <mat-error *ngIf="showRequiredError">Selecciona al personal responsable</mat-error>
+  </mat-form-field>
+</div>

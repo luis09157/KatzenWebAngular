@@ -54,10 +54,14 @@ export class CitasService {
     delete payload.paciente;
 
     const veterinario = String(payload.veterinario || '').trim();
-    if (!veterinario) {
+    const veterinarioId = String(payload.veterinario_id || '').trim();
+    if (!veterinario && !veterinarioId) {
       throw new Error('Debes asignar un veterinario a la cita.');
     }
     payload.veterinario = veterinario;
+    if (veterinarioId) {
+      payload.veterinario_id = veterinarioId;
+    }
 
     let duracion = Number(payload.duracion_minutos);
     if (!Number.isFinite(duracion) || duracion < CITA_DURACION_MINIMA_MIN) {

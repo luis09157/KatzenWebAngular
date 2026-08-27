@@ -120,14 +120,16 @@
             <mat-error *ngIf="citaForm.get('motivo')?.hasError('required')">El motivo es requerido</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Veterinario</mat-label>
-            <mat-select formControlName="veterinario" required>
-              <mat-option value="">Seleccionar veterinario</mat-option>
-              <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">{{ doctor.nombre }}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="citaForm.get('veterinario')?.hasError('required')">El veterinario es obligatorio</mat-error>
-          </mat-form-field>
+          <app-staff-picker
+            class="full-span"
+            [formGroup]="citaForm"
+            [fields]="staffPickerFields"
+            roleFilter="doctor"
+            label="Veterinario"
+            [required]="true"
+            [prefillCurrentUser]="!data?.cita?.id"
+            hint="Se guarda el UID del staff y el nombre para compatibilidad.">
+          </app-staff-picker>
         </div>
       </section>
 

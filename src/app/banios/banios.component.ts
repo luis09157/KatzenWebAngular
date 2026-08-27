@@ -171,7 +171,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
             ...banio,
             paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
             cliente: this.clientesMap[banio.cliente_id] || 'N/P',
-            peluquero: this.usuariosMap[banio.peluquero_id] || 'N/P',
+            peluquero: banio.peluquero || this.usuariosMap[banio.peluquero_id] || 'N/P',
             fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
             hora_banio: this.formatearHora(banio.hora_banio),
             tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),

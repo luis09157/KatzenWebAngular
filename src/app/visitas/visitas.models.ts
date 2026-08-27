@@ -69,6 +69,9 @@ export interface Visita {
   saldo: number;
   cajaMovimientoIds?: string[];
   notas?: string;
+  /** Spec 035 — staff que atendió (opcional). */
+  atendidoPorUid?: string;
+  atendidoPorNombre?: string;
   activo: boolean;
   created_at: string;
   updated_at?: string;
@@ -83,6 +86,8 @@ export interface VisitaFormData {
   paciente?: string;
   fecha: string;
   notas?: string;
+  atendidoPorUid?: string;
+  atendidoPorNombre?: string;
   lineas?: VisitaLinea[];
 }
 

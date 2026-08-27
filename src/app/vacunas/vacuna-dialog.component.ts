@@ -4,7 +4,6 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
@@ -14,6 +13,7 @@ import {
   ClientePacientePickerFields,
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { AsegurarRefuerzoResultado } from '../recordatorios/recordatorios.service';
 import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-recordatorio.util';
 
@@ -28,7 +28,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   vacunaForm: FormGroup;
   isEditMode = false;
   loading = false;
-  doctores: any[] = [];
   pacienteInfo: any = null;
   private operationId: string = '';
 
@@ -37,6 +36,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     pacienteId: 'idPaciente',
     clienteNombre: 'clienteDisplay',
     pacienteNombre: 'pacienteDisplay'
+  };
+  readonly staffPickerFields: StaffPickerFields = {
+    uidField: 'veterinario_id',
+    nombreField: 'veterinario'
   };
 
   get muestraPickerClientePaciente(): boolean {
@@ -85,7 +88,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private vacunasService: VacunasService,
-    private usuariosService: UsuariosService,
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<VacunaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -111,8 +113,9 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       aplicada: [false],
       recordatorio: [false],
       
-      // Personal médico
+      // Personal médico (035: UID + nombre)
       veterinario: [''],
+      veterinario_id: [''],
       
       // Observaciones médicas
       reaccion: [''],
@@ -180,9 +183,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     // Cargar tipos de vacunas desde Firebase
     this.cargarTiposVacunas();
     
-    // Cargar doctores
-    this.cargarDoctores();
-    
     // Establecer IDs si vienen en los datos
     if (this.data?.paciente_id || this.data?.idPaciente) {
       this.vacunaForm.patchValue({
@@ -221,6 +221,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         recordatorio: this.data.recordatorio || false,
         aplicada: this.data.aplicada || false,
         veterinario: this.data.veterinario || '',
+        veterinario_id: this.data.veterinario_id || '',
         idPaciente: this.data.idPaciente || this.data.paciente_id || '',
         idCliente: this.data.idCliente || this.data.cliente_id || '',
         fechaRegistro: this.data.fechaRegistro || '',
@@ -622,45 +623,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.logger.error('❌ Error al inicializar tipos en Firebase:', error);
     }
-  }
-
-  // Cargar lista de doctores
-  cargarDoctores() {
-    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (usuarios: any) => {
-        this.logger.log('Usuarios obtenidos:', usuarios);
-        
-        if (usuarios) {
-          // Convertir el objeto de usuarios a array y filtrar doctores
-          const usuariosArray = Object.keys(usuarios).map(key => ({
-            id: key,
-            ...usuarios[key]
-          }));
-          
-          // Filtrar solo los usuarios con perfil "doctor" o "doctor_a" y que estén activos
-          this.doctores = usuariosArray.filter(usuario => 
-            usuario && 
-            usuario.activo && 
-            (usuario.perfil === 'doctor' || usuario.perfil === 'doctor_a')
-          ).map(doctor => ({
-            id: doctor.id,
-            nombre: doctor.nombre,
-            correo: doctor.correo,
-            telefono: doctor.telefono
-          }));
-          
-          this.logger.log('Doctores filtrados:', this.doctores);
-        }
-      },
-      error: (error) => {
-        this.logger.error('Error al cargar doctores:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los veterinarios'
-        });
-      }
-    });
   }
 
   // Registrar vacuna en log de actividades

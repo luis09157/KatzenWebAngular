@@ -23,6 +23,17 @@
         <mat-label>Fecha</mat-label>
         <input matInput type="date" formControlName="fecha" required />
       </mat-form-field>
+      <app-staff-picker
+        class="full-width"
+        [formGroup]="form"
+        [fields]="staffPickerFields"
+        roleFilter="all"
+        label="Atendido por"
+        [required]="false"
+        [prefillCurrentUser]="!esEdicion"
+        [disabled]="soloLectura"
+        hint="Opcional. UID del staff + nombre.">
+      </app-staff-picker>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Notas</mat-label>
         <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>

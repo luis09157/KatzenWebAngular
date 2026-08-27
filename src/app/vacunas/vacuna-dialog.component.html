@@ -121,15 +121,15 @@
           Estado y personal médico
         </h3>
         <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>Veterinario</mat-label>
-            <mat-select formControlName="veterinario">
-              <mat-option value="">Seleccionar veterinario</mat-option>
-              <mat-option *ngFor="let doctor of doctores" [value]="doctor.nombre">
-                {{ doctor.nombre }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+          <app-staff-picker
+            [formGroup]="vacunaForm"
+            [fields]="staffPickerFields"
+            roleFilter="doctor"
+            label="Veterinario"
+            [required]="false"
+            [prefillCurrentUser]="!isEditMode"
+            hint="UID + nombre del staff (opcional).">
+          </app-staff-picker>
 
           <mat-form-field appearance="outline">
             <mat-label>Estado</mat-label>

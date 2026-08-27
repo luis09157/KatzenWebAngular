@@ -104,14 +104,16 @@
       <section class="form-section">
         <h3 class="form-section__title">Personal</h3>
         <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>Peluquero</mat-label>
-            <mat-select formControlName="peluquero_id" required>
-              <mat-option *ngFor="let usuario of usuarios" [value]="usuario.id">
-                {{ usuario.nombre }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+          <app-staff-picker
+            [formGroup]="banioForm"
+            [fields]="staffPickerFields"
+            roleFilter="peluquero"
+            [fallbackAllIfEmpty]="true"
+            label="Peluquero"
+            [required]="true"
+            [prefillCurrentUser]="!esEdicion"
+            hint="UID del staff + nombre denormalizado.">
+          </app-staff-picker>
 
           <mat-form-field appearance="outline">
             <mat-label>Duración estimada (min)</mat-label>

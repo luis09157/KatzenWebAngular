@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
 import Swal from 'sweetalert2';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
@@ -18,6 +17,7 @@ import {
   ClientePacientePickerFields,
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 
 @Component({
   selector: 'app-historial-dialog',
@@ -37,16 +37,16 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   archivosSubidos: string[] = [];
   subiendoArchivos = false;
   maxArchivos = 5; // Máximo 5 archivos por historial
-  
-  // Lista de doctores
-  doctores: any[] = [];
-  cargandoDoctores = false;
 
   readonly pickerFields: ClientePacientePickerFields = {
     clienteId: 'cliente_id',
     pacienteId: 'paciente_id',
     clienteNombre: 'cliente',
     pacienteNombre: 'paciente_nombre'
+  };
+  readonly staffPickerFields: StaffPickerFields = {
+    uidField: 'medico_atendio_uid',
+    nombreField: 'medico_atendio'
   };
 
   get muestraPickerClientePaciente(): boolean {
@@ -62,7 +62,6 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private historialesService: HistorialesService,
     private pacientesService: PacientesService,
-    private usuariosService: UsuariosService,
     private storage: AngularFireStorage,
     private dialogRef: MatDialogRef<HistorialDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -90,8 +89,9 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       // Archivos adjuntos (opcional)
       archivos: [''],
       
-      // Información del médico
-      medico_atendio: ['', Validators.required],
+      // Información del médico (035: UID + nombre)
+      medico_atendio: [''],
+      medico_atendio_uid: ['', Validators.required],
       
       // Fecha y hora del historial (requeridas)
       fecha_registro: [ahora, Validators.required],
@@ -113,9 +113,6 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Cargar lista de doctores
-    this.cargarDoctores();
-    
     if (this.data) {
       this.isEditMode = !!this.data.historial?.id;
       
@@ -147,6 +144,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         estudios_solicitados: this.data.historial?.estudios_solicitados || '',
         receta: this.data.historial?.receta || '',
         medico_atendio: this.data.historial?.medico_atendio || '',
+        medico_atendio_uid: this.data.historial?.medico_atendio_uid || '',
         paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || '',
         oculto_portal: this.data.historial?.oculto_portal === true,
         notas_internas: this.data.historial?.notas_internas || ''
@@ -233,43 +231,6 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
     this.pacienteInfo = sel.pacienteData || null;
-  }
-
-  cargarDoctores() {
-    this.cargandoDoctores = true;
-    this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe(
-      (usuarios) => {
-        // Filtrar solo usuarios con perfil de doctor
-        this.doctores = usuarios.filter(usuario => 
-          usuario.perfil && 
-          (usuario.perfil.toLowerCase().includes('doctor') || 
-           usuario.perfil.toLowerCase().includes('medico') ||
-           usuario.perfil.toLowerCase().includes('veterinario'))
-        );
-        
-        this.logger.log('Doctores cargados:', this.doctores.length);
-        this.cargandoDoctores = false;
-        
-        // Si hay un doctor ya seleccionado, verificar que esté en la lista
-        const medicoActual = this.historialForm.get('medico_atendio')?.value;
-        if (medicoActual && this.doctores.length > 0) {
-          const doctorExiste = this.doctores.find(d => d.nombre === medicoActual);
-          if (!doctorExiste) {
-            this.logger.warn('Doctor no encontrado en la lista, limpiando valor');
-            this.historialForm.patchValue({ medico_atendio: '' });
-          }
-        }
-      },
-      (error) => {
-        this.logger.error('Error al cargar doctores:', error);
-        this.cargandoDoctores = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los doctores'
-        });
-      }
-    );
   }
 
   async guardarHistorial() {

@@ -104,7 +104,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Portal / auth** | ~~Registro self-service landing~~ **013**; ~~UI perfil dual~~ **012**; ~~desvincular dual~~ **015**; ~~revocación sesiones~~ **hecho + deploy OK**; ~~query mascotas cliente_id~~ **020**; ~~portal baños~~ **028**; ~~interconexión + pensión/recordatorios portal~~ **031**; **Cypress portal** guest + auth (skip sin env) | Media |
 | **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Finanzas / CxC** | **032 done:** ticket unificado por visita (`Katzen/Visitas`) + saldo cliente / cuenta corriente + portal visitas read-only — `specs/032-ticket-visita-saldo-cliente/`. | Alta — **cerrada** |
-| **Ops clínicas** | **033 done:** vacuna→recordatorio. **034 done:** alergias cruzadas (`Mascota.alergias` + alertas + portal read) — `specs/034-alergias-cruzadas-mascota/`. Siguiente: staff UID por acto, mejoras ticket. | Alta — **034 cerrada** |
+| **Ops clínicas** | **033 done:** vacuna→recordatorio. **034 done:** alergias cruzadas. **035 done:** staff UID por acto (`app-staff-picker` + UID/nombre en citas/historiales/vacunas/baños/visitas) — `specs/035-staff-uid-acto/`. Siguiente: mejoras ticket, consentimientos. | Alta — **035 cerrada** |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |

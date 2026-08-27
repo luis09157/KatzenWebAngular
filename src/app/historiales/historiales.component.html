@@ -89,7 +89,8 @@
         <ng-container matColumnDef="medico_atendio">
           <th mat-header-cell *matHeaderCellDef>Médico</th>
           <td mat-cell *matCellDef="let historial">
-            <span class="tag tag-muted">{{ historial.medico_atendio ? historial.medico_atendio : 'N/P' }}</span>
+            <span class="tag tag-muted" *ngIf="historial.medico_atendio; else sinMedico">Atendido por · {{ historial.medico_atendio }}</span>
+            <ng-template #sinMedico><span class="tag tag-muted">N/P</span></ng-template>
           </td>
         </ng-container>
 
