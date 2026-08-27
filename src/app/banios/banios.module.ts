@@ -35,6 +35,7 @@ import { BaniosService } from './banios.service';
 import { baniosRoutes } from './banios-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
     FormsModule,
     RouterModule.forChild(baniosRoutes),
     CajaDialogModule,
+    VisitasDialogModule,
     
     // Angular Material
     MatTableModule,

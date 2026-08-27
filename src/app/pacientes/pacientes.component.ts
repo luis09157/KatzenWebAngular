@@ -23,6 +23,7 @@ import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-deta
 import { CitaDialogComponent } from '../citas/cita-dialog.component';
 import { CitasService } from '../citas/citas.service';
 import { PensionDialogComponent } from '../pension/pension-dialog.component';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { BaniosPacienteComponent } from './banios-paciente.component';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
@@ -979,6 +980,24 @@ export class PacientesComponent implements OnInit, OnDestroy {
       ...ADMIN_DIALOG_CONFIG,
       width: '720px',
       disableClose: true,
+      data: {
+        paciente_id: ids.paciente_id,
+        cliente_id: ids.cliente_id,
+        paciente: ids.paciente,
+        cliente: ids.cliente
+      }
+    });
+  }
+
+  /** Spec 032: abrir ticket de visita con cliente+paciente del expediente. */
+  agregarVisitaDesdeExpediente(): void {
+    const ids = this.expedienteIds();
+    if (!ids) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+    this.dialog.open(VisitaDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
       data: {
         paciente_id: ids.paciente_id,
         cliente_id: ids.cliente_id,

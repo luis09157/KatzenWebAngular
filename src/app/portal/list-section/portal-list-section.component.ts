@@ -11,7 +11,8 @@ export type PortalListSection =
   | 'historial'
   | 'banos'
   | 'pension'
-  | 'recordatorios';
+  | 'recordatorios'
+  | 'visitas';
 
 @Component({
   selector: 'app-portal-list-section',
@@ -36,7 +37,8 @@ export class PortalListSectionComponent implements OnInit {
       historial: 'medical_services',
       banos: 'content_cut',
       pension: 'home',
-      recordatorios: 'notifications'
+      recordatorios: 'notifications',
+      visitas: 'receipt_long'
     };
     return icons[this.seccion];
   }
@@ -48,7 +50,8 @@ export class PortalListSectionComponent implements OnInit {
       historial: 'No hay historial clínico visible',
       banos: 'No hay baños ni peluquería registrados',
       pension: 'No hay estancias de pensión',
-      recordatorios: 'No hay recordatorios'
+      recordatorios: 'No hay recordatorios',
+      visitas: 'No hay visitas ni tickets'
     };
     return msgs[this.seccion];
   }
@@ -73,7 +76,8 @@ export class PortalListSectionComponent implements OnInit {
       historial: 'Historial clínico',
       banos: 'Baños y peluquería',
       pension: 'Pensión',
-      recordatorios: 'Recordatorios'
+      recordatorios: 'Recordatorios',
+      visitas: 'Visitas / cuenta'
     };
     this.titulo = titulos[this.seccion] || 'Expediente';
 
@@ -100,6 +104,8 @@ export class PortalListSectionComponent implements OnInit {
         this.items = await this.portalData.getPensionPorMascota(this.mascotaId);
       } else if (this.seccion === 'recordatorios') {
         this.items = await this.portalData.getRecordatoriosPorMascota(this.mascotaId);
+      } else if (this.seccion === 'visitas') {
+        this.items = await this.portalData.getVisitasPorMascota(this.mascotaId);
       } else {
         this.items = await this.portalData.getHistorialesPorMascota(this.mascotaId);
       }
@@ -118,6 +124,10 @@ export class PortalListSectionComponent implements OnInit {
       return `Pensión · ${item['estado_label'] || item['estado'] || ''}`;
     }
     if (this.seccion === 'recordatorios') return String(item['titulo'] || 'Recordatorio');
+    if (this.seccion === 'visitas') {
+      const saldo = Number(item['saldo']) || 0;
+      return `Visita · saldo $${saldo.toFixed(2)}`;
+    }
     return String(item['diagnostico'] || 'Consulta');
   }
 
@@ -137,6 +147,11 @@ export class PortalListSectionComponent implements OnInit {
       return salida ? `${ingreso} → ${salida}` : ingreso;
     }
     if (this.seccion === 'recordatorios') return this.formatDate(String(item['fecha'] || ''));
+    if (this.seccion === 'visitas') {
+      const total = Number(item['total']) || 0;
+      const pagado = Number(item['pagado']) || 0;
+      return `${this.formatDate(String(item['fecha'] || ''))} · total $${total.toFixed(2)} · pagado $${pagado.toFixed(2)}`;
+    }
     return this.formatDate(String(item['fecha_registro'] || ''));
   }
 
@@ -145,7 +160,8 @@ export class PortalListSectionComponent implements OnInit {
       this.seccion === 'citas' ||
       this.seccion === 'banos' ||
       this.seccion === 'pension' ||
-      this.seccion === 'recordatorios'
+      this.seccion === 'recordatorios' ||
+      this.seccion === 'visitas'
     ) {
       const estado = String(item['estado_label'] || item['estado'] || '').trim();
       return estado || null;

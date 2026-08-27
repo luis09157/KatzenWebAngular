@@ -418,6 +418,62 @@ export const MOCK_PORTAL_RECORDATORIO = {
   notas: 'Traer cartilla'
 };
 
+/** Spec 032 — ticket visita + CxC. */
+export const MOCK_VISITA = {
+  id: 'mock-visita-001',
+  cliente_id: MOCK_CLIENTE.id!,
+  cliente: 'Ana Pérez',
+  paciente_id: MOCK_MASCOTA.id!,
+  paciente: MOCK_MASCOTA.nombre,
+  fecha: '2026-08-26',
+  estado: 'abierta' as const,
+  lineas: [
+    {
+      id: 'ln-1',
+      descripcion: 'Consulta general',
+      monto: 400,
+      categoria: 'consulta' as const
+    },
+    {
+      id: 'ln-2',
+      descripcion: 'Baño completo',
+      monto: 350,
+      categoria: 'banio' as const
+    }
+  ],
+  total: 750,
+  pagado: 0,
+  saldo: 750,
+  cajaMovimientoIds: [] as string[],
+  activo: true,
+  created_at: '2026-08-26T15:00:00.000Z'
+};
+
+export const MOCK_VISITA_PARCIAL = {
+  ...MOCK_VISITA,
+  id: 'mock-visita-002',
+  estado: 'parcial' as const,
+  pagado: 300,
+  saldo: 450,
+  cajaMovimientoIds: ['mock-caja-visita-1']
+};
+
+export const MOCK_PORTAL_VISITA = {
+  id: MOCK_VISITA_PARCIAL.id,
+  paciente_id: MOCK_MASCOTA.id!,
+  cliente_id: MOCK_CLIENTE.id!,
+  fecha: MOCK_VISITA_PARCIAL.fecha,
+  estado: 'parcial',
+  estado_label: 'Pago parcial',
+  total: 750,
+  pagado: 300,
+  saldo: 450,
+  lineas_count: 2,
+  notas: '',
+  paciente: MOCK_MASCOTA.nombre,
+  cliente: 'Ana Pérez'
+};
+
 /** Meta de inversión dashboard (spec 030). */
 export const MOCK_INVERSION_META = {
   montoMeta: 500000,

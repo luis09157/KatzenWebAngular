@@ -19,6 +19,9 @@ import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialo
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-citas',
@@ -48,7 +51,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private logger: LoggerService,
     private loadingService: LoadingService,
     private sucursalContext: SucursalContextService,
-    private authProfile: AuthProfileService
+    private authProfile: AuthProfileService,
+    private visitasService: VisitasService
   ) {}
 
   ngOnInit(): void {
@@ -521,5 +525,60 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         })
         .finally(() => this.loadingService.hide());
     });
+  }
+
+  /** Spec 032: agregar cita a ticket de visita (anti doble cobro). */
+  async agregarAVisita(cita: any): Promise<void> {
+    if (!cita?.id) return;
+    if (cita.cajaMovimientoId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya cobrada en caja',
+        text: 'Esta cita ya tiene movimiento de caja. No se agrega al ticket.'
+      });
+      return;
+    }
+    if (cita.visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya en una visita',
+        text: `Vinculada al ticket ${cita.visitaId}.`
+      });
+      return;
+    }
+    if (!cita.cliente_id) {
+      Swal.fire('Falta cliente', 'La cita necesita cliente_id para el ticket.', 'warning');
+      return;
+    }
+    const paciente = cita.paciente || this.pacientesMap[cita.paciente_id] || 'paciente';
+    const cliente = cita.cliente || this.clientesMap[cita.cliente_id] || '';
+    const monto = Number(cita.precio) || Number(cita.monto) || 0;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: cita.cliente_id,
+        cliente,
+        paciente_id: cita.paciente_id,
+        paciente,
+        descripcion: `Consulta · ${paciente} · ${cita.motivo || 'cita'}`,
+        monto: monto > 0 ? monto : 0,
+        categoria: 'consulta',
+        citaId: cita.id,
+        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined
+      });
+      await this.citasService.guardarCita({ ...cita, visitaId });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
+      this.cargarCitas();
+    } catch (error) {
+      this.logger.error('Error cita→visita:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 }

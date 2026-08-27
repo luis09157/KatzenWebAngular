@@ -13,6 +13,7 @@ export type StaffModule =
   | 'inventario'
   | 'finanzas'
   | 'pension'
+  | 'visitas'
   | 'usuarios';
 
 export const ALL_STAFF_MODULES: StaffModule[] = [
@@ -29,6 +30,7 @@ export const ALL_STAFF_MODULES: StaffModule[] = [
   'inventario',
   'finanzas',
   'pension',
+  'visitas',
   'usuarios'
 ];
 

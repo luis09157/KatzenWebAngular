@@ -13,13 +13,15 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
-import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_WIDE } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_WIDE, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import {
   calcularClienteEstadisticas,
   calcularClientesConPacientes
 } from '../core/utils/entity-stats.util';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { LOADING_MESSAGES } from '../core/loading.service';
+import { ClienteCuentaDialogComponent } from '../visitas/cliente-cuenta-dialog.component';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 
 interface ClienteKpi {
   label: string;
@@ -34,7 +36,7 @@ interface ClienteKpi {
 })
 export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
-  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'ubicacion', 'estado', 'acciones'];
+  displayedColumns: string[] = ['nombre', 'expediente', 'telefono', 'correo', 'saldo', 'ubicacion', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
@@ -245,6 +247,45 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get clientesSinCorreo(): number {
     return Math.max(0, this.totalClientes - this.clientesConCorreo);
+  }
+
+  get clientesConDeuda(): number {
+    return (this.clientesBase || []).filter((c) => (Number(c?.saldoPendiente) || 0) > 0).length;
+  }
+
+  get saldoPendienteTotal(): number {
+    return (this.clientesBase || []).reduce((s, c) => s + Math.max(0, Number(c?.saldoPendiente) || 0), 0);
+  }
+
+  formatMoney(n: number): string {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n) || 0);
+  }
+
+  getSaldo(cliente: any): number {
+    return Math.max(0, Number(cliente?.saldoPendiente) || 0);
+  }
+
+  verCuentaCorriente(cliente: any): void {
+    if (!cliente?.id) return;
+    this.dialog.open(ClienteCuentaDialogComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      width: '720px',
+      data: {
+        clienteId: cliente.id,
+        clienteNombre: this.getNombreCompleto(cliente)
+      }
+    });
+  }
+
+  nuevaVisitaCliente(cliente: any): void {
+    if (!cliente?.id) return;
+    this.dialog.open(VisitaDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: {
+        cliente_id: cliente.id,
+        cliente: this.getNombreCompleto(cliente)
+      }
+    });
   }
 
   getNombreCompleto(cliente: any): string {

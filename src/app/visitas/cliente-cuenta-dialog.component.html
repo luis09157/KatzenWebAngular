@@ -1,0 +1,57 @@
+<div class="admin-dialog-shell cliente-cuenta-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Cuenta corriente</h2>
+      <p class="admin-dialog-subtitle">
+        {{ data.clienteNombre || 'Cliente' }} · Saldo pendiente:
+        <strong>{{ formatMoney(saldoTotal) }}</strong>
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div *ngIf="loading" class="loading-inline">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Cargando cuenta…</p>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <h3 class="section-title">Deudas (saldo &gt; 0)</h3>
+      <div *ngIf="!deudas.length" class="hint-empty">Sin deudas pendientes.</div>
+      <div class="cuenta-list" *ngIf="deudas.length">
+        <button type="button" class="cuenta-row" *ngFor="let v of deudas" (click)="abrirVisita(v)">
+          <div>
+            <strong>{{ v.fecha }}</strong>
+            <span class="cell-secondary">{{ v.paciente || 'Sin paciente' }} · {{ estadoLabels[v.estado] }}</span>
+          </div>
+          <strong class="saldo">{{ formatMoney(v.saldo) }}</strong>
+        </button>
+      </div>
+
+      <h3 class="section-title">Todas las visitas</h3>
+      <div *ngIf="!visitas.length" class="hint-empty">Aún no hay tickets para este cliente.</div>
+      <div class="cuenta-list" *ngIf="visitas.length">
+        <button type="button" class="cuenta-row" *ngFor="let v of visitas" (click)="abrirVisita(v)">
+          <div>
+            <strong>{{ v.fecha }}</strong>
+            <span class="cell-secondary">
+              {{ formatMoney(v.total) }} · pagado {{ formatMoney(v.pagado) }} · {{ estadoLabels[v.estado] }}
+            </span>
+          </div>
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </ng-container>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevaVisita()">
+      <mat-icon>add</mat-icon>
+      Nueva visita
+    </button>
+  </mat-dialog-actions>
+</div>

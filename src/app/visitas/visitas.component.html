@@ -1,0 +1,101 @@
+<div class="admin-page visitas-contenedor">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando visitas…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Visitas hoy" hint="Tickets del día"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" [value]="abiertas" label="Abiertas" hint="Sin cobro o en curso"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="parciales" label="Parciales" hint="Pago incompleto"></app-admin-stat-card>
+      <app-admin-stat-card accent="green" [value]="formatMoney(saldoPorCobrar)" label="Saldo por cobrar" hint="CxC visitas"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="teal"
+      icon="receipt_long"
+      title="Visitas / tickets"
+      subtitle="Agrupa cobros del día y controla saldo pendiente del cliente.">
+      <div bannerActions>
+        <button mat-stroked-button color="primary" type="button" (click)="toggleDeudas()">
+          {{ soloDeudas ? 'Ver todas' : 'Solo deudas' }}
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
+          <mat-icon>add</mat-icon>
+          Nueva visita
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-admin-data-panel accent="teal" title="Tickets" description="Visitas del día y cuenta corriente" [showLegend]="false">
+      <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
+        <mat-label>Buscar</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Cliente, paciente, fecha…" />
+      </mat-form-field>
+
+      <div class="table-scroll">
+        <table mat-table [dataSource]="dataSource" class="admin-table">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let row">{{ row.fecha }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="cliente">
+            <th mat-header-cell *matHeaderCellDef>Cliente / paciente</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="cell-primary">
+                <span>{{ row.cliente || '—' }}</span>
+                <span class="cell-secondary">{{ row.paciente || 'Sin paciente' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="totales">
+            <th mat-header-cell *matHeaderCellDef>Totales</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="cell-primary">
+                <span>{{ formatMoney(row.total) }}</span>
+                <span class="cell-secondary">Pagado {{ formatMoney(row.pagado) }} · Saldo {{ formatMoney(row.saldo) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="estado-badge" [ngClass]="estadoClass(row.estado)">
+                {{ estadoLabels[row.estado] || row.estado }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="row-actions">
+                <button mat-icon-button type="button" matTooltip="Abrir ticket" (click)="editar(row)">
+                  <mat-icon>receipt_long</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        *ngIf="dataSource.data.length"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons>
+      </mat-paginator>
+    </app-admin-data-panel>
+  </ng-container>
+</div>

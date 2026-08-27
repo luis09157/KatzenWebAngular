@@ -56,6 +56,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
       fechaDefault?: string;
       banioId?: string;
       citaId?: string;
+      visitaId?: string;
       clienteId?: string;
       concepto?: string;
       monto?: number;
@@ -218,6 +219,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
         fecha: raw.fecha,
         banioId: this.data?.banioId,
         citaId: this.data?.citaId,
+        visitaId: this.data?.visitaId,
         clienteId: this.data?.clienteId,
         notas: raw.notas ? String(raw.notas).trim() : undefined,
         categoria: raw.categoria,
@@ -228,7 +230,7 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
             : undefined,
         movimientoInventarioIds: this.data?.movimientoInventarioIds
       });
-      this.dialogRef.close({ ok: true, movimientoId: movId });
+      this.dialogRef.close({ ok: true, movimientoId: movId, monto: Number(raw.monto) });
       Swal.fire({
         icon: 'success',
         title: 'Movimiento registrado',

@@ -94,9 +94,9 @@ Priorizado por ROI para una clínica veterinaria típica (no pedido aún; **back
 
 | # | Gap de negocio | Por qué importa | Prioridad | Estado |
 |---|----------------|-----------------|-----------|--------|
-| 1 | **Ticket unificado por visita** (cita + vacuna + baño + venta en un cobro) | Hoy cada módulo cobra aparte; el dueño no ve «cuenta del día» del cliente | Alta | backlog |
-| 2 | **Deuda / saldo cliente** (crédito, pagos parciales) | Sin CxC no hay control de «me debe el baño» | Alta | backlog |
-| 3 | **Refuerzo vacuna → recordatorio automático** | El campo `proximaAplicacion` existe; no siempre crea `Recordatorios` | Alta | backlog (vacuna ya puede crear uno si se marca) |
+| 1 | **Ticket unificado por visita** (cita + vacuna + baño + venta en un cobro) | Hoy cada módulo cobra aparte; el dueño no ve «cuenta del día» del cliente | Alta | **032 done** |
+| 2 | **Deuda / saldo cliente** (crédito, pagos parciales) | Sin CxC no hay control de «me debe el baño» | Alta | **032 done** |
+| 3 | **Refuerzo vacuna → recordatorio automático** | El campo `proximaAplicacion` existe; no siempre crea `Recordatorios` | Alta | backlog (032 deferred SC-017) |
 | 4 | **Consentimientos / autorización** (cirugía, eutanasia, internado) | Riesgo legal; no hay nodo ni UI | Media | backlog |
 | 5 | **Alergias cruzadas** (mascota ↔ baño ↔ historial ↔ productos) | Baño tiene `alergias_conocidas` local; no pisa expediente ni alerta al agendar | Media | backlog |
 | 6 | **Venta de producto ligada a paciente** | Salida inventario `venta_directa` no exige `paciente_id` | Media | backlog |

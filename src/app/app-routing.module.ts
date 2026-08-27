@@ -101,6 +101,12 @@ const routes: Routes = [
         canActivate: [StaffRoleGuard],
         data: { staffModule: 'pension' }
       },
+      {
+        path: 'visitas',
+        loadChildren: () => import('./visitas/visitas.module').then(m => m.VisitasModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'visitas' }
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

@@ -143,6 +143,34 @@ export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
   };
 }
 
+const ESTADO_VISITA_LABELS: Record<string, string> = {
+  abierta: 'Abierta',
+  parcial: 'Pago parcial',
+  cerrada: 'Cerrada',
+  cancelada: 'Cancelada'
+};
+
+/** Visita / ticket — portal read-only (montos de cuenta; sin IDs de caja). Spec 032. */
+export function mapVisita(id: string, raw: Record<string, unknown>) {
+  const estado = String(raw['estado'] || 'abierta');
+  const lineas = Array.isArray(raw['lineas']) ? raw['lineas'] : [];
+  return {
+    id,
+    paciente_id: raw['paciente_id'] || '',
+    cliente_id: raw['cliente_id'] || '',
+    fecha: raw['fecha'] || '',
+    estado,
+    estado_label: ESTADO_VISITA_LABELS[estado] || estado,
+    total: Number(raw['total']) || 0,
+    pagado: Number(raw['pagado']) || 0,
+    saldo: Number(raw['saldo']) || 0,
+    lineas_count: lineas.length,
+    notas: raw['notas'] || '',
+    paciente: raw['paciente'] || '',
+    cliente: raw['cliente'] || ''
+  };
+}
+
 export function mapMascota(id: string, raw: Record<string, unknown>) {
   return {
     id,

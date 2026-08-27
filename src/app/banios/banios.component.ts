@@ -24,6 +24,8 @@ import {
   formatMoneyMx,
   resolverPeriodo
 } from '../core/utils/periodo-filtro.util';
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 
 @Component({
   selector: 'app-banios',
@@ -73,7 +75,8 @@ export class BaniosComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private logger: LoggerService,
     private loadingService: LoadingService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private visitasService: VisitasService
   ) {}
 
   ngOnInit(): void {
@@ -526,6 +529,61 @@ export class BaniosComponent implements OnInit, OnDestroy {
         this.loadingService.hide();
       }
     });
+  }
+
+  /** Spec 032: baño sin cobro → ticket de visita. */
+  async agregarAVisita(banio: Banio): Promise<void> {
+    if (!banio?.id) return;
+    if (banio.cajaMovimientoId || banio.pagado) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya cobrado',
+        text: 'Este baño ya está pagado o vinculado a caja.'
+      });
+      return;
+    }
+    if ((banio as Banio & { visitaId?: string }).visitaId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Ya en una visita',
+        text: `Vinculado al ticket ${(banio as Banio & { visitaId?: string }).visitaId}.`
+      });
+      return;
+    }
+    const clienteId = banio.cliente_id || '';
+    if (!clienteId) {
+      Swal.fire('Falta cliente', 'El baño necesita cliente_id para el ticket.', 'warning');
+      return;
+    }
+    const tipoServ = String(banio.tipo_servicio || '').toLowerCase();
+    const categoria = tipoServ.includes('corte') ? 'corte' as const : 'banio' as const;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const { visitaId } = await this.visitasService.agregarServicioAVisita({
+        cliente_id: clienteId,
+        cliente: banio.cliente || this.clientesMap[clienteId] || '',
+        paciente_id: banio.paciente_id,
+        paciente: banio.paciente || '',
+        descripcion: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
+        monto: Number(banio.precio_total) || 0,
+        categoria,
+        banioId: banio.id,
+        fecha: banio.fecha_banio || undefined
+      });
+      await this.baniosService.actualizarBanio(banio.id, { visitaId });
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregado a visita', timer: 1400, showConfirmButton: false });
+      this.cargarBanios();
+    } catch (error) {
+      this.logger.error('Error baño→visita:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   getEstadoColor(estado: string): string {

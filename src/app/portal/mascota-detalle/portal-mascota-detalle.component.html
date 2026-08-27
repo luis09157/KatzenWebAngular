@@ -41,6 +41,10 @@
           <strong>{{ counts.recordatorios }}</strong>
           <span>Avisos</span>
         </div>
+        <div class="portal-stat portal-stat--visitas">
+          <strong>{{ counts.visitas }}</strong>
+          <span>Visitas</span>
+        </div>
       </div>
     </div>
   </aside>
@@ -104,6 +108,19 @@
         <h3>Recordatorios</h3>
         <p>{{ subtitulo(counts.recordatorios, 'recordatorios') }}</p>
         <span class="portal-section-count badge-recordatorios">{{ counts.recordatorios }} registro{{ counts.recordatorios === 1 ? '' : 's' }}</span>
+      </button>
+
+      <button type="button" class="portal-section-card" (click)="ir('visitas')">
+        <div class="portal-section-icon portal-section-icon--visitas">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+        <h3>Visitas / cuenta</h3>
+        <p>
+          {{ counts.saldoPendiente > 0
+            ? ('Saldo $' + (counts.saldoPendiente | number:'1.2-2'))
+            : subtitulo(counts.visitas, 'visitas') }}
+        </p>
+        <span class="portal-section-count badge-visitas">{{ counts.visitas }} registro{{ counts.visitas === 1 ? '' : 's' }}</span>
       </button>
     </div>
   </div>

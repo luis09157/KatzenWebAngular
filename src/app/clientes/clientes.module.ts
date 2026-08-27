@@ -23,6 +23,7 @@ import { ClientesDialogModule } from './clientes-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { MatMenuModule } from '@angular/material/menu';
     HttpClientModule,
     ClientesRoutingModule,
     ClientesDialogModule,
+    VisitasDialogModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,

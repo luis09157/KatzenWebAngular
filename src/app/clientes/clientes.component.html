@@ -11,8 +11,8 @@
     <app-admin-kpi-grid>
       <app-admin-stat-card accent="blue" [value]="totalClientes" label="Total clientes" hint="Activos en sistema"></app-admin-stat-card>
       <app-admin-stat-card accent="teal" [value]="clientesConPacientes" label="Con pacientes" hint="Mascota vinculada"></app-admin-stat-card>
-      <app-admin-stat-card accent="green" [value]="clientesNuevosMes" label="Nuevos del mes" hint="Alta este mes"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="clientesSinCorreo" label="Sin correo" hint="Requieren actualización"></app-admin-stat-card>
+      <app-admin-stat-card accent="orange" [value]="clientesConDeuda" label="Con deuda" hint="Saldo pendiente CxC"></app-admin-stat-card>
+      <app-admin-stat-card accent="green" [value]="formatMoney(saldoPendienteTotal)" label="Saldo por cobrar" hint="Suma saldoPendiente"></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
@@ -99,6 +99,14 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="saldo">
+            <th mat-header-cell *matHeaderCellDef>Saldo</th>
+            <td mat-cell *matCellDef="let c">
+              <span class="estado-badge warning" *ngIf="getSaldo(c) > 0">{{ formatMoney(getSaldo(c)) }}</span>
+              <span class="text-muted" *ngIf="getSaldo(c) <= 0">—</span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="ubicacion">
             <th mat-header-cell *matHeaderCellDef>Ubicación</th>
             <td mat-cell *matCellDef="let c">
@@ -121,6 +129,12 @@
               <div class="row-actions hide-mobile">
                 <button mat-icon-button color="primary" type="button" matTooltip="Ver detalles" (click)="verCliente(c)">
                   <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Cuenta corriente" (click)="verCuentaCorriente(c)">
+                  <mat-icon>account_balance</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Nueva visita" (click)="nuevaVisitaCliente(c)">
+                  <mat-icon>receipt_long</mat-icon>
                 </button>
                 <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCliente(c)">
                   <mat-icon>edit</mat-icon>
@@ -158,6 +172,8 @@
 
   <mat-menu #rowMenu="matMenu">
     <button mat-menu-item (click)="verCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
+    <button mat-menu-item (click)="verCuentaCorriente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>account_balance</mat-icon> Cuenta corriente</button>
+    <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>receipt_long</mat-icon> Nueva visita</button>
     <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaCliente(clienteMenuContext?.id)" [disabled]="!clienteMenuContext || saving"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

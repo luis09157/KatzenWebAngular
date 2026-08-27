@@ -1,0 +1,79 @@
+.visita-dialog {
+  .visita-totales {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 8px 0 20px;
+    padding: 14px 16px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: var(--admin-radius-md, 12px);
+    background: var(--admin-surface, #fff);
+
+    .lbl {
+      display: block;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .saldo {
+      color: var(--katzen-verde-fuerte, #0f766e);
+    }
+  }
+
+  .section-title {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .lineas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .linea-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 10px;
+  }
+
+  .linea-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .linea-desc {
+    font-weight: 500;
+  }
+
+  .linea-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .hint-empty {
+    color: #64748b;
+    margin: 0 0 16px;
+  }
+
+  .linea-add {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--admin-border, #e2e8f0);
+  }
+
+  .estado-badge.muted {
+    width: fit-content;
+  }
+}

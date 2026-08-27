@@ -40,6 +40,8 @@ export interface Cliente {
   regimenFiscal?: string;
   codigoPostalFiscal?: string;
   requiereFactura?: boolean;
+  /** Spec 032 — CxC denormalizado (fuente de verdad: Visitas). */
+  saldoPendiente?: number;
   [key: string]: unknown;
 }
 

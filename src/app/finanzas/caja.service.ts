@@ -78,6 +78,9 @@ export class CajaService {
     if (data.citaId) {
       movimiento.citaId = data.citaId;
     }
+    if (data.visitaId) {
+      movimiento.visitaId = data.visitaId;
+    }
     if (data.clienteId) {
       movimiento.clienteId = data.clienteId;
     }

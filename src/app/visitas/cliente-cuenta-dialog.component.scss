@@ -1,0 +1,53 @@
+.cliente-cuenta-dialog {
+  .loading-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px;
+  }
+
+  .section-title {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .hint-empty {
+    color: #64748b;
+    margin: 0 0 18px;
+  }
+
+  .cuenta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .cuenta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 10px;
+    background: var(--admin-surface, #fff);
+    cursor: pointer;
+
+    .cell-secondary {
+      display: block;
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .saldo {
+      color: var(--katzen-verde-fuerte, #0f766e);
+      white-space: nowrap;
+    }
+  }
+}

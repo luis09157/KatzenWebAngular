@@ -123,6 +123,14 @@
       <mat-icon>account_balance_wallet</mat-icon>
       {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : 'Registrar en caja' }}
     </button>
+    <button
+      mat-menu-item
+      *ngIf="menuContext?.estado?.toLowerCase() === 'completada'"
+      (click)="agregarAVisita(menuContext)"
+      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.visitaId">
+      <mat-icon>receipt_long</mat-icon>
+      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+    </button>
     <button mat-menu-item (click)="bajaLogicaCita(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
     <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'pendiente'" (click)="cambiarEstado(menuContext, 'confirmada')"><mat-icon>check</mat-icon> Confirmar</button>
     <button mat-menu-item *ngIf="menuContext?.estado?.toLowerCase() === 'confirmada'" (click)="cambiarEstado(menuContext, 'completada')"><mat-icon>done_all</mat-icon> Completar</button>

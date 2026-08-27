@@ -65,6 +65,8 @@ export interface CajaMovimiento {
   fecha: string;
   banioId?: string;
   citaId?: string;
+  /** Spec 032 — cobro ligado a ticket de visita. */
+  visitaId?: string;
   clienteId?: string;
   sucursalId?: string;
   notas?: string;
@@ -92,6 +94,8 @@ export interface CajaMovimientoFormData {
   fecha: string;
   banioId?: string;
   citaId?: string;
+  /** Spec 032 — cobro ligado a ticket de visita. */
+  visitaId?: string;
   clienteId?: string;
   notas?: string;
   categoria?: CajaCategoria;

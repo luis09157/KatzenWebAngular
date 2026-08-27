@@ -172,5 +172,12 @@
     <button mat-menu-item *ngIf="menuContext?.estado === 'en_proceso'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
     <button mat-menu-item *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado'" (click)="marcarComoPagado(menuContext)"><mat-icon>payment</mat-icon> Marcar pagado</button>
     <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext"><mat-icon>account_balance_wallet</mat-icon> Registrar en caja</button>
+    <button
+      mat-menu-item
+      (click)="agregarAVisita(menuContext)"
+      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId">
+      <mat-icon>receipt_long</mat-icon>
+      {{ menuContext?.visitaId ? 'Ya en visita' : 'Agregar a visita' }}
+    </button>
   </mat-menu>
 </div>

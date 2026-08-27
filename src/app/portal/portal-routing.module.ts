@@ -28,6 +28,7 @@ const routes: Routes = [
       { path: 'mascotas/:id/banos', component: PortalListSectionComponent },
       { path: 'mascotas/:id/pension', component: PortalListSectionComponent },
       { path: 'mascotas/:id/recordatorios', component: PortalListSectionComponent },
+      { path: 'mascotas/:id/visitas', component: PortalListSectionComponent },
       { path: 'mascotas/:id/historial', component: PortalListSectionComponent },
       { path: 'notificaciones', component: PortalNotificacionesComponent },
       { path: 'perfil', component: PortalPerfilComponent },

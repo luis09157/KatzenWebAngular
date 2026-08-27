@@ -5,7 +5,8 @@ import {
   mapHistorial,
   mapMascota,
   mapPension,
-  mapRecordatorio
+  mapRecordatorio,
+  mapVisita
 } from './portal-mapper.util';
 
 describe('portal-mapper.util', () => {
@@ -107,6 +108,28 @@ describe('portal-mapper.util', () => {
       expect(mapped.titulo).toBe('Refuerzo rabia');
       expect(mapped.fecha).toBe('2026-09-01');
       expect(mapped.tipo).toBe('vacuna');
+    });
+  });
+
+  describe('mapVisita (032 portal)', () => {
+    it('maps montos y omite cajaMovimientoIds', () => {
+      const mapped = mapVisita('v1', {
+        paciente_id: 'm1',
+        cliente_id: 'c1',
+        fecha: '2026-08-26',
+        estado: 'parcial',
+        total: 750,
+        pagado: 300,
+        saldo: 450,
+        lineas: [{ id: '1', descripcion: 'Consulta', monto: 400, categoria: 'consulta' }],
+        cajaMovimientoIds: ['caja-1'],
+        notas: 'Parcial'
+      }) as Record<string, unknown>;
+
+      expect(mapped['estado_label']).toBe('Pago parcial');
+      expect(mapped['saldo']).toBe(450);
+      expect(mapped['lineas_count']).toBe(1);
+      expect(Object.prototype.hasOwnProperty.call(mapped, 'cajaMovimientoIds')).toBeFalse();
     });
   });
 

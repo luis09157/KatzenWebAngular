@@ -1,0 +1,107 @@
+<div class="admin-dialog-shell visita-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Ticket de visita' : 'Nueva visita' }}</h2>
+      <p class="admin-dialog-subtitle">
+        Agrupa cobros del día. Estado: <strong>{{ estadoLabel }}</strong>
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-form-layout">
+      <app-cliente-paciente-picker
+        class="full-width"
+        [formGroup]="form"
+        (selectionChange)="onClientePacienteSelected($event)">
+      </app-cliente-paciente-picker>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" formControlName="fecha" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notas</mat-label>
+        <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
+      </mat-form-field>
+    </form>
+
+    <div class="visita-totales">
+      <div><span class="lbl">Total</span><strong>{{ formatMoney(totales.total) }}</strong></div>
+      <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
+      <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
+    </div>
+
+    <h3 class="section-title">Líneas del ticket</h3>
+    <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
+      <div class="linea-row" *ngFor="let l of lineas">
+        <div class="linea-main">
+          <span class="linea-desc">{{ l.descripcion }}</span>
+          <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
+        </div>
+        <div class="linea-right">
+          <span>{{ formatMoney(l.monto) }}</span>
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Quitar línea"
+            *ngIf="!soloLectura && pagado <= 0"
+            (click)="quitarLinea(l.id)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    <ng-template #sinLineas>
+      <p class="hint-empty">Sin líneas. Agrega consulta, vacuna, baño u otro cobro.</p>
+    </ng-template>
+
+    <form [formGroup]="lineaForm" class="linea-add admin-form-layout" *ngIf="!soloLectura">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <input matInput formControlName="descripcion" placeholder="Ej. Consulta general" />
+        <mat-error *ngIf="lineaForm.get('descripcion')?.hasError('required')">Requerido</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Monto</mat-label>
+        <input matInput type="number" min="0.01" step="0.01" formControlName="monto" />
+        <mat-error *ngIf="lineaForm.get('monto')?.invalid">Monto inválido</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="categoria">
+          <mat-option *ngFor="let c of categorias" [value]="c">{{ categoriaLabels[c] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button color="primary" type="button" (click)="agregarLineaLocal()">
+        <mat-icon>add</mat-icon>
+        Agregar línea
+      </button>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      type="button"
+      (click)="guardar()"
+      [disabled]="loading || soloLectura || form.invalid">
+      <mat-icon>save</mat-icon>
+      {{ loading ? 'Guardando…' : 'Guardar' }}
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      (click)="cobrar()"
+      [disabled]="loading || soloLectura || form.invalid || totales.saldo <= 0">
+      <mat-icon>point_of_sale</mat-icon>
+      Cobrar
+    </button>
+  </mat-dialog-actions>
+</div>

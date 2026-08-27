@@ -45,6 +45,7 @@ specs/
 ├── 027-menu-visibilidad-modulos/        # Sub-ítems inventario en sidenav (026 follow-up)
 ├── 028-portal-banos-finanzas-servicio/  # Portal baños read-only + tab ingresos por servicio
 ├── 031-interconexion-modulos/           # **done** grafo IDs + atajos + portal pensión/recordatorios
+├── 032-ticket-visita-saldo-cliente/     # **done** ticket visita + CxC + portal visitas
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

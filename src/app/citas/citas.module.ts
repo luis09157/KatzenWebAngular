@@ -20,6 +20,7 @@ import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CitaDialogModule } from './cita-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
     MatTooltipModule,
     SharedModule,
     CitaDialogModule,
-    CajaDialogModule
+    CajaDialogModule,
+    VisitasDialogModule
   ]
 })
 export class CitasModule { }

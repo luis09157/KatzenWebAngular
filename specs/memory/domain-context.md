@@ -70,7 +70,8 @@ erDiagram
 | Proveedor | `Katzen/Inventario/Proveedores/{id}` | Push key | |
 | Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
 | Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
-| Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021) |
+| Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021); `visitaId?` (032) |
+| Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket del día + líneas + saldo; CxC |
 | Plantilla costo servicio | `Katzen/Finanzas/PlantillasCosto/{id}` | Push key | BOM ligero: ítems producto o gasto libre (021) |
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
 | Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |
@@ -118,6 +119,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `portalEmail`, `portalProvisionedAt`, `portalProvisionedBy` | varios | Auditoría provision |
 | `mustChangePassword` | boolean | Fuerza cambio en primer login portal |
 | `fechaBaja` | string | Set en baja lógica |
+| `saldoPendiente?` | number | **032** CxC denormalizado (fuente de verdad: Visitas) |
 
 **Índices RTDB:** `authUid`, `correo`, `activo`, `portalActivo`, `sucursalId`.
 
@@ -219,7 +221,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8b `Katzen/Caja` y `Katzen/Finanzas` (specs 014 / 018 / 021 / 022)
 
-**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `categoria` (ingresos: baño/corte/cirugía/venta/consulta/vacuna/pensión; egresos: publicidad/proveedores/gasolina/operativo/otro — **022 D**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
+**Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `citaId`, `visitaId` (**032**), `categoria` (ingresos: baño/corte/cirugía/venta/consulta/vacuna/pensión; egresos: publicidad/proveedores/gasolina/operativo/otro — **022 D**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
 
 **Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio` (`banio|corte|cirugia|consulta|vacuna|pension|otro`), `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
@@ -236,6 +238,10 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 **Estancias** (`Katzen/Pension/Estancias/{id}`): hospedaje mascota; `paciente_id`, fechas ingreso/salida, `tamano_mascota`, `precio_dia` / `precio_total`, costos opcionales, `estado`, `cajaMovimientoId?`, `activo`. Si se informa `costo_dia`, debe ser **estrictamente menor** que `precio_dia` (misma regla margen positivo).
 
 **Defaults** (`Katzen/Finanzas/DefaultsPensionPorTamano`): precio/costo día por tamaño + opt-in comida. Módulo admin `/admin/pension` + `StaffModule` `pension`. No mezclar con Banios.
+
+### 3.8d `Katzen/Visitas/{visitaId}` (spec 032)
+
+Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]`, `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `activo`. Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
 
 ### 3.9 Auth y usuarios
 
