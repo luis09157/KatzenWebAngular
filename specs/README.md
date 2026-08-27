@@ -48,6 +48,9 @@ specs/
 ├── 032-ticket-visita-saldo-cliente/     # **done** ticket visita + CxC + portal visitas
 ├── 033-vacuna-recordatorio-auto/       # **done** vacuna → recordatorio refuerzo
 ├── 034-alergias-cruzadas-mascota/      # alergias canónicas + alertas cruzadas + portal
+├── 035-staff-uid-acto/                 # **done** staff UID/nombre por acto clínico
+├── 036-ticket-mejoras/                 # mejoras ticket (filtros, print, presets, CxC)
+├── 037-consentimientos-clinicos/       # **draft** siguiente tras 036
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

@@ -71,7 +71,7 @@ erDiagram
 | Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
 | Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
 | Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021); `visitaId?` (032) |
-| Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket del día + líneas + saldo; CxC |
+| Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket + CxC; **036** pulido UX (filtros, print, anti-huérfana) |
 | Plantilla costo servicio | `Katzen/Finanzas/PlantillasCosto/{id}` | Push key | BOM ligero: ítems producto o gasto libre (021) |
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
 | Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |

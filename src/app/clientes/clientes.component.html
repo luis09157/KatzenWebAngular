@@ -11,8 +11,12 @@
     <app-admin-kpi-grid>
       <app-admin-stat-card accent="blue" [value]="totalClientes" label="Total clientes" hint="Activos en sistema"></app-admin-stat-card>
       <app-admin-stat-card accent="teal" [value]="clientesConPacientes" label="Con pacientes" hint="Mascota vinculada"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="clientesConDeuda" label="Con deuda" hint="Saldo pendiente CxC"></app-admin-stat-card>
-      <app-admin-stat-card accent="green" [value]="formatMoney(saldoPendienteTotal)" label="Saldo por cobrar" hint="Suma saldoPendiente"></app-admin-stat-card>
+      <button type="button" class="kpi-filter" [class.active]="soloConDeuda" (click)="filtrarConDeuda()">
+        <app-admin-stat-card accent="orange" [value]="clientesConDeuda" label="Con deuda" hint="Clic para filtrar"></app-admin-stat-card>
+      </button>
+      <button type="button" class="kpi-filter" [class.active]="soloConDeuda" (click)="filtrarConDeuda()">
+        <app-admin-stat-card accent="green" [value]="formatMoney(saldoPendienteTotal)" label="Saldo por cobrar" hint="Clic = con deuda"></app-admin-stat-card>
+      </button>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
@@ -21,6 +25,9 @@
       title="Administración de Clientes"
       subtitle="Administra fichas, contacto y expedientes. Al borrar se conserva el historial clínico vinculado.">
       <div bannerActions>
+        <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="toggleSoloConDeuda()">
+          {{ soloConDeuda ? 'Ver todos' : 'Con deuda' }}
+        </button>
         <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="encontrarClientesSinPacientes()">
           Sin pacientes
         </button>

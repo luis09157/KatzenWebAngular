@@ -150,6 +150,21 @@ export class VisitasService {
     await this.setLineas(id, [...(visita.lineas || []), next]);
   }
 
+  /** Visita abierta/parcial del cliente en la fecha (sin crear). Spec 036. */
+  async buscarVisitaAbiertaDelDia(clienteId: string, fecha?: string): Promise<Visita | null> {
+    if (!clienteId) return null;
+    const fechaIso = fecha || hoyLocalIsoDate();
+    const lista = await firstValueFrom(this.getVisitasPorCliente(clienteId).pipe(take(1)));
+    return (
+      (lista || []).find(
+        (v) =>
+          v.fecha === fechaIso &&
+          (v.estado === 'abierta' || v.estado === 'parcial') &&
+          v.activo !== false
+      ) || null
+    );
+  }
+
   /**
    * Busca visita abierta/parcial del cliente en la fecha; si no existe, crea una.
    */
@@ -161,13 +176,7 @@ export class VisitasService {
     fecha?: string;
   }): Promise<Visita> {
     const fecha = opts.fecha || hoyLocalIsoDate();
-    const lista = await firstValueFrom(this.getVisitasPorCliente(opts.cliente_id).pipe(take(1)));
-    const existing = (lista || []).find(
-      (v) =>
-        v.fecha === fecha &&
-        (v.estado === 'abierta' || v.estado === 'parcial') &&
-        v.activo !== false
-    );
+    const existing = await this.buscarVisitaAbiertaDelDia(opts.cliente_id, fecha);
     if (existing?.id) return existing;
 
     const id = await this.crearVisita({

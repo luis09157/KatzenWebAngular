@@ -1,9 +1,12 @@
 <div class="admin-dialog-shell visita-dialog">
-  <header class="admin-dialog-header">
+  <header class="admin-dialog-header no-print">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Ticket de visita' : 'Nueva visita' }}</h2>
       <p class="admin-dialog-subtitle">
-        Agrupa cobros del día. Estado: <strong>{{ estadoLabel }}</strong>
+        Agrupa cobros del día. Estado:
+        <span class="estado-badge" [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
+          {{ estadoLabels[totales.estado] || estadoLabel }}
+        </span>
       </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
@@ -12,65 +15,89 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
-    <form [formGroup]="form" class="admin-form-layout">
-      <app-cliente-paciente-picker
-        class="full-width"
-        [formGroup]="form"
-        (selectionChange)="onClientePacienteSelected($event)">
-      </app-cliente-paciente-picker>
-      <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha</mat-label>
-        <input matInput type="date" formControlName="fecha" required />
-      </mat-form-field>
-      <app-staff-picker
-        class="full-width"
-        [formGroup]="form"
-        [fields]="staffPickerFields"
-        roleFilter="all"
-        label="Atendido por"
-        [required]="false"
-        [prefillCurrentUser]="!esEdicion"
-        [disabled]="soloLectura"
-        hint="Opcional. UID del staff + nombre.">
-      </app-staff-picker>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Notas</mat-label>
-        <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
-      </mat-form-field>
-    </form>
+    <div class="visita-print-sheet" id="visita-print-sheet">
+      <div class="print-only print-brand">
+        <h1>KatzenVet — Ticket de visita</h1>
+        <p>{{ form.get('fecha')?.value }} · {{ form.get('cliente')?.value || 'Cliente' }}</p>
+        <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
+      </div>
 
-    <div class="visita-totales">
-      <div><span class="lbl">Total</span><strong>{{ formatMoney(totales.total) }}</strong></div>
-      <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
-      <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
-    </div>
+      <form [formGroup]="form" class="admin-form-layout no-print">
+        <app-cliente-paciente-picker
+          class="full-width"
+          [formGroup]="form"
+          (selectionChange)="onClientePacienteSelected($event)">
+        </app-cliente-paciente-picker>
+        <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha</mat-label>
+          <input matInput type="date" formControlName="fecha" required />
+        </mat-form-field>
+        <app-staff-picker
+          class="full-width"
+          [formGroup]="form"
+          [fields]="staffPickerFields"
+          roleFilter="all"
+          label="Atendido por"
+          [required]="false"
+          [prefillCurrentUser]="!esEdicion"
+          [disabled]="soloLectura"
+          hint="Opcional. UID del staff + nombre.">
+        </app-staff-picker>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notas</mat-label>
+          <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
+        </mat-form-field>
+      </form>
 
-    <h3 class="section-title">Líneas del ticket</h3>
-    <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
-      <div class="linea-row" *ngFor="let l of lineas">
-        <div class="linea-main">
-          <span class="linea-desc">{{ l.descripcion }}</span>
-          <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
-        </div>
-        <div class="linea-right">
-          <span>{{ formatMoney(l.monto) }}</span>
-          <button
-            mat-icon-button
-            type="button"
-            matTooltip="Quitar línea"
-            *ngIf="!soloLectura && pagado <= 0"
-            (click)="quitarLinea(l.id)">
-            <mat-icon>close</mat-icon>
-          </button>
+      <div class="visita-totales">
+        <div><span class="lbl">Total</span><strong>{{ formatMoney(totales.total) }}</strong></div>
+        <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
+        <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
+      </div>
+      <p class="cobro-hint no-print" *ngIf="!soloLectura && totales.saldo > 0">
+        Al cobrar puedes registrar el total o un abono parcial (deja el monto menor en caja).
+      </p>
+
+      <h3 class="section-title">Líneas del ticket</h3>
+      <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
+        <div class="linea-row" *ngFor="let l of lineas">
+          <div class="linea-main">
+            <span class="linea-desc">{{ l.descripcion }}</span>
+            <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
+          </div>
+          <div class="linea-right">
+            <span>{{ formatMoney(l.monto) }}</span>
+            <button
+              mat-icon-button
+              type="button"
+              class="no-print"
+              matTooltip="Quitar línea"
+              *ngIf="!soloLectura && pagado <= 0"
+              (click)="quitarLinea(l.id)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
+      <ng-template #sinLineas>
+        <p class="hint-empty">Sin líneas. Usa un atajo o agrega consulta, vacuna, baño u otro cobro.</p>
+      </ng-template>
     </div>
-    <ng-template #sinLineas>
-      <p class="hint-empty">Sin líneas. Agrega consulta, vacuna, baño u otro cobro.</p>
-    </ng-template>
 
-    <form [formGroup]="lineaForm" class="linea-add admin-form-layout" *ngIf="!soloLectura">
+    <div class="linea-presets no-print" *ngIf="!soloLectura">
+      <span class="presets-label">Atajos:</span>
+      <button
+        mat-stroked-button
+        type="button"
+        class="preset-chip"
+        *ngFor="let p of lineaPresets"
+        (click)="aplicarPreset(p)">
+        {{ p.label }}
+      </button>
+    </div>
+
+    <form [formGroup]="lineaForm" class="linea-add admin-form-layout no-print" *ngIf="!soloLectura">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Descripción</mat-label>
         <input matInput formControlName="descripcion" placeholder="Ej. Consulta general" />
@@ -94,8 +121,17 @@
     </form>
   </mat-dialog-content>
 
-  <mat-dialog-actions class="admin-dialog-actions">
+  <mat-dialog-actions class="admin-dialog-actions no-print">
     <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="imprimir()"
+      [disabled]="loading || !lineas.length"
+      matTooltip="Imprime un resumen del ticket">
+      <mat-icon>print</mat-icon>
+      Imprimir
+    </button>
     <button
       mat-stroked-button
       color="primary"
@@ -113,7 +149,7 @@
       (click)="cobrar()"
       [disabled]="loading || soloLectura || form.invalid || totales.saldo <= 0">
       <mat-icon>point_of_sale</mat-icon>
-      Cobrar
+      {{ cobrarLabel }}
     </button>
   </mat-dialog-actions>
 </div>

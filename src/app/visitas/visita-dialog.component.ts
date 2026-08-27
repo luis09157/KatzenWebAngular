@@ -23,6 +23,12 @@ import {
 import { VisitasService } from './visitas.service';
 import { hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
 
+interface LineaPreset {
+  categoria: VisitaLineaCategoria;
+  descripcion: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-visita-dialog',
   templateUrl: './visita-dialog.component.html',
@@ -48,6 +54,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   };
 
   readonly categoriaLabels = VISITA_LINEA_CATEGORIA_LABELS;
+  readonly estadoLabels = VISITA_ESTADO_LABELS;
   readonly categorias: VisitaLineaCategoria[] = [
     'consulta',
     'vacuna',
@@ -59,8 +66,24 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     'otro'
   ];
 
+  readonly lineaPresets: LineaPreset[] = [
+    { categoria: 'consulta', descripcion: 'Consulta general', label: 'Consulta' },
+    { categoria: 'banio', descripcion: 'Baño / peluquería', label: 'Baño' },
+    { categoria: 'venta_producto', descripcion: 'Producto', label: 'Producto' },
+    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' }
+  ];
+
   get totales() {
     return recalcularVisita({ lineas: this.lineas, pagado: this.pagado });
+  }
+
+  get cobrarLabel(): string {
+    const t = this.totales;
+    if (t.saldo <= 0) return 'Cobrar';
+    if (t.pagado > 0) {
+      return `Cobrar resto ${this.formatMoney(t.saldo)}`;
+    }
+    return `Cobrar ${this.formatMoney(t.saldo)}`;
   }
 
   constructor(
@@ -169,6 +192,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
+  aplicarPreset(preset: LineaPreset): void {
+    if (this.soloLectura) return;
+    this.lineaForm.patchValue({
+      categoria: preset.categoria,
+      descripcion: preset.descripcion
+    });
+    this.lineaForm.get('monto')?.markAsUntouched();
+  }
+
   agregarLineaLocal(): void {
     if (this.soloLectura) return;
     if (this.lineaForm.invalid) {
@@ -201,12 +233,50 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.dialogRef.close(false);
   }
 
+  imprimir(): void {
+    document.body.classList.add('visita-printing');
+    const cleanup = () => {
+      document.body.classList.remove('visita-printing');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    setTimeout(() => window.print(), 50);
+  }
+
   private async persistir(): Promise<string> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       throw new Error('Selecciona un cliente y la fecha de la visita.');
     }
     const raw = this.form.getRawValue();
+    if (!String(raw.cliente_id || '').trim()) {
+      throw new Error('El cliente es obligatorio para el ticket.');
+    }
+
+    if (!this.visitaId) {
+      const existente = await this.visitasService.buscarVisitaAbiertaDelDia(
+        raw.cliente_id,
+        raw.fecha || hoyLocalIsoDate()
+      );
+      if (existente?.id) {
+        const conf = await Swal.fire({
+          icon: 'question',
+          title: 'Ya hay un ticket abierto',
+          html: `Cliente <strong>${existente.cliente || raw.cliente}</strong> · ${existente.fecha}<br/>Saldo ${this.formatMoney(existente.saldo)}. ¿Usar ese ticket en lugar de crear otro?`,
+          showCancelButton: true,
+          confirmButtonText: 'Usar ticket existente',
+          cancelButtonText: 'Crear otro'
+        });
+        if (conf.isConfirmed) {
+          this.visitaId = existente.id;
+          this.esEdicion = true;
+          this.lineas = [...(existente.lineas || []), ...this.lineas];
+          this.pagado = Number(existente.pagado) || 0;
+          this.estadoLabel = VISITA_ESTADO_LABELS[existente.estado] || existente.estado;
+        }
+      }
+    }
+
     if (this.visitaId) {
       await this.visitasService.actualizarVisita(this.visitaId, {
         cliente_id: raw.cliente_id,
@@ -279,6 +349,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
     const cat = this.lineas.length === 1 ? this.lineas[0].categoria : 'otro';
     const raw = this.form.getRawValue();
+    const saldoAntes = t.saldo;
     const ref = this.dialog.open(CajaMovimientoDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       width: '640px',
@@ -315,13 +386,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
             pagado: roundMoney((visita.pagado || 0) + montoPago),
             cajaMovimientoIds: ids
           });
+          const esParcial = montoPago < saldoAntes - 0.001;
           Swal.fire({
             icon: 'success',
-            title: montoPago < t.saldo ? 'Pago parcial registrado' : 'Visita cobrada',
-            timer: 1800,
+            title: esParcial ? 'Pago parcial registrado' : 'Visita cobrada al 100%',
+            text: esParcial
+              ? `Queda saldo pendiente. Puedes cobrar el resto después.`
+              : 'Ticket cerrado. Saldo en $0.',
+            timer: 2200,
             showConfirmButton: false
           });
-          this.dialogRef.close({ visitaId, cobrado: true });
+          this.dialogRef.close({ visitaId, cobrado: true, parcial: esParcial });
         } catch (error) {
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
         } finally {

@@ -6,10 +6,18 @@
 
   <ng-container *ngIf="!loading">
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Visitas hoy" hint="Tickets del día"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" [value]="abiertas" label="Abiertas" hint="Sin cobro o en curso"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="parciales" label="Parciales" hint="Pago incompleto"></app-admin-stat-card>
-      <app-admin-stat-card accent="green" [value]="formatMoney(saldoPorCobrar)" label="Saldo por cobrar" hint="CxC visitas"></app-admin-stat-card>
+      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">
+        <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Visitas hoy" hint="Clic para filtrar"></app-admin-stat-card>
+      </button>
+      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">
+        <app-admin-stat-card accent="blue" [value]="abiertas + parciales" label="Abiertas / parciales" hint="Sin cerrar"></app-admin-stat-card>
+      </button>
+      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">
+        <app-admin-stat-card accent="orange" [value]="conSaldoCount" label="Con saldo" hint="Tickets con deuda"></app-admin-stat-card>
+      </button>
+      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">
+        <app-admin-stat-card accent="green" [value]="formatMoney(saldoPorCobrar)" label="Saldo por cobrar" hint="Clic = solo deudas"></app-admin-stat-card>
+      </button>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
@@ -18,8 +26,13 @@
       title="Visitas / tickets"
       subtitle="Agrupa cobros del día y controla saldo pendiente del cliente.">
       <div bannerActions>
-        <button mat-stroked-button color="primary" type="button" (click)="toggleDeudas()">
-          {{ soloDeudas ? 'Ver todas' : 'Solo deudas' }}
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          *ngIf="filtroRapido !== 'todas'"
+          (click)="setFiltroRapido('todas')">
+          Ver todas
         </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
           <mat-icon>add</mat-icon>
@@ -29,6 +42,13 @@
     </app-admin-page-banner>
 
     <app-admin-data-panel accent="teal" title="Tickets" description="Visitas del día y cuenta corriente" [showLegend]="false">
+      <div class="visitas-quick-filters panel-search">
+        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'todas'" (click)="setFiltroRapido('todas')">Todas</button>
+        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">Hoy</button>
+        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">Abiertas</button>
+        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">Con saldo</button>
+      </div>
+
       <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
         <mat-label>Buscar</mat-label>
         <mat-icon matPrefix>search</mat-icon>
@@ -36,7 +56,7 @@
       </mat-form-field>
 
       <div class="table-scroll">
-        <table mat-table [dataSource]="dataSource" class="admin-table">
+        <table mat-table [dataSource]="dataSource" class="admin-table visitas-table">
           <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
             <td mat-cell *matCellDef="let row">{{ row.fecha }}</td>

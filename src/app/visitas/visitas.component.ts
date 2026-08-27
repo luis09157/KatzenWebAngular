@@ -14,6 +14,8 @@ import { VisitasService } from './visitas.service';
 import { calcularVisitaKpis, hoyLocalIsoDate } from './visitas.util';
 import { VisitaDialogComponent } from './visita-dialog.component';
 
+export type VisitasFiltroRapido = 'todas' | 'hoy' | 'abiertas' | 'deudas';
+
 @Component({
   selector: 'app-visitas',
   templateUrl: './visitas.component.html',
@@ -27,12 +29,14 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns = ['fecha', 'cliente', 'totales', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<Visita>([]);
   loading = true;
-  soloDeudas = false;
+  filtroRapido: VisitasFiltroRapido = 'todas';
   private allRows: Visita[] = [];
+  private textoFiltro = '';
 
   visitasHoy = 0;
   abiertas = 0;
   parciales = 0;
+  conSaldoCount = 0;
   saldoPorCobrar = 0;
   cerradasHoy = 0;
 
@@ -81,9 +85,12 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
           this.visitasHoy = kpis.visitasHoy;
           this.abiertas = kpis.abiertas;
           this.parciales = kpis.parciales;
+          this.conSaldoCount = this.allRows.filter(
+            (v) => (Number(v.saldo) || 0) > 0 && v.estado !== 'cancelada'
+          ).length;
           this.saldoPorCobrar = kpis.saldoPorCobrar;
           this.cerradasHoy = kpis.cerradasHoy;
-          this.applyDeudasFilter();
+          this.applyFilters();
           this.loading = false;
           setTimeout(() => {
             if (this.paginator) this.dataSource.paginator = this.paginator;
@@ -97,20 +104,34 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  applyDeudasFilter(): void {
-    const base = this.soloDeudas
-      ? this.allRows.filter((v) => (Number(v.saldo) || 0) > 0)
-      : this.allRows;
-    this.dataSource.data = base;
+  setFiltroRapido(f: VisitasFiltroRapido): void {
+    this.filtroRapido = this.filtroRapido === f && f !== 'todas' ? 'todas' : f;
+    this.applyFilters();
   }
 
-  toggleDeudas(): void {
-    this.soloDeudas = !this.soloDeudas;
-    this.applyDeudasFilter();
+  applyFilters(): void {
+    const hoy = hoyLocalIsoDate();
+    let base = this.allRows;
+    switch (this.filtroRapido) {
+      case 'hoy':
+        base = base.filter((v) => v.fecha === hoy);
+        break;
+      case 'abiertas':
+        base = base.filter((v) => v.estado === 'abierta' || v.estado === 'parcial');
+        break;
+      case 'deudas':
+        base = base.filter((v) => (Number(v.saldo) || 0) > 0);
+        break;
+      default:
+        break;
+    }
+    this.dataSource.data = base;
+    this.dataSource.filter = this.textoFiltro;
   }
 
   applyFilter(event: Event): void {
-    this.dataSource.filter = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.textoFiltro = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.dataSource.filter = this.textoFiltro;
   }
 
   formatMoney(n: number): string {

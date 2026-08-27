@@ -3,7 +3,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-    margin: 8px 0 20px;
+    margin: 8px 0 12px;
     padding: 14px 16px;
     border: 1px solid var(--admin-border, #e2e8f0);
     border-radius: var(--admin-radius-md, 12px);
@@ -19,6 +19,12 @@
     .saldo {
       color: var(--katzen-verde-fuerte, #0f766e);
     }
+  }
+
+  .cobro-hint {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #64748b;
   }
 
   .section-title {
@@ -67,6 +73,25 @@
     margin: 0 0 16px;
   }
 
+  .linea-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 12px;
+  }
+
+  .presets-label {
+    font-size: 13px;
+    color: #64748b;
+    margin-right: 4px;
+  }
+
+  .preset-chip {
+    min-height: 36px;
+    line-height: 1.2;
+  }
+
   .linea-add {
     margin-top: 8px;
     padding-top: 12px;
@@ -75,5 +100,51 @@
 
   .estado-badge.muted {
     width: fit-content;
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  body.visita-printing * {
+    visibility: hidden !important;
+  }
+
+  body.visita-printing .visita-dialog,
+  body.visita-printing .visita-dialog * {
+    visibility: visible !important;
+  }
+
+  body.visita-printing .visita-dialog {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 24px;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  body.visita-printing .no-print,
+  body.visita-printing .cdk-overlay-backdrop,
+  body.visita-printing .mat-mdc-dialog-actions {
+    display: none !important;
+  }
+
+  body.visita-printing .visita-dialog .print-only {
+    display: block !important;
+    margin-bottom: 16px;
+  }
+
+  body.visita-printing .print-brand h1 {
+    font-size: 20px;
+    margin: 0 0 8px;
+  }
+
+  body.visita-printing .print-brand p {
+    margin: 0 0 4px;
+    color: #334155;
   }
 }

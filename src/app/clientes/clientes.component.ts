@@ -53,6 +53,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesBase: any[] = [];
   clientesFiltrados: any[] = [];
   filtroActual: string = '';
+  soloConDeuda = false;
   clienteMenuContext: any = null;
 
   loading = false;
@@ -148,10 +149,14 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private refrescarFiltroTexto(): void {
+    let base = [...this.clientesBase];
+    if (this.soloConDeuda) {
+      base = base.filter((c) => (Number(c?.saldoPendiente) || 0) > 0);
+    }
     if (!this.filtroActual) {
-      this.clientesFiltrados = [...this.clientesBase];
+      this.clientesFiltrados = base;
     } else {
-      this.clientesFiltrados = this.clientesBase.filter(cliente => {
+      this.clientesFiltrados = base.filter(cliente => {
         const nombre = (cliente.nombre || '').toLowerCase();
         const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
         const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
@@ -263,6 +268,16 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getSaldo(cliente: any): number {
     return Math.max(0, Number(cliente?.saldoPendiente) || 0);
+  }
+
+  toggleSoloConDeuda(): void {
+    this.soloConDeuda = !this.soloConDeuda;
+    this.refrescarFiltroTexto();
+  }
+
+  filtrarConDeuda(): void {
+    this.soloConDeuda = true;
+    this.refrescarFiltroTexto();
   }
 
   verCuentaCorriente(cliente: any): void {

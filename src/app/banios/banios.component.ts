@@ -557,6 +557,27 @@ export class BaniosComponent implements OnInit, OnDestroy {
     }
     const tipoServ = String(banio.tipo_servicio || '').toLowerCase();
     const categoria = tipoServ.includes('corte') ? 'corte' as const : 'banio' as const;
+    let monto = Number(banio.precio_total) || 0;
+    if (!(monto > 0)) {
+      const ask = await Swal.fire({
+        icon: 'question',
+        title: 'Monto del baño',
+        input: 'number',
+        inputLabel: '¿Cuánto se cobrará por este servicio en el ticket?',
+        inputAttributes: { min: '0.01', step: '0.01' },
+        inputValue: '',
+        showCancelButton: true,
+        confirmButtonText: 'Agregar a visita',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          const n = Number(value);
+          if (!(n > 0)) return 'Ingresa un monto mayor a 0';
+          return null;
+        }
+      });
+      if (!ask.isConfirmed) return;
+      monto = Number(ask.value);
+    }
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
       const { visitaId } = await this.visitasService.agregarServicioAVisita({
@@ -565,7 +586,7 @@ export class BaniosComponent implements OnInit, OnDestroy {
         paciente_id: banio.paciente_id,
         paciente: banio.paciente || '',
         descripcion: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
-        monto: Number(banio.precio_total) || 0,
+        monto,
         categoria,
         banioId: banio.id,
         fecha: banio.fecha_banio || undefined

@@ -2,4 +2,27 @@
   display: block;
 }
 
+.kpi-filter {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 2px solid transparent;
+  border-radius: var(--admin-radius-md, 12px);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &.active {
+    border-color: var(--katzen-verde, #14b8a6);
+    box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.25);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--katzen-verde, #14b8a6);
+    outline-offset: 2px;
+  }
+}
+
 /* Estilos específicos mínimos — layout global en admin-page-layout.scss */

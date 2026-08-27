@@ -552,7 +552,27 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     const paciente = cita.paciente || this.pacientesMap[cita.paciente_id] || 'paciente';
     const cliente = cita.cliente || this.clientesMap[cita.cliente_id] || '';
-    const monto = Number(cita.precio) || Number(cita.monto) || 0;
+    let monto = Number(cita.precio) || Number(cita.monto) || 0;
+    if (!(monto > 0)) {
+      const ask = await Swal.fire({
+        icon: 'question',
+        title: 'Monto del servicio',
+        input: 'number',
+        inputLabel: '¿Cuánto se cobrará por esta cita en el ticket?',
+        inputAttributes: { min: '0.01', step: '0.01' },
+        inputValue: '',
+        showCancelButton: true,
+        confirmButtonText: 'Agregar a visita',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          const n = Number(value);
+          if (!(n > 0)) return 'Ingresa un monto mayor a 0';
+          return null;
+        }
+      });
+      if (!ask.isConfirmed) return;
+      monto = Number(ask.value);
+    }
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
       const { visitaId } = await this.visitasService.agregarServicioAVisita({
@@ -561,7 +581,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         paciente_id: cita.paciente_id,
         paciente,
         descripcion: `Consulta · ${paciente} · ${cita.motivo || 'cita'}`,
-        monto: monto > 0 ? monto : 0,
+        monto,
         categoria: 'consulta',
         citaId: cita.id,
         fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined
