@@ -711,7 +711,10 @@ export const provisionPortalClient = onCall(portalMailSecrets, async (request) =
       emailSent: mail.sent,
       message: mail.sent
         ? 'Portal activado. El cliente recibirá un correo con su contraseña temporal.'
-        : `Portal activado, pero el correo no se envió. Falta RESEND_API_KEY (modo prueba Resend) o el envío falló. Sin dominio propio solo llega al email de la cuenta Resend. La cuenta sí quedó creada; reenvía cuando el secret esté listo (specs/QA-CRUD-MATRIX.md).`
+        : `Portal activado, pero el correo no se envió. ${
+            mail.reason ||
+            'Sin dominio propio Resend solo entrega al email de tu cuenta Resend. La cuenta sí quedó creada.'
+          }`
     };
   } catch (err: unknown) {
     if (createdNewAuth && uid) {
@@ -894,7 +897,10 @@ export const resendPortalClientAccess = onCall(portalMailSecrets, async (request
       emailSent: mail.sent,
       message: mail.sent
         ? 'Se envió un nuevo correo con contraseña temporal.'
-        : `Contraseña actualizada en Auth, pero el correo no salió. Configura RESEND_API_KEY (modo prueba: solo al email de tu cuenta Resend; con dominio, cambia PORTAL_FROM_EMAIL) y vuelve a reenviar. Ver specs/QA-CRUD-MATRIX.md.`
+        : `Contraseña actualizada en Auth, pero el correo no salió. ${
+            mail.reason ||
+            'Sin dominio propio Resend solo entrega al email de tu cuenta Resend (no a @example.com ni clientes arbitrarios). Verifica dominio o prueba con el correo de tu cuenta Resend.'
+          }`
     };
   } catch (err: unknown) {
     if (err instanceof HttpsError) throw err;

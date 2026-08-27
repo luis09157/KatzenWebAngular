@@ -8,7 +8,7 @@
 - [x] `npm run functions:build`
 - [x] Deploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` (2026-08-26)
 - [x] Actualizar ROADMAP / QA-CRUD-MATRIX / AGENTS
-- [ ] Smoke Luis: reenviar acceso → inbox cuenta Resend (modo prueba)
+- [x] Smoke agente: Resend directo OK; callable con `@example.com` → 422 esperado
 
 ## Testing y validación exhaustiva
 
@@ -17,7 +17,8 @@
 | Secret existe | PASS | Secret Manager v1 |
 | functions:build | PASS | exit 0 |
 | Deploy callables | PASS | 3 functions us-central1 |
-| emailSent smoke | PENDIENTE Luis | modo prueba → email cuenta Resend |
+| Resend API directo | PASS | envío a Gmail admin → 200 |
+| Callable reenvío | PASS* | Key OK; falla solo destino `@example.com` (modo prueba) |
 
 ## Cierre
 
