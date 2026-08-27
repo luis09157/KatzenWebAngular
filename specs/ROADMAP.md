@@ -115,15 +115,16 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 ## Al final — Resend / correos portal
 
-**Estado 2026-08-26:** producto ops cerrado (033–037). **Activación Resend en curso** — `specs/038-resend-correo-portal/`.
+**Estado 2026-08-26:** **activado** — secret + deploy callables (`specs/038-resend-correo-portal/`).
 
 | Paso | Acción | Estado |
 |------|--------|--------|
-| 1 | `firebase functions:secrets:set RESEND_API_KEY` (+ dominio / `PORTAL_FROM_EMAIL` si aplica) | **Bloqueado:** secret 404 — falta key de Luis |
-| 2 | Deploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` | Pendiente tras secret |
-| 3 | Smoke entrega (modo prueba → email cuenta Resend; clientes reales → dominio) | Pendiente |
+| 1 | `RESEND_API_KEY` en Secret Manager | **OK** |
+| 2 | Deploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` | **OK** |
+| 3 | Smoke modo prueba (inbox cuenta Resend) | Pendiente Luis |
+| 4 | Dominio propio + `PORTAL_FROM_EMAIL` (clientes reales) | Fase B |
 
-Detalle: `specs/QA-CRUD-MATRIX.md` · `AGENTS.md` · `specs/038-resend-correo-portal/`.
+Detalle: `specs/QA-CRUD-MATRIX.md` · `AGENTS.md`.
 
 ---
 

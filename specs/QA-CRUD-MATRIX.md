@@ -16,7 +16,7 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 | `npm run functions:build` | **PASS** |
 | `npm run cy:admin` (11 specs) | **45/46** luego fix alertas; modules **15/15**; finanzas re-run tras fix buscador |
 | Features 015–020 | Implementadas en repo (ver abajo) |
-| Resend `RESEND_API_KEY` | **DIFERIDO** (decisión Luis 2026-08-26) — al final del backlog; secret 404; no inventar key; no PASS correo |
+| Resend `RESEND_API_KEY` | **OK** (2026-08-26) — secret + deploy callables portal; modo prueba sin dominio |
 | localhost `:4200` | **VIVO** (`ng serve`) |
 
 ---

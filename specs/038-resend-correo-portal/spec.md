@@ -1,7 +1,7 @@
 # Spec: Activar Resend — correo portal
 
 **ID:** 038-resend-correo-portal  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-26  
 **Autor:** Agente Cursor / Luis Alfonso Niño Martínez  
 
@@ -9,9 +9,24 @@
 
 ## Problema
 
-El código de correo portal ya existe (`portal-mail.ts` + callables), pero **`RESEND_API_KEY` no está en Secret Manager** (404). Sin el secret no se puede desplegar ni enviar bienvenida / reenvío / self-registro.
+El código de correo portal ya existe (`portal-mail.ts` + callables), pero **`RESEND_API_KEY` no estaba en Secret Manager**. Sin el secret no se podía desplegar ni enviar bienvenida / reenvío / self-registro.
 
-Luis autorizó cerrar este paso (**final del backlog**).
+Luis autorizó y aportó la key (2026-08-26).
+
+---
+
+## Resultado
+
+- Secret `RESEND_API_KEY` creado (v1)
+- Deploy OK: `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`
+- **Modo prueba:** sin dominio propio → Resend solo entrega al email de la cuenta Resend
+- **Clientes reales:** falta verificar dominio + opcional `PORTAL_FROM_EMAIL`
+
+## Cómo probar
+
+1. Admin → Usuarios / portal → **Reenviar acceso** a un cliente de prueba
+2. Revisar inbox del **email de la cuenta Resend** (no el del cliente, en modo prueba)
+3. Login portal con contraseña temporal del correo
 
 ---
 
