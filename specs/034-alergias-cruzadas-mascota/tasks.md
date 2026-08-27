@@ -128,4 +128,4 @@ Build at: 2026-08-27T03:08:30.380Z - Hash: d72f4dee0ba446c2 - Time: 10291ms
 
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → `done`
-- [ ] Commit / push / deploy hosting — en curso (pedido Luis en entrega)
+- [x] Commit / push / deploy hosting — `d58465e` → origin/main; hosting https://katzen-a0e3e.web.app (sin rules; portal solo lectura)
