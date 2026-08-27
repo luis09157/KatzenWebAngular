@@ -122,4 +122,4 @@ exit 0
 
 - [x] Validación pre-entrega completa
 - [x] `spec.md` → `done`
-- [ ] Commit / push / deploy hosting — en curso
+- [x] Commit / push / deploy hosting — `ef68b76` · hosting https://katzen-a0e3e.web.app (sin rules)
