@@ -175,7 +175,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `vacuna` / `nombre` | string | Nombre del biológico |
 | `dosis`, `fechaAplicacion`, `fechaRegistro` | varios | Duplicados bloqueados por vacuna+fecha |
 | `aplicada` | boolean | Marcar aplicada actualiza fecha |
-| `recordatorio`, `intervalo`, `proximaAplicacion` | varios | Recordatorio de refuerzo |
+| `recordatorio`, `intervalo`, `proximaAplicacion` | varios | **033:** con `proximaAplicacion` (o intervalo) se auto-crea `Recordatorios` pendiente |
 | `activo` | boolean | Baja lógica preferida; `eliminarVacuna` con `remove()` es legacy — no usar |
 
 ### 3.6 `Katzen/Recordatorios/{id}`
@@ -183,9 +183,12 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | Campo | Tipo | Regla de negocio |
 |-------|------|------------------|
 | `paciente_id`, `titulo`, `tipo` | string | Tipos: vacuna, cita, medicamento, baño, otro |
+| `cliente_id?` | string | Dueño; útil portal/push |
 | `fecha_hora_recordatorio` | string | |
-| `estado` | string | `pendiente`, `completado` |
+| `estado` | string | `pendiente`, `completado`, `cancelado` |
 | `prioridad` | string | baja, media, alta, urgente |
+| `vacunaId?` / `vacuna_relacionada_id?` | string | **033** enlace a vacuna (opcionales) |
+| `origen?` | string | **033** `vacuna_auto` si se creó desde vacuna |
 | `activo` | boolean | Baja lógica |
 
 ### 3.7 `Katzen/Banios/{id}`
@@ -304,12 +307,17 @@ Ticket unificado por visita/día: `cliente_id`, `paciente_id?`, `fecha`, `estado
 
 ### 4.5 Vacunas
 
+- Alta/edición con `proximaAplicacion` o intervalo → **auto-crea/actualiza** recordatorio de refuerzo (`origen: vacuna_auto`) — **033**.
+- Baja lógica de vacuna → cancela recordatorios pendientes enlazados (`vacunaId`).
+- Duplicados de vacuna: mismo paciente + mismo nombre + misma fecha aplicación.
+- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos.
 - Anti-duplicado: misma vacuna + misma `fechaAplicacion` por paciente.
 - **Política oficial:** baja lógica (`activo: false`); **no** `remove()` — no perder información ante auditoría. Deprecar `eliminarVacuna` con remove.
 
 ### 4.6 Recordatorios
 
-- Recordatorios deben generar **push notification Firebase** (confirmado; no implementado en web).
+- Recordatorios generan **push FCM** vía `onRecordatorioWritePush` (023, codebase fcm).
+- **033:** refuerzo desde vacuna (`origen: vacuna_auto`); editable en admin Recordatorios.
 - Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos.
 
 ### 4.7 Inventario
@@ -600,8 +608,9 @@ flowchart TD
 | # | Tema | Decisión | Estado |
 |---|------|----------|--------|
 | 9 | Eliminación vacunas | **Baja lógica** preferida; **no** `remove()` — no perder información | Confirmado |
-| 10 | Recordatorios → push notification | **Sí** — Firebase push notification | Confirmado |
-| 11 | Mascota Fallecido | Archivar recordatorios automáticamente (evitar recordar a dueños); conservar registros históricos | Confirmado |
+| 10 | Recordatorios → push notification | **Sí** — Firebase push notification | Confirmado · 023 |
+| 11 | Mascota Fallecido | Archivar recordatorios automáticamente (evitar recordar a dueños); conservar registros históricos | Confirmado · 017 |
+| 11b | Vacuna → recordatorio refuerzo | Auto-crear pendiente con `proximaAplicacion` / intervalo; cancelar al borrar vacuna | Confirmado · **033** |
 
 ### Inventario
 

@@ -77,9 +77,9 @@ Para no depender de WhatsApp
 - [ ] SC-015: Portal lista visitas propias (por `cliente_id` / `paciente_id`) sin datos internos de caja sensibles de más (montos de ticket sí; sin IDs de movimiento staff)
 - [ ] SC-016: Rules RTDB aditivas: client lee solo sus visitas
 
-### US-6 — Vacuna → recordatorio (follow-up si sobra tiempo)
+### US-6 — Vacuna → recordatorio (follow-up)
 
-- [ ] SC-017: **Deferred** salvo que ticket+CxC queden sólidos — auto-crear recordatorio al aplicar vacuna con `proximaAplicacion` (documentar en ROADMAP si no entra)
+- [x] SC-017: **Hecho en 033** — auto-crear recordatorio al aplicar vacuna con `proximaAplicacion` — ver `specs/033-vacuna-recordatorio-auto/`
 
 ---
 

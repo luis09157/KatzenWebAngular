@@ -418,6 +418,40 @@ export const MOCK_PORTAL_RECORDATORIO = {
   notas: 'Traer cartilla'
 };
 
+/** Spec 033 — vacuna con próxima + recordatorio auto enlazado. */
+export const MOCK_VACUNA = {
+  id: 'mock-vacuna-001',
+  idPaciente: MOCK_MASCOTA.id!,
+  paciente_id: MOCK_MASCOTA.id!,
+  idCliente: MOCK_CLIENTE.id!,
+  cliente_id: MOCK_CLIENTE.id!,
+  vacuna: 'antirrabica',
+  dosis: '1ml',
+  fechaAplicacion: '2026-08-26',
+  proximaAplicacion: '2027-08-26',
+  intervalo: 365,
+  aplicada: true,
+  recordatorio: true,
+  activo: true
+};
+
+export const MOCK_RECORDATORIO_VACUNA_AUTO = {
+  id: 'mock-recordatorio-vacuna-auto-001',
+  paciente_id: MOCK_MASCOTA.id!,
+  cliente_id: MOCK_CLIENTE.id!,
+  titulo: 'Refuerzo vacuna: Antirrábica',
+  descripcion: 'Próximo refuerzo de Antirrábica (1ml) programado para el 26 de agosto de 2027.',
+  tipo: 'vacuna',
+  fecha_hora_recordatorio: '2027-08-26 09:00:00',
+  fecha_recordatorio: '2027-08-26 09:00:00',
+  estado: 'pendiente',
+  prioridad: 'alta',
+  vacunaId: MOCK_VACUNA.id,
+  vacuna_relacionada_id: MOCK_VACUNA.id,
+  origen: 'vacuna_auto',
+  activo: true
+};
+
 /** Spec 032 — ticket visita + CxC. */
 export const MOCK_VISITA = {
   id: 'mock-visita-001',

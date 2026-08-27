@@ -3,12 +3,30 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import {
+  AsegurarRefuerzoResultado,
+  RecordatoriosService
+} from '../recordatorios/recordatorios.service';
+import {
+  VacunaRefuerzoInput,
+  calcularProximaDesdeIntervalo,
+  formatRtdbLocal,
+  resolverFechaRecordatorioRefuerzo
+} from './vacuna-recordatorio.util';
+
+export interface GuardarVacunaResultado {
+  vacuna: any;
+  refuerzo?: AsegurarRefuerzoResultado;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class VacunasService {
-  constructor(private db: AngularFireDatabase) {}
+  constructor(
+    private db: AngularFireDatabase,
+    private recordatoriosService: RecordatoriosService
+  ) {}
 
   // Obtener todas las vacunas con sus IDs
   getVacunas(): Observable<any[]> {
@@ -86,13 +104,16 @@ export class VacunasService {
       }
       
       console.log(`VacunasService [${timestamp}] - Preparando datos de nueva vacuna...`);
+      const enriquecida = this.enriquecerProximasFechas(vacuna);
       const nuevaVacuna = {
-        ...vacuna,
+        ...enriquecida,
         fechaRegistro: timestampStr,
-        recordatorio: vacuna.recordatorio || false,
-        stability: vacuna.stability || 0,
+        recordatorio:
+          enriquecida.recordatorio === true ||
+          !!resolverFechaRecordatorioRefuerzo(enriquecida),
+        stability: enriquecida.stability || 0,
         activo: true,
-        aplicada: vacuna.aplicada || false
+        aplicada: enriquecida.aplicada || false
       };
 
       console.log(`VacunasService [${timestamp}] - Datos de nueva vacuna preparados:`, nuevaVacuna);
@@ -107,10 +128,10 @@ export class VacunasService {
       console.log(`VacunasService [${timestamp}] - Push() completado, ID generado:`, ref.key);
       console.log(`VacunasService [${timestamp}] - Vacuna creada exitosamente con ID:`, ref.key);
       
-      // Retornar el ID generado por Firebase
-      const resultado = { key: ref.key, ...nuevaVacuna };
+      const resultado = { key: ref.key, id: ref.key, ...nuevaVacuna };
+      const refuerzo = await this.sincronizarRecordatorioRefuerzo(resultado);
       console.log(`VacunasService [${timestamp}] - Retornando resultado:`, resultado);
-      return resultado;
+      return { ...resultado, _refuerzo: refuerzo } as any;
     } catch (error) {
       console.error('Error al crear vacuna:', error);
       if (error instanceof Error) {
@@ -121,8 +142,17 @@ export class VacunasService {
   }
 
   // Actualizar vacuna existente
-  actualizarVacuna(id: string, cambios: any): Promise<void> {
-    return this.db.object(`Katzen/Vacunas/${id}`).update(cambios);
+  async actualizarVacuna(id: string, cambios: any): Promise<GuardarVacunaResultado> {
+    const enriquecida = this.enriquecerProximasFechas(cambios);
+    if (resolverFechaRecordatorioRefuerzo(enriquecida)) {
+      enriquecida.recordatorio = true;
+    }
+    await this.db.object(`Katzen/Vacunas/${id}`).update(enriquecida);
+    const refuerzo = await this.sincronizarRecordatorioRefuerzo({
+      ...enriquecida,
+      id
+    });
+    return { vacuna: { id, ...enriquecida }, refuerzo };
   }
 
   // Eliminar vacuna — Spec 019: nunca .remove(); siempre baja lógica
@@ -135,14 +165,16 @@ export class VacunasService {
     try {
       const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
       
-      // Realizar la actualización
       await this.db.object(`Katzen/Vacunas/${id}`).update({ 
         activo: false,
         fechaEliminacion: timestamp
       });
-      
-      // Si llegamos aquí, la operación fue exitosa
-      // No necesitamos verificar nada más
+
+      try {
+        await this.recordatoriosService.cancelarPendientesPorVacuna(id);
+      } catch (e) {
+        console.warn('VacunasService - no se pudieron cancelar recordatorios de refuerzo:', e);
+      }
     } catch (error) {
       console.error('Error en baja lógica de vacuna:', error);
       if (error instanceof Error) {
@@ -150,6 +182,37 @@ export class VacunasService {
       }
       throw new Error('No se pudo realizar la baja lógica de la vacuna');
     }
+  }
+
+  /** Spec 033: sincroniza recordatorio; errores no bloquean la vacuna. */
+  async sincronizarRecordatorioRefuerzo(
+    vacuna: VacunaRefuerzoInput & { id?: string; key?: string }
+  ): Promise<AsegurarRefuerzoResultado | undefined> {
+    try {
+      const id = vacuna.id || vacuna.key;
+      return await this.recordatoriosService.asegurarRefuerzoDesdeVacuna({
+        ...vacuna,
+        id
+      });
+    } catch (e) {
+      console.warn('VacunasService - fallo al asegurar recordatorio de refuerzo:', e);
+      return undefined;
+    }
+  }
+
+  /** Completa proximaAplicacion si hay intervalo y falta la fecha. */
+  private enriquecerProximasFechas(vacuna: any): any {
+    const copy = { ...vacuna };
+    if (!copy.proximaAplicacion && copy.intervalo) {
+      const prox = calcularProximaDesdeIntervalo(
+        copy.fechaAplicacion || copy.fecha,
+        copy.intervalo
+      );
+      if (prox) {
+        copy.proximaAplicacion = formatRtdbLocal(prox).slice(0, 10);
+      }
+    }
+    return copy;
   }
 
   // Restaurar vacuna

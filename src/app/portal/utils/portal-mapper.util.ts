@@ -136,10 +136,18 @@ export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
     id,
     paciente_id: raw['paciente_id'] || raw['idPaciente'] || '',
     titulo: raw['titulo'] || raw['tipo'] || raw['motivo'] || 'Recordatorio',
-    fecha: raw['fechaRecordatorio'] || raw['fecha'] || raw['fecha_hora'] || '',
+    fecha:
+      raw['fecha_hora_recordatorio'] ||
+      raw['fecha_recordatorio'] ||
+      raw['fechaRecordatorio'] ||
+      raw['fecha'] ||
+      raw['fecha_hora'] ||
+      '',
     estado: raw['estado'] || 'pendiente',
     notas: raw['notas'] || raw['descripcion'] || raw['mensaje'] || '',
-    tipo: raw['tipo'] || ''
+    tipo: raw['tipo'] || '',
+    origen: raw['origen'] || '',
+    vacunaId: raw['vacunaId'] || raw['vacuna_relacionada_id'] || ''
   };
 }
 

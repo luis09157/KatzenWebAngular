@@ -95,7 +95,7 @@ Warning: bundle initial budget (histórico, no bloqueante).
 ## Criterios spec (SC-xxx)
 
 - [x] SC-001 … SC-016
-- [x] SC-017 deferred (vacuna→recordatorio documentado ROADMAP)
+- [x] SC-017 deferred → **033** (vacuna→recordatorio)
 
 ---
 

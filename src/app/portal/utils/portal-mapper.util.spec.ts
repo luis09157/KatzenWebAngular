@@ -109,6 +109,20 @@ describe('portal-mapper.util', () => {
       expect(mapped.fecha).toBe('2026-09-01');
       expect(mapped.tipo).toBe('vacuna');
     });
+
+    it('maps fecha_hora_recordatorio y vacunaId (033)', () => {
+      const mapped = mapRecordatorio('r2', {
+        paciente_id: 'm1',
+        titulo: 'Refuerzo vacuna: Antirrábica',
+        fecha_hora_recordatorio: '2026-10-01 09:00:00',
+        tipo: 'vacuna',
+        origen: 'vacuna_auto',
+        vacunaId: 'vac-1'
+      });
+      expect(mapped.fecha).toBe('2026-10-01 09:00:00');
+      expect(mapped.vacunaId).toBe('vac-1');
+      expect(mapped.origen).toBe('vacuna_auto');
+    });
   });
 
   describe('mapVisita (032 portal)', () => {

@@ -5,7 +5,6 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
-import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
@@ -15,6 +14,8 @@ import {
   ClientePacientePickerFields,
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import { AsegurarRefuerzoResultado } from '../recordatorios/recordatorios.service';
+import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-recordatorio.util';
 
 @Component({
   selector: 'app-vacuna-dialog',
@@ -85,7 +86,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private vacunasService: VacunasService,
     private usuariosService: UsuariosService,
-    private recordatoriosService: RecordatoriosService,
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<VacunaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -285,54 +285,42 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           vacunaData.fechaAplicacion = vacunaData.fechaAplicacion.toISOString();
         }
         if (vacunaData.fechaRecordatorio instanceof Date) {
-          vacunaData.fechaRecordatorio = vacunaData.fechaRecordatorio.toISOString();
+          vacunaData.fechaRecordatorio = formatRtdbLocal(vacunaData.fechaRecordatorio);
         }
         if (vacunaData.proximaAplicacion instanceof Date) {
-          vacunaData.proximaAplicacion = vacunaData.proximaAplicacion.toISOString();
+          vacunaData.proximaAplicacion = formatRtdbLocal(vacunaData.proximaAplicacion).slice(0, 10);
         }
-        
+
+        const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
+        vacunaData.nombreVacunaLabel = tipoVacuna ? tipoVacuna.label : undefined;
+
+        let refuerzo: AsegurarRefuerzoResultado | undefined;
+
         if (this.isEditMode && this.data.id) {
-          // Actualizar vacuna existente
           this.logger.log('VacunaDialogComponent - Actualizando vacuna existente');
-          await this.vacunasService.actualizarVacuna(this.data.id, vacunaData);
+          const actualizado = await this.vacunasService.actualizarVacuna(this.data.id, vacunaData);
+          refuerzo = actualizado.refuerzo;
           
-          // Registrar en el log de actividades
           if (vacunaData.idPaciente) {
             await this.registrarVacunaEnLog(vacunaData, 'editada');
           }
           
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Vacuna actualizada correctamente'
-          });
+          await this.mostrarExitoGuardado('Vacuna actualizada correctamente', refuerzo);
         } else {
-          // Crear nueva vacuna
           this.logger.log('VacunaDialogComponent - Creando nueva vacuna - Operación ID:', this.operationId);
           const resultado = await this.vacunasService.crearVacuna(vacunaData);
           const vacunaId = resultado.key;
           vacunaData.id = vacunaId;
+          refuerzo = resultado._refuerzo;
           
           this.logger.log('VacunaDialogComponent - Vacuna creada con ID:', vacunaId, '- Operación ID:', this.operationId);
           
-          // Crear recordatorio automático si está marcado
-          if (vacunaData.recordatorio && vacunaData.fechaRecordatorio && vacunaData.idPaciente) {
-            this.logger.log('VacunaDialogComponent - Creando recordatorio automático - Operación ID:', this.operationId);
-            await this.crearRecordatorioAutomatico(vacunaData);
-          }
-          
-          // Registrar en el log de actividades
           if (vacunaData.idPaciente) {
             this.logger.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
             await this.registrarVacunaEnLog(vacunaData, 'creada');
           }
           
-          this.logger.log('VacunaDialogComponent - Mostrando mensaje de éxito - Operación ID:', this.operationId);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Vacuna creada correctamente'
-          });
+          await this.mostrarExitoGuardado('Vacuna creada correctamente', refuerzo);
         }
         
         this.logger.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
@@ -557,9 +545,41 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       const fechaActual = new Date(fecha);
       const proximaFecha = new Date(fechaActual.getTime() + (intervalo * 24 * 60 * 60 * 1000));
       this.vacunaForm.patchValue({
-        proximaAplicacion: proximaFecha
+        proximaAplicacion: proximaFecha,
+        recordatorio: true
       });
     }
+  }
+
+  /** Hint UI: se creará recordatorio si hay próxima fecha. */
+  get hintRecordatorioRefuerzo(): string | null {
+    const v = this.vacunaForm?.value;
+    if (!v) return null;
+    const fecha = resolverFechaRecordatorioRefuerzo({
+      fechaRecordatorio: v.fechaRecordatorio,
+      proximaAplicacion: v.proximaAplicacion,
+      fechaAplicacion: v.fechaAplicacion,
+      intervalo: v.intervalo
+    });
+    if (!fecha) return null;
+    return `Se creará un recordatorio de refuerzo para el ${fecha.labelEs}.`;
+  }
+
+  private async mostrarExitoGuardado(
+    base: string,
+    refuerzo?: AsegurarRefuerzoResultado
+  ): Promise<void> {
+    let text = base;
+    if (refuerzo?.action === 'created') {
+      text = `${base}\nSe creó recordatorio de refuerzo para el ${refuerzo.fechaLabel}.`;
+    } else if (refuerzo?.action === 'updated') {
+      text = `${base}\nSe actualizó el recordatorio de refuerzo (${refuerzo.fechaLabel}).`;
+    }
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text
+    });
   }
   
   // Cargar tipos de vacunas desde Firebase con fallback
@@ -641,33 +661,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         });
       }
     });
-  }
-
-  // Crear recordatorio automático
-  private async crearRecordatorioAutomatico(vacunaData: any): Promise<void> {
-    try {
-      const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
-      const nombreVacuna = tipoVacuna ? tipoVacuna.label : vacunaData.vacuna;
-      
-      const recordatorioData = {
-        titulo: `Recordatorio de Vacuna: ${nombreVacuna}`,
-        descripcion: `Recordatorio para la próxima aplicación de la vacuna ${nombreVacuna} (${vacunaData.dosis})`,
-        tipo: 'vacuna',
-        fecha_hora_recordatorio: vacunaData.fechaRecordatorio,
-        fecha_recordatorio: vacunaData.fechaRecordatorio,
-        estado: 'pendiente',
-        prioridad: 'alta',
-        paciente_id: vacunaData.idPaciente,
-        notas: `Vacuna relacionada: ${nombreVacuna} - Dosis: ${vacunaData.dosis}`,
-        vacuna_relacionada_id: vacunaData.id
-      };
-
-      await this.recordatoriosService.crearRecordatorio(recordatorioData);
-      this.logger.log('Recordatorio automático creado exitosamente');
-    } catch (error) {
-      this.logger.error('Error al crear recordatorio automático:', error);
-      // No interrumpir el flujo principal si falla el recordatorio
-    }
   }
 
   // Registrar vacuna en log de actividades

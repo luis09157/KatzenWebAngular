@@ -78,6 +78,17 @@
   margin-bottom: 20px !important;
 }
 
+.admin-dialog-panel app-vacuna-dialog .form-section__hint {
+  margin: 8px 0 0 !important;
+  padding: 10px 12px !important;
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+  color: #0f5132 !important;
+  background: #d1e7dd !important;
+  border-radius: 8px !important;
+  border: 1px solid #badbcc !important;
+}
+
 .admin-dialog-panel app-vacuna-dialog .form-section:last-child {
   margin-bottom: 0 !important;
 }
