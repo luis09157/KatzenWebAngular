@@ -43,7 +43,7 @@
 - [x] Servidor local activo (`npm start` → http://localhost:4200) + smoke
 - [x] Flujo: picker escribe UID + nombre; listados chip “Atendido por”
 - [x] Legacy solo nombre: listado muestra nombre
-- [x] Commit + push + deploy hosting (pedido Luis)
+- [x] Commit + push + deploy hosting (pedido Luis) — `c06cae2` · https://katzen-a0e3e.web.app
 
 **Resultado:** OK
 
