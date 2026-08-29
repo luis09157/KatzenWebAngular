@@ -2,9 +2,9 @@
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
     <app-admin-stat-card accent="teal" [value]="estadisticas.delMes" label="Vacunas del mes" hint="Registradas este mes"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" icon="schedule" [value]="estadisticas.pendientes" label="Pendientes" hint="Por aplicar"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" icon="event" [value]="estadisticas.estaSemana" label="Refuerzos esta semana" hint="Próxima dosis en estos 7 días"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" icon="warning" [value]="estadisticas.vencidas" label="Refuerzos vencidos" hint="Fecha de siguiente dosis pasada"></app-admin-stat-card>
     <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.aplicadas" label="Aplicadas" hint="Completadas"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" icon="pets" [value]="estadisticas.pacientesUnicos" label="Pacientes únicos" hint="Con vacunación"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner

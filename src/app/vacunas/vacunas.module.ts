@@ -21,6 +21,7 @@ import { VacunasComponent } from './vacunas.component';
 import { VacunaDialogComponent } from './vacuna-dialog.component';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
+import { VacunaEsquemaConfirmDialogComponent } from './vacuna-esquema-confirm-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
@@ -30,7 +31,8 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     VacunasComponent,
     VacunaDialogComponent,
     VacunaDetalleComponent,
-    ConfirmarEliminacionVacunaDialogComponent
+    ConfirmarEliminacionVacunaDialogComponent,
+    VacunaEsquemaConfirmDialogComponent
   ],
   imports: [
     CommonModule,

@@ -115,6 +115,9 @@
         <p class="form-section__hint" *ngIf="hintRecordatorioRefuerzo">
           {{ hintRecordatorioRefuerzo }}
         </p>
+        <p class="form-section__hint form-section__hint--muted" *ngIf="hintEsquemaLive">
+          {{ hintEsquemaLive }}
+        </p>
       </section>
 
       <section class="form-section">
@@ -140,10 +143,6 @@
             </mat-select>
           </mat-form-field>
         </div>
-
-        <mat-checkbox formControlName="recordatorio" color="primary" class="form-section__checkbox">
-          Incluir recordatorio de refuerzo (automático si hay próxima fecha)
-        </mat-checkbox>
       </section>
 
       <section class="form-section">

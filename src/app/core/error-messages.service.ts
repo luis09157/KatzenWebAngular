@@ -56,6 +56,7 @@ export class ErrorMessagesService {
     'cancelar cita': 'No se pudo cancelar la cita.',
     'revertir cita': 'No se pudo revertir el estado de la cita.',
     'guardar vacuna': 'No se pudo guardar la vacuna.',
+    'esquema vacuna': 'No se pudo confirmar el esquema de vacunación.',
     'eliminar vacuna': 'No se pudo eliminar la vacuna.',
     'cambiar estado vacuna': 'No se pudo cambiar el estado de la vacuna.',
     'guardar paciente': 'No se pudo guardar el paciente.',

@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-27 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · actualización **045/046** cuenta del día + UX guiada.
+**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **052** esquemas de vacunación (SDD draft).
 
 ---
 
@@ -127,7 +127,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 | Campo | Tipo | Regla de negocio |
 |-------|------|------------------|
-| `nombre`, `especie`, `raza`, `sexo`, `edad`, `color`, `peso` | varios | Expediente |
+| `nombre`, `especie`, `raza`, `sexo`, `edad`, `color`, `peso` | varios | Expediente. UI admin típica: `CANINO`, `FELINO`, `AVE`, `REPTIL`, `OTRO`. **052:** añadir `CONEJO`; ave/reptil/otro **sin** esquema mamífero sugerido. |
 | `idCliente` / `cliente_id` | string | **Ambos coexisten** — usar `pacientePerteneceACliente()` |
 | `activo` | boolean | Baja lógica |
 | `estado` | string | Valor `Fallecido` archiva recordatorios automáticamente (conservar histórico) |
@@ -181,7 +181,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `aplicada` | boolean | Marcar aplicada actualiza fecha |
 | `veterinario?` | string | Nombre display (legacy + denorm) |
 | `veterinario_id?` | string | **035** UID Auth staff; aditivo |
-| `recordatorio`, `intervalo`, `proximaAplicacion` | varios | **033:** con `proximaAplicacion` (o intervalo) se auto-crea `Recordatorios` pendiente |
+| `recordatorio`, `intervalo`, `proximaAplicacion` | varios | **033 + 052 ola 1:** el recordatorio se crea **solo si el vet confirma** en el diálogo de esquema (`agendarRefuerzo !== false`). |
+| `esquemaCodigo?`, `etapaEsquema?`, `intervaloSugeridoDias?`, `intervaloConfirmadoDias?`, `proximaSugerida?`, `esquemaConfirmado?`, `confirmadoPorUid?`, `hintsMostrados?`, `agendarRefuerzo?` | opcionales | **052 ola 1** aditivos; la app móvil los ignora. |
 | `activo` | boolean | Baja lógica preferida; `eliminarVacuna` con `remove()` es legacy — no usar |
 
 ### 3.6 `Katzen/Recordatorios/{id}`
@@ -334,12 +335,13 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 
 ### 4.5 Vacunas
 
-- Alta/edición con `proximaAplicacion` o intervalo → **auto-crea/actualiza** recordatorio de refuerzo (`origen: vacuna_auto`) — **033**.
+- Alta/edición: **052 ola 1** abre diálogo «¿Agendar la siguiente dosis?». Sin confirmar o con «No agendar» **no** se crea recordatorio. Con confirmar, **033** sigue creando `origen: vacuna_auto` con la fecha acordada.
 - Baja lógica de vacuna → cancela recordatorios pendientes enlazados (`vacunaId`).
 - Duplicados de vacuna: mismo paciente + mismo nombre + misma fecha aplicación.
-- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos.
+- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos. **052:** el motor no sugiere agenda.
 - Anti-duplicado: misma vacuna + misma `fechaAplicacion` por paciente.
 - **Política oficial:** baja lógica (`activo: false`); **no** `remove()` — no perder información ante auditoría. Deprecar `eliminarVacuna` con remove.
+- **052 ola 1 (código):** motor de **sugerencia** (`esquema-vacuna.util.ts`; vet confirma). Rabia MX **anual**. Lepto: 2 + anual. FVRCP post-serie **1 año** editable (preset 6 meses). Ave/reptil/otro/conejo: sin esquema mamífero. Ola 2 push/PWA pendiente. Anexo: `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`.
 
 ### 4.6 Recordatorios
 
@@ -641,6 +643,7 @@ flowchart TD
 | 11b | Vacuna → recordatorio refuerzo | Auto-crear pendiente con `proximaAplicacion` / intervalo; cancelar al borrar vacuna | Confirmado · **033** |
 | 11c | Alergias cruzadas mascota | Fuente de verdad en `Mascota.alergias`; alerta en historial/baño/vacuna/visita; portal lectura; sin hard-block | Confirmado · **034** |
 | 11d | Staff UID por acto clínico | Guardar UID Auth + nombre denorm en citas/historiales/vacunas/baños/visitas; legacy solo nombre sigue legible | Confirmado · **035** |
+| 11e | Esquemas vacunación + push/PWA | Defaults sugeridos por especie (perro/gato; conejo ola posterior); vet confirma siempre; rabia anual MX; push cerca de la fecha; PWA portal | Propuesto · **052** draft |
 
 ### Inventario
 
@@ -722,5 +725,6 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | ~~**Staff UID por acto clínico**~~ | ops | **Hecho** — `specs/035-staff-uid-acto/` (picker + UID + nombre denorm en citas/historiales/vacunas/baños/visitas) |
 | **Cuenta del día (hub ticket)** | ops / CxC | **045** in_progress — pendientes baño + venta producto + grid catálogo |
 | **UX intuitiva guiada** | UX | **046** draft — “te falta X”, walk-in, empty states, sensación móvil |
+| **Esquemas de vacunación + PWA** | ops / 033 / 023 | **052 draft** — motor sugerido (vet confirma), rabia NOM anual, lepto ≠ trienal, conejo/exóticos honestos MX; push anti-spam; PWA portal. No implementar hasta autorizar ola 1. Desparasitación → **053** si se pide. |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

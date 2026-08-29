@@ -1,14 +1,16 @@
 import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
+import { CurrentStaffService } from '../core/services/current-staff.service';
+import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import {
   ClientePacientePickerFields,
   ClientePacienteSelection
@@ -19,6 +21,20 @@ import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-rec
 import {
   mensajeHintClientePaciente
 } from '../shared/components/flow-hint/flow-hint.util';
+import { TIPOS_VACUNAS_FALLBACK } from './esquema-vacuna.defaults';
+import {
+  ConfirmacionEsquemaResultado,
+  SugerenciaEsquema
+} from './esquema-vacuna.models';
+import {
+  esPacienteFallecido,
+  extraerHoraHhMm,
+  sugerirEsquema
+} from './esquema-vacuna.util';
+import {
+  VacunaEsquemaConfirmDialogComponent,
+  VacunaEsquemaConfirmData
+} from './vacuna-esquema-confirm-dialog.component';
 
 @Component({
   selector: 'app-vacuna-dialog',
@@ -61,21 +77,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Tipos de vacunas - Cargados desde Firebase con fallback
   tiposVacunas: any[] = [];
-  
-  // Tipos de vacunas predefinidos (fallback si Firebase falla)
-  private tiposVacunasFallback = [
-    { value: 'puppy', label: 'Puppy', activo: true },
-    { value: 'quintuple', label: 'Quíntuple', activo: true },
-    { value: 'sextuple', label: 'Séxtuple', activo: true },
-    { value: 'triple_felina', label: 'Triple Felina', activo: true },
-    { value: 'antirrabica', label: 'Antirrábica', activo: true },
-    { value: 'bordetella', label: 'Bordetella', activo: true },
-    { value: 'leucemia_felina', label: 'Leucemia Felina', activo: true },
-    { value: 'giardia', label: 'Giardia', activo: true },
-    { value: 'otra', label: 'Otra', activo: true }
-  ];
+  sugerenciaActual: SugerenciaEsquema | null = null;
+  private aplicandoSugerencia = false;
+
+  /** Fallback 052: values legacy + flags semánticos opcionales. */
+  private tiposVacunasFallback = TIPOS_VACUNAS_FALLBACK;
 
   // Dosis más comunes utilizadas por veterinarios
   dosisComunes = [
@@ -106,7 +113,9 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private matDialog: MatDialog,
+    private currentStaff: CurrentStaffService
   ) {
     this.vacunaForm = this.fb.group({
       // Información básica
@@ -167,6 +176,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   cargarInformacionPaciente(pacienteId: string) {
     this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
       this.pacienteInfo = paciente;
+      this.aplicarSugerenciaEsquema();
     });
   }
 
@@ -184,7 +194,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     const parts: string[] = [];
     if (p.especie) parts.push(p.especie);
     if (p.raza) parts.push(p.raza);
-    if (p.edad) parts.push(`${p.edad} años`);
+    if (p.edad) {
+      const edad = String(p.edad);
+      parts.push(/sem|mes|año|anio|year/i.test(edad) ? edad : `${edad} años`);
+    }
     if (p.peso) parts.push(`${p.peso} kg`);
     if (p.sexo) parts.push(p.sexo);
     return parts.join(' · ');
@@ -247,6 +260,16 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       this.vacunaForm.get('idPaciente')?.updateValueAndValidity({ emitEvent: false });
       this.vacunaForm.get('idCliente')?.updateValueAndValidity({ emitEvent: false });
     }
+
+    this.vacunaForm.get('vacuna')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.aplicarSugerenciaEsquema();
+    });
+    this.vacunaForm.get('fechaAplicacion')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      if (this.aplicandoSugerencia) return;
+      this.aplicarSugerenciaEsquema(false);
+      this.calcularProximaFecha();
+    });
+    this.aplicarSugerenciaEsquema(!this.isEditMode);
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -255,6 +278,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       this.data.paciente = sel.pacienteData;
       this.data.cliente = sel.clienteData;
     }
+    this.aplicarSugerenciaEsquema();
   }
 
   async guardarVacuna() {
@@ -280,11 +304,17 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     }
     
     if (this.vacunaForm.valid) {
+      const confirmacion = await this.abrirConfirmacionEsquema();
+      if (!confirmacion) {
+        return;
+      }
+
       this.loading = true;
       this.logger.log('VacunaDialogComponent - Iniciando guardado de vacuna');
       
       try {
         const vacunaData = { ...this.vacunaForm.value };
+        this.aplicarConfirmacionAVacuna(vacunaData, confirmacion);
         
         // Si se seleccionó dosis personalizada, usar ese valor como dosis
         if (vacunaData.dosis === 'personalizada' && vacunaData.dosisPersonalizada) {
@@ -307,8 +337,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
         const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
         vacunaData.nombreVacunaLabel = tipoVacuna ? tipoVacuna.label : undefined;
+        vacunaData.pacienteEstado = this.estadoPacienteActual();
+        vacunaData.confirmadoPorUid = await this.currentStaff.getStaffId();
 
         let refuerzo: AsegurarRefuerzoResultado | undefined;
+        const savingMsg = this.isEditMode ? LOADING_MESSAGES.updating : 'Guardando vacuna…';
+        this.loadingService.show(savingMsg);
 
         if (this.isEditMode && this.data.id) {
           this.logger.log('VacunaDialogComponent - Actualizando vacuna existente');
@@ -318,7 +352,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           if (vacunaData.idPaciente) {
             await this.registrarVacunaEnLog(vacunaData, 'editada');
           }
-          
+          this.loadingService.hide();
           await this.mostrarExitoGuardado('Vacuna actualizada correctamente', refuerzo);
         } else {
           this.logger.log('VacunaDialogComponent - Creando nueva vacuna - Operación ID:', this.operationId);
@@ -333,7 +367,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
             this.logger.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
             await this.registrarVacunaEnLog(vacunaData, 'creada');
           }
-          
+          this.loadingService.hide();
           await this.mostrarExitoGuardado('Vacuna creada correctamente', refuerzo);
         }
         
@@ -559,14 +593,16 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       const fechaActual = new Date(fecha);
       const proximaFecha = new Date(fechaActual.getTime() + (intervalo * 24 * 60 * 60 * 1000));
       this.vacunaForm.patchValue({
-        proximaAplicacion: proximaFecha,
-        recordatorio: true
+        proximaAplicacion: proximaFecha
       });
     }
   }
 
-  /** Hint UI: se creará recordatorio si hay próxima fecha. */
+  /** Hint UI: se creará recordatorio si hay próxima fecha y el vet confirma. */
   get hintRecordatorioRefuerzo(): string | null {
+    if (this.sugerenciaActual && !this.sugerenciaActual.puedeSugerir && this.sugerenciaActual.mensajeSinEsquema) {
+      return this.sugerenciaActual.mensajeSinEsquema;
+    }
     const v = this.vacunaForm?.value;
     if (!v) return null;
     const fecha = resolverFechaRecordatorioRefuerzo({
@@ -576,7 +612,117 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       intervalo: v.intervalo
     });
     if (!fecha) return null;
-    return `Se creará un recordatorio de refuerzo para el ${fecha.labelEs}.`;
+    return `Sugerencia de refuerzo: ${fecha.labelEs}. Se confirmará en el siguiente paso.`;
+  }
+
+  get hintEsquemaLive(): string {
+    return this.sugerenciaActual?.fuenteCorta || '';
+  }
+
+  private estadoPacienteActual(): string {
+    return String(
+      this.pacienteInfo?.estado ||
+      this.data?.paciente?.estado ||
+      ''
+    );
+  }
+
+  private construirSugerencia(): SugerenciaEsquema {
+    const paciente = this.data?.paciente || this.pacienteInfo;
+    const tipoValue = this.vacunaForm.get('vacuna')?.value;
+    const tipo = this.tiposVacunas.find((t: { value: string }) => t.value === tipoValue) || null;
+    return sugerirEsquema({
+      especie: paciente?.especie,
+      tipoVacuna: tipoValue,
+      tipo,
+      edadTexto: paciente?.edad,
+      fechaAplicacion: this.vacunaForm.get('fechaAplicacion')?.value,
+      estadoPaciente: this.estadoPacienteActual()
+    });
+  }
+
+  private aplicarSugerenciaEsquema(patchForm = true): void {
+    const tipo = this.vacunaForm.get('vacuna')?.value;
+    if (!tipo) {
+      this.sugerenciaActual = null;
+      return;
+    }
+    this.sugerenciaActual = this.construirSugerencia();
+    if (!patchForm || this.isEditMode) return;
+    this.aplicandoSugerencia = true;
+    const s = this.sugerenciaActual;
+    if (s.puedeSugerir && s.intervaloSugeridoDias) {
+      this.vacunaForm.patchValue({
+        intervalo: s.intervaloSugeridoDias,
+        proximaAplicacion: s.proximaSugerida || ''
+      });
+    } else if (!s.puedeSugerir) {
+      this.vacunaForm.patchValue({
+        intervalo: 0,
+        proximaAplicacion: ''
+      });
+    }
+    this.aplicandoSugerencia = false;
+  }
+
+  private async abrirConfirmacionEsquema(): Promise<ConfirmacionEsquemaResultado | undefined> {
+    const sugerencia = this.construirSugerencia();
+    this.sugerenciaActual = sugerencia;
+    const v = this.vacunaForm.value;
+    const data: VacunaEsquemaConfirmData = {
+      sugerencia,
+      nombreVacuna: this.getNombreVacunaParaMostrar(),
+      nombrePaciente:
+        this.data?.paciente?.nombre ||
+        this.pacienteInfo?.nombre ||
+        'Paciente',
+      especie: sugerencia.especieNormalizada,
+      fechaAplicacion: v.fechaAplicacion,
+      intervaloActual: v.intervalo,
+      proximaActual: v.proximaAplicacion || v.fechaRecordatorio,
+      horaActual: extraerHoraHhMm(v.fechaRecordatorio || v.proximaAplicacion),
+      tipoVacuna: v.vacuna,
+      fallecido: esPacienteFallecido(this.estadoPacienteActual())
+    };
+    const ref = this.matDialog.open(VacunaEsquemaConfirmDialogComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      width: '560px',
+      data
+    });
+    return firstValueFrom(ref.afterClosed());
+  }
+
+  private aplicarConfirmacionAVacuna(
+    vacunaData: Record<string, unknown>,
+    confirmacion: ConfirmacionEsquemaResultado
+  ): void {
+    vacunaData.esquemaConfirmado = true;
+    vacunaData.esquemaCodigo = confirmacion.esquemaCodigo;
+    vacunaData.etapaEsquema = confirmacion.etapaEsquema;
+    vacunaData.intervaloSugeridoDias = confirmacion.intervaloSugeridoDias ?? null;
+    vacunaData.proximaSugerida = confirmacion.proximaSugerida ?? null;
+    vacunaData.hintsMostrados = confirmacion.hintsMostrados || [];
+
+    if (!confirmacion.agendar || esPacienteFallecido(this.estadoPacienteActual())) {
+      vacunaData.agendarRefuerzo = false;
+      vacunaData.recordatorio = false;
+      vacunaData.intervalo = 0;
+      vacunaData.intervaloConfirmadoDias = null;
+      vacunaData.proximaAplicacion = null;
+      vacunaData.fechaRecordatorio = null;
+      return;
+    }
+
+    vacunaData.agendarRefuerzo = true;
+    vacunaData.recordatorio = true;
+    const fecha = confirmacion.fecha;
+    const intervalo = confirmacion.intervaloDias || 0;
+    vacunaData.intervalo = intervalo;
+    vacunaData.intervaloConfirmadoDias = intervalo;
+    if (fecha) {
+      vacunaData.fechaRecordatorio = formatRtdbLocal(fecha);
+      vacunaData.proximaAplicacion = formatRtdbLocal(fecha).slice(0, 10);
+    }
   }
 
   private async mostrarExitoGuardado(
@@ -588,6 +734,8 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       text = `${base}\nSe creó recordatorio de refuerzo para el ${refuerzo.fechaLabel}.`;
     } else if (refuerzo?.action === 'updated') {
       text = `${base}\nSe actualizó el recordatorio de refuerzo (${refuerzo.fechaLabel}).`;
+    } else if (refuerzo?.action === 'skipped' && refuerzo.reason === 'sin_fecha') {
+      text = `${base}\nNo se agendó recordatorio de refuerzo.`;
     }
     await Swal.fire({
       icon: 'success',

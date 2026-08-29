@@ -18,6 +18,7 @@ import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
+import { contarRefuerzosClinicos } from './esquema-vacuna.util';
 
 @Component({
   selector: 'app-vacunas',
@@ -38,8 +39,9 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     total: 0,
     pendientes: 0,
     aplicadas: 0,
-    pacientesUnicos: 0,
-    delMes: 0
+    delMes: 0,
+    estaSemana: 0,
+    vencidas: 0
   };
 
   constructor(
@@ -150,15 +152,14 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     this.estadisticas.total = vacunas.length;
     this.estadisticas.pendientes = vacunas.filter(v => v.estado === 'pendiente' || !v.aplicada).length;
     this.estadisticas.aplicadas = vacunas.filter(v => v.estado === 'aplicada' || v.aplicada).length;
-    
-    // Pacientes únicos
-    const pacientesIds = [...new Set(vacunas.map(v => v.paciente_id))];
-    this.estadisticas.pacientesUnicos = pacientesIds.length;
     const mes = new Date().toISOString().slice(0, 7);
     this.estadisticas.delMes = vacunas.filter((v) => {
       const f = String(v.fecha_vacuna || v.fecha_aplicacion || v.created_at || '');
       return f.slice(0, 7) === mes;
     }).length;
+    const refuerzos = contarRefuerzosClinicos(vacunas);
+    this.estadisticas.estaSemana = refuerzos.estaSemana;
+    this.estadisticas.vencidas = refuerzos.vencidas;
   }
 
   formatearFecha(fecha: any): string {

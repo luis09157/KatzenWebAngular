@@ -13,6 +13,7 @@ import {
   formatRtdbLocal,
   resolverFechaRecordatorioRefuerzo
 } from './vacuna-recordatorio.util';
+import { esPacienteFallecido } from './esquema-vacuna.util';
 
 export interface GuardarVacunaResultado {
   vacuna: any;
@@ -80,6 +81,7 @@ export class VacunasService {
       const timestamp = Date.now();
       console.log(`VacunasService [${timestamp}] - Iniciando creación de vacuna:`, vacuna);
       const timestampStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      const pacienteEstado = vacuna?.pacienteEstado;
       
       // Validación básica de campos requeridos
       if (!vacuna.idPaciente || !vacuna.vacuna) {
@@ -109,8 +111,9 @@ export class VacunasService {
         ...enriquecida,
         fechaRegistro: timestampStr,
         recordatorio:
-          enriquecida.recordatorio === true ||
-          !!resolverFechaRecordatorioRefuerzo(enriquecida),
+          enriquecida.agendarRefuerzo !== false &&
+          (enriquecida.recordatorio === true ||
+            !!resolverFechaRecordatorioRefuerzo(enriquecida)),
         stability: enriquecida.stability || 0,
         activo: true,
         aplicada: enriquecida.aplicada || false
@@ -129,7 +132,10 @@ export class VacunasService {
       console.log(`VacunasService [${timestamp}] - Vacuna creada exitosamente con ID:`, ref.key);
       
       const resultado = { key: ref.key, id: ref.key, ...nuevaVacuna };
-      const refuerzo = await this.sincronizarRecordatorioRefuerzo(resultado);
+      const refuerzo = await this.sincronizarRecordatorioRefuerzo({
+        ...resultado,
+        pacienteEstado
+      });
       console.log(`VacunasService [${timestamp}] - Retornando resultado:`, resultado);
       return { ...resultado, _refuerzo: refuerzo } as any;
     } catch (error) {
@@ -143,14 +149,22 @@ export class VacunasService {
 
   // Actualizar vacuna existente
   async actualizarVacuna(id: string, cambios: any): Promise<GuardarVacunaResultado> {
+    const pacienteEstado = cambios?.pacienteEstado;
     const enriquecida = this.enriquecerProximasFechas(cambios);
-    if (resolverFechaRecordatorioRefuerzo(enriquecida)) {
+    if (
+      enriquecida.agendarRefuerzo !== false &&
+      resolverFechaRecordatorioRefuerzo(enriquecida)
+    ) {
       enriquecida.recordatorio = true;
+    }
+    if (enriquecida.agendarRefuerzo === false) {
+      enriquecida.recordatorio = false;
     }
     await this.db.object(`Katzen/Vacunas/${id}`).update(enriquecida);
     const refuerzo = await this.sincronizarRecordatorioRefuerzo({
       ...enriquecida,
-      id
+      id,
+      pacienteEstado
     });
     return { vacuna: { id, ...enriquecida }, refuerzo };
   }
@@ -184,12 +198,41 @@ export class VacunasService {
     }
   }
 
-  /** Spec 033: sincroniza recordatorio; errores no bloquean la vacuna. */
+  /**
+   * Spec 033 + 052: sincroniza recordatorio solo si el vet confirmó agendar.
+   * Sin confirmación / Fallecido / «No agendar» → no crea recordatorio.
+   */
   async sincronizarRecordatorioRefuerzo(
-    vacuna: VacunaRefuerzoInput & { id?: string; key?: string }
+    vacuna: VacunaRefuerzoInput & {
+      id?: string;
+      key?: string;
+      agendarRefuerzo?: boolean;
+      esquemaConfirmado?: boolean;
+      pacienteEstado?: string;
+    }
   ): Promise<AsegurarRefuerzoResultado | undefined> {
     try {
       const id = vacuna.id || vacuna.key;
+      if (esPacienteFallecido(vacuna.pacienteEstado)) {
+        if (id) {
+          try {
+            await this.recordatoriosService.cancelarPendientesPorVacuna(String(id));
+          } catch (e) {
+            console.warn('VacunasService - no se cancelaron recordatorios (fallecido):', e);
+          }
+        }
+        return { action: 'skipped', reason: 'sin_fecha' };
+      }
+      if (vacuna.agendarRefuerzo === false) {
+        if (id) {
+          try {
+            await this.recordatoriosService.cancelarPendientesPorVacuna(String(id));
+          } catch (e) {
+            console.warn('VacunasService - no se cancelaron recordatorios (no agendar):', e);
+          }
+        }
+        return { action: 'skipped', reason: 'sin_fecha' };
+      }
       return await this.recordatoriosService.asegurarRefuerzoDesdeVacuna({
         ...vacuna,
         id
@@ -203,6 +246,12 @@ export class VacunasService {
   /** Completa proximaAplicacion si hay intervalo y falta la fecha. */
   private enriquecerProximasFechas(vacuna: any): any {
     const copy = { ...vacuna };
+    delete copy.pacienteEstado;
+    delete copy.clienteDisplay;
+    delete copy.pacienteDisplay;
+    if (copy.agendarRefuerzo === false) {
+      return copy;
+    }
     if (!copy.proximaAplicacion && copy.intervalo) {
       const prox = calcularProximaDesdeIntervalo(
         copy.fechaAplicacion || copy.fecha,

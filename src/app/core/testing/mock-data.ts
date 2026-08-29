@@ -472,6 +472,33 @@ export const MOCK_RECORDATORIO_VACUNA_AUTO = {
   activo: true
 };
 
+/** Spec 052 — conejo (especie nueva) y vacuna con campos de esquema opcionales. */
+export const MOCK_MASCOTA_CONEJO: Paciente = {
+  id: 'mock-mascota-conejo',
+  nombre: 'Copito',
+  especie: 'CONEJO',
+  raza: 'Mini lop',
+  sexo: 'Macho',
+  edad: '1 año',
+  idCliente: MOCK_CLIENTE.id,
+  cliente_id: MOCK_CLIENTE.id,
+  activo: true
+};
+
+export const MOCK_VACUNA_ESQUEMA = {
+  ...MOCK_VACUNA,
+  id: 'mock-vacuna-esquema-001',
+  esquemaCodigo: 'rabia_mx',
+  etapaEsquema: 'adulto',
+  intervaloSugeridoDias: 365,
+  intervaloConfirmadoDias: 365,
+  proximaSugerida: '2027-08-26',
+  esquemaConfirmado: true,
+  agendarRefuerzo: true,
+  confirmadoPorUid: 'mock-staff-001',
+  hintsMostrados: ['rabia_nom', 'disclaimer']
+};
+
 /** Spec 032 — ticket visita + CxC. */
 export const MOCK_VISITA = {
   id: 'mock-visita-001',
