@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { AuthSessionService } from '../core/services/auth-session.service';
 import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { Router } from '@angular/router';
@@ -21,6 +22,7 @@ export class AuthComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private authSession: AuthSessionService,
     private appCheck: AppCheckService,
     private firebaseFunctions: FirebaseFunctionsService,
     private router: Router
@@ -32,6 +34,15 @@ export class AuthComponent implements OnInit {
       const user = await this.authService.getRememberedAuthUser();
       if (user) {
         await this.firebaseFunctions.syncMyClaims();
+        // Sesión abierta por portal: no saltar a admin/contexto desde /admin/login.
+        if (this.authSession.isPortalEntryLocked()) {
+          if (await this.authProfileService.hasClientAccess()) {
+            await this.router.navigate(['/portal/mascotas']);
+            return;
+          }
+        }
+        // Sesión recordada de staff: marcar intent para poder mostrar contexto.
+        this.authSession.setStaffEntryIntent(true);
         await this.navigateAfterStaffLogin();
         return;
       }
@@ -55,6 +66,8 @@ export class AuthComponent implements OnInit {
     this.loading = true;
     try {
       await this.authService.login(this.email, this.password, this.keepSessionActive);
+      this.authSession.setPortalEntryLock(false);
+      this.authSession.setStaffEntryIntent(true);
       await this.firebaseFunctions.syncMyClaims();
       const hasStaff = await this.authProfileService.hasStaffAccess();
       if (!hasStaff) {

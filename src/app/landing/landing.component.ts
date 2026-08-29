@@ -721,8 +721,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       if (result === 'staff') {
-        Swal.fire({ icon: 'info', title: 'Cuenta de personal staff', text: 'Te redirigimos al panel administrativo.', timer: 1800, showConfirmButton: false });
+        Swal.fire({
+          icon: 'info',
+          title: 'Cuenta de personal',
+          text: 'Este acceso es solo para dueños. Usa «Acceso staff» para el panel de la clínica.'
+        });
+        return;
       }
+      // dual/client → portal directo (nunca /auth/contexto ni admin).
       await this.portalAuth.navigateAfterLogin(result);
     } catch {
       Swal.fire({ icon: 'error', title: 'Error', text: 'Correo o contraseña incorrectos.' });

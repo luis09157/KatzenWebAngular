@@ -35,7 +35,7 @@ Para **entrar al contexto correcto sin redirects en bucle**
 
 **Criterios de aceptación:**
 
-- [x] SC-004: Si `dualAccess` / role dual / staff+client → ruta `/auth/contexto` tras login (admin o portal)
+- [x] SC-004: Si `dualAccess` tras **login admin** (`/admin/login`) → `/auth/contexto`. Si entra por **portal/landing** → directo `/portal/*` **sin** selector ni acceso admin (lock de entrada; hotfix 2026-08-27).
 - [x] SC-005: Atajo “Ir a mi portal” en admin si tiene `clienteId`
 - [x] SC-006: Atajo “Ir a panel admin” en portal si es staff
 - [x] SC-007: `AuthGuard` / `PortalAuthGuard` respetan dual sin bucles

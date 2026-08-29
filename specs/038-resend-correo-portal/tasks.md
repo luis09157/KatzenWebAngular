@@ -24,4 +24,4 @@
 
 - [x] Spec → done (código + secret + deploy)
 - [x] No inventar key (Luis la aportó)
-- [ ] Dominio propio = fase B (clientes reales)
+- [ ] Dominio propio = fase B (clientes reales) — guía: `FASE-B-DOMINIO.md`

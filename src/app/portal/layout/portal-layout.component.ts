@@ -6,6 +6,7 @@ import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { PortalDataService } from '../services/portal-data.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
+import { AuthSessionService } from '../../core/services/auth-session.service';
 
 @Component({
   selector: 'app-portal-layout',
@@ -28,7 +29,8 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
     private portalAuth: PortalAuthService,
     private portalSession: PortalSessionService,
     private portalData: PortalDataService,
-    private authProfileService: AuthProfileService
+    private authProfileService: AuthProfileService,
+    private authSession: AuthSessionService
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +49,9 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
 
   private async loadUserHeader(): Promise<void> {
     try {
-      this.canGoAdmin = await this.authProfileService.hasStaffAccess();
+      // Atajo admin solo si la sesión NO nació en portal/landing (lock de entrada).
+      this.canGoAdmin =
+        (await this.authProfileService.hasStaffAccess()) && !this.authSession.isPortalEntryLocked();
 
       const session = await this.portalSession.resolveSession();
       if (!session) return;
@@ -116,6 +120,9 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
   }
 
   irAPanelAdmin(): void {
+    if (this.authSession.isPortalEntryLocked()) {
+      return;
+    }
     this.router.navigate(['/admin/inicio']);
   }
 }

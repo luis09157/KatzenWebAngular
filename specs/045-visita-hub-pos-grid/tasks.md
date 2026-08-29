@@ -1,6 +1,6 @@
 # Tasks: Visita hub + grid productos (045)
 
-**Estado:** in_progress  
+**Estado:** done  
 **Spec:** `specs/045-visita-hub-pos-grid/spec.md`  
 **UX:** principios en `specs/046-ux-intuitiva-guiada/`
 
@@ -39,4 +39,5 @@
 | Copy Cuenta del día + empty/hints | **PASS** | |
 | Prompt post-baño | **PASS** | `ofertarTicketTrasAlta` |
 | Preview `:4200` | **PASS** | |
-| QA / UX 046 walk-in | ver 046 tasks | |
+| QA / UX 046 walk-in | **PASS** | ver 046 tasks |
+| Cierre spec 045 | **PASS** | 2026-08-28 |

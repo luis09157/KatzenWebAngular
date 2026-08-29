@@ -41,7 +41,7 @@ describe('Portal auth smoke', () => {
     });
   });
 
-  it('dual contexto: si aparece selector, entra a Portal mis mascotas', () => {
+  it('login portal (dual incluido) va directo a portal sin selector admin', () => {
     cy.visit('/portal/login');
     const email = Cypress.env('portalEmail') as string;
     const password = Cypress.env('portalPassword') as string;
@@ -49,14 +49,8 @@ describe('Portal auth smoke', () => {
     cy.get('input[name="password"]').clear().type(password, { log: false });
     cy.contains('button', /iniciar|entrar|sesión/i).click();
 
-    cy.url({ timeout: 45000 }).should('match', /\/(auth\/contexto|portal\/)/);
-    cy.location('pathname').then((pathname) => {
-      if (pathname.includes('/auth/contexto')) {
-        cy.contains('button', 'Portal mis mascotas', { timeout: 15000 })
-          .should('be.visible')
-          .click({ force: true });
-        cy.url({ timeout: 30000 }).should('include', '/portal/');
-      }
-    });
+    cy.url({ timeout: 45000 }).should('include', '/portal/');
+    cy.url().should('not.include', '/auth/contexto');
+    cy.url().should('not.include', '/admin/');
   });
 });

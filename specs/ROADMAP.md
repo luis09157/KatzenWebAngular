@@ -123,7 +123,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | 1 | `RESEND_API_KEY` en Secret Manager | **OK** |
 | 2 | Deploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` | **OK** |
 | 3 | Smoke modo prueba (inbox cuenta Resend) | Pendiente Luis |
-| 4 | Dominio propio + `PORTAL_FROM_EMAIL` (clientes reales) | Fase B |
+| 4 | Dominio propio + `PORTAL_FROM_EMAIL` (clientes reales) | Fase B — ver `specs/038-resend-correo-portal/FASE-B-DOMINIO.md` |
 
 Detalle: `specs/QA-CRUD-MATRIX.md` · `AGENTS.md`.
 

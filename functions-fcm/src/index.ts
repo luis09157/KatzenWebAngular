@@ -6,6 +6,7 @@ import * as admin from 'firebase-admin';
 import { setGlobalOptions } from 'firebase-functions/v2';
 
 export { onRecordatorioWritePush } from './recordatorio-push';
+export { onVacunaCreatedInbox } from './vacuna-inbox';
 
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });

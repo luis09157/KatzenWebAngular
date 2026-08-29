@@ -1,7 +1,7 @@
 # Spec: Visita del día como ticket único + catálogo en cuadrícula
 
 **ID:** 045-visita-hub-pos-grid  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-27  
 **Extiende:** 032, 040, 041, 042, 043, 044
 
@@ -96,6 +96,6 @@ Para identificar el ítem sin leer una tabla
 
 ## Definition of Done
 
-- [ ] `npm run test:045` + `npm run build`
-- [ ] QA en `tasks.md`
-- [ ] Preview `:4200`
+- [x] `npm run test:045` + `npm run build`
+- [x] QA en `tasks.md`
+- [x] Preview `:4200` + hosting prod

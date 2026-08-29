@@ -1,6 +1,6 @@
 # Tasks: UX intuitiva guiada (046)
 
-**Estado:** in_progress  
+**Estado:** done  
 **Spec:** `specs/046-ux-intuitiva-guiada/spec.md`
 
 ---
@@ -33,7 +33,7 @@
 - [x] T-030: Baño: hint dueño + banner/empty alineados a Cuenta del día
 - [x] T-031: Empty states cuenta del día + productos + movimientos + peluquería/citas/vacunas/historiales
 - [x] T-033: Copy global menús/Swal: «Agregar a cuenta» / «Cobra desde Cuenta del día» (ola copy)
-- [ ] T-032: (Opcional) helper `flow-hint` reutilizable
+- [ ] T-032: (Opcional) helper `flow-hint` reutilizable — **cancelado** (no bloqueante)
 
 ## Testing y validación exhaustiva
 
@@ -88,12 +88,12 @@
 | Consentimientos | OK | Parcial | Parcial | CTA sí |
 | Usuarios | OK | Parcial | Parcial | CTA sí |
 | Landing | OK | OK | N/A | Hero + portal + staff |
-| Portal (dual) | OK | OK | N/A | Selector contexto claro |
+| Portal (dual) | OK | OK | N/A | Login portal → solo mascotas (012 hotfix 2026-08-27) |
 
 ---
 
 ## Definition of Done (checklist)
 
-- [ ] Ola acordada con Luis implementada
-- [ ] Build OK + QA tabla arriba (baseline hecho; olas pendientes)
-- [ ] `spec.md` → `done` solo tras QA de ola cerrada
+- [x] Ola acordada con Luis implementada (1–3 + copy + responsividad)
+- [x] Build OK + QA tabla arriba
+- [x] `spec.md` → `done` · 2026-08-28

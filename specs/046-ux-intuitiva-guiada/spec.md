@@ -1,7 +1,7 @@
 # Spec: UX intuitiva guiada (admin “como móvil”)
 
 **ID:** 046-ux-intuitiva-guiada  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-27  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 005 (loading), 029 (picker cliente/paciente), 032/036 (ticket), **045** (hub visita + grid), 044 (producto picker)
@@ -195,12 +195,12 @@ Para no dejar pantallas que “solo funcionan para quien ya sabe”
 
 ## Definition of Done
 
-- [ ] Spec + plan + tasks revisados con Luis
-- [ ] MVP implementado según `tasks.md` (ola 1)
-- [ ] `npm run build` OK
-- [ ] QA guía en `tasks.md` (empty states, walk-in, mensajes “te falta X”)
-- [ ] Preview `http://localhost:4200`
-- [ ] `domain-context.md` actualizado con principios UX
+- [x] Spec + plan + tasks revisados con Luis
+- [x] MVP implementado según `tasks.md` (olas 1–3)
+- [x] `npm run build` OK
+- [x] QA guía en `tasks.md` (empty states, walk-in, mensajes “te falta X”)
+- [x] Preview `http://localhost:4200` + hosting prod
+- [x] `domain-context.md` actualizado con principios UX
 
 ---
 

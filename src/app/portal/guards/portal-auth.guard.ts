@@ -4,6 +4,11 @@ import { PortalSessionService } from '../services/portal-session.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
 
+/**
+ * Protege rutas /portal/* autenticadas.
+ * Nunca redirige a /auth/contexto ni a /admin: el selector dual solo existe
+ * tras login staff. Entrada landing/portal debe quedarse en el portal.
+ */
 @Injectable({ providedIn: 'root' })
 export class PortalAuthGuard implements CanActivate {
   constructor(
@@ -25,21 +30,6 @@ export class PortalAuthGuard implements CanActivate {
         return false;
       }
       return true;
-    }
-
-    const hasStaff = await this.authProfileService.hasStaffAccess();
-    const hasClient = await this.authProfileService.hasClientAccess();
-
-    // Solo staff (sin portal): al admin. Dual con cliente inactivo/session null no debe ciclar.
-    if (hasStaff && !hasClient) {
-      await this.router.navigate(['/admin/inicio']);
-      return false;
-    }
-
-    // Dual con clientAccess pero session null (portal inactivo): ofrecer contexto o admin
-    if (hasStaff && hasClient) {
-      await this.router.navigate(['/auth/contexto']);
-      return false;
     }
 
     await this.router.navigate(['/portal/login']);

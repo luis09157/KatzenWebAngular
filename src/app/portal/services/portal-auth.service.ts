@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
+import { AuthSessionService } from '../../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
 import { PortalDataService } from './portal-data.service';
 import { PortalSessionService } from './portal-session.service';
@@ -14,34 +15,33 @@ export class PortalAuthService {
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private authSession: AuthSessionService,
     private firebaseFunctions: FirebaseFunctionsService,
     private portalData: PortalDataService,
     private portalSession: PortalSessionService,
     private router: Router
   ) {}
 
-  /** Entra directo si hay sesión guardada con "Mantener sesión activa". */
+  /**
+   * Si ya hay sesión Firebase usable como cliente, entra al portal
+   * (remembered o sesión de pestaña). Nunca contexto/admin.
+   */
   async enterIfRememberedSession(): Promise<boolean> {
-    const user = await this.authService.getRememberedAuthUser();
+    // Primero sesión "mantener activa"; si no, cualquier auth activa con portal.
+    let user = await this.authService.getRememberedAuthUser();
     if (!user) {
-      return false;
+      const authed = await this.authService.isAuthenticatedOnce();
+      if (!authed) {
+        return false;
+      }
+      if (!(await this.authService.ensureActiveSession())) {
+        return false;
+      }
     }
 
     await this.firebaseFunctions.syncMyClaims();
 
-    if (await this.authProfileService.isDual()) {
-      await this.router.navigate(['/auth/contexto']);
-      return true;
-    }
-
-    const portalSession = await this.portalSession.resolveSession();
-    if (portalSession) {
-      await this.router.navigate(['/portal/mascotas']);
-      return true;
-    }
-
-    if (await this.authProfileService.hasStaffAccess()) {
-      await this.router.navigate(['/admin/inicio']);
+    if (await this.tryEnterPortalAsClient()) {
       return true;
     }
 
@@ -50,38 +50,31 @@ export class PortalAuthService {
 
   async login(email: string, password: string, rememberSession = false): Promise<PortalLoginResult> {
     await this.authService.login(email, password, rememberSession);
+    this.authSession.setStaffEntryIntent(false);
     await this.firebaseFunctions.syncMyClaims();
 
     const hasClient = await this.authProfileService.hasClientAccess();
     const hasStaff = await this.authProfileService.hasStaffAccess();
-
-    if (hasClient && hasStaff) {
-      const clienteId = await this.authProfileService.getClienteId();
-      if (clienteId) {
-        const cliente = await this.portalData.getCliente(clienteId);
-        if (!isPortalClienteActive(cliente)) {
-          // Dual con portal inactivo: aún puede usar admin
-          return 'staff';
-        }
-      }
-      return 'dual';
-    }
 
     if (hasClient) {
       const clienteId = await this.authProfileService.getClienteId();
       if (clienteId) {
         const cliente = await this.portalData.getCliente(clienteId);
         if (!isPortalClienteActive(cliente)) {
-          await this.authService.logout();
+          await this.authService.signOutOnly();
           return 'inactive';
         }
       }
-      return 'client';
+      this.authSession.setPortalEntryLock(true);
+      return hasStaff ? 'dual' : 'client';
     }
+
     if (hasStaff) {
+      await this.authService.signOutOnly();
       return 'staff';
     }
-    await this.authService.logout();
+
+    await this.authService.signOutOnly();
     return 'none';
   }
 
@@ -91,18 +84,29 @@ export class PortalAuthService {
   }
 
   async navigateAfterLogin(result: PortalLoginResult): Promise<void> {
-    if (result === 'dual') {
-      await this.router.navigate(['/auth/contexto']);
+    if (result === 'dual' || result === 'client') {
+      this.authSession.setStaffEntryIntent(false);
+      this.authSession.setPortalEntryLock(true);
+      await this.router.navigateByUrl('/portal/mascotas');
       return;
     }
-    if (result === 'client') {
-      await this.router.navigate(['/portal/mascotas']);
-      return;
+    await this.router.navigateByUrl('/portal/login');
+  }
+
+  private async tryEnterPortalAsClient(): Promise<boolean> {
+    const hasClient = await this.authProfileService.hasClientAccess();
+    if (!hasClient) {
+      return false;
     }
-    if (result === 'staff') {
-      await this.router.navigate(['/admin/inicio']);
-      return;
+
+    const portalSession = await this.portalSession.resolveSession();
+    if (!portalSession) {
+      return false;
     }
-    await this.router.navigate(['/portal/login']);
+
+    this.authSession.setStaffEntryIntent(false);
+    this.authSession.setPortalEntryLock(true);
+    await this.router.navigateByUrl('/portal/mascotas');
+    return true;
   }
 }

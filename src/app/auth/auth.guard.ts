@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { AuthSessionService } from '../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { LoggerService } from '../core/logger.service';
 
@@ -10,6 +11,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private authSession: AuthSessionService,
     private firebaseFunctions: FirebaseFunctionsService,
     private router: Router,
     private logger: LoggerService
@@ -29,6 +31,13 @@ export class AuthGuard implements CanActivate {
     }
 
     await this.firebaseFunctions.syncMyClaims();
+
+    // Sesión iniciada por portal/landing: no permitir panel admin (dual incluido).
+    if (this.authSession.isPortalEntryLocked()) {
+      this.logger.log('AuthGuard: bloqueado por entrada portal');
+      await this.router.navigate(['/portal/mascotas']);
+      return false;
+    }
 
     const hasStaff = await this.authProfileService.hasStaffAccess();
     if (!hasStaff) {

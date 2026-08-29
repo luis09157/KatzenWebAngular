@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { AuthSessionService } from '../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { AppCheckService } from '../core/app-check.service';
 
@@ -19,6 +20,7 @@ export class ContextoSelectorComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
+    private authSession: AuthSessionService,
     private firebaseFunctions: FirebaseFunctionsService,
     private appCheck: AppCheckService,
     private router: Router
@@ -36,6 +38,26 @@ export class ContextoSelectorComponent implements OnInit {
       await this.firebaseFunctions.syncMyClaims();
       const access = await this.authProfileService.resolveAccess();
 
+      // Candado duro: el selector SOLO existe tras login staff.
+      // Cualquier visita a /auth/contexto desde portal/landing/bookmark → portal.
+      const allowSelector =
+        this.authSession.hasStaffEntryIntent() && !this.authSession.isPortalEntryLocked();
+
+      if (!allowSelector) {
+        if (access.clientAccess) {
+          this.authSession.setPortalEntryLock(true);
+          await this.router.navigate(['/portal/mascotas']);
+          return;
+        }
+        if (access.staffAccess) {
+          await this.router.navigate(['/admin/inicio']);
+          return;
+        }
+        this.error = 'Tu cuenta no tiene acceso al panel ni al portal.';
+        this.loading = false;
+        return;
+      }
+
       if (access.staffAccess && access.clientAccess) {
         this.loading = false;
         return;
@@ -45,6 +67,7 @@ export class ContextoSelectorComponent implements OnInit {
         return;
       }
       if (access.clientAccess) {
+        this.authSession.setPortalEntryLock(true);
         await this.router.navigate(['/portal/mascotas']);
         return;
       }
@@ -61,6 +84,8 @@ export class ContextoSelectorComponent implements OnInit {
     if (this.choosing) return;
     this.choosing = true;
     try {
+      this.authSession.setPortalEntryLock(false);
+      this.authSession.setStaffEntryIntent(true);
       await this.router.navigate(['/admin/inicio']);
     } finally {
       this.choosing = false;
@@ -71,6 +96,9 @@ export class ContextoSelectorComponent implements OnInit {
     if (this.choosing) return;
     this.choosing = true;
     try {
+      // Vino de login staff: puede volver al admin con el atajo del portal.
+      this.authSession.setPortalEntryLock(false);
+      this.authSession.setStaffEntryIntent(true);
       await this.router.navigate(['/portal/mascotas']);
     } finally {
       this.choosing = false;

@@ -112,3 +112,4 @@ npm run cy:admin → 23/23 PASS
 - [x] `spec.md` → done
 - [x] Commit + push (pedido por Luis)
 - [x] Hotfix layout contexto + hosting (2026-08-26)
+- [x] Hotfix aislamiento entrada portal (2026-08-27): login landing/`/portal/login` → solo portal; lock bloquea `/admin` y oculta atajo admin; selector dual solo tras `/admin/login`

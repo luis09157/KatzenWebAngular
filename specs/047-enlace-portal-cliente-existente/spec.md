@@ -1,7 +1,7 @@
 # Spec: Enlace portal ↔ cliente clínico (sin duplicar)
 
 **ID:** 047-enlace-portal-cliente-existente  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-27  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 002 (portal usuarios), 013 (registro landing), 038 (Resend), 012 (dual)

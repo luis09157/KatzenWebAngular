@@ -74,21 +74,15 @@ export class PortalLoginComponent implements OnInit {
         });
         return;
       }
-      if (result === 'dual') {
-        await this.portalAuth.navigateAfterLogin(result);
-        return;
-      }
       if (result === 'staff') {
         Swal.fire({
           icon: 'info',
-          title: 'Cuenta de personal staff',
-          text: 'Te redirigimos al panel administrativo.',
-          timer: 2200,
-          showConfirmButton: false
+          title: 'Cuenta de personal',
+          text: 'Este acceso es solo para dueños. El personal debe entrar por Acceso staff (/admin/login).'
         });
-        await this.portalAuth.navigateAfterLogin(result);
         return;
       }
+      // dual y client → siempre portal (sin /auth/contexto ni admin).
       await this.portalAuth.navigateAfterLogin(result);
     } catch {
       Swal.fire({ icon: 'error', title: 'No pudimos iniciar sesión', text: 'Revisa tu correo y contraseña.' });
