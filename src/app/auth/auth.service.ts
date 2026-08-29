@@ -90,6 +90,24 @@ export class AuthService {
     return user;
   }
 
+  /** Usuario Firebase con sesión activa (recordada o de pestaña) aún vigente. */
+  async getActiveAuthUser(): Promise<User | null> {
+    const remembered = await this.getRememberedAuthUser();
+    if (remembered) {
+      return remembered;
+    }
+
+    if (!(await this.isAuthenticatedOnce())) {
+      return null;
+    }
+
+    if (!(await this.ensureActiveSession())) {
+      return null;
+    }
+
+    return this.waitForAuthUser();
+  }
+
   async ensureActiveSession(options?: { bootstrapIfMissing?: boolean }): Promise<boolean> {
     const user = await this.afAuth.currentUser;
     if (!user) {

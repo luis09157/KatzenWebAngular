@@ -32,24 +32,42 @@ export class AuthComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.appCheck.ensureInitialized();
     try {
-      const user = await this.authService.getRememberedAuthUser();
-      if (user) {
-        await this.firebaseFunctions.syncMyClaims();
-        // Sesión abierta por portal: no saltar a admin/contexto desde /admin/login.
-        if (this.authSession.isPortalEntryLocked()) {
-          if (await this.authProfileService.hasClientAccess()) {
-            await this.router.navigate(['/portal/mascotas']);
-            return;
-          }
-        }
-        // Sesión recordada de staff: marcar intent para poder mostrar contexto.
-        this.authSession.setStaffEntryIntent(true);
-        await this.navigateAfterStaffLogin();
-        return;
-      }
+      await this.tryEnterIfActiveSession();
     } finally {
       this.checkingSession = false;
     }
+  }
+
+  /** Sesión Firebase activa → admin, contexto dual o portal según perfil y locks. */
+  private async tryEnterIfActiveSession(): Promise<boolean> {
+    const user = await this.authService.getActiveAuthUser();
+    if (!user) {
+      return false;
+    }
+
+    await this.firebaseFunctions.syncMyClaims();
+
+    // Sesión abierta por portal: no saltar a admin/contexto desde /admin/login.
+    if (this.authSession.isPortalEntryLocked()) {
+      if (await this.authProfileService.hasClientAccess()) {
+        await this.router.navigate(['/portal/mascotas']);
+        return true;
+      }
+      return false;
+    }
+
+    const hasStaff = await this.authProfileService.hasStaffAccess();
+    if (!hasStaff) {
+      if (await this.authProfileService.hasClientAccess()) {
+        await this.router.navigate(['/portal/mascotas']);
+        return true;
+      }
+      return false;
+    }
+
+    this.authSession.setStaffEntryIntent(true);
+    await this.navigateAfterStaffLogin();
+    return true;
   }
 
   async login() {

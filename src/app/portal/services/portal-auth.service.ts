@@ -27,16 +27,9 @@ export class PortalAuthService {
    * (remembered o sesión de pestaña). Nunca contexto/admin.
    */
   async enterIfRememberedSession(): Promise<boolean> {
-    // Primero sesión "mantener activa"; si no, cualquier auth activa con portal.
-    let user = await this.authService.getRememberedAuthUser();
+    const user = await this.authService.getActiveAuthUser();
     if (!user) {
-      const authed = await this.authService.isAuthenticatedOnce();
-      if (!authed) {
-        return false;
-      }
-      if (!(await this.authService.ensureActiveSession())) {
-        return false;
-      }
+      return false;
     }
 
     await this.firebaseFunctions.syncMyClaims();
