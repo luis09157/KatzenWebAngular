@@ -15,7 +15,7 @@ import {
   isMascotaFallecido,
   isPendingActive,
   isQuietHours,
-  isVaccineReminder,
+  isSchedulerReminder,
   ownerPushCopy,
   PushKind,
   pushCountOf,
@@ -177,7 +177,7 @@ export async function runVacunaPushSchedule(now: Date = new Date()): Promise<{
 
   const due: DueItem[] = [];
   for (const [id, r] of Object.entries(all)) {
-    if (!isPendingActive(r) || !isVaccineReminder(r)) continue;
+    if (!isPendingActive(r) || !isSchedulerReminder(r)) continue;
     const kind = windowKindForReminder(r, now);
     if (!kind || !canSendKind(r, kind)) continue;
 

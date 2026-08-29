@@ -19,13 +19,15 @@ import { RecordatoriosRoutingModule } from './recordatorios-routing.module';
 import { RecordatoriosComponent } from './recordatorios.component';
 import { RecordatorioDialogComponent } from './recordatorio-dialog.component';
 import { RecordatorioDetalleComponent } from './recordatorio-detalle.component';
+import { DesparasitacionEsquemaConfirmDialogComponent } from './desparasitacion-esquema-confirm-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
     RecordatoriosComponent,
     RecordatorioDialogComponent,
-    RecordatorioDetalleComponent
+    RecordatorioDetalleComponent,
+    DesparasitacionEsquemaConfirmDialogComponent
   ],
   imports: [
     CommonModule,

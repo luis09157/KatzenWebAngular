@@ -395,6 +395,32 @@ export class PacientesComponent implements OnInit, OnDestroy {
     });
   }
 
+  agregarDesparasitacion(): void {
+    if (!this.pacienteSeleccionado) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: {
+        paciente_id: this.pacienteSeleccionado.id,
+        cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
+        paciente: this.pacienteSeleccionado,
+        cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
+        desdePaciente: true,
+        registrarDesparasitacion: true
+      }
+    });
+
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) {
+        this.cargarRecordatorios(this.pacienteSeleccionado.id);
+        this.cargarLogActividades(this.pacienteSeleccionado.id);
+      }
+    });
+  }
+
   editarRecordatorio(recordatorio: any) {
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
       ...ADMIN_DIALOG_FORM,

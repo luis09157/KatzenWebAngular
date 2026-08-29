@@ -1,0 +1,172 @@
+/* Scope overlay CDK — encapsulation: None (espejo 052) */
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog {
+  display: block;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 20px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #fff !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-title {
+  margin: 0 !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  color: #032d60 !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-subtitle {
+  margin: 6px 0 0 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog mat-dialog-content.admin-dialog-body {
+  padding: 20px 28px 24px !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .esquema-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow: visible;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .estado-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: max-content;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: visible;
+  color: #fff;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .estado-badge--success {
+  background: #4caf50;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .estado-badge--info {
+  background: #2196f3;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .estado-badge--pending {
+  background: #ff9800;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .estado-badge--neutral {
+  background: #9e9e9e;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .esquema-fuente {
+  margin: 0 0 14px;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .esquema-help {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-section {
+  margin: 12px 0 16px !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-section__title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 0 8px !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #065d60 !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-section__badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 16px !important;
+  row-gap: 16px !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-grid .full-span,
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog app-timepicker-field {
+  min-width: 0;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-grid .full-span {
+  grid-column: 1 / -1 !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .esquema-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .esquema-hints app-flow-hint {
+  display: block;
+  margin-top: 8px;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 14px 28px 18px !important;
+  margin: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-actions__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-dialog-panel app-desparasitacion-esquema-confirm-dialog .admin-dialog-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}

@@ -10,6 +10,13 @@ describe('push-schedule.util (052 ola 2)', () => {
     assert.equal(util.isVaccineReminder({ tipo: 'medicamento' }), false);
   });
 
+  it('isDewormReminder por tipo y origen (053)', () => {
+    assert.equal(util.isDewormReminder({ tipo: 'desparasitacion' }), true);
+    assert.equal(util.isDewormReminder({ origen: 'desparasitacion_auto' }), true);
+    assert.equal(util.isDewormReminder({ tipo: 'vacuna' }), false);
+    assert.equal(util.isSchedulerReminder({ tipo: 'desparasitacion' }), true);
+  });
+
   it('isMascotaFallecido respeta 017', () => {
     assert.equal(util.isMascotaFallecido({ estado: 'Fallecido' }), true);
     assert.equal(util.isMascotaFallecido({ estado: 'fallecido' }), true);

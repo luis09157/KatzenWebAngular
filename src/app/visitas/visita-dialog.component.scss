@@ -1,4 +1,52 @@
 .visita-dialog {
+  .visita-wizard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+
+  .visita-wizard__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    &.is-active {
+      border-color: var(--katzen-verde, #0d9488);
+      background: #f0fdfa;
+      color: #0f766e;
+    }
+  }
+
+  .visita-wizard__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    font-size: 0.75rem;
+  }
+
+  .visita-wizard__step.is-active .visita-wizard__num {
+    background: var(--katzen-verde, #0d9488);
+    color: #fff;
+  }
+
   .visita-totales {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

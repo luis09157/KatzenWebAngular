@@ -99,6 +99,54 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
 }
 
 /**
+ * Menú compacto (spec 054). No restringe StaffRoleGuard ni RTDB:
+ * recepción/peluquería siguen pudiendo abrir módulos por URL (política 011).
+ */
+export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
+  recepcionista: [
+    'inicio',
+    'paciente',
+    'citas',
+    'clientes',
+    'pacientes-admin',
+    'visitas',
+    'banios',
+    'recordatorios',
+    'pension'
+  ],
+  peluquero: [
+    'inicio',
+    'paciente',
+    'clientes',
+    'citas',
+    'banios',
+    'visitas',
+    'recordatorios'
+  ],
+  doctor: '*',
+  administrador: '*',
+  admin: '*',
+  super_admin: '*',
+  dueno: '*',
+  dueño: '*'
+};
+
+export function staffRoleShowsCompactNav(staffRole: string | undefined | null): boolean {
+  const role = normalizeStaffRole(staffRole);
+  const nav = STAFF_NAV_COMPACT[role];
+  return Array.isArray(nav);
+}
+
+export function navModulesForStaffRole(staffRole: string): StaffModule[] {
+  const role = normalizeStaffRole(staffRole);
+  const nav = STAFF_NAV_COMPACT[role];
+  if (!nav || nav === '*') {
+    return modulesForStaffRole(role);
+  }
+  return nav.filter(m => staffRoleCanAccessModule(role, m));
+}
+
+/**
  * Veterinarias / admin operativo: fechas pasadas en agenda y revertir
  * completada → confirmada (domain-context decisiones #3 y #5).
  */

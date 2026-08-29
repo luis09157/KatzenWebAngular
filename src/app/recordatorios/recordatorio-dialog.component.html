@@ -2,7 +2,11 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ isEditMode ? 'Editar recordatorio' : 'Nuevo recordatorio' }}</h2>
-      <p class="admin-dialog-subtitle">Programación, prioridad y seguimiento del recordatorio.</p>
+      <p class="admin-dialog-subtitle">
+        {{ data?.registrarDesparasitacion
+          ? 'Registra la aplicación y confirma si se agenda la siguiente dosis.'
+          : 'Programación, prioridad y seguimiento del recordatorio.' }}
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -59,6 +63,15 @@
             <mat-error *ngIf="recordatorioForm.get('tipo')?.hasError('required')">
               El tipo es requerido
             </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-span" *ngIf="esDesparasitacion">
+            <mat-label>Tipo de desparasitación</mat-label>
+            <mat-select formControlName="tipoDesparasitacion">
+              <mat-option *ngFor="let t of tiposDesparasitacion" [value]="t.value">
+                {{ t.label }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
       </section>

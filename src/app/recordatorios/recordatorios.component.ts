@@ -187,6 +187,20 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 
+  abrirRegistrarDesparasitacion(): void {
+    const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
+      data: { registrarDesparasitacion: true }
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      if (result) {
+        this.loadingService.hide();
+        this.cargarRecordatorios();
+      }
+    });
+  }
+
   editarRecordatorio(recordatorio: any) {
     this.abrirModalRecordatorio(recordatorio);
   }

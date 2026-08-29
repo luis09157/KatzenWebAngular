@@ -91,6 +91,10 @@
           <mat-icon>vaccines</mat-icon>
           Vacuna
         </button>
+        <button mat-stroked-button type="button" matTooltip="Registrar desparasitación" (click)="agregarDesparasitacion()">
+          <mat-icon>medication</mat-icon>
+          Desparasitar
+        </button>
         <button mat-stroked-button type="button" matTooltip="Nuevo baño" (click)="agregarBanioDesdeExpediente()">
           <mat-icon>shower</mat-icon>
           Baño
@@ -138,7 +142,7 @@
         <app-admin-data-panel
           accent="teal"
           title="Registros clínicos"
-          description="Historial, recordatorios, vacunas y baños del paciente."
+          description="Historial, recordatorios, vacunas, desparasitación y baños del paciente."
           [meta]="logActividades.length + ' actividades registradas'"
           [showLegend]="false">
 

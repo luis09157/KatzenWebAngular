@@ -59,7 +59,7 @@
       </a>
       <a *ngIf="canShow('pacientes-admin')" mat-list-item routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>pets</mat-icon>
-        <span matListItemTitle>Pacientes</span>
+        <span matListItemTitle>Directorio de pacientes</span>
       </a>
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario" routerLinkActive="active"
          [routerLinkActiveOptions]="{ exact: true }" (click)="closeSidenav()">
@@ -108,7 +108,7 @@
         <mat-icon matListItemIcon>mail</mat-icon>
         <span matListItemTitle>Contactos web</span>
       </a>
-      <a *ngIf="canShow('inicio')" mat-list-item routerLink="/admin/inicio" routerLinkActive="active"
+      <a *ngIf="muestraDashboardMetricas" mat-list-item routerLink="/admin/inicio" routerLinkActive="active"
          class="admin-nav-subitem" (click)="closeSidenav()">
         <mat-icon matListItemIcon>insights</mat-icon>
         <span matListItemTitle>Dashboard métricas</span>

@@ -3,7 +3,8 @@
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Cuenta del día' : 'Nueva cuenta del día' }}</h2>
       <p class="admin-dialog-subtitle">
-        Paso a paso: dueño (o mostrador) → líneas → cobrar. Los productos descontarán inventario al guardar.
+        {{ esEdicion ? 'Edita líneas y cobra.' : 'Pasos: dueño → líneas → cobrar.' }}
+        Los productos descontarán inventario al guardar.
         Estado:
         <span class="estado-badge" [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
           {{ estadoLabels[totales.estado] || estadoLabel }}
@@ -16,6 +17,22 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
+    <nav class="visita-wizard no-print" *ngIf="!soloLectura" aria-label="Pasos del ticket">
+      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 1" (click)="irPaso(1)">
+        <span class="visita-wizard__num">1</span>
+        Dueño
+      </button>
+      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 2" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(2)">
+        <span class="visita-wizard__num">2</span>
+        Líneas
+      </button>
+      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 3" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(3)">
+        <span class="visita-wizard__num">3</span>
+        Cobrar
+      </button>
+    </nav>
+    <app-flow-hint class="no-print" *ngIf="!soloLectura" icon="receipt_long" [message]="hintPasoWizard"></app-flow-hint>
+
     <div class="visita-print-sheet" id="visita-print-sheet">
       <div class="print-only print-brand">
         <h1>KatzenVet — Cuenta del día</h1>
@@ -23,7 +40,7 @@
         <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
       </div>
 
-      <form [formGroup]="form" class="admin-form-layout no-print">
+      <form [formGroup]="form" class="admin-form-layout no-print" *ngIf="pasoWizard === 1 || soloLectura">
         <div class="mostrador-bar no-print" *ngIf="!soloLectura">
           <ng-container *ngIf="!modoMostrador; else mostradorActivo">
             <app-flow-hint
@@ -79,6 +96,7 @@
         </mat-form-field>
       </form>
 
+      <ng-container *ngIf="pasoWizard >= 2 || soloLectura">
       <div class="visita-totales">
         <div><span class="lbl">Total</span><strong>{{ formatMoney(totales.total) }}</strong></div>
         <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
@@ -135,7 +153,6 @@
       <ng-template #sinLineas>
         <p class="hint-empty">Sin líneas. Incluye un baño pendiente, vende un producto (descuenta stock) o agrega consulta/vacuna.</p>
       </ng-template>
-    </div>
 
     <div class="linea-presets no-print" *ngIf="!soloLectura">
       <span class="presets-label">Atajos:</span>
@@ -192,10 +209,29 @@
         Agregar línea
       </button>
     </form>
+      </ng-container>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions no-print">
     <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
+    <button
+      mat-stroked-button
+      type="button"
+      *ngIf="!soloLectura && pasoWizard > 1"
+      (click)="atrasPaso()"
+      [disabled]="loading">
+      Atrás
+    </button>
+    <button
+      mat-stroked-button
+      color="primary"
+      type="button"
+      *ngIf="!soloLectura && pasoWizard < 3"
+      (click)="siguientePaso()"
+      [disabled]="loading || (pasoWizard === 1 && !tieneDuenoOMostrador)">
+      Siguiente
+    </button>
     <button
       mat-stroked-button
       type="button"
@@ -209,6 +245,7 @@
       mat-stroked-button
       color="primary"
       type="button"
+      *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
       (click)="guardar()"
       [disabled]="!puedeGuardar"
       [matTooltip]="guardarBloqueoHint">
@@ -220,6 +257,7 @@
       color="primary"
       class="btn-primary-teal"
       type="button"
+      *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
       (click)="cobrar()"
       [disabled]="!puedeCobrar"
       [matTooltip]="cobrarBloqueoHint">

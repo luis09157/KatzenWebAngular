@@ -10,8 +10,8 @@
   <app-admin-page-banner
     accent="teal"
     icon="pets"
-    title="Administración de Pacientes"
-    subtitle="Consulta, edita y borra mascotas registradas. Los datos clínicos se conservan en historial.">
+    title="Directorio de pacientes"
+    subtitle="Alta y ficha de mascotas. El expediente clínico (historial, vacunas, desparasitación) está en Buscar paciente.">
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="nuevoPaciente()">
         <mat-icon>add</mat-icon>
@@ -22,8 +22,8 @@
 
   <app-admin-data-panel
     accent="teal"
-    title="Listado de pacientes"
-    description="Busca por nombre, especie, raza o dueño."
+    title="Directorio"
+    description="Busca por nombre, especie, raza o dueño. Para abrir el expediente usa Buscar paciente."
     [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + stats.total + ' totales') : ''"
     [showLegend]="!loading && !!dataSource?.data?.length">
 
@@ -41,8 +41,8 @@
     <app-admin-empty-state
       *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="pets"
-      title="No hay pacientes"
-      message="No se han encontrado pacientes registrados."
+      title="No hay mascotas en el directorio"
+      message="Registra la primera mascota aquí. El expediente clínico se abre en Buscar paciente."
       actionLabel="Agregar primer paciente"
       (action)="nuevoPaciente()">
     </app-admin-empty-state>

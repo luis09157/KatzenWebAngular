@@ -295,4 +295,84 @@ export class RecordatoriosService {
     }
     return count;
   }
+
+  /**
+   * Spec 053: asegura un recordatorio pendiente de la siguiente desparasitación.
+   * Dedupe por paciente + día + tipo. `skipPushOnCreate` evita spam FCM (023/052).
+   */
+  async asegurarProximaDesparasitacion(input: {
+    pacienteId: string;
+    clienteId?: string;
+    fechaIsoLocal: string;
+    dayKey: string;
+    fechaLabel: string;
+    titulo?: string;
+    tipoDesparasitacion?: string;
+    intervaloDias?: number | null;
+    esquemaCodigo?: string;
+  }): Promise<AsegurarRefuerzoResultado> {
+    const pacienteId = String(input.pacienteId || '').trim();
+    if (!pacienteId) {
+      return { action: 'skipped', reason: 'sin_paciente' };
+    }
+    const fechaIso = String(input.fechaIsoLocal || '').trim();
+    if (!fechaIso) {
+      return { action: 'skipped', reason: 'sin_fecha' };
+    }
+
+    const titulo = input.titulo || 'Desparasitación — siguiente dosis';
+    const existentes = (await firstValueFrom(
+      this.getRecordatoriosPorPaciente(pacienteId)
+    )) as Array<Record<string, unknown>>;
+
+    const equivalente = (existentes || []).find(r => {
+      if (r['activo'] === false) return false;
+      if (String(r['tipo'] || '').toLowerCase() !== 'desparasitacion') return false;
+      const day = String(r['fecha_hora_recordatorio'] || r['fecha_recordatorio'] || '').slice(0, 10);
+      return day === input.dayKey && String(r['titulo'] || '') === titulo;
+    });
+
+    const payloadBase = {
+      titulo,
+      descripcion: `Siguiente desparasitación sugerida (${input.fechaLabel}).`,
+      tipo: 'desparasitacion',
+      tipoDesparasitacion: input.tipoDesparasitacion || 'interna',
+      fecha_hora_recordatorio: fechaIso,
+      fecha_recordatorio: fechaIso,
+      estado: 'pendiente',
+      prioridad: 'media',
+      paciente_id: pacienteId,
+      ...(input.clienteId ? { cliente_id: input.clienteId } : {}),
+      origen: 'desparasitacion_auto',
+      skipPushOnCreate: true,
+      esquemaCodigo: input.esquemaCodigo || null,
+      intervaloConfirmadoDias: input.intervaloDias ?? null,
+      notas: 'Generado al confirmar esquema de desparasitación (053).'
+    };
+
+    if (equivalente?.['id']) {
+      await this.actualizarRecordatorio(String(equivalente['id']), payloadBase);
+      return {
+        action: 'updated',
+        recordatorioId: String(equivalente['id']),
+        fechaLabel: input.fechaLabel
+      };
+    }
+
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const nuevo = {
+      ...payloadBase,
+      created_at: timestamp,
+      updated_at: timestamp,
+      fecha_creacion: timestamp,
+      activo: true
+    };
+    const ref = await this.db.list('Katzen/Recordatorios').push(nuevo);
+    await stampRtdbIdAfterPush(this.db, 'Katzen/Recordatorios', ref.key);
+    return {
+      action: 'created',
+      recordatorioId: String(ref.key),
+      fechaLabel: input.fechaLabel
+    };
+  }
 } 

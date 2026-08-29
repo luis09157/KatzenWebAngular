@@ -69,6 +69,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   mostrandoProducto = false;
   /** Spec 046 — petshop sin cliente registrado. */
   modoMostrador = false;
+  /** Spec 054 — wizard dueño → líneas → cobrar. */
+  pasoWizard = 1;
   productoSel: Producto | null = null;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'atendidoPorUid',
@@ -195,6 +197,43 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return this.puedeGuardar && this.totales.saldo > 0;
   }
 
+  get tieneDuenoOMostrador(): boolean {
+    if (this.modoMostrador) return true;
+    return !!String(this.form.get('cliente_id')?.value || '').trim();
+  }
+
+  get hintPasoWizard(): string {
+    if (this.pasoWizard === 1) {
+      return this.tieneDuenoOMostrador
+        ? 'Dueño listo. Sigue a las líneas del ticket.'
+        : 'Paso 1: elige el dueño o venta de mostrador.';
+    }
+    if (this.pasoWizard === 2) {
+      return this.lineas.length
+        ? 'Líneas listas. Sigue a cobrar o guarda el ticket.'
+        : 'Paso 2: incluye un baño pendiente, un producto o una consulta.';
+    }
+    return 'Paso 3: guarda o cobra. Los productos descontarán inventario.';
+  }
+
+  irPaso(paso: number): void {
+    if (paso < 1 || paso > 3) return;
+    if (paso > 1 && !this.tieneDuenoOMostrador) {
+      this.form.markAllAsTouched();
+      this.pasoWizard = 1;
+      return;
+    }
+    this.pasoWizard = paso;
+  }
+
+  siguientePaso(): void {
+    this.irPaso(this.pasoWizard + 1);
+  }
+
+  atrasPaso(): void {
+    this.irPaso(this.pasoWizard - 1);
+  }
+
   constructor(
     private fb: FormBuilder,
     private visitasService: VisitasService,
@@ -280,6 +319,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       if (this.data?.paciente_id) {
         void this.cargarAlergias(this.data.paciente_id);
       }
+    }
+
+    if (this.esEdicion) {
+      this.pasoWizard = this.lineas.length ? 3 : 2;
+    } else if (this.tieneDuenoOMostrador) {
+      this.pasoWizard = 2;
     }
 
     this.form.get('cliente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());

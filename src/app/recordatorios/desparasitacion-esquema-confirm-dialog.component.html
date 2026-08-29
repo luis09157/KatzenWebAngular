@@ -1,0 +1,104 @@
+<div class="admin-dialog-shell desparasitacion-esquema-confirm-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">¿Agendar la siguiente dosis?</h2>
+      <p class="admin-dialog-subtitle">
+        {{ data.nombrePaciente }} · Desparasitación
+      </p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="esquema-chips">
+      <span class="estado-badge" [ngClass]="claseTipo">{{ etiquetaTipo }}</span>
+      <span class="estado-badge estado-badge--neutral" *ngIf="data.especie">{{ data.especie }}</span>
+    </div>
+
+    <app-flow-hint icon="info" [message]="disclaimer"></app-flow-hint>
+
+    <p class="esquema-fuente">{{ sugerencia.fuenteCorta }}</p>
+
+    <app-flow-hint
+      *ngIf="!sugerencia.puedeSugerir && sugerencia.mensajeSinEsquema"
+      icon="pets"
+      variant="warn"
+      [message]="sugerencia.mensajeSinEsquema">
+    </app-flow-hint>
+
+    <app-flow-hint
+      *ngIf="fallecido"
+      icon="warning"
+      variant="warn"
+      message="La mascota está Fallecido: se registrará sin próxima dosis (spec 017).">
+    </app-flow-hint>
+
+    <section class="form-section" *ngIf="!fallecido">
+      <h3 class="form-section__title">
+        Cambiar fecha o intervalo
+        <span class="form-section__badge form-section__badge--optional">Editable</span>
+      </h3>
+      <p class="esquema-help">
+        Confirma la sugerencia o cámbiala aquí mismo. Sin confirmar no se crea el recordatorio siguiente.
+      </p>
+      <form [formGroup]="form" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha de la siguiente dosis</mat-label>
+          <input matInput [matDatepicker]="pickerEsquema" formControlName="fecha">
+          <mat-datepicker-toggle matIconSuffix [for]="pickerEsquema"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEsquema></mat-datepicker>
+        </mat-form-field>
+
+        <app-timepicker-field
+          formControlName="hora"
+          label="Hora"
+          [required]="true"
+          dialogTitle="Hora del recordatorio">
+        </app-timepicker-field>
+
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Intervalo (días)</mat-label>
+          <input matInput type="number" formControlName="intervalo" min="1">
+        </mat-form-field>
+      </form>
+
+      <div class="esquema-presets" *ngIf="sugerencia.presetsIntervaloDias.length > 0">
+        <button
+          type="button"
+          mat-stroked-button
+          *ngFor="let dias of sugerencia.presetsIntervaloDias"
+          (click)="aplicarPreset(dias)">
+          {{ labelPreset(dias) }}
+        </button>
+      </div>
+    </section>
+
+    <div class="esquema-hints">
+      <app-flow-hint
+        *ngFor="let hint of hintsVisibles"
+        [icon]="hint.severity === 'warn' ? 'warning' : 'lightbulb'"
+        [variant]="hint.severity === 'warn' ? 'warn' : 'info'"
+        [message]="hint.message">
+      </app-flow-hint>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button type="button" mat-button (click)="noAgendar()" [disabled]="submitting">
+      No agendar
+    </button>
+    <div class="admin-dialog-actions__right">
+      <button
+        type="button"
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal"
+        (click)="confirmar()"
+        [disabled]="submitting">
+        Confirmar
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

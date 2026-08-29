@@ -11,8 +11,12 @@
     accent="blue"
     icon="notifications"
     title="Administración de Recordatorios"
-    subtitle="Gestiona todos los recordatorios y alertas del sistema.">
+    subtitle="Vacunas, desparasitación, medicamentos y seguimientos.">
     <div bannerActions>
+      <button mat-stroked-button color="primary" type="button" (click)="abrirRegistrarDesparasitacion()">
+        <mat-icon>medication</mat-icon>
+        Registrar desparasitación
+      </button>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalRecordatorio()">
         <mat-icon>add</mat-icon>
         Nuevo recordatorio
@@ -42,7 +46,7 @@
       *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="notifications_off"
       title="Aún no hay recordatorios"
-      message="Crea recordatorios de vacunas, medicamentos o seguimiento. Elige dueño y mascota primero."
+      message="Crea recordatorios de vacunas, desparasitación o seguimiento. Elige dueño y mascota primero."
       actionLabel="Nuevo recordatorio"
       (action)="abrirModalRecordatorio()">
     </app-admin-empty-state>

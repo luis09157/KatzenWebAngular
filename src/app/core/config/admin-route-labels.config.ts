@@ -2,7 +2,7 @@
 export const ADMIN_ROUTE_LABELS: Record<string, string> = {
   inicio: 'Inicio',
   paciente: 'Buscar paciente',
-  'pacientes-admin': 'Pacientes',
+  'pacientes-admin': 'Directorio de pacientes',
   clientes: 'Clientes',
   'contactos-web': 'Contactos web',
   citas: 'Citas',

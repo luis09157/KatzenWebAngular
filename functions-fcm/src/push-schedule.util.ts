@@ -43,6 +43,17 @@ export function isVaccineReminder(r: RecordatorioPushFields | null | undefined):
   return tipo.includes('vacuna') || origen.includes('vacuna');
 }
 
+export function isDewormReminder(r: RecordatorioPushFields | null | undefined): boolean {
+  if (!r) return false;
+  const tipo = String(r.tipo || '').toLowerCase();
+  const origen = String(r.origen || '').toLowerCase();
+  return tipo.includes('desparasit') || origen.includes('desparasitacion');
+}
+
+export function isSchedulerReminder(r: RecordatorioPushFields | null | undefined): boolean {
+  return isVaccineReminder(r) || isDewormReminder(r);
+}
+
 export function isPendingActive(r: RecordatorioPushFields | null | undefined): boolean {
   if (!r) return false;
   if (r.activo === false) return false;
@@ -141,15 +152,15 @@ export function canSendKind(r: RecordatorioPushFields, kind: PushKind): boolean 
 }
 
 /**
- * SC-019: diferir FCM/inbox al write si es vacuna y faltan más de N días.
- * Baño/meds (no vacuna) → false (023 sigue al write).
+ * SC-019: diferir FCM/inbox al write si es vacuna o desparasitación (053) y faltan más de N días.
+ * Baño/meds (no scheduler) → false (023 sigue al write).
  */
 export function shouldDeferVaccineWritePush(
   r: RecordatorioPushFields,
   now: Date = new Date(),
   timeZone: string = CLINIC_TZ
 ): boolean {
-  if (!isVaccineReminder(r)) return false;
+  if (!isSchedulerReminder(r)) return false;
   if (!isPendingActive(r)) return false;
   if (r.skipPushOnCreate === true) {
     const days = daysUntilDue(r, now, timeZone);

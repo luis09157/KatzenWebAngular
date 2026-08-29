@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
-import { StaffModule } from '../core/config/staff-role.config';
+import { navModulesForStaffRole, StaffModule, staffRoleShowsCompactNav } from '../core/config/staff-role.config';
 import { NavigationEnd, Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
 import { resolveAdminRouteLabel } from '../core/config/admin-route-labels.config';
@@ -31,6 +31,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   /** Staff con clienteId / dualAccess: atajo al portal. */
   canGoPortal = false;
   accessibleModules = new Set<StaffModule>();
+  navModules = new Set<StaffModule>();
+  navCompact = false;
+  staffRole = '';
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
   toolbarLabel = 'Admin';
@@ -67,6 +70,11 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
         if (!user?.uid) return of(null);
         this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
         return this.authProfileService.resolveAccess().then(async access => {
+          const staffRole = await this.authProfileService.getEffectiveStaffRole();
+          this.staffRole = staffRole;
+          this.navCompact = staffRoleShowsCompactNav(staffRole);
+          const nav = navModulesForStaffRole(staffRole);
+          this.navModules = new Set(nav);
           const modules = await this.authProfileService.getAccessibleModules();
           this.accessibleModules = new Set(modules);
           this.isAdmin = modules.includes('usuarios');
@@ -143,7 +151,17 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   }
 
   canShow(module: StaffModule): boolean {
+    if (this.navModules.size === 0 && this.accessibleModules.size === 0) {
+      return false;
+    }
+    if (this.navCompact) {
+      return this.navModules.has(module);
+    }
     return this.accessibleModules.has(module);
+  }
+
+  get muestraDashboardMetricas(): boolean {
+    return this.canShow('inicio') && !this.navCompact;
   }
 
   get hasClinicaNav(): boolean {

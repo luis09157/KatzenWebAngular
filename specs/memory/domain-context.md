@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **052** esquemas de vacunación (SDD draft).
+**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable.
 
 ---
 
@@ -190,13 +190,15 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 | Campo | Tipo | Regla de negocio |
 |-------|------|------------------|
-| `paciente_id`, `titulo`, `tipo` | string | Tipos: vacuna, cita, medicamento, baño, otro |
+| `paciente_id`, `titulo`, `tipo` | string | Tipos: vacuna, **desparasitacion**, cita, medicamento, baño, otro |
 | `cliente_id?` | string | Dueño; útil portal/push |
 | `fecha_hora_recordatorio` | string | |
 | `estado` | string | `pendiente`, `completado`, `cancelado` |
 | `prioridad` | string | baja, media, alta, urgente |
 | `vacunaId?` / `vacuna_relacionada_id?` | string | **033** enlace a vacuna (opcionales) |
-| `origen?` | string | **033** `vacuna_auto` si se creó desde vacuna |
+| `origen?` | string | **033** `vacuna_auto`; **053** `desparasitacion_auto` |
+| `tipoDesparasitacion?` | string | **053** `interna` \| `externa` \| `ambas` (aditivo) |
+| `skipPushOnCreate?` | boolean | **033/052/053** no FCM al write si la fecha está lejos |
 | `activo` | boolean | Baja lógica |
 
 ### 3.7 `Katzen/Banios/{id}`
@@ -348,6 +350,7 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 
 - Recordatorios generan **push FCM** vía `onRecordatorioWritePush` (023, codebase fcm). **052 ola 2:** recordatorios `tipo`/`origen` vacuna **no** disparan FCM al write si faltan más de 8 días; `onVacunaPushSchedule` diario 10:00 `America/Mexico_City` avisa en D-7 y D-0 (agrupa dueño + resumen staff). Inbox dueño `Katzen/Notificaciones/{clienteId}`; inbox clínica `Katzen/NotificacionesClinica` (cliente no lee).
 - **033:** refuerzo desde vacuna (`origen: vacuna_auto`, `skipPushOnCreate: true`); editable en admin Recordatorios.
+- **053 ola 1:** registrar desparasitación abre el mismo patrón que 052 (sugerir intervalo → vet confirma). La siguiente dosis es un recordatorio `tipo: desparasitacion` con `origen: desparasitacion_auto`. Sin nodo RTDB nuevo.
 - Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos. Scheduler 052 no pushea si Fallecido.
 
 ### 4.7 Inventario
@@ -645,6 +648,7 @@ flowchart TD
 | 11c | Alergias cruzadas mascota | Fuente de verdad en `Mascota.alergias`; alerta en historial/baño/vacuna/visita; portal lectura; sin hard-block | Confirmado · **034** |
 | 11d | Staff UID por acto clínico | Guardar UID Auth + nombre denorm en citas/historiales/vacunas/baños/visitas; legacy solo nombre sigue legible | Confirmado · **035** |
 | 11e | Esquemas vacunación + push/PWA | Defaults sugeridos por especie (perro/gato; conejo tipos + hurón hint); vet confirma siempre; rabia anual MX; push cerca de la fecha; PWA portal | Confirmado · **052** done (código; deploy scheduler pendiente) |
+| 11f | Desparasitación esquema + recordatorio | Espejo 052 ligado a Recordatorios (interna/externa/ambas); vet confirma; sin nodo nuevo ola 1 | Confirmado (cierre operable) · **053** ola 1 |
 
 ### Inventario
 
@@ -726,6 +730,8 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | ~~**Staff UID por acto clínico**~~ | ops | **Hecho** — `specs/035-staff-uid-acto/` (picker + UID + nombre denorm en citas/historiales/vacunas/baños/visitas) |
 | **Cuenta del día (hub ticket)** | ops / CxC | **045** in_progress — pendientes baño + venta producto + grid catálogo |
 | **UX intuitiva guiada** | UX | **046** draft — “te falta X”, walk-in, empty states, sensación móvil |
-| **Esquemas de vacunación + PWA** | ops / 033 / 023 | **052 done** (código olas 1–3). Deploy scheduler FCM pendiente autorización Luis. Desparasitación → **053** si se pide. |
+| ~~**Esquemas de vacunación + PWA**~~ | ops / 033 / 023 | **052 done** (código olas 1–3). Deploy scheduler FCM pendiente autorización Luis. |
+| **Desparasitación (ola 2)** | ops / 053 | Listado/filtro + línea de ticket. Ola 1 hecha. |
+| **Cierre operable** | producto | `specs/054-cierre-sistema/CIERRE.md` — P1: 047 teléfono, QA 048–050, Resend DNS (Luis) |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

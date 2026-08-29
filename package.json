@@ -15,6 +15,7 @@
     "test:045": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/visitas/pendientes-visita.util.spec.ts",
     "test:046": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/visitas/visita-mostrador.util.spec.ts",
     "test:052": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/vacunas/esquema-vacuna.util.spec.ts --include=src/app/vacunas/vacuna-recordatorio.util.spec.ts --include=src/app/portal/utils/portal-mapper.util.spec.ts",
+    "test:053": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/recordatorios/esquema-desparasitacion.util.spec.ts --include=src/app/core/config/staff-role.config.spec.ts",
     "lint": "ng lint",
     "e2e": "cypress run",
     "cy:open": "cypress open",
