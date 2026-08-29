@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
-import type { User } from 'firebase/auth';
 import { Router } from '@angular/router';
 import { Observable, firstValueFrom, race, timer } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
@@ -9,9 +8,16 @@ import { LoggerService } from '../core/logger.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import Swal from 'sweetalert2';
 
+type AuthUser = firebase.User;
+
+type FirebaseAuthLike = {
+  currentUser: AuthUser | null;
+  authStateReady?: () => Promise<void>;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  user$: Observable<User | null>;
+  user$: Observable<AuthUser | null>;
   private sessionExpiredNoticePending = false;
 
   constructor(
@@ -53,26 +59,44 @@ export class AuthService {
     await this.afAuth.signOut();
   }
 
-  async waitForAuthUser(timeoutMs = 4000): Promise<User | null> {
-    const current = await this.afAuth.currentUser;
-    if (current) {
-      return current;
+  /**
+   * Espera a que Firebase Auth asiente la persistencia.
+   * No usa el primer `null` de authState como “sin sesión” (race clásico AngularFire).
+   * Tras `authStateReady`, `currentUser` es la fuente de verdad (no AngularFire authState,
+   * que en compat espera `getRedirectResult` y puede llegar tarde).
+   */
+  async waitForAuthUser(timeoutMs = 4000): Promise<AuthUser | null> {
+    const auth = await this.resolveFirebaseAuth();
+    if (auth?.currentUser) {
+      return auth.currentUser;
+    }
+
+    if (auth && typeof auth.authStateReady === 'function') {
+      await Promise.race([
+        Promise.resolve(auth.authStateReady()).catch(() => undefined),
+        new Promise<void>(resolve => setTimeout(resolve, timeoutMs))
+      ]);
+      return auth.currentUser;
     }
 
     return firstValueFrom(
       race(
-        this.afAuth.authState.pipe(
-          filter(user => !!user),
-          take(1),
-          map(user => user!)
+        timer(0, 50).pipe(
+          map(() => auth?.currentUser ?? null),
+          filter((user): user is AuthUser => !!user),
+          take(1)
         ),
-        timer(timeoutMs).pipe(map(() => null))
+        this.afAuth.authState.pipe(
+          filter((user): user is AuthUser => !!user),
+          take(1)
+        ),
+        timer(timeoutMs).pipe(map(() => auth?.currentUser ?? null))
       )
     );
   }
 
   /** Usuario Firebase con sesión guardada ("Mantener sesión activa") aún vigente. */
-  async getRememberedAuthUser(): Promise<User | null> {
+  async getRememberedAuthUser(): Promise<AuthUser | null> {
     const remembered = this.authSession.getRememberedSession();
     if (!remembered) {
       return null;
@@ -90,37 +114,35 @@ export class AuthService {
     return user;
   }
 
-  /** Usuario Firebase con sesión activa (recordada o de pestaña) aún vigente. */
-  async getActiveAuthUser(): Promise<User | null> {
-    const remembered = await this.getRememberedAuthUser();
-    if (remembered) {
-      return remembered;
-    }
-
-    const session = this.authSession.getSession();
-    if (session) {
-      const user = await this.waitForAuthUser();
-      if (!user || user.uid !== session.uid) {
-        return null;
-      }
-      if (!(await this.ensureActiveSession())) {
-        return null;
-      }
-      return user;
-    }
-
-    const user = await this.waitForAuthUser(1500);
+  /**
+   * Usuario Firebase con sesión activa aún vigente.
+   * Fuente de verdad: Auth asentado (LOCAL o SESSION), no el marcador Katzen en storage.
+   */
+  async getActiveAuthUser(): Promise<AuthUser | null> {
+    const user = await this.waitForAuthUser();
     if (!user) {
       return null;
     }
-    if (!(await this.ensureActiveSession({ bootstrapIfMissing: false }))) {
+
+    const session = this.authSession.getSession();
+    if (!session) {
+      this.authSession.startSession(user.uid, true);
+      return user;
+    }
+
+    if (session.uid !== user.uid) {
       return null;
     }
+
+    if (this.authSession.isExpired(session)) {
+      this.authSession.startSession(user.uid, session.remember);
+    }
+
     return user;
   }
 
   async ensureActiveSession(options?: { bootstrapIfMissing?: boolean }): Promise<boolean> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.waitForAuthUser();
     if (!user) {
       return true;
     }
@@ -131,12 +153,17 @@ export class AuthService {
         this.authSession.startSession(user.uid, true);
         return true;
       }
+      return false;
+    }
+
+    if (session.uid !== user.uid) {
+      this.logger.log('AuthService: uid distinto al de la sesión Katzen');
       await this.signOutOnly();
       return false;
     }
 
-    if (session.uid !== user.uid || this.authSession.isExpired(session)) {
-      this.logger.log('AuthService: sesión expirada o uid distinto');
+    if (this.authSession.isExpired(session)) {
+      this.logger.log('AuthService: sesión expirada');
       await this.signOutOnly();
       await this.notifySessionExpired(session.remember);
       return false;
@@ -165,11 +192,19 @@ export class AuthService {
   }
 
   async isAuthenticatedOnce(): Promise<boolean> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.waitForAuthUser();
     return !!user;
   }
 
-  getCurrentUser(): Observable<User | null> {
+  getCurrentUser(): Observable<AuthUser | null> {
     return this.user$;
+  }
+
+  private async resolveFirebaseAuth(): Promise<FirebaseAuthLike | null> {
+    try {
+      return await Promise.resolve(this.afAuth as unknown as Promise<FirebaseAuthLike>);
+    } catch {
+      return null;
+    }
   }
 }

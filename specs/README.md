@@ -56,6 +56,7 @@ specs/
 ├── 045-visita-hub-pos-grid/           # cuenta del día (ticket) + grid productos
 ├── 046-ux-intuitiva-guiada/           # UX móvil: “te falta X”, walk-in, empty states
 ├── 047-enlace-portal-cliente-existente/ # portal en ficha + self-reg sin duplicar dueño
+├── 051-login-auto-redirect/            # auto-entrada /admin/login con sesión Firebase
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

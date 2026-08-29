@@ -95,7 +95,7 @@ describe('AuthComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
   });
 
-  it('con sesión dual redirige al selector de contexto', async () => {
+  it('con sesión dual redirige a /admin/inicio (auto-enter, no contexto)', async () => {
     authService.getActiveAuthUser.and.resolveTo({ uid: 'dual-1' });
     authProfileService.hasStaffAccess.and.resolveTo(true);
     authProfileService.isDual.and.resolveTo(true);
@@ -103,7 +103,9 @@ describe('AuthComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/auth/contexto']);
+    expect(authSession.setStaffEntryIntent).toHaveBeenCalledWith(true);
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
+    expect(router.navigate).not.toHaveBeenCalledWith(['/auth/contexto']);
   });
 
   it('con portalLock activo redirige al portal, no al admin', async () => {

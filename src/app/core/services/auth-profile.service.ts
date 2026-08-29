@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { AuthService } from '../../auth/auth.service';
 import {
   mapUsuarioPerfilToStaffRole,
   modulesForStaffRole,
@@ -56,12 +56,12 @@ export function isDual(perfil: AuthPerfil | null): boolean {
 @Injectable({ providedIn: 'root' })
 export class AuthProfileService {
   constructor(
-    private afAuth: AngularFireAuth,
-    private db: AngularFireDatabase
+    private db: AngularFireDatabase,
+    private authService: AuthService
   ) {}
 
   async getMyProfile(): Promise<AuthPerfil | null> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.authService.waitForAuthUser();
     if (!user) return null;
 
     const perfil = await firstValueFrom(
@@ -72,7 +72,7 @@ export class AuthProfileService {
 
   /** Fallback desde custom claims (paridad AuthRoleHelper.kt sessionFromClaims). */
   async getAccessFromClaims(): Promise<Omit<AuthAccess, 'perfil'>> {
-    const user = await this.afAuth.currentUser;
+    const user = await this.authService.waitForAuthUser();
     if (!user) {
       return { staffAccess: false, clientAccess: false };
     }
@@ -136,7 +136,7 @@ export class AuthProfileService {
     if (access.mustChangePassword === true) return true;
     if (access.perfil?.mustChangePassword === false) return false;
 
-    const user = await this.afAuth.currentUser;
+    const user = await this.authService.waitForAuthUser();
     if (!user) return false;
     const token = await user.getIdTokenResult();
     return token.claims['mustChangePassword'] === true;
@@ -166,7 +166,7 @@ export class AuthProfileService {
       return fromProfile;
     }
 
-    const user = await this.afAuth.currentUser;
+    const user = await this.authService.waitForAuthUser();
     if (!user?.uid) {
       return 'doctor';
     }

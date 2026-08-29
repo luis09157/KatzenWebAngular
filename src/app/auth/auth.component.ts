@@ -33,21 +33,30 @@ export class AuthComponent implements OnInit {
     this.appCheck.ensureInitialized();
     try {
       await this.tryEnterIfActiveSession();
+    } catch {
+      // Fallback: formulario. El GuestGuard ya intentó el auto-redirect.
     } finally {
       this.checkingSession = false;
     }
   }
 
-  /** Sesión Firebase activa → admin, contexto dual o portal según perfil y locks. */
+  /**
+   * Sesión Firebase activa → /admin/inicio (staff y dual).
+   * El selector de contexto solo aplica al login fresco, no al auto-enter.
+   */
   private async tryEnterIfActiveSession(): Promise<boolean> {
     const user = await this.authService.getActiveAuthUser();
     if (!user) {
       return false;
     }
 
-    await this.firebaseFunctions.syncMyClaims();
+    try {
+      await this.firebaseFunctions.syncMyClaims();
+    } catch {
+      // Continuar con perfil RTDB / claims ya emitidos.
+    }
 
-    // Sesión abierta por portal: no saltar a admin/contexto desde /admin/login.
+    // Sesión abierta por portal: no saltar a admin desde /admin/login.
     if (this.authSession.isPortalEntryLocked()) {
       if (await this.authProfileService.hasClientAccess()) {
         await this.router.navigate(['/portal/mascotas']);
@@ -66,7 +75,7 @@ export class AuthComponent implements OnInit {
     }
 
     this.authSession.setStaffEntryIntent(true);
-    await this.navigateAfterStaffLogin();
+    await this.router.navigate(['/admin/inicio']);
     return true;
   }
 

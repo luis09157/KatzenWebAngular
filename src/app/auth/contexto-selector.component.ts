@@ -29,8 +29,8 @@ export class ContextoSelectorComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.appCheck.ensureInitialized();
     try {
-      const isAuth = await this.authService.isAuthenticatedOnce();
-      if (!isAuth) {
+      const user = await this.authService.waitForAuthUser();
+      if (!user) {
         await this.router.navigate(['/admin/login']);
         return;
       }
