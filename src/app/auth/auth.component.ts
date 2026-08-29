@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 export class AuthComponent implements OnInit {
   email = '';
   password = '';
+  hidePassword = true;
   keepSessionActive = false;
   loading = false;
   checkingSession = true;

@@ -639,7 +639,16 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Contraseña</mat-label>
-          <input matInput type="password" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password" [disabled]="portalLoading">
+          <input matInput [type]="portalHidePassword ? 'password' : 'text'" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password" [disabled]="portalLoading">
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="portalHidePassword = !portalHidePassword"
+            [attr.aria-label]="portalHidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            [disabled]="portalLoading">
+            <mat-icon>{{ portalHidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
         </mat-form-field>
         <mat-checkbox
           class="portal-modal-remember"

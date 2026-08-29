@@ -455,6 +455,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   portalEmail = '';
   portalPassword = '';
+  portalHidePassword = true;
   portalKeepSessionActive = false;
   portalLoading = false;
 
