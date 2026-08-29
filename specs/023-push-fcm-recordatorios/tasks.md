@@ -38,6 +38,7 @@
 - [x] `firebase-messaging-sw.js` en assets
 - [x] `environment.fcmVapidKey` configurado (dev + prod) — 2026-08-26
 - [x] Deploy `onRecordatorioWritePush` — codebase `fcm` (sin Resend) — 2026-08-26 OK
+- [x] `onVacunaCreatedInbox` en codebase `fcm` — reemplaza huérfana `onVacunaCreated` — deploy + delete huérfana 2026-08-28
 - [ ] Smoke E2E push real — requiere permiso navegador + token en RTDB
 
 ### VAPID (completado 2026-08-26)
