@@ -34,14 +34,26 @@
         <div class="portal-info-icon"><mat-icon>notifications</mat-icon></div>
         <div class="portal-info-push">
           <span class="portal-info-label">Avisos en el dispositivo</span>
-          <span class="portal-info-value">Recordatorios vía push (inbox + FCM)</span>
+          <span class="portal-info-value">Te avisamos cerca de la fecha acordada en clínica (no el día de la vacuna a largo plazo).</span>
+          <p class="portal-push-hint" *ngIf="showIosInstallHint">
+            En iPhone: toca Compartir y luego «Añadir a pantalla de inicio». Así el portal queda como app y puedes activar avisos.
+          </p>
+          <button
+            type="button"
+            class="portal-btn portal-btn-outline portal-btn-push"
+            *ngIf="installAvailable && !mustChangePassword"
+            (click)="instalarPortal()"
+            [disabled]="installingPwa">
+            <mat-icon>install_mobile</mat-icon>
+            {{ installingPwa ? 'Instalando…' : 'Instalar portal en este dispositivo' }}
+          </button>
           <button
             type="button"
             class="portal-btn portal-btn-outline portal-btn-push"
             (click)="activarNotificacionesPush()"
             [disabled]="registeringPush || mustChangePassword">
             <mat-icon>notifications_active</mat-icon>
-            {{ registeringPush ? 'Activando…' : 'Activar avisos push' }}
+            {{ etiquetaBotonPush() }}
           </button>
           <p class="portal-push-hint" *ngIf="pushDetail">{{ pushDetail }}</p>
         </div>

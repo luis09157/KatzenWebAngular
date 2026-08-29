@@ -80,16 +80,16 @@
 
 ## Ola 2 — Push anti-spam + PWA portal
 
-- [ ] Luis autoriza ola 2
-- [ ] Gate `skipPushOnCreate` en `onRecordatorioWritePush` (SC-019)
-- [ ] Scheduler `functions-fcm` TZ México (SC-020, SC-021)
-- [ ] `npm run functions:build` (codebase fcm)
-- [ ] Manifest + iconos + SW compatible FCM (SC-022–SC-024)
-- [ ] CTA avisos sin re-pedir permiso (SC-025)
-- [ ] Copy portal «Fecha acordada en clínica» (SC-026)
-- [ ] Deploy functions/hosting **solo** con autorización Luis
+- [x] Luis autoriza ola 2
+- [x] Gate `skipPushOnCreate` / `shouldDeferVaccineWritePush` en `onRecordatorioWritePush` (SC-019)
+- [x] Scheduler `onVacunaPushSchedule` en `functions-fcm` TZ `America/Mexico_City` 10:00 (SC-020, SC-021)
+- [x] `npm --prefix functions-fcm run build` + `npm --prefix functions-fcm run test` (11 pass)
+- [x] Manifest + iconos 192/512 PNG + SW híbrido FCM (SC-022–SC-024)
+- [x] CTA avisos sin re-pedir permiso; iOS «Añadir a inicio»; botón staff (SC-025)
+- [x] Copy portal «Fecha acordada en clínica» / «Refuerzo programado» (SC-026)
+- [ ] Deploy functions/hosting/database **solo** con autorización Luis
 
-Criterios: SC-019 … SC-026.
+Criterios: SC-019 … SC-026 — cubiertos en código; **scheduler no corre en prod hasta deploy**.
 
 ---
 
@@ -116,15 +116,16 @@ Criterios: SC-019 … SC-026.
 Al implementar, ejecutar y marcar **solo tras evidencia** en la sección exhaustiva:
 
 - [x] `npm run build` — exit 0
-- [x] `npm run functions:build` — N/A (no se tocó functions)
-- [x] Servidor local (`npm start` → http://localhost:4200) + smoke vacunas
+- [x] `npm run functions:build` — ola 2: `npm --prefix functions-fcm run build` exit 0
+- [x] Servidor local (`npm start` → http://localhost:4200) + smoke vacunas / PWA assets
 - [x] Manual/mock: flujo feliz (cachorro DHPP serie + confirmación) — unit + diálogo cableado
 - [x] Manual/mock: error (ave + quintuple → sin esquema forzado) — unit
 - [x] Unit: `esquema-vacuna.util.spec.ts` (rabia ≠ 1095, lepto 2 dosis, MDA 16 sem, min 14 días)
+- [x] Unit ola 2: `functions-fcm/test/push-schedule.util.test.js` (11) + mapper portal (SC-026)
 - [x] `npm run cy:admin` — N/A ruta admin no cambió (sigue `/admin/vacunas`)
 - [x] E2E específico — no se añadió spec Cypress nueva (smoke existente cubre listado)
 
-**Resultado:** ola 1 OK — ver sección exhaustiva.
+**Resultado:** ola 1 OK; **ola 2 código OK** (deploy functions pendiente). Ver sección exhaustiva.
 
 ```
 # npm run test:052
@@ -214,7 +215,55 @@ Build at: 2026-08-29T04:15:18.225Z - Hash: 87eaffb893277e3a - Time: 13286ms
 Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 252.99 kB with a total of 2.25 MB.
 
 # Output npm run test:052
-TOTAL: 29 SUCCESS
+TOTAL: 29 SUCCESS (ola 1)
+```
+
+---
+
+### Ola 2 — 2026-08-28. Agente autónomo. Sin producción RTDB. Sin commit. Sin firebase deploy.
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| Formularios — campos vacíos | N/A | Ola 2 no añade form clínico nuevo |
+| Formularios — tipos erróneos | N/A | — |
+| Formularios — límites texto | N/A | — |
+| UI — chips estado completos | N/A | No se tocaron chips de esquema |
+| Modales — apertura/cierre | N/A | Confirmación ola 1 intacta |
+| UI — diálogos --picker | N/A | — |
+| UI — timepicker en campos hora | N/A | No se tocó hora |
+| UI — retroalimentación | OK | Swal avisos portal/staff; copy iOS; no re-pide permiso si granted |
+| UI — loading contextual | N/A | Registro FCM es botón local, no overlay |
+| UI — loading no trabado | N/A | — |
+| UI — doble submit | OK | `registeringPush` / `registeringStaffPush` deshabilitan el CTA |
+| Edge — vacuna a 1 año | OK | Unit: `shouldDeferVaccineWritePush` true; no FCM al write |
+| Edge — baño lejano | OK | Unit: no se diferirá (023 al write) |
+| Edge — Fallecido | OK | Unit + scheduler marca `skipped_fallecido` |
+| Edge — 2 mascotas mismo dueño | OK | Unit: 1 copy «Hoy 2 vacunas» |
+| Edge — tope 2 / kind duplicado | OK | Unit `canSendKind` |
+| Quiet hours | OK | Unit 23:00–08:00; scheduler 10:00 queda fuera |
+| PWA manifest + iconos | OK | `GET /manifest.webmanifest` 200 (ng serve); PNG 192/512 reales; dist incluye SW |
+| PWA SW + FCM | OK | Un solo `firebase-messaging-sw.js` (cache portal + onBackgroundMessage) |
+| Copy portal SC-026 | OK | Unit mapper + list-section «Fecha acordada en clínica» |
+| CTA permiso SC-025 | OK | Solo `requestPermission` si `default`; granted refresca token |
+| Rules NotificacionesClinica | OK | Staff read; `.write: false` (Functions); cliente no lee |
+| Servidor local :4200 | OK | `ng serve` compiled; `/` 200; iconos 200 |
+| Build `npm run build` | OK | exit 0; Hash `c959bdc99d3b3f9a` |
+| Unit functions-fcm | OK | 11/11 |
+| Unit Angular test:052 | OK | 45 SUCCESS |
+| Deploy scheduler | Pendiente | Luis debe autorizar `firebase deploy --only functions:fcm:onVacunaPushSchedule` (+ write-push + database + hosting) |
+
+```
+# npm --prefix functions-fcm run test (ola 2)
+ℹ tests 11  pass 11  fail 0
+
+# npm run test:052 (ola 2)
+TOTAL: 45 SUCCESS
+
+# npm run build (ola 2, 2026-08-29)
+> ng build --configuration production
+Exit 0
+Build at: 2026-08-29T04:26:04.812Z - Hash: c959bdc99d3b3f9a - Time: 12109ms
+Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 297.87 kB with a total of 2.29 MB.
 ```
 
 ---
@@ -223,15 +272,16 @@ TOTAL: 29 SUCCESS
 
 - [x] SC-001 … SC-015 — ola 1 (ver `spec.md`)
 - [ ] SC-016 … SC-018 — ola 3
-- [ ] SC-019 … SC-026 — ola 2
+- [x] SC-019 … SC-026 — ola 2
 
 ---
 
 ## Cierre
 
 - [x] Validación pre-entrega de **código** ola 1
-- [x] Validación exhaustiva registrada
-- [ ] `spec.md` estado → `done` **solo** cuando la última ola acordada tenga QA (ola 1 = `in_progress`)
+- [x] Validación pre-entrega de **código** ola 2
+- [x] Validación exhaustiva registrada (olas 1 y 2)
+- [ ] `spec.md` estado → `done` **solo** cuando ola 3 (o Luis cierre 052 sin ola 3)
 - [ ] Commit / deploy — solo si Luis lo pide
 
-**Estado spec tras ola 1:** `in_progress` (correcto; no `done` hasta push/PWA).
+**Estado spec tras ola 2:** `in_progress` (correcto; ola 3 conejo/hurón pendiente). El scheduler **no corre en producción** hasta el deploy autorizado.

@@ -17,5 +17,7 @@ export const environment = {
     { id: 'principal', nombre: 'Katzen Principal' }
   ],
   /** FCM web portal (spec 023 fase B). Obtener en Firebase Console → Cloud Messaging → Web Push certificates. */
-  fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk'
+  fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk',
+  /** Spec 052: push programado (D-7 / D-0). Si false, 023 al write sin gate de vacuna. */
+  pushProgramadoEnabled: true
 }; 

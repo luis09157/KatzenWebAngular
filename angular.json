@@ -24,7 +24,8 @@
               "src/assets",
               "src/robots.txt",
               "src/sitemap.xml",
-              "src/firebase-messaging-sw.js"
+              "src/firebase-messaging-sw.js",
+              "src/manifest.webmanifest"
             ],
             "styles": [
               "src/styles/material-katzen-theme.scss",

@@ -76,6 +76,7 @@ erDiagram
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
 | Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |
 | Notificación portal | `Katzen/Notificaciones/{clienteId}/{id}` | Push key | Cliente solo puede marcar `leida: true` |
+| Notificación clínica | `Katzen/NotificacionesClinica/{id}` | Push key | **052 ola 2** resumen staff; cliente no lee; write Functions |
 | Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
 | Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
 
@@ -341,13 +342,13 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 - Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos. **052:** el motor no sugiere agenda.
 - Anti-duplicado: misma vacuna + misma `fechaAplicacion` por paciente.
 - **Política oficial:** baja lógica (`activo: false`); **no** `remove()` — no perder información ante auditoría. Deprecar `eliminarVacuna` con remove.
-- **052 ola 1 (código):** motor de **sugerencia** (`esquema-vacuna.util.ts`; vet confirma). Rabia MX **anual**. Lepto: 2 + anual. FVRCP post-serie **1 año** editable (preset 6 meses). Ave/reptil/otro/conejo: sin esquema mamífero. Ola 2 push/PWA pendiente. Anexo: `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`.
+- **052 ola 1+2 (código):** motor de **sugerencia** (`esquema-vacuna.util.ts`; vet confirma). Rabia MX **anual**. Lepto: 2 + anual. FVRCP post-serie **1 año** editable. Push anti-spam (scheduler D-7/D-0) + PWA portal. Ola 3 conejo tipos / hint hurón pendiente. Anexo: `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`.
 
 ### 4.6 Recordatorios
 
-- Recordatorios generan **push FCM** vía `onRecordatorioWritePush` (023, codebase fcm).
-- **033:** refuerzo desde vacuna (`origen: vacuna_auto`); editable en admin Recordatorios.
-- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos.
+- Recordatorios generan **push FCM** vía `onRecordatorioWritePush` (023, codebase fcm). **052 ola 2:** recordatorios `tipo`/`origen` vacuna **no** disparan FCM al write si faltan más de 8 días; `onVacunaPushSchedule` diario 10:00 `America/Mexico_City` avisa en D-7 y D-0 (agrupa dueño + resumen staff). Inbox dueño `Katzen/Notificaciones/{clienteId}`; inbox clínica `Katzen/NotificacionesClinica` (cliente no lee).
+- **033:** refuerzo desde vacuna (`origen: vacuna_auto`, `skipPushOnCreate: true`); editable en admin Recordatorios.
+- Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos. Scheduler 052 no pushea si Fallecido.
 
 ### 4.7 Inventario
 

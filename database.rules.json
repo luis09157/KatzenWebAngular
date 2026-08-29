@@ -102,10 +102,24 @@
           }
         }
       },
+      "NotificacionesClinica": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": false,
+        ".indexOn": ["fecha", "leida", "kind"],
+        "$notifId": {
+          ".read": "auth != null && auth.token.role != 'client'",
+          "leida": {
+            ".write": "auth != null && auth.token.role != 'client' && newData.isBoolean()"
+          }
+        }
+      },
       "Config": {
         ".read": "auth != null && auth.token.role != 'client'",
         "inversionMeta": {
           ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
+        },
+        "Vacunacion": {
+          ".write": "auth != null && auth.token.role != 'client'"
         }
       },
       "ContactosWeb": {

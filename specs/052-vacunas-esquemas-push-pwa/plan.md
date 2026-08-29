@@ -2,7 +2,7 @@
 
 **Spec:** `specs/052-vacunas-esquemas-push-pwa/spec.md`  
 **Anexo clínico:** `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`  
-**Estado:** ola 1 implementada (2026-08-28); olas 2–3 pendientes
+**Estado:** ola 1 implementada (2026-08-28); **ola 2 implementada** (push programado + PWA portal, 2026-08-28); ola 3 pendiente
 
 ---
 
@@ -211,7 +211,9 @@ Katzen/Mascota/{id}
   | `Katzen/Vacunas` campos esquema* | añadir opcionales | no | defaults seguros = ausente |
   | `Katzen/TiposVacunas` semántica | añadir opcionales | no | values legacy iguales |
   | `Katzen/Config/Vacunacion` | nodo nuevo | no | staff only |
-  | `Katzen/Recordatorios` pushSchedule, skipPushOnCreate | añadir opcionales | no | 023 ignora si no los lee |
+  | `Katzen/Recordatorios` pushSchedule, skipPushOnCreate, pushCount, pushKindsSent, pushDueStatus | añadir opcionales | no | 023 ignora si no los lee; scheduler 052 sí |
+  | `Katzen/NotificacionesClinica/{id}` | **nodo nuevo** inbox staff | no | read staff; write Functions; **cliente no lee** |
+  | `Katzen/FcmTokens/{uid}` | reutilizado | no | portal_web + admin_web |
   | `Katzen/Mascota.especie` valor `CONEJO` | valor string nuevo | no | ya es string libre |
   | Nodos Vacunas/Tipos/Recordatorios nombres | **no** renombrar | — | constitución |
 
@@ -267,11 +269,12 @@ Katzen/Mascota/{id}
 ```bash
 npm run build
 # ola 2:
-npm run functions:build   # o el script del codebase functions-fcm
-# firebase deploy --only hosting                    # si Luis pide
+npm --prefix functions-fcm run build
+# firebase deploy --only hosting                    # si Luis pide (PWA + SW)
 # firebase deploy --only functions:fcm:onRecordatorioWritePush
-# firebase deploy --only functions:fcm:NOMBRE_SCHEDULER
-# firebase deploy --only database                   # si hay Config/Vacunacion
+# firebase deploy --only functions:fcm:onVacunaPushSchedule
+# firebase deploy --only functions:fcm:onVacunaCreatedInbox
+# firebase deploy --only database                   # NotificacionesClinica + Config/Vacunacion
 ```
 
 No ejecutar deploy desde el agente sin autorización explícita.

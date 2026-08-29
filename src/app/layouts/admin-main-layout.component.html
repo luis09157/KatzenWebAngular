@@ -124,6 +124,10 @@
         <mat-icon matListItemIcon>smartphone</mat-icon>
         <span matListItemTitle>Portal del dueño</span>
       </a>
+      <a mat-list-item (click)="activarAvisosClinica()" [class.admin-nav-disabled]="registeringStaffPush">
+        <mat-icon matListItemIcon>notifications_active</mat-icon>
+        <span matListItemTitle>{{ registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas' }}</span>
+      </a>
       <a mat-list-item (click)="logout()">
         <mat-icon matListItemIcon>logout</mat-icon>
         <span matListItemTitle>Cerrar sesión</span>

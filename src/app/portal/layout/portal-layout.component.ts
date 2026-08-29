@@ -7,6 +7,7 @@ import { PortalSessionService } from '../services/portal-session.service';
 import { PortalDataService } from '../services/portal-data.service';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { AuthSessionService } from '../../core/services/auth-session.service';
+import { PortalPwaService } from '../services/portal-pwa.service';
 
 @Component({
   selector: 'app-portal-layout',
@@ -30,10 +31,12 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
     private portalSession: PortalSessionService,
     private portalData: PortalDataService,
     private authProfileService: AuthProfileService,
-    private authSession: AuthSessionService
+    private authSession: AuthSessionService,
+    private portalPwa: PortalPwaService
   ) {}
 
   ngOnInit(): void {
+    this.portalPwa.init();
     void this.loadUserHeader();
     this.updateFromUrl(this.router.url);
     this.router.events.pipe(
@@ -80,13 +83,13 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
 
     if (url.includes('/notificaciones')) {
       this.pageTitle = 'Notificaciones';
-      this.pageSubtitle = 'Avisos sobre vacunas, citas y novedades de tus mascotas';
+      this.pageSubtitle = 'Avisos de la clínica: refuerzos en la fecha acordada, citas y novedades';
     } else if (url.includes('/perfil')) {
       this.pageTitle = 'Mi cuenta';
       this.pageSubtitle = 'Datos de contacto y configuración de tu acceso';
     } else if (/\/vacunas/.test(url)) {
       this.pageTitle = 'Vacunas';
-      this.pageSubtitle = 'Historial de vacunación';
+      this.pageSubtitle = 'Historial y fechas acordadas en clínica';
     } else if (/\/citas/.test(url)) {
       this.pageTitle = 'Citas';
       this.pageSubtitle = 'Consultas y citas programadas';

@@ -3,7 +3,7 @@
 **ID:** 052-vacunas-esquemas-push-pwa  
 **Estado:** in_progress  
 **Fecha:** 2026-08-28  
-**Autor:** Agent (pedido Luis Alfonso Niño Martínez — **ola 1 autorizada e implementada**; olas 2–3 pendientes)
+**Autor:** Agent (pedido Luis Alfonso Niño Martínez — **ola 1 y ola 2 implementadas**; ola 3 conejo/hurón pendiente)
 
 **Anexo clínico (tablas, URLs, MDA, México):** [`PROTOCOLOS.md`](./PROTOCOLOS.md)
 
@@ -19,7 +19,7 @@ Hoy el módulo de vacunas registra el acto (`Katzen/Vacunas`) y, con spec **033*
 4. El push FCM (**023**) dispara al **escribir** el recordatorio. Si se crea un refuerzo a 12 meses, el dueño puede recibir el aviso **el día que se vacunó**, no cuando toca volver — eso es spam.
 5. El portal tiene token FCM (`PortalFcmService` + `firebase-messaging-sw.js`) pero **no** es una PWA instalable (calendario de vacunas en el teléfono).
 
-Esta spec define **qué** debe hacer el producto en olas. **Ola 1 (motor + diálogo + CONEJO) está implementada** (2026-08-28). Olas 2–3 quedan pendientes de autorización.
+Esta spec define **qué** debe hacer el producto en olas. **Ola 1 (motor + diálogo + CONEJO)** y **ola 2 (scheduler push + PWA portal)** están implementadas (2026-08-28). Ola 3 queda pendiente de autorización.
 
 ---
 
@@ -108,9 +108,9 @@ Para que el push sea útil.
 
 **Criterios:**
 
-- [ ] SC-019: No enviar FCM al crear recordatorio si `fecha_hora_recordatorio` está a más de N días (config; default 8).
-- [ ] SC-020: Scheduler (Function programada o cola) respeta 017, `activo`, `estado pendiente`, tope **2** pushes/recordatorio, fingerprint anti-duplicado (023).
-- [ ] SC-021: Quiet hours opcionales (p. ej. no 23:00–08:00 hora clínica). Fallback: inbox `Notificaciones` sigue existiendo.
+- [x] SC-019: No enviar FCM al crear recordatorio si `fecha_hora_recordatorio` está a más de N días (config; default 8).
+- [x] SC-020: Scheduler (Function programada o cola) respeta 017, `activo`, `estado pendiente`, tope **2** pushes/recordatorio, fingerprint anti-duplicado (023).
+- [x] SC-021: Quiet hours opcionales (p. ej. no 23:00–08:00 hora clínica). Fallback: inbox `Notificaciones` sigue existiendo.
 
 ### US-6 — PWA portal (ola 2)
 
@@ -120,10 +120,10 @@ Para no depender de recordar la URL.
 
 **Criterios:**
 
-- [ ] SC-022: Web App Manifest + iconos; criterio installable en portal (no hace falta PWA del admin).
-- [ ] SC-023: SW: reutilizar / complementar `firebase-messaging-sw.js`; no romper FCM 023/031.
-- [ ] SC-024: Offline **best-effort** de última ficha cacheada (no escritura clínica offline).
-- [ ] SC-025: CTA «Activar avisos» existente no spamea el permiso.
+- [x] SC-022: Web App Manifest + iconos; criterio installable en portal (no hace falta PWA del admin).
+- [x] SC-023: SW: reutilizar / complementar `firebase-messaging-sw.js`; no romper FCM 023/031.
+- [x] SC-024: Offline **best-effort** de última ficha cacheada (no escritura clínica offline).
+- [x] SC-025: CTA «Activar avisos» existente no spamea el permiso.
 
 ### US-7 — Portal: transparencia del esquema
 
@@ -133,7 +133,7 @@ Para entender que lo confirmó la clínica.
 
 **Criterios:**
 
-- [ ] SC-026: Copy «Fecha acordada en clínica» / «Refuerzo programado»; no «el sistema te obliga a vacunar el día X».
+- [x] SC-026: Copy «Fecha acordada en clínica» / «Refuerzo programado»; no «el sistema te obliga a vacunar el día X».
 
 ---
 
@@ -205,7 +205,8 @@ Detalle y citas: [`PROTOCOLOS.md`](./PROTOCOLOS.md).
   | `Katzen/Vacunas` | staff / client filtrado | staff | opcionales: `esquemaCodigo?`, `intervaloSugeridoDias?`, `intervaloConfirmadoDias?`, `confirmadoPorUid?` |
   | `Katzen/TiposVacunas` | staff | staff | opcionales semánticos |
   | `Katzen/Config/Vacunacion` | staff | staff | **nuevo opcional** defaults clínica |
-  | `Katzen/Recordatorios` | igual 033/023 | staff + functions | opcionales `pushSchedule?`, `pushCount?` |
+  | `Katzen/Recordatorios` | igual 033/023 | staff + functions | opcionales `skipPushOnCreate?`, `pushCount?`, `pushKindsSent?`, `pushDueStatus?` |
+  | `Katzen/NotificacionesClinica` | staff | Functions (Admin SDK) | **nuevo** inbox clínica; cliente no lee |
   | `Katzen/Mascota.especie` | — | staff | valor nuevo `CONEJO` (string libre ya existe) |
 
 - **Estrategia de prueba:** mocks `src/app/core/testing/mock-data.ts`. Motor con unit tests, **sin** RTDB `katzen-a0e3e`.
@@ -236,8 +237,8 @@ Detalle y citas: [`PROTOCOLOS.md`](./PROTOCOLOS.md).
 ## Backend
 
 - [x] Ola 1: Function nueva **no** (cálculo en cliente + 033).
-- [ ] Ola 2: sí — scheduler en codebase **`functions-fcm`** (no mezclar Resend). Posible `onSchedule` diario + campos aditivos.
-- [ ] Reglas RTDB: sí si nace `Katzen/Config/Vacunacion` (staff write, client no).
+- [x] Ola 2: sí — scheduler `onVacunaPushSchedule` diario 10:00 `America/Mexico_City` en codebase **`functions-fcm`**. Gate `shouldDeferVaccineWritePush` en `onRecordatorioWritePush`.
+- [x] Reglas RTDB: `Katzen/NotificacionesClinica` (staff read, client no) + `Katzen/Config/Vacunacion` write staff. **Deploy database pendiente** (autorización Luis).
 - [ ] Email: no.
 
 ---

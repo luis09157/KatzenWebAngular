@@ -13,6 +13,8 @@ export type PortalFcmStatus =
   | 'registered'
   | 'error';
 
+export type FcmPlatform = 'portal_web' | 'admin_web';
+
 @Injectable({ providedIn: 'root' })
 export class PortalFcmService {
   private messaging: firebase.messaging.Messaging | null = null;
@@ -23,10 +25,35 @@ export class PortalFcmService {
     private logger: LoggerService
   ) {}
 
+  /** SC-025: no re-pide el diálogo nativo si ya hay decisión. */
+  currentPermission(): NotificationPermission | 'unsupported' {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return 'unsupported';
+    }
+    return Notification.permission;
+  }
+
   /** Spec 023 / 031 — VAPID + SW listo; no re-pide permiso si ya está granted. */
   async registerPortalToken(): Promise<{ status: PortalFcmStatus; detail?: string }> {
+    return this.registerToken('portal_web');
+  }
+
+  /** Spec 052 ola 2 — avisos de vacunas al staff (mismo nodo FcmTokens/{uid}). */
+  async registerStaffToken(): Promise<{ status: PortalFcmStatus; detail?: string }> {
+    return this.registerToken('admin_web');
+  }
+
+  async registerToken(
+    platform: FcmPlatform
+  ): Promise<{ status: PortalFcmStatus; detail?: string }> {
     if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
-      return { status: 'unsupported', detail: 'Este navegador no soporta notificaciones push.' };
+      return {
+        status: 'unsupported',
+        detail:
+          platform === 'admin_web'
+            ? 'Este navegador no soporta avisos push. En iPhone, añade el portal a inicio si usas el dueño.'
+            : 'Este navegador no soporta notificaciones push. En iPhone: Compartir → Añadir a pantalla de inicio.'
+      };
     }
 
     const vapidKey = environment.fcmVapidKey?.trim();
@@ -40,7 +67,13 @@ export class PortalFcmService {
 
     const user = await this.afAuth.currentUser;
     if (!user?.uid) {
-      return { status: 'error', detail: 'Inicia sesión en el portal para activar avisos.' };
+      return {
+        status: 'error',
+        detail:
+          platform === 'admin_web'
+            ? 'Inicia sesión en admin para activar avisos de la clínica.'
+            : 'Inicia sesión en el portal para activar avisos.'
+      };
     }
 
     try {
@@ -67,14 +100,14 @@ export class PortalFcmService {
       const tokenKey = this.tokenKey(token);
       await this.db.object(`Katzen/FcmTokens/${user.uid}/${tokenKey}`).set({
         token,
-        platform: 'portal_web',
+        platform,
         updatedAt: new Date().toISOString(),
         activo: true
       });
 
       return { status: 'registered' };
     } catch (error) {
-      this.logger.error('Error registrando FCM portal:', error);
+      this.logger.error('Error registrando FCM:', error);
       return {
         status: 'error',
         detail: error instanceof Error ? error.message : 'Error al registrar push.'

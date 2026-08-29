@@ -19,6 +19,11 @@
   margin-left: 12px;
 }
 
+.admin-nav-disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
 .sucursal-select {
   width: 180px;
   margin-right: 12px;

@@ -6,6 +6,7 @@ import {
   mapMascota,
   mapPension,
   mapRecordatorio,
+  mapVacuna,
   mapVisita,
   mapConsentimiento
 } from './portal-mapper.util';
@@ -131,6 +132,20 @@ describe('portal-mapper.util', () => {
       expect(mapped.fecha).toBe('2026-10-01 09:00:00');
       expect(mapped.vacunaId).toBe('vac-1');
       expect(mapped.origen).toBe('vacuna_auto');
+      expect(mapped.esVacuna).toBeTrue();
+      expect(mapped.acuerdoHint).toContain('fecha acordada en clínica');
+    });
+  });
+
+  describe('mapVacuna (052 copy portal)', () => {
+    it('expone próxima dosis como fecha acordada en clínica', () => {
+      const mapped = mapVacuna('v1', {
+        vacuna: 'Antirrábica',
+        fechaAplicacion: '2026-08-26',
+        proximaAplicacion: '2027-08-26'
+      });
+      expect(mapped.proximaAplicacion).toBe('2027-08-26');
+      expect(mapped.proximaHint).toBe('Fecha acordada en clínica');
     });
   });
 

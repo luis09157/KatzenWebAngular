@@ -27,5 +27,7 @@ export const environment = {
     { id: 'principal', nombre: 'Katzen Principal' }
   ],
   /** FCM web portal (spec 023 fase B). Configurar vía Firebase Console antes de prod push. */
-  fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk'
+  fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk',
+  /** Spec 052: push programado (D-7 / D-0). Rollback: false + no redeployar scheduler. */
+  pushProgramadoEnabled: true
 }; 

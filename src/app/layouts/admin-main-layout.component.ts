@@ -9,6 +9,9 @@ import { StaffModule } from '../core/config/staff-role.config';
 import { NavigationEnd, Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
 import { resolveAdminRouteLabel } from '../core/config/admin-route-labels.config';
+import { PortalFcmService } from '../core/services/portal-fcm.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin-main-layout',
@@ -31,13 +34,16 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
   toolbarLabel = 'Admin';
+  registeringStaffPush = false;
 
   constructor(
     private authService: AuthService,
     private authProfileService: AuthProfileService,
     private sucursalContext: SucursalContextService,
     private router: Router,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private portalFcm: PortalFcmService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit() {
@@ -172,5 +178,42 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   irAMiPortal(): void {
     this.router.navigate(['/portal/mascotas']);
     this.closeSidenav();
+  }
+
+  async activarAvisosClinica(): Promise<void> {
+    if (this.registeringStaffPush) return;
+    this.registeringStaffPush = true;
+    try {
+      const result = await this.portalFcm.registerStaffToken();
+      if (result.status === 'registered') {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Avisos de clínica activados',
+          text: 'Recibirás un resumen (Hoy N vacunas) cerca de la fecha, no al registrar un refuerzo lejano.'
+        });
+      } else if (result.status === 'denied') {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Permiso denegado',
+          text: 'Habilita notificaciones en el navegador para avisos de vacunas.'
+        });
+      } else {
+        await Swal.fire({
+          icon: 'info',
+          title: 'No se activaron los avisos',
+          text:
+            result.detail ||
+            this.errorMessages.getUserMessage(new Error(result.detail || 'push'), 'activar avisos clínica')
+        });
+      }
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'No se pudieron activar los avisos',
+        text: this.errorMessages.getUserMessage(error, 'activar avisos clínica')
+      });
+    } finally {
+      this.registeringStaffPush = false;
+    }
   }
 } 

@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
 import Swal from 'sweetalert2';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
@@ -10,6 +12,7 @@ import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { FirebaseFunctionsService } from '../../core/services/firebase-functions.service';
 import { PortalFcmService, PortalFcmStatus } from '../../core/services/portal-fcm.service';
+import { PortalPwaService } from '../services/portal-pwa.service';
 import { isPortalClienteActive, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 
 @Component({
@@ -17,7 +20,8 @@ import { isPortalClienteActive, PORTAL_LOAD_ERROR } from '../utils/portal-client
   templateUrl: './portal-perfil.component.html',
   styleUrls: ['./portal-perfil.component.css']
 })
-export class PortalPerfilComponent implements OnInit {
+export class PortalPerfilComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   loading = true;
   errorMessage = '';
   cliente: Record<string, unknown> | null = null;
@@ -33,6 +37,10 @@ export class PortalPerfilComponent implements OnInit {
   pushStatus: PortalFcmStatus | 'idle' = 'idle';
   pushDetail = '';
   registeringPush = false;
+  pushPermission: NotificationPermission | 'unsupported' = 'unsupported';
+  installAvailable = false;
+  installingPwa = false;
+  showIosInstallHint = false;
 
   constructor(
     private portalSession: PortalSessionService,
@@ -41,6 +49,7 @@ export class PortalPerfilComponent implements OnInit {
     private authProfileService: AuthProfileService,
     private firebaseFunctions: FirebaseFunctionsService,
     private portalFcm: PortalFcmService,
+    private portalPwa: PortalPwaService,
     private errorMessages: ErrorMessagesService,
     private afAuth: AngularFireAuth,
     private router: Router,
@@ -62,11 +71,21 @@ export class PortalPerfilComponent implements OnInit {
       this.mustChangePassword = await this.authProfileService.mustChangePassword();
       this.showPasswordForm =
         this.mustChangePassword || this.route.snapshot.queryParamMap.get('cambiarPassword') === '1';
+      this.pushPermission = this.portalFcm.currentPermission();
+      this.showIosInstallHint = this.portalPwa.showIosInstallHint();
+      this.portalPwa.installAvailable$.pipe(takeUntil(this.destroy$)).subscribe((v) => {
+        this.installAvailable = v;
+      });
     } catch {
       this.errorMessage = PORTAL_LOAD_ERROR;
     } finally {
       this.loading = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   nombreCompleto(): string {
@@ -174,6 +193,37 @@ export class PortalPerfilComponent implements OnInit {
     await this.portalAuth.logout();
   }
 
+  etiquetaBotonPush(): string {
+    if (this.registeringPush) return 'Activando…';
+    if (this.pushPermission === 'granted' || this.pushStatus === 'registered') {
+      return 'Avisos activados';
+    }
+    if (this.pushPermission === 'denied') return 'Permiso denegado en el navegador';
+    return 'Activar avisos push';
+  }
+
+  async instalarPortal(): Promise<void> {
+    this.installingPwa = true;
+    try {
+      const outcome = await this.portalPwa.promptInstall();
+      if (outcome === 'accepted') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Portal instalado',
+          text: 'Ya puedes abrir KatzenVet desde el icono de inicio.'
+        });
+      } else if (outcome === 'unavailable') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Instalar desde el navegador',
+          text: 'Usa el menú del navegador → Instalar aplicación. En iPhone: Compartir → Añadir a pantalla de inicio.'
+        });
+      }
+    } finally {
+      this.installingPwa = false;
+    }
+  }
+
   async activarNotificacionesPush(): Promise<void> {
     this.registeringPush = true;
     this.pushDetail = '';
@@ -181,11 +231,12 @@ export class PortalPerfilComponent implements OnInit {
       const result = await this.portalFcm.registerPortalToken();
       this.pushStatus = result.status;
       this.pushDetail = result.detail || '';
+      this.pushPermission = this.portalFcm.currentPermission();
       if (result.status === 'registered') {
         Swal.fire({
           icon: 'success',
           title: 'Avisos activados',
-          text: 'Recibirás notificaciones de recordatorios en este navegador.'
+          text: 'Te avisaremos cerca de la fecha acordada en clínica, no el día en que se vacunó a largo plazo.'
         });
       } else if (result.status === 'no_vapid') {
         Swal.fire({

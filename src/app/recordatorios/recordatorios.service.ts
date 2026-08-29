@@ -206,6 +206,7 @@ export class RecordatoriosService {
         ? { vacunaId, vacuna_relacionada_id: vacunaId }
         : {}),
       origen: 'vacuna_auto',
+      skipPushOnCreate: true,
       notas: `Generado automáticamente desde vacuna${vacuna.dosis ? ` (${vacuna.dosis})` : ''}.`
     };
 

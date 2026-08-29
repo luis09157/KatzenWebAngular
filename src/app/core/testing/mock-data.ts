@@ -469,6 +469,7 @@ export const MOCK_RECORDATORIO_VACUNA_AUTO = {
   vacunaId: MOCK_VACUNA.id,
   vacuna_relacionada_id: MOCK_VACUNA.id,
   origen: 'vacuna_auto',
+  skipPushOnCreate: true,
   activo: true
 };
 

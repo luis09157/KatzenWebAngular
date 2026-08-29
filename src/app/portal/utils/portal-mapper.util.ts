@@ -51,6 +51,8 @@ export function mapCita(id: string, raw: Record<string, unknown>) {
 }
 
 export function mapVacuna(id: string, raw: Record<string, unknown>) {
+  const proxima =
+    raw['proximaAplicacion'] || raw['proxima_aplicacion'] || raw['proxima_dosis'] || '';
   return {
     id,
     idPaciente: raw['idPaciente'] || raw['paciente_id'] || '',
@@ -58,7 +60,10 @@ export function mapVacuna(id: string, raw: Record<string, unknown>) {
     fecha: raw['fechaAplicacion'] || raw['fecha'] || raw['fechaRegistro'] || '',
     dosis: raw['dosis'] || '',
     veterinario: raw['veterinario'] || raw['medico'] || '',
-    observaciones: raw['observaciones'] || raw['notas'] || ''
+    observaciones: raw['observaciones'] || raw['notas'] || '',
+    proximaAplicacion: proxima,
+    /** Spec 052 SC-026 — no suena a orden médica automática. */
+    proximaHint: proxima ? 'Fecha acordada en clínica' : ''
   };
 }
 
@@ -132,6 +137,9 @@ export function mapPension(id: string, raw: Record<string, unknown>) {
 
 /** Recordatorio clínico — portal dueño. */
 export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
+  const tipo = String(raw['tipo'] || '');
+  const origen = String(raw['origen'] || '');
+  const esVacuna = /vacuna/i.test(`${tipo} ${origen}`);
   return {
     id,
     paciente_id: raw['paciente_id'] || raw['idPaciente'] || '',
@@ -145,9 +153,11 @@ export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
       '',
     estado: raw['estado'] || 'pendiente',
     notas: raw['notas'] || raw['descripcion'] || raw['mensaje'] || '',
-    tipo: raw['tipo'] || '',
-    origen: raw['origen'] || '',
-    vacunaId: raw['vacunaId'] || raw['vacuna_relacionada_id'] || ''
+    tipo,
+    origen,
+    vacunaId: raw['vacunaId'] || raw['vacuna_relacionada_id'] || '',
+    esVacuna,
+    acuerdoHint: esVacuna ? 'Refuerzo programado · fecha acordada en clínica' : ''
   };
 }
 

@@ -42,6 +42,11 @@
                 <strong>Veterinario</strong>
                 {{ item.veterinario }}
               </div>
+              <div class="portal-data-field" *ngIf="item.proximaAplicacion">
+                <strong>Próximo refuerzo</strong>
+                {{ formatDate(item.proximaAplicacion) }}
+                <span *ngIf="item.proximaHint"> · {{ item.proximaHint }}</span>
+              </div>
               <div class="portal-data-field" *ngIf="item.observaciones">
                 <strong>Notas</strong>
                 {{ item.observaciones }}
@@ -105,6 +110,10 @@
             </ng-container>
 
             <ng-container *ngIf="seccion === 'recordatorios'">
+              <div class="portal-data-field" *ngIf="item.acuerdoHint">
+                <strong>Agenda</strong>
+                {{ item.acuerdoHint }}
+              </div>
               <div class="portal-data-field" *ngIf="item.tipo">
                 <strong>Tipo</strong>
                 {{ item.tipo }}

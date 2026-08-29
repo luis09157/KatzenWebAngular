@@ -108,7 +108,8 @@ export class ErrorMessagesService {
     'desvincular portal dual': 'No se pudo desvincular el portal dual del personal staff.',
     'vincular baño a caja': 'No se pudo vincular el cobro del baño a caja.',
     'registro portal dueño': 'No se pudo completar el registro en el portal.',
-    'cambiar contraseña portal': 'No se pudo cambiar la contraseña.'
+    'cambiar contraseña portal': 'No se pudo cambiar la contraseña.',
+    'activar avisos clínica': 'No se pudieron activar los avisos de vacunas en este dispositivo.'
   };
 
   getUserMessage(error: unknown, context?: string): string {
