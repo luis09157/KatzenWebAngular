@@ -51,9 +51,9 @@
       <app-admin-empty-state
         *ngIf="dataSource.data.length === 0"
         icon="mail_outline"
-        title="No hay mensajes"
-        message="No se han encontrado mensajes registrados."
-        actionLabel="Actualizar"
+        title="Sin mensajes por ahora"
+        message="Cuando alguien escriba desde la landing verás aquí nombre, contacto y motivo. Revisa también el correo de la clínica."
+        actionLabel="Actualizar lista"
         (action)="cargarContactos()">
       </app-admin-empty-state>
 

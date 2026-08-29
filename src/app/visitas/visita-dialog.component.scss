@@ -53,23 +53,19 @@
     margin-bottom: 12px;
   }
 
-  .flow-hint {
-    margin: 0;
-    padding: 8px 16px 14px;
-    font-size: 13px;
+  .inventario-badge {
     color: #0f766e;
-    background: #f0fdfa;
-    border-top: 1px solid #ccfbf1;
+    background: #ccfbf1;
+    border: 1px solid #99f6e4;
   }
 
-  .flow-hint-inline {
-    margin: 0 0 8px;
-    padding: 10px 12px;
-    font-size: 13px;
-    color: #0f766e;
-    background: #f0fdfa;
-    border: 1px dashed #99f6e4;
-    border-radius: 10px;
+  .linea-origen-hint {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.35;
   }
 
   .mostrador-bar {

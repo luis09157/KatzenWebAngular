@@ -1,0 +1,10 @@
+<p
+  *ngIf="message"
+  class="flow-hint"
+  [class.flow-hint--inline]="layout === 'inline'"
+  [class.flow-hint--footer]="layout === 'footer'"
+  [class.flow-hint--warn]="variant === 'warn'"
+  [class.flow-hint--success]="variant === 'success'">
+  <mat-icon *ngIf="icon" class="flow-hint__icon" aria-hidden="true">{{ icon }}</mat-icon>
+  <span class="flow-hint__text">{{ message }}</span>
+</p>

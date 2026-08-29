@@ -36,7 +36,16 @@
         <input matInput (keyup)="applyFilter($event)" placeholder="Cliente, paciente, firmante, tipo…" />
       </mat-form-field>
 
-      <div class="table-scroll">
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="assignment_turned_in"
+        title="Sin consentimientos registrados"
+        message="Documenta autorizaciones informadas ligadas al dueño y la mascota antes de procedimientos."
+        actionLabel="Nuevo consentimiento"
+        (action)="nuevo()">
+      </app-admin-empty-state>
+
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
         <table mat-table [dataSource]="dataSource" class="admin-table">
           <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>

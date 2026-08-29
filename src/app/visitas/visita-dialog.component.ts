@@ -150,6 +150,40 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return 'Abrir cobro en caja';
   }
 
+  /** Spec 048 — productos en ticket descontarán stock al persistir. */
+  get inventarioHint(): string {
+    if (this.soloLectura) return '';
+    if (this.mostrandoProducto) {
+      return 'Al guardar o cobrar se registrará la salida de inventario por la cantidad vendida.';
+    }
+    const productos = this.lineas.filter(l => l.categoria === 'venta_producto');
+    if (!productos.length) return '';
+    const pendientes = productos.filter(l => !l.movimientoInventarioId);
+    if (pendientes.length) {
+      return `${pendientes.length} producto(s) en el ticket: al guardar o cobrar se descontará del stock en Inventario.`;
+    }
+    return 'Los productos de este ticket ya tienen salida registrada en inventario.';
+  }
+
+  esLineaProducto(linea: VisitaLinea): boolean {
+    return linea.categoria === 'venta_producto';
+  }
+
+  origenLineaHint(linea: VisitaLinea): string {
+    if (linea.movimientoInventarioId) {
+      return 'Origen: salida de inventario (stock ya vinculado).';
+    }
+    if (linea.banioId) return 'Origen: servicio de baño / peluquería.';
+    if (linea.citaId) return 'Origen: cita de consulta.';
+    if (linea.vacunaId) return 'Origen: registro de vacuna.';
+    if (linea.pensionId) return 'Origen: estancia de pensión.';
+    if (linea.historialId) return 'Origen: historial clínico.';
+    if (linea.productoId && !linea.movimientoInventarioId) {
+      return 'Producto agregado manualmente — al guardar/cobrar se descontará stock.';
+    }
+    return '';
+  }
+
   get puedeGuardar(): boolean {
     if (this.loading || this.soloLectura) return false;
     if (!String(this.form.get('fecha')?.value || '').trim()) return false;

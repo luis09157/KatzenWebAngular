@@ -105,6 +105,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Finanzas / CxC** | **032/036 done.** ~~**045** hub ticket (cuenta del día + pendientes baño + venta desde ticket)~~ **done**. Walk-in petshop → **046 done**. | Alta |
 | **UX admin** | ~~**046** draft: flujos guiados “te falta X”, empty states, walk-in~~ **done** — `specs/046-ux-intuitiva-guiada/` | Alta — **cerrada** |
+| **Ops recepción** | **048** hints ola 2 + **049** hub/menú 3 mundos + **050** unificación cobro ticket | Alta — **in_progress** |
 | **Ops clínicas** | **033–037 done** (vacuna→recordatorio, alergias, staff UID, ticket mejoras, **consentimientos**). Siguiente: **Resend / correo portal al final**. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |

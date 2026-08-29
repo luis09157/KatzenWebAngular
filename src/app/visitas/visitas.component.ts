@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -52,6 +53,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   porCobrarItems: PorCobrarItem[] = [];
   porCobrarTotal = 0;
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
+  menuContext: Visita | null = null;
 
   readonly estadoLabels = VISITA_ESTADO_LABELS;
   private clientesMap: Record<string, string> = {};
@@ -69,7 +71,8 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -85,6 +88,12 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     this.cargar();
     this.cargarPorCobrarHoy();
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(async (params) => {
+      const ticketId = String(params['ticket'] || '').trim();
+      if (!ticketId) return;
+      const visita = await this.visitasService.getVisita(ticketId);
+      if (visita) this.editar(visita);
+    });
   }
 
   ngAfterViewInit(): void {

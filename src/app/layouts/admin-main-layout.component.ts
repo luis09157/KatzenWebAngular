@@ -1,13 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, switchMap } from 'rxjs/operators';
+import { filter, takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { StaffModule } from '../core/config/staff-role.config';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { LoggerService } from '../core/logger.service';
+import { resolveAdminRouteLabel } from '../core/config/admin-route-labels.config';
 
 @Component({
   selector: 'app-admin-main-layout',
@@ -29,6 +30,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   accessibleModules = new Set<StaffModule>();
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
+  toolbarLabel = 'Admin';
 
   constructor(
     private authService: AuthService,
@@ -43,6 +45,16 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     this.sucursales = this.sucursalContext.sucursales;
     this.sucursalSeleccionada = this.sucursalContext.getSelectedId();
     window.addEventListener('resize', this.resizeHandler);
+    this.toolbarLabel = resolveAdminRouteLabel(this.router.url);
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((event) => {
+        const nav = event as NavigationEnd;
+        this.toolbarLabel = resolveAdminRouteLabel(nav.urlAfterRedirects || nav.url);
+      });
     this.authService.user$.pipe(
       takeUntil(this.destroy$),
       switchMap(user => {
@@ -126,6 +138,35 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   canShow(module: StaffModule): boolean {
     return this.accessibleModules.has(module);
+  }
+
+  get hasClinicaNav(): boolean {
+    return (
+      this.canShow('paciente') ||
+      this.canShow('citas') ||
+      this.canShow('historiales') ||
+      this.canShow('vacunas') ||
+      this.canShow('banios') ||
+      this.canShow('pension') ||
+      this.canShow('recordatorios') ||
+      this.canShow('consentimientos')
+    );
+  }
+
+  get hasPosNav(): boolean {
+    return this.canShow('visitas');
+  }
+
+  get hasAdminNav(): boolean {
+    return (
+      this.canShow('clientes') ||
+      this.canShow('pacientes-admin') ||
+      this.canShow('inventario') ||
+      this.canShow('finanzas') ||
+      this.canShow('usuarios') ||
+      this.canShow('contactos-web') ||
+      this.canShow('inicio')
+    );
   }
 
   irAMiPortal(): void {

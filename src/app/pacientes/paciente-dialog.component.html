@@ -31,6 +31,7 @@
     </ng-container>
 
     <form *ngIf="!modoVer" [formGroup]="pacienteForm" class="admin-dialog-form admin-dialog-form--padded">
+      <app-flow-hint icon="pets" [message]="hintPaciente"></app-flow-hint>
       <section class="form-section">
         <h3 class="form-section__title">Datos del paciente</h3>
         <div class="form-grid">

@@ -11,6 +11,7 @@
 
   <form [formGroup]="historialForm">
     <mat-dialog-content class="admin-dialog-body">
+      <app-flow-hint icon="medical_services" [message]="hintHistorial"></app-flow-hint>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"

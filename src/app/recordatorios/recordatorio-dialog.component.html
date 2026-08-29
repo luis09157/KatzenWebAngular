@@ -11,6 +11,7 @@
 
   <form [formGroup]="recordatorioForm" (ngSubmit)="guardarRecordatorio()" id="recordatorioForm">
     <mat-dialog-content class="admin-dialog-body">
+      <app-flow-hint icon="notifications" [message]="hintRecordatorio"></app-flow-hint>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"

@@ -15,16 +15,18 @@
     <app-admin-stat-card accent="orange" icon="pets" [value]="getPacientesUnicos()" label="Pacientes únicos" hint="Con historial"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
+  <app-flow-hint
+    icon="receipt_long"
+    message="Registra la consulta aquí. Para cobrar, usa «Agregar al ticket del día» — no registres el servicio directo en finanzas."
+    variant="info">
+  </app-flow-hint>
+
   <app-admin-page-banner
     accent="pink"
     icon="medical_services"
     title="Historiales clínicos"
-    subtitle="Documenta la consulta. El cobro se agrega a Cuenta del día.">
+    subtitle="Documenta la consulta. El cobro se agrega al ticket del día.">
     <div bannerActions>
-      <button mat-stroked-button color="accent" (click)="ejecutarMigracion()" *ngIf="necesitaMigracion">
-        <mat-icon>sync</mat-icon>
-        Migrar base de datos
-      </button>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalHistorial()">
         <mat-icon>add</mat-icon>
         Nuevo historial
@@ -113,8 +115,8 @@
               <button mat-icon-button type="button" matTooltip="Consumir inventario" (click)="consumirInventario(historial)">
                 <mat-icon>inventory_2</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Registrar en caja" (click)="registrarEnCaja(historial)">
-                <mat-icon>account_balance_wallet</mat-icon>
+              <button mat-icon-button type="button" matTooltip="Agregar al ticket del día" (click)="agregarAVisita(historial)" *ngIf="!historial.visitaId && !historial.cobradaEnVisitaId">
+                <mat-icon>receipt_long</mat-icon>
               </button>
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarHistorial(historial)">
                 <mat-icon>edit</mat-icon>
@@ -145,15 +147,9 @@
       (click)="agregarAVisita(menuContext)"
       [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en cuenta' : 'Agregar a cuenta' }}
+      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Agregar al ticket del día' }}
     </button>
-    <button
-      mat-menu-item
-      (click)="registrarEnCaja(menuContext)"
-      [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
-      <mat-icon>account_balance_wallet</mat-icon>
-      {{ menuContext?.visitaId ? 'Cobrar en cuenta' : 'Registrar en caja' }}
-    </button>
+    <button mat-menu-item *ngIf="isAdmin && necesitaMigracion" (click)="ejecutarMigracion()"><mat-icon>sync</mat-icon> Migrar base de datos</button>
     <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
     <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
   </mat-menu>

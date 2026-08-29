@@ -17,6 +17,9 @@ import {
   ClientePacientePickerFields
 } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
+import {
+  mensajeHintClientePaciente
+} from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -87,6 +90,22 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   /** doctor | administrador pueden fechas pasadas */
   puedeAgendarFechaPasada = false;
   readonly duracionDefault = CITA_DURACION_DEFAULT_MIN;
+
+  /** Spec 048 — dueño → mascota → agenda. */
+  get hintCita(): string {
+    if (this.modoVer) return '';
+    const base = mensajeHintClientePaciente(this.citaForm, {
+      clienteId: 'cliente_id',
+      pacienteId: 'paciente_id'
+    });
+    if (base) return base;
+    const fecha = this.citaForm.get('fecha')?.value;
+    const hora = this.citaForm.get('hora')?.value;
+    if (!fecha || !hora) {
+      return 'Paso 3: indica fecha, hora y veterinario para la cita.';
+    }
+    return '';
+  }
 
   constructor(
     public dialogRef: MatDialogRef<CitaDialogComponent>,

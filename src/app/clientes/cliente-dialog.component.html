@@ -196,6 +196,12 @@
 
     <!-- Formulario crear / editar -->
     <form *ngIf="!modoVer" [formGroup]="clienteForm">
+      <app-flow-hint
+        icon="info"
+        [message]="data.cliente
+          ? 'Actualiza teléfono y dirección cuando cambien. El acceso al portal se envía desde el detalle del cliente.'
+          : 'Mínimo: nombre, apellido paterno, teléfono y género. Después puedes registrar mascotas y enviar acceso al portal desde el detalle.'">
+      </app-flow-hint>
       <div class="admin-dialog-layout">
         <aside class="admin-dialog-aside">
           <div class="admin-dialog-photo admin-dialog-photo--round">

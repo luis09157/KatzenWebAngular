@@ -7,6 +7,12 @@
     <app-admin-stat-card accent="pink" [value]="kpiMermas" label="Mermas" hint="Pérdidas registradas"></app-admin-stat-card>
   </app-admin-kpi-grid>
 
+  <app-flow-hint
+    icon="inventory_2"
+    message="Las salidas por venta directa van al ticket del día (recepción). Usa «Ver ticket» si el movimiento está vinculado a una cuenta."
+    variant="info">
+  </app-flow-hint>
+
   <app-admin-page-banner
     accent="blue"
     icon="history"
@@ -139,6 +145,22 @@
         <ng-container matColumnDef="usuario">
           <th mat-header-cell *matHeaderCellDef>Usuario</th>
           <td mat-cell *matCellDef="let movimiento">{{ movimiento.usuario_responsable_id || 'Sistema' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ticket">
+          <th mat-header-cell *matHeaderCellDef>Ticket</th>
+          <td mat-cell *matCellDef="let movimiento">
+            <button
+              mat-stroked-button
+              type="button"
+              color="primary"
+              class="ticket-link-btn"
+              *ngIf="movimiento.visitaId"
+              (click)="verTicket(movimiento.visitaId!)">
+              Ver ticket
+            </button>
+            <span *ngIf="!movimiento.visitaId">—</span>
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="acciones">

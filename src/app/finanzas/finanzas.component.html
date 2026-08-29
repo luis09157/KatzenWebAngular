@@ -5,6 +5,12 @@
   </div>
 
   <ng-container *ngIf="!(loading && selectedTab === 0)">
+    <app-flow-hint
+      icon="receipt_long"
+      variant="warn"
+      message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin).">
+    </app-flow-hint>
+
     <p class="section-eyebrow">Finanzas de la clínica</p>
     <app-admin-kpi-grid>
       <app-admin-stat-card accent="green" [value]="formatMoney(kpis.neto)" label="Neto caja" hint="Ingresos − egresos"></app-admin-stat-card>
@@ -17,9 +23,9 @@
       accent="teal"
       icon="account_balance_wallet"
       title="Caja / costos / rentabilidad"
-      subtitle="Registra cobros y gastos, define costos de servicio y mira si el día o el mes dejan margen.">
+      subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día.">
       <div bannerActions>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevoMovimiento()">
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" *ngIf="isAdmin" (click)="nuevoMovimiento()">
           <mat-icon>add</mat-icon>
           Registrar cobro
         </button>

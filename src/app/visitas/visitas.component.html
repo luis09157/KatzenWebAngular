@@ -69,8 +69,8 @@
     <app-admin-page-banner
       accent="teal"
       icon="receipt_long"
-      title="Cuenta del día"
-      subtitle="Aquí cobras lo del día: baños, consultas y productos en un solo ticket.">
+      title="Ticket del día"
+      subtitle="Cobra baños, consultas y productos en un ticket. Los productos descontarán inventario al guardar o cobrar.">
       <div bannerActions>
         <button
           mat-stroked-button
@@ -142,7 +142,7 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let row">
-              <div class="row-actions">
+              <div class="row-actions hide-mobile">
                 <button mat-icon-button type="button" matTooltip="Abrir ticket" (click)="editar(row)">
                   <mat-icon>receipt_long</mat-icon>
                 </button>
@@ -150,6 +150,10 @@
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
+              <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones"
+                      [matMenuTriggerFor]="visitaMenu" (click)="menuContext = row">
+                <mat-icon>more_vert</mat-icon>
+              </button>
             </td>
           </ng-container>
 
@@ -178,4 +182,9 @@
       </mat-paginator>
     </app-admin-data-panel>
   </ng-container>
+
+  <mat-menu #visitaMenu="matMenu">
+    <button mat-menu-item (click)="editar(menuContext)" [disabled]="!menuContext"><mat-icon>receipt_long</mat-icon> Abrir ticket</button>
+    <button mat-menu-item (click)="borrar(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
+  </mat-menu>
 </div>

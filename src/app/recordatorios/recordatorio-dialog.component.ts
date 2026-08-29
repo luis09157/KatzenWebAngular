@@ -10,6 +10,9 @@ import {
   ClientePacientePickerFields,
   ClientePacienteSelection
 } from '../shared/admin/cliente-paciente-picker.models';
+import {
+  mensajeHintClientePaciente
+} from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-recordatorio-dialog',
@@ -33,6 +36,16 @@ export class RecordatorioDialogComponent implements OnInit {
   get muestraPickerClientePaciente(): boolean {
     if (this.isEditMode) return false;
     return !this.data?.paciente_id;
+  }
+
+  /** Spec 048 */
+  get hintRecordatorio(): string {
+    if (!this.muestraPickerClientePaciente) return '';
+    return mensajeHintClientePaciente(
+      this.recordatorioForm,
+      { clienteId: 'cliente_id', pacienteId: 'paciente_id' },
+      'Paso 3: título, tipo y fecha del recordatorio.'
+    );
   }
 
   // Tipos de recordatorios predefinidos

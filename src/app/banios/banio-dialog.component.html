@@ -11,9 +11,11 @@
 
   <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="admin-dialog-body">
-      <p class="banio-flow-hint" *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value">
-        Primero elige o crea el dueño. Después la mascota.
-      </p>
+      <app-flow-hint
+        *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value"
+        icon="person"
+        message="Primero elige o crea el dueño. Después la mascota.">
+      </app-flow-hint>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"

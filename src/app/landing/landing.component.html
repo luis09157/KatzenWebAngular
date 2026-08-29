@@ -18,7 +18,7 @@
         Portal Clientes
       </button>
       <button type="button" class="btn-premium btn-premium-primary btn-premium-sm hide-mobile" (click)="agendarCita('navbar')">
-        Agendar Cita
+        Contactar para cita
       </button>
       <button mat-icon-button class="mobile-menu-button mobile-visible" [matMenuTriggerFor]="mobileMenu" aria-label="Menú">
         <mat-icon>menu</mat-icon>
@@ -30,7 +30,7 @@
         <button mat-menu-item (click)="scrollToSection('contacto')">Contacto</button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="openPortalLogin()">Portal Clientes</button>
-        <button mat-menu-item (click)="agendarCita('navbar_mobile')">Agendar Cita</button>
+        <button mat-menu-item (click)="agendarCita('navbar_mobile')">Contactar para cita</button>
       </mat-menu>
     </div>
   </div>
@@ -55,7 +55,7 @@
       <div class="hero-cta-row">
         <button type="button" class="btn-premium btn-premium-primary" (click)="agendarCita('hero')">
           <mat-icon>event_available</mat-icon>
-          Agendar Cita en Línea
+          Contactar para cita en línea
         </button>
         <a class="btn-premium btn-premium-secondary" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('hero')">
           <mat-icon>chat</mat-icon>
@@ -785,7 +785,7 @@
         <div class="footer-section">
           <h4>Contacto</h4>
           <ul>
-            <li><a (click)="scrollToSection('contacto')">Agendar Cita</a></li>
+            <li><a (click)="scrollToSection('contacto')">Contactar para cita</a></li>
             <li><a href="tel:+528136024090">+52 81 3602 4090</a></li>
             <li><a href="https://wa.me/528136024090">WhatsApp</a></li>
             <li><a href="mailto:info&#64;katzenvet.com">info&#64;katzenvet.com</a></li>

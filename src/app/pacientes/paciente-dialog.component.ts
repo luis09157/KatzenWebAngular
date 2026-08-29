@@ -34,6 +34,17 @@ export class PacienteDialogComponent {
     });
   }
 
+  /** Spec 048 — guía dueño → mascota. */
+  get hintPaciente(): string {
+    if (this.modoVer) return '';
+    const idCliente = String(this.pacienteForm.get('idCliente')?.value ?? '').trim();
+    const nombreCliente = String(this.pacienteForm.get('nombreCliente')?.value ?? '').trim();
+    if (!idCliente && !nombreCliente) {
+      return 'Primero elige o crea el dueño (cliente). Si abres la mascota desde Clientes, el dueño ya viene vinculado.';
+    }
+    return 'Completa al menos nombre y especie. El resto enriquece el expediente clínico.';
+  }
+
   getDisplayValue(field: string): string {
     const raw = this.data?.paciente?.[field] ?? this.pacienteForm.get(field)?.value;
     if (raw == null || raw === '') {

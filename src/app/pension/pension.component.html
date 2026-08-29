@@ -16,7 +16,7 @@
       accent="teal"
       icon="hotel"
       title="Pensión / alojamiento"
-      subtitle="Check-in y check-out aquí. El cobro se hace en Cuenta del día o caja.">
+      subtitle="Check-in y check-out aquí. El cobro se hace en Ticket del día.">
       <div bannerActions>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
           <mat-icon>add</mat-icon>
@@ -32,7 +32,16 @@
         <input matInput (keyup)="applyFilter($event)" placeholder="Paciente, cliente…" />
       </mat-form-field>
 
-      <div class="table-scroll">
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="hotel"
+        title="Sin estancias de pensión"
+        message="Registra check-in y check-out aquí. Al finalizar, agrega la estancia al ticket del día para cobrar."
+        actionLabel="Nueva estancia"
+        (action)="nueva()">
+      </app-admin-empty-state>
+
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
         <table mat-table [dataSource]="dataSource" class="admin-table">
           <ng-container matColumnDef="paciente">
             <th mat-header-cell *matHeaderCellDef>Paciente / dueño</th>
@@ -85,7 +94,7 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let row">
-              <div class="row-actions">
+              <div class="row-actions hide-mobile">
                 <button
                   mat-icon-button
                   type="button"
@@ -108,7 +117,7 @@
                 <button
                   mat-icon-button
                   type="button"
-                  matTooltip="Agregar a cuenta del día"
+                  matTooltip="Agregar al ticket del día"
                   *ngIf="puedeCobrar(row)"
                   (click)="agregarAVisita(row)">
                   <mat-icon>receipt_long</mat-icon>
@@ -116,16 +125,8 @@
                 <button
                   mat-icon-button
                   type="button"
-                  matTooltip="Registrar en caja"
-                  *ngIf="puedeCobrar(row)"
-                  (click)="registrarEnCaja(row)">
-                  <mat-icon>account_balance_wallet</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Ya cobrado en caja"
-                  *ngIf="row.cajaMovimientoId"
+                  matTooltip="Ya cobrado"
+                  *ngIf="row.cajaMovimientoId || row.visitaId"
                   disabled>
                   <mat-icon>check_circle</mat-icon>
                 </button>
@@ -133,6 +134,10 @@
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
+              <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones"
+                      [matMenuTriggerFor]="pensionMenu" (click)="menuContext = row">
+                <mat-icon>more_vert</mat-icon>
+              </button>
             </td>
           </ng-container>
 
@@ -143,4 +148,12 @@
       <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="[25, 50, 100]" showFirstLastButtons></mat-paginator>
     </app-admin-data-panel>
   </ng-container>
+
+  <mat-menu #pensionMenu="matMenu">
+    <button mat-menu-item (click)="checkIn(menuContext)" [disabled]="!menuContext || !puedeCheckIn(menuContext)"><mat-icon>login</mat-icon> Check-in</button>
+    <button mat-menu-item (click)="checkOut(menuContext)" [disabled]="!menuContext || !puedeCheckOut(menuContext)"><mat-icon>logout</mat-icon> Check-out</button>
+    <button mat-menu-item (click)="editar(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
+    <button mat-menu-item (click)="agregarAVisita(menuContext)" [disabled]="!menuContext || !puedeCobrar(menuContext)"><mat-icon>receipt_long</mat-icon> Agregar al ticket del día</button>
+    <button mat-menu-item (click)="borrar(menuContext)" [disabled]="!menuContext"><mat-icon>delete</mat-icon> Borrar</button>
+  </mat-menu>
 </div>

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, combineLatest } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
-import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_CONFIRM } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_CONFIRM, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
 import { InversionMetaProgress } from '../core/models/clinic-config.model';
@@ -20,6 +20,19 @@ import {
   formatLabelEs
 } from '../core/utils/periodo-filtro.util';
 import { LoggerService } from '../core/logger.service';
+import { BaniosService } from '../banios/banios.service';
+import { HistorialesService } from '../historiales/historiales.service';
+import { PensionService } from '../pension/pension.service';
+import { VacunasService } from '../vacunas/vacunas.service';
+import { VisitasService } from '../visitas/visitas.service';
+import { PorCobrarItem } from '../visitas/por-cobrar-hoy.models';
+import { buildPorCobrarHoy, totalPorCobrarHoy } from '../visitas/por-cobrar-hoy.util';
+import { hoyLocalIsoDate } from '../visitas/visitas.util';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { promptMontoVisita } from '../visitas/visita-atalho.util';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-dashboard',
@@ -66,6 +79,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { id: '60d', label: '60 días' }
   ];
 
+  /** Hub recepción (spec 049) */
+  porCobrarItems: PorCobrarItem[] = [];
+  porCobrarTotal = 0;
+  porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
+  citasHoyCount = 0;
+  private clientesMapHub: Record<string, string> = {};
+  private pacientesClienteMapHub: Record<string, { cliente_id: string; nombre?: string }> = {};
+
   get serieMax(): number {
     if (!this.snap?.serieIngresos?.length) return 1;
     return Math.max(1, ...this.snap.serieIngresos.map((p) => p.ingresos));
@@ -101,7 +122,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private dialog: MatDialog,
     private ownerDashboard: OwnerDashboardService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private baniosService: BaniosService,
+    private visitasService: VisitasService,
+    private pensionService: PensionService,
+    private vacunasService: VacunasService,
+    private historialesService: HistorialesService,
+    private loadingService: LoadingService,
+    private errorMessages: ErrorMessagesService
   ) {}
 
   ngOnInit(): void {
@@ -119,6 +147,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.generateCalendar();
     this.cargarOwnerDashboard();
     this.cargarInversionMeta();
+    this.cargarPorCobrarHoy();
   }
 
   ngOnDestroy(): void {
@@ -201,6 +230,129 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return `Mostrando datos del ${formatLabelEs(this.snap.rango.desde)} al ${formatLabelEs(this.snap.rango.hasta)}`;
   }
 
+  nuevaVentaMostrador(): void {
+    this.dialog.open(VisitaDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: { esMostrador: true }
+    });
+  }
+
+  tipoPorCobrarLabel(tipo: string): string {
+    const map: Record<string, string> = {
+      visita: 'Ticket',
+      banio: 'Baño',
+      cita: 'Cita',
+      pension: 'Pensión',
+      vacuna: 'Vacuna',
+      historial: 'Historial'
+    };
+    return map[tipo] || tipo;
+  }
+
+  private cargarPorCobrarHoy(): void {
+    combineLatest([
+      this.visitasService.getVisitas(),
+      this.baniosService.getBanios(),
+      this.citasService.getCitas(),
+      this.pensionService.getEstancias(),
+      this.vacunasService.getVacunas(),
+      this.historialesService.getHistoriales(),
+      this.clientesService.getClientes(),
+      this.pacientesService.getPacientes()
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([visitas, banios, citas, pensiones, vacunas, historiales, clientes, pacientes]) => {
+          this.clientesMapHub = {};
+          (clientes || []).forEach((c: any) => {
+            if (c?.id) this.clientesMapHub[c.id] = c.nombre || c.nombre_completo || '';
+          });
+          this.pacientesClienteMapHub = {};
+          (pacientes || []).forEach((p: any) => {
+            if (!p?.id) return;
+            const cid = p.cliente_id || p.idCliente || '';
+            this.pacientesClienteMapHub[p.id] = { cliente_id: cid, nombre: p.nombre };
+          });
+          const hoy = hoyLocalIsoDate();
+          this.porCobrarItems = buildPorCobrarHoy({
+            hoy,
+            visitas: visitas || [],
+            banios: banios || [],
+            citas: citas || [],
+            pensiones: pensiones || [],
+            vacunas: vacunas || [],
+            historiales: historiales || [],
+            clientesMap: this.clientesMapHub,
+            pacientesClienteMap: this.pacientesClienteMapHub
+          });
+          this.porCobrarTotal = totalPorCobrarHoy(this.porCobrarItems);
+        },
+        error: (err) => this.logger.error('Por cobrar hoy (hub):', err)
+      });
+  }
+
+  async accionPorCobrar(item: PorCobrarItem): Promise<void> {
+    if (item.accion === 'abrir_ticket' && item.visitaId) {
+      const visita = await this.visitasService.getVisita(item.visitaId);
+      if (visita) {
+        this.dialog.open(VisitaDialogComponent, {
+          ...ADMIN_DIALOG_FORM,
+          data: { visita }
+        });
+      }
+      return;
+    }
+    let monto = item.monto;
+    if (!(monto > 0)) {
+      monto =
+        (await promptMontoVisita(
+          'Monto del servicio',
+          `¿Cuánto se cobrará por ${item.descripcion}?`,
+          0
+        )) ?? 0;
+      if (!(monto > 0)) return;
+    }
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const cat =
+        item.tipo === 'banio'
+          ? 'banio'
+          : item.tipo === 'pension'
+            ? 'pension'
+            : item.tipo === 'vacuna'
+              ? 'vacuna'
+              : 'consulta';
+      const opts: Parameters<VisitasService['agregarServicioAVisita']>[0] = {
+        cliente_id: item.cliente_id,
+        cliente: item.cliente,
+        paciente_id: item.paciente_id,
+        paciente: item.paciente,
+        descripcion: item.descripcion,
+        monto,
+        categoria: cat as any,
+        fecha: item.fecha
+      };
+      if (item.tipo === 'banio') opts.banioId = item.id;
+      if (item.tipo === 'cita') opts.citaId = item.id;
+      if (item.tipo === 'pension') opts.pensionId = item.id;
+      if (item.tipo === 'vacuna') opts.vacunaId = item.id;
+      if (item.tipo === 'historial') opts.historialId = item.id;
+
+      const { visitaId } = await this.visitasService.agregarServicioAVisita(opts);
+      const visita = await this.visitasService.getVisita(visitaId);
+      this.dialog.open(VisitaDialogComponent, {
+        ...ADMIN_DIALOG_FORM,
+        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente }
+      });
+      Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      this.cargarPorCobrarHoy();
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
   getSaludo(): string {
     const hora = new Date().getHours();
     if (hora < 12) return 'Buenos días';
@@ -240,6 +392,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (citas) => {
           this.citas = (citas || []).filter((c: any) => c.activo !== false);
+          const hoy = hoyLocalIsoDate();
+          this.citasHoyCount = this.citas.filter((c) => this.getCitaDateKey(c) === hoy).length;
           this.citasMap = {};
           this.citas.forEach((cita) => {
             const key = this.getCitaDateKey(cita);

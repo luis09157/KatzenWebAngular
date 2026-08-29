@@ -116,10 +116,14 @@
 
       <div class="venta-caja-box" *ngIf="esVentaDirecta && !hideRegistrarEnCaja">
         <p class="venta-caja-label">Destino del cobro</p>
-        <mat-radio-group formControlName="destinoCobro" class="destino-cobro-group">
-          <mat-radio-button value="caja" color="primary">Registrar en caja</mat-radio-button>
-          <mat-radio-button value="visita" color="primary">Agregar a cuenta del día</mat-radio-button>
+        <mat-radio-group formControlName="destinoCobro" class="destino-cobro-group" *ngIf="isAdmin">
+          <mat-radio-button value="caja" color="primary">Registrar en caja (admin)</mat-radio-button>
+          <mat-radio-button value="visita" color="primary">Agregar al ticket del día</mat-radio-button>
         </mat-radio-group>
+        <p class="venta-caja-hint" *ngIf="!isAdmin && productoSeleccionado">
+          Se agregará al ticket del día · monto sugerido: ${{ montoVentaFinal() | number:'1.2-2' }}
+          · Los cobros clínicos y de mostrador se hacen desde Ticket del día, no desde finanzas.
+        </p>
         <p class="venta-caja-hint" *ngIf="productoSeleccionado && salidaForm.get('destinoCobro')?.value === 'caja'">
           Monto sugerido: ${{ montoVentaSugerido | number:'1.2-2' }}
           · Costo: ${{ costoVentaSugerido | number:'1.2-2' }}

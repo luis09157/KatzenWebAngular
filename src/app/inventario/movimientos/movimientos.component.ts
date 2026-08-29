@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -34,6 +35,7 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     'stock_anterior',
     'stock_nuevo',
     'motivo',
+    'ticket',
     'usuario',
     'acciones'
   ];
@@ -83,7 +85,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     private inventarioService: InventarioService,
     private dialog: MatDialog,
     private logger: LoggerService,
-    private authProfile: AuthProfileService
+    private authProfile: AuthProfileService,
+    private router: Router
   ) {
     this.dataSource = new MatTableDataSource<Movimiento>([]);
   }
@@ -305,6 +308,10 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
         producto: this.productos.get(movimiento.producto_id)
       }
     });
+  }
+
+  verTicket(visitaId: string): void {
+    void this.router.navigate(['/admin/visitas'], { queryParams: { ticket: visitaId } });
   }
 }
 

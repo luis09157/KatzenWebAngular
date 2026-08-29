@@ -44,6 +44,7 @@ import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models'
 import { BaniosService } from '../banios/banios.service';
 import { Banio } from '../shared/banio.model';
 import { PensionService } from '../pension/pension.service';
+import { AuthProfileService } from '../core/services/auth-profile.service';
 
 @Component({
   selector: 'app-finanzas',
@@ -70,6 +71,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingPlantillas = true;
   savingDefaults = false;
   savingDefaultsPension = false;
+  isAdmin = false;
   kpis: CajaDiaKpis = this.emptyKpis();
   chartResumen: CajaChartBar[] = [];
   chartEgresos: CajaEgresoDesglose[] = [];
@@ -118,7 +120,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private authProfileService: AuthProfileService
   ) {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
     this.mesFiltro = this.cajaService.mesLocalIso();
@@ -127,6 +130,9 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.authProfileService.getAccessibleModules().then((modules) => {
+      this.isAdmin = modules.includes('usuarios');
+    });
     this.cargar();
     this.cargarBanios();
     this.cargarPension();

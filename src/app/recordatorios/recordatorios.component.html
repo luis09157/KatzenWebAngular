@@ -41,9 +41,9 @@
     <app-admin-empty-state
       *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="notifications_off"
-      title="No hay recordatorios"
-      message="No se han encontrado recordatorios registrados."
-      actionLabel="Agregar primer recordatorio"
+      title="Aún no hay recordatorios"
+      message="Crea recordatorios de vacunas, medicamentos o seguimiento. Elige dueño y mascota primero."
+      actionLabel="Nuevo recordatorio"
       (action)="abrirModalRecordatorio()">
     </app-admin-empty-state>
 

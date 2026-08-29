@@ -27,6 +27,7 @@ import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
+import { AuthProfileService } from '../core/services/auth-profile.service';
 
 @Component({
   selector: 'app-historiales',
@@ -53,6 +54,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   private historialesRaw: any[] = [];
   loading = false;
   necesitaMigracion = false;
+  isAdmin = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -65,11 +67,15 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     private logger: LoggerService,
     private errorMessages: ErrorMessagesService,
     private inventarioService: InventarioService,
-    private visitasService: VisitasService
+    private visitasService: VisitasService,
+    private authProfileService: AuthProfileService
   ) {}
 
   ngOnInit(): void {
     this.loading = true;
+    this.authProfileService.getAccessibleModules().then((modules) => {
+      this.isAdmin = modules.includes('usuarios');
+    });
     this.cargarDatos();
     this.cargarEstadisticas();
     this.verificarMigracion();

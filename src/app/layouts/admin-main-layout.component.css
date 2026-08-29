@@ -1,3 +1,13 @@
+.admin-nav-group-label {
+  padding: 16px 16px 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
 /** Entrada secundaria bajo Inventario (Proveedores, etc.). */
 .admin-nav-subitem {
   padding-left: 8px !important;

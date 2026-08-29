@@ -31,17 +31,23 @@
 
   <p class="section-eyebrow">Baños por tamaño (período)</p>
   <app-admin-kpi-grid class="kpi-secondary">
-    <app-admin-stat-card accent="blue" [value]="estadisticas.tamanoPequeno" label="Pequeño (P)" hint="tamano_perro pequeno"></app-admin-stat-card>
-    <app-admin-stat-card accent="teal" [value]="estadisticas.tamanoMediano" label="Mediano (M)" hint="tamano_perro mediano"></app-admin-stat-card>
-    <app-admin-stat-card accent="purple" [value]="estadisticas.tamanoGrande" label="Grande (G)" hint="tamano_perro grande"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" [value]="estadisticas.tamanoSinClasificar" label="Sin tamaño" hint="Legacy sin tamano_perro"></app-admin-stat-card>
+    <app-admin-stat-card accent="blue" [value]="estadisticas.tamanoPequeno" label="Pequeño (P)" hint="Mascotas pequeñas"></app-admin-stat-card>
+    <app-admin-stat-card accent="teal" [value]="estadisticas.tamanoMediano" label="Mediano (M)" hint="Mascotas medianas"></app-admin-stat-card>
+    <app-admin-stat-card accent="purple" [value]="estadisticas.tamanoGrande" label="Grande (G)" hint="Mascotas grandes"></app-admin-stat-card>
+    <app-admin-stat-card accent="orange" [value]="estadisticas.tamanoSinClasificar" label="Sin tamaño" hint="Registros sin clasificar"></app-admin-stat-card>
   </app-admin-kpi-grid>
+
+  <app-flow-hint
+    icon="receipt_long"
+    message="Registra el baño aquí. Cuando termine, usa «Agregar al ticket del día» en el menú ⋮ para cobrar desde Ticket del día."
+    variant="info">
+  </app-flow-hint>
 
   <app-admin-page-banner
     accent="teal"
     icon="spa"
     title="Peluquería / baños"
-    subtitle="Registra el servicio aquí. El cobro va en Cuenta del día (puedes agregarlo al terminar).">
+    subtitle="Registra el servicio aquí. El cobro va en Ticket del día (menú ⋮ → Agregar al ticket).">
     <div bannerActions>
       <button mat-stroked-button (click)="exportarCsv()">
         <mat-icon>download</mat-icon>
@@ -172,16 +178,12 @@
     <button mat-menu-item *ngIf="menuContext?.estado === 'programado'" (click)="cambiarEstado(menuContext, 'en_proceso')"><mat-icon>play_arrow</mat-icon> Iniciar baño</button>
     <button mat-menu-item *ngIf="menuContext?.estado === 'en_proceso'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
     <button mat-menu-item *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado' && !menuContext?.visitaId" (click)="marcarComoPagado(menuContext)"><mat-icon>payment</mat-icon> Marcar pagado</button>
-    <button mat-menu-item (click)="registrarEnCaja(menuContext)" [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.visitaId">
-      <mat-icon>account_balance_wallet</mat-icon>
-      {{ menuContext?.cajaMovimientoId ? 'Ya en caja' : menuContext?.visitaId ? 'Cobrar en cuenta' : 'Registrar en caja' }}
-    </button>
     <button
       mat-menu-item
       (click)="agregarAVisita(menuContext)"
       [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId">
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en cuenta' : 'Agregar a cuenta' }}
+      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Agregar al ticket del día' }}
     </button>
   </mat-menu>
 </div>

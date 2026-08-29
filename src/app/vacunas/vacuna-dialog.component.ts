@@ -16,6 +16,9 @@ import {
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { AsegurarRefuerzoResultado } from '../recordatorios/recordatorios.service';
 import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-recordatorio.util';
+import {
+  mensajeHintClientePaciente
+} from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-vacuna-dialog',
@@ -46,6 +49,16 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     if (this.isEditMode) return false;
     const idPac = this.data?.paciente_id || this.data?.idPaciente;
     return !idPac;
+  }
+
+  /** Spec 048 */
+  get hintVacuna(): string {
+    if (!this.muestraPickerClientePaciente) return '';
+    return mensajeHintClientePaciente(
+      this.vacunaForm,
+      { clienteId: 'idCliente', pacienteId: 'idPaciente' },
+      'Paso 3: elige tipo de vacuna, dosis y fecha de aplicación.'
+    );
   }
 
   // Tipos de vacunas - Cargados desde Firebase con fallback

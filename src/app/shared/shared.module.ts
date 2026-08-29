@@ -33,6 +33,7 @@ import { AdminEstadoClassPipe } from './pipes/admin-estado-class.pipe';
 import { AdminPrioridadClassPipe } from './pipes/admin-prioridad-class.pipe';
 import { AlergiasAlertaComponent } from './alergias/alergias-alerta.component';
 import { AlergiasEditorComponent } from './alergias/alergias-editor.component';
+import { FlowHintComponent } from './components/flow-hint/flow-hint.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
@@ -54,7 +55,8 @@ import { RouterModule } from '@angular/router';
     ProductoPickerComponent,
     StaffPickerComponent,
     AlergiasAlertaComponent,
-    AlergiasEditorComponent
+    AlergiasEditorComponent,
+    FlowHintComponent
   ],
   imports: [
     CommonModule,
@@ -106,6 +108,7 @@ import { RouterModule } from '@angular/router';
     StaffPickerComponent,
     AlergiasAlertaComponent,
     AlergiasEditorComponent,
+    FlowHintComponent,
     MatAutocompleteModule,
     MatCardModule,
     MatMenuModule,

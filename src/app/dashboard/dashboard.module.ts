@@ -22,6 +22,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { CitasService } from '../citas/citas.service';
+import { BaniosService } from '../banios/banios.service';
+import { VisitasService } from '../visitas/visitas.service';
+import { PensionService } from '../pension/pension.service';
+import { VacunasService } from '../vacunas/vacunas.service';
+import { HistorialesService } from '../historiales/historiales.service';
+import { ClientesService } from '../clientes/clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { SharedModule } from '../shared/shared.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -54,6 +61,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     SharedModule,
     RouterModule
   ],
-  providers: [CitasService]
+  providers: [
+    CitasService,
+    BaniosService,
+    VisitasService,
+    PensionService,
+    VacunasService,
+    HistorialesService,
+    ClientesService,
+    PacientesService
+  ]
 })
 export class DashboardModule { }

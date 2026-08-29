@@ -20,6 +20,7 @@ import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.ut
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { normalizeAlergias } from '../../shared/alergias/alergias.util';
 import { ProductoSelection } from '../../shared/admin/producto-picker.models';
+import { AuthProfileService } from '../../core/services/auth-profile.service';
 
 /** Prefill opcional al abrir desde historial / pensión / vacunas (spec 022). */
 export interface SalidaDialogData {
@@ -58,6 +59,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   clienteNombreResuelto = '';
   /** Spec 034 — alerta si hay vínculo paciente. */
   alergiasPaciente: string[] = [];
+  isAdmin = false;
 
   readonly contextoHistorial: boolean;
   readonly hideRegistrarEnCaja: boolean;
@@ -85,6 +87,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private clientesService: ClientesService,
     private visitasService: VisitasService,
+    private authProfileService: AuthProfileService,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: SalidaDialogData | null
   ) {
     const d = data || {};
@@ -98,7 +101,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       cantidad: [d.cantidad && d.cantidad > 0 ? d.cantidad : 1, [Validators.required, Validators.min(1)]],
       motivo: [d.motivoDefault || 'uso_consulta', Validators.required],
       observaciones: [d.observaciones || ''],
-      destinoCobro: ['caja' as 'caja' | 'visita'],
+      destinoCobro: ['visita' as 'caja' | 'visita'],
       cliente_busqueda: [''],
       cliente_id: [d.cliente_id || ''],
       cliente_nombre: [d.clienteNombre || '']
@@ -125,6 +128,12 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.authProfileService.getAccessibleModules().then((modules) => {
+      this.isAdmin = modules.includes('usuarios');
+      if (!this.isAdmin && !this.hideRegistrarEnCaja) {
+        this.salidaForm.patchValue({ destinoCobro: 'visita' });
+      }
+    });
     this.cargarClientes();
     if (this.data?.productoId) {
       this.salidaForm.patchValue({ producto_id: this.data.productoId });

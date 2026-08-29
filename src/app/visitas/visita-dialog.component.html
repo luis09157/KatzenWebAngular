@@ -3,7 +3,8 @@
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Cuenta del día' : 'Nueva cuenta del día' }}</h2>
       <p class="admin-dialog-subtitle">
-        Paso a paso: dueño → líneas (baño/producto/consulta) → cobrar. Estado:
+        Paso a paso: dueño (o mostrador) → líneas → cobrar. Los productos descontarán inventario al guardar.
+        Estado:
         <span class="estado-badge" [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
           {{ estadoLabels[totales.estado] || estadoLabel }}
         </span>
@@ -25,9 +26,11 @@
       <form [formGroup]="form" class="admin-form-layout no-print">
         <div class="mostrador-bar no-print" *ngIf="!soloLectura">
           <ng-container *ngIf="!modoMostrador; else mostradorActivo">
-            <p class="flow-hint-inline" *ngIf="!form.get('cliente_id')?.value">
-              Paso 1: elige el dueño. Si es compra de petshop sin registro, usa venta de mostrador.
-            </p>
+            <app-flow-hint
+              *ngIf="!form.get('cliente_id')?.value"
+              icon="person"
+              message="Paso 1: elige el dueño. Si es compra de petshop sin registro, usa venta de mostrador abajo.">
+            </app-flow-hint>
             <button mat-stroked-button type="button" class="mostrador-btn" (click)="activarVentaMostrador()">
               <mat-icon>storefront</mat-icon>
               Venta de mostrador (sin cliente)
@@ -36,9 +39,11 @@
           <ng-template #mostradorActivo>
             <div class="mostrador-activo">
               <span class="estado-badge muted">Sin cliente · venta de mostrador</span>
-              <p class="flow-hint-inline" style="margin:8px 0 0">
-                Puedes cobrar igual. Si es cliente de la clínica, vincúlalo para historial y saldo.
-              </p>
+              <app-flow-hint
+                variant="warn"
+                icon="storefront"
+                message="Puedes cobrar igual. Agrega productos o líneas manuales. Si es cliente de la clínica, vincúlalo para historial y saldo.">
+              </app-flow-hint>
               <button mat-stroked-button color="primary" type="button" (click)="vincularClienteReal()">
                 <mat-icon>person_search</mat-icon>
                 ¿Es cliente? Vincular
@@ -99,11 +104,19 @@
       </section>
 
       <h3 class="section-title">Líneas del ticket</h3>
+      <app-flow-hint
+        *ngIf="inventarioHint"
+        icon="inventory_2"
+        [message]="inventarioHint"
+        [variant]="mostrandoProducto ? 'warn' : 'info'">
+      </app-flow-hint>
       <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
         <div class="linea-row" *ngFor="let l of lineas">
           <div class="linea-main">
             <span class="linea-desc">{{ l.descripcion }}</span>
             <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
+            <span class="estado-badge inventario-badge" *ngIf="esLineaProducto(l)">Descuenta inventario</span>
+            <span class="linea-origen-hint" *ngIf="origenLineaHint(l)">{{ origenLineaHint(l) }}</span>
           </div>
           <div class="linea-right">
             <span>{{ formatMoney(l.monto) }}</span>
@@ -120,7 +133,7 @@
         </div>
       </div>
       <ng-template #sinLineas>
-        <p class="hint-empty">Sin líneas. Incluye un baño pendiente, vende un producto o agrega consulta/vacuna.</p>
+        <p class="hint-empty">Sin líneas. Incluye un baño pendiente, vende un producto (descuenta stock) o agrega consulta/vacuna.</p>
       </ng-template>
     </div>
 
@@ -214,7 +227,9 @@
       {{ cobrarLabel }}
     </button>
   </mat-dialog-actions>
-  <p class="flow-hint no-print" *ngIf="!soloLectura && accionBloqueoHint">
-    {{ accionBloqueoHint }}
-  </p>
+  <app-flow-hint
+    layout="footer"
+    *ngIf="!soloLectura && accionBloqueoHint"
+    [message]="accionBloqueoHint">
+  </app-flow-hint>
 </div>

@@ -7,24 +7,13 @@
     <mat-nav-list>
       <a *ngIf="canShow('inicio')" mat-list-item routerLink="/admin/inicio" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+        <span matListItemTitle>Inicio</span>
       </a>
+
+      <div class="admin-nav-group-label" *ngIf="hasClinicaNav">Atención clínica</div>
       <a *ngIf="canShow('paciente')" mat-list-item routerLink="/admin/paciente" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>search</mat-icon>
         <span matListItemTitle>Buscar paciente</span>
-      </a>
-      <mat-divider></mat-divider>
-      <a *ngIf="canShow('pacientes-admin')" mat-list-item routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>pets</mat-icon>
-        <span matListItemTitle>Pacientes</span>
-      </a>
-      <a *ngIf="canShow('clientes')" mat-list-item routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>people</mat-icon>
-        <span matListItemTitle>Clientes</span>
-      </a>
-      <a *ngIf="canShow('contactos-web')" mat-list-item routerLink="/admin/contactos-web" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>mail</mat-icon>
-        <span matListItemTitle>Contactos web</span>
       </a>
       <a *ngIf="canShow('citas')" mat-list-item routerLink="/admin/citas" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>event</mat-icon>
@@ -38,13 +27,39 @@
         <mat-icon matListItemIcon>vaccines</mat-icon>
         <span matListItemTitle>Vacunas</span>
       </a>
+      <a *ngIf="canShow('banios')" mat-list-item routerLink="/admin/banios" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>spa</mat-icon>
+        <span matListItemTitle>Peluquería</span>
+      </a>
+      <a *ngIf="canShow('pension')" mat-list-item routerLink="/admin/pension" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>hotel</mat-icon>
+        <span matListItemTitle>Pensión</span>
+      </a>
       <a *ngIf="canShow('recordatorios')" mat-list-item routerLink="/admin/recordatorios" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>notifications</mat-icon>
         <span matListItemTitle>Recordatorios</span>
       </a>
-      <a *ngIf="canShow('banios')" mat-list-item routerLink="/admin/banios" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>spa</mat-icon>
-        <span matListItemTitle>Peluquería</span>
+      <a *ngIf="canShow('consentimientos')" mat-list-item routerLink="/admin/consentimientos" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
+        <span matListItemTitle>Consentimientos</span>
+      </a>
+
+      <mat-divider *ngIf="hasPosNav && hasClinicaNav"></mat-divider>
+      <div class="admin-nav-group-label" *ngIf="hasPosNav">Punto de venta</div>
+      <a *ngIf="canShow('visitas')" mat-list-item routerLink="/admin/visitas" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>receipt_long</mat-icon>
+        <span matListItemTitle>Ticket del día</span>
+      </a>
+
+      <mat-divider *ngIf="hasAdminNav && (hasClinicaNav || hasPosNav)"></mat-divider>
+      <div class="admin-nav-group-label" *ngIf="hasAdminNav">Administración</div>
+      <a *ngIf="canShow('clientes')" mat-list-item routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Clientes</span>
+      </a>
+      <a *ngIf="canShow('pacientes-admin')" mat-list-item routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>pets</mat-icon>
+        <span matListItemTitle>Pacientes</span>
       </a>
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario" routerLinkActive="active"
          [routerLinkActiveOptions]="{ exact: true }" (click)="closeSidenav()">
@@ -85,21 +100,18 @@
         <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
         <span matListItemTitle>Caja / finanzas</span>
       </a>
-      <a *ngIf="canShow('visitas')" mat-list-item routerLink="/admin/visitas" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle>Cuenta del día</span>
-      </a>
-      <a *ngIf="canShow('consentimientos')" mat-list-item routerLink="/admin/consentimientos" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
-        <span matListItemTitle>Consentimientos</span>
-      </a>
-      <a *ngIf="canShow('pension')" mat-list-item routerLink="/admin/pension" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>hotel</mat-icon>
-        <span matListItemTitle>Pensión</span>
-      </a>
       <a *ngIf="canShow('usuarios')" mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>manage_accounts</mat-icon>
         <span matListItemTitle>Personal y portal</span>
+      </a>
+      <a *ngIf="canShow('contactos-web')" mat-list-item routerLink="/admin/contactos-web" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>mail</mat-icon>
+        <span matListItemTitle>Contactos web</span>
+      </a>
+      <a *ngIf="canShow('inicio')" mat-list-item routerLink="/admin/inicio" routerLinkActive="active"
+         class="admin-nav-subitem" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>insights</mat-icon>
+        <span matListItemTitle>Dashboard métricas</span>
       </a>
     </mat-nav-list>
     <mat-divider></mat-divider>
@@ -122,7 +134,7 @@
   <mat-sidenav-content>
     <mat-toolbar class="m3-top-bar">
       <button mat-icon-button (click)="toggleSidenav()"><mat-icon>menu</mat-icon></button>
-      <span class="mat-title-medium">Admin</span>
+      <span class="mat-title-medium">{{ toolbarLabel }}</span>
       <span class="portal-spacer"></span>
       <mat-form-field *ngIf="sucursales.length > 1" appearance="outline" class="sucursal-select hide-mobile">
         <mat-label>Sucursal</mat-label>
