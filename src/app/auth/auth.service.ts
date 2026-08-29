@@ -97,15 +97,26 @@ export class AuthService {
       return remembered;
     }
 
-    if (!(await this.isAuthenticatedOnce())) {
-      return null;
+    const session = this.authSession.getSession();
+    if (session) {
+      const user = await this.waitForAuthUser();
+      if (!user || user.uid !== session.uid) {
+        return null;
+      }
+      if (!(await this.ensureActiveSession())) {
+        return null;
+      }
+      return user;
     }
 
-    if (!(await this.ensureActiveSession())) {
+    const user = await this.waitForAuthUser(1500);
+    if (!user) {
       return null;
     }
-
-    return this.waitForAuthUser();
+    if (!(await this.ensureActiveSession({ bootstrapIfMissing: false }))) {
+      return null;
+    }
+    return user;
   }
 
   async ensureActiveSession(options?: { bootstrapIfMissing?: boolean }): Promise<boolean> {

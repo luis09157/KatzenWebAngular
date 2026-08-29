@@ -117,4 +117,26 @@ describe('AuthComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/portal/mascotas']);
     expect(authSession.setStaffEntryIntent).not.toHaveBeenCalled();
   });
+
+  it('mantiene spinner mientras getActiveAuthUser está pendiente', async () => {
+    let resolveUser!: (user: { uid: string } | null) => void;
+    authService.getActiveAuthUser.and.returnValue(
+      new Promise(resolve => {
+        resolveUser = resolve;
+      })
+    );
+
+    fixture.detectChanges();
+    expect(component.checkingSession).toBeTrue();
+
+    authProfileService.hasStaffAccess.and.resolveTo(true);
+    authProfileService.isDual.and.resolveTo(false);
+    resolveUser({ uid: 'staff-tab' });
+    await fixture.whenStable();
+    await new Promise(r => setTimeout(r, 0));
+    fixture.detectChanges();
+
+    expect(component.checkingSession).toBeFalse();
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
+  });
 });
