@@ -95,9 +95,11 @@ Criterios: SC-019 … SC-026 — cubiertos en código; **scheduler no corre en p
 
 ## Ola 3 — Conejo + hint hurón
 
-- [ ] Tipos `mixomatosis`, `rhdv_rhdv2`, `otra_conejo` + copy MX (SC-016, SC-017)
-- [ ] Hint hurón vs combo canino (SC-018)
-- [ ] Confirmar con proveedor local qué biológicos hay **antes** de seed «en catálogo de stock»
+- [x] Tipos `mixomatosis`, `rhdv_rhdv2`, `otra_conejo` + copy MX (SC-016, SC-017)
+- [x] Hint hurón vs combo canino (SC-018)
+- [x] Especie `HURON` en alta paciente (string aditivo; aliases `hurón`/`ferret`)
+- [x] Confirmación: conejo no hereda 21 días de perro; intervalo manual + preset 365 opt-in
+- [x] Copy honesto: no se sembró «en stock»; VEHC-2 = granja; confirmar proveedor local (no script contra prod)
 
 ---
 
@@ -122,18 +124,19 @@ Al implementar, ejecutar y marcar **solo tras evidencia** en la sección exhaust
 - [x] Manual/mock: error (ave + quintuple → sin esquema forzado) — unit
 - [x] Unit: `esquema-vacuna.util.spec.ts` (rabia ≠ 1095, lepto 2 dosis, MDA 16 sem, min 14 días)
 - [x] Unit ola 2: `functions-fcm/test/push-schedule.util.test.js` (11) + mapper portal (SC-026)
+- [x] Unit ola 3: conejo mixomatosis/RHDV manual; hurón combo vs rabia anual; no 21d residual
 - [x] `npm run cy:admin` — N/A ruta admin no cambió (sigue `/admin/vacunas`)
 - [x] E2E específico — no se añadió spec Cypress nueva (smoke existente cubre listado)
 
-**Resultado:** ola 1 OK; **ola 2 código OK** (deploy functions pendiente). Ver sección exhaustiva.
+**Resultado:** olas 1–3 código OK (deploy functions pendiente). Ver sección exhaustiva.
 
 ```
-# npm run test:052
-TOTAL: 29 SUCCESS (esquema-vacuna.util.spec + vacuna-recordatorio.util.spec)
+# npm run test:052 (ola 3)
+TOTAL: 52 SUCCESS
 
-# npm run build
-Exit 0 | Hash: 87eaffb893277e3a | Time: 13286ms
-Warning preexistente: bundle initial exceeded maximum budget (2.25 MB vs 2.00 MB).
+# npm run build (ola 3)
+Exit 0 | Hash: db51a8011c57107b | Time: 9673ms
+Warning preexistente: bundle initial exceeded maximum budget (2.29 MB vs 2.00 MB).
 ```
 
 ---
@@ -268,10 +271,49 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 2
 
 ---
 
+### Ola 3 — 2026-08-28. Agente autónomo. Sin producción RTDB. Sin commit. Sin firebase deploy.
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| Formularios — campos vacíos | OK | Tipo/dosis/fecha siguen required; confirmación conejo no auto-llena fecha |
+| Formularios — tipos erróneos | OK | Intervalo number; 21d residual canino se descarta en conejo/hurón/exótico |
+| Formularios — límites texto | OK | Observaciones no modificadas |
+| UI — chips estado completos | OK | Mismos chips ola 1; especie HURON/CONEJO en badge |
+| Modales — apertura/cierre | OK | Confirmación: X = no persistir; «No agendar» guarda vacuna sin recordatorio |
+| UI — diálogos --picker | N/A | Form confirmación 560px; timepicker sí usa picker |
+| UI — timepicker en campos hora | OK | `app-timepicker-field` intacto |
+| UI — retroalimentación | OK | Copy conejo (VEHC-2, no Nobivac/Filavac en stock); hurón combo warn |
+| UI — loading contextual | OK | «Guardando vacuna…» sin cambios de contrato |
+| UI — loading no trabado | OK | hide/show patrón ola 1 |
+| UI — doble submit | OK | `submitting` en confirm |
+| Edge — conejo + mixomatosis | OK | Unit: `puedeSugerir false`, intervalo null ≠ 21, hint VEHC-2 |
+| Edge — conejo + quíntuple | OK | Unit: no hereda serie 21d |
+| Edge — hurón + combo canino | OK | Unit: hint `huron_combo`, sin esquema |
+| Edge — hurón + rabia | OK | Unit: 365, nunca 1095, hint etiqueta MX |
+| Edge — ave/reptil | OK | Copy «Sin esquema sugerido» + hint `sin_esquema_exotico` |
+| Catálogo tipos conejo | OK | Fallback + fusión aditiva si RTDB no los tiene; no pisa legacy |
+| Especie HURON en alta | OK | Select pacientes-admin; aliases ferret/hurón en motor |
+| Servidor local :4200 + smoke | OK | `localhost:4200` HTTP 200; `ng serve` «Compiled successfully» |
+| Build `npm run build` | OK | exit 0; Hash `db51a8011c57107b` |
+| Unit motor 052 | OK | `npm run test:052` → 52 SUCCESS |
+
+```
+# npm run test:052 (ola 3)
+TOTAL: 52 SUCCESS
+
+# npm run build (ola 3, 2026-08-29)
+> ng build --configuration production
+Exit 0
+Build at: 2026-08-29T04:42:26.645Z - Hash: db51a8011c57107b - Time: 9673ms
+Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 301.03 kB with a total of 2.29 MB.
+```
+
+---
+
 ## Criterios spec (SC-xxx) — índice
 
 - [x] SC-001 … SC-015 — ola 1 (ver `spec.md`)
-- [ ] SC-016 … SC-018 — ola 3
+- [x] SC-016 … SC-018 — ola 3
 - [x] SC-019 … SC-026 — ola 2
 
 ---
@@ -280,8 +322,9 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 2
 
 - [x] Validación pre-entrega de **código** ola 1
 - [x] Validación pre-entrega de **código** ola 2
-- [x] Validación exhaustiva registrada (olas 1 y 2)
-- [ ] `spec.md` estado → `done` **solo** cuando ola 3 (o Luis cierre 052 sin ola 3)
+- [x] Validación pre-entrega de **código** ola 3
+- [x] Validación exhaustiva registrada (olas 1, 2 y 3)
+- [x] `spec.md` estado → `done` (olas 1–3 de código; deploy scheduler FCM sigue pendiente de autorización Luis)
 - [ ] Commit / deploy — solo si Luis lo pide
 
-**Estado spec tras ola 2:** `in_progress` (correcto; ola 3 conejo/hurón pendiente). El scheduler **no corre en producción** hasta el deploy autorizado.
+**Estado spec tras ola 3:** `done` (código). El scheduler **no corre en producción** hasta el deploy autorizado.

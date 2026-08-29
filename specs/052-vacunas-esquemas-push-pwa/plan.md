@@ -2,7 +2,7 @@
 
 **Spec:** `specs/052-vacunas-esquemas-push-pwa/spec.md`  
 **Anexo clínico:** `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`  
-**Estado:** ola 1 implementada (2026-08-28); **ola 2 implementada** (push programado + PWA portal, 2026-08-28); ola 3 pendiente
+**Estado:** olas 1–3 implementadas (2026-08-28). Deploy functions-fcm scheduler pendiente de autorización Luis.
 
 ---
 
@@ -29,7 +29,7 @@ Constitución: cambios **aditivos**; no tocar nodos que consume la app móvil; n
 | Fallback tipos | mismo archivo `tiposVacunasFallback` | Mapear a semántica 052; no eliminar values legacy |
 | Cálculo fecha | `src/app/vacunas/vacuna-recordatorio.util.ts` | Extender o extraer `esquema-vacuna.util.ts` |
 | Servicio | `src/app/vacunas/vacunas.service.ts` | Persistir campos nuevos opcionales |
-| Especies | `paciente-admin-dialog.component.ts` `especies = ['CANINO', 'FELINO', 'AVE', 'REPTIL', 'OTRO']` | Añadir `CONEJO`; normalizar aliases (`conejo`, `lagomorfo`) |
+| Especies | `paciente-admin-dialog.component.ts` `especies` | `CONEJO` + `HURON` (aliases `conejo`/`lagomorfo`, `huron`/`ferret`) |
 | Stats | `entity-stats.util.ts` | Opcional: contar conejos (no bloqueante) |
 | Recordatorios | spec 033 | Sigue siendo la fuente de `origen: vacuna_auto` |
 | FCM | `functions-fcm/src/recordatorio-push.ts` | Ola 2: gate por fecha / `pushSchedule` |
@@ -41,6 +41,16 @@ Constitución: cambios **aditivos**; no tocar nodos que consume la app móvil; n
 ---
 
 ## Archivos a crear / modificar (cuando se implemente)
+
+### Angular — ola 3
+
+| Archivo | Acción | Notas |
+|---------|--------|-------|
+| `esquema-vacuna.defaults.ts` | modificar | Tipos `mixomatosis` / `rhdv_rhdv2` / `otra_conejo` + copy VEHC-2; no stock |
+| `esquema-vacuna.util.ts` | modificar | Conejo intervalo manual (nunca 21d); hurón combo/rabia |
+| `vacuna-esquema-confirm-dialog` | modificar | No heredar 21 días caninos; preset 365 opt-in |
+| `vacuna-dialog.component.ts` | modificar | Fusionar tipos conejo en catálogo RTDB si faltan |
+| `paciente-admin-dialog.component.ts` | modificar | Especie `HURON` (alias ferret) |
 
 ### Angular — ola 1
 
@@ -138,7 +148,7 @@ Katzen/Recordatorios/{id}
   skipPushOnCreate?: boolean     # true si fecha lejana
 
 Katzen/Mascota/{id}
-  especie: 'CANINO' | 'FELINO' | 'CONEJO' | 'AVE' | 'REPTIL' | 'OTRO' | string legacy
+  especie: 'CANINO' | 'FELINO' | 'CONEJO' | 'HURON' | 'AVE' | 'REPTIL' | 'OTRO' | string legacy
 ```
 
 **Móvil:** ignora desconocidos. No eliminar `vacuna` string ni `intervalo` numérico.
@@ -214,7 +224,7 @@ Katzen/Mascota/{id}
   | `Katzen/Recordatorios` pushSchedule, skipPushOnCreate, pushCount, pushKindsSent, pushDueStatus | añadir opcionales | no | 023 ignora si no los lee; scheduler 052 sí |
   | `Katzen/NotificacionesClinica/{id}` | **nodo nuevo** inbox staff | no | read staff; write Functions; **cliente no lee** |
   | `Katzen/FcmTokens/{uid}` | reutilizado | no | portal_web + admin_web |
-  | `Katzen/Mascota.especie` valor `CONEJO` | valor string nuevo | no | ya es string libre |
+  | `Katzen/Mascota.especie` valor `CONEJO` / `HURON` | valor string nuevo | no | ya es string libre |
   | Nodos Vacunas/Tipos/Recordatorios nombres | **no** renombrar | — | constitución |
 
   - [x] Sin eliminar ni renombrar nodos existentes (diseño)

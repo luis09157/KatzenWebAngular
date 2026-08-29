@@ -1,4 +1,5 @@
 import {
+  CONEJO_INTERVALO_DEFAULT_DIAS,
   CORE_MLV_ADULTO_DEFAULT_DIAS,
   EDAD_CIERRE_SERIE_SEM,
   FVRCP_REFUERZO_ALT_WSAVA_DIAS,
@@ -6,8 +7,14 @@ import {
   INTERVALO_SERIE_DEFAULT_DIAS,
   INTERVALO_TRIENAL_DIAS,
   LEPTO_INTERVALO_ADULTO_DIAS,
+  MENSAJE_CONEJO_MANUAL,
   MENSAJE_SIN_ESQUEMA,
+  NOTA_DISPONIBILIDAD_CONEJO_MX,
   RABIA_INTERVALO_DEFAULT_DIAS,
+  TIPOS_CONEJO_OLA3,
+  TIPOS_VACUNAS_FALLBACK,
+  esComboCanino,
+  fusionarTiposConejoEnCatalogo,
   semanticaDesdeValue
 } from './esquema-vacuna.defaults';
 import {
@@ -18,19 +25,23 @@ import {
   neverSuggestsSevenDayCore,
   normalizarEspecie,
   parseEdadASemanas,
+  resolverIntervaloConfirmacion,
   sugerirEsquema
 } from './esquema-vacuna.util';
 import { dayKeyLocal } from './vacuna-recordatorio.util';
 
-describe('esquema-vacuna.util (052 ola 1)', () => {
+describe('esquema-vacuna.util (052 ola 1+3)', () => {
   const fecha = '2026-08-01';
 
-  it('normaliza especies incluyendo conejo y aliases', () => {
+  it('normaliza especies incluyendo conejo, hurón y aliases', () => {
     expect(normalizarEspecie('CANINO')).toBe('CANINO');
     expect(normalizarEspecie('perro')).toBe('CANINO');
     expect(normalizarEspecie('Gato')).toBe('FELINO');
     expect(normalizarEspecie('conejo')).toBe('CONEJO');
     expect(normalizarEspecie('lagomorfo')).toBe('CONEJO');
+    expect(normalizarEspecie('HURON')).toBe('HURON');
+    expect(normalizarEspecie('hurón')).toBe('HURON');
+    expect(normalizarEspecie('ferret')).toBe('HURON');
     expect(normalizarEspecie('AVE')).toBe('AVE');
     expect(normalizarEspecie('iguana')).toBe('OTRO');
   });
@@ -213,20 +224,122 @@ describe('esquema-vacuna.util (052 ola 1)', () => {
     expect(ave.puedeSugerir).toBeFalse();
     expect(ave.intervaloSugeridoDias).toBeNull();
     expect(ave.mensajeSinEsquema).toBe(MENSAJE_SIN_ESQUEMA);
+    expect(ave.hints.some(h => h.key === 'sin_esquema_exotico')).toBeTrue();
 
     const reptil = sugerirEsquema({ especie: 'REPTIL', tipoVacuna: 'antirrabica' });
     expect(reptil.puedeSugerir).toBeFalse();
+    expect(reptil.mensajeSinEsquema).toBe(MENSAJE_SIN_ESQUEMA);
   });
 
-  it('conejo: intervalo manual, sin fingir kits EU', () => {
+  it('conejo: intervalo manual, sin fingir kits EU ni serie de 21 días', () => {
     const s = sugerirEsquema({
       especie: 'CONEJO',
-      tipoVacuna: 'otra',
+      tipoVacuna: 'mixomatosis',
       fechaAplicacion: fecha
     });
     expect(s.puedeSugerir).toBeFalse();
     expect(s.intervaloSugeridoDias).toBeNull();
+    expect(s.intervaloSugeridoDias).not.toBe(INTERVALO_SERIE_DEFAULT_DIAS);
+    expect(s.proximaSugerida).toBeNull();
+    expect(s.esquemaCodigo).toBe('conejo_manual');
+    expect(s.mensajeSinEsquema).toBe(MENSAJE_CONEJO_MANUAL);
     expect(s.hints.some(h => h.key === 'conejo_mx')).toBeTrue();
+    expect(s.hints.some(h => h.message.includes('VEHC-2'))).toBeTrue();
+    expect(s.hints.some(h => /Nobivac PLUS|Filavac/i.test(h.message))).toBeTrue();
+    expect(s.presetsIntervaloDias).toEqual([CONEJO_INTERVALO_DEFAULT_DIAS]);
+  });
+
+  it('conejo + quíntuple: tampoco hereda 21 días de perro', () => {
+    const s = sugerirEsquema({
+      especie: 'CONEJO',
+      tipoVacuna: 'quintuple',
+      edadSemanas: 8,
+      fechaAplicacion: fecha
+    });
+    expect(s.puedeSugerir).toBeFalse();
+    expect(s.intervaloSugeridoDias).toBeNull();
+    expect(s.intervaloSugeridoDias).not.toBe(21);
+  });
+
+  it('catálogo fallback incluye mixomatosis, RHDV/RHDV2 y otra_conejo con nota MX', () => {
+    const values = TIPOS_VACUNAS_FALLBACK.map(t => t.value);
+    expect(values).toContain('mixomatosis');
+    expect(values).toContain('rhdv_rhdv2');
+    expect(values).toContain('otra_conejo');
+    for (const tipo of TIPOS_CONEJO_OLA3) {
+      expect(tipo.especies).toEqual(['CONEJO']);
+      expect(tipo.disponibilidadNota).toBe(NOTA_DISPONIBILIDAD_CONEJO_MX);
+    }
+    expect(semanticaDesdeValue('mixomatosis').codigo).toBe('conejo_manual');
+    expect(semanticaDesdeValue('rhdv_rhdv2').intervaloAdultoDias).toBe(365);
+  });
+
+  it('fusionarTiposConejoEnCatalogo no pisa legacy y añade los que faltan', () => {
+    const legacy = [{ value: 'quintuple', label: 'Quíntuple' }, { value: 'mixomatosis', label: 'Ya existe' }];
+    const fused = fusionarTiposConejoEnCatalogo(legacy);
+    expect(fused.filter(t => t.value === 'mixomatosis').length).toBe(1);
+    expect(fused.find(t => t.value === 'mixomatosis')?.label).toBe('Ya existe');
+    expect(fused.some(t => t.value === 'rhdv_rhdv2')).toBeTrue();
+    expect(fused.some(t => t.value === 'otra_conejo')).toBeTrue();
+    expect(fused.some(t => t.value === 'quintuple')).toBeTrue();
+  });
+
+  it('hurón + combo canino: hint AFA, sin esquema', () => {
+    const s = sugerirEsquema({
+      especie: 'HURON',
+      tipoVacuna: 'quintuple',
+      fechaAplicacion: fecha
+    });
+    expect(s.puedeSugerir).toBeFalse();
+    expect(s.intervaloSugeridoDias).toBeNull();
+    expect(s.mensajeSinEsquema).toBe(MENSAJE_SIN_ESQUEMA);
+    expect(s.hints.some(h => h.key === 'huron_combo')).toBeTrue();
+    expect(esComboCanino('sextuple')).toBeTrue();
+    expect(esComboCanino('mixomatosis')).toBeFalse();
+  });
+
+  it('hurón + rabia: anual 365, hint etiqueta MX', () => {
+    const s = sugerirEsquema({
+      especie: 'ferret',
+      tipoVacuna: 'antirrabica',
+      edadTexto: '2 años',
+      fechaAplicacion: fecha
+    });
+    expect(s.puedeSugerir).toBeTrue();
+    expect(s.intervaloSugeridoDias).toBe(RABIA_INTERVALO_DEFAULT_DIAS);
+    expect(s.intervaloSugeridoDias).not.toBe(1095);
+    expect(s.hints.some(h => h.key === 'huron_rabia')).toBeTrue();
+  });
+
+  it('hurón + otra: sin esquema sugerido', () => {
+    const s = sugerirEsquema({ especie: 'HURON', tipoVacuna: 'otra' });
+    expect(s.puedeSugerir).toBeFalse();
+    expect(s.hints.some(h => h.key === 'huron_sin_esquema')).toBeTrue();
+  });
+
+  it('confirmación conejo: no propone 21 días residuales de perro', () => {
+    expect(
+      resolverIntervaloConfirmacion({
+        especie: 'CONEJO',
+        intervaloActual: 21,
+        intervaloSugeridoDias: null,
+        puedeSugerir: false
+      })
+    ).toBeNull();
+    expect(
+      resolverIntervaloConfirmacion({
+        especie: 'CONEJO',
+        intervaloActual: 365,
+        puedeSugerir: false
+      })
+    ).toBe(365);
+    expect(
+      resolverIntervaloConfirmacion({
+        especie: 'CANINO',
+        intervaloActual: 21,
+        puedeSugerir: true
+      })
+    ).toBe(21);
   });
 
   it('Fallecido: no sugerir recordatorio', () => {

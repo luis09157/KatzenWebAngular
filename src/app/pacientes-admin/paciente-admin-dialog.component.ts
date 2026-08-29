@@ -25,7 +25,7 @@ export class PacienteAdminDialogComponent implements OnInit {
   /** Spec 034 — lista editable de alergias (fuente de verdad Mascota). */
   alergiasLista: string[] = [];
 
-  especies = ['CANINO', 'FELINO', 'CONEJO', 'AVE', 'REPTIL', 'OTRO'];
+  especies = ['CANINO', 'FELINO', 'CONEJO', 'HURON', 'AVE', 'REPTIL', 'OTRO'];
   sexos = ['Macho Entero', 'Macho Castrado', 'Hembra Entera', 'Hembra Esterilizada'];
   estados = ['Vivo', 'Fallecido'];
 

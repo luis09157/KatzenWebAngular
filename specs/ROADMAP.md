@@ -106,7 +106,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Finanzas / CxC** | **032/036 done.** ~~**045** hub ticket (cuenta del día + pendientes baño + venta desde ticket)~~ **done**. Walk-in petshop → **046 done**. | Alta |
 | **UX admin** | ~~**046** draft: flujos guiados “te falta X”, empty states, walk-in~~ **done** — `specs/046-ux-intuitiva-guiada/` | Alta — **cerrada** |
 | **Ops recepción** | **048** hints ola 2 + **049** hub/menú 3 mundos + **050** unificación cobro ticket | Alta — **in_progress** |
-| **Ops clínicas** | **033–037 done**. **052 olas 1–2 in_progress** (motor + confirmación + CONEJO + scheduler push + PWA portal; `specs/052-vacunas-esquemas-push-pwa/`). Ola 3 tipos conejo/hurón pendiente. Deploy functions-fcm scheduler **pendiente autorización Luis**. | Alta |
+| **Ops clínicas** | **033–037 done**. **052 done** (código olas 1–3: motor + confirmación + CONEJO/HURON + tipos conejo + scheduler push + PWA). Deploy functions-fcm scheduler **pendiente autorización Luis**. `specs/052-vacunas-esquemas-push-pwa/`. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |

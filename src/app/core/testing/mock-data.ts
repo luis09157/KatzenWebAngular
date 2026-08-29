@@ -486,6 +486,36 @@ export const MOCK_MASCOTA_CONEJO: Paciente = {
   activo: true
 };
 
+/** Spec 052 ola 3 — hurón (string aditivo; no rompe móvil). */
+export const MOCK_MASCOTA_HURON: Paciente = {
+  id: 'mock-mascota-huron',
+  nombre: 'Bandit',
+  especie: 'HURON',
+  raza: 'Sable',
+  sexo: 'Macho',
+  edad: '2 años',
+  idCliente: MOCK_CLIENTE.id,
+  cliente_id: MOCK_CLIENTE.id,
+  activo: true
+};
+
+export const MOCK_VACUNA_CONEJO = {
+  id: 'mock-vacuna-conejo-001',
+  vacuna: 'mixomatosis',
+  idPaciente: MOCK_MASCOTA_CONEJO.id,
+  paciente_id: MOCK_MASCOTA_CONEJO.id,
+  cliente_id: MOCK_CLIENTE.id,
+  fechaAplicacion: '2026-08-01',
+  intervalo: 0,
+  esquemaCodigo: 'conejo_manual',
+  etapaEsquema: 'manual',
+  intervaloSugeridoDias: null,
+  esquemaConfirmado: true,
+  agendarRefuerzo: false,
+  hintsMostrados: ['conejo_mx'],
+  activo: true
+};
+
 export const MOCK_VACUNA_ESQUEMA = {
   ...MOCK_VACUNA,
   id: 'mock-vacuna-esquema-001',

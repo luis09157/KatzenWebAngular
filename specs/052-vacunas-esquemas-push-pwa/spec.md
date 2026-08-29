@@ -1,9 +1,9 @@
 # Spec: Vacunas — esquemas por especie, confirmación vet, push y PWA portal
 
 **ID:** 052-vacunas-esquemas-push-pwa  
-**Estado:** in_progress  
+**Estado:** done  
 **Fecha:** 2026-08-28  
-**Autor:** Agent (pedido Luis Alfonso Niño Martínez — **ola 1 y ola 2 implementadas**; ola 3 conejo/hurón pendiente)
+**Autor:** Agent (pedido Luis Alfonso Niño Martínez — **olas 1–3 implementadas**; deploy functions-fcm scheduler sigue pendiente de autorización)
 
 **Anexo clínico (tablas, URLs, MDA, México):** [`PROTOCOLOS.md`](./PROTOCOLOS.md)
 
@@ -19,7 +19,7 @@ Hoy el módulo de vacunas registra el acto (`Katzen/Vacunas`) y, con spec **033*
 4. El push FCM (**023**) dispara al **escribir** el recordatorio. Si se crea un refuerzo a 12 meses, el dueño puede recibir el aviso **el día que se vacunó**, no cuando toca volver — eso es spam.
 5. El portal tiene token FCM (`PortalFcmService` + `firebase-messaging-sw.js`) pero **no** es una PWA instalable (calendario de vacunas en el teléfono).
 
-Esta spec define **qué** debe hacer el producto en olas. **Ola 1 (motor + diálogo + CONEJO)** y **ola 2 (scheduler push + PWA portal)** están implementadas (2026-08-28). Ola 3 queda pendiente de autorización.
+Esta spec define **qué** debe hacer el producto en olas. **Ola 1** (motor + diálogo + CONEJO), **ola 2** (scheduler push + PWA portal) y **ola 3** (tipos conejo + hint hurón) están implementadas (2026-08-28).
 
 ---
 
@@ -87,8 +87,8 @@ Para no fingir que Nobivac PLUS está en el inventario mexicano.
 
 **Criterios:**
 
-- [ ] SC-016: Tipos `mixomatosis`, `rhdv_rhdv2`, `otra_conejo` + copy de honestidad MX ([`PROTOCOLOS.md`](./PROTOCOLOS.md) §3).
-- [ ] SC-017: Sin auto-serie europea si no hay biológico confirmado por la clínica.
+- [x] SC-016: Tipos `mixomatosis`, `rhdv_rhdv2`, `otra_conejo` + copy de honestidad MX ([`PROTOCOLOS.md`](./PROTOCOLOS.md) §3).
+- [x] SC-017: Sin auto-serie europea si no hay biológico confirmado por la clínica.
 
 ### US-4 — Hurón / exóticos (ola 3, mínima)
 
@@ -98,7 +98,7 @@ Para no aplicar DHPP off-label sin criterio.
 
 **Criterios:**
 
-- [ ] SC-018: Hint AFA: no combo canino; Preferir producto hurón; MX: Nobivac Rabia **sí** lista hurón (anual). Disponibilidad Purevax en LATAM: **confirmar proveedor**.
+- [x] SC-018: Hint AFA: no combo canino; Preferir producto hurón; MX: Nobivac Rabia **sí** lista hurón (anual). Disponibilidad Purevax en LATAM: **confirmar proveedor**.
 
 ### US-5 — Push sin spam (ola 2)
 
@@ -176,7 +176,7 @@ Detalle y citas: [`PROTOCOLOS.md`](./PROTOCOLOS.md).
 | **0** | Investigación + SDD (este paquete) | Solo specs |
 | **1** | Motor + diálogo confirmación + flags catálogo + especie CONEJO + hints; sigue 033 para crear recordatorio | Angular + util + tests; RTDB aditivo |
 | **2** | Scheduler push anti-spam + PWA portal | `functions-fcm` + Angular portal + manifest |
-| **3** | Conejo tipos + hint hurón | Catálogo + copy |
+| **3** | Conejo tipos + hint hurón | Catálogo + copy + especie `HURON` (código 2026-08-28) |
 | **053** (fuera) | Desparasitación | Otra spec |
 
 ---
@@ -207,7 +207,7 @@ Detalle y citas: [`PROTOCOLOS.md`](./PROTOCOLOS.md).
   | `Katzen/Config/Vacunacion` | staff | staff | **nuevo opcional** defaults clínica |
   | `Katzen/Recordatorios` | igual 033/023 | staff + functions | opcionales `skipPushOnCreate?`, `pushCount?`, `pushKindsSent?`, `pushDueStatus?` |
   | `Katzen/NotificacionesClinica` | staff | Functions (Admin SDK) | **nuevo** inbox clínica; cliente no lee |
-  | `Katzen/Mascota.especie` | — | staff | valor nuevo `CONEJO` (string libre ya existe) |
+  | `Katzen/Mascota.especie` | — | staff | valores nuevos `CONEJO`, `HURON` (string libre; aditivos; móvil ignora) |
 
 - **Estrategia de prueba:** mocks `src/app/core/testing/mock-data.ts`. Motor con unit tests, **sin** RTDB `katzen-a0e3e`.
 - **Patrones UI:** `admin-dialog-shell` (vacuna + confirmación), `LoadingService`, `ErrorMessagesService`, `app-cliente-paciente-picker`, hints 048, SweetAlert2 existente, portal list-section. **Sin** librerías UI nuevas. PWA: manifesto estándar.

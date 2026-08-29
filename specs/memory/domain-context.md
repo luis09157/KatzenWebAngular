@@ -128,7 +128,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 | Campo | Tipo | Regla de negocio |
 |-------|------|------------------|
-| `nombre`, `especie`, `raza`, `sexo`, `edad`, `color`, `peso` | varios | Expediente. UI admin típica: `CANINO`, `FELINO`, `AVE`, `REPTIL`, `OTRO`. **052:** añadir `CONEJO`; ave/reptil/otro **sin** esquema mamífero sugerido. |
+| `nombre`, `especie`, `raza`, `sexo`, `edad`, `color`, `peso` | varios | Expediente. UI admin típica: `CANINO`, `FELINO`, `CONEJO`, `HURON`, `AVE`, `REPTIL`, `OTRO`. **052:** conejo tipos + hurón hint; ave/reptil/otro **sin** esquema mamífero sugerido. |
 | `idCliente` / `cliente_id` | string | **Ambos coexisten** — usar `pacientePerteneceACliente()` |
 | `activo` | boolean | Baja lógica |
 | `estado` | string | Valor `Fallecido` archiva recordatorios automáticamente (conservar histórico) |
@@ -342,7 +342,7 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 - Mascota en estado **Fallecido:** archivar recordatorios automáticamente (evitar recordatorios al dueño); conservar registros históricos. **052:** el motor no sugiere agenda.
 - Anti-duplicado: misma vacuna + misma `fechaAplicacion` por paciente.
 - **Política oficial:** baja lógica (`activo: false`); **no** `remove()` — no perder información ante auditoría. Deprecar `eliminarVacuna` con remove.
-- **052 ola 1+2 (código):** motor de **sugerencia** (`esquema-vacuna.util.ts`; vet confirma). Rabia MX **anual**. Lepto: 2 + anual. FVRCP post-serie **1 año** editable. Push anti-spam (scheduler D-7/D-0) + PWA portal. Ola 3 conejo tipos / hint hurón pendiente. Anexo: `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`.
+- **052 olas 1–3 (código):** motor de **sugerencia** (`esquema-vacuna.util.ts`; vet confirma). Rabia MX **anual**. Lepto: 2 + anual. FVRCP post-serie **1 año** editable. Push anti-spam (scheduler D-7/D-0) + PWA portal. Conejo: tipos `mixomatosis` / `rhdv_rhdv2` / `otra_conejo`, intervalo **manual** (no serie EU; hint VEHC-2 granja). Hurón: no combo canino; rabia anual si aplica. Anexo: `specs/052-vacunas-esquemas-push-pwa/PROTOCOLOS.md`.
 
 ### 4.6 Recordatorios
 
@@ -644,7 +644,7 @@ flowchart TD
 | 11b | Vacuna → recordatorio refuerzo | Auto-crear pendiente con `proximaAplicacion` / intervalo; cancelar al borrar vacuna | Confirmado · **033** |
 | 11c | Alergias cruzadas mascota | Fuente de verdad en `Mascota.alergias`; alerta en historial/baño/vacuna/visita; portal lectura; sin hard-block | Confirmado · **034** |
 | 11d | Staff UID por acto clínico | Guardar UID Auth + nombre denorm en citas/historiales/vacunas/baños/visitas; legacy solo nombre sigue legible | Confirmado · **035** |
-| 11e | Esquemas vacunación + push/PWA | Defaults sugeridos por especie (perro/gato; conejo ola posterior); vet confirma siempre; rabia anual MX; push cerca de la fecha; PWA portal | Propuesto · **052** draft |
+| 11e | Esquemas vacunación + push/PWA | Defaults sugeridos por especie (perro/gato; conejo tipos + hurón hint); vet confirma siempre; rabia anual MX; push cerca de la fecha; PWA portal | Confirmado · **052** done (código; deploy scheduler pendiente) |
 
 ### Inventario
 
@@ -726,6 +726,6 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | ~~**Staff UID por acto clínico**~~ | ops | **Hecho** — `specs/035-staff-uid-acto/` (picker + UID + nombre denorm en citas/historiales/vacunas/baños/visitas) |
 | **Cuenta del día (hub ticket)** | ops / CxC | **045** in_progress — pendientes baño + venta producto + grid catálogo |
 | **UX intuitiva guiada** | UX | **046** draft — “te falta X”, walk-in, empty states, sensación móvil |
-| **Esquemas de vacunación + PWA** | ops / 033 / 023 | **052 draft** — motor sugerido (vet confirma), rabia NOM anual, lepto ≠ trienal, conejo/exóticos honestos MX; push anti-spam; PWA portal. No implementar hasta autorizar ola 1. Desparasitación → **053** si se pide. |
+| **Esquemas de vacunación + PWA** | ops / 033 / 023 | **052 done** (código olas 1–3). Deploy scheduler FCM pendiente autorización Luis. Desparasitación → **053** si se pide. |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

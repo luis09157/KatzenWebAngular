@@ -57,7 +57,7 @@ specs/
 ├── 046-ux-intuitiva-guiada/           # UX móvil: “te falta X”, walk-in, empty states
 ├── 047-enlace-portal-cliente-existente/ # portal en ficha + self-reg sin duplicar dueño
 ├── 051-login-auto-redirect/            # auto-entrada /admin/login con sesión Firebase
-├── 052-vacunas-esquemas-push-pwa/      # esquemas vacunación + push + PWA (olas 1–2; ola 3 pendiente)
+├── 052-vacunas-esquemas-push-pwa/      # esquemas vacunación + push + PWA (olas 1–3; spec done)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
@@ -126,7 +126,7 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cua
 | 003 | Validación agenda citas | done |
 | 004 | Timepicker dialog | done — timepicker obligatorio en campos hora (pre-entrega) |
 | 005 | Loading feedback UX | done — loading contextual / overlay no trabado (pre-entrega en async admin) |
-| 052 | Vacunas: esquemas por especie + push anti-spam + PWA | **in_progress** (olas 1–2 hechas; ola 3 conejo/hurón pendiente) |
+| 052 | Vacunas: esquemas por especie + push anti-spam + PWA | **done** (olas 1–3; deploy scheduler FCM pendiente) |
 
 ## Reglas Cursor relacionadas
 

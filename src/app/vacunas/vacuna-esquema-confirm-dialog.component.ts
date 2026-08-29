@@ -17,7 +17,9 @@ import {
   aplicarHoraAFecha,
   extraerHoraHhMm,
   hintIntervaloCortoSiAplica,
-  horaDefaultRecordatorio
+  horaDefaultRecordatorio,
+  esProximaResidualSerieCanina,
+  resolverIntervaloConfirmacion
 } from './esquema-vacuna.util';
 import { parseFechaFlexible, dayKeyLocal } from './vacuna-recordatorio.util';
 
@@ -55,14 +57,20 @@ export class VacunaEsquemaConfirmDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: VacunaEsquemaConfirmData
   ) {
     const s = data.sugerencia;
-    const intervalo =
-      Number(data.intervaloActual) > 0
-        ? Number(data.intervaloActual)
-        : s.intervaloSugeridoDias;
-    const proxima =
-      parseFechaFlexible(data.proximaActual) ||
-      s.proximaSugerida ||
-      null;
+    const intervalo = resolverIntervaloConfirmacion({
+      especie: data.especie || s.especieNormalizada,
+      intervaloActual: data.intervaloActual,
+      intervaloSugeridoDias: s.intervaloSugeridoDias,
+      puedeSugerir: s.puedeSugerir
+    });
+    const residualCanina = esProximaResidualSerieCanina({
+      especie: data.especie || s.especieNormalizada,
+      intervaloActual: data.intervaloActual,
+      puedeSugerir: s.puedeSugerir
+    });
+    const proxima = residualCanina
+      ? null
+      : parseFechaFlexible(data.proximaActual) || s.proximaSugerida || null;
     const hora =
       data.horaActual || extraerHoraHhMm(data.proximaActual) || horaDefaultRecordatorio();
 
@@ -86,6 +94,20 @@ export class VacunaEsquemaConfirmDialogComponent {
 
   get etiquetaCat(): string {
     return etiquetaCategoria(this.sugerencia.categoria);
+  }
+
+  get textoAyudaFecha(): string {
+    const especie = this.sugerencia.especieNormalizada;
+    if (especie === 'CONEJO') {
+      return 'Intervalo 100 % manual: no proponemos los 21 días de la serie del perro ni kits europeos. Si agendás, un intervalo típico es 365 días.';
+    }
+    if (especie === 'HURON' && !this.sugerencia.puedeSugerir) {
+      return 'Sin esquema sugerido. No uses combo canino off-label. Indica intervalo o no agendar.';
+    }
+    if (!this.sugerencia.puedeSugerir) {
+      return this.sugerencia.mensajeSinEsquema || 'Sin esquema sugerido. Indica intervalo o no agendar.';
+    }
+    return 'Confirma la sugerencia o cámbiala aquí mismo. Sin confirmar no se crea recordatorio.';
   }
 
   get claseCat(): string {

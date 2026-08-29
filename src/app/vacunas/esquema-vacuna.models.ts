@@ -3,7 +3,14 @@
  * Todo default es sugerencia; el veterinario confirma o edita.
  */
 
-export type EspecieEsquema = 'CANINO' | 'FELINO' | 'CONEJO' | 'AVE' | 'REPTIL' | 'OTRO';
+export type EspecieEsquema =
+  | 'CANINO'
+  | 'FELINO'
+  | 'CONEJO'
+  | 'HURON'
+  | 'AVE'
+  | 'REPTIL'
+  | 'OTRO';
 
 export type CategoriaVacuna =
   | 'core'

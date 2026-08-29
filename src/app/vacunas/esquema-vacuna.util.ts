@@ -24,18 +24,27 @@ import {
   HINT_FELV_TEST,
   HINT_GESTACION,
   HINT_GIARDIA_CCOV,
+  HINT_HURON_COMBO,
+  HINT_HURON_RABIA,
+  HINT_HURON_SIN_ESQUEMA,
   HINT_INTERVALO_CORTO,
   HINT_LEPTO_COMBO,
   HINT_MDA,
   HINT_RABIA_12SEM,
   HINT_RABIA_NOM,
   HINT_SERIE_3_DOSIS,
+  HINT_SIN_ESQUEMA_EXOTICO,
   INTERVALO_MINIMO_DIAS_MLV_CORE,
   INTERVALO_SERIE_DEFAULT_DIAS,
   INTERVALO_TRIENAL_DIAS,
   LEPTO_INTERVALO_ADULTO_DIAS,
+  MENSAJE_CONEJO_MANUAL,
   MENSAJE_SIN_ESQUEMA,
   RABIA_INTERVALO_DEFAULT_DIAS,
+  CONEJO_INTERVALO_DEFAULT_DIAS,
+  FUENTE_CORTA_CONEJO,
+  FUENTE_CORTA_HURON,
+  esComboCanino,
   fusionarSemanticaTipo
 } from './esquema-vacuna.defaults';
 import {
@@ -49,7 +58,7 @@ import {
   SugerirEsquemaInput
 } from './esquema-vacuna.models';
 
-export { DISCLAIMER_ESQUEMA, MENSAJE_SIN_ESQUEMA };
+export { DISCLAIMER_ESQUEMA, MENSAJE_CONEJO_MANUAL, MENSAJE_SIN_ESQUEMA };
 
 export function normalizarEspecie(especie?: string | null): EspecieEsquema {
   const e = String(especie || '')
@@ -59,10 +68,11 @@ export function normalizarEspecie(especie?: string | null): EspecieEsquema {
     .replace(/[\u0300-\u036f]/g, '');
 
   if (!e) return 'OTRO';
+  if (e.includes('huron') || e.includes('ferret') || e.includes('mustela')) return 'HURON';
   if (e.includes('canino') || e.includes('perro') || e.includes('dog')) return 'CANINO';
   if (e.includes('felino') || e.includes('gato') || e.includes('cat')) return 'FELINO';
   if (e.includes('conejo') || e.includes('rabbit') || e.includes('lagomorfo')) return 'CONEJO';
-  if (e.includes('ave') || e.includes('bird') || e.includes('ave')) return 'AVE';
+  if (e.includes('ave') || e.includes('bird')) return 'AVE';
   if (e.includes('reptil') || e.includes('reptile')) return 'REPTIL';
   return 'OTRO';
 }
@@ -144,7 +154,8 @@ function vacioSinEsquema(
   extraHints: HintEsquema[],
   etapaEsquema: EtapaEsquema,
   fuente = FUENTE_CORTA_DEFAULT,
-  mensaje = MENSAJE_SIN_ESQUEMA
+  mensaje = MENSAJE_SIN_ESQUEMA,
+  presets: number[] = []
 ): SugerenciaEsquema {
   return {
     puedeSugerir: false,
@@ -157,7 +168,7 @@ function vacioSinEsquema(
     mensajeSinEsquema: mensaje,
     hints: extraHints,
     nuncaTrienal: semantica.nuncaTrienal,
-    presetsIntervaloDias: [],
+    presetsIntervaloDias: presets,
     especieNormalizada: especie
   };
 }
@@ -209,12 +220,55 @@ export function sugerirEsquema(input: SugerirEsquemaInput): SugerenciaEsquema {
   }
 
   if (especie === 'AVE' || especie === 'REPTIL' || especie === 'OTRO') {
+    hints.push(HINT_SIN_ESQUEMA_EXOTICO);
     return vacioSinEsquema(
       input,
       especie,
       { ...semantica, codigo: 'sin_esquema' },
       hints,
       'sin_esquema'
+    );
+  }
+
+  if (especie === 'HURON') {
+    if (esComboCanino(tipoValue) || semantica.codigo === 'core_mlv_canino') {
+      hints.push(HINT_HURON_COMBO);
+      return vacioSinEsquema(
+        input,
+        especie,
+        { ...semantica, codigo: 'sin_esquema' },
+        hints,
+        'sin_esquema',
+        FUENTE_CORTA_HURON,
+        MENSAJE_SIN_ESQUEMA
+      );
+    }
+    if (semantica.codigo === 'rabia_mx') {
+      hints.push(HINT_HURON_RABIA);
+      hints.push(HINT_RABIA_NOM);
+      if (semanas != null && semanas < EDAD_MIN_RABIA_CLINICA_SEM) {
+        hints.push(HINT_RABIA_12SEM);
+      }
+      return conIntervalo(
+        especie,
+        semantica,
+        RABIA_INTERVALO_DEFAULT_DIAS,
+        fechaBase,
+        'adulto',
+        hints,
+        FUENTE_CORTA_HURON,
+        [RABIA_INTERVALO_DEFAULT_DIAS]
+      );
+    }
+    hints.push(HINT_HURON_SIN_ESQUEMA);
+    return vacioSinEsquema(
+      input,
+      especie,
+      { ...semantica, codigo: 'sin_esquema' },
+      hints,
+      'sin_esquema',
+      FUENTE_CORTA_HURON,
+      MENSAJE_SIN_ESQUEMA
     );
   }
 
@@ -226,8 +280,9 @@ export function sugerirEsquema(input: SugerirEsquemaInput): SugerenciaEsquema {
       { ...semantica, codigo: 'conejo_manual' },
       hints,
       'manual',
-      FUENTE_CORTA_DEFAULT,
-      MENSAJE_SIN_ESQUEMA
+      FUENTE_CORTA_CONEJO,
+      MENSAJE_CONEJO_MANUAL,
+      [CONEJO_INTERVALO_DEFAULT_DIAS]
     );
   }
 
@@ -403,6 +458,49 @@ export function hintIntervaloCortoSiAplica(
   semantica: SemanticaTipoVacuna
 ): HintEsquema | null {
   return esIntervaloCortoCore(intervaloDias, semantica) ? HINT_INTERVALO_CORTO : null;
+}
+
+/**
+ * Intervalo inicial del diálogo de confirmación.
+ * No hereda los 21 días de serie canina cuando la especie no tiene esquema mamífero.
+ */
+export function resolverIntervaloConfirmacion(input: {
+  especie?: string | null;
+  intervaloActual?: number | null;
+  intervaloSugeridoDias?: number | null;
+  puedeSugerir?: boolean;
+}): number | null {
+  const especie = normalizarEspecie(input.especie);
+  const actual = Number(input.intervaloActual);
+  const sugerido = Number(input.intervaloSugeridoDias);
+  const actualValido = Number.isFinite(actual) && actual > 0;
+  const sugeridoValido = Number.isFinite(sugerido) && sugerido > 0;
+  const residualSerieCanina =
+    actualValido &&
+    actual === INTERVALO_SERIE_DEFAULT_DIAS &&
+    input.puedeSugerir === false &&
+    (especie === 'CONEJO' ||
+      especie === 'HURON' ||
+      especie === 'AVE' ||
+      especie === 'REPTIL' ||
+      especie === 'OTRO');
+
+  if (residualSerieCanina) {
+    return null;
+  }
+  if (actualValido) return actual;
+  if (sugeridoValido) return sugerido;
+  return null;
+}
+
+export function esProximaResidualSerieCanina(input: {
+  especie?: string | null;
+  intervaloActual?: number | null;
+  puedeSugerir?: boolean;
+}): boolean {
+  return resolverIntervaloConfirmacion(input) == null
+    && Number(input.intervaloActual) === INTERVALO_SERIE_DEFAULT_DIAS
+    && input.puedeSugerir === false;
 }
 
 /** Start of local week (Monday). */

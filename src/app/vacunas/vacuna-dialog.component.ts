@@ -21,7 +21,7 @@ import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-rec
 import {
   mensajeHintClientePaciente
 } from '../shared/components/flow-hint/flow-hint.util';
-import { TIPOS_VACUNAS_FALLBACK } from './esquema-vacuna.defaults';
+import { fusionarTiposConejoEnCatalogo, TIPOS_VACUNAS_FALLBACK } from './esquema-vacuna.defaults';
 import {
   ConfirmacionEsquemaResultado,
   SugerenciaEsquema
@@ -753,8 +753,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         this.logger.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
         
         if (tipos && tipos.length > 0) {
-          // Filtrar solo los activos
-          this.tiposVacunas = tipos.filter((tipo: any) => tipo.activo !== false);
+          // Filtrar solo los activos; fusionar tipos conejo ola 3 si faltan (aditivo, no pisa legacy).
+          this.tiposVacunas = fusionarTiposConejoEnCatalogo(
+            tipos.filter((tipo: { activo?: boolean }) => tipo.activo !== false)
+          );
           this.logger.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
         } else {
           // Si no hay datos en Firebase, usar fallback

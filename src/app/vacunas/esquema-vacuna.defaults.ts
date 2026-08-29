@@ -1,10 +1,12 @@
 /**
- * Spec 052 ola 1 — constantes de PROTOCOLOS.md §8 y mapeo del catálogo legacy.
+ * Spec 052 — constantes de PROTOCOLOS.md §8 y mapeo del catálogo legacy.
  *
  * Seed de flags en `Katzen/TiposVacunas` (documentación, NO script contra producción):
  * - No pisar tipos activos legacy (`puppy`, `quintuple`, `sextuple`, `triple_felina`, …).
  * - Si un tipo ya existe, solo añadir campos opcionales (`categoria`, `nuncaTrienal`, etc.)
  *   cuando falten. El fallback en cliente cubre clínicas sin catálogo RTDB.
+ * - Ola 3: `mixomatosis` / `rhdv_rhdv2` / `otra_conejo` son catálogo de **registro**,
+ *   no stock. Copy honesto MX (no fingir Nobivac PLUS / Filavac). No seed contra prod.
  */
 
 import {
@@ -36,8 +38,18 @@ export const FUENTE_CORTA_DEFAULT = 'WSAVA/AAHA; rabia NOM anual';
 export const FUENTE_CORTA_RABIA = 'NOM-011 México: rabia anual. No copiar DOI 3 años de AAHA.';
 export const FUENTE_CORTA_LEPTO = 'WSAVA/AAHA: leptospira 2 dosis + anual. Nunca trienal.';
 export const FUENTE_CORTA_FVRCP = 'AAFP/WSAVA: FVRCP. Default clínica: 1 año (editable a 6 meses).';
+export const FUENTE_CORTA_CONEJO =
+  'Intervalo manual. MX: no asumir kits EU; VEHC-2 es de granja RHDV2.';
+export const FUENTE_CORTA_HURON =
+  'AFA: no combo canino. Rabia MX anual si el lote lista hurón.';
 export const MENSAJE_SIN_ESQUEMA =
   'Sin esquema sugerido. Indica intervalo o no agendar.';
+export const MENSAJE_CONEJO_MANUAL =
+  'Sin esquema automático (no copiamos Nobivac PLUS ni Filavac). Intervalo manual: si agendás, un intervalo típico es 365 días.';
+export const NOTA_DISPONIBILIDAD_CONEJO_MX =
+  'No fingimos stock de Nobivac PLUS ni Filavac en México. VEHC-2-BIVE (PRONABIVE) es vacuna de granja RHDV2 (≥8 sem). Confirma el biológico local.';
+export const VALORES_COMBO_CANINO = ['puppy', 'quintuple', 'sextuple', 'dhpp', 'dapp'];
+export const VALORES_TIPO_CONEJO_OLA3 = ['mixomatosis', 'rhdv_rhdv2', 'otra_conejo'];
 
 export const HINT_ENFERMO: HintEsquema = {
   key: 'enfermo',
@@ -123,8 +135,44 @@ export const HINT_CONEJO_MX: HintEsquema = {
   key: 'conejo_mx',
   severity: 'info',
   message:
-    'No fingimos kits europeos de mixoma/RHD. Confirma el biológico con tu proveedor e indica el intervalo a mano.'
+    'Muchos biológicos de mixoma/RHD europeos (Nobivac PLUS, Filavac) pueden no estar en México. Confirma el producto con tu proveedor. VEHC-2-BIVE (PRONABIVE) es de granja RHDV2 (≥8 sem), no el esquema europeo de mascota. Si no hay biológico, registra «Otra» o no agendes.'
 };
+
+export const HINT_HURON_COMBO: HintEsquema = {
+  key: 'huron_combo',
+  severity: 'warn',
+  message:
+    'No uses el combo canino (DHPP/quíntuple/séxtuple) off-label sin criterio. Prefiere producto licenciado para hurón. Disponibilidad de Purevax en LATAM: confirma con tu proveedor.'
+};
+
+export const HINT_HURON_RABIA: HintEsquema = {
+  key: 'huron_rabia',
+  severity: 'info',
+  message:
+    'Nobivac Rabia en México lista hurón: refuerzo anual (etiqueta). No copies el DOI de 3 años del perro.'
+};
+
+export const HINT_HURON_SIN_ESQUEMA: HintEsquema = {
+  key: 'huron_sin_esquema',
+  severity: 'info',
+  message:
+    'Sin esquema sugerido para hurón. El moquillo (CDV) requiere producto adecuado, no el combo del perro. Confirma el biológico local.'
+};
+
+export const HINT_SIN_ESQUEMA_EXOTICO: HintEsquema = {
+  key: 'sin_esquema_exotico',
+  severity: 'info',
+  message: MENSAJE_SIN_ESQUEMA
+};
+
+export function esComboCanino(value?: string | null): boolean {
+  const v = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  return VALORES_COMBO_CANINO.includes(v);
+}
 
 export const HINT_SERIE_3_DOSIS: HintEsquema = {
   key: 'serie_3_dosis',
@@ -157,6 +205,40 @@ function baseSemantica(
     ...partial
   };
 }
+
+/** Tipos conejo ola 3: registro honesto, no stock de clínica. */
+export const TIPOS_CONEJO_OLA3: TipoVacunaSemantico[] = [
+  {
+    value: 'mixomatosis',
+    label: 'Mixomatosis',
+    activo: true,
+    especies: ['CONEJO'],
+    categoria: 'otra',
+    intervaloAdultoDias: CONEJO_INTERVALO_DEFAULT_DIAS,
+    hintKey: 'conejo_mx',
+    disponibilidadNota: NOTA_DISPONIBILIDAD_CONEJO_MX
+  },
+  {
+    value: 'rhdv_rhdv2',
+    label: 'RHDV / RHDV2',
+    activo: true,
+    especies: ['CONEJO'],
+    categoria: 'otra',
+    intervaloAdultoDias: CONEJO_INTERVALO_DEFAULT_DIAS,
+    hintKey: 'conejo_mx',
+    disponibilidadNota: NOTA_DISPONIBILIDAD_CONEJO_MX
+  },
+  {
+    value: 'otra_conejo',
+    label: 'Otra (conejo)',
+    activo: true,
+    especies: ['CONEJO'],
+    categoria: 'otra',
+    intervaloAdultoDias: CONEJO_INTERVALO_DEFAULT_DIAS,
+    hintKey: 'conejo_mx',
+    disponibilidadNota: NOTA_DISPONIBILIDAD_CONEJO_MX
+  }
+];
 
 /** Catálogo fallback con semántica 052. Values legacy intactos. */
 export const TIPOS_VACUNAS_FALLBACK: TipoVacunaSemantico[] = [
@@ -210,7 +292,7 @@ export const TIPOS_VACUNAS_FALLBACK: TipoVacunaSemantico[] = [
     value: 'antirrabica',
     label: 'Antirrábica',
     activo: true,
-    especies: ['CANINO', 'FELINO'],
+    especies: ['CANINO', 'FELINO', 'HURON'],
     categoria: 'legal_mx',
     nuncaTrienal: true,
     intervaloAdultoDias: RABIA_INTERVALO_DEFAULT_DIAS,
@@ -244,6 +326,7 @@ export const TIPOS_VACUNAS_FALLBACK: TipoVacunaSemantico[] = [
     categoria: 'no_recomendada',
     hintKey: 'no_recomendada'
   },
+  ...TIPOS_CONEJO_OLA3,
   {
     value: 'otra',
     label: 'Otra',
@@ -251,6 +334,23 @@ export const TIPOS_VACUNAS_FALLBACK: TipoVacunaSemantico[] = [
     categoria: 'otra'
   }
 ];
+
+/**
+ * Añade tipos conejo al catálogo RTDB si faltan. No pisa values legacy.
+ * No escribe a Firebase: solo fusiona en memoria para la UI.
+ */
+export function fusionarTiposConejoEnCatalogo<T extends { value?: string }>(
+  tipos: T[] | null | undefined
+): Array<T | TipoVacunaSemantico> {
+  const list = Array.isArray(tipos) ? [...tipos] : [];
+  const values = new Set(list.map(t => String(t.value || '').trim().toLowerCase()));
+  for (const extra of TIPOS_CONEJO_OLA3) {
+    if (!values.has(extra.value)) {
+      list.push(extra as T & TipoVacunaSemantico);
+    }
+  }
+  return list;
+}
 
 export function semanticaDesdeValue(value: string | null | undefined): SemanticaTipoVacuna {
   const v = String(value || '').trim().toLowerCase();
@@ -268,7 +368,7 @@ export function semanticaDesdeValue(value: string | null | undefined): Semantica
       codigo: 'rabia_mx',
       categoria: 'legal_mx',
       nuncaTrienal: true,
-      especies: ['CANINO', 'FELINO'],
+      especies: ['CANINO', 'FELINO', 'HURON'],
       intervaloAdultoDias: RABIA_INTERVALO_DEFAULT_DIAS,
       edadMinimaSemanas: EDAD_MIN_RABIA_CLINICA_SEM
     });
@@ -323,7 +423,7 @@ export function semanticaDesdeValue(value: string | null | undefined): Semantica
     });
   }
 
-  if (['mixomatosis', 'rhdv_rhdv2', 'otra_conejo'].includes(v)) {
+  if (['mixomatosis', 'mixoma', 'rhdv_rhdv2', 'rhdv', 'rhdv2', 'rhd', 'otra_conejo'].includes(v)) {
     return baseSemantica({
       codigo: 'conejo_manual',
       categoria: 'otra',
@@ -355,7 +455,7 @@ export function semanticaDesdeValue(value: string | null | undefined): Semantica
     return baseSemantica({
       codigo: 'manual',
       categoria: 'otra',
-      especies: ['CANINO', 'FELINO', 'CONEJO', 'AVE', 'REPTIL', 'OTRO']
+      especies: ['CANINO', 'FELINO', 'CONEJO', 'HURON', 'AVE', 'REPTIL', 'OTRO']
     });
   }
 

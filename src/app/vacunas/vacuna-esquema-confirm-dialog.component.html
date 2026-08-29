@@ -41,7 +41,7 @@
         <span class="form-section__badge form-section__badge--optional">Editable</span>
       </h3>
       <p class="esquema-help">
-        Confirma la sugerencia o cámbiala aquí mismo. Sin confirmar no se crea recordatorio.
+        {{ textoAyudaFecha }}
       </p>
       <form [formGroup]="form" class="form-grid">
         <mat-form-field appearance="outline">
@@ -64,7 +64,7 @@
         </mat-form-field>
       </form>
 
-      <div class="esquema-presets" *ngIf="sugerencia.presetsIntervaloDias.length > 1">
+      <div class="esquema-presets" *ngIf="sugerencia.presetsIntervaloDias.length > 0">
         <button
           type="button"
           mat-stroked-button
