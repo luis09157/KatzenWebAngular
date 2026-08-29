@@ -19,7 +19,7 @@
 ### Integración
 
 - [x] Cache-Control `index.html` en Hosting
-- [ ] Commit + push + `firebase deploy --only hosting`
+- [x] Commit + push + `firebase deploy --only hosting` — `98ab459` → https://katzen-a0e3e.web.app
 
 ---
 
