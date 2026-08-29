@@ -1432,3 +1432,51 @@
     padding: 14px !important;
   }
 }
+
+/* ── Caja POS (spec 055) — fullscreen móvil ── */
+.cdk-overlay-pane.admin-dialog-panel--pos {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+}
+
+.admin-dialog-panel--pos .mat-mdc-dialog-surface,
+.admin-dialog-panel--pos .mdc-dialog__surface {
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+}
+
+.admin-dialog-panel--pos .mat-mdc-dialog-surface > *,
+.admin-dialog-panel--pos .mdc-dialog__surface > *,
+.admin-dialog-panel--pos .admin-dialog-shell {
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  height: 100% !important;
+}
+
+@media (min-width: 721px) {
+  .cdk-overlay-pane.admin-dialog-panel--pos {
+    width: min(1120px, 98vw) !important;
+    max-width: 98vw !important;
+    height: min(92vh, 900px) !important;
+    max-height: 94vh !important;
+  }
+
+  .admin-dialog-panel--pos .mat-mdc-dialog-surface,
+  .admin-dialog-panel--pos .mdc-dialog__surface {
+    max-height: 94vh !important;
+    height: 100% !important;
+    border-radius: 16px !important;
+  }
+
+  .admin-dialog-panel--pos .mat-mdc-dialog-surface > *,
+  .admin-dialog-panel--pos .mdc-dialog__surface > *,
+  .admin-dialog-panel--pos .admin-dialog-shell {
+    max-height: 94vh !important;
+  }
+}

@@ -8,6 +8,15 @@ import {
   isPortalMailConfigured,
   sendPortalWelcomeEmail
 } from './portal-mail';
+import {
+  buildPhoneConfirmMessage,
+  isClienteLinkableForPortal,
+  maskMxPhone,
+  mascotaPerteneceACliente,
+  normalizeMxPhone,
+  resolvePhoneMatch,
+  type PhoneMatchCandidate
+} from './portal-phone-match.util';
 import * as crypto from 'crypto';
 
 admin.initializeApp();
@@ -934,7 +943,12 @@ interface RegisterPortalOwnerInput {
   apellidoPaterno?: string;
   correo?: string;
   telefono?: string;
+  nombreMascota?: string;
   acceptPrivacy?: boolean;
+  /** Ola 3: id sugerido tras confirmación UI; el servidor revalida teléfono. */
+  confirmClienteId?: string;
+  /** Ola 3: dueño rechazó la ficha sugerida → alta nueva. */
+  skipPhoneMatch?: boolean;
 }
 
 const REGISTER_RATE_MAX_IP = 5;
@@ -975,6 +989,70 @@ async function findClienteLinkableByEmail(
   }
   candidates.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return { id: candidates[0].id, cliente: candidates[0].cliente };
+}
+
+type ClienteLinkTarget = { id: string; cliente: Record<string, unknown> };
+
+/** Ola 3: candidatos linkables con el mismo teléfono MX (10 dígitos). */
+async function findClientesLinkableByPhone(phone10: string): Promise<ClienteLinkTarget[]> {
+  const snap = await db.ref('Katzen/Cliente').once('value');
+  const val = snap.val() as Record<string, Record<string, unknown>> | null;
+  if (!val) {
+    return [];
+  }
+  const out: ClienteLinkTarget[] = [];
+  for (const [id, cliente] of Object.entries(val)) {
+    if (!isClienteLinkableForPortal(cliente)) continue;
+    const stored =
+      normalizeMxPhone(cliente['telefono']) || normalizeMxPhone(cliente['telefonoNorm']);
+    if (stored === phone10) {
+      out.push({ id, cliente: { ...cliente, id } });
+    }
+  }
+  return out;
+}
+
+async function petNamesForCliente(clienteId: string): Promise<string[]> {
+  const names = new Map<string, string>();
+  const mergeSnap = (snap: admin.database.DataSnapshot) => {
+    const val = snap.val() as Record<string, Record<string, unknown>> | null;
+    if (!val) return;
+    for (const [mid, mascota] of Object.entries(val)) {
+      if (!mascota || mascota['activo'] === false) continue;
+      if (!mascotaPerteneceACliente(mascota, clienteId)) continue;
+      const nombre = String(mascota['nombre'] || '').trim();
+      if (nombre) names.set(mid, nombre);
+    }
+  };
+  const byIdCliente = await db.ref('Katzen/Mascota').orderByChild('idCliente').equalTo(clienteId).once('value');
+  const byClienteId = await db.ref('Katzen/Mascota').orderByChild('cliente_id').equalTo(clienteId).once('value');
+  mergeSnap(byIdCliente);
+  mergeSnap(byClienteId);
+  return [...names.values()];
+}
+
+async function loadClienteLinkableById(clienteId: string): Promise<ClienteLinkTarget> {
+  const snap = await db.ref(`Katzen/Cliente/${clienteId}`).once('value');
+  if (!snap.exists()) {
+    throw new HttpsError('not-found', 'No encontramos esa ficha. Contacta a la clínica.');
+  }
+  const cliente = snap.val() as Record<string, unknown>;
+  if (!isClienteLinkableForPortal(cliente)) {
+    throw new HttpsError(
+      'already-exists',
+      'Esa ficha ya tiene portal o no está disponible. Inicia sesión o contacta a la clínica.'
+    );
+  }
+  return { id: clienteId, cliente: { ...cliente, id: clienteId } };
+}
+
+async function attachPetNames(candidates: ClienteLinkTarget[]): Promise<PhoneMatchCandidate[]> {
+  const out: PhoneMatchCandidate[] = [];
+  for (const c of candidates) {
+    const petNames = await petNamesForCliente(c.id);
+    out.push({ id: c.id, petNames });
+  }
+  return out;
 }
 
 function clipStr(value: unknown, max: number): string {
@@ -1022,6 +1100,7 @@ async function assertRegisterRateLimit(ip: string, email: string): Promise<void>
  * Callable pública: self-registro dueño desde landing.
  * Spec 047 ola 2: si ya existe Cliente clínico con el mismo correo y sin portal usable,
  * vincula Auth a esa ficha (no crea dueño duplicado).
+ * Spec 047 ola 3: match por teléfono MX → sugerencia + confirmación (nunca auto-vínculo).
  * Password nunca retornada; exige Resend.
  */
 export const registerPortalOwner = onCall(
@@ -1049,6 +1128,9 @@ export const registerPortalOwner = onCall(
   const nombre = clipStr(data.nombre, 80);
   const apellidoPaterno = clipStr(data.apellidoPaterno, 60);
   const telefono = clipStr(data.telefono, 20);
+  const nombreMascota = clipStr(data.nombreMascota, 80);
+  const confirmClienteId = clipStr(data.confirmClienteId, 128);
+  const skipPhoneMatch = data.skipPhoneMatch === true;
   const email = correoClienteValido(data.correo);
   const acceptPrivacy = data.acceptPrivacy === true;
 
@@ -1085,8 +1167,8 @@ export const registerPortalOwner = onCall(
     }
   }
 
-  const linkTarget = await findClienteLinkableByEmail(email);
-  if (!linkTarget) {
+  const linkTargetEmail = await findClienteLinkableByEmail(email);
+  if (!linkTargetEmail) {
     // Otro cliente activo con mismo correo + portal (sin candidato linkable)
     const dupSnap = await db.ref('Katzen/Cliente').orderByChild('correo').equalTo(email).once('value');
     const dupVal = dupSnap.val() as Record<string, Record<string, unknown>> | null;
@@ -1095,6 +1177,64 @@ export const registerPortalOwner = onCall(
         if (other.activo !== false && other.portalActivo === true) {
           throw new HttpsError('already-exists', 'Ya existe un cliente con este correo en el portal.');
         }
+      }
+    }
+  }
+
+  let linkTarget: ClienteLinkTarget | null = linkTargetEmail;
+  let matchKind: 'email' | 'phone' | 'new' = linkTargetEmail ? 'email' : 'new';
+  const phone10 = normalizeMxPhone(telefono);
+
+  if (!linkTargetEmail && !skipPhoneMatch) {
+    if (confirmClienteId) {
+      if (!phone10) {
+        throw new HttpsError(
+          'invalid-argument',
+          'Para confirmar el vínculo indica el teléfono de tu ficha (10 dígitos México).'
+        );
+      }
+      const confirmed = await loadClienteLinkableById(confirmClienteId);
+      const clinicPhone =
+        normalizeMxPhone(confirmed.cliente['telefono']) ||
+        normalizeMxPhone(confirmed.cliente['telefonoNorm']);
+      if (clinicPhone !== phone10) {
+        throw new HttpsError(
+          'failed-precondition',
+          'No pudimos confirmar esa ficha con el teléfono indicado. Revisa el número o contacta a la clínica.'
+        );
+      }
+      linkTarget = confirmed;
+      matchKind = 'phone';
+    } else if (phone10) {
+      const candidates = await findClientesLinkableByPhone(phone10);
+      const withPets = await attachPetNames(candidates);
+      const decision = resolvePhoneMatch(withPets, nombreMascota);
+      if (decision.kind === 'needs_pet_name') {
+        return {
+          success: false,
+          needsPetName: true,
+          matchKind: 'phone' as const,
+          message:
+            'Hay más de una ficha con este teléfono. Escribe el nombre de tu mascota para continuar (no vinculamos a ciegas).'
+        };
+      }
+      if (decision.kind === 'ambiguous') {
+        throw new HttpsError(
+          'failed-precondition',
+          'Hay varias fichas con esos datos. Contacta a la clínica para activar tu portal.'
+        );
+      }
+      if (decision.kind === 'suggest') {
+        const pets = (withPets.find(x => x.id === decision.clienteId)?.petNames ?? []).slice(0, 5);
+        return {
+          success: false,
+          needsConfirmation: true,
+          matchKind: 'phone' as const,
+          suggestedClienteId: decision.clienteId,
+          petNames: pets.map(n => n.slice(0, 40)),
+          maskedPhone: maskMxPhone(phone10),
+          message: buildPhoneConfirmMessage(pets, phone10)
+        };
       }
     }
   }
@@ -1118,9 +1258,17 @@ export const registerPortalOwner = onCall(
         portalProvisionedBy: linkTarget!.cliente['portalProvisionedBy'] ?? null,
         portalEmail: linkTarget!.cliente['portalEmail'] ?? null,
         mustChangePassword: linkTarget!.cliente['mustChangePassword'] ?? null,
-        portalLinkedFrom: linkTarget!.cliente['portalLinkedFrom'] ?? null
+        portalLinkedFrom: linkTarget!.cliente['portalLinkedFrom'] ?? null,
+        telefonoNorm: linkTarget!.cliente['telefonoNorm'] ?? null
       }
     : null;
+
+  const linkedFrom =
+    matchKind === 'phone'
+      ? 'self_register_match_phone'
+      : matchKind === 'email'
+        ? 'self_register_match'
+        : 'self_register_new';
 
   try {
     const userRecord = await admin.auth().createUser({
@@ -1133,19 +1281,30 @@ export const registerPortalOwner = onCall(
     createdAuth = true;
 
     if (linkedExisting) {
+      const linkedBy = matchKind === 'phone' ? 'self_register_match_phone' : 'self_register_match';
       const updates: Record<string, unknown> = {
         authUid: uid,
         portalActivo: true,
         portalProvisionedAt: timestamp,
-        portalProvisionedBy: 'self_register_match',
+        portalProvisionedBy: linkedBy,
         portalEmail: email,
         mustChangePassword: true,
-        portalLinkedFrom: 'self_register_match',
-        correo: email
+        portalLinkedFrom: linkedBy
       };
+      const clinicEmail = correoClienteValido(linkTarget!.cliente['correo']);
+      if (!clinicEmail || clinicEmail === email) {
+        updates['correo'] = email;
+      }
       const telClinic = String(linkTarget!.cliente['telefono'] || '').trim();
       if ((!telClinic || telClinic.toLowerCase() === 'n/p') && telefono) {
         updates['telefono'] = telefono;
+      }
+      const telNorm =
+        phone10 ||
+        normalizeMxPhone(linkTarget!.cliente['telefono']) ||
+        normalizeMxPhone(linkTarget!.cliente['telefonoNorm']);
+      if (telNorm) {
+        updates['telefonoNorm'] = telNorm;
       }
       await db.ref(`Katzen/Cliente/${clienteId}`).update(updates);
       patchedExistingCliente = true;
@@ -1168,6 +1327,9 @@ export const registerPortalOwner = onCall(
         origenRegistro: 'landing',
         portalLinkedFrom: 'self_register_new'
       };
+      if (phone10) {
+        clientePayload['telefonoNorm'] = phone10;
+      }
 
       await db.ref(`Katzen/Cliente/${clienteId}`).set(clientePayload);
       wroteNewCliente = true;
@@ -1207,16 +1369,29 @@ export const registerPortalOwner = onCall(
     }
 
     await db.ref(`Katzen/PortalProvisionLog`).push({
-      action: linkedExisting ? 'self_register_link' : 'self_register',
+      action:
+        linkedExisting
+          ? matchKind === 'phone'
+            ? 'self_register_link_phone'
+            : 'self_register_link'
+          : 'self_register',
       clienteId,
       uid,
       email,
       emailSent: true,
       linkedExisting,
+      matchKind,
       createdAt: timestamp,
-      createdBy: linkedExisting ? 'self_register_match' : 'self_register',
+      createdBy: linkedExisting ? linkedFrom : 'self_register',
       ip: ip.slice(0, 64)
     });
+
+    const successMessage =
+      matchKind === 'phone'
+        ? 'Confirmamos tu ficha por el teléfono de la clínica y la vinculamos a tu cuenta. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+        : linkedExisting
+          ? 'Encontramos tu ficha en la clínica y la vinculamos a tu cuenta. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+          : 'Cuenta creada. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.';
 
     return {
       success: true,
@@ -1224,9 +1399,8 @@ export const registerPortalOwner = onCall(
       email,
       emailSent: true,
       linkedExisting,
-      message: linkedExisting
-        ? 'Encontramos tu ficha en la clínica y la vinculamos a tu cuenta. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
-        : 'Cuenta creada. Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'
+      matchKind: linkedExisting ? matchKind : 'new',
+      message: successMessage
     };
   } catch (err: unknown) {
     if (createdAuth && uid) {

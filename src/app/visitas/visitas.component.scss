@@ -69,4 +69,31 @@
       overflow: visible;
     }
   }
+
+  .visitas-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .pos-cta {
+    min-height: 48px;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 720px) {
+  .visitas-contenedor {
+    .visitas-banner-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .pos-cta {
+      width: 100%;
+    }
+  }
 }

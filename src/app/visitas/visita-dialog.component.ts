@@ -1,15 +1,15 @@
 import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
-import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
-import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
+import { filtrarProductos, productoSinStock } from '../core/utils/producto-search.util';
+import { CajaService } from '../finanzas/caja.service';
+import { CajaMetodoPago } from '../finanzas/caja.models';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
-import { ProductoSelection } from '../shared/admin/producto-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { Producto } from '../shared/inventario.models';
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -25,7 +25,16 @@ import {
   VISITA_LINEA_CATEGORIA_LABELS
 } from './visitas.models';
 import { VisitasService } from './visitas.service';
-import { hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
+import {
+  ajustarCantidadLinea,
+  cantidadLinea,
+  contarArticulos,
+  hoyLocalIsoDate,
+  nuevaLineaId,
+  precioUnitarioLinea,
+  recalcularVisita,
+  roundMoney
+} from './visitas.util';
 import {
   BanioPendienteTicket,
   banioYaEnLineas,
@@ -38,12 +47,16 @@ import {
   esClienteMostrador,
   esVisitaMostrador
 } from './visita-mostrador.util';
+import { promptMontoVisita } from './visita-atalho.util';
 
 interface LineaPreset {
   categoria: VisitaLineaCategoria;
   descripcion: string;
   label: string;
 }
+
+type PosTab = 'productos' | 'servicios' | 'mostrador';
+type SheetModo = 'producto' | 'linea' | 'carrito';
 
 @Component({
   selector: 'app-visita-dialog',
@@ -55,8 +68,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   form: FormGroup;
   lineaForm: FormGroup;
-  /** Spec 045 — venta de catálogo dentro del ticket. */
   productoForm: FormGroup;
+  cobroForm: FormGroup;
+  readonly catalogSearch = new FormControl('');
   loading = false;
   esEdicion = false;
   soloLectura = false;
@@ -67,11 +81,19 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   alergiasPaciente: string[] = [];
   pendientesBanio: BanioPendienteTicket[] = [];
   mostrandoProducto = false;
-  /** Spec 046 — petshop sin cliente registrado. */
   modoMostrador = false;
-  /** Spec 054 — wizard dueño → líneas → cobrar. */
   pasoWizard = 1;
   productoSel: Producto | null = null;
+  mostrarDetalles = false;
+  posTab: PosTab = 'productos';
+  productosCatalogo: Producto[] = [];
+  cargandoCatalogo = true;
+  sheetModo: SheetModo = 'producto';
+  sheetAbierta = false;
+  sheetProducto: Producto | null = null;
+  sheetLinea: VisitaLinea | null = null;
+  sheetQty = 1;
+  readonly productoSinStockFn = productoSinStock;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'atendidoPorUid',
     nombreField: 'atendidoPorNombre'
@@ -92,29 +114,55 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   readonly lineaPresets: LineaPreset[] = [
     { categoria: 'consulta', descripcion: 'Consulta general', label: 'Consulta' },
-    { categoria: 'banio', descripcion: 'Baño / peluquería', label: 'Baño (texto)' },
-    { categoria: 'venta_producto', descripcion: 'Producto', label: 'Producto' },
-    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' }
+    { categoria: 'banio', descripcion: 'Baño / peluquería', label: 'Baño' },
+    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' },
+    { categoria: 'cirugia', descripcion: 'Cirugía', label: 'Cirugía' },
+    { categoria: 'otro', descripcion: 'Servicio', label: 'Otro servicio' }
+  ];
+
+  readonly metodosPago: Array<{ value: CajaMetodoPago; label: string; icon: string }> = [
+    { value: 'efectivo', label: 'Efectivo', icon: 'payments' },
+    { value: 'tarjeta', label: 'Tarjeta', icon: 'credit_card' },
+    { value: 'transferencia', label: 'Transferencia', icon: 'account_balance' }
   ];
 
   get totales() {
     return recalcularVisita({ lineas: this.lineas, pagado: this.pagado });
   }
 
+  get artsCount(): number {
+    return contarArticulos(this.lineas);
+  }
+
+  get productosFiltrados(): Producto[] {
+    return filtrarProductos(this.productosCatalogo, this.catalogSearch.value);
+  }
+
+  get tituloPos(): string {
+    if (this.soloLectura) return 'Ticket cerrado';
+    return this.esEdicion ? 'Caja POS' : 'Nueva venta';
+  }
+
+  get subtituloPos(): string {
+    const cliente = String(this.form.get('cliente')?.value || '').trim();
+    if (this.modoMostrador) return 'Mostrador · sin cliente registrado';
+    if (cliente) return cliente;
+    return 'Dueño → caja → cobrar';
+  }
+
   get cobrarLabel(): string {
     const t = this.totales;
-    if (t.saldo <= 0) return 'Cobrar';
+    if (t.saldo <= 0) return 'COBRAR';
     if (t.pagado > 0) {
       return `Cobrar resto ${this.formatMoney(t.saldo)}`;
     }
-    return `Cobrar ${this.formatMoney(t.saldo)}`;
+    return `COBRAR ${this.formatMoney(t.saldo)}`;
   }
 
-  /** Spec 046 — por qué Guardar/Cobrar están bloqueados. */
   get accionBloqueoHint(): string {
     if (this.soloLectura) return '';
     if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige el dueño, o usa «Venta de mostrador» si es compra sin cliente.';
+      return 'Elige el dueño, o usa venta de mostrador.';
     }
     if (this.form.invalid && !this.modoMostrador) {
       return 'Completa la fecha y el dueño para continuar.';
@@ -123,7 +171,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return 'Indica la fecha de la cuenta.';
     }
     if (!this.lineas.length) {
-      return 'Agrega al menos una línea (baño pendiente, producto o consulta) antes de cobrar.';
+      return 'Agrega un producto o servicio antes de cobrar.';
     }
     if (this.totales.saldo <= 0) {
       return 'No hay saldo pendiente. Puedes guardar o cerrar.';
@@ -138,7 +186,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
     if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
     if (!String(this.form.get('fecha')?.value || '').trim()) return 'Indica la fecha';
-    return 'Guardar cuenta del día';
+    return 'Guardar sin cobrar';
   }
 
   get cobrarBloqueoHint(): string {
@@ -149,10 +197,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
     if (!this.lineas.length) return 'Agrega líneas al ticket';
     if (this.totales.saldo <= 0) return 'No hay saldo por cobrar';
-    return 'Abrir cobro en caja';
+    return 'Confirmar cobro';
   }
 
-  /** Spec 048 — productos en ticket descontarán stock al persistir. */
   get inventarioHint(): string {
     if (this.soloLectura) return '';
     if (this.mostrandoProducto) {
@@ -167,25 +214,6 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return 'Los productos de este ticket ya tienen salida registrada en inventario.';
   }
 
-  esLineaProducto(linea: VisitaLinea): boolean {
-    return linea.categoria === 'venta_producto';
-  }
-
-  origenLineaHint(linea: VisitaLinea): string {
-    if (linea.movimientoInventarioId) {
-      return 'Origen: salida de inventario (stock ya vinculado).';
-    }
-    if (linea.banioId) return 'Origen: servicio de baño / peluquería.';
-    if (linea.citaId) return 'Origen: cita de consulta.';
-    if (linea.vacunaId) return 'Origen: registro de vacuna.';
-    if (linea.pensionId) return 'Origen: estancia de pensión.';
-    if (linea.historialId) return 'Origen: historial clínico.';
-    if (linea.productoId && !linea.movimientoInventarioId) {
-      return 'Producto agregado manualmente — al guardar/cobrar se descontará stock.';
-    }
-    return '';
-  }
-
   get puedeGuardar(): boolean {
     if (this.loading || this.soloLectura) return false;
     if (!String(this.form.get('fecha')?.value || '').trim()) return false;
@@ -197,53 +225,44 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return this.puedeGuardar && this.totales.saldo > 0;
   }
 
+  get puedeIrACobrar(): boolean {
+    return this.puedeCobrar;
+  }
+
   get tieneDuenoOMostrador(): boolean {
     if (this.modoMostrador) return true;
     return !!String(this.form.get('cliente_id')?.value || '').trim();
   }
 
-  get hintPasoWizard(): string {
-    if (this.pasoWizard === 1) {
-      return this.tieneDuenoOMostrador
-        ? 'Dueño listo. Sigue a las líneas del ticket.'
-        : 'Paso 1: elige el dueño o venta de mostrador.';
-    }
-    if (this.pasoWizard === 2) {
-      return this.lineas.length
-        ? 'Líneas listas. Sigue a cobrar o guarda el ticket.'
-        : 'Paso 2: incluye un baño pendiente, un producto o una consulta.';
-    }
-    return 'Paso 3: guarda o cobra. Los productos descontarán inventario.';
+  get sheetTitulo(): string {
+    if (this.sheetModo === 'linea') return this.sheetLinea?.descripcion || 'Línea';
+    return this.sheetProducto?.nombre || 'Producto';
   }
 
-  irPaso(paso: number): void {
-    if (paso < 1 || paso > 3) return;
-    if (paso > 1 && !this.tieneDuenoOMostrador) {
-      this.form.markAllAsTouched();
-      this.pasoWizard = 1;
-      return;
+  get sheetMontoPreview(): number {
+    if (this.sheetModo === 'linea' && this.sheetLinea) {
+      return roundMoney(precioUnitarioLinea(this.sheetLinea) * this.sheetQty);
     }
-    this.pasoWizard = paso;
+    if (this.sheetProducto) {
+      return roundMoney((Number(this.sheetProducto.precio_venta) || 0) * this.sheetQty);
+    }
+    return 0;
   }
 
-  siguientePaso(): void {
-    this.irPaso(this.pasoWizard + 1);
-  }
-
-  atrasPaso(): void {
-    this.irPaso(this.pasoWizard - 1);
+  get puedeQuitarSheet(): boolean {
+    return this.pagado <= 0 && !this.sheetLinea?.movimientoInventarioId;
   }
 
   constructor(
     private fb: FormBuilder,
     private visitasService: VisitasService,
-    private dialog: MatDialog,
     private dialogRef: MatDialogRef<VisitaDialogComponent>,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private pacientesService: PacientesService,
     private baniosService: BaniosService,
     private inventarioService: InventarioService,
+    private cajaService: CajaService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       visita?: Visita;
@@ -252,6 +271,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       paciente_id?: string;
       paciente?: string;
       fecha?: string;
+      ventaMostrador?: boolean;
     }
   ) {
     this.form = this.fb.group({
@@ -274,9 +294,20 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       producto_nombre: [''],
       cantidad: [1, [Validators.required, Validators.min(1)]]
     });
+    this.cobroForm = this.fb.group({
+      metodoPago: ['efectivo' as CajaMetodoPago, Validators.required],
+      monto: [null, [Validators.required, Validators.min(0.01)]]
+    });
   }
 
   ngOnInit(): void {
+    this.dialogRef.addPanelClass('admin-dialog-panel--pos');
+    if (typeof window !== 'undefined' && window.innerWidth < 721) {
+      this.dialogRef.updateSize('100vw', '100vh');
+    } else {
+      this.dialogRef.updateSize('min(1120px, 98vw)', 'min(92vh, 900px)');
+    }
+
     if (this.data?.visita?.id) {
       this.esEdicion = true;
       this.visitaId = this.data.visita.id;
@@ -304,6 +335,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         this.form.disable();
         this.lineaForm.disable();
         this.productoForm.disable();
+        this.cobroForm.disable();
       }
       if (v.paciente_id) {
         void this.cargarAlergias(v.paciente_id);
@@ -321,8 +353,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }
     }
 
+    if (this.data?.ventaMostrador && !this.esEdicion) {
+      this.activarVentaMostrador();
+    }
+
     if (this.esEdicion) {
-      this.pasoWizard = this.lineas.length ? 3 : 2;
+      this.pasoWizard = this.soloLectura ? 3 : 2;
     } else if (this.tieneDuenoOMostrador) {
       this.pasoWizard = 2;
     }
@@ -331,11 +367,51 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.form.get('fecha')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
     this.form.get('paciente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
     void this.cargarPendientes();
+    this.cargarCatalogo();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  irPaso(paso: number): void {
+    if (paso < 1 || paso > 3) return;
+    if (paso > 1 && !this.tieneDuenoOMostrador) {
+      this.form.markAllAsTouched();
+      this.pasoWizard = 1;
+      return;
+    }
+    this.pasoWizard = paso;
+    this.cerrarSheet();
+    if (paso === 3) {
+      this.cobroForm.patchValue({ monto: this.totales.saldo });
+    }
+  }
+
+  siguientePaso(): void {
+    this.irPaso(this.pasoWizard + 1);
+  }
+
+  atrasPaso(): void {
+    this.irPaso(this.pasoWizard - 1);
+  }
+
+  irACobrar(): void {
+    if (!this.puedeIrACobrar) return;
+    this.irPaso(3);
+  }
+
+  elegirClienteClinica(): void {
+    if (this.modoMostrador) {
+      this.vincularClienteReal();
+    }
+  }
+
+  ventaMostradorUnTap(): void {
+    this.activarVentaMostrador();
+    this.irPaso(2);
+    this.posTab = 'productos';
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -361,7 +437,6 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     void this.cargarPendientes();
   }
 
-  /** Spec 046 — petshop sin dueño registrado. */
   activarVentaMostrador(): void {
     if (this.soloLectura) return;
     this.modoMostrador = true;
@@ -377,7 +452,6 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.pendientesBanio = [];
   }
 
-  /** Sale del modo mostrador para vincular un cliente real. */
   vincularClienteReal(): void {
     if (this.soloLectura) return;
     this.modoMostrador = false;
@@ -389,6 +463,319 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     });
     this.form.get('cliente_id')?.setValidators([Validators.required]);
     this.form.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  cantidadDe(linea: VisitaLinea): number {
+    return cantidadLinea(linea);
+  }
+
+  qtyEnCarrito(productoId: string | undefined): number {
+    if (!productoId) return 0;
+    return this.lineas
+      .filter(l => l.productoId === productoId)
+      .reduce((s, l) => s + cantidadLinea(l), 0);
+  }
+
+  esLineaProducto(linea: VisitaLinea): boolean {
+    return linea.categoria === 'venta_producto';
+  }
+
+  origenLineaHint(linea: VisitaLinea): string {
+    if (linea.movimientoInventarioId) {
+      return 'Origen: salida de inventario (stock ya vinculado).';
+    }
+    if (linea.banioId) return 'Origen: servicio de baño / peluquería.';
+    if (linea.citaId) return 'Origen: cita de consulta.';
+    if (linea.vacunaId) return 'Origen: registro de vacuna.';
+    if (linea.pensionId) return 'Origen: estancia de pensión.';
+    if (linea.historialId) return 'Origen: historial clínico.';
+    if (linea.productoId && !linea.movimientoInventarioId) {
+      return 'Producto agregado manualmente — al guardar/cobrar se descontará stock.';
+    }
+    return '';
+  }
+
+  abrirSheetProducto(p: Producto): void {
+    if (this.soloLectura || productoSinStock(p)) return;
+    this.sheetModo = 'producto';
+    this.sheetProducto = p;
+    this.sheetLinea = null;
+    this.sheetQty = 1;
+    this.sheetAbierta = true;
+  }
+
+  abrirSheetLinea(l: VisitaLinea): void {
+    if (this.soloLectura) return;
+    this.sheetModo = 'linea';
+    this.sheetLinea = l;
+    this.sheetProducto = null;
+    this.sheetQty = cantidadLinea(l);
+    this.sheetAbierta = true;
+  }
+
+  abrirSheetCarrito(): void {
+    this.sheetModo = 'carrito';
+    this.sheetProducto = null;
+    this.sheetLinea = null;
+    this.sheetAbierta = true;
+  }
+
+  cerrarSheet(): void {
+    this.sheetAbierta = false;
+    this.sheetProducto = null;
+    this.sheetLinea = null;
+  }
+
+  sheetMas(): void {
+    this.sheetQty += 1;
+  }
+
+  sheetMenos(): void {
+    if (this.sheetQty > 1) this.sheetQty -= 1;
+  }
+
+  confirmarSheet(): void {
+    if (this.sheetModo === 'producto' && this.sheetProducto) {
+      this.pushProducto(this.sheetProducto, this.sheetQty);
+      this.cerrarSheet();
+      return;
+    }
+    if (this.sheetModo === 'linea' && this.sheetLinea) {
+      const actual = cantidadLinea(this.sheetLinea);
+      const delta = this.sheetQty - actual;
+      if (delta === 0) {
+        this.cerrarSheet();
+        return;
+      }
+      this.aplicarDeltaLinea(this.sheetLinea.id, delta);
+      this.cerrarSheet();
+    }
+  }
+
+  borrarSheet(): void {
+    if (!this.sheetLinea || !this.puedeQuitarSheet) return;
+    this.quitarLinea(this.sheetLinea.id);
+    this.cerrarSheet();
+  }
+
+  agregarProductoRapido(p: Producto, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.pushProducto(p, 1);
+  }
+
+  async aplicarPreset(preset: LineaPreset): Promise<void> {
+    if (this.soloLectura) return;
+    if (preset.categoria === 'venta_producto') {
+      this.posTab = 'productos';
+      return;
+    }
+    const monto = await promptMontoVisita(preset.label, `¿Cuánto se cobra por ${preset.label.toLowerCase()}?`);
+    if (!(monto != null && monto > 0)) return;
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: preset.descripcion,
+        monto: roundMoney(monto),
+        categoria: preset.categoria,
+        cantidad: 1
+      }
+    ];
+  }
+
+  cobrarTodo(): void {
+    this.cobroForm.patchValue({ monto: this.totales.saldo });
+  }
+
+  formatMoney(n: number): string {
+    return `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  cancelar(): void {
+    this.dialogRef.close(false);
+  }
+
+  incluirBanioPendiente(p: BanioPendienteTicket): void {
+    if (this.soloLectura || banioYaEnLineas(this.lineas, p.id)) return;
+    const monto = Number(p.precio_total) || 0;
+    if (!(monto > 0)) {
+      void Swal.fire({
+        icon: 'question',
+        title: 'Monto del baño',
+        input: 'number',
+        inputLabel: '¿Cuánto se cobrará en el ticket?',
+        inputAttributes: { min: '0.01', step: '0.01' },
+        showCancelButton: true,
+        confirmButtonText: 'Incluir',
+        cancelButtonText: 'Cancelar',
+        inputValidator: value => (!(Number(value) > 0) ? 'Ingresa un monto mayor a 0' : null)
+      }).then(ask => {
+        if (!ask.isConfirmed) return;
+        this.pushLineaBanio(p, Number(ask.value));
+      });
+      return;
+    }
+    this.pushLineaBanio(p, monto);
+  }
+
+  quitarLinea(id: string): void {
+    if (this.pagado > 0) return;
+    this.lineas = this.lineas.filter(l => l.id !== id);
+    void this.cargarPendientes();
+  }
+
+  async guardar(): Promise<void> {
+    this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const id = await this.persistir();
+      this.dialogRef.close({ visitaId: id, saved: true });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar visita'), 'error');
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  async confirmarCobro(): Promise<void> {
+    if (this.soloLectura || !this.puedeCobrar) return;
+    const t = this.totales;
+    if (!this.lineas.length) {
+      Swal.fire('Sin líneas', 'Agrega al menos un servicio o producto al ticket.', 'warning');
+      return;
+    }
+    const montoPago = roundMoney(Number(this.cobroForm.get('monto')?.value) || 0);
+    const metodo = this.cobroForm.get('metodoPago')?.value as CajaMetodoPago;
+    if (!(montoPago > 0)) {
+      this.cobroForm.markAllAsTouched();
+      Swal.fire('Monto', 'Indica cuánto se cobra.', 'warning');
+      return;
+    }
+    if (montoPago > t.saldo + 0.001) {
+      Swal.fire('Monto', 'El cobro no puede ser mayor al saldo del ticket.', 'warning');
+      return;
+    }
+
+    this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const visitaId = await this.persistir();
+      const cat = this.lineas.length === 1 ? this.lineas[0].categoria : 'otro';
+      const raw = this.form.getRawValue();
+      const saldoAntes = t.saldo;
+      const movIdsInv = this.lineas
+        .map(l => l.movimientoInventarioId)
+        .filter((id): id is string => !!id);
+      const movId = await this.cajaService.crearMovimiento({
+        tipo: 'ingreso',
+        concepto: `Ticket ${raw.fecha} · ${raw.cliente || (this.modoMostrador ? 'Mostrador' : raw.cliente_id)}`,
+        monto: montoPago,
+        metodoPago: metodo || 'efectivo',
+        ivaDeclarado: false,
+        fecha: raw.fecha,
+        visitaId,
+        clienteId: this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
+        categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
+        movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined
+      });
+      const visita = await this.visitasService.getVisita(visitaId);
+      if (!visita) throw new Error('Visita no encontrada');
+      if (montoPago > roundMoney(visita.saldo) + 0.001) {
+        throw new Error('El monto no puede superar el saldo pendiente');
+      }
+      const ids = [...(visita.cajaMovimientoIds || [])];
+      if (!ids.includes(movId)) ids.push(movId);
+      await this.visitasService.actualizarVisita(visitaId, {
+        pagado: roundMoney((visita.pagado || 0) + montoPago),
+        cajaMovimientoIds: ids
+      });
+      const esParcial = montoPago < saldoAntes - 0.001;
+      Swal.fire({
+        icon: 'success',
+        title: esParcial ? 'Pago parcial registrado' : 'Venta cobrada',
+        text: esParcial ? 'Queda saldo. Puedes cobrar el resto después.' : 'Ticket en $0.',
+        timer: 2200,
+        showConfirmButton: false
+      });
+      this.dialogRef.close({ visitaId, cobrado: true, parcial: esParcial });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  imprimir(): void {
+    window.print();
+  }
+
+  private cargarCatalogo(): void {
+    this.inventarioService
+      .getProductos()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: rows => {
+          this.productosCatalogo = (rows || []).filter(p => p && p.activo !== false);
+          this.cargandoCatalogo = false;
+        },
+        error: () => {
+          this.productosCatalogo = [];
+          this.cargandoCatalogo = false;
+        }
+      });
+  }
+
+  private pushProducto(p: Producto, qty: number): void {
+    if (this.soloLectura || !p?.id) return;
+    const cantidad = Math.max(1, Number(qty) || 1);
+    const stock = Number(p.stock_actual) || 0;
+    const ya = this.qtyEnCarrito(p.id);
+    if (stock < ya + cantidad) {
+      Swal.fire(
+        'Sin stock suficiente',
+        `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`,
+        'warning'
+      );
+      return;
+    }
+    const unit = Number(p.precio_venta) || 0;
+    if (!(unit > 0)) {
+      Swal.fire('Sin precio', 'Este producto no tiene precio de venta. Edítalo en Inventario.', 'warning');
+      return;
+    }
+    const existente = this.lineas.find(
+      l => l.productoId === p.id && l.categoria === 'venta_producto' && !l.movimientoInventarioId
+    );
+    if (existente) {
+      this.aplicarDeltaLinea(existente.id, cantidad);
+      return;
+    }
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: `${p.nombre} × ${cantidad}`,
+        monto: roundMoney(unit * cantidad),
+        categoria: 'venta_producto',
+        productoId: p.id,
+        cantidad
+      }
+    ];
+  }
+
+  private aplicarDeltaLinea(id: string, delta: number): void {
+    if (this.pagado > 0) return;
+    const actual = this.lineas.find(l => l.id === id);
+    if (!actual || actual.movimientoInventarioId) return;
+    const next = ajustarCantidadLinea(actual, delta);
+    if (!next) {
+      this.quitarLinea(id);
+      return;
+    }
+    this.lineas = this.lineas.map(l => (l.id === id ? next : l));
   }
 
   private async cargarAlergias(pacienteId: string): Promise<void> {
@@ -423,29 +810,6 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  incluirBanioPendiente(p: BanioPendienteTicket): void {
-    if (this.soloLectura || banioYaEnLineas(this.lineas, p.id)) return;
-    const monto = Number(p.precio_total) || 0;
-    if (!(monto > 0)) {
-      void Swal.fire({
-        icon: 'question',
-        title: 'Monto del baño',
-        input: 'number',
-        inputLabel: '¿Cuánto se cobrará en el ticket?',
-        inputAttributes: { min: '0.01', step: '0.01' },
-        showCancelButton: true,
-        confirmButtonText: 'Incluir',
-        cancelButtonText: 'Cancelar',
-        inputValidator: value => (!(Number(value) > 0) ? 'Ingresa un monto mayor a 0' : null)
-      }).then(ask => {
-        if (!ask.isConfirmed) return;
-        this.pushLineaBanio(p, Number(ask.value));
-      });
-      return;
-    }
-    this.pushLineaBanio(p, monto);
-  }
-
   private pushLineaBanio(p: BanioPendienteTicket, monto: number): void {
     this.lineas = [
       ...this.lineas,
@@ -454,106 +818,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         descripcion: descripcionLineaBanio(p),
         monto: roundMoney(monto),
         categoria: p.categoria,
-        banioId: p.id
+        banioId: p.id,
+        cantidad: 1
       }
     ];
     this.pendientesBanio = this.pendientesBanio.filter(x => x.id !== p.id);
-  }
-
-  aplicarPreset(preset: LineaPreset): void {
-    if (this.soloLectura) return;
-    if (preset.categoria === 'venta_producto') {
-      this.mostrandoProducto = true;
-      this.productoForm.reset({ producto_id: '', producto_nombre: '', cantidad: 1 });
-      this.productoSel = null;
-      return;
-    }
-    this.mostrandoProducto = false;
-    this.lineaForm.patchValue({
-      categoria: preset.categoria,
-      descripcion: preset.descripcion
-    });
-    this.lineaForm.get('monto')?.markAsUntouched();
-  }
-
-  onProductoSeleccionado(sel: ProductoSelection): void {
-    this.productoSel = sel.producto;
-  }
-
-  agregarProductoAlTicket(): void {
-    if (this.soloLectura) return;
-    if (this.productoForm.invalid || !this.productoSel?.id) {
-      this.productoForm.markAllAsTouched();
-      Swal.fire('Producto', 'Elige un producto del catálogo y la cantidad.', 'warning');
-      return;
-    }
-    const qty = Math.max(1, Number(this.productoForm.get('cantidad')?.value) || 1);
-    const stock = Number(this.productoSel.stock_actual) || 0;
-    if (stock < qty) {
-      Swal.fire(
-        'Sin stock suficiente',
-        `"${this.productoSel.nombre}" tiene ${stock} ${this.productoSel.unidad_medida}. No se puede agregar ${qty}.`,
-        'warning'
-      );
-      return;
-    }
-    const unit = Number(this.productoSel.precio_venta) || 0;
-    if (!(unit > 0)) {
-      Swal.fire('Sin precio', 'Este producto no tiene precio de venta. Edítalo en Inventario.', 'warning');
-      return;
-    }
-    this.lineas = [
-      ...this.lineas,
-      {
-        id: nuevaLineaId(),
-        descripcion: `${this.productoSel.nombre} × ${qty}`,
-        monto: roundMoney(unit * qty),
-        categoria: 'venta_producto',
-        productoId: this.productoSel.id,
-        cantidad: qty
-      }
-    ];
-    this.mostrandoProducto = false;
-    this.productoSel = null;
-    this.productoForm.reset({ producto_id: '', producto_nombre: '', cantidad: 1 });
-  }
-
-  cancelarProducto(): void {
-    this.mostrandoProducto = false;
-    this.productoSel = null;
-    this.productoForm.reset({ producto_id: '', producto_nombre: '', cantidad: 1 });
-  }
-
-  agregarLineaLocal(): void {
-    if (this.soloLectura) return;
-    if (this.lineaForm.invalid) {
-      this.lineaForm.markAllAsTouched();
-      return;
-    }
-    const v = this.lineaForm.getRawValue();
-    this.lineas = [
-      ...this.lineas,
-      {
-        id: nuevaLineaId(),
-        descripcion: String(v.descripcion).trim(),
-        monto: roundMoney(v.monto),
-        categoria: v.categoria
-      }
-    ];
-    this.lineaForm.reset({ descripcion: '', monto: null, categoria: 'consulta' });
-  }
-
-  quitarLinea(id: string): void {
-    this.lineas = this.lineas.filter(l => l.id !== id);
-    void this.cargarPendientes();
-  }
-
-  formatMoney(n: number): string {
-    return `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-
-  cancelar(): void {
-    this.dialogRef.close(false);
   }
 
   private async persistir(): Promise<string> {
@@ -562,15 +831,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
     const raw = this.form.getRawValue();
     const esMostrador = this.modoMostrador || esClienteMostrador(raw.cliente_id);
-    const clienteId = esMostrador
-      ? CLIENTE_MOSTRADOR_ID
-      : String(raw.cliente_id || '').trim();
-    const clienteNombre = esMostrador
-      ? CLIENTE_MOSTRADOR_NOMBRE
-      : String(raw.cliente || '').trim();
+    const clienteId = esMostrador ? CLIENTE_MOSTRADOR_ID : String(raw.cliente_id || '').trim();
+    const clienteNombre = esMostrador ? CLIENTE_MOSTRADOR_NOMBRE : String(raw.cliente || '').trim();
 
     if (!esMostrador && !clienteId) {
-      throw new Error('Elige el dueño, o activa «Venta de mostrador» para vender sin cliente.');
+      throw new Error('Elige el dueño, o activa venta de mostrador para vender sin cliente.');
     }
     if (!String(raw.fecha || '').trim()) {
       throw new Error('La fecha es obligatoria.');
@@ -660,108 +925,5 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }
     }
     return out;
-  }
-
-  async guardar(): Promise<void> {
-    this.loading = true;
-    this.loadingService.show(LOADING_MESSAGES.saving);
-    try {
-      const id = await this.persistir();
-      this.dialogRef.close({ visitaId: id, saved: true });
-    } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar visita'), 'error');
-    } finally {
-      this.loading = false;
-      this.loadingService.hide();
-    }
-  }
-
-  async cobrar(): Promise<void> {
-    if (this.soloLectura) return;
-    const t = this.totales;
-    if (!this.lineas.length) {
-      Swal.fire('Sin líneas', 'Agrega al menos un servicio o producto al ticket.', 'warning');
-      return;
-    }
-    if (t.saldo <= 0) {
-      Swal.fire('Sin saldo', 'No hay monto pendiente por cobrar.', 'info');
-      return;
-    }
-
-    this.loading = true;
-    this.loadingService.show(LOADING_MESSAGES.saving);
-    let visitaId: string;
-    try {
-      visitaId = await this.persistir();
-    } catch (error) {
-      this.loading = false;
-      this.loadingService.hide();
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar visita'), 'error');
-      return;
-    }
-    this.loading = false;
-    this.loadingService.hide();
-
-    const cat = this.lineas.length === 1 ? this.lineas[0].categoria : 'otro';
-    const raw = this.form.getRawValue();
-    const saldoAntes = t.saldo;
-    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
-      width: '640px',
-      disableClose: true,
-      data: {
-        tipo: 'ingreso' as const,
-        fechaDefault: raw.fecha,
-        clienteId:
-          this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
-        visitaId,
-        concepto: `Visita ${raw.fecha} · ${raw.cliente || (this.modoMostrador ? 'Mostrador' : raw.cliente_id)}`,
-        monto: t.saldo,
-        metodoPago: 'efectivo' as const,
-        categoria: VISITA_LINEA_A_CAJA[cat] || 'otro'
-      }
-    });
-
-    ref
-      .afterClosed()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(async (result) => {
-        const movId = result?.movimientoId as string | undefined;
-        if (!movId) return;
-        const montoPago = roundMoney(Number(result?.monto) || t.saldo);
-        try {
-          this.loadingService.show(LOADING_MESSAGES.saving);
-          const visita = await this.visitasService.getVisita(visitaId);
-          if (!visita) throw new Error('Visita no encontrada');
-          if (montoPago > roundMoney(visita.saldo) + 0.001) {
-            throw new Error('El monto no puede superar el saldo pendiente');
-          }
-          const ids = [...(visita.cajaMovimientoIds || [])];
-          if (!ids.includes(movId)) ids.push(movId);
-          await this.visitasService.actualizarVisita(visitaId, {
-            pagado: roundMoney((visita.pagado || 0) + montoPago),
-            cajaMovimientoIds: ids
-          });
-          const esParcial = montoPago < saldoAntes - 0.001;
-          Swal.fire({
-            icon: 'success',
-            title: esParcial ? 'Pago parcial registrado' : 'Visita cobrada al 100%',
-            text: esParcial
-              ? `Queda saldo pendiente. Puedes cobrar el resto después.`
-              : 'Ticket cerrado. Saldo en $0.',
-            timer: 2200,
-            showConfirmButton: false
-          });
-          this.dialogRef.close({ visitaId, cobrado: true, parcial: esParcial });
-        } catch (error) {
-          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
-        } finally {
-          this.loadingService.hide();
-        }
-      });
-  }
-
-  imprimir(): void {
-    window.print();
   }
 }

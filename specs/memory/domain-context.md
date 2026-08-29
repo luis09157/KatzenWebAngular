@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable.
+**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil ticket.
 
 ---
 
@@ -71,7 +71,7 @@ erDiagram
 | Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
 | Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
 | Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021); `visitaId?` (032) |
-| Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket + CxC; **036** pulido UX (filtros, print, anti-huérfana) |
+| Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket + CxC; **036** pulido UX; **055** Caja POS móvil (UI; mismos nodos) |
 | Plantilla costo servicio | `Katzen/Finanzas/PlantillasCosto/{id}` | Push key | BOM ligero: ítems producto o gasto libre (021) |
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
 | Contacto web | `Katzen/ContactosWeb/{id}` | Push key | Solo create anónimo desde landing |
@@ -110,7 +110,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | Campo | Tipo | Regla de negocio |
 |-------|------|------------------|
 | `nombre`, `apellidoPaterno`, `apellidoMaterno` | string | Nombre completo en UI |
-| `telefono`, `correo` | string | Correo requerido para portal |
+| `telefono`, `correo` | string | Correo requerido para portal; teléfono 10 dígitos en UI admin (formatos legacy posibles) |
+| `telefonoNorm?` | string | **047 ola 3** 10 dígitos MX (aditivo; Functions al vincular/crear) |
 | `expediente`, `direccion` | string | Opcionales |
 | `activo` | boolean | `false` → oculto en listas; baja lógica |
 | `fecha_registro` | string ISO | Alta web |
@@ -458,7 +459,7 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 | `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
 | `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
 | `provisionPortalClient` | Staff clínica | Activa portal + email bienvenida (alta cliente / Usuarios / **ficha cliente 047**) |
-| `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend); **047 ola 2:** vincular si correo ya existe en clínica |
+| `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend); **047 ola 2:** auto-vínculo si correo ya existe; **ola 3:** teléfono MX → sugerencia + confirmación (no auto-vínculo) |
 | `linkStaffPortalCliente` | Admin | Vincula Cliente a staff (dual) |
 | `deactivatePortalClient` | Admin | Desactiva portal |
 | `resendPortalClientAccess` | Admin | Nueva contraseña temporal |
@@ -482,7 +483,7 @@ flowchart LR
     E --> F[Log_Paciente opcional]
 ```
 
-Self-registro landing: callable `registerPortalOwner` → Cliente + Auth + correo (spec 013).
+Self-registro landing: callable `registerPortalOwner` → Cliente + Auth + correo (spec 013). **047:** si el correo ya está en una ficha clínica sin portal, auto-vincula; si el match es por teléfono, pide confirmación (mascota opcional para desambiguar).
 
 ### 6.2 Ciclo de cita
 
@@ -732,6 +733,6 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 | **UX intuitiva guiada** | UX | **046** draft — “te falta X”, walk-in, empty states, sensación móvil |
 | ~~**Esquemas de vacunación + PWA**~~ | ops / 033 / 023 | **052 done** (código olas 1–3). Deploy scheduler FCM pendiente autorización Luis. |
 | **Desparasitación (ola 2)** | ops / 053 | Listado/filtro + línea de ticket. Ola 1 hecha. |
-| **Cierre operable** | producto | `specs/054-cierre-sistema/CIERRE.md` — P1: 047 teléfono, QA 048–050, Resend DNS (Luis) |
+| **Cierre operable** | producto | `specs/054-cierre-sistema/CIERRE.md` — P1: 047 teléfono **código listo** (deploy Luis), QA 048–050, Resend DNS (Luis) |
 
 **Referencias:** `specs/ROADMAP.md` (fases futuras) · crear specs `specs/NNN-*` antes de implementar cada ítem.

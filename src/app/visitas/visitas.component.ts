@@ -6,7 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
-import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_POS } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
@@ -298,7 +298,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       const { visitaId } = await this.visitasService.agregarServicioAVisita(opts);
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
-        ...ADMIN_DIALOG_FORM,
+        ...ADMIN_DIALOG_POS,
         data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente }
       });
       Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
@@ -313,8 +313,18 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   nueva(): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
-      ...ADMIN_DIALOG_FORM,
+      ...ADMIN_DIALOG_POS,
       data: {}
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
+      if (r) this.cargar();
+    });
+  }
+
+  nuevaMostrador(): void {
+    const ref = this.dialog.open(VisitaDialogComponent, {
+      ...ADMIN_DIALOG_POS,
+      data: { ventaMostrador: true }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
       if (r) this.cargar();
@@ -323,7 +333,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   editar(row: Visita): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
-      ...ADMIN_DIALOG_FORM,
+      ...ADMIN_DIALOG_POS,
       data: { visita: row }
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {

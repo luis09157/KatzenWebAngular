@@ -1776,6 +1776,13 @@
   color: #b91c1c;
 }
 
+.portal-register-help {
+  margin: -8px 0 14px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
 .portal-modal--register {
   max-width: 440px;
 }

@@ -81,3 +81,43 @@ export function hoyLocalIsoDate(): string {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+
+/** Spec 055 — cantidad POS (mínimo 1). */
+export function cantidadLinea(linea: Pick<VisitaLinea, 'cantidad'> | null | undefined): number {
+  return Math.max(1, Number(linea?.cantidad) || 1);
+}
+
+export function nombreBaseLinea(descripcion: string | null | undefined): string {
+  return String(descripcion || '')
+    .replace(/\s*×\s*\d+\s*$/, '')
+    .trim();
+}
+
+export function precioUnitarioLinea(
+  linea: Pick<VisitaLinea, 'monto' | 'cantidad'> | null | undefined
+): number {
+  if (!linea) return 0;
+  return roundMoney((Number(linea.monto) || 0) / cantidadLinea(linea));
+}
+
+/**
+ * Ajusta cantidad y monto. `null` = hay que quitar la línea (cantidad menor a 1).
+ */
+export function ajustarCantidadLinea(linea: VisitaLinea, delta: number): VisitaLinea | null {
+  const next = cantidadLinea(linea) + delta;
+  if (next < 1) return null;
+  const unit = precioUnitarioLinea(linea);
+  const base = nombreBaseLinea(linea.descripcion);
+  const esProducto = linea.categoria === 'venta_producto';
+  return {
+    ...linea,
+    cantidad: next,
+    monto: roundMoney(unit * next),
+    descripcion: esProducto ? `${base} × ${next}` : linea.descripcion
+  };
+}
+
+export function contarArticulos(lineas: VisitaLinea[] | null | undefined): number {
+  if (!Array.isArray(lineas) || !lineas.length) return 0;
+  return lineas.reduce((s, l) => s + cantidadLinea(l), 0);
+}

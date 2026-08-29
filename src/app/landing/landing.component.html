@@ -686,8 +686,8 @@
     <div class="portal-modal-body" [class.portal-modal-body--loading]="isRegistering">
       <div class="auth-loading-state auth-loading-state--modal" *ngIf="isRegistering" aria-live="polite" aria-busy="true">
         <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
-        <p class="auth-loading-state__title">Creando tu cuenta…</p>
-        <p class="auth-loading-state__hint">Enviando acceso por correo</p>
+        <p class="auth-loading-state__title">{{ registerLoadingTitle }}</p>
+        <p class="auth-loading-state__hint">{{ registerLoadingHint }}</p>
       </div>
       <form [formGroup]="registerForm" (ngSubmit)="onSubmitRegister()">
         <mat-form-field appearance="outline" class="full-width">
@@ -709,6 +709,14 @@
           <input matInput type="tel" formControlName="telefono" autocomplete="tel" [disabled]="isRegistering">
           <mat-error *ngIf="getRegisterError('telefono')">{{ getRegisterError('telefono') }}</mat-error>
         </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre de tu mascota (opcional)</mat-label>
+          <input matInput formControlName="nombreMascota" maxlength="80" autocomplete="off" [disabled]="isRegistering">
+          <mat-error *ngIf="getRegisterError('nombreMascota')">{{ getRegisterError('nombreMascota') }}</mat-error>
+        </mat-form-field>
+        <p class="portal-register-help">
+          Si ya te atienden en Katzen, usa el teléfono de tu ficha. Si hay coincidencia te pediremos confirmar; no unimos expedientes a ciegas.
+        </p>
         <mat-checkbox class="portal-modal-remember" formControlName="acceptPrivacy" [disabled]="isRegistering">
           Acepto el
           <a routerLink="/privacidad" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">aviso de privacidad</a>

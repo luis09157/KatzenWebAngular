@@ -222,7 +222,7 @@ export const ADMIN_DIALOG_CONFIG = {
 };
 ```
 
-Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`.
+Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`. Caja POS (ticket del día, spec 055): `ADMIN_DIALOG_POS` + panel `admin-dialog-panel--pos` (fullscreen en ≤720px).
 
 ### Diálogos compactos tipo picker (espaciado)
 

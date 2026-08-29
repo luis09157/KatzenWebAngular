@@ -64,6 +64,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   contactForm: FormGroup;
   registerForm: FormGroup;
   isRegistering = false;
+  registerLoadingTitle = 'Creando tu cuenta…';
+  registerLoadingHint = 'Enviando acceso por correo';
   
   // Equipo Médico
   equipoMedico = [
@@ -481,6 +483,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       apellidoPaterno: ['', [Validators.maxLength(60)]],
       correo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       telefono: ['', [Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
+      nombreMascota: ['', [Validators.maxLength(80)]],
       acceptPrivacy: [false, [Validators.requiredTrue]]
     });
   }
@@ -789,33 +792,88 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.appCheck.ensureInitialized();
     this.isRegistering = true;
-    const raw = this.registerForm.getRawValue();
+    this.registerLoadingTitle = 'Buscando tu ficha…';
+    this.registerLoadingHint = 'No vinculamos a ciegas; si hay coincidencia te pediremos confirmar';
+
     try {
-      const result = await this.firebaseFunctions.registerPortalOwner({
-        nombre: String(raw.nombre || '').trim(),
-        apellidoPaterno: String(raw.apellidoPaterno || '').trim() || undefined,
-        correo: String(raw.correo || '').trim(),
-        telefono: String(raw.telefono || '').trim() || undefined,
-        acceptPrivacy: raw.acceptPrivacy === true
-      });
-      this.registerForm.reset({ acceptPrivacy: false });
-      this.closePortalRegister();
-      const linked = result.linkedExisting === true;
-      Swal.fire({
-        icon: 'success',
-        title: linked ? '¡Ya te encontramos en la clínica!' : '¡Registro listo!',
-        text:
-          result.message ||
-          (linked
-            ? 'Vinculamos tu ficha clínica a tu cuenta. Revisa tu correo para la contraseña temporal.'
-            : 'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'),
-        confirmButtonText: 'Ir al portal',
-        confirmButtonColor: '#3b9a9c'
-      }).then(res => {
-        if (res.isConfirmed) {
-          void this.openPortalLogin();
+      let extra: {
+        nombreMascota?: string;
+        confirmClienteId?: string;
+        skipPhoneMatch?: boolean;
+      } = {};
+
+      for (;;) {
+        const result = await this.firebaseFunctions.registerPortalOwner(this.buildRegisterPayload(extra));
+
+        if (result.needsPetName) {
+          this.isRegistering = false;
+          const pet = await this.askRegisterPetName(result.message);
+          if (!pet) {
+            return;
+          }
+          this.registerForm.patchValue({ nombreMascota: pet });
+          extra = { nombreMascota: pet };
+          this.isRegistering = true;
+          this.registerLoadingTitle = 'Buscando tu ficha…';
+          this.registerLoadingHint = 'Desambiguando con el nombre de tu mascota';
+          continue;
         }
-      });
+
+        if (result.needsConfirmation && result.suggestedClienteId) {
+          this.isRegistering = false;
+          const choice = await this.askRegisterPhoneConfirm(result.message, result.petNames);
+          if (choice === 'yes') {
+            extra = {
+              confirmClienteId: result.suggestedClienteId,
+              nombreMascota:
+                String(this.registerForm.get('nombreMascota')?.value || '').trim() || undefined
+            };
+            this.isRegistering = true;
+            this.registerLoadingTitle = 'Vinculando tu expediente…';
+            this.registerLoadingHint = 'Enviando acceso por correo';
+            continue;
+          }
+          if (choice === 'no') {
+            extra = { skipPhoneMatch: true };
+            this.isRegistering = true;
+            this.registerLoadingTitle = 'Creando ficha nueva…';
+            this.registerLoadingHint = 'Enviando acceso por correo';
+            continue;
+          }
+          return;
+        }
+
+        if (result.success === false) {
+          throw new Error(result.message || 'No se pudo completar el registro.');
+        }
+
+        this.registerForm.reset({ acceptPrivacy: false, nombreMascota: '' });
+        this.closePortalRegister();
+        const linked = result.linkedExisting === true;
+        const phoneLinked = linked && result.matchKind === 'phone';
+        Swal.fire({
+          icon: 'success',
+          title: phoneLinked
+            ? '¡Confirmamos tu ficha!'
+            : linked
+              ? '¡Ya te encontramos en la clínica!'
+              : '¡Registro listo!',
+          text:
+            result.message ||
+            (phoneLinked
+              ? 'Vinculamos tu expediente por el teléfono de la clínica. Revisa tu correo para la contraseña temporal.'
+              : linked
+                ? 'Vinculamos tu ficha clínica a tu cuenta. Revisa tu correo para la contraseña temporal.'
+                : 'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'),
+          confirmButtonText: 'Ir al portal',
+          confirmButtonColor: '#3b9a9c'
+        }).then(res => {
+          if (res.isConfirmed) {
+            void this.openPortalLogin();
+          }
+        });
+        break;
+      }
     } catch (err) {
       const msg = this.errorMessages.getUserMessage(err, 'registro portal dueño');
       Swal.fire({
@@ -827,6 +885,81 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.isRegistering = false;
     }
+  }
+
+  private buildRegisterPayload(extra?: {
+    nombreMascota?: string;
+    confirmClienteId?: string;
+    skipPhoneMatch?: boolean;
+  }) {
+    const raw = this.registerForm.getRawValue();
+    const mascotaForm = String(raw.nombreMascota || '').trim();
+    return {
+      nombre: String(raw.nombre || '').trim(),
+      apellidoPaterno: String(raw.apellidoPaterno || '').trim() || undefined,
+      correo: String(raw.correo || '').trim(),
+      telefono: String(raw.telefono || '').trim() || undefined,
+      nombreMascota: extra?.nombreMascota || mascotaForm || undefined,
+      acceptPrivacy: raw.acceptPrivacy === true,
+      confirmClienteId: extra?.confirmClienteId,
+      skipPhoneMatch: extra?.skipPhoneMatch
+    };
+  }
+
+  private async askRegisterPetName(message?: string): Promise<string | null> {
+    const { isConfirmed, value } = await Swal.fire({
+      icon: 'info',
+      title: 'Varias fichas con este teléfono',
+      text:
+        message ||
+        'Escribe el nombre de tu mascota para continuar. No mostramos el padrón completo.',
+      input: 'text',
+      inputPlaceholder: 'Ej. Luna',
+      inputAttributes: { maxlength: '80', autocomplete: 'off' },
+      showCancelButton: true,
+      confirmButtonText: 'Continuar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#3b9a9c',
+      inputValidator: v => (String(v || '').trim() ? undefined : 'Ingresa el nombre de tu mascota')
+    });
+    if (!isConfirmed) {
+      return null;
+    }
+    return String(value || '').trim() || null;
+  }
+
+  private async askRegisterPhoneConfirm(
+    message?: string,
+    petNames?: string[]
+  ): Promise<'yes' | 'no' | 'cancel'> {
+    const pets = (petNames || []).map(n => String(n || '').trim()).filter(Boolean);
+    const petLine =
+      pets.length === 1
+        ? `¿Eres el dueño de ${pets[0]}?`
+        : pets.length === 2
+          ? `¿Eres el dueño de ${pets[0]} y ${pets[1]}?`
+          : pets.length > 2
+            ? `¿Eres el dueño de ${pets.slice(0, -1).join(', ')} y ${pets[pets.length - 1]}?`
+            : '';
+    const { isConfirmed, isDenied } = await Swal.fire({
+      icon: 'question',
+      title: '¿Te encontramos en la clínica?',
+      text: [petLine, message].filter(Boolean).join(' ') || 'Confirma antes de vincular tu expediente.',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Sí, soy yo',
+      denyButtonText: 'No, crear ficha nueva',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#3b9a9c',
+      denyButtonColor: '#64748b'
+    });
+    if (isConfirmed) {
+      return 'yes';
+    }
+    if (isDenied) {
+      return 'no';
+    }
+    return 'cancel';
   }
 
   getRegisterError(controlName: string): string {

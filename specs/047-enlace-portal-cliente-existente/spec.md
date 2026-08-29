@@ -1,7 +1,7 @@
 # Spec: Enlace portal ↔ cliente clínico (sin duplicar)
 
 **ID:** 047-enlace-portal-cliente-existente  
-**Estado:** done  
+**Estado:** done (olas 1–3; deploy ola 3 pendiente OK Luis)  
 **Fecha:** 2026-08-27  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 002 (portal usuarios), 013 (registro landing), 038 (Resend), 012 (dual)
@@ -58,16 +58,16 @@ Para **ver mis mascotas reales y no crear un doble registro**
 - [x] SC-008: Si no hay match → crear Cliente nuevo (comportamiento actual). *(código)*
 - [x] SC-009: Password nunca en response; correo vía Resend; rate-limit se mantiene. *(código)*
 
-### US-3 — Match medio teléfono + confirmación (ola 3 — posterior)
+### US-3 — Match medio teléfono + confirmación (ola 3)
 
 Como **dueño**  
 Quiero **confirmar “¿eres el dueño de [mascota(s)]?”** cuando el match es por teléfono/nombre  
 Para **evitar unir cuentas equivocadas**
 
-**Criterios (deferidos):**
+**Criterios:**
 
-- [ ] SC-010: Match solo teléfono / nombre+mascota → pantalla de confirmación (no auto-vínculo).
-- [ ] SC-011: Rechazo → crea ficha nueva o aborta según copy acordado.
+- [x] SC-010: Match solo teléfono / nombre+mascota → pantalla de confirmación (no auto-vínculo). Correo (ola 2) sí auto-vincula (umbral alto).
+- [x] SC-011: Rechazo → crea ficha nueva (`skipPhoneMatch`). Cancelar aborta. Ambiguo tras mascota → contactar clínica (no alta ciega).
 
 ---
 
@@ -86,31 +86,41 @@ Para **evitar unir cuentas equivocadas**
 
 | Nodo | Lectura | Escritura | Notas |
 |------|---------|-----------|-------|
-| `Katzen/Cliente/{id}` | staff / dueño propio | staff / Functions | reusa `authUid`, `portalActivo`, `portalEmail`, …; opcional `portalLinkedFrom: 'admin'\|'self_register_match'` |
+| `Katzen/Cliente/{id}` | staff / dueño propio | staff / Functions | reusa `authUid`, `portalActivo`, `portalEmail`, …; opcional `portalLinkedFrom: 'admin'\|'self_register_match'\|'self_register_match_phone'\|'self_register_new'`; opcional `telefonoNorm` (10 dígitos MX) |
 | `Katzen/AuthPerfiles/{uid}` | staff / self | Functions | `clienteId` apunta a ficha clínica |
 | `Katzen/Mascota` | sin cambio de esquema | — | se ven en portal por `idCliente`/`cliente_id` |
 | `Katzen/PortalRegistroRate` | Functions | Functions | sin cambio |
 
 **App móvil:** campos nuevos opcionales; no renombrar nodos.
 
-### Matching ola 2 (servidor)
+### Matching ola 2 (servidor) — correo = auto-vínculo
 
 1. Normalizar correo (trim, lower).
 2. Buscar Cliente `activo !== false` con mismo `correo` (o `portalEmail`).
 3. Si `portalActivo === true` y `authUid` → error duplicado.
 4. Si hay ficha sin portal usable → provision Auth sobre **ese** id (misma lógica que `provisionPortalClient` interno).
-5. Si ninguna → alta Cliente nueva (013).
+5. Si ninguna → pasar a ola 3 (teléfono) o alta Cliente nueva (013).
+
+### Matching ola 3 (servidor) — teléfono = sugerir + confirmar
+
+1. Normalizar teléfono a 10 dígitos MX (`+52`, espacios, 044/045).
+2. Candidatos linkables con el mismo número. Mascota opcional para desambiguar.
+3. **Nunca** crear Auth en este paso: return `needsConfirmation` o `needsPetName`.
+4. Segundo llamado con `confirmClienteId` revalida teléfono. `skipPhoneMatch` → ficha nueva.
+5. Copy landing distinto si `matchKind === 'phone'`.
 
 ### UI
 
 - Detalle cliente: sección portal (chip + botones).
-- Landing: copy si se vinculó a expediente existente (“Encontramos tu ficha en la clínica…”).
+- Landing: copy si se vinculó por **correo** (“Encontramos tu ficha…”) o por **teléfono** (“Confirmamos tu ficha…”).
+- Campo opcional mascota + hint: no unimos a ciegas; Swal Sí / ficha nueva / Cancelar.
 - Loading contextual; errores vía `ErrorMessagesService`.
 
 ### Mitigación / Rollback
 
 - Ola 1: solo UI → revertir componente diálogo.
-- Ola 2: feature flag o revert callable; no borra Clientes; Auth creadas quedan (desactivar portal si hace falta).
+- Ola 2: revert callable; no borra Clientes; Auth creadas quedan (desactivar portal si hace falta).
+- Ola 3: revert callable (preview no escribe Auth; confirmaciones ya hechas se desactivan portal a mano). `telefonoNorm` opcional no rompe móvil.
 - No `firebase deploy` sin OK Luis.
 
 ---
@@ -135,5 +145,6 @@ Para **evitar unir cuentas equivocadas**
 ## Testing
 
 - Build + smoke ficha cliente (estados portal).
-- Emuladores / mocks para match correo (ola 2); no prod desde agente.
+- Emuladores / mocks para match correo (ola 2) y teléfono (ola 3); no prod desde agente.
+- Unit: `functions/test/portal-phone-match.util.test.js`.
 - Registrar en `tasks.md` antes de marcar done.

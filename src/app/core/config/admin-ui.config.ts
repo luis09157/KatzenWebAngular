@@ -26,6 +26,19 @@ export const ADMIN_DIALOG_FORM = {
   maxWidth: '96vw'
 };
 
+/**
+ * Caja POS / ticket del día (spec 055).
+ * Móvil: viewport completo. Desktop: panel ancho (CSS `--pos`).
+ */
+export const ADMIN_DIALOG_POS = {
+  ...ADMIN_DIALOG_CONFIG,
+  width: '100vw',
+  maxWidth: '100vw',
+  height: '100vh',
+  maxHeight: '100vh',
+  panelClass: ['admin-dialog-panel', 'admin-dialog-panel--pos']
+};
+
 /** Diálogos de confirmación compactos. */
 export const ADMIN_DIALOG_CONFIRM = {
   ...ADMIN_DIALOG_CONFIG,

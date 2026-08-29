@@ -70,8 +70,8 @@
       accent="teal"
       icon="receipt_long"
       title="Ticket del día"
-      subtitle="Cobra baños, consultas y productos en un ticket. Los productos descontarán inventario al guardar o cobrar.">
-      <div bannerActions>
+      subtitle="Caja POS: busca, pulsa + y cobra. Los productos descuentan inventario al guardar o cobrar.">
+      <div bannerActions class="visitas-banner-actions">
         <button
           mat-stroked-button
           color="primary"
@@ -80,9 +80,13 @@
           (click)="setFiltroRapido('todas')">
           Ver todas
         </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
-          <mat-icon>add</mat-icon>
-          Nueva cuenta
+        <button mat-stroked-button color="primary" type="button" class="pos-cta pos-cta--ghost" (click)="nuevaMostrador()">
+          <mat-icon>storefront</mat-icon>
+          Venta de mostrador
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal pos-cta" type="button" (click)="nueva()">
+          <mat-icon>point_of_sale</mat-icon>
+          Nueva venta
         </button>
       </div>
     </app-admin-page-banner>
@@ -164,9 +168,9 @@
             <td class="mat-cell" [attr.colspan]="displayedColumns.length">
               <app-admin-empty-state
                 icon="receipt_long"
-                title="Aún no hay cuentas del día"
-                message="Crea una cuenta para cobrar baño, consulta o productos juntos. Si ya hay un baño pendiente, ábrela con el dueño y usa «Incluir»."
-                actionLabel="Nueva cuenta"
+                title="Aún no hay ventas"
+                message="Abre la caja POS para cobrar baño, consulta o productos. En el celular: busca, pulsa + y COBRAR."
+                actionLabel="Nueva venta"
                 (action)="nueva()">
               </app-admin-empty-state>
             </td>

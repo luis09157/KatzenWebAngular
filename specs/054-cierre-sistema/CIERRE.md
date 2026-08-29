@@ -18,7 +18,7 @@ No es un wishlist infinito. Lo que no está abajo **no bloquea** abrir la clíni
 | POS / cobro | Ticket del día, walk-in, pendientes baño, venta→stock, un solo camino de cobro | 032, 039–042, 045, 046, 050 |
 | Inventario | Productos, foto/QR, picker, mermas, OC, alertas | 007, 043, 044 |
 | Finanzas | Caja, márgenes, pensión, dashboard dueño | 014, 018, 021, 022, 025 |
-| Portal | Login, mascotas, vacunas, citas, baños, pensión, self-reg, enlace a ficha | 002, 013, 047 ola 1–2 |
+| Portal | Login, mascotas, vacunas, citas, baños, pensión, self-reg, enlace a ficha | 002, 013, 047 olas 1–3 (deploy ola 3 pendiente) |
 | Roles | Staff unificado (011); menú compacto recepción/peluquería (**054**) | 011, 012, 049, 054 |
 | Auth UX | Auto-redirect login, dual, portal lock | 015, 051 |
 
@@ -41,7 +41,7 @@ No es un wishlist infinito. Lo que no está abajo **no bloquea** abrir la clíni
 | # | Ítem | Notas |
 |---|------|-------|
 | 1 | **053 ola 2** — listado/filtro desparasitaciones en Recordatorios + CTA cobro ticket | Tras usar ola 1 en clínica |
-| 2 | **047 ola 3** — match self-reg por teléfono + confirmación (no auto-vínculo) | Spec ya escrita; Functions; **no** en esta entrega |
+| 2 | **047 ola 3** — match self-reg por teléfono + confirmación (no auto-vínculo) | **Código listo 2026-08-28**; deploy `registerPortalOwner` con **OK Luis** |
 | 3 | Cerrar QA de **048 / 049 / 050** (`in_progress` → `done`) | Código mayormente listo; falta registro QA en tasks |
 | 4 | Deploy **functions-fcm scheduler** 052 (`onVacunaPushSchedule`) | Código listo; **autorización Luis** |
 | 5 | Medicamento controlado: salida inventario ligada a historial | Dominio §12; spec nueva |
@@ -84,7 +84,7 @@ No es un wishlist infinito. Lo que no está abajo **no bloquea** abrir la clíni
 - Facturación SAT
 - Campañas / gasolina / nodos legacy `Venta`
 - Rediseño total del admin
-- Match teléfono 047 si no hay diseño de confirmación (riesgo de unir dueños)
+- Match teléfono 047 **sin** confirmación (riesgo de unir dueños) — ola 3 ya pide confirmación en código
 
 ---
 

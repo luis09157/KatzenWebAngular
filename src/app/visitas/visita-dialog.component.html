@@ -1,22 +1,21 @@
-<div class="admin-dialog-shell visita-dialog">
-  <header class="admin-dialog-header no-print">
+<div class="admin-dialog-shell visita-dialog visita-dialog--pos">
+  <header class="admin-dialog-header no-print pos-header">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">{{ esEdicion ? 'Cuenta del día' : 'Nueva cuenta del día' }}</h2>
-      <p class="admin-dialog-subtitle">
-        {{ esEdicion ? 'Edita líneas y cobra.' : 'Pasos: dueño → líneas → cobrar.' }}
-        Los productos descontarán inventario al guardar.
-        Estado:
-        <span class="estado-badge" [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
-          {{ estadoLabels[totales.estado] || estadoLabel }}
-        </span>
-      </p>
+      <p class="admin-dialog-badge">Caja POS</p>
+      <h2 class="admin-dialog-title">{{ tituloPos }}</h2>
+      <p class="admin-dialog-subtitle">{{ subtituloPos }}</p>
     </div>
+    <span
+      class="estado-badge pos-header__estado"
+      [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
+      {{ estadoLabels[totales.estado] || estadoLabel }}
+    </span>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </header>
 
-  <mat-dialog-content class="admin-dialog-body">
+  <mat-dialog-content class="admin-dialog-body pos-body">
     <nav class="visita-wizard no-print" *ngIf="!soloLectura" aria-label="Pasos del ticket">
       <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 1" (click)="irPaso(1)">
         <span class="visita-wizard__num">1</span>
@@ -24,220 +23,303 @@
       </button>
       <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 2" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(2)">
         <span class="visita-wizard__num">2</span>
-        Líneas
+        Caja
       </button>
       <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 3" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(3)">
         <span class="visita-wizard__num">3</span>
         Cobrar
       </button>
     </nav>
-    <app-flow-hint class="no-print" *ngIf="!soloLectura" icon="receipt_long" [message]="hintPasoWizard"></app-flow-hint>
 
     <div class="visita-print-sheet" id="visita-print-sheet">
       <div class="print-only print-brand">
-        <h1>KatzenVet — Cuenta del día</h1>
+        <h1>KatzenVet — Ticket del día</h1>
         <p>{{ form.get('fecha')?.value }} · {{ form.get('cliente')?.value || 'Cliente' }}</p>
         <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
       </div>
 
-      <form [formGroup]="form" class="admin-form-layout no-print" *ngIf="pasoWizard === 1 || soloLectura">
-        <div class="mostrador-bar no-print" *ngIf="!soloLectura">
-          <ng-container *ngIf="!modoMostrador; else mostradorActivo">
-            <app-flow-hint
-              *ngIf="!form.get('cliente_id')?.value"
-              icon="person"
-              message="Paso 1: elige el dueño. Si es compra de petshop sin registro, usa venta de mostrador abajo.">
-            </app-flow-hint>
-            <button mat-stroked-button type="button" class="mostrador-btn" (click)="activarVentaMostrador()">
-              <mat-icon>storefront</mat-icon>
-              Venta de mostrador (sin cliente)
-            </button>
-          </ng-container>
-          <ng-template #mostradorActivo>
-            <div class="mostrador-activo">
-              <span class="estado-badge muted">Sin cliente · venta de mostrador</span>
-              <app-flow-hint
-                variant="warn"
-                icon="storefront"
-                message="Puedes cobrar igual. Agrega productos o líneas manuales. Si es cliente de la clínica, vincúlalo para historial y saldo.">
-              </app-flow-hint>
-              <button mat-stroked-button color="primary" type="button" (click)="vincularClienteReal()">
-                <mat-icon>person_search</mat-icon>
-                ¿Es cliente? Vincular
-              </button>
-            </div>
-          </ng-template>
-        </div>
-        <app-cliente-paciente-picker
-          *ngIf="!modoMostrador"
-          class="full-width"
-          [formGroup]="form"
-          (selectionChange)="onClientePacienteSelected($event)">
-        </app-cliente-paciente-picker>
-        <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
-        <mat-form-field appearance="outline">
-          <mat-label>Fecha</mat-label>
-          <input matInput type="date" formControlName="fecha" required />
-        </mat-form-field>
-        <app-staff-picker
-          class="full-width"
-          [formGroup]="form"
-          [fields]="staffPickerFields"
-          roleFilter="all"
-          label="Atendido por"
-          [required]="false"
-          [prefillCurrentUser]="!esEdicion"
-          [disabled]="soloLectura"
-          hint="Opcional. UID del staff + nombre.">
-        </app-staff-picker>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Notas</mat-label>
-          <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
-        </mat-form-field>
-      </form>
-
-      <ng-container *ngIf="pasoWizard >= 2 || soloLectura">
-      <div class="visita-totales">
-        <div><span class="lbl">Total</span><strong>{{ formatMoney(totales.total) }}</strong></div>
-        <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
-        <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
-      </div>
-      <p class="cobro-hint no-print" *ngIf="!soloLectura && totales.saldo > 0">
-        Al cobrar puedes registrar el total o un abono parcial (deja el monto menor en caja).
-      </p>
-
-      <section class="pendientes-box no-print" *ngIf="!soloLectura && pendientesBanio.length">
-        <h3 class="section-title">Pendientes de hoy (peluquería)</h3>
-        <p class="hint-empty" style="margin-top:0">Baños ya registrados para este cliente que aún no están en un ticket.</p>
-        <div class="pendiente-row" *ngFor="let p of pendientesBanio">
-          <div class="linea-main">
-            <span class="linea-desc">{{ p.paciente || 'Mascota' }} · {{ p.tipo_servicio || 'baño' }}</span>
-            <span class="estado-badge muted">{{ formatMoney(p.precio_total) }}</span>
-          </div>
-          <button mat-stroked-button color="primary" type="button" (click)="incluirBanioPendiente(p)">
-            <mat-icon>add_shopping_cart</mat-icon>
-            Incluir en ticket
+      <!-- Paso 1: dueño / mostrador 1 tap -->
+      <div class="pos-step pos-step--dueno no-print" *ngIf="pasoWizard === 1 && !soloLectura">
+        <div class="pos-tiles">
+          <button type="button" class="pos-tile" [class.is-on]="!modoMostrador && !!form.get('cliente_id')?.value" (click)="elegirClienteClinica()">
+            <mat-icon>person</mat-icon>
+            <span class="pos-tile__title">Cliente de la clínica</span>
+            <span class="pos-tile__hint">Busca dueño y mascota</span>
+          </button>
+          <button type="button" class="pos-tile pos-tile--accent" [class.is-on]="modoMostrador" (click)="ventaMostradorUnTap()">
+            <mat-icon>storefront</mat-icon>
+            <span class="pos-tile__title">Venta de mostrador</span>
+            <span class="pos-tile__hint">Sin registro · 1 toque</span>
           </button>
         </div>
-      </section>
 
-      <h3 class="section-title">Líneas del ticket</h3>
-      <app-flow-hint
-        *ngIf="inventarioHint"
-        icon="inventory_2"
-        [message]="inventarioHint"
-        [variant]="mostrandoProducto ? 'warn' : 'info'">
-      </app-flow-hint>
-      <div class="lineas-list" *ngIf="lineas.length; else sinLineas">
-        <div class="linea-row" *ngFor="let l of lineas">
-          <div class="linea-main">
-            <span class="linea-desc">{{ l.descripcion }}</span>
-            <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
-            <span class="estado-badge inventario-badge" *ngIf="esLineaProducto(l)">Descuenta inventario</span>
-            <span class="linea-origen-hint" *ngIf="origenLineaHint(l)">{{ origenLineaHint(l) }}</span>
+        <form [formGroup]="form" class="admin-form-layout pos-dueno-form" *ngIf="!modoMostrador">
+          <app-cliente-paciente-picker
+            class="full-width"
+            [formGroup]="form"
+            (selectionChange)="onClientePacienteSelected($event)">
+          </app-cliente-paciente-picker>
+          <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+        </form>
+
+        <div class="mostrador-activo" *ngIf="modoMostrador">
+          <span class="estado-badge muted">Mostrador / público</span>
+          <button mat-stroked-button color="primary" type="button" (click)="vincularClienteReal()">
+            <mat-icon>person_search</mat-icon>
+            ¿Es cliente? Vincular
+          </button>
+        </div>
+
+        <button type="button" class="pos-more-toggle" (click)="mostrarDetalles = !mostrarDetalles">
+          {{ mostrarDetalles ? 'Ocultar fecha y notas' : 'Fecha, notas y quién atendió' }}
+        </button>
+        <form [formGroup]="form" class="admin-form-layout" *ngIf="mostrarDetalles">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha</mat-label>
+            <input matInput type="date" formControlName="fecha" required />
+          </mat-form-field>
+          <app-staff-picker
+            class="full-width"
+            [formGroup]="form"
+            [fields]="staffPickerFields"
+            roleFilter="all"
+            label="Atendido por"
+            [required]="false"
+            [prefillCurrentUser]="!esEdicion"
+            [disabled]="soloLectura"
+            hint="Opcional. Quién cobró o atendió.">
+          </app-staff-picker>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notas</mat-label>
+            <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
+          </mat-form-field>
+        </form>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal pos-btn-full"
+          type="button"
+          [disabled]="!tieneDuenoOMostrador"
+          (click)="irPaso(2)">
+          Continuar a la caja
+        </button>
+      </div>
+
+      <!-- Paso 2: catálogo POS -->
+      <div class="pos-stage pos-stage--caja" *ngIf="pasoWizard === 2 || (soloLectura && pasoWizard !== 3)">
+        <div class="pos-catalog no-print" *ngIf="!soloLectura">
+          <div class="pos-search-sticky">
+            <mat-icon class="pos-search-sticky__icon">search</mat-icon>
+            <input
+              class="pos-search-sticky__input"
+              type="search"
+              [formControl]="catalogSearch"
+              placeholder="Buscar producto, código o QR…"
+              autocomplete="off"
+              (focus)="posTab = 'productos'" />
           </div>
-          <div class="linea-right">
-            <span>{{ formatMoney(l.monto) }}</span>
-            <button
-              mat-icon-button
-              type="button"
-              class="no-print"
-              matTooltip="Quitar línea"
-              *ngIf="!soloLectura && pagado <= 0"
-              (click)="quitarLinea(l.id)">
-              <mat-icon>close</mat-icon>
+          <div class="pos-chips" role="tablist" aria-label="Catálogo">
+            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'productos'" (click)="posTab = 'productos'">Productos</button>
+            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'servicios'" (click)="posTab = 'servicios'">Servicios</button>
+            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'mostrador'" (click)="posTab = 'mostrador'">Mostrador</button>
+          </div>
+
+          <div class="pos-catalog-scroll" *ngIf="posTab === 'productos'">
+            <p class="hint-empty" *ngIf="cargandoCatalogo">Cargando productos…</p>
+            <p class="hint-empty" *ngIf="!cargandoCatalogo && !productosFiltrados.length">Sin coincidencias. Prueba nombre o código.</p>
+            <article
+              class="pos-item"
+              *ngFor="let p of productosFiltrados"
+              [class.is-disabled]="productoSinStockFn(p)">
+              <button type="button" class="pos-item__hit" (click)="abrirSheetProducto(p)" [disabled]="productoSinStockFn(p)">
+                <span class="pos-item__name">{{ p.nombre }}</span>
+                <span class="pos-item__meta">
+                  {{ formatMoney(p.precio_venta) }}
+                  · stock {{ p.stock_actual }} {{ p.unidad_medida }}
+                </span>
+              </button>
+              <span class="pos-item__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
+              <button
+                type="button"
+                class="pos-plus"
+                [disabled]="productoSinStockFn(p)"
+                (click)="agregarProductoRapido(p, $event)"
+                aria-label="Agregar">
+                <mat-icon>add</mat-icon>
+              </button>
+            </article>
+          </div>
+
+          <div class="pos-catalog-scroll" *ngIf="posTab === 'servicios'">
+            <section class="pendientes-box" *ngIf="pendientesBanio.length">
+              <h3 class="section-title">Pendientes de hoy (peluquería)</h3>
+              <div class="pendiente-row" *ngFor="let p of pendientesBanio">
+                <div class="linea-main">
+                  <span class="linea-desc">{{ p.paciente || 'Mascota' }} · {{ p.tipo_servicio || 'baño' }}</span>
+                  <span class="estado-badge muted">{{ formatMoney(p.precio_total) }}</span>
+                </div>
+                <button mat-stroked-button color="primary" type="button" class="pos-btn-full" (click)="incluirBanioPendiente(p)">
+                  <mat-icon>add_shopping_cart</mat-icon>
+                  Incluir
+                </button>
+              </div>
+            </section>
+            <button type="button" class="pos-item pos-item--svc" *ngFor="let p of lineaPresets" (click)="aplicarPreset(p)">
+              <span class="pos-item__text">
+                <span class="pos-item__name">{{ p.label }}</span>
+                <span class="pos-item__meta">{{ p.descripcion }}</span>
+              </span>
+              <span class="pos-plus" aria-hidden="true"><mat-icon>add</mat-icon></span>
             </button>
+            <p class="hint-empty">El monto se pide al agregar (ola 3: 1 toque con precio fijo).</p>
+          </div>
+
+          <div class="pos-catalog-scroll" *ngIf="posTab === 'mostrador'">
+            <ng-container *ngIf="!modoMostrador">
+              <p class="hint-empty">Compra de petshop sin dueño en el sistema.</p>
+              <button type="button" class="pos-tile pos-tile--accent" (click)="ventaMostradorUnTap()">
+                <mat-icon>storefront</mat-icon>
+                <span class="pos-tile__title">Activar venta de mostrador</span>
+                <span class="pos-tile__hint">1 toque · sigue en la caja</span>
+              </button>
+            </ng-container>
+            <div class="mostrador-activo" *ngIf="modoMostrador">
+              <span class="estado-badge muted">Mostrador activo</span>
+              <p class="hint-empty">Puedes cobrar sin cliente. Si llega un dueño de la clínica, vincúlalo.</p>
+              <button mat-stroked-button color="primary" type="button" class="pos-btn-full" (click)="vincularClienteReal(); irPaso(1)">
+                Vincular cliente
+              </button>
+            </div>
           </div>
         </div>
+
+        <aside class="pos-cart-panel">
+          <h3 class="section-title">Ticket</h3>
+          <div class="lineas-list" *ngIf="lineas.length; else sinLineasPanel">
+            <button type="button" class="linea-row" *ngFor="let l of lineas" (click)="abrirSheetLinea(l)" [disabled]="soloLectura">
+              <div class="linea-main">
+                <span class="linea-desc">{{ l.descripcion }}</span>
+                <span class="estado-badge muted">{{ categoriaLabels[l.categoria] || l.categoria }}</span>
+                <span class="estado-badge inventario-badge" *ngIf="esLineaProducto(l)">Descuenta inventario</span>
+              </div>
+              <div class="linea-right">
+                <span class="linea-qty" *ngIf="cantidadDe(l) > 1">×{{ cantidadDe(l) }}</span>
+                <span>{{ formatMoney(l.monto) }}</span>
+              </div>
+            </button>
+          </div>
+          <ng-template #sinLineasPanel>
+            <p class="hint-empty">Vacío. Pulsa + en un producto o un servicio.</p>
+          </ng-template>
+          <div class="pos-cart-totales">
+            <div><span class="lbl">Subtotal</span><strong>{{ formatMoney(totales.total) }}</strong></div>
+            <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
+            <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
+          </div>
+          <p class="pos-total-huge">{{ formatMoney(totales.total) }}</p>
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal pos-btn-cobrar"
+            type="button"
+            *ngIf="!soloLectura"
+            [disabled]="!puedeIrACobrar"
+            (click)="irACobrar()">
+            COBRAR
+          </button>
+        </aside>
       </div>
-      <ng-template #sinLineas>
-        <p class="hint-empty">Sin líneas. Incluye un baño pendiente, vende un producto (descuenta stock) o agrega consulta/vacuna.</p>
-      </ng-template>
 
-    <div class="linea-presets no-print" *ngIf="!soloLectura">
-      <span class="presets-label">Atajos:</span>
-      <button
-        mat-stroked-button
-        type="button"
-        class="preset-chip"
-        *ngFor="let p of lineaPresets"
-        (click)="aplicarPreset(p)">
-        {{ p.label }}
-      </button>
-    </div>
+      <!-- Paso 3: cobrar -->
+      <div class="pos-step pos-step--cobro no-print" *ngIf="pasoWizard === 3 || soloLectura">
+        <ul class="pos-cobro-lines">
+          <li *ngFor="let l of lineas">
+            <span>{{ l.descripcion }}</span>
+            <strong>{{ formatMoney(l.monto) }}</strong>
+          </li>
+        </ul>
+        <p class="pos-total-huge">{{ formatMoney(totales.saldo > 0 ? totales.saldo : totales.total) }}</p>
+        <p class="hint-empty" *ngIf="totales.pagado > 0">Ya pagado {{ formatMoney(totales.pagado) }} · saldo {{ formatMoney(totales.saldo) }}</p>
 
-    <form
-      [formGroup]="productoForm"
-      class="linea-add producto-add admin-form-layout no-print"
-      *ngIf="!soloLectura && mostrandoProducto">
-      <app-producto-picker
-        class="full-width"
-        [formGroup]="productoForm"
-        label="Producto a vender"
-        (selectionChange)="onProductoSeleccionado($event)">
-      </app-producto-picker>
-      <mat-form-field appearance="outline">
-        <mat-label>Cantidad</mat-label>
-        <input matInput type="number" min="1" step="1" formControlName="cantidad" />
-      </mat-form-field>
-      <button mat-stroked-button color="primary" type="button" (click)="agregarProductoAlTicket()">
-        <mat-icon>add</mat-icon>
-        Agregar al ticket
-      </button>
-      <button mat-button type="button" (click)="cancelarProducto()">Cancelar</button>
-    </form>
-
-    <form [formGroup]="lineaForm" class="linea-add admin-form-layout no-print" *ngIf="!soloLectura && !mostrandoProducto">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Descripción</mat-label>
-        <input matInput formControlName="descripcion" placeholder="Ej. Consulta general" />
-        <mat-error *ngIf="lineaForm.get('descripcion')?.hasError('required')">Requerido</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Monto</mat-label>
-        <input matInput type="number" min="0.01" step="0.01" formControlName="monto" />
-        <mat-error *ngIf="lineaForm.get('monto')?.invalid">Monto inválido</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Categoría</mat-label>
-        <mat-select formControlName="categoria">
-          <mat-option *ngFor="let c of categorias" [value]="c">{{ categoriaLabels[c] }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <button mat-stroked-button color="primary" type="button" (click)="agregarLineaLocal()">
-        <mat-icon>add</mat-icon>
-        Agregar línea
-      </button>
-    </form>
-      </ng-container>
+        <form [formGroup]="cobroForm" class="pos-cobro-form" *ngIf="!soloLectura && totales.saldo > 0">
+          <p class="presets-label">Método</p>
+          <div class="pos-metodos">
+            <button
+              type="button"
+              class="pos-metodo"
+              *ngFor="let m of metodosPago"
+              [class.is-on]="cobroForm.get('metodoPago')?.value === m.value"
+              (click)="cobroForm.patchValue({ metodoPago: m.value })">
+              <mat-icon>{{ m.icon }}</mat-icon>
+              {{ m.label }}
+            </button>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Monto a cobrar</mat-label>
+            <input matInput type="number" min="0.01" step="0.01" formControlName="monto" />
+            <span matPrefix>$&nbsp;</span>
+          </mat-form-field>
+          <button mat-button type="button" (click)="cobrarTodo()">Cobrar todo ({{ formatMoney(totales.saldo) }})</button>
+        </form>
+      </div>
     </div>
   </mat-dialog-content>
 
-  <mat-dialog-actions class="admin-dialog-actions no-print">
-    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
-    <button
-      mat-stroked-button
-      type="button"
-      *ngIf="!soloLectura && pasoWizard > 1"
-      (click)="atrasPaso()"
-      [disabled]="loading">
-      Atrás
+  <!-- Carrito sticky móvil -->
+  <div class="pos-cart-bar no-print" *ngIf="!soloLectura && pasoWizard === 2">
+    <button type="button" class="pos-cart-bar__info" (click)="abrirSheetCarrito()">
+      <span>{{ artsCount }} art{{ artsCount === 1 ? '' : 's' }}</span>
+      <strong>{{ formatMoney(totales.total) }}</strong>
     </button>
     <button
-      mat-stroked-button
+      mat-raised-button
       color="primary"
+      class="btn-primary-teal pos-cart-bar__cobrar"
       type="button"
-      *ngIf="!soloLectura && pasoWizard < 3"
-      (click)="siguientePaso()"
-      [disabled]="loading || (pasoWizard === 1 && !tieneDuenoOMostrador)">
-      Siguiente
+      [disabled]="!puedeIrACobrar"
+      (click)="irACobrar()">
+      COBRAR
     </button>
-    <button
-      mat-stroked-button
-      type="button"
-      (click)="imprimir()"
-      [disabled]="loading || !lineas.length"
-      matTooltip="Imprime un resumen del ticket">
+  </div>
+
+  <!-- Sheet cantidad / carrito -->
+  <div class="pos-sheet-backdrop no-print" *ngIf="sheetAbierta" (click)="cerrarSheet()"></div>
+  <aside class="pos-sheet no-print" *ngIf="sheetAbierta" role="dialog" aria-label="Detalle de línea">
+    <div class="pos-sheet__handle"></div>
+    <ng-container *ngIf="sheetModo === 'carrito'">
+      <h3 class="section-title">Ticket</h3>
+      <p class="hint-empty" *ngIf="!lineas.length">Sin artículos.</p>
+      <button type="button" class="linea-row" *ngFor="let l of lineas" (click)="abrirSheetLinea(l)">
+        <div class="linea-main">
+          <span class="linea-desc">{{ l.descripcion }}</span>
+          <span class="estado-badge inventario-badge" *ngIf="esLineaProducto(l)">Descuenta inventario</span>
+        </div>
+        <span>{{ formatMoney(l.monto) }}</span>
+      </button>
+    </ng-container>
+    <ng-container *ngIf="sheetModo !== 'carrito'">
+      <h3 class="section-title">{{ sheetTitulo }}</h3>
+      <p class="pos-sheet__precio">{{ formatMoney(sheetMontoPreview) }}</p>
+      <div class="pos-qty">
+        <button type="button" class="pos-qty__btn" (click)="sheetMenos()" aria-label="Menos">−</button>
+        <span class="pos-qty__val">{{ sheetQty }}</span>
+        <button type="button" class="pos-qty__btn" (click)="sheetMas()" aria-label="Más">+</button>
+      </div>
+      <button mat-raised-button color="primary" class="btn-primary-teal pos-btn-full" type="button" (click)="confirmarSheet()">
+        {{ sheetModo === 'linea' ? 'Actualizar' : 'Agregar al ticket' }}
+      </button>
+      <button mat-button color="warn" type="button" class="pos-btn-full" *ngIf="sheetModo === 'linea' && puedeQuitarSheet" (click)="borrarSheet()">
+        Quitar del ticket
+      </button>
+    </ng-container>
+    <button mat-button type="button" class="pos-btn-full" (click)="cerrarSheet()">Cerrar</button>
+  </aside>
+
+  <mat-dialog-actions class="admin-dialog-actions no-print pos-footer">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
+    <button mat-stroked-button type="button" *ngIf="!soloLectura && pasoWizard > 1" (click)="atrasPaso()" [disabled]="loading">Atrás</button>
+    <button mat-stroked-button type="button" (click)="imprimir()" [disabled]="loading || !lineas.length">
       <mat-icon>print</mat-icon>
       Imprimir
     </button>
@@ -249,25 +331,23 @@
       (click)="guardar()"
       [disabled]="!puedeGuardar"
       [matTooltip]="guardarBloqueoHint">
-      <mat-icon>save</mat-icon>
       {{ loading ? 'Guardando…' : 'Guardar' }}
     </button>
     <button
       mat-raised-button
       color="primary"
-      class="btn-primary-teal"
+      class="btn-primary-teal pos-footer__cobrar"
       type="button"
-      *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
-      (click)="cobrar()"
-      [disabled]="!puedeCobrar"
+      *ngIf="pasoWizard === 3 && !soloLectura"
+      (click)="confirmarCobro()"
+      [disabled]="!puedeCobrar || loading"
       [matTooltip]="cobrarBloqueoHint">
-      <mat-icon>point_of_sale</mat-icon>
-      {{ cobrarLabel }}
+      {{ loading ? 'Cobrando…' : cobrarLabel }}
     </button>
   </mat-dialog-actions>
   <app-flow-hint
     layout="footer"
-    *ngIf="!soloLectura && accionBloqueoHint"
+    *ngIf="!soloLectura && accionBloqueoHint && pasoWizard !== 2"
     [message]="accionBloqueoHint">
   </app-flow-hint>
 </div>

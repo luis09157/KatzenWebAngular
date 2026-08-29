@@ -1,6 +1,11 @@
 import {
   agregarSaldoCliente,
+  ajustarCantidadLinea,
+  cantidadLinea,
+  contarArticulos,
   deriveEstado,
+  nombreBaseLinea,
+  precioUnitarioLinea,
   recalcularVisita,
   sumLineas
 } from './visitas.util';
@@ -39,5 +44,24 @@ describe('visitas.util', () => {
       { saldo: 80, estado: 'cancelada', activo: true }
     ] as Visita[];
     expect(agregarSaldoCliente(visitas)).toBe(150);
+  });
+
+  it('055 POS: ajusta cantidad de producto y quita en 0', () => {
+    const linea = {
+      id: 'p1',
+      descripcion: 'Pipeta × 1',
+      monto: 200,
+      categoria: 'venta_producto' as const,
+      cantidad: 1
+    };
+    expect(cantidadLinea(linea)).toBe(1);
+    expect(precioUnitarioLinea(linea)).toBe(200);
+    const dos = ajustarCantidadLinea(linea, 1);
+    expect(dos?.cantidad).toBe(2);
+    expect(dos?.monto).toBe(400);
+    expect(dos?.descripcion).toBe('Pipeta × 2');
+    expect(nombreBaseLinea(dos?.descripcion)).toBe('Pipeta');
+    expect(ajustarCantidadLinea(linea, -1)).toBeNull();
+    expect(contarArticulos([dos!])).toBe(2);
   });
 });

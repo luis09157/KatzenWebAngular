@@ -55,11 +55,12 @@ specs/
 ├── 044-producto-picker/               # autocomplete unificado de producto
 ├── 045-visita-hub-pos-grid/           # cuenta del día (ticket) + grid productos
 ├── 046-ux-intuitiva-guiada/           # UX móvil: “te falta X”, walk-in, empty states
-├── 047-enlace-portal-cliente-existente/ # portal en ficha + self-reg sin duplicar dueño
+├── 047-enlace-portal-cliente-existente/ # portal en ficha + self-reg correo/teléfono (ola 3 confirm)
 ├── 051-login-auto-redirect/            # auto-entrada /admin/login con sesión Firebase
 ├── 052-vacunas-esquemas-push-pwa/      # esquemas vacunación + push + PWA (olas 1–3; spec done)
 ├── 053-desparasitacion-esquemas/       # desparasitación ola 1 (motor + confirm + recordatorio)
 ├── 054-cierre-sistema/                 # cierre operable P0/P1/P2 · CIERRE.md
+├── 055-pos-movil-ticket/               # Caja POS mobile-first (ola 1)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
@@ -131,6 +132,7 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cua
 | 052 | Vacunas: esquemas por especie + push anti-spam + PWA | **done** (olas 1–3; deploy scheduler FCM pendiente) |
 | 053 | Desparasitación: esquemas + confirmación + recordatorio | **in_progress** (ola 1 código; ola 2 listado/ticket) |
 | 054 | Cierre operable del producto | **in_progress** — [`CIERRE.md`](054-cierre-sistema/CIERRE.md) |
+| 055 | POS móvil Ticket del día | **in_progress** — ola 1 UI celular; olas 2 scanner / 3 atajos |
 
 ## Reglas Cursor relacionadas
 

@@ -62,7 +62,11 @@ export interface RegisterPortalOwnerInput {
   apellidoPaterno?: string;
   correo: string;
   telefono?: string;
+  /** Spec 047 ola 3: desambigua fichas con el mismo teléfono. */
+  nombreMascota?: string;
   acceptPrivacy: boolean;
+  confirmClienteId?: string;
+  skipPhoneMatch?: boolean;
 }
 
 export interface RegisterPortalOwnerResult {
@@ -73,6 +77,12 @@ export interface RegisterPortalOwnerResult {
   email?: string;
   /** Spec 047: true si se vinculó a ficha clínica existente. */
   linkedExisting?: boolean;
+  matchKind?: 'email' | 'phone' | 'new';
+  needsConfirmation?: boolean;
+  needsPetName?: boolean;
+  suggestedClienteId?: string;
+  petNames?: string[];
+  maskedPhone?: string;
 }
 
 export interface LinkStaffPortalInput {
