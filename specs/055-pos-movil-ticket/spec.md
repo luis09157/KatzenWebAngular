@@ -1,10 +1,10 @@
-# Spec: POS móvil — Ticket del día
+# Spec: POS móvil — Punto de venta
 
 **ID:** 055-pos-movil-ticket  
 **Estado:** in_progress  
 **Fecha:** 2026-08-28  
 **Autor:** Luis Alfonso Niño Martínez + agente  
-**Relaciona:** 032 ticket, 039 cobro-integridad, 043 QR producto, 044 producto-picker, 045 hub POS, 046 walk-in, 050 cobro unificado, 054 wizard
+**Relaciona:** 032 ticket, 039 cobro-integridad, 043 QR producto, 044 producto-picker, 045 hub POS, 046 walk-in, 049 3 mundos, 050 cobro unificado, 054 wizard
 
 ---
 
@@ -18,11 +18,17 @@ El wizard dueño → líneas → cobrar (054) **se conserva y se viste de POS**.
 
 ## Olas
 
+Investigación de mercado (Pulpos, Square/Shopify, Lightspeed, PIMS vet, CFDI MX): `INVESTIGACION-POS.md`.  
+**Prompt maestro vigente (UI redo + no mutar maestros):** `INVESTIGACION-POS.md` §7.
+
 | Ola | Entrega | Qué |
 |-----|---------|-----|
-| **1** | **Esta entrega** | UI móvil POS: 1 columna, búsqueda sticky, chips Productos / Servicios / Mostrador, lista táctil con «+» ≥44px, carrito sticky «N arts · $X · COBRAR», sheet de cantidad, cobro grande. Desktop puede ser 2 columnas. |
-| **2** | Después | Scanner / código de barras: reutilizar `filtrarProductos` + QR de **043** (cámara o pegar código en la búsqueda sticky). |
-| **3** | Después | Atajos de servicio a **1 tap** (baño, consulta, vacuna) con precio sugerido; hoy ola 1 pide monto si no hay precio. |
+| **1** | Entregada | UI móvil POS: 1 columna, búsqueda sticky, chips, lista táctil, carrito sticky, cobro grande. |
+| **1.5** | Entregada | Home POS + **3 rieles**: Petshop \| Consulta \| Peluquería. Walk-in solo petshop. |
+| **1.6** | **Vigente** | **UI redo táctil:** grid con foto, tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar. **No mutar** Productos/Clientes/Pacientes. Lógica reutilizada. |
+| **2 = P0** | Después | Scanner cámara + pegar/HID (`codigo_barras` 043). |
+| **3 = P1** | Después | Servicios 1 tap con precio sugerido 022. |
+| **P2** | Fuera de 055 | CFDI/PAC, WhatsApp, bundles, offline. |
 
 ---
 
@@ -37,7 +43,7 @@ Para **cerrar la venta en segundos**
 **Criterios de aceptación:**
 
 - [x] SC-001: Diálogo POS (`admin-dialog-shell`, sin `mat-dialog-title`) a pantalla completa o panel ancho en ≤720px.
-- [x] SC-002: Una columna en 375–430px: búsqueda sticky arriba; chips **Productos | Servicios | Mostrador**.
+- [x] SC-002: Una columna en 375–430px: búsqueda sticky (petshop); chips **Petshop | Consulta | Peluquería**.
 - [x] SC-003: Lista/cards táctiles (no tabla densa) con botón **+** mínimo 44×44px.
 - [x] SC-004: Carrito sticky abajo: `{n} arts · {total} · COBRAR`.
 - [x] SC-005: Sheet inferior para detalle de línea (cantidad +/−, borrar).
@@ -55,6 +61,35 @@ Para **no abrir «Registrar movimiento» de finanzas**
 
 - [x] SC-009: Paso cobrar: efectivo / tarjeta / transferencia, monto (total o abono), botón **COBRAR** grande.
 - [x] SC-010: El movimiento de caja sigue llevando `visitaId` (039/050). No reaparece «Registrar en caja» en módulos clínicos.
+
+### US-5 — Home POS estilo Pulpos (ola 1.5)
+
+Como **recepcionista**  
+Quiero **saber a dónde ir** al abrir el punto de venta (vender vs tickets vs catálogo)  
+Para **no pelearme con una tabla de ERP**
+
+**Criterios de aceptación:**
+
+- [x] SC-013: `/admin/visitas` es home POS: header **Punto de venta**; tiles **Nueva venta** (CTA primario), **Venta mostrador**, **Tickets de hoy**, **Productos**.
+- [x] SC-014: Debajo: cards de resumen (ventas del día, tickets abiertos, por cobrar) + lista **compacta** de tickets abiertos. La tabla densa no es protagonista (historial opcional).
+- [x] SC-015: Móvil: bottom bar **Caja | Tickets | Productos**. Desde POS no hay CTA a Finanzas / reportes de caja.
+- [x] SC-016: Copy unificado: menú y toolbar **Punto de venta**; CTA **Nueva venta**.
+- [x] SC-017: Caja móvil: búsqueda sticky + scanner (pegar código 043), chip cliente o **Mostrador**, líneas con foto + +/−, **Cobrar $total**.
+- [x] SC-018: Tres rieles visibles al abrir **Nueva venta**: **Petshop** (inventario +), **Consulta** (Consulta/Medicamento/Vacuna + productos clínicos), **Peluquería** (pendientes + Nuevo baño). Todo cae en el ticket; no en finanzas.
+- [x] SC-019: Walk-in/mostrador **solo petshop**. Consulta y peluquería exigen dueño + mascota (hint + CTA).
+
+### US-6 — Caja táctil con foto (ola 1.6)
+
+Como **recepcionista con el teléfono**  
+Quiero **ver fotos, tocar para agregar y quitar con botones grandes**  
+Para **armar el ticket sin pelearme con una lista de ERP**
+
+**Criterios de aceptación:**
+
+- [x] SC-020: Grid de productos/servicios con **foto** (`imagen_url` 043) o placeholder; tap = agregar al carrito.
+- [x] SC-021: +/− y **quitar** ≥48×48 px en tile y en línea del ticket. Add/edit/delete **solo** de líneas (no fichas maestras).
+- [x] SC-022: Sticky **cliente/mostrador + Cobrar $XXX**. Consulta/peluquería: picker dueño (sin crear cliente/paciente).
+- [x] SC-023: Home `/admin/visitas` táctil (tiles con icono 48px). Catálogo inventario = solo ver.
 
 ### US-3 — Scanner (ola 2 — no implementar ahora)
 
@@ -82,8 +117,10 @@ Para **no teclear monto cada vez**
 
 - Cambios RTDB o Cloud Functions
 - Reabrir cobro directo en baños/citas/pensión (050)
-- Scanner de cámara (ola 2)
-- Precios default de servicios sin prompt (ola 3)
+- Scanner de cámara (ola 2 / P0) — hasta autorización Luis
+- Precios default de servicios sin prompt (ola 3 / P1)
+- **CFDI / PAC / factura global / botón Facturar** (024 fase 2; ticket interno ≠ factura SAT)
+- WhatsApp / compartir ticket por API
 - App nativa; esto es el admin web en viewport celular
 - Commit / `firebase deploy`
 
@@ -102,7 +139,7 @@ Para **no teclear monto cada vez**
   | `Katzen/Banios` | staff | no | pendientes de peluquería |
   | `Katzen/Cliente`, `Katzen/Mascota` | staff | no | picker dueño (029) |
 
-- **Estrategia de Datos de Prueba:** mocks / localhost. Prohibido producción `katzen-a0e3e`. Tests `test:046` (walk-in), `test:039`/`test:040` (integridad).
+- **Estrategia de Datos de Prueba:** mocks (`MOCK_PRODUCTOS_POS` 6 ítems `demo-pos-*`, `soloDemo: true`) / localhost. **Prohibido** writes a `Katzen/Cliente`, `Katzen/Mascota`, `Katzen/Inventario/Productos`. Flag `usarCatalogoDemoPos` ON en localhost, **OFF en prod**. Tests `test:055` (foto + catálogo demo), `test:046` (walk-in), `test:039`/`test:040` (integridad).
 
 - **Patrones UI Reutilizados:** `admin-dialog-shell`, `ADMIN_DIALOG_POS`, `app-cliente-paciente-picker`, `filtrarProductos` (044), `app-flow-hint`, `.estado-badge`, `LoadingService`, SweetAlert2, menú ⋮ existente en la lista.
 
@@ -122,9 +159,37 @@ Para **no teclear monto cada vez**
 ## UI (rutas y layout)
 
 - Ruta admin: `/admin/visitas` (sin ruta nueva)
-- Patrón: lista CRUD + **diálogo POS fullscreen en móvil**
-- Desktop ≥721px: opcional 2 columnas (catálogo \| carrito); **prioridad 375–430px**
-- KPIs de la lista: se conservan
+- **Home POS (ola 1.5):** tiles + resumen + tickets compactos — no lista ERP como protagonista
+- Diálogo POS fullscreen en móvil; desktop ≥721px: 2 columnas (catálogo \| carrito)
+- Prioridad 375–430px
+- KPIs: 3 cards de resumen (no 5 filtros densos al tope)
+
+## POS Pulpos-like + 3 rieles Katzen — Contratos de UI (ola 1.5)
+
+Ideas de Pulpos/Square (**sin copiar marca**). La caja no es un POS genérico: vende **tres mundos** en el mismo ticket.
+
+### Mapa: si vendo X voy a Y
+
+| Si vendo… | Voy a… | Qué entra al ticket | Dueño |
+|-----------|--------|---------------------|-------|
+| Croqueta, accesorio, producto de anaquel | Riel **Petshop** | `venta_producto` + `productoId`; salida inventario al cobrar (039) | Opcional (mostrador OK) |
+| Consulta, vacuna, medicamento cobrado | Riel **Consulta** | Línea `consulta` / `vacuna` / `otro` (monto) o medicamento clínico (`venta_producto`) | Dueño + mascota |
+| Baño / corte | Riel **Peluquería** | Pendiente `Katzen/Banios` → `banioId` (046/050) o «Nuevo baño» (línea `banio`) | Dueño + mascota |
+| Reportes de caja, gastos | **No** desde POS | `/admin/finanzas` (Administración) | — |
+| Alta de stock / compras | Tile **Productos** o menú Inventario | No es cobro | — |
+
+### Contratos UI
+
+| Superficie | Contrato |
+|------------|----------|
+| Home `/admin/visitas` | Header «Punto de venta». Tiles: **Nueva venta** (abre caja con 3 rieles) · Venta mostrador · Tickets de hoy · Productos. |
+| Caja chips | **Petshop \| Consulta \| Peluquería** (obligatorio; no Productos/Servicios/Mostrador). |
+| Petshop | Grid/lista `Katzen/Inventario/Productos` (alimento, accesorio, peluquería). `+` ≥44px. Foto/`imagen_url` 043. Scanner = pegar código. |
+| Consulta | Atajos Consulta / Medicamento / Vacuna (piden monto) + lista medicamentos/vacunas clínicas. Cae en el ticket, no en finanzas. |
+| Peluquería | Baños pendientes del cliente (`filtrarBaniosPendientesTicket`) + **Nuevo baño** (monto → línea). |
+| Walk-in | Solo petshop. Consulta/peluquería: hint + «Elegir dueño y mascota». |
+| Carrito | Foto, nombre, precio, +/−, **Cobrar $total**. |
+| Navegación 3 caminos menú | Vender = POS. Clínica = Atención clínica. Inventario/finanzas = Administración. |
 
 ---
 
@@ -144,6 +209,10 @@ Ver `tasks.md`. `npm run build`, `npm run test:046`, smoke `:4200`.
 
 ## Notas / decisiones
 
-- Copy: **Caja POS** / **Nueva venta** en UI; menú sigue «Ticket del día».
+- Copy: **Punto de venta** / **Nueva venta** en menú, toolbar y home. Diálogo: Nueva venta / Caja.
 - Staff UID no se muestra; «Atendido por» va en «Más opciones».
-- Ola 1 pide monto en servicios; ola 3 lo vuelve 1 tap.
+- Ola 1 pide monto en servicios; ola 3 / P1 lo vuelve 1 tap.
+- Ola 1.5 no toca contratos de cobro, walk-in, inventario ni wizard 054.
+- 2026-08-30: investigación POS en `INVESTIGACION-POS.md`. Ola 1.6 = UI redo táctil (prompt §7). P0 Scanner sigue diferido. No hay PAC; el ticket no es CFDI.
+- Ola 1.6 no toca `confirmarCobro`, `VisitasService`, salidas de inventario ni nodos maestros.
+- 2026-08-30: catálogo de **muestra** (6 fotos locales, 2 por riel) con `soloDemo` / `demo-pos-*`. No es inventario real; flag `usarCatalogoDemoPos` default OFF en prod. Banner «Catálogo de muestra — no se guarda».

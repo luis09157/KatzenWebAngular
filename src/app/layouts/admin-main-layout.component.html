@@ -48,7 +48,7 @@
       <div class="admin-nav-group-label" *ngIf="hasPosNav">Punto de venta</div>
       <a *ngIf="canShow('visitas')" mat-list-item routerLink="/admin/visitas" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle>Ticket del día</span>
+        <span matListItemTitle>Punto de venta</span>
       </a>
 
       <mat-divider *ngIf="hasAdminNav && (hasClinicaNav || hasPosNav)"></mat-divider>

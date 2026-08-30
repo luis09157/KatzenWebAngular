@@ -29,5 +29,7 @@ export const environment = {
   /** FCM web portal (spec 023 fase B). Configurar vía Firebase Console antes de prod push. */
   fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk',
   /** Spec 052: push programado (D-7 / D-0). Rollback: false + no redeployar scheduler. */
-  pushProgramadoEnabled: true
+  pushProgramadoEnabled: true,
+  /** POS 055: catálogo demo OFF en producción (nunca mezclar con RTDB). */
+  usarCatalogoDemoPos: false
 }; 

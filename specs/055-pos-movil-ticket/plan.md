@@ -1,13 +1,16 @@
-# Plan técnico: POS móvil — Ticket del día
+# Plan técnico: POS móvil — Punto de venta
 
 **Spec:** `specs/055-pos-movil-ticket/spec.md`  
 **Estado:** approved  
+**Investigación:** `specs/055-pos-movil-ticket/INVESTIGACION-POS.md` (2026-08-30) — hallazgos Pulpos / Square / Shopify / Lightspeed / PIMS vet / CFDI MX. **No implementar** hasta que Luis autorice la ola.
 
 ---
 
 ## Resumen
 
-Ola 1: rediseño **mobile-first** de `visita-dialog` como caja POS (una columna, catálogo táctil, carrito sticky, sheet de cantidad, cobro inline). El wizard 054 se conserva. Persistencia, inventario y cobro siguen en `VisitasService` + `InventarioService.registrarSalida` + `CajaService.crearMovimiento({ visitaId })`. Desktop ≥721px puede partir catálogo \| carrito **sin** ser el diseño rector. Olas 2–3 documentadas, no implementadas.
+Ola 1: rediseño **mobile-first** de `visita-dialog` como caja POS. Ola 1.5 (**POS Pulpos-like**): home `/admin/visitas` con tiles y tickets compactos; caja con buscar + scanner placeholder, chip cliente, carrito +/− y **Cobrar $total**. El wizard 054 se conserva. Persistencia, inventario y cobro siguen en `VisitasService` + `InventarioService.registrarSalida` + `CajaService.crearMovimiento({ visitaId })`. Desktop ≥721px puede partir catálogo \| carrito **sin** ser el diseño rector.
+
+**Ola 1.6 (2026-08-30):** rehacer UI táctil (grid + foto + sticky). Prompt maestro vigente: `INVESTIGACION-POS.md` §7. P0 Scanner / P1 1-tap siguen diferidos. CFDI/WhatsApp no entran a 055.
 
 ---
 
@@ -23,10 +26,24 @@ Ola 1: rediseño **mobile-first** de `visita-dialog` como caja POS (una columna,
 | `src/app/visitas/visita-dialog.component.scss` | modificar | sticky search, chips, + 44px, cart bar, sheet |
 | `src/app/visitas/visita-dialog.component.ts` | modificar | catálogo, tabs, sheet qty, cobro inline |
 | `src/app/visitas/visitas.util.ts` | modificar | `ajustarCantidadLinea` / unitario |
+| `src/app/visitas/pos-rieles.util.ts` | crear | 3 rieles + walk-in solo petshop |
+| `src/app/visitas/pos-rieles.util.spec.ts` | crear | tests rieles (incluido en test:046) |
+| `src/app/visitas/pos-foto.util.ts` | crear | URL foto 043 + placeholder (ola 1.6) |
+| `src/app/visitas/pos-foto.util.spec.ts` | crear | tests foto con `MOCK_PRODUCTOS_POS` |
+| `src/app/core/testing/mock-data.ts` | modificar | `MOCK_PRODUCTOS_POS` (6 demo, solo lectura) |
+| `src/app/visitas/pos-catalogo-demo.data.ts` | crear | 6 ítems demo (no mock-data en bundle POS) |
+| `src/app/visitas/pos-catalogo-demo.util.ts` | crear | flag demo, no push RTDB, no salida/alta inventario |
+| `src/app/visitas/pos-catalogo-demo.util.spec.ts` | crear | 6 demo, 2 por riel, no persistir |
+| `src/environments/environment.ts` | modificar | `usarCatalogoDemoPos: true` (localhost) |
+| `src/environments/environment.prod.ts` | modificar | `usarCatalogoDemoPos: false` |
+| `src/assets/pos-demo/` | crear | 6 PNG locales (no hotlink) |
 | `src/app/visitas/visitas.util.spec.ts` | modificar | tests cantidad POS |
-| `src/app/visitas/visitas.component.html` | modificar | CTA Nueva venta / mostrador |
-| `src/app/visitas/visitas.component.ts` | modificar | `ADMIN_DIALOG_POS`, `nuevaMostrador()` |
-| `src/app/visitas/visitas.component.scss` | modificar | CTA táctil full-width móvil |
+| `src/app/visitas/visitas.component.html` | modificar | Home POS tiles + tickets compactos + bottom bar |
+| `src/app/visitas/visitas.component.ts` | modificar | `ADMIN_DIALOG_POS`, `nuevaMostrador()`, navegación tiles |
+| `src/app/visitas/visitas.component.scss` | modificar | Tiles Pulpos, cards ticket, bottom bar móvil |
+| `src/app/layouts/admin-main-layout.component.html` | modificar | Copy menú «Punto de venta» |
+| `src/app/core/config/admin-route-labels.config.ts` | modificar | Toolbar «Punto de venta» |
+| `src/app/dashboard/dashboard.component.html` | modificar | CTA hub → Punto de venta |
 
 ### Firebase
 
@@ -61,13 +78,13 @@ Katzen/Caja/Movimientos/{id}
 
 ## Flujos
 
-### Flujo principal (celular, ola 1)
+### Flujo principal (celular, ola 1.5)
 
-1. `/admin/visitas` → **Nueva venta** (o **Venta de mostrador** = 1 tap walk-in).
+1. `/admin/visitas` home POS → tile **Nueva venta** (o **Venta mostrador** = 1 tap walk-in). Tickets de hoy / Productos son caminos distintos.
 2. Paso 1: dueño (picker) **o** tile Mostrador → pasa a caja.
-3. Paso 2: chip Productos → buscar / pulsar **+**; Servicios → tile + monto; sheet para +/−.
-4. Barra sticky **COBRAR** → paso 3: método + monto → confirma → `persistir` + salida inventario + caja con `visitaId`.
-5. Cerrar diálogo; lista se refresca.
+3. Paso 2: buscar / scanner pegar código / pulsar **+**; chip cliente o Mostrador; carrito +/−; **Cobrar $total**.
+4. Paso 3: método + monto → confirma → `persistir` + salida inventario + caja con `visitaId`.
+5. Cerrar diálogo; home se refresca. Sin enlace a Finanzas.
 
 ### Errores esperados
 
@@ -117,19 +134,21 @@ Katzen/Caja/Movimientos/{id}
   - [x] Sin eliminar ni renombrar nodos existentes
   - [x] Campos nuevos opcionales con defaults seguros en lectura (no hay campos nuevos)
 
-- **Estrategia de Datos de Prueba:** localhost + mocks. `npm run test:046`, `test:039` si rápidos. Nunca RTDB producción.
+- **Estrategia de Datos de Prueba:** localhost + mocks (`MOCK_PRODUCTOS_POS` `demo-pos-*`, `soloDemo`). `npm run test:055`, `test:046`, `test:039`, `test:040`. Nunca RTDB producción. **Cero writes** a Cliente / Mascota / Productos. Demo **no** se mezcla con RTDB salvo `usarCatalogoDemoPos` (OFF en prod).
 
 - **Patrones UI Reutilizados:**
 
   | Patrón | Referencia en repo |
   |--------|-------------------|
   | Diálogo | `admin-dialog-shell`, `ADMIN_DIALOG_POS` |
+  | Home tiles | tiles locales `.pos-home-tile` (no card de finanzas) |
   | Dueño/paciente | `app-cliente-paciente-picker` |
-  | Búsqueda producto | `filtrarProductos` (`producto-search.util.ts`) |
+  | Búsqueda producto | `filtrarProductos` (`producto-search.util.ts`) + código 043 |
   | Walk-in | `visita-mostrador.util.ts` |
   | Alertas | `ErrorMessagesService`, SweetAlert2 |
   | Loading | `LoadingService` + `finally` hide |
   | Badges | `.estado-badge`, badge inventario |
+  | Foto producto | `Producto.imagen_url` (043, opcional) |
 
   - [x] Sin librerías UI externas
   - [x] `docs/ADMIN-UI-ARCHITECTURE.md` consultado
@@ -145,7 +164,8 @@ Katzen/Caja/Movimientos/{id}
 
 | Escenario | Acción de rollback |
 |-----------|-------------------|
-| UI rompe build o POS inutilizable | Revertir `visita-dialog.*`, `visitas.component.*`, `admin-ui.config.ts`, `admin-dialog.scss`, `visitas.util.ts` |
+| UI rompe build o POS inutilizable | Revertir `visita-dialog.*`, `visitas.component.*`, `pos-foto.util.ts`, `admin-ui.config.ts`, `admin-dialog.scss` |
+| Accidental write a maestros | No hay APIs de create/update producto/cliente/paciente en el diálogo POS; rollback = no desplegar |
 | Cobro no liga `visitaId` | No aplica Functions; revertir `confirmarCobro` al flujo previo con `CajaMovimientoDialogComponent` |
 | Inventario doble salida | Misma guarda: no registrar si `movimientoInventarioId` ya existe |
 | Reglas / Functions | N/A esta ola |
@@ -167,5 +187,45 @@ firebase deploy --only hosting
 ## Riesgos
 
 - Overlay Material + `100vh` en iOS: usar `100dvh` / `100vh` con `max-height` en `--pos`.
-- Catálogo de 40 ítems (`filtrarProductos` límite): la búsqueda cubre el resto; ola 2 scanner.
+- Catálogo de 40 ítems (`filtrarProductos` límite): la búsqueda cubre el resto; **P0** scanner cámara.
 - Cobro inline vs diálogo caja: mismo `crearMovimiento`; finanzas admin no se toca.
+- Cámara en Safari iOS: requiere HTTPS (localhost OK); si `BarcodeDetector` no existe, fallback a pegar código (ya en sheet).
+- Confundir ticket interno con CFDI: copy de cobro **nunca** dice «Factura SAT»; el comprobante es el ticket de visita.
+
+---
+
+## Olas refinadas post-investigación (P0–P2)
+
+Fuente: `INVESTIGACION-POS.md`. Una ola = una autorización de Luis. **No mezclar P0 y P1 en el mismo PR.**
+
+| Prioridad | Ola spec | Esfuerzo | Qué | No hacer |
+|-----------|----------|----------|-----|----------|
+| **Hecho** | 1 + 1.5 | — | UI POS, home tiles, dock, 3 rieles, walk-in solo petshop, cobro `visitaId` | — |
+| **P0 siguiente** | 2 · SC-011 | ~1–1.5 d | Cámara + pegar/HID → match `codigo_barras` 043 → `agregarProductoRapido`. Sheet scanner existente. | PAC, 1 tap servicios, librería UI nueva |
+| **P1** | 3 · SC-012 | ~1.5–2.5 d | Consulta/Vacuna/Baño 1 tap con precio de defaults 022; search con foto + quick-add; pass 44/48 px | Bundles ezyVet, CFDI |
+| **P2** | — | n/a | CFDI/PAC/global (024 fase 2), WhatsApp ticket, consumo vs anaquel, loyalty, offline | Bloquear clínica |
+
+### P0 — Scanner (contratos)
+
+- **RTDB:** ninguno. Lectura `Katzen/Inventario/Productos.codigo_barras` / `imagen_url`.
+- **UI:** mismo `admin-dialog-shell` + sheet `scanner`; overlay cámara con targets ≥44 px (ideal 48).
+- **Cobro:** no tocar `confirmarCobro`.
+- **Tests:** match de código (unitario) + `npm run test:046` + `test:039`.
+- **Rollback:** revertir solo sheet/cámara en `visita-dialog.*`; el pegar código actual sigue siendo el fallback.
+
+### P1 — Servicios 1 tap (cuando Luis lo pida)
+
+- Precios sugeridos desde `Katzen/Finanzas/DefaultsBanioPorTamano` y plantillas `precioSugeridoCliente` (ya en dominio). Sin precio → prompt actual (ola 1).
+- No crear nodo RTDB nuevo.
+- Rieles: atajos en Consulta y Peluquería; petshop no cambia.
+
+### Fuera de 055 (ratificado)
+
+- PAC / timbrar / factura global / botón Facturar en cobro.
+- WhatsApp, Resend, tienda en línea.
+- Reabrir cobro directo en baños/citas/pensión (050).
+- Multi-sucursal, cortes de caja desde el dock POS (SC-015).
+
+### Prompt para implementar
+
+Pegar el **PROMPT MAESTRO** al final de `INVESTIGACION-POS.md` en Cursor cuando Luis autorice. Default del prompt = P0 Scanner.

@@ -11,6 +11,8 @@ import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago } from '../finanzas/caja.models';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
+import { environment } from '../../environments/environment';
+import { MOCK_PRODUCTOS_POS } from './pos-catalogo-demo.data';
 import { Producto } from '../shared/inventario.models';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { InventarioService } from '../inventario/inventario.service';
@@ -48,6 +50,27 @@ import {
   esVisitaMostrador
 } from './visita-mostrador.util';
 import { promptMontoVisita } from './visita-atalho.util';
+import {
+  PosRiel,
+  filtrarProductosPorRiel,
+  mensajeRielBloqueado,
+  puedeUsarRiel
+} from './pos-rieles.util';
+import {
+  BANNER_CATALOGO_DEMO_POS,
+  debeMostrarCatalogoDemoPos,
+  esIdProductoDemoPos,
+  esProductoDemoPos,
+  lineasSinProductosDemo,
+  mezclarCatalogoPos
+} from './pos-catalogo-demo.util';
+import {
+  PosFotoKind,
+  iconoPlaceholderPos,
+  kindPlaceholderLinea,
+  kindPlaceholderProducto,
+  urlFotoProducto
+} from './pos-foto.util';
 
 interface LineaPreset {
   categoria: VisitaLineaCategoria;
@@ -55,8 +78,7 @@ interface LineaPreset {
   label: string;
 }
 
-type PosTab = 'productos' | 'servicios' | 'mostrador';
-type SheetModo = 'producto' | 'linea' | 'carrito';
+type SheetModo = 'producto' | 'linea' | 'carrito' | 'scanner';
 
 @Component({
   selector: 'app-visita-dialog',
@@ -85,14 +107,18 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   pasoWizard = 1;
   productoSel: Producto | null = null;
   mostrarDetalles = false;
-  posTab: PosTab = 'productos';
+  posTab: PosRiel = 'petshop';
+  rielHint = '';
   productosCatalogo: Producto[] = [];
   cargandoCatalogo = true;
+  muestraCatalogoDemo = false;
+  readonly bannerCatalogoDemo = BANNER_CATALOGO_DEMO_POS;
   sheetModo: SheetModo = 'producto';
   sheetAbierta = false;
   sheetProducto: Producto | null = null;
   sheetLinea: VisitaLinea | null = null;
   sheetQty = 1;
+  scannerCodigo = '';
   readonly productoSinStockFn = productoSinStock;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'atendidoPorUid',
@@ -112,12 +138,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     'otro'
   ];
 
-  readonly lineaPresets: LineaPreset[] = [
+  readonly consultaPresets: LineaPreset[] = [
     { categoria: 'consulta', descripcion: 'Consulta general', label: 'Consulta' },
-    { categoria: 'banio', descripcion: 'Baño / peluquería', label: 'Baño' },
-    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' },
-    { categoria: 'cirugia', descripcion: 'Cirugía', label: 'Cirugía' },
-    { categoria: 'otro', descripcion: 'Servicio', label: 'Otro servicio' }
+    { categoria: 'otro', descripcion: 'Medicamento', label: 'Medicamento' },
+    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' }
   ];
 
   readonly metodosPago: Array<{ value: CajaMetodoPago; label: string; icon: string }> = [
@@ -134,29 +158,51 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return contarArticulos(this.lineas);
   }
 
+  get contextoRiel() {
+    return {
+      modoMostrador: this.modoMostrador,
+      clienteId: String(this.form?.get('cliente_id')?.value || ''),
+      pacienteId: String(this.form?.get('paciente_id')?.value || '')
+    };
+  }
+
   get productosFiltrados(): Producto[] {
-    return filtrarProductos(this.productosCatalogo, this.catalogSearch.value);
+    const base = filtrarProductosPorRiel(this.productosCatalogo, this.posTab);
+    return filtrarProductos(base, this.catalogSearch.value);
+  }
+
+  get medicamentosFiltrados(): Producto[] {
+    return filtrarProductos(
+      filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
+      this.catalogSearch.value
+    );
   }
 
   get tituloPos(): string {
     if (this.soloLectura) return 'Ticket cerrado';
-    return this.esEdicion ? 'Caja POS' : 'Nueva venta';
+    return this.esEdicion ? 'Caja' : 'Nueva venta';
   }
 
   get subtituloPos(): string {
     const cliente = String(this.form.get('cliente')?.value || '').trim();
     if (this.modoMostrador) return 'Mostrador · sin cliente registrado';
     if (cliente) return cliente;
-    return 'Dueño → caja → cobrar';
+    return 'Cliente → caja → cobrar';
+  }
+
+  get chipClienteLabel(): string {
+    if (this.modoMostrador) return 'Mostrador';
+    const nombre = String(this.form.get('cliente')?.value || '').trim();
+    return nombre || 'Elegir cliente';
   }
 
   get cobrarLabel(): string {
     const t = this.totales;
-    if (t.saldo <= 0) return 'COBRAR';
+    if (t.saldo <= 0) return 'Cobrar';
     if (t.pagado > 0) {
       return `Cobrar resto ${this.formatMoney(t.saldo)}`;
     }
-    return `COBRAR ${this.formatMoney(t.saldo)}`;
+    return `Cobrar ${this.formatMoney(t.saldo)}`;
   }
 
   get accionBloqueoHint(): string {
@@ -235,6 +281,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   get sheetTitulo(): string {
+    if (this.sheetModo === 'scanner') return 'Código o QR';
     if (this.sheetModo === 'linea') return this.sheetLinea?.descripcion || 'Línea';
     return this.sheetProducto?.nombre || 'Producto';
   }
@@ -402,6 +449,39 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.irPaso(3);
   }
 
+  elegirRiel(riel: PosRiel): void {
+    if (puedeUsarRiel(riel, this.contextoRiel)) {
+      this.rielHint = '';
+      this.posTab = riel;
+      if (riel !== 'petshop') {
+        this.catalogSearch.setValue('');
+      }
+      return;
+    }
+    this.rielHint = mensajeRielBloqueado(riel, this.contextoRiel);
+    this.posTab = riel;
+  }
+
+  async nuevoBanioEnTicket(): Promise<void> {
+    if (this.soloLectura || !puedeUsarRiel('peluqueria', this.contextoRiel)) {
+      this.elegirRiel('peluqueria');
+      return;
+    }
+    const mascota = String(this.form.get('paciente')?.value || 'mascota').trim();
+    const monto = await promptMontoVisita('Nuevo baño', `¿Cuánto se cobra el baño de ${mascota}?`);
+    if (!(monto != null && monto > 0)) return;
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: `Baño · ${mascota}`,
+        monto: roundMoney(monto),
+        categoria: 'banio',
+        cantidad: 1
+      }
+    ];
+  }
+
   elegirClienteClinica(): void {
     if (this.modoMostrador) {
       this.vincularClienteReal();
@@ -411,7 +491,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   ventaMostradorUnTap(): void {
     this.activarVentaMostrador();
     this.irPaso(2);
-    this.posTab = 'productos';
+    this.posTab = 'petshop';
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -477,7 +557,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   esLineaProducto(linea: VisitaLinea): boolean {
+    if (esIdProductoDemoPos(linea.productoId)) return false;
     return linea.categoria === 'venta_producto';
+  }
+
+  esProductoDemo(producto: Producto | null | undefined): boolean {
+    return esProductoDemoPos(producto);
   }
 
   origenLineaHint(linea: VisitaLinea): string {
@@ -518,6 +603,120 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.sheetProducto = null;
     this.sheetLinea = null;
     this.sheetAbierta = true;
+  }
+
+  abrirScanner(): void {
+    if (this.soloLectura) return;
+    this.posTab = 'petshop';
+    this.sheetModo = 'scanner';
+    this.sheetProducto = null;
+    this.sheetLinea = null;
+    this.scannerCodigo = String(this.catalogSearch.value || '').trim();
+    this.sheetAbierta = true;
+  }
+
+  aplicarCodigoEscaneado(): void {
+    const q = String(this.scannerCodigo || this.catalogSearch.value || '').trim();
+    if (!q) return;
+    this.catalogSearch.setValue(q);
+    this.posTab = 'petshop';
+    const hits = filtrarProductos(this.productosCatalogo, q);
+    const exact =
+      hits.find((p) => String(p.codigo_barras || '').toLowerCase() === q.toLowerCase()) ||
+      (hits.length === 1 ? hits[0] : null);
+    if (!exact) {
+      this.cerrarSheet();
+      return;
+    }
+    this.agregarProductoRapido(exact);
+    this.catalogSearch.setValue('');
+    this.scannerCodigo = '';
+    this.cerrarSheet();
+  }
+
+  fotoDeProducto(p: Producto | null | undefined): string {
+    return urlFotoProducto(p);
+  }
+
+  fotoDeLinea(linea: VisitaLinea): string {
+    if (!linea.productoId) return '';
+    const prod = this.productosCatalogo.find((p) => p.id === linea.productoId);
+    return urlFotoProducto(prod);
+  }
+
+  iconoProducto(p: Producto | null | undefined): string {
+    return iconoPlaceholderPos(kindPlaceholderProducto(p?.categoria));
+  }
+
+  iconoLinea(linea: VisitaLinea): string {
+    return iconoPlaceholderPos(kindPlaceholderLinea(linea.categoria, !!linea.productoId));
+  }
+
+  iconoPreset(preset: LineaPreset): string {
+    const kind: PosFotoKind =
+      preset.categoria === 'consulta' || preset.categoria === 'vacuna'
+        ? preset.categoria
+        : preset.label === 'Medicamento'
+          ? 'medicamento'
+          : 'servicio';
+    return iconoPlaceholderPos(kind);
+  }
+
+  lineaDeProducto(productoId: string | undefined): VisitaLinea | undefined {
+    if (!productoId) return undefined;
+    return this.lineas.find(
+      (l) => l.productoId === productoId && l.categoria === 'venta_producto' && !l.movimientoInventarioId
+    );
+  }
+
+  puedeAjustarProducto(p: Producto): boolean {
+    const linea = this.lineaDeProducto(p.id);
+    return !!linea && this.puedeAjustarLinea(linea);
+  }
+
+  tapProducto(p: Producto, event?: Event): void {
+    this.agregarProductoRapido(p, event);
+  }
+
+  ajustarProductoEnCarrito(p: Producto, delta: number, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const linea = this.lineaDeProducto(p.id);
+    if (!linea) {
+      if (delta > 0) this.agregarProductoRapido(p);
+      return;
+    }
+    this.ajustarLineaCarrito(linea, delta);
+  }
+
+  quitarProductoDelCarrito(p: Producto, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const linea = this.lineaDeProducto(p.id);
+    if (linea && this.puedeAjustarLinea(linea)) {
+      this.quitarLinea(linea.id);
+    }
+  }
+
+  quitarLineaGrande(linea: VisitaLinea, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.pagado > 0) return;
+    this.quitarLinea(linea.id);
+  }
+
+  puedeAjustarLinea(linea: VisitaLinea): boolean {
+    return !this.soloLectura && this.pagado <= 0 && !linea.movimientoInventarioId;
+  }
+
+  ajustarLineaCarrito(linea: VisitaLinea, delta: number, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (!this.puedeAjustarLinea(linea)) {
+      this.abrirSheetLinea(linea);
+      return;
+    }
+    this.aplicarDeltaLinea(linea.id, delta);
   }
 
   cerrarSheet(): void {
@@ -566,8 +765,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   async aplicarPreset(preset: LineaPreset): Promise<void> {
     if (this.soloLectura) return;
-    if (preset.categoria === 'venta_producto') {
-      this.posTab = 'productos';
+    if (!puedeUsarRiel('consulta', this.contextoRiel)) {
+      this.elegirRiel('consulta');
       return;
     }
     const monto = await promptMontoVisita(preset.label, `¿Cuánto se cobra por ${preset.label.toLowerCase()}?`);
@@ -712,17 +911,28 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     window.print();
   }
 
+  /** Lectura de catálogo. El POS no crea/edita/borra productos. Demo solo con flag. */
   private cargarCatalogo(): void {
+    this.muestraCatalogoDemo = debeMostrarCatalogoDemoPos(environment);
     this.inventarioService
       .getProductos()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: rows => {
-          this.productosCatalogo = (rows || []).filter(p => p && p.activo !== false);
+          const rtdb = (rows || []).filter(p => p && p.activo !== false);
+          this.productosCatalogo = mezclarCatalogoPos(
+            rtdb,
+            MOCK_PRODUCTOS_POS,
+            this.muestraCatalogoDemo
+          );
           this.cargandoCatalogo = false;
         },
         error: () => {
-          this.productosCatalogo = [];
+          this.productosCatalogo = mezclarCatalogoPos(
+            [],
+            MOCK_PRODUCTOS_POS,
+            this.muestraCatalogoDemo
+          );
           this.cargandoCatalogo = false;
         }
       });
@@ -865,7 +1075,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.lineas = await this.asegurarSalidasProducto(this.lineas, String(raw.paciente_id || ''));
+    const persistibles = lineasSinProductosDemo(this.lineas, this.productosCatalogo);
+    if (!persistibles.length) {
+      throw new Error(
+        'El catálogo de muestra no se cobra ni se guarda. Agrega productos reales del inventario.'
+      );
+    }
+    this.lineas = await this.asegurarSalidasProducto(persistibles, String(raw.paciente_id || ''));
 
     if (this.visitaId) {
       await this.visitasService.actualizarVisita(this.visitaId, {
@@ -908,6 +1124,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     const out: VisitaLinea[] = [];
     for (const linea of lineas) {
       if (linea.categoria === 'venta_producto' && linea.productoId && !linea.movimientoInventarioId) {
+        if (
+          esIdProductoDemoPos(linea.productoId) ||
+          esProductoDemoPos(this.productosCatalogo.find(p => p.id === linea.productoId))
+        ) {
+          continue;
+        }
         const qty = Math.max(1, Number(linea.cantidad) || 1);
         const movId = await this.inventarioService.registrarSalida(
           linea.productoId,

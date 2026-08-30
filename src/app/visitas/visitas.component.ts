@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -24,6 +24,10 @@ import { VisitaDialogComponent } from './visita-dialog.component';
 import { PorCobrarItem } from './por-cobrar-hoy.models';
 import { buildPorCobrarHoy, totalPorCobrarHoy } from './por-cobrar-hoy.util';
 import { promptMontoVisita } from './visita-atalho.util';
+import { esVisitaMostrador } from './visita-mostrador.util';
+
+export type PosHomeSeccion = 'caja' | 'tickets';
+export type PosListaTickets = 'abiertos' | 'hoy';
 
 export type VisitasFiltroRapido = 'todas' | 'hoy' | 'abiertas' | 'deudas' | 'por_cobrar';
 
@@ -45,6 +49,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   private textoFiltro = '';
 
   visitasHoy = 0;
+  ventasHoyMonto = 0;
   abiertas = 0;
   parciales = 0;
   conSaldoCount = 0;
@@ -54,6 +59,9 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   porCobrarTotal = 0;
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   menuContext: Visita | null = null;
+  homeSeccion: PosHomeSeccion = 'caja';
+  listaTickets: PosListaTickets = 'abiertos';
+  mostrarHistorial = false;
 
   readonly estadoLabels = VISITA_ESTADO_LABELS;
   private clientesMap: Record<string, string> = {};
@@ -72,8 +80,17 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private logger: LoggerService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
+
+  get ticketsCompactos(): Visita[] {
+    const hoy = hoyLocalIsoDate();
+    if (this.listaTickets === 'hoy') {
+      return this.allRows.filter((v) => v.fecha === hoy && v.estado !== 'cancelada');
+    }
+    return this.allRows.filter((v) => v.estado === 'abierta' || v.estado === 'parcial');
+  }
 
   ngOnInit(): void {
     this.dataSource.filterPredicate = (row, filter) => {
@@ -122,6 +139,10 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
           ).length;
           this.saldoPorCobrar = kpis.saldoPorCobrar;
           this.cerradasHoy = kpis.cerradasHoy;
+          const hoy = hoyLocalIsoDate();
+          this.ventasHoyMonto = this.allRows
+            .filter((v) => v.fecha === hoy && v.estado !== 'cancelada')
+            .reduce((s, v) => s + (Number(v.pagado) || 0), 0);
           this.applyFilters();
           this.loading = false;
           setTimeout(() => {
@@ -309,6 +330,42 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.loadingService.hide();
     }
+  }
+
+  esMostrador(row: Visita): boolean {
+    return esVisitaMostrador(row);
+  }
+
+  nombreTicket(row: Visita): string {
+    if (esVisitaMostrador(row)) return 'Mostrador';
+    return row.cliente || 'Sin cliente';
+  }
+
+  irACaja(): void {
+    this.homeSeccion = 'caja';
+    this.listaTickets = 'abiertos';
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  verTicketsHoy(): void {
+    this.homeSeccion = 'tickets';
+    this.listaTickets = 'hoy';
+    this.filtroRapido = 'hoy';
+    this.applyFilters();
+    setTimeout(() => {
+      document.getElementById('pos-tickets')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  }
+
+  verTicketsAbiertos(): void {
+    this.homeSeccion = 'tickets';
+    this.listaTickets = 'abiertos';
+  }
+
+  irAProductos(): void {
+    void this.router.navigate(['/admin/inventario/productos']);
   }
 
   nueva(): void {

@@ -1,25 +1,276 @@
-.visitas-contenedor {
-  .kpi-filter {
-    display: block;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    border: 2px solid transparent;
-    border-radius: var(--admin-radius-md, 12px);
-    background: transparent;
-    cursor: pointer;
-    text-align: left;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+.visitas-contenedor.pos-home {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 
-    &.active {
-      border-color: var(--katzen-verde, #14b8a6);
-      box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.25);
+  .pos-home__header {
+    margin: 0 0 20px;
+  }
+
+  .pos-home__eyebrow {
+    margin: 0 0 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--katzen-verde-fuerte, #0f766e);
+  }
+
+  .pos-home__title {
+    margin: 0 0 8px;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1.15;
+  }
+
+  .pos-home__lead {
+    margin: 0;
+    max-width: 42rem;
+    color: #64748b;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+
+    &--tight {
+      margin-bottom: 12px;
+    }
+  }
+
+  .pos-home__tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .pos-home-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 120px;
+    padding: 16px 14px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 16px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    color: #0f172a;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+
+    .pos-home-tile__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #f0fdfa;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    mat-icon {
+      color: var(--katzen-verde, #0d9488);
+      width: 28px;
+      height: 28px;
+      font-size: 28px;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      border-color: #99f6e4;
     }
 
     &:focus-visible {
-      outline: 2px solid var(--katzen-verde, #14b8a6);
+      outline: 2px solid var(--katzen-verde, #0d9488);
       outline-offset: 2px;
     }
+  }
+
+  .pos-home-tile--primary {
+    grid-column: 1 / -1;
+    min-height: 140px;
+    border-color: transparent;
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    color: #fff;
+    box-shadow: 0 10px 28px rgba(13, 148, 136, 0.28);
+
+    .pos-home-tile__icon {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    mat-icon {
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      font-size: 36px;
+    }
+
+    .pos-home-tile__hint {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    &:hover {
+      border-color: transparent;
+      box-shadow: 0 14px 32px rgba(13, 148, 136, 0.36);
+    }
+  }
+
+  .pos-home-tile__title {
+    font-weight: 800;
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+  }
+
+  .pos-home-tile__hint {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.35;
+  }
+
+  .pos-home__summary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .pos-summary-card {
+    padding: 14px 16px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .pos-summary-card__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+
+  .pos-summary-card__value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+
+  .pos-summary-card__hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  .pos-home__tickets,
+  .pos-home__pendientes {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  }
+
+  .pos-home__tickets-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .pos-home__link {
+    border: 0;
+    background: transparent;
+    color: var(--katzen-verde-fuerte, #0f766e);
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .pos-home__empty {
+    color: #64748b;
+    font-size: 0.9375rem;
+  }
+
+  .pos-ticket-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pos-ticket-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 72px;
+    padding: 12px 14px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 14px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+
+    &--pendiente {
+      cursor: default;
+    }
+  }
+
+  .pos-ticket-card__main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .pos-ticket-card__name {
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .pos-ticket-card__meta {
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+
+  .pos-ticket-card__right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+
+    .estado-badge {
+      width: fit-content;
+    }
+  }
+
+  .pos-home__historial-toggle {
+    display: block;
+    width: 100%;
+    margin: 8px 0 16px;
+    padding: 12px;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: #0f766e;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
   }
 
   .visitas-quick-filters {
@@ -47,18 +298,6 @@
     }
   }
 
-  .por-cobrar-scroll {
-    margin: 0 28px 16px;
-  }
-
-  .por-cobrar-table {
-    .mat-column-acciones {
-      text-align: right;
-      white-space: nowrap;
-    }
-  }
-
-  /* Chips de estado: columna ancha para «Pago parcial» completo */
   .visitas-table {
     .mat-column-estado {
       min-width: 148px;
@@ -70,30 +309,69 @@
     }
   }
 
-  .visitas-banner-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    justify-content: flex-end;
+  .pos-home__dock {
+    display: none;
   }
+}
 
-  .pos-cta {
-    min-height: 48px;
-    font-weight: 700;
+@media (min-width: 721px) {
+  .visitas-contenedor.pos-home {
+    padding-bottom: 24px;
+
+    .pos-home__tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pos-home-tile--primary {
+      grid-column: 1 / -1;
+      min-height: 148px;
+      justify-content: center;
+    }
+
+    .pos-home__summary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 }
 
 @media (max-width: 720px) {
-  .visitas-contenedor {
-    .visitas-banner-actions {
-      width: 100%;
-      flex-direction: column;
-      align-items: stretch;
+  .visitas-contenedor.pos-home {
+    .pos-home__dock {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 8;
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--admin-border, #e2e8f0);
+      background: #fff;
     }
 
-    .pos-cta {
-      width: 100%;
+    .pos-dock-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 52px;
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+
+      mat-icon {
+        width: 22px;
+        height: 22px;
+        font-size: 22px;
+      }
+
+      &.is-on {
+        color: #0f766e;
+      }
     }
   }
 }

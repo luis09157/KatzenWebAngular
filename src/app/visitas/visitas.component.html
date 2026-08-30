@@ -1,103 +1,135 @@
-<div class="admin-page visitas-contenedor">
+<div class="admin-page visitas-contenedor pos-home" [class.pos-home--tickets]="homeSeccion === 'tickets'">
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="48"></mat-spinner>
-    <p>Cargando cuenta del día…</p>
+    <p>Cargando punto de venta…</p>
   </div>
 
   <ng-container *ngIf="!loading">
-    <app-admin-kpi-grid>
-      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">
-        <app-admin-stat-card accent="teal" [value]="visitasHoy" label="Cuentas hoy" hint="Clic para filtrar"></app-admin-stat-card>
+    <header class="pos-home__header">
+      <p class="pos-home__eyebrow">Mostrador</p>
+      <h1 class="pos-home__title">Punto de venta</h1>
+      <p class="pos-home__lead">
+        Vende y cobra aquí. El inventario y las compras están en Administración; la clínica, en Atención clínica.
+      </p>
+    </header>
+
+    <section class="pos-home__tiles" aria-label="Acciones del punto de venta">
+      <button type="button" class="pos-home-tile pos-home-tile--primary" (click)="nueva()">
+        <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>point_of_sale</mat-icon></span>
+        <span class="pos-home-tile__title">Nueva venta</span>
+        <span class="pos-home-tile__hint">Toca productos con foto · un ticket</span>
       </button>
-      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">
-        <app-admin-stat-card accent="blue" [value]="abiertas + parciales" label="Abiertas / parciales" hint="Sin cerrar"></app-admin-stat-card>
+      <button type="button" class="pos-home-tile" (click)="nuevaMostrador()">
+        <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>storefront</mat-icon></span>
+        <span class="pos-home-tile__title">Mostrador</span>
+        <span class="pos-home-tile__hint">Sin cliente · solo petshop</span>
       </button>
-      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">
-        <app-admin-stat-card accent="orange" [value]="conSaldoCount" label="Con saldo" hint="Tickets con deuda"></app-admin-stat-card>
+      <button type="button" class="pos-home-tile" (click)="verTicketsHoy()">
+        <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>receipt_long</mat-icon></span>
+        <span class="pos-home-tile__title">Tickets</span>
+        <span class="pos-home-tile__hint">{{ visitasHoy }} hoy</span>
       </button>
-      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">
-        <app-admin-stat-card accent="green" [value]="formatMoney(saldoPorCobrar)" label="Saldo por cobrar" hint="Clic = solo deudas"></app-admin-stat-card>
+      <button type="button" class="pos-home-tile" (click)="irAProductos()">
+        <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></span>
+        <span class="pos-home-tile__title">Catálogo</span>
+        <span class="pos-home-tile__hint">Solo ver · no editar aquí</span>
       </button>
-      <button type="button" class="kpi-filter" [class.active]="filtroRapido === 'por_cobrar'" (click)="setFiltroRapido('por_cobrar')">
-        <app-admin-stat-card accent="purple" [value]="porCobrarItems.length" label="Por cobrar hoy" [hint]="formatMoney(porCobrarTotal)"></app-admin-stat-card>
-      </button>
-    </app-admin-kpi-grid>
+    </section>
+
+    <section class="pos-home__summary" aria-label="Resumen del día">
+      <article class="pos-summary-card">
+        <span class="pos-summary-card__label">Ventas del día</span>
+        <strong class="pos-summary-card__value">{{ formatMoney(ventasHoyMonto) }}</strong>
+        <span class="pos-summary-card__hint">{{ visitasHoy }} ticket{{ visitasHoy === 1 ? '' : 's' }}</span>
+      </article>
+      <article class="pos-summary-card">
+        <span class="pos-summary-card__label">Tickets abiertos</span>
+        <strong class="pos-summary-card__value">{{ abiertas + parciales }}</strong>
+        <span class="pos-summary-card__hint">Sin cerrar</span>
+      </article>
+      <article class="pos-summary-card">
+        <span class="pos-summary-card__label">Por cobrar</span>
+        <strong class="pos-summary-card__value">{{ formatMoney(saldoPorCobrar) }}</strong>
+        <span class="pos-summary-card__hint">{{ porCobrarItems.length }} pendiente{{ porCobrarItems.length === 1 ? '' : 's' }} hoy</span>
+      </article>
+    </section>
+
+    <section class="pos-home__tickets" id="pos-tickets" aria-label="Tickets abiertos">
+      <div class="pos-home__tickets-head">
+        <h2>{{ listaTickets === 'hoy' ? 'Tickets de hoy' : 'Tickets abiertos' }}</h2>
+        <button
+          type="button"
+          class="pos-home__link"
+          *ngIf="listaTickets === 'hoy'"
+          (click)="verTicketsAbiertos()">
+          Ver abiertos
+        </button>
+      </div>
+
+      <p class="pos-home__empty" *ngIf="!ticketsCompactos.length">
+        No hay tickets {{ listaTickets === 'hoy' ? 'hoy' : 'abiertos' }}.
+        <button type="button" class="pos-home__link" (click)="nueva()">Nueva venta</button>
+      </p>
+
+      <ul class="pos-ticket-list" *ngIf="ticketsCompactos.length">
+        <li *ngFor="let row of ticketsCompactos">
+          <button type="button" class="pos-ticket-card" (click)="editar(row)">
+            <div class="pos-ticket-card__main">
+              <span class="pos-ticket-card__name">{{ nombreTicket(row) }}</span>
+              <span class="pos-ticket-card__meta">
+                {{ esMostrador(row) ? 'Venta mostrador' : (row.paciente || 'Sin paciente') }}
+                · {{ row.fecha }}
+              </span>
+            </div>
+            <div class="pos-ticket-card__right">
+              <strong>{{ formatMoney(row.saldo > 0 ? row.saldo : row.total) }}</strong>
+              <span class="estado-badge" [ngClass]="estadoClass(row.estado)">
+                {{ estadoLabels[row.estado] || row.estado }}
+              </span>
+            </div>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <section class="pos-home__pendientes" *ngIf="porCobrarItems.length" aria-label="Por cobrar hoy">
+      <h2>Por cobrar hoy</h2>
+      <p class="pos-home__lead pos-home__lead--tight">Servicios sueltos del día. Cobras aquí, no en finanzas.</p>
+      <ul class="pos-ticket-list">
+        <li *ngFor="let row of porCobrarItems">
+          <div class="pos-ticket-card pos-ticket-card--pendiente">
+            <div class="pos-ticket-card__main">
+              <span class="pos-ticket-card__name">{{ row.cliente || '—' }}</span>
+              <span class="pos-ticket-card__meta">
+                {{ tipoPorCobrarLabel(row.tipo) }} · {{ row.descripcion }}
+              </span>
+            </div>
+            <div class="pos-ticket-card__right">
+              <strong *ngIf="row.monto > 0">{{ formatMoney(row.monto) }}</strong>
+              <button mat-stroked-button color="primary" type="button" (click)="accionPorCobrar(row)">
+                {{ row.accion === 'abrir_ticket' ? 'Abrir' : 'Agregar' }}
+              </button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <button type="button" class="pos-home__historial-toggle" (click)="mostrarHistorial = !mostrarHistorial">
+      {{ mostrarHistorial ? 'Ocultar historial' : 'Ver historial de tickets' }}
+    </button>
 
     <app-admin-data-panel
-      *ngIf="porCobrarItems.length"
-      accent="purple"
-      title="Por cobrar hoy"
-      description="Tickets abiertos y servicios sueltos del día sin cobro en caja"
-      [showLegend]="false">
-      <div class="table-scroll por-cobrar-scroll">
-        <table mat-table [dataSource]="porCobrarItems" class="admin-table por-cobrar-table">
-          <ng-container matColumnDef="tipo">
-            <th mat-header-cell *matHeaderCellDef>Tipo</th>
-            <td mat-cell *matCellDef="let row">{{ tipoPorCobrarLabel(row.tipo) }}</td>
-          </ng-container>
-          <ng-container matColumnDef="cliente">
-            <th mat-header-cell *matHeaderCellDef>Cliente</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="cell-primary">
-                <span>{{ row.cliente || '—' }}</span>
-                <span class="cell-secondary">{{ row.paciente || '' }}</span>
-              </div>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="descripcion">
-            <th mat-header-cell *matHeaderCellDef>Servicio</th>
-            <td mat-cell *matCellDef="let row">{{ row.descripcion }}</td>
-          </ng-container>
-          <ng-container matColumnDef="monto">
-            <th mat-header-cell *matHeaderCellDef>Monto</th>
-            <td mat-cell *matCellDef="let row">{{ row.monto > 0 ? formatMoney(row.monto) : '—' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let row">
-              <button mat-stroked-button color="primary" type="button" (click)="accionPorCobrar(row)">
-                {{ row.accion === 'abrir_ticket' ? 'Abrir ticket' : 'Agregar a ticket' }}
-              </button>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="porCobrarColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: porCobrarColumns"></tr>
-        </table>
-      </div>
-    </app-admin-data-panel>
-
-    <app-admin-page-banner
+      *ngIf="mostrarHistorial"
       accent="teal"
-      icon="receipt_long"
-      title="Ticket del día"
-      subtitle="Caja POS: busca, pulsa + y cobra. Los productos descuentan inventario al guardar o cobrar.">
-      <div bannerActions class="visitas-banner-actions">
-        <button
-          mat-stroked-button
-          color="primary"
-          type="button"
-          *ngIf="filtroRapido !== 'todas'"
-          (click)="setFiltroRapido('todas')">
-          Ver todas
-        </button>
-        <button mat-stroked-button color="primary" type="button" class="pos-cta pos-cta--ghost" (click)="nuevaMostrador()">
-          <mat-icon>storefront</mat-icon>
-          Venta de mostrador
-        </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal pos-cta" type="button" (click)="nueva()">
-          <mat-icon>point_of_sale</mat-icon>
-          Nueva venta
-        </button>
-      </div>
-    </app-admin-page-banner>
-
-    <app-admin-data-panel accent="teal" title="Tickets del día" description="Elige un ticket o crea uno nuevo para cobrar" [showLegend]="false">
+      title="Historial"
+      description="Todos los tickets. El cobro se hace en Nueva venta, no en reportes de caja."
+      [showLegend]="false">
       <div class="visitas-quick-filters panel-search">
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'todas'" (click)="setFiltroRapido('todas')">Todas</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'hoy'" (click)="setFiltroRapido('hoy')">Hoy</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'abiertas'" (click)="setFiltroRapido('abiertas')">Abiertas</button>
         <button type="button" class="qf-chip" [class.active]="filtroRapido === 'deudas'" (click)="setFiltroRapido('deudas')">Con saldo</button>
-        <button type="button" class="qf-chip" [class.active]="filtroRapido === 'por_cobrar'" (click)="setFiltroRapido('por_cobrar')">Por cobrar hoy</button>
       </div>
 
       <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
@@ -117,9 +149,9 @@
             <th mat-header-cell *matHeaderCellDef>Cliente / paciente</th>
             <td mat-cell *matCellDef="let row">
               <div class="cell-primary">
-                <span>{{ row.cliente || '—' }}</span>
-                <span class="cell-secondary" *ngIf="row.esMostrador || row.cliente_id === '__mostrador__'">Venta de mostrador</span>
-                <span class="cell-secondary" *ngIf="!(row.esMostrador || row.cliente_id === '__mostrador__')">{{ row.paciente || 'Sin paciente' }}</span>
+                <span>{{ nombreTicket(row) }}</span>
+                <span class="cell-secondary" *ngIf="esMostrador(row)">Venta mostrador</span>
+                <span class="cell-secondary" *ngIf="!esMostrador(row)">{{ row.paciente || 'Sin paciente' }}</span>
               </div>
             </td>
           </ng-container>
@@ -167,9 +199,9 @@
           <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell" [attr.colspan]="displayedColumns.length">
               <app-admin-empty-state
-                icon="receipt_long"
+                icon="point_of_sale"
                 title="Aún no hay ventas"
-                message="Abre la caja POS para cobrar baño, consulta o productos. En el celular: busca, pulsa + y COBRAR."
+                message="Abre el punto de venta para cobrar un baño, consulta o producto."
                 actionLabel="Nueva venta"
                 (action)="nueva()">
               </app-admin-empty-state>
@@ -186,6 +218,21 @@
       </mat-paginator>
     </app-admin-data-panel>
   </ng-container>
+
+  <nav class="pos-home__dock" aria-label="Punto de venta">
+    <button type="button" class="pos-dock-btn" [class.is-on]="homeSeccion === 'caja'" (click)="irACaja()">
+      <mat-icon>point_of_sale</mat-icon>
+      Caja
+    </button>
+    <button type="button" class="pos-dock-btn" [class.is-on]="homeSeccion === 'tickets'" (click)="verTicketsHoy()">
+      <mat-icon>receipt_long</mat-icon>
+      Tickets
+    </button>
+    <button type="button" class="pos-dock-btn" (click)="irAProductos()">
+      <mat-icon>inventory_2</mat-icon>
+      Productos
+    </button>
+  </nav>
 
   <mat-menu #visitaMenu="matMenu">
     <button mat-menu-item (click)="editar(menuContext)" [disabled]="!menuContext"><mat-icon>receipt_long</mat-icon> Abrir ticket</button>

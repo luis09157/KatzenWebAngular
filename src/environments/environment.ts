@@ -19,5 +19,10 @@ export const environment = {
   /** FCM web portal (spec 023 fase B). Obtener en Firebase Console → Cloud Messaging → Web Push certificates. */
   fcmVapidKey: 'BDYW7j0lsqgQJLaZvqYQtimllZBg2Kqp3ySTeLuJvDBr792Twchl8kbE7jyjojdmUrMD3KAvl8Tvyr4ZueSaRNk',
   /** Spec 052: push programado (D-7 / D-0). Si false, 023 al write sin gate de vacuna. */
-  pushProgramadoEnabled: true
+  pushProgramadoEnabled: true,
+  /**
+   * POS 055: catálogo de muestra local (6 ítems `demo-pos-*`).
+   * Solo preview UI — no se guarda en inventario. Default ON en localhost.
+   */
+  usarCatalogoDemoPos: true
 }; 

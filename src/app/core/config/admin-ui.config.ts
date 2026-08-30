@@ -27,7 +27,7 @@ export const ADMIN_DIALOG_FORM = {
 };
 
 /**
- * Caja POS / ticket del día (spec 055).
+ * Caja POS / punto de venta (spec 055). Tres rieles: petshop, consulta, peluquería.
  * Móvil: viewport completo. Desktop: panel ancho (CSS `--pos`).
  */
 export const ADMIN_DIALOG_POS = {

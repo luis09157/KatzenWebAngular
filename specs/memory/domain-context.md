@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-28 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil ticket.
+**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil (olas 1–1.6 UI táctil con foto; catálogo demo `demo-pos-*` solo preview localhost; P0 scanner diferido — `INVESTIGACION-POS.md` §7).
 
 ---
 
@@ -221,7 +221,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8 `Katzen/Inventario/*`
 
-**Productos:** `codigo_barras` único (interno `KZ-…` o EAN de fábrica — **043**), `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria` (incluye `vacuna` aditivo **043**), `unidad_medida` (incluye tableta/cápsula/frasco/dosis **043**), `imagen_url?` (Storage `Inventario/Productos/{id}/` **043**), `fecha_caducidad`, `activo`. El QR no se persiste: se genera desde `codigo_barras`.
+**Productos:** `codigo_barras` único (interno `KZ-…` o EAN de fábrica — **043**), `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria` (incluye `vacuna` aditivo **043**), `unidad_medida` (incluye tableta/cápsula/frasco/dosis **043**), `imagen_url?` (Storage `Inventario/Productos/{id}/` **043**), `fecha_caducidad`, `activo`. El QR no se persiste: se genera desde `codigo_barras`. **055 POS demo:** ítems `demo-pos-*` / `soloDemo` son solo preview UI (assets locales); **nunca** se escriben a este nodo ni disparan `registrarSalida`.
 
 **Regla precio (2026-08-26):** al crear/editar producto, `precio_venta` debe ser **estrictamente mayor** que `precio_compra` (margen positivo). UI: campo margen % recalcula venta = costo × (1 + %). No guardar si costo ≥ venta.
 
@@ -257,7 +257,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8d `Katzen/Visitas/{visitaId}` (spec 032 · hub **045** · UX **046**)
 
-**Nombre de negocio (UI):** “Cuenta del día” / “Ticket de cobro” (la ruta puede seguir `/admin/visitas`).
+**Nombre de negocio (UI):** “Punto de venta” / “Nueva venta” (ruta `/admin/visitas`). Tres rieles en la misma caja: petshop, consulta, peluquería (**055**). El ticket es comprobante interno; **no** es CFDI (PAC fuera de alcance — 024 / investigación 055).
 
 Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?`), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
 

@@ -27,17 +27,42 @@
 - [x] `ajustarCantidadLinea` + tests
 - [x] Lista `/admin/visitas`: CTA Nueva venta / mostrador
 - [x] UI `admin-dialog-shell` (no `mat-dialog-title`)
+- [x] Home POS tiles + tickets compactos + bottom bar
+- [x] 3 rieles en caja: Petshop | Consulta | Peluquería (`pos-rieles.util.ts`)
+- [x] Walk-in bloquea consulta/peluquería; petshop libre
+- [x] Copy menú/toolbar: Punto de venta
+
+### Ola 1.6 — UI redo táctil (2026-08-30)
+
+- [x] Grid con foto (`pos-foto.util.ts`) + placeholder
+- [x] Tap = agregar; +/−/quitar ≥48px solo en líneas del ticket
+- [x] Sticky cliente/mostrador + Cobrar $XXX
+- [x] Home táctil; picker dueño sin crear fichas
+- [x] Mocks `MOCK_PRODUCTOS_POS`; cero writes a maestros
+- [x] Prompt maestro reescrito en `INVESTIGACION-POS.md` §7
+
+### Ola 1.6b — Catálogo demo visual (2026-08-30)
+
+- [x] 6 fotos locales `src/assets/pos-demo/` (2 petshop, 2 consulta, 2 peluquería)
+- [x] IDs `demo-pos-*` + `soloDemo` + `origen: pos_preview`
+- [x] Flag `usarCatalogoDemoPos` ON localhost / OFF prod
+- [x] Banner «Catálogo de muestra — no se guarda»
+- [x] Tests: no push RTDB, no `registrarSalida` / `crearProducto`
 
 ### Integración
 
-- [x] Menú admin — sin cambio (Ticket del día)
-- [x] Walk-in `CLIENTE_MOSTRADOR` intacto (`test:046` 3/3)
+- [x] Menú admin — «Punto de venta»
+- [x] Walk-in `CLIENTE_MOSTRADOR` intacto (`test:046` 7/7: 3 mostrador + 4 rieles)
 - [x] Inventario salidas + cobro-integridad intactos (`test:039` 14/14)
+- [x] Por cobrar hoy intacto (`test:040` 13/13)
 
 ### Olas diferidas
 
-- [ ] Ola 2: scanner / cámara QR (043)
-- [ ] Ola 3: servicios 1 tap con precio sugerido
+Prompt vigente (UI redo): `INVESTIGACION-POS.md` §7. Scanner/1-tap **no** en esta entrega.
+
+- [ ] **P0 / ola 2:** scanner cámara + pegar/HID (`codigo_barras` 043) — SC-011
+- [ ] **P1 / ola 3:** servicios 1 tap con precio sugerido (defaults 022) — SC-012
+- [ ] P2: CFDI/PAC, WhatsApp — **fuera de 055**
 
 ---
 
@@ -123,13 +148,114 @@ ng serve :4200 — Compiled successfully (visitas-visitas-module 23.49 kB)
 | UI — doble submit | OK | `loading` disable |
 | Edge — red lenta/error | OK | catch + hide |
 | Edge — datos nulos RTDB | OK | catálogo/pendientes vacíos |
-| Servidor local :4200 + smoke | OK | chunk 355.js con Caja POS / COBRAR |
-| Build `npm run build` | OK | exit 0; budget warning preexistente |
+| Servidor local :4200 + smoke | OK | :4200 HTTP 200; home POS + 3 rieles en diálogo |
+| Build `npm run build` | OK | exit 0 Hash 58252fcbb46052e9; budget warning preexistente |
 
 ```
 npm run build exit 0
-Hash: f8db7cd3e98e2029
-Warning: bundle initial exceeded maximum budget (preexistente, 2.30 MB).
+Hash: 58252fcbb46052e9
+test:046 — 7 SUCCESS (3 mostrador + 4 rieles)
+test:039 — 14 SUCCESS
+test:040 — 13 SUCCESS
+Warning: bundle initial exceeded maximum budget (preexistente, 2.31 MB).
+```
+
+### Ola 1.6 — Testing y validación (2026-08-30)
+
+> Guía `qa-validation-guide.md`. Add/edit/delete **solo** líneas del ticket. Sin writes a Cliente / Mascota / Productos.
+
+#### Checklist pre-entrega
+
+- [x] Guía QA aplicada (§1–§4)
+- [x] `npm run build` OK (exit 0, Hash `1d54e6128e564043`)
+- [x] Live preview :4200 vivo (`ng serve` compiló `visitas-visitas-module` 33.21 kB; HTTP 200)
+- [x] Tabla de resultados rellenada
+- [x] UI: chips `.estado-badge` enteros; `--picker` N/A; loading contextual; timepicker N/A
+
+#### 1. Formularios
+
+- [x] Vacío: wizard no avanza sin dueño/mostrador; `puedeIrACobrar` exige líneas
+- [x] Qty: `sheetMenos` / `ajustarProductoEnCarrito` no bajan de quitar línea; cobro monto ≤ saldo
+- [x] Notas maxlength 500; grid scroll interno
+- [x] Chips estado + badge inventario
+
+#### 2. Interfaz
+
+- [x] `admin-dialog-shell` + `--pos`; cierre X
+- [x] Picker dueño = `app-cliente-paciente-picker` (no crea fichas)
+- [x] Timepicker N/A
+- [x] Swal stock/precio/cobro
+- [x] `LOADING_MESSAGES.saving` + `hide` en `finally`
+- [x] Botones `[disabled]="loading"`
+- [x] Targets +/−/quitar 48×48 (`.pos-hit`)
+- [x] Foto 043 / placeholder (`pos-foto.util`)
+
+#### 3. Casos límite
+
+- [x] Catálogo `[]` / sin foto → placeholder
+- [x] Riel consulta/peluquería bloqueado en mostrador (`pos-rieles`)
+- [x] `cargarCatalogo` solo lectura
+
+#### 4. Integridad
+
+- [x] `confirmarCobro` / `VisitasService` / `registrarSalida` / `crearMovimiento({visitaId})` sin contrato nuevo
+- [x] Tests mocks: `MOCK_PRODUCTOS_POS` ids `mock-*`
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| Grid foto + tap add | OK | `tapProducto` → `agregarProductoRapido` |
+| +/−/quitar ≥48px | OK | `.pos-hit` 48px; solo `lineas[]` |
+| Sticky cliente + Cobrar | OK | `.pos-sticky` |
+| Picker sin crear maestros | OK | texto UI + picker existente |
+| Mostrador solo petshop | OK | `test:046` / rieles |
+| Cobro `visitaId` | OK | `test:039` 14/14 |
+| Por cobrar hoy | OK | `test:040` 13/13 |
+| Foto mock / placeholder | OK | `test:055` 10/10 |
+| Build | OK | exit 0 Hash 1d54e6128e564043 |
+| :4200 | OK | HTTP 200; compile visitas OK |
+| Writes maestros | N/A | no hay create/update producto/cliente/paciente en POS |
+| Browser autenticado | Parcial | MCP browser no abrió tab; smoke por compile + curl |
+
+```
+npm run build — exit 0 — Hash 1d54e6128e564043
+test:055 — 10 SUCCESS
+test:046 — 7 SUCCESS
+test:039 — 14 SUCCESS
+test:040 — 13 SUCCESS
+ng serve :4200 — Compiled successfully (visitas-visitas-module 33.21 kB)
+Warning: bundle initial exceeded maximum budget (preexistente, 2.32 MB).
+```
+
+### Ola 1.6b — Catálogo demo visual (2026-08-30)
+
+> 6 ítems `demo-pos-*` solo preview. **No** catálogo real. **No** `registrarSalida` / `crearProducto`. Flag OFF en prod.
+
+#### Checklist pre-entrega
+
+- [x] Guía QA aplicada (§1–§4)
+- [x] `npm run build` OK (exit 0, Hash `0fd06078d3beeddd`; prod `usarCatalogoDemoPos:!1`)
+- [x] Live preview :4200 vivo (HTTP 200; 6 PNG `assets/pos-demo/` HTTP 200)
+- [x] Tabla de resultados rellenada
+- [x] UI: banner `app-flow-hint` warn; chips `.estado-badge` / badge «Muestra» enteros; `--picker` N/A; loading contextual; timepicker N/A
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| 6 demo + foto local | OK | `src/assets/pos-demo/*.png` 320×320 |
+| 2 por riel | OK | petshop / consulta / peluquería |
+| IDs no push RTDB | OK | `demo-pos-*` vs `^-[-_0-9A-Za-z]{19}$` |
+| `soloDemo === true` | OK | `origen: pos_preview` |
+| No `registrarSalida` / `crearProducto` | OK | spies no llamados; líneas demo filtradas al persistir |
+| Flag prod OFF | OK | `environment.prod.ts` + bundle `usarCatalogoDemoPos:!1` |
+| Banner localhost | OK | «Catálogo de muestra — no se guarda» |
+| Writes maestros | N/A | POS no crea productos/clientes/pacientes |
+| Build | OK | exit 0 Hash 0fd06078d3beeddd |
+| :4200 | OK | compile visitas OK; assets 200 |
+
+```
+npm run build — exit 0 — Hash 0fd06078d3beeddd
+test:055 — 18 SUCCESS
+ng serve :4200 — HTTP 200; assets/pos-demo/*.png 200
+Warning: bundle initial exceeded maximum budget (preexistente, 2.33 MB).
 ```
 
 ---
@@ -137,23 +263,34 @@ Warning: bundle initial exceeded maximum budget (preexistente, 2.30 MB).
 ## Criterios spec (SC-xxx)
 
 - [x] SC-001: diálogo POS fullscreen / ancho móvil
-- [x] SC-002: 1 columna + búsqueda sticky + chips
+- [x] SC-002: 1 columna + búsqueda sticky + chips Petshop \| Consulta \| Peluquería
 - [x] SC-003: lista táctil, + ≥44px (48px)
-- [x] SC-004: carrito sticky N arts · total · COBRAR
+- [x] SC-004: carrito sticky N arts · total · Cobrar $
 - [x] SC-005: sheet cantidad +/−
 - [x] SC-006: wizard + walk-in
 - [x] SC-007: badge inventario; servicios intactos
 - [x] SC-008: CTA Nueva venta
 - [x] SC-009: cobro inline métodos + monto
 - [x] SC-010: `visitaId` en caja; no «Registrar en caja» clínico
-- [ ] SC-011: ola 2
-- [ ] SC-012: ola 3
+- [ ] SC-011: ola 2 (cámara)
+- [ ] SC-012: ola 3 (precios 1 tap)
+- [x] SC-013: home POS tiles
+- [x] SC-014: resumen + tickets compactos
+- [x] SC-015: bottom bar Caja \| Tickets \| Productos; sin CTA finanzas
+- [x] SC-016: copy Punto de venta
+- [x] SC-017: caja móvil Pulpos (buscar, chip, carrito, Cobrar $)
+- [x] SC-018: 3 rieles Katzen
+- [x] SC-019: mostrador solo petshop
+- [x] SC-020: grid con foto / placeholder; tap = agregar
+- [x] SC-021: +/−/quitar ≥48px; solo líneas del ticket
+- [x] SC-022: sticky cliente + Cobrar; picker sin crear fichas
+- [x] SC-023: home táctil; catálogo inventario solo ver
 
 ---
 
 ## Cierre
 
-- [x] Validación pre-entrega ola 1 completa (agente)
-- [x] Validación exhaustiva ola 1 registrada
-- [ ] `spec.md` estado → `done` — **ola 1 entregada; spec sigue in_progress por olas 2–3**
+- [x] Validación pre-entrega ola 1.5 completa (agente)
+- [x] Validación exhaustiva registrada
+- [ ] `spec.md` estado → `done` — **ola 1.5 entregada; spec sigue in_progress por olas 2–3**
 - [x] Commit / deploy — no (Luis no lo pidió)

@@ -90,6 +90,15 @@ export interface Producto {
   imagen_url?: string;
   created_at: string;
   updated_at: string;
+  /**
+   * Solo preview UI del POS (055). Ausente en RTDB.
+   * Si true, **no** escribir a `Katzen/Inventario/Productos` ni `registrarSalida`.
+   */
+  soloDemo?: boolean;
+  /** Origen de muestra. Solo `'pos_preview'` en mocks locales. */
+  origen?: 'pos_preview';
+  /** Riel visual del POS para ítems `soloDemo`. No aplica a catálogo real. */
+  rielPos?: 'petshop' | 'consulta' | 'peluqueria';
 }
 
 export interface ProductoFormData {

@@ -630,3 +630,36 @@ export const MOCK_INVERSION_META = {
   updatedBy: 'mock-staff-admin'
 };
 
+/**
+ * Catálogo POS táctil (055). Reexporta el data file (preview UI).
+ * Fixture sin foto + data URI para tests de placeholder.
+ */
+export const MOCK_POS_IMAGEN_DATA_URI =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect fill="#0d9488" width="160" height="160"/><text x="80" y="88" text-anchor="middle" fill="#fff" font-size="22" font-family="sans-serif">Foto</text></svg>'
+  );
+
+export {
+  MOCK_PRODUCTO_DEMO_POS_BANIO,
+  MOCK_PRODUCTO_DEMO_POS_COLLAR,
+  MOCK_PRODUCTO_DEMO_POS_CONSULTA,
+  MOCK_PRODUCTO_DEMO_POS_CORTE,
+  MOCK_PRODUCTO_DEMO_POS_CROQUETA,
+  MOCK_PRODUCTO_DEMO_POS_MEDICAMENTO,
+  MOCK_PRODUCTOS_POS
+} from '../../visitas/pos-catalogo-demo.data';
+
+/** Fixture sin foto (placeholder). No forma parte del catálogo demo de 6. */
+export const MOCK_PRODUCTO_POS_ACCESORIO_SIN_FOTO = {
+  ...MOCK_PRODUCTO_ACCESORIO_IVA,
+  id: 'mock-pos-accesorio-002',
+  codigo_barras: 'KZ-POS-ACC-002',
+  nombre: 'Juguete mock sin foto',
+  categoria: 'accesorio' as const,
+  imagen_url: undefined,
+  stock_actual: 5,
+  precio_venta: 65,
+  requiere_receta: false
+};
+
