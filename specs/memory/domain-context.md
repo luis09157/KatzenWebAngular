@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil (olas 1–1.6 UI táctil con foto; catálogo demo `demo-pos-*` solo preview localhost; P0 scanner diferido — `INVESTIGACION-POS.md` §7).
+**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil (olas 1–1.6 UI táctil; precios de inventario en caja — baño default 022 editable; catálogo demo `demo-pos-*` solo preview localhost; P0 scanner diferido — `INVESTIGACION-POS.md` §7).
 
 ---
 
@@ -258,6 +258,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 ### 3.8d `Katzen/Visitas/{visitaId}` (spec 032 · hub **045** · UX **046**)
 
 **Nombre de negocio (UI):** “Punto de venta” / “Nueva venta” (ruta `/admin/visitas`). Tres rieles en la misma caja: petshop, consulta, peluquería (**055**). El ticket es comprobante interno; **no** es CFDI (PAC fuera de alcance — 024 / investigación 055).
+
+**Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas (y consulta si es ficha de inventario) entran al ticket con `precio_venta`; el costo (`precio_compra`) es interno. Existencias se controlan en Inventario (el POS puede avisar stock bajo). **Única excepción:** baño/peluquería — tarifa default (022 / plantilla / `ProductosPeluqueria`) **precargada** en el diálogo; el usuario puede ajustarla en esa venta. Consulta genérica pide monto **solo** si no hay producto de catálogo con precio.
 
 Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?`), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
 

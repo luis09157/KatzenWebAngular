@@ -41,6 +41,15 @@
 - [x] Mocks `MOCK_PRODUCTOS_POS`; cero writes a maestros
 - [x] Prompt maestro reescrito en `INVESTIGACION-POS.md` §7
 
+### Ola 1.7 — Precios de inventario (2026-08-30)
+
+- [x] Producto / medicamento / vacuna: ticket con `precio_venta` — sin Swal «¿Cuánto se cobra?»
+- [x] Vacuna/medicamento: lista de inventario por categoría (no tile genérico vacío)
+- [x] Consulta: catálogo si hay precio; fallback pide monto
+- [x] Baño: default 022/plantilla precargado y editable (`COPY_BANIO_AJUSTABLE`)
+- [x] Copy «Precio de inventario»; aviso stock bajo (no pide precio)
+- [x] Tests `pos-precios.util.spec.ts` + `test:055` / `test:046`
+
 ### Ola 1.6b — Catálogo demo visual (2026-08-30)
 
 - [x] 6 fotos locales `src/assets/pos-demo/` (2 petshop, 2 consulta, 2 peluquería)
@@ -58,10 +67,10 @@
 
 ### Olas diferidas
 
-Prompt vigente (UI redo): `INVESTIGACION-POS.md` §7. Scanner/1-tap **no** en esta entrega.
+Prompt vigente (UI redo): `INVESTIGACION-POS.md` §7. Scanner (P0) **no** en esta entrega.
 
 - [ ] **P0 / ola 2:** scanner cámara + pegar/HID (`codigo_barras` 043) — SC-011
-- [ ] **P1 / ola 3:** servicios 1 tap con precio sugerido (defaults 022) — SC-012
+- [x] **P1 precios inventario (2026-08-30):** producto/vacuna/medicamento sin prompt; consulta fallback; baño default editable
 - [ ] P2: CFDI/PAC, WhatsApp — **fuera de 055**
 
 ---
@@ -258,6 +267,41 @@ ng serve :4200 — HTTP 200; assets/pos-demo/*.png 200
 Warning: bundle initial exceeded maximum budget (preexistente, 2.33 MB).
 ```
 
+### Ola 1.7 — Precios de inventario (2026-08-30)
+
+> El cajero no escribe precios de anaquel. Guía `qa-validation-guide.md`. Sin writes a Productos/Clientes/Pacientes.
+
+#### Checklist pre-entrega
+
+- [x] Guía QA aplicada (§1–§4)
+- [x] `npm run build` OK (exit 0, Hash `520056dbecfe926a`)
+- [x] Live preview :4200 vivo (HTTP 200; `ng serve` en PID 97651)
+- [x] Tabla de resultados rellenada
+- [x] UI: copy «Precio de inventario» / baño «Puedes ajustar el precio de este baño»; chips enteros; `--picker` N/A; loading contextual; timepicker N/A
+
+| Escenario | Resultado | Notas |
+|-----------|-----------|-------|
+| Producto/med/vacuna con `precio_venta` | OK | `resolverLineaProductoInventario` — `pedirMonto: false` |
+| Tile genérico Vacuna/Medicamento | OK | eliminados; lista por categoría de inventario |
+| Consulta con catálogo | OK | demo «Consulta muestra» $350, copy Precio de inventario |
+| Consulta sin precio catálogo | OK | `pedirMonto: true` fallback |
+| Baño default 022 editable | OK | mediano $350 precargado; `forzarDialogo` |
+| Baño plantilla / inventario / peluquería | OK | cascada en `resolverPrecioBanioPos` |
+| Stock bajo | OK | toast informativo; no pide precio |
+| Walk-in / rieles | OK | `test:046` 8 SUCCESS |
+| Writes maestros | N/A | POS solo lectura de tarifas e inventario |
+| Build | OK | exit 0 Hash 520056dbecfe926a |
+| :4200 | OK | HTTP 200; bundle incluye copy de precios |
+| Browser autenticado | Parcial | MCP no sostuvo tab; smoke por tests + compile + curl |
+
+```
+npm run build — exit 0 — Hash 520056dbecfe926a
+test:055 — 26 SUCCESS
+test:046 — 8 SUCCESS
+ng serve :4200 — HTTP 200
+Warning: bundle initial exceeded maximum budget (preexistente, 2.34 MB).
+```
+
 ---
 
 ## Criterios spec (SC-xxx)
@@ -273,7 +317,7 @@ Warning: bundle initial exceeded maximum budget (preexistente, 2.33 MB).
 - [x] SC-009: cobro inline métodos + monto
 - [x] SC-010: `visitaId` en caja; no «Registrar en caja» clínico
 - [ ] SC-011: ola 2 (cámara)
-- [ ] SC-012: ola 3 (precios 1 tap)
+- [x] SC-012: precios inventario + baño default editable (consulta fallback si no hay catálogo)
 - [x] SC-013: home POS tiles
 - [x] SC-014: resumen + tickets compactos
 - [x] SC-015: bottom bar Caja \| Tickets \| Productos; sin CTA finanzas
@@ -290,7 +334,7 @@ Warning: bundle initial exceeded maximum budget (preexistente, 2.33 MB).
 
 ## Cierre
 
-- [x] Validación pre-entrega ola 1.5 completa (agente)
+- [x] Validación pre-entrega ola 1.7 (precios inventario)
 - [x] Validación exhaustiva registrada
-- [ ] `spec.md` estado → `done` — **ola 1.5 entregada; spec sigue in_progress por olas 2–3**
+- [ ] `spec.md` estado → `done` — **ola 1.7 entregada; spec sigue in_progress por ola 2 (scanner)**
 - [x] Commit / deploy — no (Luis no lo pidió)

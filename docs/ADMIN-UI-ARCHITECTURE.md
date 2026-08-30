@@ -222,7 +222,7 @@ export const ADMIN_DIALOG_CONFIG = {
 };
 ```
 
-Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`. Caja POS (punto de venta, spec 055): `ADMIN_DIALOG_POS` + panel `admin-dialog-panel--pos` (fullscreen en ≤720px). Home `/admin/visitas`: tiles táctiles. Diálogo: **grid con foto** (043 / placeholder), tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar; 3 rieles (Petshop | Consulta | Peluquería). El POS **no** crea/edita Productos, Clientes ni Pacientes. En localhost, si `usarCatalogoDemoPos` está ON, aparece el banner **«Catálogo de muestra — no se guarda»** (`app-flow-hint` warn); esos 6 ítems `demo-pos-*` no van a inventario.
+Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`. Caja POS (punto de venta, spec 055): `ADMIN_DIALOG_POS` + panel `admin-dialog-panel--pos` (fullscreen en ≤720px). Home `/admin/visitas`: tiles táctiles. Diálogo: **grid con foto** (043 / placeholder), tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar; 3 rieles (Petshop | Consulta | Peluquería). Producto/vacuna/medicamento: `precio_venta` de inventario (copy «Precio de inventario»), sin prompt de monto. Baño: default 022 precargado y editable («Puedes ajustar el precio de este baño»). El POS **no** crea/edita Productos, Clientes ni Pacientes. En localhost, si `usarCatalogoDemoPos` está ON, aparece el banner **«Catálogo de muestra — no se guarda»** (`app-flow-hint` warn); esos 6 ítems `demo-pos-*` no van a inventario.
 
 ### Diálogos compactos tipo picker (espaciado)
 

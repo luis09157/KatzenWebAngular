@@ -6,9 +6,14 @@ import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
-import { filtrarProductos, productoSinStock } from '../core/utils/producto-search.util';
+import { filtrarProductos, productoSinStock, productoStockBajo } from '../core/utils/producto-search.util';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago } from '../finanzas/caja.models';
+import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
+import { emptyDefaultsBanio, DefaultsBanioPorTamano, TamanoPerroBanio } from '../finanzas/defaults-banio.models';
+import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
+import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
+import { ProductoPeluqueria, TipoServicio } from '../shared/banio.model';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { environment } from '../../environments/environment';
@@ -57,6 +62,16 @@ import {
   puedeUsarRiel
 } from './pos-rieles.util';
 import {
+  COPY_BANIO_AJUSTABLE,
+  COPY_PRECIO_INVENTARIO,
+  encontrarProductoConsulta,
+  esDecisionPrecioInventario,
+  filtrarCatalogoPorCategoria,
+  inferirTamanoBanio,
+  resolverAtajoConsulta,
+  resolverPrecioBanioPos
+} from './pos-precios.util';
+import {
   BANNER_CATALOGO_DEMO_POS,
   debeMostrarCatalogoDemoPos,
   esIdProductoDemoPos,
@@ -65,18 +80,11 @@ import {
   mezclarCatalogoPos
 } from './pos-catalogo-demo.util';
 import {
-  PosFotoKind,
   iconoPlaceholderPos,
   kindPlaceholderLinea,
   kindPlaceholderProducto,
   urlFotoProducto
 } from './pos-foto.util';
-
-interface LineaPreset {
-  categoria: VisitaLineaCategoria;
-  descripcion: string;
-  label: string;
-}
 
 type SheetModo = 'producto' | 'linea' | 'carrito' | 'scanner';
 
@@ -138,11 +146,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     'otro'
   ];
 
-  readonly consultaPresets: LineaPreset[] = [
-    { categoria: 'consulta', descripcion: 'Consulta general', label: 'Consulta' },
-    { categoria: 'otro', descripcion: 'Medicamento', label: 'Medicamento' },
-    { categoria: 'vacuna', descripcion: 'Vacuna', label: 'Vacuna' }
-  ];
+  readonly copyPrecioInventario = COPY_PRECIO_INVENTARIO;
+  readonly copyBanioAjustable = COPY_BANIO_AJUSTABLE;
+  private defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
+  private plantillasCosto: PlantillaCosto[] = [];
+  private tiposServicio: TipoServicio[] = [];
+  private productosPeluqueria: ProductoPeluqueria[] = [];
+  tamanoPaciente: TamanoPerroBanio | '' = '';
+  precioBanioDefault: number | null = null;
 
   readonly metodosPago: Array<{ value: CajaMetodoPago; label: string; icon: string }> = [
     { value: 'efectivo', label: 'Efectivo', icon: 'payments' },
@@ -173,9 +184,46 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   get medicamentosFiltrados(): Producto[] {
     return filtrarProductos(
-      filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
+      filtrarCatalogoPorCategoria(
+        filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
+        'medicamento'
+      ),
       this.catalogSearch.value
     );
+  }
+
+  get vacunasFiltradas(): Producto[] {
+    return filtrarProductos(
+      filtrarCatalogoPorCategoria(
+        filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
+        'vacuna'
+      ),
+      this.catalogSearch.value
+    );
+  }
+
+  get clinicosOtrosFiltrados(): Producto[] {
+    const consultaId = this.atajoConsultaProducto?.id;
+    const base = filtrarProductosPorRiel(this.productosCatalogo, 'consulta').filter(
+      (p) =>
+        p.categoria !== 'medicamento' &&
+        p.categoria !== 'vacuna' &&
+        p.id !== consultaId
+    );
+    return filtrarProductos(base, this.catalogSearch.value);
+  }
+
+  get atajoConsultaProducto(): Producto | null {
+    return encontrarProductoConsulta(this.productosCatalogo);
+  }
+
+  get atajoConsultaPrecio(): number | null {
+    const d = resolverAtajoConsulta(this.productosCatalogo);
+    return esDecisionPrecioInventario(d) ? d.monto : null;
+  }
+
+  get atajoConsultaPideMonto(): boolean {
+    return this.atajoConsultaPrecio == null;
   }
 
   get tituloPos(): string {
@@ -309,6 +357,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private baniosService: BaniosService,
     private inventarioService: InventarioService,
+    private defaultsBanioService: DefaultsBanioService,
+    private plantillaCostoService: PlantillaCostoService,
     private cajaService: CajaService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
@@ -415,6 +465,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.form.get('paciente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
     void this.cargarPendientes();
     this.cargarCatalogo();
+    void this.cargarTarifasBanioPos();
   }
 
   ngOnDestroy(): void {
@@ -468,7 +519,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     const mascota = String(this.form.get('paciente')?.value || 'mascota').trim();
-    const monto = await promptMontoVisita('Nuevo baño', `¿Cuánto se cobra el baño de ${mascota}?`);
+    this.recalcularPrecioBanioDefault();
+    const monto = await promptMontoVisita('Nuevo baño', this.copyBanioAjustable, {
+      sugerido: this.precioBanioDefault ?? undefined,
+      forzarDialogo: true
+    });
     if (!(monto != null && monto > 0)) return;
     this.lineas = [
       ...this.lineas,
@@ -514,6 +569,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     } else {
       this.alergiasPaciente = [];
     }
+    this.tamanoPaciente = inferirTamanoBanio(
+      sel.pacienteData as { tamano_perro?: string; tamano?: string } | undefined
+    );
+    this.recalcularPrecioBanioDefault();
     void this.cargarPendientes();
   }
 
@@ -529,6 +588,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.form.get('cliente_id')?.clearValidators();
     this.form.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
     this.alergiasPaciente = [];
+    this.tamanoPaciente = '';
+    this.recalcularPrecioBanioDefault();
     this.pendientesBanio = [];
   }
 
@@ -652,14 +713,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return iconoPlaceholderPos(kindPlaceholderLinea(linea.categoria, !!linea.productoId));
   }
 
-  iconoPreset(preset: LineaPreset): string {
-    const kind: PosFotoKind =
-      preset.categoria === 'consulta' || preset.categoria === 'vacuna'
-        ? preset.categoria
-        : preset.label === 'Medicamento'
-          ? 'medicamento'
-          : 'servicio';
-    return iconoPlaceholderPos(kind);
+  iconoConsultaAtajo(): string {
+    return iconoPlaceholderPos('consulta');
   }
 
   lineaDeProducto(productoId: string | undefined): VisitaLinea | undefined {
@@ -763,21 +818,26 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.pushProducto(p, 1);
   }
 
-  async aplicarPreset(preset: LineaPreset): Promise<void> {
+  async agregarConsultaAtajo(): Promise<void> {
     if (this.soloLectura) return;
     if (!puedeUsarRiel('consulta', this.contextoRiel)) {
       this.elegirRiel('consulta');
       return;
     }
-    const monto = await promptMontoVisita(preset.label, `¿Cuánto se cobra por ${preset.label.toLowerCase()}?`);
+    const decision = resolverAtajoConsulta(this.productosCatalogo);
+    if (esDecisionPrecioInventario(decision) && decision.producto) {
+      this.pushProducto(decision.producto, 1);
+      return;
+    }
+    const monto = await promptMontoVisita('Consulta', '¿Cuánto se cobra por consulta?');
     if (!(monto != null && monto > 0)) return;
     this.lineas = [
       ...this.lineas,
       {
         id: nuevaLineaId(),
-        descripcion: preset.descripcion,
+        descripcion: 'Consulta general',
         monto: roundMoney(monto),
-        categoria: preset.categoria,
+        categoria: 'consulta',
         cantidad: 1
       }
     ];
@@ -799,19 +859,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (this.soloLectura || banioYaEnLineas(this.lineas, p.id)) return;
     const monto = Number(p.precio_total) || 0;
     if (!(monto > 0)) {
-      void Swal.fire({
-        icon: 'question',
-        title: 'Monto del baño',
-        input: 'number',
-        inputLabel: '¿Cuánto se cobrará en el ticket?',
-        inputAttributes: { min: '0.01', step: '0.01' },
-        showCancelButton: true,
-        confirmButtonText: 'Incluir',
-        cancelButtonText: 'Cancelar',
-        inputValidator: value => (!(Number(value) > 0) ? 'Ingresa un monto mayor a 0' : null)
-      }).then(ask => {
-        if (!ask.isConfirmed) return;
-        this.pushLineaBanio(p, Number(ask.value));
+      this.recalcularPrecioBanioDefault();
+      void promptMontoVisita('Monto del baño', this.copyBanioAjustable, {
+        sugerido: this.precioBanioDefault ?? undefined,
+        forzarDialogo: true
+      }).then((asked) => {
+        if (!(asked != null && asked > 0)) return;
+        this.pushLineaBanio(p, asked);
       });
       return;
     }
@@ -925,6 +979,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
             MOCK_PRODUCTOS_POS,
             this.muestraCatalogoDemo
           );
+          this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
         },
         error: () => {
@@ -933,6 +988,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
             MOCK_PRODUCTOS_POS,
             this.muestraCatalogoDemo
           );
+          this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
         }
       });
@@ -974,6 +1030,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         cantidad
       }
     ];
+    if (productoStockBajo(p)) {
+      void Swal.fire({
+        toast: true,
+        icon: 'info',
+        title: 'Stock bajo',
+        text: `"${p.nombre}" está por debajo del mínimo (${p.stock_minimo}). El precio viene del inventario.`,
+        timer: 2400,
+        showConfirmButton: false,
+        position: 'top'
+      });
+    }
   }
 
   private aplicarDeltaLinea(id: string, delta: number): void {
@@ -992,8 +1059,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     try {
       const p = await firstValueFrom(this.pacientesService.getPaciente(pacienteId).pipe(take(1)));
       this.alergiasPaciente = normalizeAlergias(p);
+      this.tamanoPaciente = inferirTamanoBanio(p as { tamano_perro?: string; tamano?: string });
+      this.recalcularPrecioBanioDefault();
     } catch {
       this.alergiasPaciente = [];
+      this.tamanoPaciente = '';
     }
   }
 
@@ -1018,6 +1088,42 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     } catch {
       this.pendientesBanio = [];
     }
+  }
+
+  private recalcularPrecioBanioDefault(): void {
+    this.precioBanioDefault = resolverPrecioBanioPos({
+      tamano: this.tamanoPaciente || 'mediano',
+      defaults: this.defaultsBanio,
+      plantillas: this.plantillasCosto,
+      tiposServicio: this.tiposServicio,
+      productosPeluqueria: this.productosPeluqueria,
+      catalogoInventario: this.productosCatalogo
+    }).precio;
+  }
+
+  /** Lectura de tarifas 022 / plantillas / peluquería. El POS no escribe maestros. */
+  private async cargarTarifasBanioPos(): Promise<void> {
+    try {
+      const [defaults, plantillas, tipos, peluqueria] = await Promise.all([
+        this.defaultsBanioService.getDefaultsOnce().catch(() => emptyDefaultsBanio()),
+        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(
+          () => [] as PlantillaCosto[]
+        ),
+        firstValueFrom(this.baniosService.getTiposServicios().pipe(take(1))).catch(
+          () => [] as TipoServicio[]
+        ),
+        firstValueFrom(this.baniosService.getProductos().pipe(take(1))).catch(
+          () => [] as ProductoPeluqueria[]
+        )
+      ]);
+      this.defaultsBanio = defaults || emptyDefaultsBanio();
+      this.plantillasCosto = plantillas || [];
+      this.tiposServicio = tipos || [];
+      this.productosPeluqueria = peluqueria || [];
+    } catch {
+      this.defaultsBanio = emptyDefaultsBanio();
+    }
+    this.recalcularPrecioBanioDefault();
   }
 
   private pushLineaBanio(p: BanioPendienteTicket, monto: number): void {

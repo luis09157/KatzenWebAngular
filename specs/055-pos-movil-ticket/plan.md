@@ -26,7 +26,9 @@ Ola 1: rediseño **mobile-first** de `visita-dialog` como caja POS. Ola 1.5 (**P
 | `src/app/visitas/visita-dialog.component.scss` | modificar | sticky search, chips, + 44px, cart bar, sheet |
 | `src/app/visitas/visita-dialog.component.ts` | modificar | catálogo, tabs, sheet qty, cobro inline |
 | `src/app/visitas/visitas.util.ts` | modificar | `ajustarCantidadLinea` / unitario |
-| `src/app/visitas/pos-rieles.util.ts` | crear | 3 rieles + walk-in solo petshop |
+| `src/app/visitas/pos-precios.util.ts` | crear | Precio inventario vs prompt; default baño 022 editable |
+| `src/app/visitas/pos-precios.util.spec.ts` | crear | producto sin prompt; baño default; consulta fallback |
+| `src/app/visitas/visita-atalho.util.ts` | modificar | `forzarDialogo` + valor precargado (baño) |
 | `src/app/visitas/pos-rieles.util.spec.ts` | crear | tests rieles (incluido en test:046) |
 | `src/app/visitas/pos-foto.util.ts` | crear | URL foto 043 + placeholder (ola 1.6) |
 | `src/app/visitas/pos-foto.util.spec.ts` | crear | tests foto con `MOCK_PRODUCTOS_POS` |
@@ -92,7 +94,8 @@ Katzen/Caja/Movimientos/{id}
 |------|--------------------------|
 | Sin dueño ni mostrador | wizard no avanza; hint |
 | Sin líneas | COBRAR bloqueado |
-| Sin stock / sin precio venta | SweetAlert; no agrega |
+| Sin stock / sin precio venta / stock bajo | SweetAlert; no agrega si sin stock o sin `precio_venta`; avisa stock bajo |
+| Baño sin default 022 | Diálogo editable; si hay plantilla/inventario/ProductosPeluqueria se precarga |
 | Monto cobro > saldo | bloqueado |
 | Error RTDB | `ErrorMessagesService` + `loading.hide` |
 
@@ -164,7 +167,7 @@ Katzen/Caja/Movimientos/{id}
 
 | Escenario | Acción de rollback |
 |-----------|-------------------|
-| UI rompe build o POS inutilizable | Revertir `visita-dialog.*`, `visitas.component.*`, `pos-foto.util.ts`, `admin-ui.config.ts`, `admin-dialog.scss` |
+| UI rompe build o POS inutilizable | Revertir `visita-dialog.*`, `visitas.component.*`, `pos-foto.util.ts`, `pos-precios.util.ts`, `visita-atalho.util.ts`, `admin-ui.config.ts`, `admin-dialog.scss` |
 | Accidental write a maestros | No hay APIs de create/update producto/cliente/paciente en el diálogo POS; rollback = no desplegar |
 | Cobro no liga `visitaId` | No aplica Functions; revertir `confirmarCobro` al flujo previo con `CajaMovimientoDialogComponent` |
 | Inventario doble salida | Misma guarda: no registrar si `movimientoInventarioId` ya existe |
@@ -213,11 +216,12 @@ Fuente: `INVESTIGACION-POS.md`. Una ola = una autorización de Luis. **No mezcla
 - **Tests:** match de código (unitario) + `npm run test:046` + `test:039`.
 - **Rollback:** revertir solo sheet/cámara en `visita-dialog.*`; el pegar código actual sigue siendo el fallback.
 
-### P1 — Servicios 1 tap (cuando Luis lo pida)
+### P1 — Servicios 1 tap (parcial 2026-08-30)
 
-- Precios sugeridos desde `Katzen/Finanzas/DefaultsBanioPorTamano` y plantillas `precioSugeridoCliente` (ya en dominio). Sin precio → prompt actual (ola 1).
-- No crear nodo RTDB nuevo.
-- Rieles: atajos en Consulta y Peluquería; petshop no cambia.
+- Producto / vacuna / medicamento: `precio_venta` de Inventario, **sin** prompt.
+- Consulta: producto de catálogo «Consulta» si tiene precio; si no, prompt (fallback).
+- Baño: default 022 / plantilla / ProductosPeluqueria **precargado y editable**.
+- No crear nodo RTDB nuevo. Copys: «Precio de inventario» / «Puedes ajustar el precio de este baño».
 
 ### Fuera de 055 (ratificado)
 

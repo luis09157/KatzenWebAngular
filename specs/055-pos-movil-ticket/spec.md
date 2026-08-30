@@ -109,7 +109,7 @@ Para **no teclear monto cada vez**
 
 **Criterios de aceptación:**
 
-- [ ] SC-012: Precios sugeridos de servicio (plantilla o default clínica). Ola 1: pide monto si no hay precio.
+- [x] SC-012: Precios de inventario en producto/vacuna/medicamento (sin prompt). Consulta: catálogo o fallback. Baño: default 022 precargado y editable. (Ola 3 cámara/1-tap UI extra sigue diferida; esta regla de negocio ya aplica.)
 
 ---
 
@@ -118,7 +118,7 @@ Para **no teclear monto cada vez**
 - Cambios RTDB o Cloud Functions
 - Reabrir cobro directo en baños/citas/pensión (050)
 - Scanner de cámara (ola 2 / P0) — hasta autorización Luis
-- Precios default de servicios sin prompt (ola 3 / P1)
+- Precios default de servicios **sin** catálogo (consulta fallback sigue pidiendo monto)
 - **CFDI / PAC / factura global / botón Facturar** (024 fase 2; ticket interno ≠ factura SAT)
 - WhatsApp / compartir ticket por API
 - App nativa; esto es el admin web en viewport celular
@@ -173,7 +173,7 @@ Ideas de Pulpos/Square (**sin copiar marca**). La caja no es un POS genérico: v
 | Si vendo… | Voy a… | Qué entra al ticket | Dueño |
 |-----------|--------|---------------------|-------|
 | Croqueta, accesorio, producto de anaquel | Riel **Petshop** | `venta_producto` + `productoId`; salida inventario al cobrar (039) | Opcional (mostrador OK) |
-| Consulta, vacuna, medicamento cobrado | Riel **Consulta** | Línea `consulta` / `vacuna` / `otro` (monto) o medicamento clínico (`venta_producto`) | Dueño + mascota |
+| Consulta, vacuna, medicamento cobrado | Riel **Consulta** | Producto de inventario con `precio_venta` (vacuna/medicamento listados). Atajo Consulta: catálogo si hay precio; si no, pide monto. | Dueño + mascota |
 | Baño / corte | Riel **Peluquería** | Pendiente `Katzen/Banios` → `banioId` (046/050) o «Nuevo baño» (línea `banio`) | Dueño + mascota |
 | Reportes de caja, gastos | **No** desde POS | `/admin/finanzas` (Administración) | — |
 | Alta de stock / compras | Tile **Productos** o menú Inventario | No es cobro | — |
@@ -185,8 +185,8 @@ Ideas de Pulpos/Square (**sin copiar marca**). La caja no es un POS genérico: v
 | Home `/admin/visitas` | Header «Punto de venta». Tiles: **Nueva venta** (abre caja con 3 rieles) · Venta mostrador · Tickets de hoy · Productos. |
 | Caja chips | **Petshop \| Consulta \| Peluquería** (obligatorio; no Productos/Servicios/Mostrador). |
 | Petshop | Grid/lista `Katzen/Inventario/Productos` (alimento, accesorio, peluquería). `+` ≥44px. Foto/`imagen_url` 043. Scanner = pegar código. |
-| Consulta | Atajos Consulta / Medicamento / Vacuna (piden monto) + lista medicamentos/vacunas clínicas. Cae en el ticket, no en finanzas. |
-| Peluquería | Baños pendientes del cliente (`filtrarBaniosPendientesTicket`) + **Nuevo baño** (monto → línea). |
+| Consulta | Atajo **Consulta** usa `precio_venta` de catálogo si existe (copy «Precio de inventario»); si no hay precio, pide monto (fallback). **Vacuna/Medicamento:** productos de inventario de esa categoría — **no** tile genérico vacío. |
+| Peluquería | Baños pendientes del cliente (`filtrarBaniosPendientesTicket`) + **Nuevo baño** (precio default 022/plantilla precargado y **editable**; copy «Puedes ajustar el precio de este baño»). |
 | Walk-in | Solo petshop. Consulta/peluquería: hint + «Elegir dueño y mascota». |
 | Carrito | Foto, nombre, precio, +/−, **Cobrar $total**. |
 | Navegación 3 caminos menú | Vender = POS. Clínica = Atención clínica. Inventario/finanzas = Administración. |
@@ -211,7 +211,7 @@ Ver `tasks.md`. `npm run build`, `npm run test:046`, smoke `:4200`.
 
 - Copy: **Punto de venta** / **Nueva venta** en menú, toolbar y home. Diálogo: Nueva venta / Caja.
 - Staff UID no se muestra; «Atendido por» va en «Más opciones».
-- Ola 1 pide monto en servicios; ola 3 / P1 lo vuelve 1 tap.
+- Ola 1 pedía monto en atajos genéricos; **2026-08-30:** producto/vacuna/medicamento usan `precio_venta` de Inventario (sin Swal vacío). Consulta pide monto solo si no hay producto de catálogo. Baño: default 022/plantilla precargado y editable.
 - Ola 1.5 no toca contratos de cobro, walk-in, inventario ni wizard 054.
 - 2026-08-30: investigación POS en `INVESTIGACION-POS.md`. Ola 1.6 = UI redo táctil (prompt §7). P0 Scanner sigue diferido. No hay PAC; el ticket no es CFDI.
 - Ola 1.6 no toca `confirmarCobro`, `VisitasService`, salidas de inventario ni nodos maestros.
