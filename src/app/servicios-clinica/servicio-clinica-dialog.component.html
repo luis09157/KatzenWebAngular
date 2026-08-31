@@ -10,31 +10,71 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
-    <form [formGroup]="form" class="admin-form-layout">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nombre</mat-label>
-        <input matInput formControlName="nombre" required maxlength="120" placeholder="Consulta general, ultrasonido…" />
-        <mat-error *ngIf="form.get('nombre')?.hasError('required')">El nombre es obligatorio.</mat-error>
-        <mat-error *ngIf="form.get('nombre')?.hasError('minlength')">Usa al menos 2 caracteres.</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Tipo</mat-label>
-        <mat-select formControlName="tipo" required>
-          <mat-option *ngFor="let t of tipos" [value]="t">{{ tipoLabels[t] }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="form.get('tipo')?.hasError('required')">Elige un tipo.</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Precio de venta</mat-label>
-        <input matInput type="number" min="0" step="0.01" formControlName="precio_venta" required />
-        <mat-hint>Si es 0, la caja pedirá el monto al cobrar.</mat-hint>
-        <mat-error *ngIf="form.get('precio_venta')?.hasError('required')">Indica el precio.</mat-error>
-        <mat-error *ngIf="form.get('precio_venta')?.hasError('min')">El precio no puede ser negativo.</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Notas (opcional)</mat-label>
-        <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
-      </mat-form-field>
+    <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded servicio-clinica-form">
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-span" subscriptSizing="dynamic">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" required maxlength="120" placeholder="Consulta general, ultrasonido…" />
+          <mat-error *ngIf="form.get('nombre')?.hasError('required')">El nombre es obligatorio.</mat-error>
+          <mat-error *ngIf="form.get('nombre')?.hasError('minlength')">Usa al menos 2 caracteres.</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="tipo" required>
+            <mat-option *ngFor="let t of tipos" [value]="t">{{ tipoLabels[t] }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('tipo')?.hasError('required')">Elige un tipo.</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Costo</mat-label>
+          <input matInput type="number" min="0" step="0.01" formControlName="precio_costo" required />
+          <span matTextPrefix>$&nbsp;</span>
+          <mat-hint>Lo que te cuesta a ti</mat-hint>
+          <mat-error *ngIf="form.get('precio_costo')?.hasError('required')">Indica el costo.</mat-error>
+          <mat-error *ngIf="form.get('precio_costo')?.hasError('min')">El costo no puede ser negativo.</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Precio de venta</mat-label>
+          <input matInput type="number" min="0" step="0.01" formControlName="precio_venta" required />
+          <span matTextPrefix>$&nbsp;</span>
+          <mat-hint>Lo que cobra el cliente (incluye IVA si está activo)</mat-hint>
+          <mat-error *ngIf="form.get('precio_venta')?.hasError('required')">Indica el precio.</mat-error>
+          <mat-error *ngIf="form.get('precio_venta')?.hasError('min')">El precio no puede ser negativo.</mat-error>
+          <mat-error *ngIf="form.get('precio_venta')?.hasError('costoMayorOIgualVenta')">
+            El costo debe ser menor que el precio de venta.
+          </mat-error>
+        </mat-form-field>
+        <div class="full-span iva-row">
+          <mat-checkbox formControlName="aplicaIva">
+            Aplicar IVA {{ tasaDefault }}% (precio al público ya lo incluye; no es factura CFDI)
+          </mat-checkbox>
+          <mat-form-field appearance="outline" *ngIf="form.get('aplicaIva')?.value" class="tasa-iva-field" subscriptSizing="dynamic">
+            <mat-label>Tasa IVA %</mat-label>
+            <input matInput type="number" min="0" max="100" step="1" formControlName="tasaIva" />
+            <mat-hint>México general: {{ tasaDefault }}%</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="full-span ganancia-preview" *ngIf="desglose.ventaPublica > 0 || desglose.costo > 0">
+          <mat-icon>trending_up</mat-icon>
+          <div class="ganancia-preview__text">
+            <p *ngIf="desglose.aplicaIva">
+              De ${{ desglose.ventaPublica | number:'1.2-2' }} al público:
+              IVA {{ desglose.tasa }}% ${{ desglose.ivaTrasladado | number:'1.2-2' }}
+              · venta neta ${{ desglose.ventaNeta | number:'1.2-2' }}
+            </p>
+            <p>
+              Ganancia:
+              <strong>${{ desglose.ganancia | number:'1.2-2' }}</strong>
+              <span *ngIf="desglose.aplicaIva"> (después de IVA)</span>
+              <span *ngIf="!desglose.aplicaIva"> (venta − costo)</span>
+            </p>
+          </div>
+        </div>
+        <mat-form-field appearance="outline" class="full-span" subscriptSizing="dynamic">
+          <mat-label>Notas (opcional)</mat-label>
+          <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
+        </mat-form-field>
+      </div>
     </form>
   </mat-dialog-content>
 

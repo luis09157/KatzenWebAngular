@@ -105,7 +105,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Finanzas / CxC** | **032/036 done.** ~~**045** hub ticket (cuenta del día + pendientes baño + venta desde ticket)~~ **done**. Walk-in petshop → **046 done**. | Alta |
 | **UX admin** | ~~**046** draft: flujos guiados “te falta X”, empty states, walk-in~~ **done** — `specs/046-ux-intuitiva-guiada/` | Alta — **cerrada** |
-| **Ops recepción** | **048/049/050** código mayormente listo. **054:** wizard ticket. **055:** POS móvil + precios inventario. **056 ola 1:** catálogo Servicios de clínica (`specs/056-servicios-clinica/`; sin deploy). | Alta |
+| **Ops recepción** | **048/049/050** código mayormente listo. **054:** wizard ticket. **055:** POS móvil + precios inventario. **056:** catálogo Servicios de clínica + costo/IVA/ganancia (precio al público incluye IVA; sin deploy). | Alta |
 | **Ops clínicas** | **033–037 done**. **052 done** (código olas 1–3). **053 ola 1 hecha** (desparasitación → recordatorio). Deploy functions-fcm scheduler **pendiente autorización Luis**. Cierre: `specs/054-cierre-sistema/CIERRE.md`. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |

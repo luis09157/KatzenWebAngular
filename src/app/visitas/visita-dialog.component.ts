@@ -55,6 +55,7 @@ import {
   recalcularVisita,
   roundMoney
 } from './visitas.util';
+import { snapshotEconomiaLinea } from '../core/utils/precio-margen.util';
 import {
   BanioPendienteTicket,
   banioYaEnLineas,
@@ -1047,7 +1048,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         monto: roundMoney(monto),
         categoria: categoriaLineaDesdeTipoServicio(s.tipo),
         cantidad: 1,
-        servicioClinicaId: s.id
+        servicioClinicaId: s.id,
+        ...snapshotEconomiaLinea({
+          precioVenta: monto,
+          costo: s.precio_costo,
+          aplicaIva: s.aplicaIva === true,
+          tasaIva: s.tasaIva,
+          cantidad: 1
+        })
       }
     ];
   }
@@ -1144,7 +1152,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         monto: roundMoney(unit * cantidad),
         categoria: 'venta_producto',
         productoId: p.id,
-        cantidad
+        cantidad,
+        ...snapshotEconomiaLinea({
+          precioVenta: unit,
+          costo: p.precio_compra,
+          aplicaIva: !!p.iva_aplicable,
+          tasaIva: p.tasa_iva,
+          cantidad
+        })
       }
     ];
     if (productoStockBajo(p)) {
@@ -1252,7 +1267,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         monto: roundMoney(monto),
         categoria: p.categoria,
         banioId: p.id,
-        cantidad: 1
+        cantidad: 1,
+        ...snapshotEconomiaLinea({
+          precioVenta: monto,
+          costo: p.costoEstimado,
+          aplicaIva: false,
+          cantidad: 1
+        })
       }
     ];
     this.pendientesBanio = this.pendientesBanio.filter(x => x.id !== p.id);

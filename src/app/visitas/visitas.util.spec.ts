@@ -64,4 +64,26 @@ describe('visitas.util', () => {
     expect(ajustarCantidadLinea(linea, -1)).toBeNull();
     expect(contarArticulos([dos!])).toBe(2);
   });
+
+  it('056: al ajustar cantidad escala costo, IVA y ganancia', () => {
+    const linea = {
+      id: 's1',
+      descripcion: 'Consulta',
+      monto: 400,
+      categoria: 'consulta' as const,
+      cantidad: 1,
+      costo: 80,
+      precio_venta: 400,
+      iva: 55.17,
+      ganancia: 264.83,
+      aplicaIva: true,
+      tasaIva: 16
+    };
+    const dos = ajustarCantidadLinea(linea, 1);
+    expect(dos?.cantidad).toBe(2);
+    expect(dos?.monto).toBe(800);
+    expect(dos?.costo).toBe(160);
+    expect(dos?.iva).toBe(110.34);
+    expect(dos?.ganancia).toBe(529.66);
+  });
 });

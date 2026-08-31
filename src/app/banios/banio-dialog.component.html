@@ -165,6 +165,10 @@
             <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
           </mat-form-field>
         </div>
+        <p class="ganancia-banio" *ngIf="gananciaEstimada != null">
+          Ganancia: <strong>${{ gananciaEstimada | number:'1.2-2' }}</strong>
+          (precio al cliente − costo)
+        </p>
       </section>
 
       <section class="form-section">

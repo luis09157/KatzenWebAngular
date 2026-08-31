@@ -1,9 +1,11 @@
 <mat-sidenav-container class="admin-shell">
   <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="sidenavOpened" class="admin-sidenav">
-    <mat-toolbar>
+    <div class="admin-sidenav__inner">
+    <mat-toolbar class="admin-sidenav__brand">
       <mat-icon color="primary">pets</mat-icon>
       <span class="mat-title-medium" style="margin-left:8px">KatzenVet</span>
     </mat-toolbar>
+    <div class="admin-sidenav__scroll">
     <mat-nav-list>
       <a *ngIf="canShow('inicio')" mat-list-item routerLink="/admin/inicio" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>dashboard</mat-icon>
@@ -137,6 +139,8 @@
         <span matListItemTitle>Cerrar sesión</span>
       </a>
     </mat-nav-list>
+    </div>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -154,6 +158,38 @@
         <mat-icon>person</mat-icon>
         <span>{{ getNombreUsuario() }}</span>
       </span>
+      <button
+        mat-icon-button
+        type="button"
+        class="admin-toolbar-more"
+        [matMenuTriggerFor]="toolbarOverflow"
+        aria-label="Cuenta, sucursal y más">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #toolbarOverflow="matMenu" class="admin-toolbar-overflow">
+        <div class="admin-overflow-user" mat-menu-item disabled *ngIf="getNombreUsuario()">
+          <mat-icon>person</mat-icon>
+          <span>{{ getNombreUsuario() }}</span>
+        </div>
+        <ng-container *ngIf="sucursales.length > 1">
+          <button
+            mat-menu-item
+            type="button"
+            *ngFor="let sucursal of sucursales"
+            (click)="onSucursalChange(sucursal.id)">
+            <mat-icon>{{ sucursal.id === sucursalSeleccionada ? 'check' : 'store' }}</mat-icon>
+            <span>{{ sucursal.nombre }}</span>
+          </button>
+        </ng-container>
+        <button mat-menu-item type="button" *ngIf="canGoPortal" (click)="irAMiPortal()">
+          <mat-icon>pets</mat-icon>
+          <span>Ir a mi portal</span>
+        </button>
+        <button mat-menu-item type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
     </mat-toolbar>
     <div class="admin-content">
       <router-outlet></router-outlet>

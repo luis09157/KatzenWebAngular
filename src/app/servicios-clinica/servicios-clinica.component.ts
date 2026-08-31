@@ -16,6 +16,7 @@ import {
   COPY_BANIO_EN_FINANZAS,
   labelTipoServicioClinica
 } from './servicios-clinica.util';
+import { desglosarPrecioIvaIncluido } from '../core/utils/precio-margen.util';
 
 @Component({
   selector: 'app-servicios-clinica',
@@ -27,11 +28,13 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
 
-  displayedColumns = ['nombre', 'tipo', 'precio', 'estado', 'acciones'];
+  displayedColumns = ['nombre', 'tipo', 'costo', 'precio', 'iva', 'ganancia', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<ServicioClinica>([]);
   loading = true;
   readonly tipoLabels = TIPO_SERVICIO_CLINICA_LABELS;
   readonly hintBanio = COPY_BANIO_EN_FINANZAS;
+  readonly hintIva =
+    'El precio al público incluye IVA si está marcado. El costo es lo que te cuesta a ti. La ganancia es venta neta − costo.';
 
   totalActivos = 0;
   totalConsultas = 0;
@@ -109,6 +112,21 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
+  }
+
+  ivaLabel(row: ServicioClinica): string {
+    if (row.aplicaIva !== true) return 'Sin IVA';
+    const tasa = Number(row.tasaIva) > 0 ? Number(row.tasaIva) : 16;
+    return `${tasa}%`;
+  }
+
+  gananciaDe(row: ServicioClinica): number {
+    return desglosarPrecioIvaIncluido({
+      precioVenta: row.precio_venta,
+      costo: row.precio_costo,
+      aplicaIva: row.aplicaIva === true,
+      tasaIva: row.tasaIva
+    }).ganancia;
   }
 
   nuevo(): void {

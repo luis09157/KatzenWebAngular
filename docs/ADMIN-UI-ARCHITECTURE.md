@@ -205,6 +205,12 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 - `.admin-page` / `*-contenedor` **no** deben imponer un `max-width` más estrecho que `.admin-content`.
 - ≥1200px: columnas flexibles (`motivo`, `consulta`, nombres) absorben el ancho; scroll horizontal en estrecho sigue OK.
 
+### Sidenav y toolbar (menú 3 mundos)
+
+- El sidenav (`admin-main-layout`) usa `.admin-sidenav__scroll` con `overflow-y: auto` y `min-height: 0` para que **Pensión, Alertas, logout** no se corten contra el dock.
+- Toolbar ≤900px: `more_vert` con cuenta, sucursal y atajos; chips de usuario/sucursal van en `.hide-mobile`.
+- Shell: `height: 100dvh` (no `min-height: 100vh` en el drawer, que impide el scroll interno).
+
 ### Auth shells (login admin, portal, selector de contexto)
 
 - Desktop: card **centrada** vertical y horizontal (`min-height: 100vh` + flex center), fondo con gradiente teal suave del shell existente.
@@ -222,7 +228,7 @@ export const ADMIN_DIALOG_CONFIG = {
 };
 ```
 
-Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`. Caja POS (punto de venta, spec 055): `ADMIN_DIALOG_POS` + panel `admin-dialog-panel--pos` (fullscreen en ≤720px). Home `/admin/visitas`: tiles táctiles. Diálogo: **grid con foto** (043 / placeholder), tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar; 3 rieles (Petshop | Consulta | Peluquería). Producto/vacuna/medicamento: `precio_venta` de inventario (copy «Precio de inventario»), sin prompt de monto. **Servicios de clínica (056):** CRUD `/admin/servicios-clinica` (Administración); el riel Consulta lista esos servicios + vacuna/medicamento. Baño: default 022 precargado y editable («Puedes ajustar el precio de este baño»); no se migra al nodo 056. El POS **no** crea/edita Productos, Clientes ni Pacientes. En localhost, si `usarCatalogoDemoPos` está ON, aparece el banner **«Catálogo de muestra — no se guarda»** (`app-flow-hint` warn); esos 6 ítems `demo-pos-*` no van a inventario.
+Compact variants: `ADMIN_DIALOG_DETAIL`, `ADMIN_DIALOG_FORM`, `ADMIN_DIALOG_CONFIRM`, `ADMIN_DIALOG_TIMEPICKER`. Caja POS (punto de venta, spec 055): `ADMIN_DIALOG_POS` + panel `admin-dialog-panel--pos` (fullscreen en ≤720px; desktop `min(1120px, 98vw)` con `border-radius: 16px`). El acento teal del panel es un `::before` de 5px recortado por el radio — **no** `border-top` (deja esquinas cuadradas). Paso 3 Cobrar: `floatLabel="always"` + `subscriptSizing="dynamic"` + wrapper outline transparente para que el label no cruce el borde; footer agrupado `Cerrar/Atrás | Imprimir/Guardar | Cobrar` con wrap en ≤720px. Home `/admin/visitas`: tiles táctiles. Diálogo: **grid con foto** (043 / placeholder), tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar; 3 rieles (Petshop | Consulta | Peluquería). Producto/vacuna/medicamento: `precio_venta` de inventario (copy «Precio de inventario»), sin prompt de monto. **Servicios de clínica (056):** CRUD `/admin/servicios-clinica` (Administración); diálogo con costo («Lo que te cuesta a ti»), precio al público («Lo que cobra el cliente», IVA incluido si aplica), checkbox IVA 16% y lectura de ganancia. El riel Consulta lista esos servicios + vacuna/medicamento. Al vender, la línea guarda snapshot `costo`/`iva`/`ganancia` (el cajero no pide costo). Baño: default 022 precargado y editable («Puedes ajustar el precio de este baño») + ganancia venta−costo; no se migra al nodo 056. El POS **no** crea/edita Productos, Clientes ni Pacientes. En localhost, si `usarCatalogoDemoPos` está ON, aparece el banner **«Catálogo de muestra — no se guarda»** (`app-flow-hint` warn); esos 6 ítems `demo-pos-*` no van a inventario.
 
 ### Diálogos compactos tipo picker (espaciado)
 

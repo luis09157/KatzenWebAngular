@@ -10,6 +10,7 @@ export interface BanioPendienteTicket {
   fecha_banio?: string;
   tipo_servicio?: string;
   precio_total: number;
+  costoEstimado?: number;
   categoria: 'banio' | 'corte';
 }
 
@@ -54,6 +55,10 @@ export function filtrarBaniosPendientesTicket(
         fecha_banio: fechaBanioIso(b),
         tipo_servicio: b.tipo_servicio,
         precio_total: Number(b.precio_total) || 0,
+        costoEstimado:
+          b.costoEstimado != null && !Number.isNaN(Number(b.costoEstimado))
+            ? Number(b.costoEstimado)
+            : undefined,
         categoria: tipo.includes('corte') ? ('corte' as const) : ('banio' as const)
       };
     });

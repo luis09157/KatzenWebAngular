@@ -30,6 +30,7 @@
     </app-admin-page-banner>
 
     <app-flow-hint icon="info" [message]="hintBanio"></app-flow-hint>
+    <app-flow-hint icon="payments" [message]="hintIva"></app-flow-hint>
 
     <app-admin-data-panel
       accent="teal"
@@ -68,9 +69,29 @@
             <td mat-cell *matCellDef="let row">{{ tipoLabels[row.tipo] || row.tipo }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="costo">
+            <th mat-header-cell *matHeaderCellDef>Costo</th>
+            <td mat-cell *matCellDef="let row">{{ formatMoney(row.precio_costo) }}</td>
+          </ng-container>
+
           <ng-container matColumnDef="precio">
-            <th mat-header-cell *matHeaderCellDef>Precio</th>
+            <th mat-header-cell *matHeaderCellDef>Precio al público</th>
             <td mat-cell *matCellDef="let row">{{ formatMoney(row.precio_venta) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="iva">
+            <th mat-header-cell *matHeaderCellDef>IVA</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="estado-badge" [class.estado-badge--activo]="row.aplicaIva === true"
+                    [class.estado-badge--inactivo]="row.aplicaIva !== true">
+                {{ ivaLabel(row) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="ganancia">
+            <th mat-header-cell *matHeaderCellDef>Ganancia</th>
+            <td mat-cell *matCellDef="let row">{{ formatMoney(gananciaDe(row)) }}</td>
           </ng-container>
 
           <ng-container matColumnDef="estado">

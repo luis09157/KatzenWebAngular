@@ -16,7 +16,7 @@ import { VisitaDialogComponent } from '../../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../../visitas/visita-atalho.util';
 import { ClientesService } from '../../clientes/clientes.service';
 import { Cliente } from '../../core/models';
-import { precioConIva, resolverTasaIva } from '../../core/utils/precio-margen.util';
+import { desglosarPrecioIvaIncluido, resolverTasaIva } from '../../core/utils/precio-margen.util';
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { normalizeAlergias } from '../../shared/alergias/alergias.util';
 import { ProductoSelection } from '../../shared/admin/producto-picker.models';
@@ -192,15 +192,32 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     return Math.round((Number(this.productoSeleccionado.precio_venta) || 0) * qty * 100) / 100;
   }
 
-  /** Preview con IVA si el producto lo marca (control interno). */
-  get montoVentaConIvaSugerido(): number {
+  /** IVA incluido en el precio al público (no se suma encima). */
+  get ivaTrasladadoSugerido(): number {
     if (!this.productoSeleccionado) return 0;
     const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
-    const netoUnit = Number(this.productoSeleccionado.precio_venta) || 0;
     const aplica = !!this.productoSeleccionado.iva_aplicable;
-    const tasa = this.productoSeleccionado.tasa_iva;
-    const unit = precioConIva(netoUnit, aplica, resolverTasaIva(aplica, tasa));
-    return Math.round(unit * qty * 100) / 100;
+    const d = desglosarPrecioIvaIncluido({
+      precioVenta: this.productoSeleccionado.precio_venta,
+      costo: this.productoSeleccionado.precio_compra,
+      aplicaIva: aplica,
+      tasaIva: resolverTasaIva(aplica, this.productoSeleccionado.tasa_iva),
+      cantidad: qty > 0 ? qty : 1
+    });
+    return d.ivaTrasladado;
+  }
+
+  get gananciaVentaSugerida(): number {
+    if (!this.productoSeleccionado) return 0;
+    const qty = Number(this.salidaForm.get('cantidad')?.value) || 0;
+    const aplica = !!this.productoSeleccionado.iva_aplicable;
+    return desglosarPrecioIvaIncluido({
+      precioVenta: this.productoSeleccionado.precio_venta,
+      costo: this.productoSeleccionado.precio_compra,
+      aplicaIva: aplica,
+      tasaIva: resolverTasaIva(aplica, this.productoSeleccionado.tasa_iva),
+      cantidad: qty > 0 ? qty : 1
+    }).ganancia;
   }
 
   get costoVentaSugerido(): number {
@@ -281,10 +298,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   }
 
   montoVentaFinal(): number {
-    if (!this.productoSeleccionado) return 0;
-    if (this.productoSeleccionado.iva_aplicable) {
-      return this.montoVentaConIvaSugerido;
-    }
     return this.montoVentaSugerido;
   }
 

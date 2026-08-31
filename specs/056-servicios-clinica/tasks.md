@@ -25,6 +25,9 @@
 - [x] Lista + diálogo
 - [x] POS riel Consulta
 - [x] UI admin-page / dialog-shell / flow-hint
+- [x] Costo + IVA + ganancia (diálogo, listado, snapshot en línea POS)
+- [x] Productos: desglose IVA incluido + ganancia neta (sin reescribir 022)
+- [x] Baño: lectura de ganancia (venta − costo)
 
 ### Integración
 
@@ -41,17 +44,19 @@
 > Guía: `specs/templates/qa-validation-guide.md`
 
 - [x] `npm run build` — exit 0 (2026-08-30, Hash `c3f2926c4ed00bb0`; warning de budget inicial 2.35 MB, preexistente)
-- [x] `npm run test:056` — 11 SUCCESS
-- [x] Servidor local `http://localhost:4200` (ng serve compiló chunk `servicios-clinica-servicios-clinica-module`)
+- [x] `npm run test:056` — 34 SUCCESS (2026-08-31; incluye precio-margen + visitas.util)
+- [x] `npm run test:043` — 25 SUCCESS (producto + IVA)
+- [x] Servidor local `http://localhost:4200` (`ng serve` PID vivo; SPA con `Accept: text/html`)
 - [x] Empty state / permission-denied: `getServicios()` hace `catchError(() => of([]))` — lista vacía, no TypeError
 - [x] Cypress smoke ruta — añadido; **no** se corre E2E en esta ola (sin deploy)
 
-**Resultado:** OK local (build + unit + serve). Persistencia RTDB prod **bloqueada** hasta `firebase deploy --only database` (Luis no lo autorizó).
+**Resultado:** OK local (build + unit + serve). Persistencia RTDB prod **bloqueada** hasta `firebase deploy --only database` (Luis no lo autorizó). Snapshot costo/IVA en líneas es aditivo (tickets viejos sin esos campos siguen cobrando igual).
 
 ```
-npm run build → exit 0
-npm run test:056 → TOTAL: 11 SUCCESS
-ng serve → Compiled successfully · http://localhost:4200
+npm run build → exit 0 · Hash f0bfdbd64c03e541 (budget warning 2.35 MB, preexistente)
+npm run test:056 → TOTAL: 34 SUCCESS
+npm run test:043 → TOTAL: 25 SUCCESS
+ng serve → http://localhost:4200
 ```
 
 ---
@@ -72,26 +77,30 @@ ng serve → Compiled successfully · http://localhost:4200
 
 | Escenario | Resultado | Notas |
 |-----------|-----------|-------|
-| Formularios — campos vacíos | OK código | `nombre` required + minLength 2; `mat-error`; Guardar disabled si invalid |
-| Formularios — tipos erróneos | OK código | `precio_venta` `min(0)`; tipo solo del enum; util `validarFormularioServicioClinica` |
-| Formularios — límites texto | OK código | nombre maxlength 120; notas 500 |
-| UI — chips estado completos | OK código | `.estado-badge` + `mat-column-estado` min-width 148px |
-| Modales — apertura/cierre | OK código | `admin-dialog-shell`, close, Cancelar; sin `mat-dialog-title` |
+| Formularios — campos vacíos | OK código | `nombre` required; `precio_costo` y `precio_venta` required; Guardar disabled si invalid |
+| Formularios — costo ≥ venta | OK tests | `validarFormularioServicioClinica` + `ventaMayorQueCostoValidator` |
+| Formularios — IVA | OK código | checkbox default ON en alta; tasa 16; desglose en vivo |
+| UI — chips estado/IVA completos | OK código | `.estado-badge` + `mat-column-estado` / `mat-column-iva` min-width 148px |
+| Modales — admin-dialog-shell | OK código | sin `mat-dialog-title`; Costo / Precio / IVA / ganancia |
+| Copy costo vs venta | OK código | «Lo que te cuesta a ti» vs «Lo que cobra el cliente» |
 | UI — diálogos --picker | N/A | CRUD form, no picker |
-| UI — timepicker en campos hora | N/A | sin hora |
-| UI — retroalimentación | OK código | Swal éxito/error + `ErrorMessagesService` |
+| UI — timepicker | N/A | sin hora |
 | UI — loading contextual | OK código | Cargando / Guardando / Eliminando |
 | UI — loading no trabado | OK código | `hide()` en `finally` |
 | UI — doble submit | OK código | `loading \|\| form.invalid` |
-| Edge — red lenta/error | OK código | permission-denied → `[]` + empty state |
-| Edge — datos nulos RTDB | OK código | defaults en map del service |
-| Servidor local :4200 + smoke | OK | landing 200; chunk 056 en compile |
-| Build `npm run build` | OK | exit 0 |
-| Tests unitarios modelo | OK | 11 SUCCESS |
+| Edge — red/permission-denied | OK código | lista vacía |
+| Edge — líneas POS sin snapshot | OK código | campos opcionales; cobro usa `monto` |
+| Modelo IVA incluido | OK tests | 400 @16% → neta 344.83, IVA 55.17, ganancia con costo 100 = 244.83 |
+| Productos ganancia neta | OK código | diálogo + columna margen; salida caja ya no suma IVA encima |
+| Baño ganancia | OK código | lectura `precio_total − costoEstimado`; 022 intacto |
+| Servidor local :4200 + smoke | OK | landing 200; rutas admin SPA con Accept text/html; `ng serve` vivo |
+| Build `npm run build` | OK | exit 0 Hash `f0bfdbd64c03e541` |
+| Tests unitarios | OK | test:056 34 SUCCESS · test:043 25 SUCCESS |
 
 ```
-npm run build exit 0 · Hash c3f2926c4ed00bb0
-test:056 TOTAL: 11 SUCCESS
+npm run build exit 0 · Hash f0bfdbd64c03e541
+test:056 TOTAL: 34 SUCCESS
+test:043 TOTAL: 25 SUCCESS
 ```
 
 ---
@@ -106,6 +115,10 @@ test:056 TOTAL: 11 SUCCESS
 - [x] SC-006: sin prompt si hay precio
 - [x] SC-007: tipo domicilio
 - [x] SC-008: baño no migra
+- [x] SC-009: costo + IVA + ganancia en diálogo servicio
+- [x] SC-010: snapshot económico en línea de ticket
+- [x] SC-011: productos IVA incluido + ganancia neta
+- [x] SC-012: baño muestra ganancia (022 intacto)
 
 ---
 

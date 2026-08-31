@@ -1,7 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CategoriaProducto } from '../../shared/inventario.models';
 
-/** Tasa general IVA México (preview interno; no es CFDI). */
+/** Tasa general IVA México (control interno; no es CFDI). Precio al público incluye IVA. */
 export const TASA_IVA_GENERAL_MX = 16;
 
 export const MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA =
@@ -138,7 +138,11 @@ export function sugerirIvaPorCategoria(categoria: CategoriaProducto | string | n
   };
 }
 
-/** Precio con IVA (preview). Si no aplica o tasa 0 → mismo neto. */
+function round2(n: number): number {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
+/** Precio con IVA (neto → público). Si no aplica o tasa 0 → mismo neto. */
 export function precioConIva(
   precioNeto: unknown,
   ivaAplicable: boolean,
@@ -146,11 +150,11 @@ export function precioConIva(
 ): number {
   const neto = Number(precioNeto) || 0;
   if (!ivaAplicable) {
-    return Math.round(neto * 100) / 100;
+    return round2(neto);
   }
   const tasa = Number(tasaIva);
   const t = Number.isNaN(tasa) || tasa < 0 ? TASA_IVA_GENERAL_MX : tasa;
-  return Math.round(neto * (1 + t / 100) * 100) / 100;
+  return round2(neto * (1 + t / 100));
 }
 
 export function resolverTasaIva(
@@ -165,4 +169,76 @@ export function resolverTasaIva(
     return TASA_IVA_GENERAL_MX;
   }
   return t;
+}
+
+/**
+ * Modelo único Katzen (056 / inventario): el precio al público **incluye IVA**.
+ * Costo es neto. Ganancia = venta neta − costo.
+ */
+export interface DesgloseIvaIncluido {
+  ventaPublica: number;
+  ventaNeta: number;
+  ivaTrasladado: number;
+  tasa: number;
+  aplicaIva: boolean;
+  costo: number;
+  /** venta neta − costo */
+  ganancia: number;
+  /** venta pública − costo (antes de extraer IVA) */
+  gananciaBruta: number;
+}
+
+export interface SnapshotEconomiaLinea {
+  costo: number;
+  precio_venta: number;
+  iva: number;
+  ganancia: number;
+  aplicaIva: boolean;
+  tasaIva: number;
+}
+
+export function desglosarPrecioIvaIncluido(input: {
+  precioVenta: unknown;
+  costo?: unknown;
+  aplicaIva?: boolean;
+  tasaIva?: unknown;
+  cantidad?: unknown;
+}): DesgloseIvaIncluido {
+  const qty = Math.max(1, Number(input.cantidad) || 1);
+  const ventaPublica = round2((Number(input.precioVenta) || 0) * qty);
+  const costo = round2((Number(input.costo) || 0) * qty);
+  const aplicaIva = !!input.aplicaIva;
+  const tasa = aplicaIva ? resolverTasaIva(true, input.tasaIva) : 0;
+  const ventaNeta =
+    aplicaIva && tasa > 0 ? round2(ventaPublica / (1 + tasa / 100)) : ventaPublica;
+  const ivaTrasladado = round2(ventaPublica - ventaNeta);
+  return {
+    ventaPublica,
+    ventaNeta,
+    ivaTrasladado,
+    tasa,
+    aplicaIva,
+    costo,
+    ganancia: round2(ventaNeta - costo),
+    gananciaBruta: round2(ventaPublica - costo)
+  };
+}
+
+/** Snapshot para persistir en línea de ticket (totales de línea; `precio_venta` unitario). */
+export function snapshotEconomiaLinea(input: {
+  precioVenta: unknown;
+  costo?: unknown;
+  aplicaIva?: boolean;
+  tasaIva?: unknown;
+  cantidad?: unknown;
+}): SnapshotEconomiaLinea {
+  const d = desglosarPrecioIvaIncluido(input);
+  return {
+    costo: d.costo,
+    precio_venta: round2(Number(input.precioVenta) || 0),
+    iva: d.ivaTrasladado,
+    ganancia: d.ganancia,
+    aplicaIva: d.aplicaIva,
+    tasaIva: d.tasa
+  };
 }

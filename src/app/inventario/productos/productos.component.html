@@ -176,11 +176,14 @@
         <ng-container matColumnDef="margen">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Margen</th>
           <td mat-cell *matCellDef="let producto">
-            <span [class.margen-bueno]="producto.margen_ganancia > 30"
-                  [class.margen-regular]="producto.margen_ganancia >= 15 && producto.margen_ganancia <= 30"
-                  [class.margen-bajo]="producto.margen_ganancia < 15">
-              {{ producto.margen_ganancia | number:'1.1-1' }}%
-            </span>
+            <div class="cell-primary">
+              <span [class.margen-bueno]="producto.margen_ganancia > 30"
+                    [class.margen-regular]="producto.margen_ganancia >= 15 && producto.margen_ganancia <= 30"
+                    [class.margen-bajo]="producto.margen_ganancia < 15">
+                {{ producto.margen_ganancia | number:'1.1-1' }}%
+              </span>
+              <span class="cell-secondary">Ganancia ${{ gananciaNeta(producto) | number:'1.2-2' }}</span>
+            </div>
           </td>
         </ng-container>
 

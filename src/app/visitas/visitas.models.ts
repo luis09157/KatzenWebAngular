@@ -59,6 +59,13 @@ export interface VisitaLinea {
   movimientoInventarioId?: string;
   /** Spec 056 — catálogo ServiciosClinica (aditivo). */
   servicioClinicaId?: string;
+  /** Snapshot económico (aditivo; no rompe cobro). Totales de línea salvo precio_venta (unitario). */
+  costo?: number;
+  precio_venta?: number;
+  iva?: number;
+  ganancia?: number;
+  aplicaIva?: boolean;
+  tasaIva?: number;
 }
 
 export interface Visita {

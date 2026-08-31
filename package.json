@@ -15,7 +15,7 @@
     "test:045": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/visitas/pendientes-visita.util.spec.ts",
     "test:046": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/visitas/visita-mostrador.util.spec.ts --include=src/app/visitas/pos-rieles.util.spec.ts",
     "test:055": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/visitas/pos-foto.util.spec.ts --include=src/app/visitas/pos-rieles.util.spec.ts --include=src/app/visitas/visita-mostrador.util.spec.ts --include=src/app/visitas/pos-catalogo-demo.util.spec.ts --include=src/app/visitas/pos-precios.util.spec.ts",
-    "test:056": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/servicios-clinica/servicios-clinica.util.spec.ts --include=src/app/core/config/staff-role.config.spec.ts",
+    "test:056": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/servicios-clinica/servicios-clinica.util.spec.ts --include=src/app/core/config/staff-role.config.spec.ts --include=src/app/core/utils/precio-margen.util.spec.ts --include=src/app/visitas/visitas.util.spec.ts",
     "test:052": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/vacunas/esquema-vacuna.util.spec.ts --include=src/app/vacunas/vacuna-recordatorio.util.spec.ts --include=src/app/portal/utils/portal-mapper.util.spec.ts",
     "test:053": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/recordatorios/esquema-desparasitacion.util.spec.ts --include=src/app/core/config/staff-role.config.spec.ts",
     "lint": "ng lint",

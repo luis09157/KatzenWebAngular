@@ -1,9 +1,11 @@
 .admin-auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
+  padding: max(32px, env(safe-area-inset-top, 0px)) 20px max(32px, env(safe-area-inset-bottom, 0px));
   position: relative;
   overflow: hidden;
   background: #f4f9f9;
@@ -194,5 +196,11 @@
 @media (max-width: 480px) {
   .admin-auth-card {
     padding: 28px 20px 22px !important;
+    max-width: 100%;
+  }
+
+  .admin-auth-page {
+    padding: 20px 16px;
+    padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px));
   }
 }

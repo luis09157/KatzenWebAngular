@@ -32,9 +32,24 @@
   margin: 0 !important;
   border-radius: 16px !important;
   background: #fff !important;
+  border: none !important;
+  position: relative !important;
   box-shadow: 0 20px 48px rgba(17, 24, 39, 0.14) !important;
-  border-top: 5px solid #0a969b !important;
   --mdc-dialog-container-color: #fff;
+}
+
+/* Acento teal recortado por el border-radius (no border-top, que deja esquinas cuadradas). */
+.admin-dialog-panel .mat-mdc-dialog-surface::before,
+.admin-dialog-panel .mdc-dialog__surface::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #0a969b;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .admin-dialog-panel .mat-mdc-dialog-surface > *,
@@ -577,8 +592,9 @@
   margin-left: auto !important;
 }
 
-.admin-dialog-shell .mat-mdc-text-field-wrapper {
-  background: #fff;
+.admin-dialog-shell .mat-mdc-text-field-wrapper.mdc-text-field--outlined,
+.admin-dialog-panel .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+  background: transparent;
 }
 
 /* ── Footer ── */
@@ -1433,7 +1449,7 @@
   }
 }
 
-/* ── Caja POS (spec 055) — fullscreen móvil ── */
+/* ── Caja POS (spec 055) — fullscreen móvil; desktop con radio + acento teal ── */
 .cdk-overlay-pane.admin-dialog-panel--pos {
   max-width: 100vw !important;
   width: 100vw !important;
@@ -1478,5 +1494,11 @@
   .admin-dialog-panel--pos .mdc-dialog__surface > *,
   .admin-dialog-panel--pos .admin-dialog-shell {
     max-height: 94vh !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-dialog-panel--pos .admin-dialog-header {
+    padding: 12px 14px 10px !important;
   }
 }

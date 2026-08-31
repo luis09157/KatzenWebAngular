@@ -4,8 +4,9 @@
 
   .pos-header {
     align-items: center;
-    padding: 10px 12px;
+    padding: 14px 16px 12px;
     gap: 8px;
+    overflow: visible;
   }
 
   .pos-header .admin-dialog-title {
@@ -85,11 +86,19 @@
   }
 
   .pos-step {
-    padding: 12px 16px 16px;
+    padding: 16px 20px 24px;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  .pos-step--cobro {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 20px 28px;
   }
 
   .pos-tiles {
@@ -522,12 +531,71 @@
   }
 
   .pos-total-huge {
-    margin: 8px 0 12px;
-    font-size: 2rem;
+    margin: 0;
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     color: #0f172a;
     line-height: 1.1;
+  }
+
+  .pos-cobro-total {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid var(--admin-border, #e2e8f0);
+
+    .hint-empty {
+      margin: 4px 0 0;
+    }
+  }
+
+  .pos-cobro-total__lbl {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .pos-cobro-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 4px;
+  }
+
+  .pos-cobro-form .presets-label {
+    margin: 0;
+  }
+
+  .pos-cobrar-todo {
+    align-self: flex-start;
+    min-height: 44px;
+  }
+
+  /* Outline MDC: el wrapper blanco tapa el notch y el label cruza el borde. */
+  .pos-monto-field.mat-mdc-form-field {
+    width: 100%;
+    display: block;
+    margin: 0;
+  }
+
+  .pos-monto-field .mat-mdc-text-field-wrapper {
+    background: transparent !important;
+  }
+
+  .pos-monto-field .mdc-notched-outline__notch {
+    border-top: none;
+  }
+
+  .pos-monto-field .mat-mdc-form-field-infix {
+    min-height: 48px;
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 
   .inventario-badge {
@@ -671,17 +739,35 @@
 
   .pos-cobro-lines {
     list-style: none;
-    margin: 0 0 12px;
+    margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
     li {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
-      padding: 8px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #e2e8f0;
     }
+
+    li:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .pos-cobro-lines__desc {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .pos-cobro-lines__monto {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
   }
 
   .pos-cobro-lines__foto {
@@ -710,8 +796,8 @@
   .pos-metodos {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin: 0;
   }
 
   .pos-metodo {
@@ -733,13 +819,34 @@
     }
   }
 
-  .pos-footer {
+  .pos-footer.admin-dialog-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .pos-footer__group {
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pos-footer__group .mat-mdc-button-base {
+    margin: 0 !important;
+  }
+
+  .pos-footer__group--pay {
+    margin-left: auto;
   }
 
   .pos-footer__cobrar {
     min-height: 48px !important;
     font-weight: 800 !important;
+    min-width: 140px;
   }
 
   .pos-sticky {
@@ -937,9 +1044,40 @@
 @media (max-width: 720px) {
   .visita-dialog.visita-dialog--pos {
     .admin-dialog-actions.pos-footer {
-      .mat-mdc-button-base {
-        flex: 1 1 calc(50% - 8px);
-      }
+      justify-content: stretch !important;
+    }
+
+    .pos-footer__group {
+      flex: 1 1 100%;
+    }
+
+    .pos-footer__group--nav,
+    .pos-footer__group--tools {
+      justify-content: stretch;
+    }
+
+    .pos-footer__group--nav .mat-mdc-button-base,
+    .pos-footer__group--tools .mat-mdc-button-base {
+      flex: 1 1 auto;
+      min-width: calc(50% - 8px);
+    }
+
+    .pos-footer__group--pay {
+      margin-left: 0;
+    }
+
+    .pos-footer__cobrar {
+      width: 100%;
+      flex: 1 1 100% !important;
+    }
+
+    .pos-step--cobro {
+      padding: 16px 16px 24px;
+      gap: 18px;
+    }
+
+    .pos-metodos {
+      grid-template-columns: 1fr;
     }
   }
 }

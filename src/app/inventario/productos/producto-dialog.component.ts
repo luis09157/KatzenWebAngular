@@ -14,8 +14,8 @@ import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
 import {
   calcularMargenPorcentaje,
   calcularVentaDesdeMargen,
+  desglosarPrecioIvaIncluido,
   MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA,
-  precioConIva,
   resolverTasaIva,
   sugerirIvaPorCategoria,
   ventaMayorQueCostoValidator
@@ -253,11 +253,17 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     return presetProductoPorCategoria(this.productoForm.get('categoria')?.value).subcategoriaHint;
   }
 
-  get precioVentaConIva(): number {
-    const neto = this.productoForm.get('precio_venta')?.value;
+  get desgloseIva(): ReturnType<typeof desglosarPrecioIvaIncluido> {
+    const venta = this.productoForm.get('precio_venta')?.value;
+    const costo = this.productoForm.get('precio_compra')?.value;
     const aplica = !!this.productoForm.get('iva_aplicable')?.value;
     const tasa = this.productoForm.get('tasa_iva')?.value;
-    return precioConIva(neto, aplica, resolverTasaIva(aplica, tasa));
+    return desglosarPrecioIvaIncluido({
+      precioVenta: venta,
+      costo,
+      aplicaIva: aplica,
+      tasaIva: resolverTasaIva(aplica, tasa)
+    });
   }
 
   get hintIvaCategoria(): string {

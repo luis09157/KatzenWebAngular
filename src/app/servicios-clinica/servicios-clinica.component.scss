@@ -21,4 +21,14 @@
   .mat-column-nombre {
     min-width: 220px;
   }
+
+  .mat-column-iva {
+    min-width: 148px;
+  }
+
+  .mat-column-ganancia,
+  .mat-column-costo,
+  .mat-column-precio {
+    min-width: 110px;
+  }
 }

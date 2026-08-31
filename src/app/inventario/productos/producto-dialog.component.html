@@ -155,7 +155,7 @@
           <mat-label>Costo (compra)</mat-label>
           <input matInput type="number" formControlName="precio_compra" min="0" step="0.01">
           <span matTextPrefix>$ &nbsp;</span>
-          <mat-hint>Lo que te cuesta adquirir el producto</mat-hint>
+          <mat-hint>Lo que te cuesta a ti (neto)</mat-hint>
           <mat-error *ngIf="hasError('precio_compra', 'required') || hasError('precio_compra', 'min')">
             {{getErrorMessage('precio_compra')}}
           </mat-error>
@@ -172,7 +172,7 @@
           <mat-label>Precio de venta</mat-label>
           <input matInput type="number" formControlName="precio_venta" min="0" step="0.01">
           <span matTextPrefix>$ &nbsp;</span>
-          <mat-hint>Debe ser mayor que el costo</mat-hint>
+          <mat-hint>Lo que cobra el cliente (incluye IVA si está activo)</mat-hint>
           <mat-error *ngIf="hasError('precio_venta', 'required') || hasError('precio_venta', 'min')">
             {{getErrorMessage('precio_venta')}}
           </mat-error>
@@ -184,14 +184,26 @@
 
       <div class="margen-info" [ngClass]="getMargenColor()">
         <mat-icon>trending_up</mat-icon>
-        <span>Margen de ganancia: <strong>{{margenCalculado | number:'1.2-2'}}%</strong></span>
+        <span>Margen sobre precio al público: <strong>{{margenCalculado | number:'1.2-2'}}%</strong></span>
+      </div>
+      <div class="margen-info ganancia-desglose" *ngIf="desgloseIva.ventaPublica > 0 || desgloseIva.costo > 0">
+        <mat-icon>payments</mat-icon>
+        <span>
+          Ganancia:
+          <strong>${{ desgloseIva.ganancia | number:'1.2-2' }}</strong>
+          <ng-container *ngIf="desgloseIva.aplicaIva">
+            · IVA {{ desgloseIva.tasa }}% incluido ${{ desgloseIva.ivaTrasladado | number:'1.2-2' }}
+            · venta neta ${{ desgloseIva.ventaNeta | number:'1.2-2' }}
+          </ng-container>
+          <ng-container *ngIf="!desgloseIva.aplicaIva"> (venta − costo)</ng-container>
+        </span>
       </div>
 
       <div class="form-grid" style="margin-top: 12px;">
         <div class="checkboxes">
           <mat-checkbox formControlName="iva_aplicable">
             <mat-icon>receipt</mat-icon>
-            Aplica IVA (control interno; no es factura CFDI)
+            Aplicar IVA (el precio al público ya lo incluye; no es factura CFDI)
           </mat-checkbox>
         </div>
         <mat-form-field appearance="outline" *ngIf="productoForm.get('iva_aplicable')?.value">
@@ -201,9 +213,6 @@
         </mat-form-field>
       </div>
       <p class="mat-caption" style="margin: 8px 0 0; opacity: 0.85;">{{ hintIvaCategoria }}</p>
-      <p class="mat-caption" style="margin: 4px 0 0;" *ngIf="productoForm.get('iva_aplicable')?.value">
-        Precio con IVA (preview): <strong>${{ precioVentaConIva | number:'1.2-2' }}</strong>
-      </p>
     </section>
 
     <section class="form-section">

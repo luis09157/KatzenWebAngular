@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` (consulta/diagnóstico/domicilio/otro; baño sigue 022).
+**Última revisión:** 2026-08-31 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` + costo/IVA/ganancia (precio al público incluye IVA; baño sigue 022).
 
 ---
 
@@ -79,7 +79,7 @@ erDiagram
 | Notificación clínica | `Katzen/NotificacionesClinica/{id}` | Push key | **052 ola 2** resumen staff; cliente no lee; write Functions |
 | Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
 | Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
-| Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056** tarifa (no stock): consulta, diagnóstico, domicilio, honorarios. Baño **no** vive aquí. |
+| Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056** tarifa (no stock): consulta, diagnóstico, domicilio, honorarios. Campos aditivos `precio_costo`, `aplicaIva`, `tasaIva`. Baño **no** vive aquí. |
 
 ### 2.3 Catálogos auxiliares
 
@@ -223,11 +223,11 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 ### 3.8 `Katzen/Inventario/*`
 
-**Productos:** `codigo_barras` único (interno `KZ-…` o EAN de fábrica — **043**), `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo), `precio_venta`, `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria` (incluye `vacuna` aditivo **043**), `unidad_medida` (incluye tableta/cápsula/frasco/dosis **043**), `imagen_url?` (Storage `Inventario/Productos/{id}/` **043**), `fecha_caducidad`, `activo`. El QR no se persiste: se genera desde `codigo_barras`. **055 POS demo:** ítems `demo-pos-*` / `soloDemo` son solo preview UI (assets locales); **nunca** se escriben a este nodo ni disparan `registrarSalida`.
+**Productos:** `codigo_barras` único (interno `KZ-…` o EAN de fábrica — **043**), `stock_actual`, `stock_minimo`, `punto_reorden`, `precio_compra` (costo neto), `precio_venta` (precio al público), `margen_ganancia` %, `iva_aplicable` (flag; **no CFDI**), `tasa_iva?` (aditivo, %; tip. 0 o 16), `categoria` (incluye `vacuna` aditivo **043**), `unidad_medida` (incluye tableta/cápsula/frasco/dosis **043**), `imagen_url?` (Storage `Inventario/Productos/{id}/` **043**), `fecha_caducidad`, `activo`. El QR no se persiste: se genera desde `codigo_barras`. **055 POS demo:** ítems `demo-pos-*` / `soloDemo` son solo preview UI (assets locales); **nunca** se escriben a este nodo ni disparan `registrarSalida`.
 
 **Regla precio (2026-08-26):** al crear/editar producto, `precio_venta` debe ser **estrictamente mayor** que `precio_compra` (margen positivo). UI: campo margen % recalcula venta = costo × (1 + %). No guardar si costo ≥ venta.
 
-**IVA productos (control interno, México — 2026-08-26):** no es facturación PAC/CFDI. Staff marca `iva_aplicable` + `tasa_iva`. Defaults sugeridos por categoría: `medicamento` / `vacuna` / `quirurgico` / `diagnostico` → sin IVA / tasa 0 (muchos medicamentos van exentos o tasa 0%; staff confirma); `alimento` / `accesorio` / `peluqueria` → IVA 16% sugerido. UI muestra preview «precio con IVA».
+**IVA (control interno, México — modelo 2026-08-31):** **el precio al público incluye IVA**. Costo es neto. Si `iva_aplicable`, `ventaNeta = precio_venta / (1 + tasa/100)`, `iva = venta − neta`, `ganancia = neta − costo`. Default 16%. No es facturación PAC/CFDI. El cobro (POS / caja) usa `precio_venta` tal cual — **no** se suma IVA encima. Defaults sugeridos por categoría: `medicamento` / `vacuna` / `quirurgico` / `diagnostico` → sin IVA / tasa 0 (staff confirma); `alimento` / `accesorio` / `peluqueria` → IVA 16% sugerido. UI muestra desglose IVA + ganancia neta.
 
 **Valuación stock (KPIs — 022):** `invertido_costo = Σ stock × precio_compra`; `valor_precio_venta = Σ stock × precio_venta`; `margen_potencial = venta − costo`. No es COGS FIFO ni utilidad de caja.
 
@@ -263,11 +263,15 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas entran al ticket con `precio_venta` de inventario. **Servicios de clínica (056):** consulta, ultrasonido, domicilio y honorarios viven en `Katzen/ServiciosClinica` (no stock); el riel Consulta los lista y no pide monto si hay precio. **Única excepción editable:** baño/peluquería — tarifa default 022 precargada; no se migra a ServiciosClinica en ola 1. Consulta genérica pide monto solo si no hay servicio de catálogo ni producto inventario con precio.
 
-Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?`), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
+Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?` / `servicioClinicaId?` / snapshot `costo?` `precio_venta?` `iva?` `ganancia?` — **056**; el cajero no captura costo), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
 
 **Modelo mental:** Peluquería / citas / inventario = **operación**; Visitas = **cuenta (dinero del dueño)**; Caja = **pago**. No cobrar el mismo baño en caja y en ticket.
 
 Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
+
+### 3.8e `Katzen/ServiciosClinica/{id}` (spec **056**)
+
+Tarifa de clínica **sin stock**: `nombre`, `tipo` (`consulta` \| `diagnostico` \| `domicilio` \| `otro`), `precio_venta` (al público), `precio_costo?` (neto), `aplicaIva?`, `tasaIva?` (default 16), `activo`, `notas?`. Modelo IVA: precio incluye IVA; ganancia = venta neta − costo. Baño **no** vive aquí (Finanzas 022).
 
 ### 3.9 Auth y usuarios
 
@@ -390,7 +394,7 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 
 - **Regla:** `precioVenta > costo` en formularios con ambos campos (productos, baños si hay costo, pensión si hay `costo_dia`).
 - **Margen %:** util compartido `precio-margen.util.ts` — venta = costo × (1 + margen/100); también se muestra margen derivado al editar venta.
-- **IVA:** solo dato de producto + preview; **sin CFDI/PAC**. Defaults por categoría documentados en §3.8.
+- **IVA:** modelo único — **precio al público incluye IVA**; costo neto; `ganancia = venta neta − costo`. Checkbox «Aplicar IVA» (default 16% MX). Sin CFDI/PAC. Util `desglosarPrecioIvaIncluido` en `precio-margen.util.ts`. Defaults por categoría de producto en §3.8. Servicios de clínica: `precio_costo` + `aplicaIva` + `tasaIva`. Baño 022: ganancia bruta venta − costo (sin checkbox IVA).
 
 ### 4.10 Landing / contactos
 

@@ -187,6 +187,15 @@
   gap: 8px;
 }
 
+.admin-dialog-panel app-banio-dialog .ganancia-banio {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.875rem;
+}
+
 @media (max-width: 640px) {
   .admin-dialog-panel app-banio-dialog .form-grid,
   .admin-dialog-panel app-banio-dialog .dynamic-list__row .form-grid--compact {

@@ -105,5 +105,21 @@ describe('servicios-clinica.util', () => {
         precio_venta: -10
       }).ok
     ).toBe(false);
+    expect(
+      validarFormularioServicioClinica({
+        nombre: 'Consulta',
+        tipo: 'consulta',
+        precio_venta: 400,
+        precio_costo: 400
+      }).ok
+    ).toBe(false);
+    expect(
+      validarFormularioServicioClinica({
+        nombre: 'Consulta',
+        tipo: 'consulta',
+        precio_venta: 400,
+        precio_costo: 80
+      })
+    ).toEqual({ ok: true });
   });
 });

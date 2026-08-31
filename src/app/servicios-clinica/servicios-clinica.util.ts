@@ -1,4 +1,5 @@
 import { VisitaLineaCategoria } from '../visitas/visitas.models';
+import { esVentaMayorQueCosto } from '../core/utils/precio-margen.util';
 import {
   ServicioClinica,
   TipoServicioClinica,
@@ -165,6 +166,7 @@ export function validarFormularioServicioClinica(input: {
   nombre?: unknown;
   tipo?: unknown;
   precio_venta?: unknown;
+  precio_costo?: unknown;
 }): { ok: true } | { ok: false; error: string } {
   const nombre = String(input.nombre || '').trim();
   if (nombre.length < 2) {
@@ -176,6 +178,16 @@ export function validarFormularioServicioClinica(input: {
   const precio = Number(input.precio_venta);
   if (Number.isNaN(precio) || precio < 0) {
     return { ok: false, error: 'El precio no puede ser negativo.' };
+  }
+  const costo = input.precio_costo === '' || input.precio_costo == null ? 0 : Number(input.precio_costo);
+  if (Number.isNaN(costo) || costo < 0) {
+    return { ok: false, error: 'El costo no puede ser negativo.' };
+  }
+  if (costo > 0 && precio > 0 && !esVentaMayorQueCosto(costo, precio, { allowEmptyCosto: false })) {
+    return {
+      ok: false,
+      error: 'El costo debe ser menor que el precio de venta. Si es igual o mayor, no hay ganancia.'
+    };
   }
   return { ok: true };
 }

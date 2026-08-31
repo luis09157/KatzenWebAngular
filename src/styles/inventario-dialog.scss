@@ -368,6 +368,11 @@
   font-size: 0.875rem;
 }
 
+.admin-dialog-panel app-producto-dialog .margen-info.ganancia-desglose {
+  display: flex;
+  width: 100%;
+}
+
 .admin-dialog-panel app-salida-dialog .warning-box,
 .admin-dialog-panel app-salida-dialog .stock-info-box {
   margin-top: 12px;

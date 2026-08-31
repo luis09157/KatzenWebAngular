@@ -21,6 +21,12 @@ export interface ServicioClinica {
   nombre: string;
   tipo: TipoServicioClinica;
   precio_venta: number;
+  /** Neto: lo que cuesta a la clínica. Aditivo. */
+  precio_costo?: number;
+  /** Precio al público incluye IVA si true. Aditivo. */
+  aplicaIva?: boolean;
+  /** % IVA (default 16). Aditivo. */
+  tasaIva?: number;
   activo: boolean;
   notas?: string;
   sucursalId?: string;
@@ -33,6 +39,9 @@ export interface ServicioClinicaFormData {
   nombre: string;
   tipo: TipoServicioClinica;
   precio_venta: number;
+  precio_costo?: number;
+  aplicaIva?: boolean;
+  tasaIva?: number;
   notas?: string;
   activo?: boolean;
 }

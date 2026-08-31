@@ -35,6 +35,14 @@ export class ServiciosClinicaService {
                 id: c.payload.key || raw.id,
                 tipo: normalizarTipoServicioClinica(raw.tipo),
                 precio_venta: Number(raw.precio_venta) || 0,
+                precio_costo: Number(raw.precio_costo) || 0,
+                aplicaIva: raw.aplicaIva === true,
+                tasaIva:
+                  raw.aplicaIva === true
+                    ? Number(raw.tasaIva) > 0
+                      ? Number(raw.tasaIva)
+                      : 16
+                    : 0,
                 activo: raw.activo !== false,
                 nombre: String(raw.nombre || '').trim()
               };
@@ -48,10 +56,14 @@ export class ServiciosClinicaService {
   async crear(data: ServicioClinicaFormData): Promise<string> {
     const staffId = await this.currentStaff.getStaffId();
     const now = new Date().toISOString();
+    const aplicaIva = data.aplicaIva === true;
     const payload = this.sucursal.stamp({
       nombre: String(data.nombre || '').trim(),
       tipo: normalizarTipoServicioClinica(data.tipo),
       precio_venta: Math.max(0, Number(data.precio_venta) || 0),
+      precio_costo: Math.max(0, Number(data.precio_costo) || 0),
+      aplicaIva,
+      tasaIva: aplicaIva ? Math.max(0, Number(data.tasaIva) || 16) : 0,
       notas: String(data.notas || '').trim(),
       activo: data.activo !== false,
       created_at: now,
@@ -70,6 +82,17 @@ export class ServiciosClinicaService {
     }
     if (patch.precio_venta != null) {
       clean.precio_venta = Math.max(0, Number(patch.precio_venta) || 0);
+    }
+    if (patch.precio_costo != null) {
+      clean.precio_costo = Math.max(0, Number(patch.precio_costo) || 0);
+    }
+    if (patch.aplicaIva != null) {
+      clean.aplicaIva = patch.aplicaIva === true;
+      clean.tasaIva = clean.aplicaIva
+        ? Math.max(0, Number(patch.tasaIva != null ? patch.tasaIva : 16) || 16)
+        : 0;
+    } else if (patch.tasaIva != null) {
+      clean.tasaIva = Math.max(0, Number(patch.tasaIva) || 0);
     }
     if (patch.nombre != null) {
       clean.nombre = String(patch.nombre).trim();

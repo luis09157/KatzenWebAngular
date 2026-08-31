@@ -78,7 +78,7 @@ export interface Producto {
   precio_compra: number;
   precio_venta: number;
   margen_ganancia: number;
-  /** Control interno (no CFDI). Si true, usar `tasa_iva` para preview. */
+  /** Control interno (no CFDI). Precio al público incluye IVA si true. */
   iva_aplicable: boolean;
   /** Tasa % IVA (0 o 16 típicos MX). Opcional/aditivo; default según categoría. */
   tasa_iva?: number;

@@ -21,6 +21,7 @@ import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { exportToCsv } from '../../core/utils/csv-export.util';
+import { desglosarPrecioIvaIncluido } from '../../core/utils/precio-margen.util';
 
 @Component({
   selector: 'app-productos',
@@ -87,6 +88,15 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   formatMoney(n: number): string {
     return `$${(Number(n) || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`;
+  }
+
+  gananciaNeta(producto: Producto): number {
+    return desglosarPrecioIvaIncluido({
+      precioVenta: producto.precio_venta,
+      costo: producto.precio_compra,
+      aplicaIva: !!producto.iva_aplicable,
+      tasaIva: producto.tasa_iva
+    }).ganancia;
   }
 
   constructor(

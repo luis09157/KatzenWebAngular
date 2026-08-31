@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SharedModule } from '../shared/shared.module';
 import { ServicioClinicaDialogComponent } from './servicio-clinica-dialog.component';
 
@@ -19,6 +20,7 @@ import { ServicioClinicaDialogComponent } from './servicio-clinica-dialog.compon
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
     MatIconModule,
     SharedModule

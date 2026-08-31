@@ -170,7 +170,7 @@ export const MOCK_PRODUCTO_INVENTARIO = {
   updated_at: '2026-01-01T00:00:00.000Z',
 };
 
-/** Accesorio con IVA 16% — preview precio con IVA. */
+/** Accesorio con IVA 16% — precio al público incluye IVA; ganancia = neta − costo. */
 export const MOCK_PRODUCTO_ACCESORIO_IVA = {
   ...MOCK_PRODUCTO_INVENTARIO,
   id: 'mock-producto-accesorio-iva',
@@ -646,6 +646,9 @@ export const MOCK_SERVICIO_CLINICA_CONSULTA = {
   nombre: 'Consulta general',
   tipo: 'consulta' as const,
   precio_venta: 400,
+  precio_costo: 80,
+  aplicaIva: true,
+  tasaIva: 16,
   activo: true,
   notas: 'Consulta de primera vez o seguimiento',
   created_at: '2026-08-30T18:00:00.000Z'
@@ -656,6 +659,9 @@ export const MOCK_SERVICIO_CLINICA_DIAGNOSTICO = {
   nombre: 'Ultrasonido abdominal',
   tipo: 'diagnostico' as const,
   precio_venta: 850,
+  precio_costo: 200,
+  aplicaIva: true,
+  tasaIva: 16,
   activo: true,
   created_at: '2026-08-30T18:00:00.000Z'
 };
@@ -665,6 +671,9 @@ export const MOCK_SERVICIO_CLINICA_DOMICILIO = {
   nombre: 'Visita a domicilio',
   tipo: 'domicilio' as const,
   precio_venta: 600,
+  precio_costo: 150,
+  aplicaIva: true,
+  tasaIva: 16,
   activo: true,
   created_at: '2026-08-30T18:00:00.000Z'
 };
@@ -674,6 +683,9 @@ export const MOCK_SERVICIO_CLINICA_HONORARIOS = {
   nombre: 'Honorarios veterinario',
   tipo: 'otro' as const,
   precio_venta: 500,
+  precio_costo: 0,
+  aplicaIva: false,
+  tasaIva: 0,
   activo: true,
   created_at: '2026-08-30T18:00:00.000Z'
 };
@@ -683,6 +695,9 @@ export const MOCK_SERVICIO_CLINICA_SIN_PRECIO = {
   nombre: 'Consulta especial',
   tipo: 'consulta' as const,
   precio_venta: 0,
+  precio_costo: 0,
+  aplicaIva: false,
+  tasaIva: 0,
   activo: true,
   created_at: '2026-08-30T18:00:00.000Z'
 };

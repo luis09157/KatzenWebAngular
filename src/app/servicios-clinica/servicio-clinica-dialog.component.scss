@@ -1,15 +1,53 @@
-.admin-form-layout {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
+.servicio-clinica-form .iva-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 20px;
 }
 
-.admin-form-layout .full-width {
-  grid-column: 1 / -1;
+.servicio-clinica-form .tasa-iva-field {
+  min-width: 140px;
+  flex: 1 1 160px;
+  max-width: 220px;
+}
+
+.servicio-clinica-form .ganancia-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.875rem;
+}
+
+.servicio-clinica-form .ganancia-preview mat-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.servicio-clinica-form .ganancia-preview__text p {
+  margin: 0 0 4px;
+}
+
+.servicio-clinica-form .ganancia-preview__text p:last-child {
+  margin-bottom: 0;
+}
+
+.servicio-clinica-form .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+  background: transparent;
 }
 
 @media (max-width: 640px) {
-  .admin-form-layout {
-    grid-template-columns: 1fr;
+  .servicio-clinica-form .tasa-iva-field {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .servicio-clinica-form .iva-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

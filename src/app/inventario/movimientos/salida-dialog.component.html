@@ -128,7 +128,8 @@
           Monto sugerido: ${{ montoVentaSugerido | number:'1.2-2' }}
           · Costo: ${{ costoVentaSugerido | number:'1.2-2' }}
           <ng-container *ngIf="productoSeleccionado.iva_aplicable">
-            · Con IVA ({{ productoSeleccionado.tasa_iva || 16 }}%): ${{ montoVentaConIvaSugerido | number:'1.2-2' }}
+            · IVA incluido ${{ ivaTrasladadoSugerido | number:'1.2-2' }}
+            · ganancia ${{ gananciaVentaSugerida | number:'1.2-2' }}
           </ng-container>
         </p>
         <p class="venta-caja-hint" *ngIf="productoSeleccionado && destinoEsVisita">

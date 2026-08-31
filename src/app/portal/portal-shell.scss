@@ -1051,10 +1051,12 @@
   --brand-teal-rgb: 59, 154, 156;
   --portal-muted: #64748b;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
+  padding: max(48px, env(safe-area-inset-top, 0px)) 24px max(48px, env(safe-area-inset-bottom, 0px));
   background: linear-gradient(160deg, #eef3f5 0%, #f8fafb 50%, rgba(59, 154, 156, 0.08) 100%);
 }
 
@@ -1121,12 +1123,15 @@
 /* Admin shell — sidebar claro, Material minimal */
 .admin-shell {
   height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   background: #f4f9f9;
 }
 
 .admin-shell.mat-drawer-container,
 .admin-shell .mat-drawer-content {
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
 }
 
 .admin-sidenav {
@@ -1135,19 +1140,41 @@
   background: #fff !important;
   border-right: 1px solid #d8e6e6 !important;
   box-shadow: 2px 0 12px rgba(26, 46, 46, 0.04);
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
 }
 
 .admin-sidenav .mat-drawer-inner-container {
-  overflow-x: hidden;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
   overscroll-behavior: contain;
+}
+
+.admin-sidenav__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-sidenav__brand {
+  flex-shrink: 0;
+}
+
+.admin-sidenav__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 }
 
 .admin-sidenav mat-nav-list {
-  padding-bottom: 24px;
+  padding-bottom: 8px;
 }
 
 .admin-sidenav mat-toolbar {
@@ -1209,10 +1236,15 @@
 }
 
 .admin-shell .m3-top-bar {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   row-gap: 8px;
   height: auto !important;
   min-height: 64px;
+}
+
+.admin-toolbar-more {
+  display: none;
+  flex-shrink: 0;
 }
 
 @media (min-width: 1400px) {
@@ -1252,6 +1284,10 @@
 
   .admin-shell .m3-top-bar .mat-title-medium {
     font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .admin-shell .admin-user-chip span {
@@ -1259,6 +1295,12 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 96px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-toolbar-more {
+    display: inline-flex !important;
   }
 }
 
@@ -1273,6 +1315,8 @@
 .admin-shell .m3-top-bar .mat-title-medium {
   font-weight: 700;
   color: #065d60;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .admin-shell .admin-user-chip {

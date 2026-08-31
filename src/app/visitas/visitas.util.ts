@@ -4,6 +4,7 @@ import {
   VisitaKpis,
   VisitaLinea
 } from './visitas.models';
+import { snapshotEconomiaLinea } from '../core/utils/precio-margen.util';
 
 export function roundMoney(n: number): number {
   return Math.round((Number(n) || 0) * 100) / 100;
@@ -109,11 +110,25 @@ export function ajustarCantidadLinea(linea: VisitaLinea, delta: number): VisitaL
   const unit = precioUnitarioLinea(linea);
   const base = nombreBaseLinea(linea.descripcion);
   const esProducto = linea.categoria === 'venta_producto';
+  const qtyPrev = cantidadLinea(linea);
+  const unitCosto = (Number(linea.costo) || 0) / qtyPrev;
+  const tieneEconomia =
+    linea.costo != null || linea.iva != null || linea.ganancia != null || linea.aplicaIva != null;
+  const eco = tieneEconomia
+    ? snapshotEconomiaLinea({
+        precioVenta: linea.precio_venta ?? unit,
+        costo: unitCosto,
+        aplicaIva: linea.aplicaIva === true,
+        tasaIva: linea.tasaIva,
+        cantidad: next
+      })
+    : {};
   return {
     ...linea,
     cantidad: next,
     monto: roundMoney(unit * next),
-    descripcion: esProducto ? `${base} × ${next}` : linea.descripcion
+    descripcion: esProducto ? `${base} × ${next}` : linea.descripcion,
+    ...eco
   };
 }
 

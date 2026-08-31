@@ -445,15 +445,18 @@
               <img *ngIf="fotoDeLinea(l)" [src]="fotoDeLinea(l)" [alt]="l.descripcion" />
               <mat-icon *ngIf="!fotoDeLinea(l)">{{ iconoLinea(l) }}</mat-icon>
             </span>
-            <span>{{ l.descripcion }}</span>
-            <strong>{{ formatMoney(l.monto) }}</strong>
+            <span class="pos-cobro-lines__desc">{{ l.descripcion }}</span>
+            <strong class="pos-cobro-lines__monto">{{ formatMoney(l.monto) }}</strong>
           </li>
         </ul>
-        <p class="pos-total-huge">{{ formatMoney(totales.saldo > 0 ? totales.saldo : totales.total) }}</p>
-        <p class="hint-empty" *ngIf="totales.pagado > 0">Ya pagado {{ formatMoney(totales.pagado) }} · saldo {{ formatMoney(totales.saldo) }}</p>
+        <div class="pos-cobro-total">
+          <span class="pos-cobro-total__lbl">{{ totales.saldo > 0 ? 'Saldo a cobrar' : 'Total' }}</span>
+          <p class="pos-total-huge">{{ formatMoney(totales.saldo > 0 ? totales.saldo : totales.total) }}</p>
+          <p class="hint-empty" *ngIf="totales.pagado > 0">Ya pagado {{ formatMoney(totales.pagado) }} · saldo {{ formatMoney(totales.saldo) }}</p>
+        </div>
 
         <form [formGroup]="cobroForm" class="pos-cobro-form" *ngIf="!soloLectura && totales.saldo > 0">
-          <p class="presets-label">Método</p>
+          <p class="presets-label">Método de pago</p>
           <div class="pos-metodos">
             <button
               type="button"
@@ -465,12 +468,18 @@
               {{ m.label }}
             </button>
           </div>
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field
+            appearance="outline"
+            class="full-width pos-monto-field"
+            floatLabel="always"
+            subscriptSizing="dynamic">
             <mat-label>Monto a cobrar</mat-label>
             <input matInput type="number" min="0.01" step="0.01" formControlName="monto" inputmode="decimal" />
-            <span matPrefix>$&nbsp;</span>
+            <span matTextPrefix>$&nbsp;</span>
           </mat-form-field>
-          <button mat-button type="button" (click)="cobrarTodo()">Cobrar todo ({{ formatMoney(totales.saldo) }})</button>
+          <button mat-button type="button" class="pos-cobrar-todo" (click)="cobrarTodo()">
+            Cobrar todo ({{ formatMoney(totales.saldo) }})
+          </button>
         </form>
       </div>
     </div>
@@ -565,33 +574,38 @@
   </aside>
 
   <mat-dialog-actions class="admin-dialog-actions no-print pos-footer" *ngIf="pasoWizard !== 2 || soloLectura">
-    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
-    <button mat-stroked-button type="button" *ngIf="!soloLectura && pasoWizard > 1" (click)="atrasPaso()" [disabled]="loading">Atrás</button>
-    <button mat-stroked-button type="button" (click)="imprimir()" [disabled]="loading || !lineas.length">
-      <mat-icon>print</mat-icon>
-      Imprimir
-    </button>
-    <button
-      mat-stroked-button
-      color="primary"
-      type="button"
-      *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
-      (click)="guardar()"
-      [disabled]="!puedeGuardar"
-      [matTooltip]="guardarBloqueoHint">
-      {{ loading ? 'Guardando…' : 'Guardar' }}
-    </button>
-    <button
-      mat-raised-button
-      color="primary"
-      class="btn-primary-teal pos-footer__cobrar"
-      type="button"
-      *ngIf="pasoWizard === 3 && !soloLectura"
-      (click)="confirmarCobro()"
-      [disabled]="!puedeCobrar || loading"
-      [matTooltip]="cobrarBloqueoHint">
-      {{ loading ? 'Cobrando…' : cobrarLabel }}
-    </button>
+    <div class="pos-footer__group pos-footer__group--nav">
+      <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
+      <button mat-stroked-button type="button" *ngIf="!soloLectura && pasoWizard > 1" (click)="atrasPaso()" [disabled]="loading">Atrás</button>
+    </div>
+    <div class="pos-footer__group pos-footer__group--tools">
+      <button mat-stroked-button type="button" (click)="imprimir()" [disabled]="loading || !lineas.length">
+        <mat-icon>print</mat-icon>
+        Imprimir
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        type="button"
+        *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
+        (click)="guardar()"
+        [disabled]="!puedeGuardar"
+        [matTooltip]="guardarBloqueoHint">
+        {{ loading ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+    <div class="pos-footer__group pos-footer__group--pay" *ngIf="pasoWizard === 3 && !soloLectura">
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal pos-footer__cobrar"
+        type="button"
+        (click)="confirmarCobro()"
+        [disabled]="!puedeCobrar || loading"
+        [matTooltip]="cobrarBloqueoHint">
+        {{ loading ? 'Cobrando…' : cobrarLabel }}
+      </button>
+    </div>
   </mat-dialog-actions>
   <app-flow-hint
     layout="footer"

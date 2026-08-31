@@ -3,8 +3,10 @@ import {
   calcularMargenPorcentaje,
   calcularVentaDesdeMargen,
   costoMenorQueVentaValidator,
+  desglosarPrecioIvaIncluido,
   esVentaMayorQueCosto,
   precioConIva,
+  snapshotEconomiaLinea,
   sugerirIvaPorCategoria,
   ventaMayorQueCostoValidator
 } from './precio-margen.util';
@@ -108,9 +110,52 @@ describe('precio-margen.util', () => {
       expect(s.tasa_iva).toBe(16);
     });
 
-    it('precio con IVA preview', () => {
+    it('precio con IVA preview (neto → público)', () => {
       expect(precioConIva(100, true, 16)).toBe(116);
       expect(precioConIva(100, false, 16)).toBe(100);
+    });
+  });
+
+  describe('IVA incluido en precio al público', () => {
+    it('desglosa venta neta, IVA y ganancia', () => {
+      const d = desglosarPrecioIvaIncluido({
+        precioVenta: 400,
+        costo: 100,
+        aplicaIva: true,
+        tasaIva: 16
+      });
+      expect(d.ventaPublica).toBe(400);
+      expect(d.ventaNeta).toBe(344.83);
+      expect(d.ivaTrasladado).toBe(55.17);
+      expect(d.ganancia).toBe(244.83);
+      expect(d.gananciaBruta).toBe(300);
+    });
+
+    it('sin IVA: ganancia = venta − costo', () => {
+      const d = desglosarPrecioIvaIncluido({
+        precioVenta: 80,
+        costo: 50,
+        aplicaIva: false
+      });
+      expect(d.ventaNeta).toBe(80);
+      expect(d.ivaTrasladado).toBe(0);
+      expect(d.ganancia).toBe(30);
+    });
+
+    it('snapshot de línea escala con cantidad', () => {
+      const s = snapshotEconomiaLinea({
+        precioVenta: 100,
+        costo: 40,
+        aplicaIva: true,
+        tasaIva: 16,
+        cantidad: 2
+      });
+      expect(s.precio_venta).toBe(100);
+      expect(s.costo).toBe(80);
+      expect(s.iva).toBe(27.59);
+      expect(s.ganancia).toBe(92.41);
+      expect(s.aplicaIva).toBe(true);
+      expect(s.tasaIva).toBe(16);
     });
   });
 });

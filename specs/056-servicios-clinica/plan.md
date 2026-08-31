@@ -23,7 +23,11 @@ Catálogo admin de **servicios con precio** (no stock) en nodo RTDB aditivo `Kat
 | `src/app/layouts/admin-main-layout.component.*` | modificar | menú Administración |
 | `src/app/visitas/visita-dialog.component.*` | modificar | riel Consulta + hint baño |
 | `src/app/visitas/visitas.models.ts` | modificar | `servicioClinicaId?` |
-| `src/app/core/testing/mock-data.ts` | modificar | mocks catálogo |
+| `src/app/core/utils/precio-margen.util.ts` | modificar | `desglosarPrecioIvaIncluido` + snapshot línea (modelo IVA incluido) |
+| `src/app/inventario/productos/*` | modificar | copy + ganancia neta; no suma IVA encima |
+| `src/app/inventario/movimientos/salida-dialog.*` | modificar | cobro = `precio_venta`; desglose IVA/ganancia |
+| `src/app/banios/banio-dialog.*` | modificar | lectura ganancia; no reescribe 022 |
+| `src/app/core/testing/mock-data.ts` | modificar | mocks catálogo + costo/IVA |
 
 ### Firebase
 
@@ -46,15 +50,26 @@ Catálogo admin de **servicios con precio** (no stock) en nodo RTDB aditivo `Kat
 Katzen/ServiciosClinica/{id}
   nombre: string
   tipo: consulta | diagnostico | domicilio | otro
-  precio_venta: number
+  precio_venta: number          # al público; incluye IVA si aplicaIva
+  precio_costo?: number         # neto; lo que cuesta a la clínica
+  aplicaIva?: boolean           # default lectura false (legacy); alta UI true
+  tasaIva?: number              # %; default 16 si aplicaIva
   activo: boolean
   notas?: string
   sucursalId?: string
   created_at / updated_at / created_by?: string
 
 Katzen/Visitas/{id}/lineas[]
-  servicioClinicaId?: string   # aditivo; no romper móvil
+  servicioClinicaId?: string
+  costo?: number                # total línea (qty × costo unitario)
+  precio_venta?: number         # unitario al público
+  iva?: number                  # IVA trasladado de la línea
+  ganancia?: number             # venta neta − costo
+  aplicaIva?: boolean
+  tasaIva?: number
 ```
+
+**Modelo IVA:** precio al público **incluye IVA**. Costo neto. `ganancia = ventaNeta − costo`. Util compartido `desglosarPrecioIvaIncluido` en `precio-margen.util.ts` (no duplicar 022).
 
 Baño **no** se escribe aquí.
 
@@ -100,9 +115,10 @@ Baño **no** se escribe aquí.
 
   | Nodo / campo | Acción | ¿App móvil afectada? | Notas |
   |--------------|--------|----------------------|-------|
-  | `Katzen/ServiciosClinica` | nodo nuevo | no | móvil no lo consume |
-  | `Visitas.lineas[].servicioClinicaId?` | campo opcional | no | ignorado si ausente |
-  | Inventario / Cliente / Mascota / Banios / Finanzas | no mutar | no | |
+  | `Katzen/ServiciosClinica` | nodo nuevo + campos opcionales costo/IVA | no | móvil no lo consume |
+  | `Visitas.lineas[]` costo/iva/ganancia | campos opcionales | no | ignorados si ausentes; cobro no depende de ellos |
+  | `Inventario/Productos` | sin cambiar nombres; UI desglose IVA incluido | no | `precio_compra` / `iva_aplicable` ya existen |
+  | Banios / Finanzas 022 | no reescribir | no | solo lectura de ganancia en diálogo baño |
 
   - [x] Sin eliminar ni renombrar nodos existentes
   - [x] Campos nuevos opcionales con defaults seguros en lectura

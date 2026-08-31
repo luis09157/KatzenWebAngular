@@ -20,7 +20,8 @@ import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
 import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from './banio-costo.validators';
 import {
   calcularMargenPorcentaje,
-  calcularVentaDesdeMargen
+  calcularVentaDesdeMargen,
+  desglosarPrecioIvaIncluido
 } from '../core/utils/precio-margen.util';
 import {
   ClientePacienteSelection
@@ -61,6 +62,18 @@ export class BanioDialogComponent implements OnInit {
   private syncingMargen = false;
   /** Margen % editable (UI; recalcula precio cobrado desde costo). */
   margenPct: number | null = null;
+
+  /** Ganancia bruta 022: precio al cliente − costo (sin desglose IVA en esta ola). */
+  get gananciaEstimada(): number | null {
+    const costo = this.banioForm?.get('costoEstimado')?.value;
+    const venta = this.banioForm?.get('precio_total')?.value;
+    if (costo == null || costo === '' || !(Number(costo) > 0)) return null;
+    return desglosarPrecioIvaIncluido({
+      precioVenta: venta,
+      costo,
+      aplicaIva: false
+    }).ganancia;
+  }
 
   get muestraPickerClientePaciente(): boolean {
     return !this.esEdicion && !this.hidePatientInfo;
