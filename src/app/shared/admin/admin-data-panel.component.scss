@@ -5,7 +5,7 @@
 
 .data-panel {
   border-radius: 16px !important;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #e5e7eb !important;
   border-top-width: 5px !important;
   box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06) !important;
@@ -65,16 +65,18 @@
   color: #0a969b;
 }
 
-.data-toolbar {
+.data-panel-footer {
   display: flex;
-  justify-content: flex-end;
-  padding: 0 24px 4px;
+  justify-content: flex-start;
+  padding: 12px 28px 18px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .action-legend {
   display: flex;
-  gap: 14px;
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 0.8125rem;
   color: #6b7280;
 }
 
@@ -112,8 +114,8 @@
     font-size: 0.875rem;
   }
 
-  .data-toolbar {
-    padding: 0 16px 4px;
+  .data-panel-footer {
+    padding: 10px 16px 14px;
   }
 
   .data-panel-body {

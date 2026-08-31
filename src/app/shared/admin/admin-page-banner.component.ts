@@ -4,7 +4,8 @@ import { AdminModuleAccent } from './admin-module-card.component';
 @Component({
   selector: 'app-admin-page-banner',
   templateUrl: './admin-page-banner.component.html',
-  styleUrls: ['./admin-page-banner.component.scss']
+  styleUrls: ['./admin-page-banner.component.scss'],
+  host: { '[attr.title]': 'null' }
 })
 export class AdminPageBannerComponent {
   @Input() icon = 'folder';

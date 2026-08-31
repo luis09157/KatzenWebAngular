@@ -4,7 +4,8 @@ import { AdminModuleAccent } from './admin-module-card.component';
 @Component({
   selector: 'app-admin-data-panel',
   templateUrl: './admin-data-panel.component.html',
-  styleUrls: ['./admin-data-panel.component.scss']
+  styleUrls: ['./admin-data-panel.component.scss'],
+  host: { '[attr.title]': 'null' }
 })
 export class AdminDataPanelComponent {
   @Input() title = 'Listado';

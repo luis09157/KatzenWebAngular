@@ -61,7 +61,7 @@
       </a>
       <a *ngIf="canShow('pacientes-admin')" mat-list-item routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>pets</mat-icon>
-        <span matListItemTitle>Directorio de pacientes</span>
+        <span matListItemTitle title="Directorio de pacientes">Directorio de pacientes</span>
       </a>
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario" routerLinkActive="active"
          [routerLinkActiveOptions]="{ exact: true }" (click)="closeSidenav()">
@@ -86,7 +86,7 @@
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/ordenes" routerLinkActive="active"
          class="admin-nav-subitem" (click)="closeSidenav()">
         <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle>Órdenes de compra</span>
+        <span matListItemTitle title="Órdenes de compra">Órdenes de compra</span>
       </a>
       <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/alertas" routerLinkActive="active"
          class="admin-nav-subitem" (click)="closeSidenav()">
@@ -100,7 +100,7 @@
       </a>
       <a *ngIf="canShow('servicios-clinica')" mat-list-item routerLink="/admin/servicios-clinica" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>medical_services</mat-icon>
-        <span matListItemTitle>Servicios de clínica</span>
+        <span matListItemTitle title="Servicios de clínica">Servicios de clínica</span>
       </a>
       <a *ngIf="canShow('finanzas')" mat-list-item routerLink="/admin/finanzas" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
@@ -108,7 +108,7 @@
       </a>
       <a *ngIf="canShow('usuarios')" mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>manage_accounts</mat-icon>
-        <span matListItemTitle>Personal y portal</span>
+        <span matListItemTitle title="Personal y portal">Personal y portal</span>
       </a>
       <a *ngIf="canShow('contactos-web')" mat-list-item routerLink="/admin/contactos-web" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>mail</mat-icon>
@@ -117,7 +117,7 @@
       <a *ngIf="muestraDashboardMetricas" mat-list-item routerLink="/admin/inicio" routerLinkActive="active"
          class="admin-nav-subitem" (click)="closeSidenav()">
         <mat-icon matListItemIcon>insights</mat-icon>
-        <span matListItemTitle>Dashboard métricas</span>
+        <span matListItemTitle title="Dashboard métricas">Dashboard métricas</span>
       </a>
     </mat-nav-list>
     <mat-divider></mat-divider>
@@ -132,7 +132,7 @@
       </a>
       <a mat-list-item (click)="activarAvisosClinica()" [class.admin-nav-disabled]="registeringStaffPush">
         <mat-icon matListItemIcon>notifications_active</mat-icon>
-        <span matListItemTitle>{{ registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas' }}</span>
+        <span matListItemTitle [title]="registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas'">{{ registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas' }}</span>
       </a>
       <a mat-list-item (click)="logout()">
         <mat-icon matListItemIcon>logout</mat-icon>

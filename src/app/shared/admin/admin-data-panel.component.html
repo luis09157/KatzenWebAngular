@@ -10,15 +10,15 @@
     </div>
   </div>
 
-  <div class="data-toolbar" *ngIf="showLegend">
-    <div class="action-legend hide-mobile">
+  <div class="data-panel-body">
+    <ng-content></ng-content>
+  </div>
+
+  <footer class="data-panel-footer" *ngIf="showLegend">
+    <div class="action-legend hide-mobile" aria-label="Leyenda de acciones">
       <span><mat-icon>visibility</mat-icon> Ver detalle</span>
       <span><mat-icon>edit</mat-icon> Editar</span>
       <span><mat-icon>delete_outline</mat-icon> Borrar</span>
     </div>
-  </div>
-
-  <div class="data-panel-body">
-    <ng-content></ng-content>
-  </div>
+  </footer>
 </mat-card>

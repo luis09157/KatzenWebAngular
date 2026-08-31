@@ -208,8 +208,12 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 ### Sidenav y toolbar (menú 3 mundos)
 
 - El sidenav (`admin-main-layout`) usa `.admin-sidenav__scroll` con `overflow-y: auto` y `min-height: 0` para que **Pensión, Alertas, logout** no se corten contra el dock.
+- Labels del menú: wrap hasta 2 líneas + `title` nativo en textos largos («Directorio de pacientes»). No clip de una sola línea (`Directorio de pa…`).
 - Toolbar ≤900px: `more_vert` con cuenta, sucursal y atajos; chips de usuario/sucursal van en `.hide-mobile`.
-- Shell: `height: 100dvh` (no `min-height: 100vh` en el drawer, que impide el scroll interno).
+- Shell: `.admin-shell` / `.mat-drawer-container` = `height: 100dvh`. **Nunca** `height: 100%` en el contenedor: anula el `100dvh` y, con `overflow: hidden` de Material, recorta páginas y tablas **sin scroll**.
+- Contenido: `.mat-drawer-content` / `.mat-sidenav-content` con `overflow-y: auto` (scroll independiente del sidenav). Tablas: `.table-scroll` hace scroll horizontal; el vertical lo hace la página.
+- `app-admin-page-banner` / `app-admin-data-panel`: el `@Input() title` no debe filtrarse al atributo nativo `title` del host (tooltip negro huérfano). Host: `[attr.title]: null`.
+- Leyenda Ver detalle / Editar / Borrar: footer del data-panel (`.data-panel-footer`), no esquina superior derecha.
 
 ### Auth shells (login admin, portal, selector de contexto)
 

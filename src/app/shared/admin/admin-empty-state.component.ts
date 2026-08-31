@@ -3,7 +3,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 @Component({
   selector: 'app-admin-empty-state',
   templateUrl: './admin-empty-state.component.html',
-  styleUrls: ['./admin-empty-state.component.scss']
+  styleUrls: ['./admin-empty-state.component.scss'],
+  host: { '[attr.title]': 'null' }
 })
 export class AdminEmptyStateComponent {
   @Input() icon = 'inbox';

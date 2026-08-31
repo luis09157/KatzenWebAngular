@@ -6,7 +6,8 @@ export type AdminModuleAccent = 'teal' | 'blue' | 'purple' | 'pink' | 'green' | 
 @Component({
   selector: 'app-admin-module-card',
   templateUrl: './admin-module-card.component.html',
-  styleUrls: ['./admin-module-card.component.scss']
+  styleUrls: ['./admin-module-card.component.scss'],
+  host: { '[attr.title]': 'null' }
 })
 export class AdminModuleCardComponent {
   @Input() title = '';

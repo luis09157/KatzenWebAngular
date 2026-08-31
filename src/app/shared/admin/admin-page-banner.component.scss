@@ -67,12 +67,20 @@
   height: 24px;
 }
 
+.banner-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .banner-text h2 {
   margin: 0 0 4px;
   font-size: 1.25rem;
   font-weight: 700;
   color: #032d60;
   letter-spacing: -0.02em;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .banner-text p {
