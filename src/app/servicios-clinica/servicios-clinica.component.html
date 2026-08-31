@@ -1,0 +1,118 @@
+<div class="admin-page servicios-clinica-contenedor">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando servicios…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="teal" [value]="totalActivos" label="Activos" hint="Visibles en la caja"></app-admin-stat-card>
+      <app-admin-stat-card accent="blue" [value]="totalConsultas" label="Consultas" hint="Tipo consulta"></app-admin-stat-card>
+      <app-admin-stat-card accent="purple" [value]="totalDiagnosticos" label="Diagnóstico" hint="Ultrasonido y similares"></app-admin-stat-card>
+      <app-admin-stat-card accent="green" [value]="totalDomicilios" label="Domicilio" hint="Visitas a casa"></app-admin-stat-card>
+    </app-admin-kpi-grid>
+
+    <app-admin-page-banner
+      accent="teal"
+      icon="medical_services"
+      title="Servicios de clínica"
+      subtitle="Consulta, ultrasonido, domicilio y honorarios. No son stock de anaquel.">
+      <div bannerActions>
+        <a mat-stroked-button routerLink="/admin/finanzas" type="button">
+          <mat-icon>spa</mat-icon>
+          Tarifas de baño en Finanzas
+        </a>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevo()">
+          <mat-icon>add</mat-icon>
+          Nuevo servicio
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-flow-hint icon="info" [message]="hintBanio"></app-flow-hint>
+
+    <app-admin-data-panel
+      accent="teal"
+      title="Catálogo"
+      description="Estos precios se usan en el riel Consulta del punto de venta."
+      [showLegend]="false">
+      <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
+        <mat-label>Buscar servicio</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, tipo, notas…" />
+      </mat-form-field>
+
+      <app-admin-empty-state
+        *ngIf="dataSource.data.length === 0"
+        icon="medical_services"
+        title="Sin servicios de clínica"
+        message="Da de alta consulta, ultrasonido, domicilio u honorarios. El baño se configura en Finanzas."
+        actionLabel="Nuevo servicio"
+        (action)="nuevo()">
+      </app-admin-empty-state>
+
+      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" class="admin-table">
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="cell-primary">
+                <span>{{ row.nombre }}</span>
+                <span class="cell-secondary" *ngIf="row.notas">{{ row.notas }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let row">{{ tipoLabels[row.tipo] || row.tipo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="precio">
+            <th mat-header-cell *matHeaderCellDef>Precio</th>
+            <td mat-cell *matCellDef="let row">{{ formatMoney(row.precio_venta) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="estado-badge" [ngClass]="estadoClass(row.activo)">
+                {{ row.activo === false ? 'Inactivo' : 'Activo' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="row-actions">
+                <button mat-icon-button type="button" color="primary" matTooltip="Editar" (click)="editar(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  matTooltip="Borrar"
+                  *ngIf="row.activo !== false"
+                  (click)="borrar(row)">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        *ngIf="dataSource.data.length > 0"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[25, 50, 100]"
+        showFirstLastButtons>
+      </mat-paginator>
+    </app-admin-data-panel>
+  </ng-container>
+</div>

@@ -96,6 +96,10 @@
         <mat-icon matListItemIcon>assessment</mat-icon>
         <span matListItemTitle>Reportes</span>
       </a>
+      <a *ngIf="canShow('servicios-clinica')" mat-list-item routerLink="/admin/servicios-clinica" routerLinkActive="active" (click)="closeSidenav()">
+        <mat-icon matListItemIcon>medical_services</mat-icon>
+        <span matListItemTitle>Servicios de clínica</span>
+      </a>
       <a *ngIf="canShow('finanzas')" mat-list-item routerLink="/admin/finanzas" routerLinkActive="active" (click)="closeSidenav()">
         <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
         <span matListItemTitle>Caja / finanzas</span>

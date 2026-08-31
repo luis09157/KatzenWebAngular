@@ -1,0 +1,54 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar servicio' : 'Nuevo servicio de clínica' }}</h2>
+      <p class="admin-dialog-subtitle">Tarifa de consulta, diagnóstico, domicilio u honorarios. No descuenta inventario.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-form-layout">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" required maxlength="120" placeholder="Consulta general, ultrasonido…" />
+        <mat-error *ngIf="form.get('nombre')?.hasError('required')">El nombre es obligatorio.</mat-error>
+        <mat-error *ngIf="form.get('nombre')?.hasError('minlength')">Usa al menos 2 caracteres.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo" required>
+          <mat-option *ngFor="let t of tipos" [value]="t">{{ tipoLabels[t] }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('tipo')?.hasError('required')">Elige un tipo.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Precio de venta</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="precio_venta" required />
+        <mat-hint>Si es 0, la caja pedirá el monto al cobrar.</mat-hint>
+        <mat-error *ngIf="form.get('precio_venta')?.hasError('required')">Indica el precio.</mat-error>
+        <mat-error *ngIf="form.get('precio_venta')?.hasError('min')">El precio no puede ser negativo.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Notas (opcional)</mat-label>
+        <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      (click)="guardar()"
+      [disabled]="loading || form.invalid">
+      <mat-icon>save</mat-icon>
+      {{ loading ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </mat-dialog-actions>
+</div>

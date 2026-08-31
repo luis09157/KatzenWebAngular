@@ -57,6 +57,8 @@ export interface VisitaLinea {
   pensionId?: string;
   historialId?: string;
   movimientoInventarioId?: string;
+  /** Spec 056 — catálogo ServiciosClinica (aditivo). */
+  servicioClinicaId?: string;
 }
 
 export interface Visita {

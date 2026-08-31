@@ -1,0 +1,24 @@
+.servicios-clinica-contenedor {
+  .estado-badge--activo {
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+  }
+
+  .estado-badge--inactivo {
+    background: rgba(100, 116, 139, 0.14);
+    color: #475569;
+  }
+
+  .mat-column-estado {
+    min-width: 148px;
+  }
+
+  .mat-column-acciones {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .mat-column-nombre {
+    min-width: 220px;
+  }
+}

@@ -171,6 +171,24 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     emptyMessage: 'No se han encontrado usuarios registrados.',
     emptyActionLabel: agregarPrimero('usuario', 'm')
   },
+  'servicios-clinica': {
+    accent: 'teal',
+    icon: 'medical_services',
+    entityPlural: 'servicios',
+    entitySingular: 'servicio',
+    entityGender: 'm',
+    bannerTitle: 'Servicios de clínica',
+    bannerSubtitle: 'Consulta, ultrasonido, domicilio y honorarios. No son stock de anaquel.',
+    listTitle: 'Catálogo de servicios',
+    listDescription: 'Precios que usa el riel Consulta del punto de venta.',
+    searchLabel: 'Buscar servicio',
+    searchPlaceholder: 'Nombre, tipo, notas…',
+    newButtonLabel: nuevo('servicio', 'm'),
+    loadingMessage: 'Cargando servicios…',
+    emptyTitle: 'No hay servicios',
+    emptyMessage: 'Da de alta consulta, diagnóstico, domicilio u honorarios.',
+    emptyActionLabel: agregarPrimero('servicio', 'm')
+  },
   contactos: {
     accent: 'pink',
     icon: 'mail',

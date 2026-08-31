@@ -640,6 +640,71 @@ export const MOCK_POS_IMAGEN_DATA_URI =
     '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect fill="#0d9488" width="160" height="160"/><text x="80" y="88" text-anchor="middle" fill="#fff" font-size="22" font-family="sans-serif">Foto</text></svg>'
   );
 
+/** Spec 056 — catálogo de servicios de clínica (no stock). */
+export const MOCK_SERVICIO_CLINICA_CONSULTA = {
+  id: 'svc-consulta-001',
+  nombre: 'Consulta general',
+  tipo: 'consulta' as const,
+  precio_venta: 400,
+  activo: true,
+  notas: 'Consulta de primera vez o seguimiento',
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIO_CLINICA_DIAGNOSTICO = {
+  id: 'svc-usg-001',
+  nombre: 'Ultrasonido abdominal',
+  tipo: 'diagnostico' as const,
+  precio_venta: 850,
+  activo: true,
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIO_CLINICA_DOMICILIO = {
+  id: 'svc-dom-001',
+  nombre: 'Visita a domicilio',
+  tipo: 'domicilio' as const,
+  precio_venta: 600,
+  activo: true,
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIO_CLINICA_HONORARIOS = {
+  id: 'svc-hon-001',
+  nombre: 'Honorarios veterinario',
+  tipo: 'otro' as const,
+  precio_venta: 500,
+  activo: true,
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIO_CLINICA_SIN_PRECIO = {
+  id: 'svc-consulta-sin-precio',
+  nombre: 'Consulta especial',
+  tipo: 'consulta' as const,
+  precio_venta: 0,
+  activo: true,
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIO_CLINICA_INACTIVO = {
+  id: 'svc-consulta-inactiva',
+  nombre: 'Consulta legacy',
+  tipo: 'consulta' as const,
+  precio_venta: 200,
+  activo: false,
+  created_at: '2026-08-30T18:00:00.000Z'
+};
+
+export const MOCK_SERVICIOS_CLINICA = [
+  MOCK_SERVICIO_CLINICA_CONSULTA,
+  MOCK_SERVICIO_CLINICA_DIAGNOSTICO,
+  MOCK_SERVICIO_CLINICA_DOMICILIO,
+  MOCK_SERVICIO_CLINICA_HONORARIOS,
+  MOCK_SERVICIO_CLINICA_SIN_PRECIO,
+  MOCK_SERVICIO_CLINICA_INACTIVO
+];
+
 export {
   MOCK_PRODUCTO_DEMO_POS_BANIO,
   MOCK_PRODUCTO_DEMO_POS_COLLAR,

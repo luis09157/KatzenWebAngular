@@ -18,6 +18,7 @@ export const ADMIN_ROUTE_LABELS: Record<string, string> = {
   alertas: 'Alertas',
   reportes: 'Reportes',
   finanzas: 'Caja / finanzas',
+  'servicios-clinica': 'Servicios de clínica',
   visitas: 'Punto de venta',
   pension: 'Pensión',
   consentimientos: 'Consentimientos',

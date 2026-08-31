@@ -239,6 +239,11 @@
           ".write": "auth != null && auth.token.role != 'client'"
         }
       },
+      "ServiciosClinica": {
+        ".read": "auth != null && auth.token.role != 'client'",
+        ".write": "auth != null && auth.token.role != 'client'",
+        ".indexOn": ["tipo", "activo", "nombre", "sucursalId"]
+      },
       "Finanzas": {
         ".read": "auth != null && auth.token.role != 'client'",
         ".write": "auth != null && auth.token.role != 'client'",

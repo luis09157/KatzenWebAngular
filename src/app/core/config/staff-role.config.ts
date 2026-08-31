@@ -15,7 +15,8 @@ export type StaffModule =
   | 'pension'
   | 'visitas'
   | 'consentimientos'
-  | 'usuarios';
+  | 'usuarios'
+  | 'servicios-clinica';
 
 export const ALL_STAFF_MODULES: StaffModule[] = [
   'inicio',
@@ -33,7 +34,8 @@ export const ALL_STAFF_MODULES: StaffModule[] = [
   'pension',
   'visitas',
   'consentimientos',
-  'usuarios'
+  'usuarios',
+  'servicios-clinica'
 ];
 
 /**

@@ -61,6 +61,7 @@ specs/
 ├── 053-desparasitacion-esquemas/       # desparasitación ola 1 (motor + confirm + recordatorio)
 ├── 054-cierre-sistema/                 # cierre operable P0/P1/P2 · CIERRE.md
 ├── 055-pos-movil-ticket/               # Caja POS mobile-first (ola 1)
+├── 056-servicios-clinica/              # Catálogo servicios con precio (ola 1; baño sigue en 022)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

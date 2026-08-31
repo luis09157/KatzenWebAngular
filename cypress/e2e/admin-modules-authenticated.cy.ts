@@ -21,7 +21,8 @@ describe('Admin modules authenticated', () => {
     { path: '/admin/finanzas', container: '.finanzas-contenedor', title: 'Caja / finanzas' },
     { path: '/admin/visitas', container: '.visitas-contenedor', title: 'Visitas / tickets' },
     { path: '/admin/consentimientos', container: '.consentimientos-contenedor', title: 'Consentimientos clínicos' },
-    { path: '/admin/pension', container: '.pension-contenedor', title: 'Pensión / alojamiento' }
+    { path: '/admin/pension', container: '.pension-contenedor', title: 'Pensión / alojamiento' },
+    { path: '/admin/servicios-clinica', container: '.servicios-clinica-contenedor', title: 'Servicios de clínica' }
   ];
 
   modules.forEach(({ path, container, title }) => {

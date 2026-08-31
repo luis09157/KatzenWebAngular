@@ -187,6 +187,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       this.canShow('pacientes-admin') ||
       this.canShow('inventario') ||
       this.canShow('finanzas') ||
+      this.canShow('servicios-clinica') ||
       this.canShow('usuarios') ||
       this.canShow('contactos-web') ||
       this.canShow('inicio')

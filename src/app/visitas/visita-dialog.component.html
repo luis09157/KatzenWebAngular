@@ -191,7 +191,34 @@
 
           <div class="pos-grid" *ngIf="posTab === 'consulta'">
             <ng-container *ngIf="!rielHint; else rielBloqueado">
-              <article class="pos-card pos-card--svc">
+              <article
+                class="pos-card pos-card--svc"
+                *ngFor="let s of serviciosConsultaFiltrados"
+                [class.is-in-cart]="qtyServicioEnCarrito(s.id) > 0">
+                <button
+                  type="button"
+                  class="pos-card__hit"
+                  (click)="tapServicioClinica(s, $event)"
+                  [attr.aria-label]="'Agregar ' + s.nombre">
+                  <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                    <mat-icon>{{ iconoServicioClinica(s) }}</mat-icon>
+                  </span>
+                  <span class="pos-card__qty" *ngIf="qtyServicioEnCarrito(s.id)">{{ qtyServicioEnCarrito(s.id) }}</span>
+                  <span class="pos-card__name">{{ s.nombre }}</span>
+                  <span class="pos-card__price" *ngIf="s.precio_venta > 0">{{ formatMoney(s.precio_venta) }}</span>
+                  <span class="pos-card__price" *ngIf="!(s.precio_venta > 0)">Pide monto</span>
+                  <span class="pos-card__meta">{{ s.precio_venta > 0 ? copyPrecioServicio : labelTipoServicio(s) }}</span>
+                </button>
+                <div class="pos-card__ctrl" *ngIf="qtyServicioEnCarrito(s.id)">
+                  <button type="button" class="pos-hit" (click)="ajustarServicioEnCarrito(s, -1, $event)" [disabled]="pagado > 0" aria-label="Quitar uno">−</button>
+                  <span class="pos-card__ctrl-qty">{{ qtyServicioEnCarrito(s.id) }}</span>
+                  <button type="button" class="pos-hit" (click)="ajustarServicioEnCarrito(s, 1, $event)" [disabled]="pagado > 0" aria-label="Agregar uno">+</button>
+                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarServicioDelCarrito(s, $event)" [disabled]="pagado > 0" aria-label="Quitar del ticket">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+              </article>
+              <article class="pos-card pos-card--svc" *ngIf="!hayConsultaCatalogo">
                 <button type="button" class="pos-card__hit" (click)="agregarConsultaAtajo()" aria-label="Agregar consulta">
                   <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>{{ iconoConsultaAtajo() }}</mat-icon>
@@ -303,6 +330,7 @@
 
           <div class="pos-grid pos-grid--peluqueria" *ngIf="posTab === 'peluqueria'">
             <ng-container *ngIf="!rielHint; else rielBloqueado">
+              <app-flow-hint icon="spa" [message]="copyBanioEnFinanzas"></app-flow-hint>
               <article class="pos-card pos-card--svc">
                 <button type="button" class="pos-card__hit" (click)="nuevoBanioEnTicket()" aria-label="Nuevo baño">
                   <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">

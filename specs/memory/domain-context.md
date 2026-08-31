@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil (olas 1–1.6 UI táctil; precios de inventario en caja — baño default 022 editable; catálogo demo `demo-pos-*` solo preview localhost; P0 scanner diferido — `INVESTIGACION-POS.md` §7).
+**Última revisión:** 2026-08-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` (consulta/diagnóstico/domicilio/otro; baño sigue 022).
 
 ---
 
@@ -79,6 +79,7 @@ erDiagram
 | Notificación clínica | `Katzen/NotificacionesClinica/{id}` | Push key | **052 ola 2** resumen staff; cliente no lee; write Functions |
 | Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
 | Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
+| Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056** tarifa (no stock): consulta, diagnóstico, domicilio, honorarios. Baño **no** vive aquí. |
 
 ### 2.3 Catálogos auxiliares
 
@@ -90,6 +91,7 @@ erDiagram
 | Tratamientos | `Katzen/Tratamientos` | Historial clínico |
 | Tipos servicio peluquería | `Katzen/TiposServiciosPeluqueria` | Baños |
 | Productos peluquería | `Katzen/ProductosPeluqueria` | Baños (no inventario clínico) |
+| Servicios de clínica | `Katzen/ServiciosClinica` | **056** POS riel Consulta (no anaquel, no baño) |
 
 ### 2.4 Nodos legacy (reglas RTDB, sin UI web activa)
 
@@ -259,7 +261,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Nombre de negocio (UI):** “Punto de venta” / “Nueva venta” (ruta `/admin/visitas`). Tres rieles en la misma caja: petshop, consulta, peluquería (**055**). El ticket es comprobante interno; **no** es CFDI (PAC fuera de alcance — 024 / investigación 055).
 
-**Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas (y consulta si es ficha de inventario) entran al ticket con `precio_venta`; el costo (`precio_compra`) es interno. Existencias se controlan en Inventario (el POS puede avisar stock bajo). **Única excepción:** baño/peluquería — tarifa default (022 / plantilla / `ProductosPeluqueria`) **precargada** en el diálogo; el usuario puede ajustarla en esa venta. Consulta genérica pide monto **solo** si no hay producto de catálogo con precio.
+**Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas entran al ticket con `precio_venta` de inventario. **Servicios de clínica (056):** consulta, ultrasonido, domicilio y honorarios viven en `Katzen/ServiciosClinica` (no stock); el riel Consulta los lista y no pide monto si hay precio. **Única excepción editable:** baño/peluquería — tarifa default 022 precargada; no se migra a ServiciosClinica en ola 1. Consulta genérica pide monto solo si no hay servicio de catálogo ni producto inventario con precio.
 
 Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?`), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
 

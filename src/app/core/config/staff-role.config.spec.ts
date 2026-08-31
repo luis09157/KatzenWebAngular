@@ -30,5 +30,10 @@ describe('STAFF_NAV_COMPACT (054)', () => {
     expect(navModulesForStaffRole('doctor')).toEqual(modulesForStaffRole('doctor'));
     expect(navModulesForStaffRole('administrador')).toContain('inventario');
     expect(navModulesForStaffRole('administrador')).toContain('usuarios');
+    expect(navModulesForStaffRole('administrador')).toContain('servicios-clinica');
+  });
+
+  it('recepcionista no ve servicios de clínica en el menú compacto', () => {
+    expect(navModulesForStaffRole('recepcionista')).not.toContain('servicios-clinica');
   });
 });

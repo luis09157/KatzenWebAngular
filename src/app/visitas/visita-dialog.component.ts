@@ -22,6 +22,19 @@ import { Producto } from '../shared/inventario.models';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { BaniosService } from '../banios/banios.service';
+import { ServicioClinica } from '../servicios-clinica/servicios-clinica.models';
+import { ServiciosClinicaService } from '../servicios-clinica/servicios-clinica.service';
+import {
+  COPY_BANIO_EN_FINANZAS,
+  COPY_PRECIO_SERVICIO,
+  categoriaLineaDesdeTipoServicio,
+  esDecisionPrecioServicio,
+  hayServicioConsultaConPrecio,
+  iconoTipoServicioClinica,
+  labelTipoServicioClinica,
+  resolverLineaServicioClinica,
+  serviciosParaRielConsulta
+} from '../servicios-clinica/servicios-clinica.util';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
   Visita,
@@ -118,6 +131,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   posTab: PosRiel = 'petshop';
   rielHint = '';
   productosCatalogo: Producto[] = [];
+  serviciosCatalogo: ServicioClinica[] = [];
   cargandoCatalogo = true;
   muestraCatalogoDemo = false;
   readonly bannerCatalogoDemo = BANNER_CATALOGO_DEMO_POS;
@@ -147,7 +161,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   ];
 
   readonly copyPrecioInventario = COPY_PRECIO_INVENTARIO;
+  readonly copyPrecioServicio = COPY_PRECIO_SERVICIO;
   readonly copyBanioAjustable = COPY_BANIO_AJUSTABLE;
+  readonly copyBanioEnFinanzas = COPY_BANIO_EN_FINANZAS;
   private defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
   private plantillasCosto: PlantillaCosto[] = [];
   private tiposServicio: TipoServicio[] = [];
@@ -224,6 +240,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   get atajoConsultaPideMonto(): boolean {
     return this.atajoConsultaPrecio == null;
+  }
+
+  get hayConsultaCatalogo(): boolean {
+    return hayServicioConsultaConPrecio(this.serviciosCatalogo);
+  }
+
+  get serviciosConsultaFiltrados(): ServicioClinica[] {
+    return serviciosParaRielConsulta(this.serviciosCatalogo, this.catalogSearch.value);
   }
 
   get tituloPos(): string {
@@ -357,6 +381,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private baniosService: BaniosService,
     private inventarioService: InventarioService,
+    private serviciosClinica: ServiciosClinicaService,
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
     private cajaService: CajaService,
@@ -465,6 +490,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.form.get('paciente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
     void this.cargarPendientes();
     this.cargarCatalogo();
+    this.cargarServiciosClinica();
     void this.cargarTarifasBanioPos();
   }
 
@@ -617,6 +643,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       .reduce((s, l) => s + cantidadLinea(l), 0);
   }
 
+  qtyServicioEnCarrito(servicioId: string | undefined): number {
+    if (!servicioId) return 0;
+    return this.lineas
+      .filter((l) => l.servicioClinicaId === servicioId)
+      .reduce((s, l) => s + cantidadLinea(l), 0);
+  }
+
   esLineaProducto(linea: VisitaLinea): boolean {
     if (esIdProductoDemoPos(linea.productoId)) return false;
     return linea.categoria === 'venta_producto';
@@ -715,6 +748,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   iconoConsultaAtajo(): string {
     return iconoPlaceholderPos('consulta');
+  }
+
+  iconoServicioClinica(s: ServicioClinica): string {
+    return iconoTipoServicioClinica(s.tipo);
+  }
+
+  labelTipoServicio(s: ServicioClinica): string {
+    return labelTipoServicioClinica(s.tipo);
   }
 
   lineaDeProducto(productoId: string | undefined): VisitaLinea | undefined {
@@ -822,6 +863,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (this.soloLectura) return;
     if (!puedeUsarRiel('consulta', this.contextoRiel)) {
       this.elegirRiel('consulta');
+      return;
+    }
+    const desdeCatalogo = this.serviciosCatalogo.find(
+      (s) => s.tipo === 'consulta' && Number(s.precio_venta) > 0 && s.activo !== false
+    );
+    if (desdeCatalogo) {
+      await this.tapServicioClinica(desdeCatalogo);
       return;
     }
     const decision = resolverAtajoConsulta(this.productosCatalogo);
@@ -963,6 +1011,75 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   imprimir(): void {
     window.print();
+  }
+
+  async tapServicioClinica(s: ServicioClinica, event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.soloLectura || !s?.id) return;
+    if (!puedeUsarRiel('consulta', this.contextoRiel)) {
+      this.elegirRiel('consulta');
+      return;
+    }
+    const decision = resolverLineaServicioClinica(s);
+    if ('error' in decision) return;
+    let monto = 0;
+    if (decision.pedirMonto) {
+      const asked = await promptMontoVisita(s.nombre, '¿Cuánto se cobra por este servicio?');
+      if (!(asked != null && asked > 0)) return;
+      monto = asked;
+    } else if (esDecisionPrecioServicio(decision)) {
+      monto = decision.monto;
+    }
+    if (!(monto > 0)) return;
+    const existente = this.lineas.find(
+      (l) => l.servicioClinicaId === s.id && !l.movimientoInventarioId
+    );
+    if (existente) {
+      this.aplicarDeltaLinea(existente.id, 1);
+      return;
+    }
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: s.nombre,
+        monto: roundMoney(monto),
+        categoria: categoriaLineaDesdeTipoServicio(s.tipo),
+        cantidad: 1,
+        servicioClinicaId: s.id
+      }
+    ];
+  }
+
+  ajustarServicioEnCarrito(s: ServicioClinica, delta: number, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const linea = this.lineas.find((l) => l.servicioClinicaId === s.id);
+    if (!linea || this.pagado > 0) return;
+    this.aplicarDeltaLinea(linea.id, delta);
+  }
+
+  quitarServicioDelCarrito(s: ServicioClinica, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const linea = this.lineas.find((l) => l.servicioClinicaId === s.id);
+    if (!linea) return;
+    this.quitarLinea(linea.id);
+  }
+
+  private cargarServiciosClinica(): void {
+    this.serviciosClinica
+      .getServicios()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.serviciosCatalogo = (rows || []).filter((s) => s && s.activo !== false);
+        },
+        error: () => {
+          this.serviciosCatalogo = [];
+        }
+      });
   }
 
   /** Lectura de catálogo. El POS no crea/edita/borra productos. Demo solo con flag. */

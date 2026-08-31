@@ -115,6 +115,13 @@ const routes: Routes = [
         canActivate: [StaffRoleGuard],
         data: { staffModule: 'consentimientos' }
       },
+      {
+        path: 'servicios-clinica',
+        loadChildren: () =>
+          import('./servicios-clinica/servicios-clinica.module').then(m => m.ServiciosClinicaModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'servicios-clinica' }
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   },

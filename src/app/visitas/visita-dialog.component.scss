@@ -301,6 +301,10 @@
     margin: 0;
   }
 
+  .pos-grid app-flow-hint {
+    grid-column: 1 / -1;
+  }
+
   .pos-card {
     display: flex;
     flex-direction: column;
