@@ -741,12 +741,25 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  async openPortalLogin(): Promise<void> {
-    if (await this.portalAuth.enterIfRememberedSession()) {
-      return;
-    }
+  openPortalLogin(): void {
     this.showPortalLoginModal = true;
     document.body.style.overflow = 'hidden';
+    void this.tryEnterRememberedPortalSession();
+  }
+
+  /**
+   * Auto-entrada con sesión ya asentado, sin bloquear el shell del modal.
+   * `waitForAuthUser` puede tardar ~4 s; el overlay debe pintarse en el click.
+   */
+  private async tryEnterRememberedPortalSession(): Promise<void> {
+    try {
+      const entered = await this.portalAuth.enterIfRememberedSession();
+      if (entered) {
+        this.closePortalLogin();
+      }
+    } catch {
+      // El formulario del overlay sigue disponible.
+    }
   }
 
   closePortalLogin(): void {
