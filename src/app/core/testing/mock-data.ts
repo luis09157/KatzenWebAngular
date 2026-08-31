@@ -77,6 +77,23 @@ export const MOCK_MASCOTA_LUIS: Paciente = {
   activo: true,
 };
 
+/** Cliente legacy app móvil: nombre en `Nombre`, sin `activo`, key ≠ id interno. */
+export const MOCK_CLIENTE_LEGACY_NOMBRE: Cliente = {
+  id: 'legacy-cliente-luis-key',
+  Nombre: 'Luis Alfonso Niño Martínez',
+  Telefono: '5551112233',
+  razonSocial: '',
+};
+
+/** Oreon — mascota legacy (Nombre PascalCase, solo idCliente, sin activo). */
+export const MOCK_MASCOTA_OREON: Paciente = {
+  id: 'legacy-oreon-key',
+  Nombre: 'Oreon',
+  especie: 'Felino',
+  raza: 'Doméstico',
+  idCliente: MOCK_CLIENTE_LEGACY_NOMBRE.id,
+};
+
 /** Lista mock para autocomplete cliente→paciente (spec 029). */
 export const MOCK_CLIENTES_PICKER: Cliente[] = [MOCK_CLIENTE, MOCK_CLIENTE_LUIS];
 

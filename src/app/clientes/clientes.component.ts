@@ -14,6 +14,7 @@ import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
 import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_WIDE, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { filtrarClientes, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import {
   calcularClienteEstadisticas,
   calcularClientesConPacientes
@@ -58,10 +59,6 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   loading = false;
   saving = false;
-  hasMoreClientes = false;
-  loadingMore = false;
-  private oldestClienteKey: string | null = null;
-  readonly rtdbPageSize = 100;
 
   constructor(
     private clientesService: ClientesService,
@@ -87,12 +84,9 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private cargarClientes(): void {
     this.loading = true;
-    this.oldestClienteKey = null;
-    this.clientesService.getClientesPage(this.rtdbPageSize).pipe(takeUntil(this.destroy$)).subscribe({
-      next: page => {
-        this.todosLosClientes = page.items;
-        this.hasMoreClientes = page.hasMore;
-        this.oldestClienteKey = page.oldestKey;
+    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
+      next: clientes => {
+        this.todosLosClientes = clientes || [];
         this.aplicarFiltroSucursal();
         this.loading = false;
         setTimeout(() => {
@@ -120,29 +114,6 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  cargarMasClientes(): void {
-    if (!this.hasMoreClientes || this.loadingMore || !this.oldestClienteKey) {
-      return;
-    }
-    this.loadingMore = true;
-    this.clientesService.getClientesPage(this.rtdbPageSize, this.oldestClienteKey)
-      .pipe(take(1))
-      .subscribe({
-        next: page => {
-          this.todosLosClientes = [...this.todosLosClientes, ...page.items];
-          this.hasMoreClientes = page.hasMore;
-          this.oldestClienteKey = page.oldestKey;
-          this.aplicarFiltroSucursal();
-          this.loadingMore = false;
-        },
-        error: (error) => {
-          this.logger.error('Error al cargar más clientes:', error);
-          this.loadingMore = false;
-          Swal.fire('Error', 'No se pudieron cargar más clientes', 'error');
-        }
-      });
-  }
-
   private aplicarFiltroSucursal(): void {
     this.clientesBase = filterBySucursal(this.todosLosClientes, this.sucursalContext.getSelectedId());
     this.refrescarFiltroTexto();
@@ -153,26 +124,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.soloConDeuda) {
       base = base.filter((c) => (Number(c?.saldoPendiente) || 0) > 0);
     }
-    if (!this.filtroActual) {
-      this.clientesFiltrados = base;
-    } else {
-      this.clientesFiltrados = base.filter(cliente => {
-        const nombre = (cliente.nombre || '').toLowerCase();
-        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
-        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
-        const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-        const telefono = (cliente.telefono || '').toLowerCase();
-        const correo = (cliente.correo || '').toLowerCase();
-        const expediente = (cliente.expediente || '').toLowerCase();
-        return nombre.includes(this.filtroActual) ||
-               apellidoPaterno.includes(this.filtroActual) ||
-               apellidoMaterno.includes(this.filtroActual) ||
-               nombreCompleto.includes(this.filtroActual) ||
-               telefono.includes(this.filtroActual) ||
-               correo.includes(this.filtroActual) ||
-               expediente.includes(this.filtroActual);
-      });
-    }
+    this.clientesFiltrados = filtrarClientes(base, this.filtroActual);
     this.dataSource.data = this.clientesFiltrados;
   }
 
@@ -304,15 +256,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getNombreCompleto(cliente: any): string {
-    const nombre = [
-      cliente?.nombre,
-      cliente?.apellidoPaterno,
-      cliente?.apellidoMaterno
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .trim();
-    return nombre || 'Sin nombre';
+    return getClienteNombreCompleto(cliente) || 'Sin nombre';
   }
 
   /** Spec 047 — chip portal en listado. */

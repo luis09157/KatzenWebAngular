@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { queryRowsPorPaciente } from '../core/utils/rtdb-paciente-query.util';
 import {
   VacunaRefuerzoInput,
   buildDescripcionRecordatorioRefuerzo,
@@ -39,19 +39,29 @@ export class RecordatoriosService {
     );
   }
 
-  // Obtener recordatorios por paciente_id
-  getRecordatoriosPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Recordatorios', ref =>
-      ref.orderByChild('paciente_id').equalTo(pacienteId)
-    ).snapshotChanges().pipe(
-      take(1),
-      map(changes =>
-        changes
-          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(r => r.paciente_id === pacienteId && r.activo !== false)
+  // Obtener recordatorios por paciente (paciente_id e idPaciente)
+  getRecordatoriosPorPaciente(pacienteId: string, extraIds: string[] = []): Observable<any[]> {
+    return queryRowsPorPaciente(
+      this.db,
+      'Katzen/Recordatorios',
+      [pacienteId, ...extraIds]
+    ).pipe(
+      map(recordatorios =>
+        recordatorios
+          .filter(r => (r as { activo?: boolean }).activo !== false)
           .sort((a, b) => {
-            const fechaA = new Date(a.fecha_creacion || a.created_at || a.fecha_hora_recordatorio || 0);
-            const fechaB = new Date(b.fecha_creacion || b.created_at || b.fecha_hora_recordatorio || 0);
+            const fechaA = new Date(
+              (a as { fecha_creacion?: string; created_at?: string; fecha_hora_recordatorio?: string }).fecha_creacion
+              || (a as { created_at?: string }).created_at
+              || (a as { fecha_hora_recordatorio?: string }).fecha_hora_recordatorio
+              || 0
+            );
+            const fechaB = new Date(
+              (b as { fecha_creacion?: string; created_at?: string; fecha_hora_recordatorio?: string }).fecha_creacion
+              || (b as { created_at?: string }).created_at
+              || (b as { fecha_hora_recordatorio?: string }).fecha_hora_recordatorio
+              || 0
+            );
             return fechaB.getTime() - fechaA.getTime();
           })
       )

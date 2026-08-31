@@ -10,6 +10,7 @@ import { finalize } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
+import { filtrarClientes, getClienteDisplayLabel } from '../core/utils/cliente-search.util';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -254,55 +255,14 @@ export class PacienteAdminDialogComponent implements OnInit {
   private _filterClientes(value: string | any): any[] {
     const raw = value == null || value === '' ? '' : typeof value === 'string'
       ? value
-      : (value && typeof value === 'object' && (value.nombre != null || value.apellidoPaterno != null)
-          ? this.getNombreCompleto(value)
+      : (value && typeof value === 'object'
+          ? getClienteDisplayLabel(value)
           : String(value ?? ''));
-    const filterValue = raw.toLowerCase();
-    return this.clientes.filter(cliente => {
-      // Buscar por nombre completo
-      const nombreCompleto = this.getNombreCompleto(cliente);
-      
-      // Buscar en campos individuales también
-      const nombre = (cliente.nombre || '').toLowerCase();
-      const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
-      const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
-      const apellido = (cliente.apellido || '').toLowerCase();
-      const telefono = (cliente.telefono || '').toLowerCase();
-      
-      return nombreCompleto.toLowerCase().includes(filterValue) ||
-             nombre.includes(filterValue) ||
-             apellidoPaterno.includes(filterValue) ||
-             apellidoMaterno.includes(filterValue) ||
-             apellido.includes(filterValue) ||
-             telefono.includes(filterValue);
-    });
+    return filtrarClientes(this.clientes, raw);
   }
 
   getNombreCompleto(cliente: any): string {
-    let nombreCompleto = '';
-    
-    if (cliente.nombre) {
-      nombreCompleto += cliente.nombre;
-    }
-    
-    if (cliente.apellidoPaterno) {
-      nombreCompleto += ' ' + cliente.apellidoPaterno;
-    }
-    
-    if (cliente.apellidoMaterno) {
-      nombreCompleto += ' ' + cliente.apellidoMaterno;
-    }
-    
-    // Si no hay apellidos específicos, usar el campo apellido genérico
-    if (!cliente.apellidoPaterno && !cliente.apellidoMaterno && cliente.apellido) {
-      nombreCompleto += ' ' + cliente.apellido;
-    }
-    
-    if (cliente.telefono) {
-      nombreCompleto += ` (${cliente.telefono})`;
-    }
-    
-    return nombreCompleto.trim();
+    return getClienteDisplayLabel(cliente);
   }
 
   onClienteSelected(cliente: any) {

@@ -61,7 +61,7 @@
       "Historiales_Clinicos": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["paciente_id", "activo"],
+        ".indexOn": ["paciente_id", "idPaciente", "activo"],
         "$historialId": {
           ".read": "auth != null && (auth.token.role != 'client' || (root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId && data.child('oculto_portal').val() != true && data.child('ocultoPortal').val() != true))",
           ".write": "auth != null && auth.token.role != 'client'"
@@ -78,7 +78,7 @@
       "Recordatorios": {
         ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
         ".write": "auth != null && auth.token.role != 'client'",
-        ".indexOn": ["paciente_id", "activo", "estado"]
+        ".indexOn": ["paciente_id", "idPaciente", "activo", "estado"]
       },
       "Notificaciones": {
         "$clienteId": {

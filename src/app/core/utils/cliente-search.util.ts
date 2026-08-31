@@ -1,12 +1,29 @@
 import { Cliente } from '../models';
+import { hydrateCliente } from './cliente-hydrate.util';
+import { pickLegacyString } from './rtdb-row.util';
+import { normalizarTextoBusqueda, textoCoincide } from './text-search.util';
 
-/** Nombre completo del cliente (nombre + apellidos). */
+/** Nombre completo del cliente (web + shape móvil Nombre / razón social). */
 export function getClienteNombreCompleto(cliente: Cliente | null | undefined): string {
-  if (!cliente) return '';
-  return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno]
+  if (!cliente) {
+    return '';
+  }
+  const rec = cliente as Record<string, unknown>;
+  const hidratado = rec['nombre'] || rec['Nombre']
+    ? hydrateCliente(cliente.id, cliente)
+    : cliente;
+  const partes = [
+    hidratado.nombre,
+    hidratado.apellidoPaterno,
+    hidratado.apellidoMaterno
+  ]
     .filter(Boolean)
     .join(' ')
     .trim();
+  if (partes) {
+    return partes;
+  }
+  return pickLegacyString(rec, 'razonSocial', 'razon_social', 'razon', 'RazonSocial', 'Nombre');
 }
 
 /** Etiqueta para autocomplete: nombre + teléfono si existe. */
@@ -17,8 +34,8 @@ export function getClienteDisplayLabel(cliente: Cliente | null | undefined): str
 }
 
 /**
- * Filtra clientes activos por nombre, apellidos, teléfono o expediente.
- * Reutilizado en citas, baños, pensión y demás pickers cliente→paciente.
+ * Filtra clientes activos por nombre (incl. Nombre/razón), apellidos, teléfono o expediente.
+ * Normaliza acentos y espacios. Reutilizado en citas, baños, pensión y listado admin.
  */
 export function filtrarClientes(clientes: Cliente[], query: unknown): Cliente[] {
   const activos = (clientes || []).filter(c => c.activo !== false);
@@ -26,34 +43,42 @@ export function filtrarClientes(clientes: Cliente[], query: unknown): Cliente[] 
     return activos;
   }
 
-  const filterValue = query.toLowerCase().trim();
+  const filterValue = String(query).trim();
   if (!filterValue) {
     return activos;
   }
 
-  return activos.filter(cliente => {
-    const nombre = (cliente.nombre || '').toLowerCase();
-    const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
-    const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
-    const telefono = (cliente.telefono || '').toString();
-    const expediente = cliente.expediente != null ? String(cliente.expediente) : '';
-    const correo = (cliente.correo || '').toLowerCase();
+  return activos.filter(cliente => clienteCoincideBusqueda(cliente, filterValue));
+}
 
-    const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-    const coincideNombreCompleto = nombreCompleto.includes(filterValue);
+export function clienteCoincideBusqueda(cliente: Cliente | null | undefined, query: unknown): boolean {
+  if (!cliente) {
+    return false;
+  }
+  const rec = cliente as Record<string, unknown>;
+  const haystack = [
+    getClienteNombreCompleto(cliente),
+    pickLegacyString(rec, 'Nombre', 'nombreCompleto'),
+    cliente.telefono,
+    cliente.correo,
+    cliente.expediente,
+    cliente.razonSocial
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return textoCoincide(haystack, query);
+}
 
-    const palabras = [nombre, apellidoPaterno, apellidoMaterno]
-      .flatMap(part => part.split(' ').filter(Boolean));
-    const coincidePorPalabras = palabras.some(
-      palabra => palabra.includes(filterValue) || filterValue.includes(palabra)
-    );
-
-    return (
-      coincideNombreCompleto ||
-      coincidePorPalabras ||
-      telefono.includes(filterValue) ||
-      expediente.includes(filterValue) ||
-      correo.includes(filterValue)
-    );
-  });
+export function haystackClienteParaFiltro(cliente: Cliente | null | undefined): string {
+  return normalizarTextoBusqueda(
+    [
+      getClienteNombreCompleto(cliente),
+      cliente?.telefono,
+      cliente?.correo,
+      cliente?.expediente,
+      cliente?.razonSocial
+    ]
+      .filter(Boolean)
+      .join(' ')
+  );
 }

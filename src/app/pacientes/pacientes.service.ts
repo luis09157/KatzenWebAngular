@@ -7,6 +7,7 @@ import { SucursalContextService } from '../core/services/sucursal-context.servic
 import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-paged-list.service';
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 import { calcularPacienteEstadisticas, PacienteEstadisticas } from '../core/utils/entity-stats.util';
+import { hydratePaciente } from '../core/utils/paciente-hydrate.util';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +34,9 @@ export class PacientesService {
     ).pipe(
       map(page => ({
         ...page,
-        items: [...page.items].sort((a, b) => {
+        items: page.items
+          .map(p => hydratePaciente(p.id, p) as Paciente & { id: string })
+          .sort((a, b) => {
           const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
           const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
           return fechaB.getTime() - fechaA.getTime();
@@ -45,10 +48,7 @@ export class PacientesService {
   getPacientes(): Observable<Paciente[]> {
     return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
       map(actions => actions
-        .map(a => ({
-          id: a.key,
-          ...(a.payload.val() as object)
-        } as Paciente))
+        .map(a => hydratePaciente(a.key, a.payload.val()))
         .filter((paciente: Paciente) => paciente.activo !== false)
         .sort((a, b) => {
           const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
@@ -67,7 +67,9 @@ export class PacientesService {
   }
 
   getPaciente(id: string): Observable<Paciente | null> {
-    return this.db.object(`Katzen/Mascota/${id}`).valueChanges() as Observable<Paciente | null>;
+    return this.db.object(`Katzen/Mascota/${id}`).valueChanges().pipe(
+      map(val => (val != null && typeof val === 'object' ? hydratePaciente(id, val) : null))
+    );
   }
 
   guardarPaciente(paciente: Paciente & { id: string }) {

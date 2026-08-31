@@ -126,14 +126,17 @@
               <span class="tag tag-muted" *ngIf="pacienteSeleccionado.peso">{{ pacienteSeleccionado.peso }} kg</span>
               <span class="tag tag-sex" *ngIf="pacienteSeleccionado.sexo">{{ pacienteSeleccionado.sexo }}</span>
             </div>
+            <p class="patient-card__meta" *ngIf="pacienteSeleccionado.estado">Estado: {{ pacienteSeleccionado.estado }}</p>
             <p class="patient-card__meta">{{ pacienteSeleccionado.edad || 'Fecha no registrada' }}</p>
             <p class="patient-card__meta">{{ getPacienteInfo(pacienteSeleccionado) }}</p>
+            <p class="patient-card__meta" *ngIf="pacienteSeleccionado.peso">Peso: {{ pacienteSeleccionado.peso }} kg</p>
           </div>
           <div class="patient-card__owner">
             <span class="patient-card__owner-label">Dueño</span>
             <strong>{{ getClienteNombreFromPaciente(pacienteSeleccionado) }}</strong>
             <span *ngIf="getClienteTelefono(getPacienteClienteId(pacienteSeleccionado))">{{ getClienteTelefono(getPacienteClienteId(pacienteSeleccionado)) }}</span>
             <span *ngIf="getClienteEmail(getPacienteClienteId(pacienteSeleccionado))">{{ getClienteEmail(getPacienteClienteId(pacienteSeleccionado)) }}</span>
+            <span *ngIf="getClienteDireccion(getPacienteClienteId(pacienteSeleccionado))">{{ getClienteDireccion(getPacienteClienteId(pacienteSeleccionado)) }}</span>
           </div>
         </div>
       </aside>

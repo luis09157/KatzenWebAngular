@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { Banio } from '../shared/banio.model';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { queryRowsPorPaciente } from '../core/utils/rtdb-paciente-query.util';
 
 export interface BanioPaciente extends Omit<Banio, 'created_at' | 'updated_at'> {
   id?: string;
@@ -25,14 +25,14 @@ export class BaniosPacienteService {
 
   // ===== CRUD PARA BAÑOS DE PACIENTE =====
   
-  getBaniosPorPaciente(pacienteId: string): Observable<BanioPaciente[]> {
-    return this.db.list<Banio>(this.basePath, ref =>
-      ref.orderByChild('paciente_id').equalTo(pacienteId)
-    ).snapshotChanges().pipe(
-      take(1),
-      map(changes => changes.map(c => ({ id: c.payload.key, ...c.payload.val() }))),
-      map(banios => banios.filter(b => b.activo !== false)),
-      map(banios => banios.map(banio => this.formatearBanioPaciente(banio))),
+  getBaniosPorPaciente(pacienteId: string, extraIds: string[] = []): Observable<BanioPaciente[]> {
+    return queryRowsPorPaciente<Banio>(
+      this.db,
+      this.basePath,
+      [pacienteId, ...extraIds]
+    ).pipe(
+      map(banios => banios.filter(b => (b as { activo?: boolean }).activo !== false)),
+      map(banios => banios.map(banio => this.formatearBanioPaciente(banio as BanioPaciente))),
       catchError(error => {
         console.error('Error al obtener baños del paciente:', error);
         return throwError(() => error);

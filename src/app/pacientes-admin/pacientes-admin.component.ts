@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component';
@@ -12,8 +13,10 @@ import Swal from 'sweetalert2';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
-import { filterBySucursal } from '../core/utils/sucursal-filter.util';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
+import { getPacienteNombre } from '../core/utils/paciente-search.util';
+import { normalizarTextoBusqueda, textoCoincide } from '../core/utils/text-search.util';
 
 @Component({
   selector: 'app-pacientes-admin',
@@ -38,10 +41,6 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   pacientes: any[] = [];
   clientes: any[] = [];
   loading = false;
-  hasMorePacientes = false;
-  loadingMore = false;
-  private oldestPacienteKey: string | null = null;
-  readonly rtdbPageSize = 100;
   stats = {
     total: 0,
     duenosUnicos: 0,
@@ -56,7 +55,8 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private logger: LoggerService,
     private loadingService: LoadingService,
-    private sucursalContext: SucursalContextService
+    private sucursalContext: SucursalContextService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -100,15 +100,12 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
   cargarDatos() {
     this.loading = true;
-    this.oldestPacienteKey = null;
     forkJoin({
-      pacientes: this.pacientesService.getPacientesPage(this.rtdbPageSize).pipe(take(1)),
+      pacientes: this.pacientesService.getPacientes().pipe(take(1)),
       clientes: this.clientesService.getClientes().pipe(take(1))
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ pacientes, clientes }) => {
-        this.pacientes = pacientes.items;
-        this.hasMorePacientes = pacientes.hasMore;
-        this.oldestPacienteKey = pacientes.oldestKey;
+        this.pacientes = pacientes || [];
         this.clientes = clientes || [];
         this.prepararDataSource();
         this.cargarEstadisticas();
@@ -132,29 +129,6 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     });
   }
 
-  cargarMasPacientes(): void {
-    if (!this.hasMorePacientes || this.loadingMore || !this.oldestPacienteKey) {
-      return;
-    }
-    this.loadingMore = true;
-    this.pacientesService.getPacientesPage(this.rtdbPageSize, this.oldestPacienteKey)
-      .pipe(take(1))
-      .subscribe({
-        next: page => {
-          this.pacientes = [...this.pacientes, ...page.items];
-          this.hasMorePacientes = page.hasMore;
-          this.oldestPacienteKey = page.oldestKey;
-          this.prepararDataSource();
-          this.loadingMore = false;
-        },
-        error: error => {
-          this.logger.error('Error al cargar más pacientes:', error);
-          this.loadingMore = false;
-          Swal.fire('Error', 'No se pudieron cargar más pacientes', 'error');
-        }
-      });
-  }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -163,22 +137,33 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
 
 
   prepararDataSource() {
-    const pacientesActivos = filterBySucursal(
-      this.pacientes.filter(p => p.activo !== false),
-      this.sucursalContext.getSelectedId()
-    );
+    // Misma regla que Buscar paciente: activo !== false (incluye legacy sin el campo).
+    const pacientesActivos = this.pacientes.filter(p => p.activo !== false);
     
-    // Combinar datos de pacientes con nombres de clientes
     const pacientesConCliente = pacientesActivos.map(paciente => {
       const pacienteConCliente = {
         ...paciente,
+        nombre: getPacienteNombre(paciente) || paciente.nombre,
         nombreCliente: this.getClienteNombre(paciente.cliente_id || paciente.idCliente)
       };
       return pacienteConCliente;
     });
     
-    // Actualizar el dataSource existente en lugar de crear uno nuevo
     this.dataSource.data = pacientesConCliente;
+    this.dataSource.filterPredicate = (row: Record<string, unknown>, filter: string) => {
+      const haystack = [
+        row['nombre'],
+        row['Nombre'],
+        row['especie'],
+        row['raza'],
+        row['nombreCliente'],
+        row['sexo']
+      ]
+        .filter(Boolean)
+        .join(' ');
+      return textoCoincide(haystack, filter);
+    };
+
     
     // Configurar paginador y ordenamiento de forma segura
     setTimeout(() => {
@@ -197,16 +182,23 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     if (!idCliente) return 'Sin dueño';
     const cliente = this.clientes.find(c => c.id === idCliente);
     if (!cliente) return 'Cliente no encontrado';
-    return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
+    return getClienteNombreCompleto(cliente) || 'Sin dueño';
   }
 
   aplicarFiltro(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.dataSource.filter = normalizarTextoBusqueda(filterValue);
 
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  abrirExpediente(paciente: { id?: string }): void {
+    if (!paciente?.id) {
+      return;
+    }
+    this.router.navigate(['/admin/paciente'], { queryParams: { id: paciente.id } });
   }
 
   nuevoPaciente() {
@@ -309,29 +301,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   }
 
   verPaciente(paciente: any) {
-    const dialogRef = this.dialog.open(PacienteAdminDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
-      data: { paciente, modo: 'ver' }
-    });
-
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) {
-        this.loadingService.show();
-        this.pacientesService.actualizarPaciente(paciente.id, result)
-          .then(() => {
-            this.loadingService.hide();
-            setTimeout(() => {
-              Swal.fire('Éxito', 'Paciente actualizado correctamente', 'success');
-              this.cargarDatos();
-            }, 0);
-          })
-          .catch(error => {
-            this.logger.error('Error al actualizar paciente:', error);
-            this.loadingService.hide();
-            setTimeout(() => Swal.fire('Error', 'No se pudo actualizar el paciente', 'error'), 0);
-          });
-      }
-    });
+    this.abrirExpediente(paciente);
   }
 
   calcularEdad(fechaNacimiento: string): string {

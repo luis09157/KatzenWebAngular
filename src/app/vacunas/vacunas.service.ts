@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { queryRowsPorPaciente } from '../core/utils/rtdb-paciente-query.util';
 import {
   AsegurarRefuerzoResultado,
   RecordatoriosService
@@ -45,23 +45,30 @@ export class VacunasService {
     );
   }
 
-  // Obtener vacunas por paciente_id
-  getVacunasPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Vacunas', ref =>
-      ref.orderByChild('idPaciente').equalTo(pacienteId)
-    ).snapshotChanges().pipe(
-      take(1),
-      map(changes =>
-        changes
-          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(v =>
-            (v.idPaciente === pacienteId || v.paciente_id === pacienteId) &&
-            v.activo !== false &&
-            v.activo !== 0
-          )
+  // Obtener vacunas por paciente (idPaciente y paciente_id)
+  getVacunasPorPaciente(pacienteId: string, extraIds: string[] = []): Observable<any[]> {
+    return queryRowsPorPaciente(
+      this.db,
+      'Katzen/Vacunas',
+      [pacienteId, ...extraIds],
+      ['idPaciente', 'paciente_id']
+    ).pipe(
+      map(vacunas =>
+        vacunas
+          .filter(v => (v as { activo?: boolean | number }).activo !== false && (v as { activo?: number }).activo !== 0)
           .sort((a, b) => {
-            const fechaA = new Date(a.fechaRegistro || a.fecha_aplicacion || a.created_at || 0);
-            const fechaB = new Date(b.fechaRegistro || b.fecha_aplicacion || b.created_at || 0);
+            const fechaA = new Date(
+              (a as { fechaRegistro?: string; fecha_aplicacion?: string; created_at?: string }).fechaRegistro
+              || (a as { fecha_aplicacion?: string }).fecha_aplicacion
+              || (a as { created_at?: string }).created_at
+              || 0
+            );
+            const fechaB = new Date(
+              (b as { fechaRegistro?: string; fecha_aplicacion?: string; created_at?: string }).fechaRegistro
+              || (b as { fecha_aplicacion?: string }).fecha_aplicacion
+              || (b as { created_at?: string }).created_at
+              || 0
+            );
             return fechaB.getTime() - fechaA.getTime();
           })
       )

@@ -9,6 +9,8 @@ import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-page
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 import { calcularClienteEstadisticas, calcularClientesConPacientes, ClienteEstadisticas } from '../core/utils/entity-stats.util';
 import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
+import { hydrateCliente } from '../core/utils/cliente-hydrate.util';
+import { mapRtdbRow } from '../core/utils/rtdb-row.util';
 
 export interface BajaClienteCascadaResult {
   mascotasDesactivadas: number;
@@ -43,7 +45,9 @@ export class ClientesService {
     ).pipe(
       map(page => ({
         ...page,
-        items: [...page.items].sort((a, b) => {
+        items: page.items
+          .map(c => hydrateCliente(c.id, c) as Cliente & { id: string })
+          .sort((a, b) => {
           const fechaA = new Date((a as any).fecha_registro || (a as any).fecha_creacion || (a as any).created_at || 0);
           const fechaB = new Date((b as any).fecha_registro || (b as any).fecha_creacion || (b as any).created_at || 0);
           return fechaB.getTime() - fechaA.getTime();
@@ -55,13 +59,7 @@ export class ClientesService {
   getClientes(): Observable<Cliente[]> {
     return this.db.list('Katzen/Cliente').snapshotChanges().pipe(
       map(actions => actions
-        .map(a => {
-          const clienteData = a.payload.val() as Record<string, unknown>;
-          return {
-            id: a.key,
-            ...clienteData
-          } as Cliente;
-        })
+        .map(a => hydrateCliente(a.key, a.payload.val()))
         .filter((cliente: Cliente) => cliente.activo !== false)
         .sort((a, b) => {
           const fechaA = new Date((a as any).fecha_registro || (a as any).fecha_creacion || (a as any).created_at || 0);
@@ -81,7 +79,7 @@ export class ClientesService {
 
   getCliente(id: string): Observable<Cliente | null> {
     return this.db.object(`Katzen/Cliente/${id}`).valueChanges().pipe(
-      map(val => (val != null && typeof val === 'object' ? { id, ...(val as Record<string, unknown>) } as Cliente : null))
+      map(val => (val != null && typeof val === 'object' ? hydrateCliente(id, val) : null))
     );
   }
 
@@ -154,7 +152,7 @@ export class ClientesService {
         map(actions =>
           actions.map(a => {
             const val = (a.payload.val() || {}) as Record<string, unknown>;
-            return { id: a.key as string, ...val } as MascotaRow;
+            return mapRtdbRow<MascotaRow>(a.key, val);
           })
         )
       )
@@ -177,7 +175,7 @@ export class ClientesService {
         map(actions =>
           actions.map(a => {
             const val = (a.payload.val() || {}) as Record<string, unknown>;
-            return { id: a.key as string, ...val };
+            return mapRtdbRow(a.key, val);
           })
         )
       )

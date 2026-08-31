@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { mapRtdbRow } from '../core/utils/rtdb-row.util';
+import { queryRowsPorPaciente } from '../core/utils/rtdb-paciente-query.util';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class HistorialesService {
     return this.db.list('Katzen/Historiales_Clinicos').snapshotChanges().pipe(
       map(changes => 
         changes
-          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
+          .map(c => mapRtdbRow<{ fecha_registro?: string; created_at?: string }>(c.payload.key, c.payload.val()))
           .sort((a, b) => {
             // Ordenar por fecha_registro string directamente (formato: YYYY-MM-DD HH:MM:SS)
             const fechaA = a.fecha_registro || a.created_at || '0';
@@ -34,25 +35,24 @@ export class HistorialesService {
     );
   }
 
-  // Obtener historiales por paciente_id
-  getHistorialesPorPaciente(pacienteId: string): Observable<any[]> {
-    return this.db.list('Katzen/Historiales_Clinicos', ref =>
-      ref.orderByChild('paciente_id').equalTo(pacienteId)
-    ).snapshotChanges().pipe(
-      take(1),
-      map(changes => {
-        const historiales = changes
-          .map(c => ({ id: c.payload.key, ...(c.payload.val() as any) }))
-          .filter(h => h.activo !== false)
+  // Obtener historiales por paciente (paciente_id e idPaciente; aliases de key legacy)
+  getHistorialesPorPaciente(pacienteId: string, extraIds: string[] = []): Observable<any[]> {
+    return queryRowsPorPaciente(this.db, 'Katzen/Historiales_Clinicos', [pacienteId, ...extraIds]).pipe(
+      map(historiales =>
+        historiales
+          .filter(h => (h as { activo?: boolean }).activo !== false)
           .sort((a, b) => {
-            const fechaA = a.fecha_registro || a.created_at || '0';
-            const fechaB = b.fecha_registro || b.created_at || '0';
+            const fechaA = (a as { fecha_registro?: string; created_at?: string }).fecha_registro
+              || (a as { created_at?: string }).created_at
+              || '0';
+            const fechaB = (b as { fecha_registro?: string; created_at?: string }).fecha_registro
+              || (b as { created_at?: string }).created_at
+              || '0';
             if (fechaB > fechaA) return 1;
             if (fechaB < fechaA) return -1;
             return 0;
-          });
-        return historiales;
-      }),
+          })
+      ),
       catchError(error => {
         console.error('Error al obtener historiales del paciente:', error);
         return throwError(() => new Error('No se pudieron cargar los historiales del paciente'));
@@ -63,7 +63,7 @@ export class HistorialesService {
   // Obtener un historial por id
   getHistorial(id: string): Observable<any> {
     return this.db.object(`Katzen/Historiales_Clinicos/${id}`).valueChanges().pipe(
-      map(historial => historial ? { id, ...(historial as any) } : null),
+      map(historial => historial ? { ...(historial as object), id } : null),
       catchError(error => {
         console.error('Error al obtener historial:', error);
         return throwError(() => new Error('No se pudo cargar el historial'));

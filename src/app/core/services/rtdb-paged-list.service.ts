@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable } from 'rxjs';
+import { mapRtdbRow } from '../utils/rtdb-row.util';
 
 export interface RtdbPageResult<T> {
   items: (T & { id: string })[];
@@ -34,10 +35,7 @@ export class RtdbPagedListService {
 
       const sub = list.snapshotChanges().subscribe({
         next: actions => {
-          let rows = actions.map(a => ({
-            id: a.key as string,
-            ...(a.payload.val() as T)
-          }));
+          let rows = actions.map(a => mapRtdbRow<T>(a.key, a.payload.val()));
 
           if (endBeforeKey) {
             rows = rows.filter(r => r.id !== endBeforeKey);

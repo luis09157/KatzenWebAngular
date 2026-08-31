@@ -12,7 +12,7 @@ import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { VacunasService } from '../vacunas/vacunas.service';
 import { BaniosPacienteService } from './banios-paciente.service';
 import { PacienteDialogComponent } from './paciente-dialog.component';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
 import { HistorialDialogComponent } from '../historiales/historial-dialog.component';
 import { RecordatorioDialogComponent } from '../recordatorios/recordatorio-dialog.component';
@@ -30,6 +30,9 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { getPacienteClienteId as resolvePacienteClienteId } from '../core/utils/paciente-cliente.util';
+import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
+import { filtrarPacientesPorTexto, getPacienteNombre } from '../core/utils/paciente-search.util';
+import { collectRelatedIds } from '../core/utils/rtdb-row.util';
 
 @Component({
   selector: 'app-pacientes',
@@ -71,6 +74,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
   private initialLoadPending = 2;
   private initialLoadFailed = false;
   private lastLoadError: unknown = null;
+  private routePacienteId: string | null = null;
+  private warnedMissingRouteId = false;
 
   historialClinico: any[] = [];
 
@@ -88,6 +93,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     private citasService: CitasService,
     private dialog: MatDialog,
     private router: Router,
+    private route: ActivatedRoute,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
     private loadingService: LoadingService
@@ -98,18 +104,25 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.initialLoadPending = 2;
     this.initialLoadFailed = false;
     this.lastLoadError = null;
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.routePacienteId = params.get('id');
+      this.tryOpenFromQuery();
+    });
     this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: pacientes => {
         this.allPacientes = (pacientes || []).filter((p: { activo?: boolean }) => p.activo !== false);
         this.filtrarPacientes();
         this.finishInitialLoad();
+        this.tryOpenFromQuery();
       },
       error: error => this.handleInitialLoadError(error)
     });
     this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
       next: clientes => {
         this.allClientes = clientes || [];
+        this.filtrarPacientes();
         this.finishInitialLoad();
+        this.tryOpenFromQuery();
       },
       error: error => this.handleInitialLoadError(error)
     });
@@ -174,68 +187,69 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   filtrarPacientes() {
     try {
-      // Asegurar que searchTerm sea siempre un string
-      const searchValue = String(this.searchTerm || '');
-      
-      // Verificar que searchTerm no esté vacío después de trim
-      const term = searchValue.trim().toLowerCase();
-      if (!term) {
-        this.pacientesFiltrados = [];
-        return;
-      }
-    
-    // Filtrar solo pacientes activos
-    const pacientesActivos = this.allPacientes.filter(p => p.activo !== false);
-    
-    this.pacientesFiltrados = pacientesActivos.filter(p => {
-      const nombrePaciente = (p.nombre || '').toLowerCase();
-      const nombreCliente = this.getClienteNombre(p.cliente_id || p.idCliente).toLowerCase();
-      
-      // Buscar en nombre del paciente
-      if (nombrePaciente.includes(term)) {
-        return true;
-      }
-      
-      // Buscar en nombre completo del cliente
-      if (nombreCliente.includes(term)) {
-        return true;
-      }
-      
-      // Buscar en partes individuales del nombre del cliente
-      const cliente = this.allClientes.find(c => c.id === (p.cliente_id || p.idCliente));
-      if (cliente) {
-        const nombre = (cliente.nombre || '').toLowerCase();
-        const apellidoPaterno = (cliente.apellidoPaterno || '').toLowerCase();
-        const apellidoMaterno = (cliente.apellidoMaterno || '').toLowerCase();
-        
-        if (nombre.includes(term) || apellidoPaterno.includes(term) || apellidoMaterno.includes(term)) {
-          return true;
-        }
-      }
-      
-      return false;
-    });
+      this.pacientesFiltrados = filtrarPacientesPorTexto(
+        this.allPacientes,
+        this.searchTerm,
+        p => this.getClienteNombreFromPaciente(p)
+      );
     } catch (error) {
       console.error('Error en filtrarPacientes:', error);
       this.pacientesFiltrados = [];
     }
   }
 
-  seleccionarPaciente(paciente: any) {
+  seleccionarPaciente(paciente: any, updateUrl = true) {
     this.pacienteSeleccionado = paciente;
-    // Cargar historial clínico real del paciente
-    this.cargarHistorialClinico(paciente.id);
-    // Cargar recordatorios del paciente
-    this.cargarRecordatorios(paciente.id);
-    // Cargar vacunas del paciente
-    this.cargarVacunas(paciente.id);
-    // Cargar baños del paciente
-    this.cargarBanios(paciente.id);
+    if (updateUrl && paciente?.id) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { id: paciente.id },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
+    }
+    const extra = this.idsClinicos(paciente);
+    this.cargarHistorialClinico(paciente.id, extra);
+    this.cargarRecordatorios(paciente.id, extra);
+    this.cargarVacunas(paciente.id, extra);
+    this.cargarBanios(paciente.id, extra);
     this.cargarLogActividades(paciente.id);
   }
 
-  cargarHistorialClinico(pacienteId: string) {
-    this.historialesService.getHistorialesPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+  private idsClinicos(paciente: any): string[] {
+    return collectRelatedIds(paciente as Record<string, unknown>, ['idPaciente', 'paciente_id']);
+  }
+
+  private tryOpenFromQuery(): void {
+    if (this.loading || this.initialLoadPending > 0) {
+      return;
+    }
+    const id = this.routePacienteId;
+    if (!id) {
+      return;
+    }
+    if (this.pacienteSeleccionado?.id === id) {
+      return;
+    }
+    const found = this.allPacientes.find(
+      p => p.id === id || (p as { idLegacy?: string }).idLegacy === id
+    );
+    if (found) {
+      this.seleccionarPaciente(found, false);
+      return;
+    }
+    if (!this.warnedMissingRouteId) {
+      this.warnedMissingRouteId = true;
+      Swal.fire({
+        icon: 'info',
+        title: 'Paciente no encontrado',
+        text: 'No hay un paciente activo con ese identificador. Prueba buscarlo por nombre.'
+      });
+    }
+  }
+
+  cargarHistorialClinico(pacienteId: string, extraIds: string[] = []) {
+    this.historialesService.getHistorialesPorPaciente(pacienteId, extraIds).pipe(takeUntil(this.destroy$)).subscribe({
       next: historiales => {
         this.historialClinico = historiales.map(historial => ({
           ...historial,
@@ -311,8 +325,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para recordatorios
-  cargarRecordatorios(pacienteId: string) {
-    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+  cargarRecordatorios(pacienteId: string, extraIds: string[] = []) {
+    this.recordatoriosService.getRecordatoriosPorPaciente(pacienteId, extraIds).pipe(takeUntil(this.destroy$)).subscribe({
       next: recordatorios => {
       this.recordatorios = (recordatorios || []).map(r => {
         // Buscar el campo de fecha correcto
@@ -636,6 +650,14 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.pacienteSeleccionado = null;
     this.searchTerm = '';
     this.pacientesFiltrados = [];
+    this.routePacienteId = null;
+    this.warnedMissingRouteId = false;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { id: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   getPacienteClienteId(paciente: any): string {
@@ -646,7 +668,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     if (!idCliente) return 'Desconocido';
     const cliente = this.allClientes.find(c => c.id === idCliente);
     if (!cliente) return 'Desconocido';
-    return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
+    return getClienteNombreCompleto(cliente) || 'Desconocido';
   }
 
   getClienteNombreFromPaciente(paciente: any): string {
@@ -657,9 +679,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   displayPaciente = (paciente: any): string => {
-    if (!paciente || !paciente.nombre) return '';
+    if (!paciente) return '';
+    const nombre = getPacienteNombre(paciente);
+    if (!nombre) return '';
     const clienteNombre = this.getClienteNombreFromPaciente(paciente);
-    return `${paciente.nombre} - ${clienteNombre}`;
+    return `${nombre} - ${clienteNombre}`;
   }
 
   toggleSidenav() {
@@ -674,6 +698,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
   getClienteEmail(idCliente: string): string {
     const cliente = this.allClientes.find(c => c.id === idCliente);
     return cliente?.correo || 'Sin email';
+  }
+
+  getClienteDireccion(idCliente: string): string {
+    const cliente = this.allClientes.find(c => c.id === idCliente) as { direccion?: string; Direccion?: string } | undefined;
+    return String(cliente?.direccion || cliente?.Direccion || '').trim();
   }
 
   calcularEdad(fechaNacimiento: string): string {
@@ -723,8 +752,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para vacunas
-  cargarVacunas(pacienteId: string) {
-    this.vacunasService.getVacunasPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+  cargarVacunas(pacienteId: string, extraIds: string[] = []) {
+    this.vacunasService.getVacunasPorPaciente(pacienteId, extraIds).pipe(takeUntil(this.destroy$)).subscribe({
       next: vacunas => {
       this.vacunas = vacunas.map(v => {
         // Usar fechaAplicacion en lugar de fecha, con fallback a fechaRegistro
@@ -903,8 +932,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
     }
   }
 
-  cargarBanios(pacienteId: string) {
-    this.baniosPacienteService.getBaniosPorPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe({
+  cargarBanios(pacienteId: string, extraIds: string[] = []) {
+    this.baniosPacienteService.getBaniosPorPaciente(pacienteId, extraIds).pipe(takeUntil(this.destroy$)).subscribe({
       next: banios => {
         this.banios = banios;
       },
