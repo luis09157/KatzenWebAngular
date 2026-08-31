@@ -11,7 +11,7 @@
     accent="teal"
     icon="pets"
     title="Directorio de pacientes"
-    subtitle="Alta y ficha de mascotas. Ver expediente abre el historial clínico completo.">
+    subtitle="Alta y ficha de mascotas. Doble clic abre la ficha; el icono de carpeta abre el expediente completo.">
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="nuevoPaciente()">
         <mat-icon>add</mat-icon>
@@ -23,7 +23,7 @@
   <app-admin-data-panel
     accent="teal"
     title="Directorio"
-    description="Busca por nombre, especie, raza o dueño. El ojo abre el expediente clínico completo."
+    description="Busca por nombre, especie, raza o dueño. Doble clic o Enter abre la ficha. El icono de carpeta abre el expediente clínico completo."
     [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + stats.total + ' totales') : ''"
     [showLegend]="!loading && !!dataSource?.data?.length">
 
@@ -94,26 +94,37 @@
 
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let paciente">
-            <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver expediente" (click)="abrirExpediente(paciente)">
+          <td mat-cell *matCellDef="let paciente" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <div class="row-actions hide-mobile" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+              <button mat-icon-button type="button" color="primary" matTooltip="Ver expediente" (click)="abrirExpediente(paciente, $event)">
                 <mat-icon>folder_shared</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Editar ficha" (click)="editarPaciente(paciente)">
+              <button mat-icon-button type="button" matTooltip="Editar ficha" (click)="editarPaciente(paciente); $event.stopPropagation()">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarPaciente(paciente)">
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarPaciente(paciente); $event.stopPropagation()">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="rowMenu" (click)="pacienteMenuContext = paciente">
+            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="rowMenu" (click)="pacienteMenuContext = paciente; $event.stopPropagation()" (dblclick)="$event.stopPropagation()">
               <mat-icon>more_vert</mat-icon>
             </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns;"
+          class="data-row data-row--interactive"
+          [class.data-row--selected]="filaSeleccionadaId === row.id"
+          tabindex="0"
+          [attr.title]="'Doble clic o Enter para ver la ficha'"
+          [attr.aria-label]="'Ficha de ' + (row.nombre || 'paciente') + '. Doble clic o Enter para abrir.'"
+          (click)="seleccionarFila(row, $event)"
+          (dblclick)="abrirFicha(row, $event)"
+          (keydown)="onFilaKeydown(row, $event)">
+        </tr>
       </table>
     </div>
 

@@ -38,4 +38,13 @@
   display: block;
 }
 
+:host ::ng-deep .data-row--interactive {
+  cursor: pointer;
+}
+
+:host ::ng-deep .data-row--interactive:focus-visible {
+  outline: 2px solid var(--katzen-verde, #0a969b);
+  outline-offset: -2px;
+}
+
 /* Layout de columnas de la tabla: `src/styles/admin-table.scss` (.clientes-table) */

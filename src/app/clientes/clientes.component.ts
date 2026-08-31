@@ -56,6 +56,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   filtroActual: string = '';
   soloConDeuda = false;
   clienteMenuContext: any = null;
+  filaSeleccionadaId: string | null = null;
 
   loading = false;
   saving = false;
@@ -555,8 +556,45 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     this.abrirModalCliente(cliente, false);
   }
 
-  verCliente(cliente: any) {
+  verCliente(cliente: any, event?: Event) {
+    event?.stopPropagation();
+    if (!cliente) {
+      return;
+    }
+    this.filaSeleccionadaId = cliente.id || null;
     this.abrirModalCliente(cliente, true);
+  }
+
+  abrirFichaCliente(cliente: any, event?: Event): void {
+    if (this.esEventoDeAccion(event) || !cliente) {
+      return;
+    }
+    event?.preventDefault();
+    this.verCliente(cliente);
+  }
+
+  seleccionarFila(cliente: { id?: string }, event?: Event): void {
+    if (this.esEventoDeAccion(event)) {
+      return;
+    }
+    this.filaSeleccionadaId = cliente?.id || null;
+    (event?.currentTarget as HTMLElement | undefined)?.focus();
+  }
+
+  onFilaKeydown(cliente: any, event: Event): void {
+    if (this.esEventoDeAccion(event)) {
+      return;
+    }
+    const key = (event as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      this.abrirFichaCliente(cliente, event);
+    }
+  }
+
+  private esEventoDeAccion(event?: Event): boolean {
+    const target = event?.target as HTMLElement | null;
+    return !!target?.closest('button, a, .row-actions, .mat-mdc-menu-trigger');
   }
 
   bajaLogicaCliente(id: string) {

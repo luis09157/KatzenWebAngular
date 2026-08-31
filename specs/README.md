@@ -63,6 +63,7 @@ specs/
 ├── 055-pos-movil-ticket/               # Caja POS mobile-first (ola 1)
 ├── 056-servicios-clinica/              # Catálogo servicios con precio (ola 1; baño sigue en 022)
 ├── 057-expediente-directorio-legacy/   # misma lista Buscar/Directorio + clientes/historial legacy
+├── 058-ficha-directorio-dblclick/      # doble clic Directorio → modal ficha + expediente resumido
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)

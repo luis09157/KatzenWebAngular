@@ -21,10 +21,12 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTabsModule } from '@angular/material/tabs';
 
 // Components
 import { PacientesAdminComponent } from './pacientes-admin.component';
 import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component';
+import { PacienteFichaDialogComponent } from './paciente-ficha-dialog.component';
 
 // Services
 import { PacientesService } from '../pacientes/pacientes.service';
@@ -43,7 +45,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     PacientesAdminComponent,
-    PacienteAdminDialogComponent
+    PacienteAdminDialogComponent,
+    PacienteFichaDialogComponent
   ],
   imports: [
     CommonModule,
@@ -69,6 +72,7 @@ const routes: Routes = [
     MatNativeDateModule,
     MatProgressBarModule,
     MatMenuModule,
+    MatTabsModule,
     SharedModule
   ],
   providers: [

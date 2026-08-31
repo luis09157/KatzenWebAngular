@@ -65,6 +65,19 @@
   background: #f9fafb !important;
 }
 
+.admin-content .data-row--interactive {
+  cursor: pointer;
+}
+
+.admin-content .data-row--interactive:focus-visible {
+  outline: 2px solid var(--katzen-verde, #0a969b);
+  outline-offset: -2px;
+}
+
+.admin-content .data-row--selected {
+  background: rgba(10, 150, 155, 0.08) !important;
+}
+
 .admin-content .table-scroll .mat-mdc-header-cell {
   background: #f9fafb !important;
   color: #6b7280 !important;

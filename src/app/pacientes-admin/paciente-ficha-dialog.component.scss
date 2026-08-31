@@ -1,0 +1,213 @@
+.paciente-ficha-dialog {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 90vh;
+}
+
+.paciente-ficha-dialog .ficha-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(180px, 0.8fr);
+  gap: 20px 24px;
+  align-items: start;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.paciente-ficha-dialog .ficha-hero__photo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.paciente-ficha-dialog .ficha-hero__photo .estado-badge {
+  width: max-content;
+  white-space: nowrap;
+}
+
+.paciente-ficha-dialog .ficha-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.paciente-ficha-dialog .tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.paciente-ficha-dialog .tag-muted {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.paciente-ficha-dialog .tag-sex {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+}
+
+.paciente-ficha-dialog .ficha-hero__owner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  min-width: 0;
+}
+
+.paciente-ficha-dialog .ficha-hero__owner-label {
+  display: block !important;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.paciente-ficha-dialog .ficha-hero__owner strong {
+  display: block !important;
+  font-size: 0.9375rem;
+  color: #111827;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.paciente-ficha-dialog .ficha-hero__owner span {
+  display: block !important;
+  font-size: 0.8125rem;
+  color: #374151;
+  overflow-wrap: anywhere;
+}
+
+.paciente-ficha-dialog .ficha-hero__muted {
+  color: #9ca3af !important;
+}
+
+.paciente-ficha-dialog .ficha-clinico {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 160px;
+  color: #6b7280;
+}
+
+.paciente-ficha-dialog .ficha-clinico p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.paciente-ficha-dialog .ficha-tabs {
+  margin-top: 4px;
+}
+
+.paciente-ficha-dialog .tab-panel {
+  padding: 16px 4px 8px;
+}
+
+.paciente-ficha-dialog .clinical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paciente-ficha-dialog .clinical-list__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.paciente-ficha-dialog .clinical-list__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.paciente-ficha-dialog .clinical-list__icon mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.paciente-ficha-dialog .clinical-list__icon--teal {
+  background: rgba(10, 150, 155, 0.12);
+  color: #0a969b;
+}
+
+.paciente-ficha-dialog .clinical-list__icon--orange {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ea580c;
+}
+
+.paciente-ficha-dialog .clinical-list__icon--blue {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.paciente-ficha-dialog .clinical-list__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #032d60;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.paciente-ficha-dialog .clinical-list__meta {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.paciente-ficha-dialog .clinical-list__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.paciente-ficha-dialog .clinical-list__tags .estado-badge {
+  width: max-content;
+  white-space: nowrap;
+}
+
+.paciente-ficha-dialog .clinical-list__note {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: #374151;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.paciente-ficha-dialog .detail-section {
+  margin-top: 14px;
+}
+
+@media (max-width: 840px) {
+  .paciente-ficha-dialog .ficha-hero {
+    grid-template-columns: 1fr;
+  }
+}

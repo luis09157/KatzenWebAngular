@@ -13,10 +13,11 @@ import Swal from 'sweetalert2';
 import { LoggerService } from '../core/logger.service';
 import { LoadingService } from '../core/loading.service';
 import { SucursalContextService } from '../core/services/sucursal-context.service';
-import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FICHA } from '../core/config/admin-ui.config';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { getPacienteNombre } from '../core/utils/paciente-search.util';
 import { normalizarTextoBusqueda, textoCoincide } from '../core/utils/text-search.util';
+import { PacienteFichaDialogComponent } from './paciente-ficha-dialog.component';
 
 @Component({
   selector: 'app-pacientes-admin',
@@ -48,6 +49,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     gatos: 0
   };
   pacienteMenuContext: any = null;
+  filaSeleccionadaId: string | null = null;
 
   constructor(
     private pacientesService: PacientesService,
@@ -194,11 +196,51 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  abrirExpediente(paciente: { id?: string }): void {
+  abrirExpediente(paciente: { id?: string }, event?: Event): void {
+    event?.stopPropagation();
     if (!paciente?.id) {
       return;
     }
     this.router.navigate(['/admin/paciente'], { queryParams: { id: paciente.id } });
+  }
+
+  abrirFicha(paciente: { id?: string }, event?: Event): void {
+    if (this.esEventoDeAccion(event) || !paciente?.id) {
+      return;
+    }
+    event?.preventDefault();
+    this.filaSeleccionadaId = paciente.id;
+    const clienteId = (paciente as { cliente_id?: string; idCliente?: string }).cliente_id
+      || (paciente as { idCliente?: string }).idCliente;
+    const cliente = this.clientes.find(c => c.id === clienteId) || null;
+    this.dialog.open(PacienteFichaDialogComponent, {
+      ...ADMIN_DIALOG_FICHA,
+      data: { paciente, cliente }
+    });
+  }
+
+  seleccionarFila(paciente: { id?: string }, event?: Event): void {
+    if (this.esEventoDeAccion(event)) {
+      return;
+    }
+    this.filaSeleccionadaId = paciente?.id || null;
+    (event?.currentTarget as HTMLElement | undefined)?.focus();
+  }
+
+  onFilaKeydown(paciente: { id?: string }, event: Event): void {
+    if (this.esEventoDeAccion(event)) {
+      return;
+    }
+    const key = (event as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      this.abrirFicha(paciente, event);
+    }
+  }
+
+  private esEventoDeAccion(event?: Event): boolean {
+    const target = event?.target as HTMLElement | null;
+    return !!target?.closest('button, a, .row-actions, .mat-mdc-menu-trigger');
   }
 
   nuevoPaciente() {
