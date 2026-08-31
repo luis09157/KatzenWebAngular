@@ -1157,8 +1157,8 @@
 }
 
 .admin-dialog-panel .entity-summary {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -1325,11 +1325,12 @@
   padding: 24px 28px 28px !important;
 }
 
+/* padding: 0 solo si el layout interno ya aporta padding propio.
+   Nunca quitar padding del body solo por .entity-summary (spec 059). */
 .admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-layout),
 .admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-layout--readonly),
 .admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.info-grid),
-.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-form--padded),
-.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.entity-summary) {
+.admin-dialog-panel mat-dialog-content.admin-dialog-body:has(.admin-dialog-form--padded) {
   padding: 0 !important;
 }
 
@@ -1338,9 +1339,16 @@
 }
 
 .admin-dialog-panel .entity-summary {
-  margin-bottom: 22px;
-  padding-bottom: 18px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
+}
+
+/* Tabs en overlay: Material colapsa el body (height: 0 / overflow hidden) sin esto. */
+.admin-dialog-panel mat-tab-group .mat-mdc-tab-body-wrapper,
+.admin-dialog-panel mat-tab-group .mat-mdc-tab-body-content {
+  overflow: visible !important;
+  height: auto !important;
 }
 
 .admin-dialog-panel .entity-summary__name {
@@ -1385,6 +1393,26 @@
   .admin-dialog-panel .form-row.two-col,
   .admin-dialog-panel .form-row.three-col {
     grid-template-columns: 1fr !important;
+  }
+}
+
+.admin-dialog-panel--ficha .mat-mdc-dialog-surface,
+.admin-dialog-panel--ficha .mdc-dialog__surface {
+  max-height: min(92vh, 100dvh) !important;
+}
+
+.admin-dialog-panel--ficha mat-dialog-content.admin-dialog-body {
+  padding: 16px 20px 20px !important;
+}
+
+@media (max-width: 600px) {
+  .admin-dialog-panel--ficha mat-dialog-content.admin-dialog-body {
+    padding: 12px 14px 16px !important;
+  }
+
+  .cdk-overlay-pane.admin-dialog-panel--ficha {
+    max-width: calc(100vw - 12px) !important;
+    width: calc(100vw - 12px) !important;
   }
 }
 

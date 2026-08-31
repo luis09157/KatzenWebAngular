@@ -64,6 +64,7 @@ specs/
 ├── 056-servicios-clinica/              # Catálogo servicios con precio (ola 1; baño sigue en 022)
 ├── 057-expediente-directorio-legacy/   # misma lista Buscar/Directorio + clientes/historial legacy
 ├── 058-ficha-directorio-dblclick/      # doble clic Directorio → modal ficha + expediente resumido
+├── 059-dialogos-admin-layout-responsivo/ # regla permanente layout diálogos admin (padding, tabs, entity-summary)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
@@ -136,6 +137,8 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cua
 | 053 | Desparasitación: esquemas + confirmación + recordatorio | **in_progress** (ola 1 código; ola 2 listado/ticket) |
 | 054 | Cierre operable del producto | **in_progress** — [`CIERRE.md`](054-cierre-sistema/CIERRE.md) |
 | 055 | POS móvil Ticket del día | **in_progress** — ola 1 UI celular; olas 2 scanner / 3 atajos |
+| 058 | Ficha rápida al doble clic (Directorio) | done |
+| 059 | Layout responsivo de diálogos admin (regla UI permanente) | **in_progress** — padding/tabs/entity-summary |
 
 ## Reglas Cursor relacionadas
 

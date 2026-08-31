@@ -58,6 +58,7 @@ Antes de dar por cerrada una entrega, el agente DEBE:
    - **Timepicker dialog** donde hay campo de hora (`app-timepicker-field`)
    - **Live preview local activo** al entregar cambios UI
    - **Shells auth/portal/landing** centrados y equilibrados en desktop, responsivos; no layouts aplastados a un lado con huecos vacíos
+   - **Diálogos admin (spec 059):** padding del body no se quita por `.entity-summary`; tabs con `height: auto` + `overflow: visible` (preferir `dynamicHeight`); superficie no recorta contenido; `.entity-summary` compacto; fichas con tabs muestran el expediente; pickers `--picker` / CRUD shell estándar
 
 Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.md` → `done`).
 

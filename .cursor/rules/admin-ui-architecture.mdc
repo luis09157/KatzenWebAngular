@@ -1,7 +1,7 @@
 ---
 description: KatzenVet Admin UI — Angular Material MDC, diálogos, tablas CRUD
 globs: src/app/**/*.html,src/app/**/*.scss,src/styles/admin*.scss,src/styles/katzen-tokens.css
-alwaysApply: false
+alwaysApply: true
 ---
 
 # KatzenVet Admin UI Architecture
@@ -21,6 +21,7 @@ Premium corporate dashboard (Stripe/Linear). Full spec: `docs/ADMIN-UI-ARCHITECT
 9. **Desktop width** — admin pages use full `.admin-content` width (≥1200px); no nested tighter `max-width` on `.admin-page`; flexible text columns absorb space (no empty gaps while text looks cramped).
 10. **Auth/portal/landing balance** — Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system, centrada/equilibrada en desktop y responsiva; no layouts aplastados a un lado con huecos vacíos. Auth shells: reutilizar `.admin-auth-page` / `.portal-login-wrap` (incluir CSS en `styleUrls`; la encapsulación no hereda estilos de otro componente).
 11. **Panel search alignment** — Filtros/búsqueda dentro de `app-admin-data-panel` usan `.panel-search` (o `.buscador.panel-search`). El campo debe alinearse con el padding del contenido de la tabla (`margin: 8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`); sin overflow ni desfase visual a la izquierda. No inventar `.filter-field` sin ese margen lateral.
+12. **Dialog layout (spec 059)** — Nunca `:has(.entity-summary)` para quitar padding del body. `padding: 0` solo con layout interno (`.admin-dialog-layout` / `--padded` / `.info-grid`). Tabs en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie no recorta si el body no scrollea. `.entity-summary` compacto (16/12). Fichas con tabs muestran el expediente. Ficha: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers `--picker`; CRUD grandes shell estándar.
 
 ## Tokens (use CSS vars)
 

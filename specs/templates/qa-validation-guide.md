@@ -118,6 +118,24 @@ Sin este checklist, la entrega **no está cerrada**.
 | Acción destructiva (copy) | Labels visibles = **«Borrar»** (menú, tooltip, leyenda, SweetAlert). **No** «Baja lógica» / «Dar de baja». Técnico: sigue siendo soft-delete |
 | Live preview | `npm start` vivo en :4200 al entregar cambios UI |
 
+### 2.5 Layout de diálogos admin (spec 059 — permanente)
+
+Aplica a **cualquier** diálogo/ventana admin (`*dialog*`, fichas, detalle). Causa raíz histórica: `:has(.entity-summary)` quitaba padding del body y `mat-tab-group` en overlay colapsaba el contenido (`height: 0`).
+
+| Qué verificar | Criterio de éxito |
+|---------------|-------------------|
+| Padding del body | **No** se quita solo porque hay `.entity-summary`. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`) |
+| Tabs (`mat-tab-group`) | Contenido visible: `height: auto` + `overflow: visible` en wrapper/content; preferir `dynamicHeight` si el contenido varía |
+| Superficie del dialog | No recorta contenido: si el pane tiene `overflow: hidden`, el **body** debe poder scrollear (`overflow-y: auto`) |
+| `.entity-summary` | Compacto (hueco ≈16px / 12px); no márgenes enormes entre hero y contenido |
+| Responsive ~375px | Dueño/meta apilable; chips completos; sin layout aplastado a un lado |
+| Fichas con tabs | Se ve el expediente/contenido (historial, vacunas, etc.), no solo el hero |
+| Tipo de diálogo | Pickers usan `admin-dialog-shell--picker`; CRUD grandes usan shell estándar + `ADMIN_DIALOG_*` (ficha: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`) |
+
+**Cómo probar:** abrir ficha paciente (dblclick Directorio) y al menos 3 diálogos con `.entity-summary` (cliente, cita o vacuna, usuario). Confirmar padding, scroll del body y tabs no colapsados. Desktop + viewport ~375px.
+
+Spec: `specs/059-dialogos-admin-layout-responsivo/`. CSS canónico: `src/styles/admin-dialog.scss`.
+
 ---
 
 ## 3. Casos límite (edge cases) y errores de red
@@ -198,6 +216,7 @@ Antes de marcar cualquier tarea de implementación o testing como completada:
 | Modales — apertura/cierre | OK / N/A / FALLO | ... |
 | UI — diálogos --picker | OK / N/A / FALLO | ... |
 | UI — timepicker en campos hora | OK / N/A / FALLO | ... |
+| UI — diálogos spec 059 (padding/tabs/scroll) | OK / N/A / FALLO | no padding 0 por entity-summary; tabs visibles; body scrollea |
 | UI — copy destructivo «Borrar» | OK / N/A / FALLO | menú/tooltip/leyenda/Swal; no «Baja lógica» |
 | UI — retroalimentación | OK / N/A / FALLO | ... |
 | UI — loading contextual | OK / N/A / FALLO | mensaje Guardando/Cargando/etc. |
@@ -229,7 +248,7 @@ Antes de responder "tarea completada" / entregar al usuario:
 - [ ] Leí esta guía (`specs/templates/qa-validation-guide.md`)
 - [ ] Completé el **checklist pre-entrega** (§ arriba)
 - [ ] Probé (o simulé con mocks) formularios, modales y edge cases **aplicables** a la feature
-- [ ] Verifiqué chips completos, nombres de persona sin ellipsis en desktop ancho, `--picker`, loading contextual/no trabado, timepicker, copy destructivo «Borrar» (si aplica)
+- [ ] Verifiqué chips completos, nombres de persona sin ellipsis en desktop ancho, `--picker`, loading contextual/no trabado, timepicker, copy destructivo «Borrar», **diálogos spec 059** (si aplica)
 - [ ] Ejecuté `npm run build` y reporté resultado
 - [ ] **Servidor local activo** (`npm start` → http://localhost:4200) + smoke visual; reiniciar si el proceso murió
 - [ ] Registré resultados en `tasks.md` de la feature **antes** de marcar `[x]`
@@ -245,4 +264,4 @@ Antes de responder "tarea completada" / entregar al usuario:
 - `.cursor/rules/sdd-workflow.mdc` — flujo SDD + Validación pre-entrega
 - `docs/ADMIN-UI-ARCHITECTURE.md` — patrones UI admin (modales, tablas, feedback, pickers, chips)
 - `AGENTS.md` — comandos y restricciones del proyecto
-- `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/`
+- `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/` · `specs/059-dialogos-admin-layout-responsivo/`

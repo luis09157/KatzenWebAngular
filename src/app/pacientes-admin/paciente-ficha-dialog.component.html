@@ -3,152 +3,151 @@
     <div class="admin-dialog-header__text">
       <span class="admin-dialog-badge admin-dialog-badge--readonly">Ficha</span>
       <h2 class="admin-dialog-title">{{ nombre }}</h2>
-      <p class="admin-dialog-subtitle">Datos del paciente, dueño y expediente clínico resumido.</p>
+      <p class="admin-dialog-subtitle">{{ especieRaza }} · {{ edadLabel }}</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
     </button>
   </header>
 
-  <mat-dialog-content class="admin-dialog-body">
-    <div class="ficha-hero">
-      <aside class="ficha-hero__photo">
+  <mat-dialog-content class="admin-dialog-body ficha-body">
+    <section class="ficha-top" aria-label="Datos del paciente y dueño">
+      <aside class="ficha-photo">
         <div class="admin-dialog-photo">
           <img [src]="fotoUrl" [alt]="nombre" decoding="async">
         </div>
         <span class="estado-badge" [ngClass]="estado | adminEstadoClass">{{ estado | titlecase }}</span>
       </aside>
 
-      <div class="ficha-hero__patient">
-        <div class="entity-summary">
-          <h3 class="entity-summary__name">{{ nombre }}</h3>
-          <p class="entity-summary__meta">{{ especieRaza }}</p>
-        </div>
+      <div class="ficha-facts">
         <div class="ficha-chips">
           <span class="tag tag-muted">{{ edadLabel }}</span>
           <span class="tag tag-muted" *ngIf="pesoLabel">{{ pesoLabel }}</span>
           <span class="tag tag-sex" *ngIf="sexo">{{ sexo }}</span>
         </div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-item__label">Fecha de nacimiento</span>
-            <p class="detail-item__value">{{ fechaNacimiento }}</p>
+        <dl class="ficha-dl">
+          <div>
+            <dt>Nacimiento</dt>
+            <dd>{{ fechaNacimiento }}</dd>
           </div>
-          <div class="detail-item">
-            <span class="detail-item__label">Color</span>
-            <p class="detail-item__value" [class.detail-item__value--muted]="!color">{{ color || '—' }}</p>
+          <div>
+            <dt>Color</dt>
+            <dd [class.is-muted]="!color">{{ color || '—' }}</dd>
           </div>
-        </div>
-        <section class="detail-section" *ngIf="alergias.length">
-          <h4 class="detail-section__title">Alergias</h4>
+          <div *ngIf="microchip">
+            <dt>Microchip</dt>
+            <dd>{{ microchip }}</dd>
+          </div>
+        </dl>
+        <div class="ficha-alergias" *ngIf="alergias.length">
+          <h3 class="ficha-kicker">Alergias</h3>
           <app-alergias-alerta [alergias]="alergias"></app-alergias-alerta>
-        </section>
+        </div>
       </div>
 
-      <div class="ficha-hero__owner">
-        <span class="ficha-hero__owner-label">Dueño</span>
-        <strong>{{ duenoNombre }}</strong>
-        <span *ngIf="duenoTelefono">{{ duenoTelefono }}</span>
-        <span *ngIf="duenoCorreo">{{ duenoCorreo }}</span>
-        <span *ngIf="!duenoTelefono && !duenoCorreo" class="ficha-hero__muted">Sin teléfono ni correo</span>
+      <aside class="ficha-owner" aria-label="Dueño">
+        <h3 class="ficha-kicker">Dueño</h3>
+        <p class="ficha-owner__name">{{ duenoNombre }}</p>
+        <p *ngIf="duenoTelefono">{{ duenoTelefono }}</p>
+        <p *ngIf="duenoCorreo">{{ duenoCorreo }}</p>
+        <p *ngIf="!duenoTelefono && !duenoCorreo" class="ficha-owner__muted">Sin teléfono ni correo</p>
+      </aside>
+    </section>
+
+    <section class="ficha-expediente" aria-label="Expediente clínico">
+      <header class="ficha-expediente__head">
+        <h3>Expediente clínico</h3>
+        <p *ngIf="!loadingClinico">{{ historial.length }} historial · {{ vacunas.length }} vacunas · {{ recordatorios.length }} recordatorios</p>
+      </header>
+
+      <div class="ficha-clinico" *ngIf="loadingClinico">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Cargando expediente…</p>
       </div>
-    </div>
 
-    <div class="ficha-clinico" *ngIf="loadingClinico">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>Cargando expediente…</p>
-    </div>
-
-    <mat-tab-group *ngIf="!loadingClinico" class="ficha-tabs expediente-tabs" animationDuration="200ms">
-      <mat-tab>
-        <ng-template mat-tab-label>Historial ({{ historial.length }})</ng-template>
-        <div class="tab-panel">
-          <div class="clinical-list" *ngIf="historial.length; else emptyHistorial">
-            <article *ngFor="let item of historial" class="clinical-list__item">
-              <div class="clinical-list__icon clinical-list__icon--teal">
-                <mat-icon>medical_services</mat-icon>
-              </div>
-              <div class="clinical-list__body">
-                <div class="clinical-list__title">{{ item.diagnostico_presuntivo || 'Sin diagnóstico' }}</div>
-                <div class="clinical-list__meta">{{ item.fecha_formateada }}<span *ngIf="item.tiempo_transcurrido"> · {{ item.tiempo_transcurrido }}</span></div>
-                <div class="clinical-list__tags">
-                  <span class="estado-badge" [ngClass]="(item.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
-                    {{ item.activo !== false ? 'Activo' : 'Inactivo' }}
-                  </span>
+      <mat-tab-group
+        *ngIf="!loadingClinico"
+        class="ficha-tabs"
+        animationDuration="0ms"
+        dynamicHeight>
+        <mat-tab>
+          <ng-template mat-tab-label>Historial ({{ historial.length }})</ng-template>
+          <div class="tab-panel">
+            <div class="clinical-list" *ngIf="historial.length; else emptyHistorial">
+              <article *ngFor="let item of historial" class="clinical-list__item">
+                <div class="clinical-list__icon clinical-list__icon--teal">
+                  <mat-icon>medical_services</mat-icon>
                 </div>
-                <p class="clinical-list__note" *ngIf="item.manejo_terapeutico">{{ item.manejo_terapeutico }}</p>
-                <p class="clinical-list__note" *ngIf="item.receta">{{ item.receta }}</p>
-              </div>
-            </article>
-          </div>
-          <ng-template #emptyHistorial>
-            <app-admin-empty-state
-              icon="medical_services"
-              title="Sin historial clínico"
-              message="Aún no hay entradas. Ábrelo en el expediente completo para registrar la primera.">
-            </app-admin-empty-state>
-          </ng-template>
-        </div>
-      </mat-tab>
-
-      <mat-tab>
-        <ng-template mat-tab-label>Vacunas ({{ vacunas.length }})</ng-template>
-        <div class="tab-panel">
-          <div class="clinical-list" *ngIf="vacunas.length; else emptyVacunas">
-            <article *ngFor="let vacuna of vacunas" class="clinical-list__item">
-              <div class="clinical-list__icon clinical-list__icon--blue">
-                <mat-icon>vaccines</mat-icon>
-              </div>
-              <div class="clinical-list__body">
-                <div class="clinical-list__title">{{ (vacuna.vacuna || 'Vacuna') | titlecase }}</div>
-                <div class="clinical-list__meta">{{ vacuna.fecha_formateada }}<span *ngIf="vacuna.dosis"> · Dosis {{ vacuna.dosis }}</span></div>
-                <div class="clinical-list__tags">
-                  <span class="estado-badge" [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass">
-                    {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
-                  </span>
+                <div class="clinical-list__body">
+                  <div class="clinical-list__title">{{ item.diagnostico_presuntivo || 'Sin diagnóstico' }}</div>
+                  <div class="clinical-list__meta">{{ item.fecha_formateada }}<span *ngIf="item.tiempo_transcurrido"> · {{ item.tiempo_transcurrido }}</span></div>
+                  <div class="clinical-list__tags">
+                    <span class="estado-badge" [ngClass]="(item.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
+                      {{ item.activo !== false ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </div>
+                  <p class="clinical-list__note" *ngIf="item.manejo_terapeutico">{{ item.manejo_terapeutico }}</p>
+                  <p class="clinical-list__note" *ngIf="item.receta">{{ item.receta }}</p>
                 </div>
-                <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
-              </div>
-            </article>
+              </article>
+            </div>
+            <ng-template #emptyHistorial>
+              <p class="ficha-empty">Aún no hay historial. Ábrelo en el expediente completo para registrar la primera entrada.</p>
+            </ng-template>
           </div>
-          <ng-template #emptyVacunas>
-            <app-admin-empty-state
-              icon="vaccines"
-              title="Sin vacunas"
-              message="No hay vacunas registradas en este paciente.">
-            </app-admin-empty-state>
-          </ng-template>
-        </div>
-      </mat-tab>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>Recordatorios ({{ recordatorios.length }})</ng-template>
-        <div class="tab-panel">
-          <div class="clinical-list" *ngIf="recordatorios.length; else emptyRecordatorios">
-            <article *ngFor="let rec of recordatorios" class="clinical-list__item">
-              <div class="clinical-list__icon clinical-list__icon--orange">
-                <mat-icon>notifications</mat-icon>
-              </div>
-              <div class="clinical-list__body">
-                <div class="clinical-list__title">{{ rec.titulo || 'Sin título' }}</div>
-                <div class="clinical-list__meta">{{ rec.fecha_formateada }}</div>
-                <div class="clinical-list__tags">
-                  <span class="estado-badge" [ngClass]="rec.estado | adminEstadoClass">{{ (rec.estado || 'pendiente') | titlecase }}</span>
-                  <span class="tag tag-muted" *ngIf="rec.prioridad">{{ rec.prioridad | titlecase }}</span>
+        <mat-tab>
+          <ng-template mat-tab-label>Vacunas ({{ vacunas.length }})</ng-template>
+          <div class="tab-panel">
+            <div class="clinical-list" *ngIf="vacunas.length; else emptyVacunas">
+              <article *ngFor="let vacuna of vacunas" class="clinical-list__item">
+                <div class="clinical-list__icon clinical-list__icon--blue">
+                  <mat-icon>vaccines</mat-icon>
                 </div>
-              </div>
-            </article>
+                <div class="clinical-list__body">
+                  <div class="clinical-list__title">{{ (vacuna.vacuna || 'Vacuna') | titlecase }}</div>
+                  <div class="clinical-list__meta">{{ vacuna.fecha_formateada }}<span *ngIf="vacuna.dosis"> · Dosis {{ vacuna.dosis }}</span></div>
+                  <div class="clinical-list__tags">
+                    <span class="estado-badge" [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass">
+                      {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
+                    </span>
+                  </div>
+                  <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
+                </div>
+              </article>
+            </div>
+            <ng-template #emptyVacunas>
+              <p class="ficha-empty">No hay vacunas registradas.</p>
+            </ng-template>
           </div>
-          <ng-template #emptyRecordatorios>
-            <app-admin-empty-state
-              icon="notifications_off"
-              title="Sin recordatorios"
-              message="No hay recordatorios para este paciente.">
-            </app-admin-empty-state>
-          </ng-template>
-        </div>
-      </mat-tab>
-    </mat-tab-group>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>Recordatorios ({{ recordatorios.length }})</ng-template>
+          <div class="tab-panel">
+            <div class="clinical-list" *ngIf="recordatorios.length; else emptyRecordatorios">
+              <article *ngFor="let rec of recordatorios" class="clinical-list__item">
+                <div class="clinical-list__icon clinical-list__icon--orange">
+                  <mat-icon>notifications</mat-icon>
+                </div>
+                <div class="clinical-list__body">
+                  <div class="clinical-list__title">{{ rec.titulo || 'Sin título' }}</div>
+                  <div class="clinical-list__meta">{{ rec.fecha_formateada }}</div>
+                  <div class="clinical-list__tags">
+                    <span class="estado-badge" [ngClass]="rec.estado | adminEstadoClass">{{ (rec.estado || 'pendiente') | titlecase }}</span>
+                    <span class="tag tag-muted" *ngIf="rec.prioridad">{{ rec.prioridad | titlecase }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <ng-template #emptyRecordatorios>
+              <p class="ficha-empty">No hay recordatorios para este paciente.</p>
+            </ng-template>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </section>
   </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions">

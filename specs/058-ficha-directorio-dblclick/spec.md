@@ -105,3 +105,7 @@ Para **no buscar el icono de ojo**
 
 - Modal con muchos registros clínicos: scroll interno del diálogo; CTA al expediente completo.
 - No incrustar `PacientesComponent` (página con búsqueda) para evitar estados rotos en overlay.
+
+## Nota — layout global (spec 059)
+
+El arreglo de layout de **esta** ficha (hero compacto, bloque Expediente, `dynamicHeight`, `ADMIN_DIALOG_FICHA`) quedó en 058. La **regla permanente** para el resto de diálogos admin (no quitar padding por `:has(.entity-summary)`, tabs visibles, `.entity-summary` compacto, superficie que no recorta) vive en **`specs/059-dialogos-admin-layout-responsivo/`**. No reabrir 058 para deuda CSS global.

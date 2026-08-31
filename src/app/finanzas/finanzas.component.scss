@@ -53,11 +53,13 @@
 
   ::ng-deep .finanzas-tabs .mat-mdc-tab-body-content {
     overflow: visible !important;
+    height: auto !important;
     padding: 0;
   }
 
   ::ng-deep .finanzas-tabs .mat-mdc-tab-body-wrapper {
     overflow: visible !important;
+    height: auto !important;
   }
 
   ::ng-deep .finanzas-tabs app-admin-data-panel {

@@ -214,6 +214,12 @@
   margin-top: 4px;
 }
 
+:host-context(.admin-content) .expediente-tabs .mat-mdc-tab-body-wrapper,
+:host-context(.admin-content) .expediente-tabs .mat-mdc-tab-body-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+
 :host-context(.admin-content) .expediente-tabs .mat-mdc-tab-header {
   border-bottom: 1px solid #e5e7eb;
 }

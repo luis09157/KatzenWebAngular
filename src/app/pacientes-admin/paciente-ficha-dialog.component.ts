@@ -105,6 +105,10 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
     return pickLegacyString(this.paciente, 'color', 'Color');
   }
 
+  get microchip(): string {
+    return pickLegacyString(this.paciente, 'microchip', 'Microchip', 'chip');
+  }
+
   get duenoNombre(): string {
     return getClienteNombreCompleto(this.cliente as any) || 'Sin dueño';
   }

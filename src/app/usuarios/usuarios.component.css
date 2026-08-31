@@ -9,10 +9,12 @@
 
 :host ::ng-deep .usuarios-tabs .mat-mdc-tab-body-content {
   overflow: visible !important;
+  height: auto !important;
 }
 
 :host ::ng-deep .usuarios-tabs .mat-mdc-tab-body-wrapper {
   overflow: visible !important;
+  height: auto !important;
 }
 
 .section-hint {

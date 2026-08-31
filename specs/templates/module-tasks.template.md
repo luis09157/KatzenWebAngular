@@ -68,7 +68,7 @@ Ejecutar y marcar **solo tras registrar evidencia** en la sección exhaustiva:
 - [ ] `npm run build` OK y reportado
 - [ ] Live preview :4200 vivo + smoke visual
 - [ ] Tabla de resultados rellenada (abajo)
-- [ ] UI recientes verificadas si aplican (chips, `--picker`, loading, timepicker)
+- [ ] UI recientes verificadas si aplican (chips, `--picker`, loading, timepicker, diálogos spec 059)
 
 ### 1. Formularios y validaciones de entrada
 
@@ -111,6 +111,7 @@ _Completar al terminar cada iteración de validación (antes de `[x]`):_
 | Modales — apertura/cierre | pendiente | |
 | UI — diálogos --picker | pendiente | |
 | UI — timepicker en campos hora | pendiente | |
+| UI — diálogos spec 059 | pendiente | padding, tabs visibles, body scrollea |
 | UI — retroalimentación | pendiente | |
 | UI — loading contextual | pendiente | |
 | UI — loading no trabado | pendiente | |

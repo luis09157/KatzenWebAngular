@@ -22,9 +22,10 @@ export const ADMIN_DIALOG_DETAIL = {
 /** Ficha rápida Directorio (spec 058): foto + dueño + pestañas clínicas. */
 export const ADMIN_DIALOG_FICHA = {
   ...ADMIN_DIALOG_CONFIG,
-  width: '1080px',
+  width: '920px',
   maxWidth: '96vw',
-  maxHeight: '90vh'
+  maxHeight: '92vh',
+  panelClass: ['admin-dialog-panel', 'admin-dialog-panel--ficha']
 };
 
 /** Formularios clínicos extensos (historial, vacuna, baño, recordatorio). */
