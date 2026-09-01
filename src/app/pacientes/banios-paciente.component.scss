@@ -1,20 +1,27 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
-:host-context(.admin-content) .tab-panel__toolbar--split {
+.tab-panel__toolbar--split {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 12px 16px;
   flex-wrap: wrap;
 }
 
-:host-context(.admin-content) .banios-tab__search {
-  flex: 1;
-  min-width: 200px;
-  max-width: 360px;
+.banios-tab__search {
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 100%;
+  width: auto !important;
   margin: 0 !important;
+}
+
+.tab-panel__toolbar--split > button {
+  flex: 0 1 auto;
+  white-space: nowrap;
 }
 
 :host-context(.admin-content) .clinical-list__item--active {
@@ -22,13 +29,31 @@
   box-shadow: 0 4px 16px rgba(249, 115, 22, 0.1);
 }
 
-@media (max-width: 768px) {
-  :host-context(.admin-content) .tab-panel__toolbar--split {
+@container expediente-main (max-width: 560px) {
+  .tab-panel__toolbar--split {
     flex-direction: column;
     align-items: stretch;
   }
 
-  :host-context(.admin-content) .banios-tab__search {
+  .banios-tab__search {
+    flex: 1 1 100%;
     max-width: none;
+    width: 100% !important;
+  }
+
+  .tab-panel__toolbar--split > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .tab-panel__toolbar--split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .banios-tab__search {
+    max-width: none;
+    width: 100% !important;
   }
 }

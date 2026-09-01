@@ -16,6 +16,9 @@
   max-width: 1440px !important;
   margin: 0 auto !important;
   box-sizing: border-box;
+  /* Spec 061: grids responden al ancho útil (sidenav no cuenta). */
+  container-type: inline-size;
+  container-name: admin-page;
 }
 
 /* Desktop ancho: más aire útil sin romper mobile */
@@ -41,13 +44,27 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Stats grid — 4 columnas en desktop */
+/* Stats grid — fluido 4→2→1 según ancho útil (spec 061) */
 .admin-content .dashboard-stats,
 .admin-content .admin-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: var(--admin-gap-card, 20px);
   margin-bottom: 20px;
+}
+
+@container admin-page (min-width: 560px) {
+  .admin-content .dashboard-stats,
+  .admin-content .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container admin-page (min-width: 1100px) {
+  .admin-content .dashboard-stats,
+  .admin-content .admin-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .admin-content .admin-stats app-admin-stat-card {
@@ -216,30 +233,30 @@
   overflow-x: auto;
 }
 
-/* Grid de tarjetas tipo Salesforce (hub de módulos) */
+/* Grid de tarjetas tipo Salesforce — 3→2→1 por ancho útil (spec 061) */
 .admin-content .admin-feature-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-content: stretch;
+  gap: var(--admin-gap-card, 20px);
 }
 
 .admin-content .admin-feature-grid app-admin-module-card {
-  flex: 0 1 calc(33.333% - 16px);
-  min-width: 280px;
-  max-width: 340px;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
 }
 
-@media (max-width: 900px) {
-  .admin-content .admin-feature-grid app-admin-module-card {
-    flex: 0 1 calc(50% - 12px);
-    max-width: none;
+@container admin-page (min-width: 720px) {
+  .admin-content .admin-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--admin-gap-card-lg, 24px);
   }
 }
 
-@media (max-width: 640px) {
-  .admin-content .admin-feature-grid app-admin-module-card {
-    flex: 1 1 100%;
+@container admin-page (min-width: 1100px) {
+  .admin-content .admin-feature-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -326,9 +343,11 @@
 }
 
 @media (max-width: 1100px) {
+  /* Fallback sin container queries. Gap ≥16px (SC-003); no apretar KPI. */
   .admin-content .dashboard-stats,
   .admin-content .admin-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--admin-gap-card, 16px);
   }
 }
 

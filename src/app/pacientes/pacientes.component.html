@@ -74,28 +74,28 @@
       icon="pets"
       [title]="pacienteSeleccionado.nombre"
       [subtitle]="getClienteNombreFromPaciente(pacienteSeleccionado) + ' · ' + (calcularEdad(pacienteSeleccionado.edad) || 'Edad N/P')">
-      <div bannerActions>
+      <div bannerActions class="expediente-banner-actions">
         <button mat-stroked-button type="button" (click)="limpiarSeleccion()">
           <mat-icon>arrow_back</mat-icon>
           Volver a buscar
         </button>
-        <button mat-stroked-button type="button" matTooltip="Nueva cita" (click)="agregarCitaDesdeExpediente()">
+        <button mat-stroked-button type="button" matTooltip="Nueva cita" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarCitaDesdeExpediente()">
           <mat-icon>event</mat-icon>
           Cita
         </button>
-        <button mat-stroked-button type="button" matTooltip="Nuevo historial" (click)="agregarHistorialClinico()">
+        <button mat-stroked-button type="button" matTooltip="Nuevo historial" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarHistorialClinico()">
           <mat-icon>medical_services</mat-icon>
           Historial
         </button>
-        <button mat-stroked-button type="button" matTooltip="Nueva vacuna" (click)="agregarVacuna()">
+        <button mat-stroked-button type="button" matTooltip="Nueva vacuna" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarVacuna()">
           <mat-icon>vaccines</mat-icon>
           Vacuna
         </button>
-        <button mat-stroked-button type="button" matTooltip="Registrar desparasitación" (click)="agregarDesparasitacion()">
+        <button mat-stroked-button type="button" matTooltip="Registrar desparasitación" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarDesparasitacion()">
           <mat-icon>medication</mat-icon>
           Desparasitar
         </button>
-        <button mat-stroked-button type="button" matTooltip="Nuevo baño" (click)="agregarBanioDesdeExpediente()">
+        <button mat-stroked-button type="button" matTooltip="Nuevo baño" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarBanioDesdeExpediente()">
           <mat-icon>shower</mat-icon>
           Baño
         </button>
@@ -103,7 +103,7 @@
           <mat-icon>hotel</mat-icon>
           Pensión
         </button>
-        <button mat-stroked-button type="button" matTooltip="Nueva cuenta del día" (click)="agregarVisitaDesdeExpediente()">
+        <button mat-stroked-button type="button" matTooltip="Nueva cuenta del día" matTooltipPosition="below" matTooltipShowDelay="400" (click)="agregarVisitaDesdeExpediente()">
           <mat-icon>receipt_long</mat-icon>
           Cuenta del día
         </button>

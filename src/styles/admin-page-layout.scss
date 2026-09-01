@@ -32,7 +32,7 @@
 .admin-content .admin-toolbar,
 .admin-content .toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
@@ -55,9 +55,12 @@
 .admin-content .toolbar__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   flex-wrap: wrap;
   margin-left: auto;
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
 .admin-content .admin-toolbar__meta,
@@ -241,4 +244,76 @@
   .admin-content .empty-state {
     padding: 36px 16px;
   }
+}
+
+/* ==========================================================================
+   Spec 061 — páginas admin: toolbars split, cards, timelines
+   Breakpoints = container `admin-page` (ancho útil de .admin-content).
+   ========================================================================== */
+
+.admin-content .admin-split-toolbar,
+.admin-content .tab-panel__toolbar--split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.admin-content .admin-split-toolbar .mat-mdc-form-field,
+.admin-content .tab-panel__toolbar--split .mat-mdc-form-field {
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-content .admin-split-toolbar > button,
+.admin-content .tab-panel__toolbar--split > button {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+@container admin-page (max-width: 720px) {
+  .admin-content .admin-split-toolbar,
+  .admin-content .tab-panel__toolbar--split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-content .admin-split-toolbar .mat-mdc-form-field,
+  .admin-content .tab-panel__toolbar--split .mat-mdc-form-field,
+  .admin-content .admin-split-toolbar > button,
+  .admin-content .tab-panel__toolbar--split > button {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+  }
+}
+
+.admin-content .admin-fluid-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--admin-gap-card, 20px);
+  align-items: start;
+}
+
+@container admin-page (min-width: 720px) {
+  .admin-content .admin-fluid-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--admin-gap-card-lg, 24px);
+  }
+}
+
+@container admin-page (min-width: 1100px) {
+  .admin-content .admin-fluid-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.admin-content .activity-feed,
+.admin-content .admin-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-gap-timeline, 10px);
 }

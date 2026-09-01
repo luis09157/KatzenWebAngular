@@ -117,6 +117,7 @@ Sin este checklist, la entrega **no está cerrada**.
 | Campos de hora | Usan `app-timepicker-field` + diálogo timepicker (no `type="time"` nativo) — `specs/004-timepicker-dialog/` |
 | Acción destructiva (copy) | Labels visibles = **«Borrar»** (menú, tooltip, leyenda, SweetAlert). **No** «Baja lógica» / «Dar de baja». Técnico: sigue siendo soft-delete |
 | Live preview | `npm start` vivo en :4200 al entregar cambios UI |
+| Páginas admin (spec 061) | Grid 3→2→1 según ancho **útil**; toolbar wrap alineado; buscador sin clip; padding cards; timeline gap; smoke 375 / 768 / 1280 |
 
 ### 2.5 Layout de diálogos admin (spec 059 — permanente)
 
@@ -135,6 +136,24 @@ Aplica a **cualquier** diálogo/ventana admin (`*dialog*`, fichas, detalle). Cau
 **Cómo probar:** abrir ficha paciente (dblclick Directorio) y al menos 3 diálogos con `.entity-summary` (cliente, cita o vacuna, usuario). Confirmar padding, scroll del body y tabs no colapsados. Desktop + viewport ~375px.
 
 Spec: `specs/059-dialogos-admin-layout-responsivo/`. CSS canónico: `src/styles/admin-dialog.scss`.
+
+### 2.6 Layout de páginas admin (spec 061 — permanente)
+
+Aplica a **cualquier** pantalla admin (`.admin-page`, dashboards, expedientes, listados CRUD, POS si comparte shell). **No** es lo mismo que spec 059 (diálogos). Causa raíz histórica: grids de 3 columnas y `@media` de **viewport** ignoran el sidenav (~280px), así que el contenido se aplasta.
+
+| Qué verificar | Criterio de éxito |
+|---------------|-------------------|
+| Grid de columnas | 3 → 2 → 1 según **ancho útil** de `.admin-content` (container `admin-page`). Nunca 3 cols si no caben con aire. Sin overflow horizontal de cards |
+| Desktop ≥1200px | Si el útil lo permite, se aprovecha el ancho (regla 9); no “todo chiquito” ni huecos vacíos con texto aplastado |
+| Toolbar / fila de botones | `flex-wrap` + gap; botones de la segunda línea alineados al **inicio** (no huérfanos). `matTooltip` below; no tapa la card de abajo |
+| Buscador + «Nuevo» | Label/placeholder **completos** (no `…ar baño`). En estrecho el botón pasa debajo o a full width. `.panel-search` alineado si está en data-panel |
+| Cards / paneles | Padding interno visible (≥16px; DUEÑO/acento ≥20px). Gap entre cards ≥16px (20–24px desktop) |
+| Timeline / listas | Gap vertical scaneable (~8–12px); no ítems pegados |
+| Viewports | Smoke **~1280**, **~900 / 768**, **~375**. En 1280/900 el sidenav sigue visible: el grid debe reaccionar al útil, no al viewport crudo |
+
+**Cómo probar:** expediente paciente (`/admin/paciente`, p. ej. Oreon), dashboard `/admin/inicio` y un CRUD (clientes o citas). Redimensionar ~1280 / ~900 / ~375.
+
+Spec: `specs/061-admin-paginas-layout-responsivo/`. CSS canónico: `src/styles/admin-page-layout.scss`.
 
 ---
 
@@ -217,6 +236,7 @@ Antes de marcar cualquier tarea de implementación o testing como completada:
 | UI — diálogos --picker | OK / N/A / FALLO | ... |
 | UI — timepicker en campos hora | OK / N/A / FALLO | ... |
 | UI — diálogos spec 059 (padding/tabs/scroll) | OK / N/A / FALLO | no padding 0 por entity-summary; tabs visibles; body scrollea |
+| UI — páginas spec 061 (grid/toolbar/search/padding/timeline) | OK / N/A / FALLO | 3→2→1 por útil; wrap alineado; search sin clip; DUEÑO padding; timeline gap; 1280/900/375 |
 | UI — copy destructivo «Borrar» | OK / N/A / FALLO | menú/tooltip/leyenda/Swal; no «Baja lógica» |
 | UI — retroalimentación | OK / N/A / FALLO | ... |
 | UI — loading contextual | OK / N/A / FALLO | mensaje Guardando/Cargando/etc. |
@@ -248,7 +268,7 @@ Antes de responder "tarea completada" / entregar al usuario:
 - [ ] Leí esta guía (`specs/templates/qa-validation-guide.md`)
 - [ ] Completé el **checklist pre-entrega** (§ arriba)
 - [ ] Probé (o simulé con mocks) formularios, modales y edge cases **aplicables** a la feature
-- [ ] Verifiqué chips completos, nombres de persona sin ellipsis en desktop ancho, `--picker`, loading contextual/no trabado, timepicker, copy destructivo «Borrar», **diálogos spec 059** (si aplica)
+- [ ] Verifiqué chips completos, nombres de persona sin ellipsis en desktop ancho, `--picker`, loading contextual/no trabado, timepicker, copy destructivo «Borrar», **diálogos spec 059** y **páginas spec 061** (si aplica)
 - [ ] Ejecuté `npm run build` y reporté resultado
 - [ ] **Servidor local activo** (`npm start` → http://localhost:4200) + smoke visual; reiniciar si el proceso murió
 - [ ] Registré resultados en `tasks.md` de la feature **antes** de marcar `[x]`
@@ -264,4 +284,4 @@ Antes de responder "tarea completada" / entregar al usuario:
 - `.cursor/rules/sdd-workflow.mdc` — flujo SDD + Validación pre-entrega
 - `docs/ADMIN-UI-ARCHITECTURE.md` — patrones UI admin (modales, tablas, feedback, pickers, chips)
 - `AGENTS.md` — comandos y restricciones del proyecto
-- `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/` · `specs/059-dialogos-admin-layout-responsivo/`
+- `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/` · `specs/059-dialogos-admin-layout-responsivo/` · `specs/061-admin-paginas-layout-responsivo/`

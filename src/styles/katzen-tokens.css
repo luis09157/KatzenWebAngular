@@ -56,6 +56,15 @@
   --admin-radius-lg: 16px;
   --admin-shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.06);
   --admin-shadow-md: 0 8px 24px rgba(17, 24, 39, 0.08);
+  /* Páginas admin (spec 061) — gap/padding; breakpoints = ancho útil de .admin-content */
+  --admin-gap-card: 20px;
+  --admin-gap-card-lg: 24px;
+  --admin-pad-card: 16px;
+  --admin-pad-card-accent: 22px;
+  --admin-gap-timeline: 10px;
+  --admin-bp-stack: 720px;
+  --admin-bp-split: 900px;
+  --admin-bp-wide: 1100px;
 
   /* Admin sidebar */
   --admin-sidebar-bg: linear-gradient(180deg, #065D60 0%, #043638 100%);

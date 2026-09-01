@@ -16,6 +16,7 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 10. **Auth / portal / landing shells must stay centered and balanced:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, **centrada y equilibrada en desktop**, y **responsiva** en móvil. Prohibido layouts aplastados a un lado con huecos vacíos grandes. Páginas de auth reutilizan el shell existente (`.admin-auth-page` / `.admin-auth-card` o `.portal-login-wrap` / `.portal-login-card`) — incluir esos CSS en el componente (no solo copiar nombres de clase: la encapsulación de Angular no hereda estilos de otro componente).
 11. **Panel search / filtros must align with table content:** Dentro de `app-admin-data-panel`, el campo de búsqueda/filtro debe usar `.panel-search` (o `.buscador.panel-search`) para heredar el margen lateral canónico (`8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`). Debe alinearse visualmente con el padding del contenido de la tabla; **sin overflow** ni desfase a la izquierda del card. No usar clases locales (p. ej. `.filter-field`) que anulen ese alineamiento.
 12. **Dialog layout must not clip or collapse content (spec 059):** Nunca usar `:has(.entity-summary)` para quitar padding del body. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`). Tabs (`mat-tab-group`) en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie con `overflow: hidden` solo si el body puede scrollear. `.entity-summary` compacto (≤16px / 12px). Fichas con tabs deben mostrar el expediente, no solo el hero. Ficha paciente: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers: `--picker`; CRUD grandes: shell estándar.
+13. **Admin pages must reflow (spec 061):** Toda pantalla admin (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell) **no** fuerza N columnas cuando el **ancho útil** de `.admin-content` (viewport menos sidenav y padding) no las cabe. Usar container `admin-page` en `.admin-content`. Guía: ≥ ~1100px útil → 3 columnas si el layout las pide; ~720–1099 → 2; &lt;720 → 1. Toolbars/filas de botones: `flex-wrap` + gap; lo que baja de línea se alinea al **inicio** (no huérfanos a la derecha). `matTooltip` `position="below"` + aire bajo la toolbar para no tapar la card. Buscadores: label/placeholder no recortados; en estrecho el botón «Nuevo» apila o va a full width (`.panel-search` / `.admin-split-toolbar`). Cards: padding interno ≥16px (bloques acento tipo DUEÑO ≥20px); gap entre cards ≥16px (20–24px desktop). Timelines: gap vertical ~8–12px. Desktop ≥1200px viewport **y** útil suficiente: regla 9 (aprovechar ancho; no max-width interno que aplaste texto). **059 = diálogos; 061 = páginas.** Canonical: `src/styles/admin-page-layout.scss`, `admin-crud.scss`.
 
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
@@ -205,6 +206,33 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 
 - `.admin-page` / `*-contenedor` **no** deben imponer un `max-width` más estrecho que `.admin-content`.
 - ≥1200px: columnas flexibles (`motivo`, `consulta`, nombres) absorben el ancho; scroll horizontal en estrecho sigue OK.
+
+### Páginas admin — grid, toolbars, buscadores (spec 061)
+
+**059 = diálogos.** **061 = páginas/shells** (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell).
+
+`.admin-content` es un **container** (`container-name: admin-page`). Los grids deben responder a ese ancho útil (el sidenav ~280px **no** entra en `@media` de viewport).
+
+| Ancho útil `.admin-content` | Layout |
+|-----------------------------|--------|
+| ≥ ~1100px | 3 columnas si el diseño las pide |
+| ~720–1099px | 2 columnas |
+| &lt; 720px | 1 columna (stack) |
+
+```scss
+.admin-content {
+  container-type: inline-size;
+  container-name: admin-page;
+}
+```
+
+- **Prohibido** `grid-template-columns: 1fr 1fr 1fr` / `repeat(3, …)` fijos sin breakpoint de **útil**.
+- Toolbars / `.banner-actions`: `flex-wrap` + `justify-content: flex-start`; botones que bajan **no** quedan huérfanos a la derecha. `matTooltipPosition="below"` + delay; aire bajo la fila para que el tooltip no tape la card.
+- Buscador + «Nuevo»: `.admin-split-toolbar` / `.tab-panel__toolbar--split`. En estrecho el botón apila o va a 100%. Label/placeholder **sin** ellipsis por campo estrecho. `.panel-search` (regla 11) donde aplique.
+- Cards: padding ≥16px; bloques acento (DUEÑO) ≥20px. Gap entre cards ≥16px (20–24px desktop).
+- Timelines: `gap` ~8–12px entre ítems.
+- Desktop ancho: regla 9 — si cabe, usar el ancho; no “todo chiquito”.
+- Canonical: `src/styles/admin-page-layout.scss`. Encapsulación del componente solo si pisa el global.
 
 ### Sidenav y toolbar (menú 3 mundos)
 

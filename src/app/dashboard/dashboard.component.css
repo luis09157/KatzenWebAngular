@@ -186,9 +186,16 @@
 .owner-dash__mid,
 .owner-dash__lists {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: var(--admin-gap-card, 16px);
   margin: 16px 0 20px;
+}
+
+@container admin-page (min-width: 720px) {
+  .owner-dash__mid,
+  .owner-dash__lists {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .owner-resumen {
@@ -371,12 +378,7 @@
   color: #6b7280;
 }
 
-@media (max-width: 900px) {
-  .owner-dash__mid,
-  .owner-dash__lists {
-    grid-template-columns: 1fr;
-  }
-}
+/* 1 col de métricas dueño lo decide el container `admin-page` (<720), no el viewport. */
 
 /* Hub recepción (spec 049) */
 .operacion-hub {
@@ -419,9 +421,21 @@
 
 .operacion-hub__tiles {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: var(--admin-gap-card, 20px);
   margin-bottom: 24px;
+}
+
+@container admin-page (min-width: 720px) {
+  .operacion-hub__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container admin-page (min-width: 1100px) {
+  .operacion-hub__tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .operacion-hub__quick button {
@@ -452,15 +466,14 @@
   max-height: 280px;
 }
 
-@media (max-width: 1024px) {
-  .operacion-hub__tiles {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+/* 2 cols: la 3.ª card ocupa el ancho (no huérfana a la izquierda). */
+@container admin-page (min-width: 720px) and (max-width: 1099px) {
   .operacion-hub__tiles app-admin-module-card:last-child {
     grid-column: 1 / -1;
   }
+}
 
+@media (max-width: 1024px) {
   .owner-dash__filters {
     width: 100%;
   }
@@ -473,10 +486,6 @@
 }
 
 @media (max-width: 720px) {
-  .operacion-hub__tiles {
-    grid-template-columns: 1fr;
-  }
-
   .operacion-hub__tiles app-admin-module-card:last-child {
     grid-column: auto;
   }

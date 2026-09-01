@@ -103,7 +103,22 @@
 }
 
 :host-context(.admin-content) .pacientes-page--expediente {
-  max-width: 1440px;
+  max-width: none;
+}
+
+:host-context(.admin-content) .pacientes-page--expediente app-admin-page-banner ::ng-deep .banner-actions {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+}
+
+:host-context(.admin-content) .expediente-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 :host-context(.admin-content) .search-option__pet {
@@ -117,17 +132,23 @@
   color: #6b7280;
 }
 
-/* Layout expediente — 3 columnas */
+/* Layout expediente — fluido 3→2→1 según ancho útil (spec 061) */
 :host-context(.admin-content) .expediente-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) minmax(300px, 340px);
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: var(--admin-gap-card, 20px);
   align-items: start;
 }
 
+:host-context(.admin-content) .expediente-main {
+  min-width: 0;
+  container-type: inline-size;
+  container-name: expediente-main;
+}
+
 :host-context(.admin-content) .expediente-sidebar {
-  position: sticky;
-  top: 88px;
+  position: static;
+  min-width: 0;
 }
 
 :host-context(.admin-content) .patient-card {
@@ -185,8 +206,9 @@
 :host-context(.admin-content) .patient-card__owner {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 18px 18px;
+  gap: 8px;
+  padding: var(--admin-pad-card-accent, 22px);
+  box-sizing: border-box;
   background: linear-gradient(135deg, #0a969b, #065d60);
   color: #fff;
 }
@@ -202,6 +224,7 @@
 :host-context(.admin-content) .patient-card__owner strong {
   font-size: 0.9375rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 :host-context(.admin-content) .patient-card__owner span {
@@ -225,7 +248,7 @@
 }
 
 :host-context(.admin-content) .tab-panel {
-  padding: 20px 4px 8px;
+  padding: 16px 16px 12px;
 }
 
 :host-context(.admin-content) .tab-panel--embedded {
@@ -234,7 +257,10 @@
 
 :host-context(.admin-content) .tab-panel__toolbar {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px 16px;
   margin-bottom: 16px;
 }
 
@@ -328,8 +354,7 @@
 
 /* Panel de actividad — timeline lateral */
 :host-context(.admin-content) .expediente-activity {
-  position: sticky;
-  top: 88px;
+  position: static;
   min-width: 0;
 }
 
@@ -397,7 +422,7 @@
   padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--admin-gap-timeline, 10px);
 }
 
 :host-context(.admin-content) .activity-feed__item {
@@ -444,7 +469,7 @@
 
 :host-context(.admin-content) .activity-feed__content {
   min-width: 0;
-  padding: 2px 0 18px;
+  padding: 2px 0 8px;
 }
 
 :host-context(.admin-content) .activity-feed__item--last .activity-feed__content {
@@ -486,9 +511,16 @@
   padding: 32px 20px;
 }
 
-@media (max-width: 1200px) {
+/* 2 columnas: perfil + registros; actividad debajo en cards */
+@container admin-page (min-width: 720px) {
   :host-context(.admin-content) .expediente-layout {
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: var(--admin-gap-card-lg, 24px);
+  }
+
+  :host-context(.admin-content) .expediente-sidebar {
+    position: sticky;
+    top: 88px;
   }
 
   :host-context(.admin-content) .expediente-activity {
@@ -539,6 +571,62 @@
   }
 }
 
+/* 3 columnas solo si el útil las aguanta (sidenav no cuenta) */
+@container admin-page (min-width: 1100px) {
+  :host-context(.admin-content) .expediente-layout {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(260px, 300px);
+  }
+
+  :host-context(.admin-content) .expediente-sidebar,
+  :host-context(.admin-content) .expediente-activity {
+    grid-column: auto;
+    position: sticky;
+    top: 88px;
+  }
+
+  :host-context(.admin-content) .activity-panel {
+    max-height: calc(100vh - 120px);
+  }
+
+  :host-context(.admin-content) .activity-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  :host-context(.admin-content) .activity-feed {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: var(--admin-gap-timeline, 10px);
+    overflow-y: auto;
+  }
+
+  :host-context(.admin-content) .activity-feed__item {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  :host-context(.admin-content) .activity-feed__track {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  :host-context(.admin-content) .activity-feed__line {
+    display: block;
+  }
+
+  :host-context(.admin-content) .activity-feed__content {
+    padding: 2px 0 8px;
+  }
+}
+
 @media (max-width: 768px) {
   :host-context(.admin-content) .pacientes-page--busqueda {
     min-height: auto;
@@ -562,10 +650,6 @@
   :host-context(.admin-content) .pacientes-search__tips {
     margin-top: 16px;
     padding: 14px 16px;
-  }
-
-  :host-context(.admin-content) .expediente-layout {
-    grid-template-columns: 1fr;
   }
 
   :host-context(.admin-content) .expediente-sidebar,

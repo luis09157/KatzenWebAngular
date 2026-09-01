@@ -49,7 +49,9 @@ Campos nuevos deben ser **opcionales** para convivir con datos legacy.
 
 - Layout: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`
 - Tablas: `.table-scroll` + `mat-table` + `.row-actions` en columna acciones
-- Diálogos: `admin-dialog-shell`, **nunca** `mat-dialog-title`; layout según spec 059 (padding, tabs visibles, `.entity-summary` compacto, ficha `ADMIN_DIALOG_FICHA`)
+- Diálogos: `admin-dialog-shell`, **nunca** `mat-dialog-title`; layout según spec 059 (padding, tabs, `.entity-summary` compacto, ficha `ADMIN_DIALOG_FICHA`)
+- Páginas: grid/toolbar/search/padding según spec 061 (container `admin-page`; no forzar 3 columnas con sidenav)
+- Config: `src/app/core/config/admin-ui.config.ts`
 - Config: `src/app/core/config/admin-ui.config.ts`
 - Spec diseño: `docs/ADMIN-UI-ARCHITECTURE.md`
 - Rule Cursor: `.cursor/rules/admin-ui-architecture.mdc`
@@ -78,7 +80,7 @@ Matriz en `src/app/core/config/staff-role.config.ts`. Al crear módulo admin nue
    - Ejecutar y reportar `npm run build`
    - Asegurar `npm start` vivo en http://localhost:4200 + smoke visual de lo tocado
    - Registrar resultados en `tasks.md` **antes** de marcar `[x]`
-   - Verificar UI acordadas si aplican: chips completos, `--picker`, loading contextual/no trabado, timepicker en horas, diálogos spec 059
+   - Verificar UI acordadas si aplican: chips completos, `--picker`, loading contextual/no trabado, timepicker en horas, diálogos spec 059, **páginas spec 061** (grid wrap, toolbar, search, padding, timeline)
    - Solo entonces actualizar `spec.md` → `done`
 
 Índice: `specs/README.md` · Dominio: `specs/memory/domain-context.md` · Plan maestro: `specs/ROADMAP.md` · QA: `specs/templates/qa-validation-guide.md`

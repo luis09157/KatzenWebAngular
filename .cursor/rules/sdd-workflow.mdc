@@ -59,6 +59,7 @@ Antes de dar por cerrada una entrega, el agente DEBE:
    - **Live preview local activo** al entregar cambios UI
    - **Shells auth/portal/landing** centrados y equilibrados en desktop, responsivos; no layouts aplastados a un lado con huecos vacíos
    - **Diálogos admin (spec 059):** padding del body no se quita por `.entity-summary`; tabs con `height: auto` + `overflow: visible` (preferir `dynamicHeight`); superficie no recorta contenido; `.entity-summary` compacto; fichas con tabs muestran el expediente; pickers `--picker` / CRUD shell estándar
+   - **Páginas admin (spec 061):** grid 3→2→1 según ancho **útil** de `.admin-content` (no forzar N columnas con sidenav); toolbar wrap alineado al inicio; buscador sin clip / «Nuevo» apila; padding cards (DUEÑO ≥20px); timeline gap ~8–12px; smoke 375 / 768 / 1280
 
 Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.md` → `done`).
 

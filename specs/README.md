@@ -66,6 +66,7 @@ specs/
 ├── 058-ficha-directorio-dblclick/      # doble clic Directorio → modal ficha + expediente resumido
 ├── 059-dialogos-admin-layout-responsivo/ # regla permanente layout diálogos admin (padding, tabs, entity-summary)
 ├── 060-modal-portal-instantaneo/       # overlay login portal en landing sin esperar Auth
+├── 061-admin-paginas-layout-responsivo/  # regla permanente layout páginas admin (grid, toolbar, search, padding)
 └── NNN-nombre-feature/        # Una carpeta por entrega
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
     ├── plan.md                # CÓMO (archivos, RTDB, functions)
@@ -141,6 +142,7 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cua
 | 058 | Ficha rápida al doble clic (Directorio) | done |
 | 059 | Layout responsivo de diálogos admin (regla UI permanente) | **in_progress** — padding/tabs/entity-summary |
 | 060 | Modal portal instantáneo en landing | **in_progress** — overlay sin esperar Auth |
+| 061 | Layout responsivo de páginas admin (regla UI permanente) | **in_progress** — grid/toolbar/search/padding/timeline |
 
 ## Reglas Cursor relacionadas
 

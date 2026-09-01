@@ -35,10 +35,10 @@
     }
   }
 
-  .pos-home__tiles {
+    .pos-home__tiles {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: var(--admin-gap-card, 16px);
     margin-bottom: 20px;
   }
 
@@ -318,19 +318,43 @@
   .visitas-contenedor.pos-home {
     padding-bottom: 24px;
 
-    .pos-home__tiles {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
     .pos-home-tile--primary {
       grid-column: 1 / -1;
       min-height: 148px;
       justify-content: center;
     }
+  }
+}
 
-    .pos-home__summary {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+@container admin-page (min-width: 720px) {
+  .visitas-contenedor.pos-home .pos-home__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visitas-contenedor.pos-home .pos-home__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visitas-contenedor.pos-home .pos-home-tile--primary {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 2 cols: la 3.ª card de catálogo / resumen no queda huérfana. */
+@container admin-page (min-width: 720px) and (max-width: 1099px) {
+  .visitas-contenedor.pos-home .pos-home__tiles .pos-home-tile:not(.pos-home-tile--primary):last-child,
+  .visitas-contenedor.pos-home .pos-home__summary .pos-summary-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container admin-page (min-width: 1100px) {
+  .visitas-contenedor.pos-home .pos-home__tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .visitas-contenedor.pos-home .pos-home__summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
