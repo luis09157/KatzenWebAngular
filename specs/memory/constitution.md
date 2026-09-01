@@ -21,6 +21,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 
 4. **Prohibición de Comandos Destructivos y Deploy:**
    - El agente no tiene permitido ejecutar comandos de despliegue a producción (`firebase deploy`), ni modificar configuraciones globales de infraestructura sin una autorización explícita y manual de **Luis Alfonso Niño Martínez**.
+   - **Hosting sin historial (spec 063):** el sitio `katzen-a0e3e` no acumula backups de UI vieja. Solo la versión **live** (mínimo real Firebase: `retainedReleaseCount: 1`). Tras un `firebase deploy --only hosting` **autorizado**, borrar releases/versiones anteriores a la servida. Rollback = git + nuevo deploy, no el historial de Hosting. Nunca deploy de functions/database/storage sin Luis.
 
 ---
 
@@ -80,11 +81,12 @@ El agente **no ejecuta** `firebase deploy` por iniciativa propia. Solo documenta
 
 Cuando corresponda deploy a producción:
 
-- [ ] Functions compiladas (`npm run functions:build`)
-- [ ] Reglas RTDB revisadas si hay nodos nuevos (`database.rules.json`)
+- [ ] Functions compiladas (`npm run functions:build`) — **solo** si Luis autorizó functions
+- [ ] Reglas RTDB revisadas si hay nodos nuevos (`database.rules.json`) — **solo** si Luis autorizó database
 - [ ] Secrets documentados en spec (ej. `RESEND_API_KEY`)
 - [ ] Autorización explícita de Luis Alfonso Niño Martínez
 - [ ] Verificación post-deploy (`firebase functions:list`, smoke manual)
+- [ ] **Hosting (spec 063):** si el deploy fue `--only hosting`, dejar `retainedReleaseCount` al mínimo (1) y **borrar** versiones anteriores a la live. No usar Hosting como backup; rollback = commit git + nuevo deploy.
 
 ## 6. Alcance de cambios
 

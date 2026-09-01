@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -50,7 +51,8 @@ export class ClienteDialogComponent implements OnInit {
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private firebaseFunctions: FirebaseFunctionsService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private router: Router
   ) {
     this.modoVer = data.modoVer;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
@@ -819,6 +821,23 @@ export class ClienteDialogComponent implements OnInit {
 
   cerrar() {
     this.dialogRef.close();
+  }
+
+  /** Spec 062 — expediente completo (`pacientes.component`), no la ficha modal 058. */
+  abrirExpedientePaciente(paciente: { id?: string }): void {
+    const id = String(paciente?.id || '').trim();
+    if (!id) {
+      return;
+    }
+    this.dialogRef.close();
+    this.router.navigate(['/admin/paciente'], { queryParams: { id } });
+  }
+
+  onMascotaCardKeydown(event: KeyboardEvent, paciente: { id?: string }): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.abrirExpedientePaciente(paciente);
+    }
   }
 
   cargarClientes() {

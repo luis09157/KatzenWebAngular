@@ -109,3 +109,7 @@ Para **no buscar el icono de ojo**
 ## Nota — layout global (spec 059)
 
 El arreglo de layout de **esta** ficha (hero compacto, bloque Expediente, `dynamicHeight`, `ADMIN_DIALOG_FICHA`) quedó en 058. La **regla permanente** para el resto de diálogos admin (no quitar padding por `:has(.entity-summary)`, tabs visibles, `.entity-summary` compacto, superficie que no recorta) vive en **`specs/059-dialogos-admin-layout-responsivo/`**. No reabrir 058 para deuda CSS global.
+
+## Nota — salto mascota → expediente (spec 062)
+
+SC-006 abre la ficha del **cliente**. El doble clic (o Enter/Espacio) en una **mascota vinculada** para ir al expediente completo (`/admin/paciente?id=…`) vive en **`specs/062-cliente-mascota-abrir-expediente/`**. No reabrir 058 para ese cableado.

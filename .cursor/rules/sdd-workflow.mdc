@@ -68,6 +68,7 @@ Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.
 - Completar **Validación pre-entrega (obligatoria)** arriba (no omitir)
 - Ejecutar resto de testing en `tasks.md` (Cypress si aplica)
 - Callable nuevo → documentar deploy; **no ejecutar** `firebase deploy` sin autorización explícita de Luis Alfonso Niño Martínez
+- **Hosting autorizado (spec 063):** tras `firebase deploy --only hosting`, aplicar retención mínima (`retainedReleaseCount: 1` en canal `live`) y borrar releases/versiones anteriores a la servida. No acumular historial de UI. Nunca deploy de functions/database/storage sin Luis.
 - Actualizar `spec.md` estado a `done` solo cuando la validación QA esté registrada
 
 ## Prompt usuario típico

@@ -264,10 +264,17 @@
   text-align: center;
 }
 
+.admin-dialog-panel app-cliente-dialog .mascotas-hint {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
 .admin-dialog-panel app-cliente-dialog .mascotas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  gap: 16px;
 }
 
 .admin-dialog-panel app-cliente-dialog .mascota-card {
@@ -278,6 +285,8 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #f9fafb;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 
   strong {
     font-size: 0.9375rem;
@@ -287,6 +296,19 @@
   span {
     font-size: 0.8125rem;
     color: #6b7280;
+  }
+
+  &:hover {
+    border-color: #99f6e4;
+    background: #f0fdfa;
+    box-shadow: 0 1px 4px rgba(6, 93, 96, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--katzen-verde, #065d60);
+    outline-offset: 2px;
+    border-color: #99f6e4;
+    background: #f0fdfa;
   }
 }
 

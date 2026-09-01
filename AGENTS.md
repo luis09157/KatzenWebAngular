@@ -31,10 +31,15 @@ npm run build                # build producción
 npm run e2e                  # Cypress headless
 npm run cy:admin             # smoke admin autenticado
 npm run functions:build      # compilar functions
-firebase deploy --only hosting
+firebase deploy --only hosting   # SOLO con autorización de Luis
+# Tras hosting: no dejar historial (spec 063). retainedReleaseCount=1 en canal live;
+# borrar versiones Hosting anteriores a la live (REST; no borrar la servida).
+# NUNCA firebase deploy de functions / database / storage sin autorización explícita de Luis.
 firebase deploy --only functions:nombreFunction
 firebase deploy --only database
 ```
+
+Hosting **no** es backup de UI: el código vive en git; rollback = nuevo deploy del commit local. Ver `specs/063-hosting-una-version/`. `firebase.json` no tiene campo oficial de retención (no inventar keys). CLI 15.x no lista `hosting:releases:list` / `sites:update`; usar API REST del canal `live`.
 
 ## Arquitectura de datos (RTDB)
 

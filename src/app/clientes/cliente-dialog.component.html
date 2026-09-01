@@ -171,6 +171,9 @@
               <mat-icon>pets</mat-icon>
               Mascotas vinculadas
             </h4>
+            <p class="mascotas-hint" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
+              Doble clic en una mascota abre el expediente completo
+            </p>
 
             <div class="cliente-dialog-loading" *ngIf="cargandoPacientes">
               <mat-spinner diameter="32"></mat-spinner>
@@ -182,7 +185,14 @@
             </p>
 
             <div class="mascotas-grid" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
-              <div class="mascota-card" *ngFor="let paciente of pacientesRelacionados">
+              <div
+                class="mascota-card"
+                *ngFor="let paciente of pacientesRelacionados"
+                role="button"
+                tabindex="0"
+                matTooltip="Doble clic abre el expediente"
+                (dblclick)="abrirExpedientePaciente(paciente)"
+                (keydown)="onMascotaCardKeydown($event, paciente)">
                 <strong>{{ paciente.nombre }}</strong>
                 <span>{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</span>
                 <span class="mascota-meta">{{ paciente.sexo || 'Sexo N/P' }} · {{ calcularEdad(paciente.edad) }}</span>

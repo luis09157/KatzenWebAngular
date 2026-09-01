@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { SharedModule } from '../shared/shared.module';
 import { ClienteDialogComponent } from './cliente-dialog.component';
@@ -33,6 +34,7 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
     MatNativeDateModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
+    MatTooltipModule,
     AngularFireStorageModule,
     SharedModule
   ],
