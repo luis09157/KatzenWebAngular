@@ -31,7 +31,7 @@ export class PortalPwaService {
     });
 
     if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => undefined);
+      void navigator.serviceWorker.register('/firebase-messaging-sw.js?v=3').catch(() => undefined);
     }
   }
 

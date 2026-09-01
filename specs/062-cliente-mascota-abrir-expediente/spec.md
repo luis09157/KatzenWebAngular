@@ -31,6 +31,10 @@ Para **abrir el expediente completo de esa mascota sin buscarla a mano**
 - [x] SC-004: La card tiene `role="button"` y `tabindex="0"`.
 - [x] SC-005: Si no hay id resoluble, no se navega; Swal breve «No se pudo abrir el expediente (falta id)» (no no-op silencioso).
 - [x] SC-006: Un clic en el icono `folder_shared` abre el expediente (`stopPropagation`); `preventDefault` en dblclick de la card.
+- [x] SC-007: En cada `.mascota-card` hay un enlace de texto teal **«Ver expediente»** (además del icono y del doble clic), con `stopPropagation`.
+- [x] SC-008: Nombre de mascota con fallback `nombre || Nombre || 'Mascota'`.
+- [x] SC-009: Se navega a `/admin/paciente?id=` **antes** de `dialogRef.close()` para no cancelar la navegación.
+- [x] SC-010: `tryOpenFromQuery` empareja `id` / `idPaciente` / `idLegacy`; si no está en la lista, `getPaciente(id)` (incluye `activo === false`) y no muestra «no encontrado» hasta que falle el fetch.
 
 ---
 
@@ -97,3 +101,4 @@ Ver `tasks.md` sección Testing.
 - Relación con 058: SC-006 abre la ficha del **cliente**; el salto mascota→expediente vive **aquí (062)**.
 - Relación con 059: no romper padding del diálogo; hover sutil en la card.
 - Relación con 061: wrap del grid de mascotas si el ancho útil es estrecho.
+- Hotfix 2026-08-31 (prod): el SW `katzen-portal-v1` precacheaba `/` e `/index.html`, así que entrar por la landing dejaba JS viejo (sin hint ni icono). Cache `v3`, sin precache del shell, `?v=3` al registrar, enlace visible «Ver expediente», navegar antes de cerrar el diálogo, lookup puntual del paciente.

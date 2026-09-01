@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -76,6 +76,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
   private lastLoadError: unknown = null;
   private routePacienteId: string | null = null;
   private warnedMissingRouteId = false;
+  private queryLookupInFlight: string | null = null;
 
   historialClinico: any[] = [];
 
@@ -105,7 +106,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.initialLoadFailed = false;
     this.lastLoadError = null;
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.routePacienteId = params.get('id');
+      const nextId = params.get('id');
+      if (nextId !== this.routePacienteId) {
+        this.warnedMissingRouteId = false;
+        this.queryLookupInFlight = null;
+      }
+      this.routePacienteId = nextId;
       this.tryOpenFromQuery();
     });
     this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
@@ -220,6 +226,28 @@ export class PacientesComponent implements OnInit, OnDestroy {
     return collectRelatedIds(paciente as Record<string, unknown>, ['idPaciente', 'paciente_id']);
   }
 
+  private pacienteCoincideConQuery(
+    paciente: { id?: string; idPaciente?: string; idLegacy?: string } | null | undefined,
+    id: string
+  ): boolean {
+    if (!paciente || !id) {
+      return false;
+    }
+    return collectRelatedIds(paciente as Record<string, unknown>, ['idPaciente']).includes(id);
+  }
+
+  private warnPacienteNoEncontrado(): void {
+    if (this.warnedMissingRouteId) {
+      return;
+    }
+    this.warnedMissingRouteId = true;
+    void Swal.fire({
+      icon: 'info',
+      title: 'Paciente no encontrado',
+      text: 'No hay un paciente con ese identificador. Prueba buscarlo por nombre.'
+    });
+  }
+
   private tryOpenFromQuery(): void {
     if (this.loading || this.initialLoadPending > 0) {
       return;
@@ -228,24 +256,38 @@ export class PacientesComponent implements OnInit, OnDestroy {
     if (!id) {
       return;
     }
-    if (this.pacienteSeleccionado?.id === id) {
+    if (this.pacienteCoincideConQuery(this.pacienteSeleccionado, id)) {
       return;
     }
-    const found = this.allPacientes.find(
-      p => p.id === id || (p as { idLegacy?: string }).idLegacy === id
-    );
+    const found = this.allPacientes.find(p => this.pacienteCoincideConQuery(p, id));
     if (found) {
       this.seleccionarPaciente(found, false);
       return;
     }
-    if (!this.warnedMissingRouteId) {
-      this.warnedMissingRouteId = true;
-      Swal.fire({
-        icon: 'info',
-        title: 'Paciente no encontrado',
-        text: 'No hay un paciente activo con ese identificador. Prueba buscarlo por nombre.'
-      });
+    if (this.queryLookupInFlight === id) {
+      return;
     }
+    this.queryLookupInFlight = id;
+    this.pacientesService.getPaciente(id).pipe(take(1), takeUntil(this.destroy$)).subscribe({
+      next: paciente => {
+        if (this.queryLookupInFlight !== id || this.routePacienteId !== id) {
+          return;
+        }
+        this.queryLookupInFlight = null;
+        if (paciente) {
+          this.seleccionarPaciente(paciente, false);
+          return;
+        }
+        this.warnPacienteNoEncontrado();
+      },
+      error: () => {
+        if (this.queryLookupInFlight !== id || this.routePacienteId !== id) {
+          return;
+        }
+        this.queryLookupInFlight = null;
+        this.warnPacienteNoEncontrado();
+      }
+    });
   }
 
   cargarHistorialClinico(pacienteId: string, extraIds: string[] = []) {
@@ -652,6 +694,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.pacientesFiltrados = [];
     this.routePacienteId = null;
     this.warnedMissingRouteId = false;
+    this.queryLookupInFlight = null;
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { id: null },
@@ -678,10 +721,13 @@ export class PacientesComponent implements OnInit, OnDestroy {
     return this.getClienteNombre(this.getPacienteClienteId(paciente));
   }
 
+  nombrePaciente(paciente: any): string {
+    return getPacienteNombre(paciente) || 'Mascota';
+  }
+
   displayPaciente = (paciente: any): string => {
     if (!paciente) return '';
-    const nombre = getPacienteNombre(paciente);
-    if (!nombre) return '';
+    const nombre = this.nombrePaciente(paciente);
     const clienteNombre = this.getClienteNombreFromPaciente(paciente);
     return `${nombre} - ${clienteNombre}`;
   }

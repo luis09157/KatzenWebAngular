@@ -85,7 +85,7 @@ export class PortalFcmService {
         return { status: 'denied', detail: 'Permiso de notificaciones denegado.' };
       }
 
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=3');
       await navigator.serviceWorker.ready;
 
       this.messaging = this.messaging ?? firebase.messaging();

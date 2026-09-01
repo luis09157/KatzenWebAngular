@@ -37,7 +37,7 @@
             <mat-icon matPrefix>search</mat-icon>
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPaciente" (optionSelected)="seleccionarPaciente($event.option.value)">
               <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
-                <span class="search-option__pet">{{ paciente.nombre }}</span>
+                <span class="search-option__pet">{{ nombrePaciente(paciente) }}</span>
                 <span class="search-option__owner">— {{ getClienteNombre(getPacienteClienteId(paciente)) }}</span>
               </mat-option>
               <mat-option *ngIf="pacientesFiltrados.length === 0 && searchTerm" disabled>
@@ -72,7 +72,7 @@
     <app-admin-page-banner
       accent="teal"
       icon="pets"
-      [title]="pacienteSeleccionado.nombre"
+      [title]="nombrePaciente(pacienteSeleccionado)"
       [subtitle]="getClienteNombreFromPaciente(pacienteSeleccionado) + ' · ' + (calcularEdad(pacienteSeleccionado.edad) || 'Edad N/P')">
       <div bannerActions class="expediente-banner-actions">
         <button mat-stroked-button type="button" (click)="limpiarSeleccion()">

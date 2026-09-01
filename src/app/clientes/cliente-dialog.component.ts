@@ -829,6 +829,11 @@ export class ClienteDialogComponent implements OnInit {
     return String(rec['id'] || rec['idPaciente'] || rec['key'] || '').trim();
   }
 
+  nombreMascotaCard(paciente: { nombre?: string; Nombre?: string } | null | undefined): string {
+    const nombre = String(paciente?.nombre || paciente?.Nombre || '').trim();
+    return nombre || 'Mascota';
+  }
+
   abrirExpedientePaciente(paciente: { id?: string; idPaciente?: string; key?: string }): void {
     const id = this.resolverIdPaciente(paciente);
     if (!id) {
@@ -840,8 +845,9 @@ export class ClienteDialogComponent implements OnInit {
       });
       return;
     }
-    this.dialogRef.close();
-    this.router.navigate(['/admin/paciente'], { queryParams: { id } });
+    void this.router.navigate(['/admin/paciente'], { queryParams: { id } }).then(() => {
+      this.dialogRef.close();
+    });
   }
 
   onMascotaCardKeydown(event: KeyboardEvent, paciente: { id?: string; idPaciente?: string; key?: string }): void {

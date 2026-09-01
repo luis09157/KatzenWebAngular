@@ -17,10 +17,8 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const PORTAL_CACHE = 'katzen-portal-v1';
+const PORTAL_CACHE = 'katzen-portal-v3';
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
   '/manifest.webmanifest',
   '/assets/katzen-logo.png',
   '/assets/icons/icon-192.png',
@@ -106,8 +104,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Nunca interceptar ni cachear el shell SPA: admin y landing deben ir a red.
+  if (path === '/' || path === '/index.html' || path.startsWith('/admin')) {
+    return;
+  }
+
   const isNavigation = request.mode === 'navigate';
-  const isPortalNav = isNavigation && (path === '/' || path.startsWith('/portal'));
+  const isPortalNav = isNavigation && path.startsWith('/portal');
   const isStaticAsset =
     path.startsWith('/assets/') ||
     path === '/manifest.webmanifest' ||
@@ -121,15 +124,24 @@ self.addEventListener('fetch', (event) => {
     fetch(request)
       .then((response) => {
         if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(PORTAL_CACHE).then((cache) => cache.put(request, copy)).catch(() => undefined);
+          let destPath = path;
+          try {
+            destPath = new URL(response.url).pathname;
+          } catch {
+            destPath = path;
+          }
+          const isHtmlShell =
+            destPath === '/' || destPath === '/index.html' || destPath.endsWith('/index.html');
+          if (!isHtmlShell) {
+            const copy = response.clone();
+            caches.open(PORTAL_CACHE).then((cache) => cache.put(request, copy)).catch(() => undefined);
+          }
         }
         return response;
       })
       .catch(() =>
         caches.match(request).then((cached) => {
           if (cached) return cached;
-          if (isNavigation) return caches.match('/index.html');
           return undefined;
         })
       )

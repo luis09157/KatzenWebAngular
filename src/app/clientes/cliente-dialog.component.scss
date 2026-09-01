@@ -331,6 +331,26 @@
   color: var(--katzen-verde, #065d60);
 }
 
+.admin-dialog-panel app-cliente-dialog .mascota-card__ver-expediente {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--katzen-verde, #065d60);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
+}
+
 .admin-dialog-panel app-cliente-dialog .mascota-meta {
   font-size: 0.75rem !important;
 }

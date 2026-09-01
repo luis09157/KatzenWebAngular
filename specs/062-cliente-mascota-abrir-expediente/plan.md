@@ -56,7 +56,7 @@ Katzen/Mascota/{id}   # id ya hidratado en pacientesRelacionados
 
 1. Staff abre ficha de cliente (doble clic en fila `/admin/clientes`, spec 058 SC-006).
 2. Sección **Mascotas vinculadas** lista cards con `paciente.id`.
-3. Clic en icono carpeta, doble clic en la card, o Enter/Espacio → resolver `id || idPaciente || key` → `dialogRef.close()` → `router.navigate(['/admin/paciente'], { queryParams: { id } })`.
+3. Clic en **Ver expediente**, icono carpeta, doble clic en la card, o Enter/Espacio → resolver `id || idPaciente || key` → `router.navigate(['/admin/paciente'], { queryParams: { id } }).then(() => dialogRef.close())`.
 4. `pacientes.component` lee `queryParamMap` `id` y abre el expediente (sidebar + tabs).
 
 ### Errores esperados
@@ -138,5 +138,6 @@ npm run build
 
 ## Riesgos
 
-- Overlay del diálogo si se navega sin `close()`: se cierra primero.
-- Doble clic accidental: el hint y tooltip dejan clara la acción; no hay escritura.
+- Overlay del diálogo si se cierra antes de navegar: se navega primero y se cierra en el `then`.
+- Doble clic accidental: el enlace visible «Ver expediente», hint y tooltip dejan clara la acción; no hay escritura.
+- SW cache de `index.html`: cache `katzen-portal-v3` sin precache de `/` ni `/index.html`; fetch no cachea el shell admin.

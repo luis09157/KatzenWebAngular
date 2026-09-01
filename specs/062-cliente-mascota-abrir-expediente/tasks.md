@@ -22,6 +22,11 @@
 - [x] `abrirExpedientePaciente`: resuelve `id || idPaciente || key`; Swal si falta id; no-op silencioso eliminado
 - [x] HTML: `(dblclick)` + `preventDefault`, keydown Enter/Espacio, `role="button"`, `tabindex="0"`, tooltip, hint
 - [x] HTML: botón `folder_shared` `matTooltip="Ver expediente"` con `(click)` + `stopPropagation` (mismo patrón Directorio)
+- [x] HTML: enlace de texto teal **«Ver expediente»** en `.mascota-card` (`stopPropagation`)
+- [x] Nombre card: fallback `nombre || Nombre || 'Mascota'`
+- [x] Navegar a `/admin/paciente?id=` **antes** de `dialogRef.close()`
+- [x] `tryOpenFromQuery`: match `id` / `idPaciente` / `idLegacy`; fetch puntual `getPaciente` si no está en lista (incluye inactivo); no Swal hasta fallar el fetch
+- [x] SW `katzen-portal-v3`: sin precache de `/` ni `/index.html`; fetch no cachea shell admin; registro `?v=3`
 - [x] CSS: cursor pointer, `user-select: none`, hover sutil, hint; wrap/gap sin romper spec 059
 - [x] `MatTooltipModule` en `ClientesDialogModule`
 
@@ -47,19 +52,21 @@ Ejecutar y marcar **solo tras registrar evidencia** en la sección exhaustiva:
 - [x] Manual/mock localhost: un error controlado (sin id → Swal «falta id», no navega)
 - [x] `npm run cy:admin` — N/A (sin ruta nueva)
 
-**Resultado:** OK (hotfix 2026-08-31 — icono carpeta + id legacy)
+**Resultado:** OK (hotfix 2026-08-31 — SW v3 + Ver expediente + navigate-then-close)
 
 ```
 npm run build → exit 0 (2026-08-31)
-Hash: 5697b1ecdf5a5546 · Time: 43161ms
+Hash: e5caecfb8c6add0c · Time: 118785ms
 Warning de budget inicial 2.37 MB (preexistente; no bloquea)
 
 Smoke:
-- ng serve vivo en http://localhost:4200 (Compiled successfully)
-- Chunk 413.js (dev) y dist 413.c75c1de5d3442e65.js / 637.fea90ffccf2d2fc3.js contienen:
-  folder_shared, «Ver expediente», «icono de carpeta», «falta id», user-select
-- resolverIdPaciente: id || idPaciente || key (trim); Swal breve si vacío
-- Browser MCP de esta sesión no abrió pestaña; verificación por bundle compilado + código
+- ng serve vivo en http://localhost:4200 (Compiled successfully; landing OK)
+- SW localhost: katzen-portal-v3; PRECACHE sin / ni /index.html
+- dist 413.e157731cf8827bdf.js: Ver expediente, mascota-card__ver-expediente, folder_shared, falta id
+- dist 924.3eb0bd9df36558f3.js: Paciente no encontrado, getPaciente, idPaciente, Mascota
+- dist firebase-messaging-sw.js: v3 + skip /admin
+- portal-pwa / portal-fcm: register ?v=3
+- Admin /admin/clientes requiere sesión staff (no se usan credenciales de prod desde el agente)
 ```
 
 ---
@@ -120,19 +127,22 @@ _Completar al terminar cada iteración de validación (antes de `[x]`):_
 | UI — timepicker en campos hora | N/A | |
 | UI — diálogos spec 059 | OK | Padding layout `24px 28px 28px`; no se tocó body padding |
 | UI — páginas spec 061 | OK | Grid mascotas gap 16px wrap; destino expediente con sidebar/tabs |
-| UI — retroalimentación | OK | Hint icono/dblclick + tooltip card + tooltip carpeta |
+| UI — retroalimentación | OK | Hint + tooltip + enlace teal «Ver expediente» |
 | UI — loading contextual | N/A | Sin show extra |
 | UI — loading no trabado | N/A | |
 | UI — doble submit | N/A | |
 | Edge — red lenta/error | N/A | |
 | Edge — datos nulos RTDB | OK | Sin id/idPaciente/key → Swal «falta id»; no close/navigate |
-| Servidor local :4200 + smoke | OK | ng serve Compiled successfully; strings en chunk 413.js |
-| Build `npm run build` | OK | exit 0 · Hash 5697b1ecdf5a5546 |
+| Servidor local :4200 + smoke | OK | ng serve Compiled successfully; landing + SW v3 |
+| Build `npm run build` | OK | exit 0 · Hash e5caecfb8c6add0c |
+| SW no cachea index.html admin | OK | PRECACHE sin / ni /index.html; fetch skip /admin |
+| Navegar antes de close | OK | router.navigate(...).then(() => dialogRef.close()) |
+| Lookup paciente query | OK | id/idPaciente/idLegacy + getPaciente puntual |
 
 ```
 > ng build --configuration production
 ✔ Browser application bundle generation complete.
-Build at: 2026-09-01T03:06:46.992Z - Hash: 5697b1ecdf5a5546 - Time: 43161ms
+Build at: 2026-09-01T03:22:00.535Z - Hash: e5caecfb8c6add0c - Time: 118785ms
 Warning: bundle initial exceeded maximum budget (preexistente).
 ```
 
@@ -140,12 +150,16 @@ Warning: bundle initial exceeded maximum budget (preexistente).
 
 ## Criterios spec (SC-xxx)
 
-- [x] SC-001: Doble clic → close + `/admin/paciente?id=` (id || idPaciente || key)
+- [x] SC-001: Doble clic → navigate then close `/admin/paciente?id=` (id || idPaciente || key)
 - [x] SC-002: Enter/Espacio en card enfocada
 - [x] SC-003: Pointer, user-select none, tooltip, hint, icono carpeta
 - [x] SC-004: `role="button"` + `tabindex="0"`
 - [x] SC-005: Sin id resoluble → Swal breve (no silenciar)
 - [x] SC-006: Clic en `folder_shared` abre expediente (`stopPropagation`)
+- [x] SC-007: Enlace de texto teal «Ver expediente» en la card
+- [x] SC-008: Fallback nombre || Nombre || Mascota
+- [x] SC-009: Navegar antes de cerrar el diálogo
+- [x] SC-010: tryOpenFromQuery match + fetch puntual
 
 ---
 
@@ -154,4 +168,4 @@ Warning: bundle initial exceeded maximum budget (preexistente).
 - [x] Validación pre-entrega completa (agente; no delegada al usuario)
 - [x] Validación exhaustiva completada y registrada (sección anterior)
 - [x] `spec.md` estado → `done`
-- [x] Commit / deploy — hosting autorizado por Luis (hotfix icono + id legacy)
+- [x] Commit / deploy — hosting autorizado por Luis (hotfix SW v3 + Ver expediente)
