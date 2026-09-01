@@ -172,7 +172,7 @@
               Mascotas vinculadas
             </h4>
             <p class="mascotas-hint" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
-              Doble clic en una mascota abre el expediente completo
+              Clic en el icono de carpeta o doble clic en una mascota abre el expediente
             </p>
 
             <div class="cliente-dialog-loading" *ngIf="cargandoPacientes">
@@ -191,9 +191,21 @@
                 role="button"
                 tabindex="0"
                 matTooltip="Doble clic abre el expediente"
-                (dblclick)="abrirExpedientePaciente(paciente)"
+                (dblclick)="$event.preventDefault(); abrirExpedientePaciente(paciente)"
                 (keydown)="onMascotaCardKeydown($event, paciente)">
-                <strong>{{ paciente.nombre }}</strong>
+                <div class="mascota-card__top">
+                  <strong>{{ paciente.nombre }}</strong>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    color="primary"
+                    class="mascota-card__expediente"
+                    matTooltip="Ver expediente"
+                    (click)="$event.stopPropagation(); abrirExpedientePaciente(paciente)"
+                    (dblclick)="$event.stopPropagation(); $event.preventDefault()">
+                    <mat-icon>folder_shared</mat-icon>
+                  </button>
+                </div>
                 <span>{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</span>
                 <span class="mascota-meta">{{ paciente.sexo || 'Sexo N/P' }} · {{ calcularEdad(paciente.edad) }}</span>
                 <span class="mascota-estado" [class.inactivo]="paciente.estado === 'Fallecido'">{{ paciente.estado || 'Vivo' }}</span>

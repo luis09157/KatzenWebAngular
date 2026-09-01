@@ -20,16 +20,17 @@ Hoy las `.mascota-card` en `cliente-dialog.component.html` **no tienen** `(dblcl
 ### US-1 — Doble clic en mascota → expediente completo
 
 Como **staff**  
-Quiero **doble clic (o Enter/Espacio en la card enfocada) en una mascota vinculada**  
+Quiero **doble clic, clic en el icono de carpeta, o Enter/Espacio en la card enfocada** en una mascota vinculada  
 Para **abrir el expediente completo de esa mascota sin buscarla a mano**
 
 **Criterios de aceptación:**
 
-- [x] SC-001: Doble clic en `.mascota-card` cierra el diálogo del cliente y navega a `/admin/paciente?id={paciente.id}` (`pacientes.component`, no la ficha modal 058).
+- [x] SC-001: Doble clic en `.mascota-card` cierra el diálogo del cliente y navega a `/admin/paciente?id={id}` (`pacientes.component`, no la ficha modal 058). El id se resuelve con `id || idPaciente || key` (trim).
 - [x] SC-002: Enter y Espacio en la card enfocada hacen lo mismo que el doble clic.
-- [x] SC-003: Cursor pointer, `matTooltip="Doble clic abre el expediente"` y hint visible: «Doble clic en una mascota abre el expediente completo».
+- [x] SC-003: Cursor pointer, `user-select: none`, `matTooltip` en card, hint visible (icono o doble clic) y botón `folder_shared` con `matTooltip="Ver expediente"`.
 - [x] SC-004: La card tiene `role="button"` y `tabindex="0"`.
-- [x] SC-005: Si no hay `paciente.id`, no se navega (no-op; el diálogo permanece abierto).
+- [x] SC-005: Si no hay id resoluble, no se navega; Swal breve «No se pudo abrir el expediente (falta id)» (no no-op silencioso).
+- [x] SC-006: Un clic en el icono `folder_shared` abre el expediente (`stopPropagation`); `preventDefault` en dblclick de la card.
 
 ---
 

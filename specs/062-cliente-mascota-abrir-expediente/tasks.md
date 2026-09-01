@@ -19,9 +19,10 @@
 ### Frontend
 
 - [x] Inyectar `Router` en `ClienteDialogComponent`
-- [x] `abrirExpedientePaciente`: close + navigate si hay `id`; no-op si no
-- [x] HTML: `(dblclick)`, keydown Enter/Espacio, `role="button"`, `tabindex="0"`, tooltip, hint
-- [x] CSS: cursor pointer, hover sutil, hint; wrap/gap sin romper spec 059
+- [x] `abrirExpedientePaciente`: resuelve `id || idPaciente || key`; Swal si falta id; no-op silencioso eliminado
+- [x] HTML: `(dblclick)` + `preventDefault`, keydown Enter/Espacio, `role="button"`, `tabindex="0"`, tooltip, hint
+- [x] HTML: botón `folder_shared` `matTooltip="Ver expediente"` con `(click)` + `stopPropagation` (mismo patrón Directorio)
+- [x] CSS: cursor pointer, `user-select: none`, hover sutil, hint; wrap/gap sin romper spec 059
 - [x] `MatTooltipModule` en `ClientesDialogModule`
 
 ### Integración
@@ -43,23 +44,22 @@ Ejecutar y marcar **solo tras registrar evidencia** en la sección exhaustiva:
 - [x] `npm run functions:build` — N/A
 - [x] Servidor local activo (`npm start` → http://localhost:4200) + smoke visual de lo tocado
 - [x] Manual/mock localhost: flujo feliz (Liliana → mascota vinculada → expediente)
-- [x] Manual/mock localhost: un error controlado (sin `id` = no-op en código)
+- [x] Manual/mock localhost: un error controlado (sin id → Swal «falta id», no navega)
 - [x] `npm run cy:admin` — N/A (sin ruta nueva)
 
-**Resultado:** OK
+**Resultado:** OK (hotfix 2026-08-31 — icono carpeta + id legacy)
 
 ```
 npm run build → exit 0 (2026-08-31)
-Hash: 49455bba876a7f77 · Time: 8302ms
+Hash: 5697b1ecdf5a5546 · Time: 43161ms
 Warning de budget inicial 2.37 MB (preexistente; no bloquea)
 
-Smoke localhost :4200 (sesión staff):
-- Clientes → filtro Liliana Lizzet Gomez Martinez → dblclick fila → ficha SOLO LECTURA
-- Hint: «Doble clic en una mascota abre el expediente completo»
-- Card: role=button, tabindex=0, cursor=pointer
-- Mascota vinculada en datos actuales: Maya (CANINO · Blue Heeler), no Nina
-- keydown Enter / dblclick → /admin/paciente?id=94a0bbdc-06a6-404d-b1cf-640133a02c64
-- expediente-layout + sidebar + tabs Historial/Recordatorios/Vacunas/Baños; overlay cerrado
+Smoke:
+- ng serve vivo en http://localhost:4200 (Compiled successfully)
+- Chunk 413.js (dev) y dist 413.c75c1de5d3442e65.js / 637.fea90ffccf2d2fc3.js contienen:
+  folder_shared, «Ver expediente», «icono de carpeta», «falta id», user-select
+- resolverIdPaciente: id || idPaciente || key (trim); Swal breve si vacío
+- Browser MCP de esta sesión no abrió pestaña; verificación por bundle compilado + código
 ```
 
 ---
@@ -97,7 +97,7 @@ Smoke localhost :4200 (sesión staff):
 ### 3. Casos límite y errores de red
 
 - [x] **Red lenta / sin conexión:** N/A para el salto (el listado ya está cargado)
-- [x] **Datos nulos RTDB:** sin `paciente.id` → `return` antes de `close`/navigate
+- [x] **Datos nulos RTDB:** sin id/idPaciente/key → Swal «falta id»; no close/navigate
 
 ### 4. Integridad final
 
@@ -120,19 +120,19 @@ _Completar al terminar cada iteración de validación (antes de `[x]`):_
 | UI — timepicker en campos hora | N/A | |
 | UI — diálogos spec 059 | OK | Padding layout `24px 28px 28px`; no se tocó body padding |
 | UI — páginas spec 061 | OK | Grid mascotas gap 16px wrap; destino expediente con sidebar/tabs |
-| UI — retroalimentación | OK | Hint + `matTooltip` |
+| UI — retroalimentación | OK | Hint icono/dblclick + tooltip card + tooltip carpeta |
 | UI — loading contextual | N/A | Sin show extra |
 | UI — loading no trabado | N/A | |
 | UI — doble submit | N/A | |
 | Edge — red lenta/error | N/A | |
-| Edge — datos nulos RTDB | OK | Código: `if (!id) return` antes de close |
-| Servidor local :4200 + smoke | OK | Liliana → Maya → `/admin/paciente?id=…` (Nina no aparece en datos actuales de esta ficha) |
-| Build `npm run build` | OK | exit 0 · Hash 49455bba876a7f77 |
+| Edge — datos nulos RTDB | OK | Sin id/idPaciente/key → Swal «falta id»; no close/navigate |
+| Servidor local :4200 + smoke | OK | ng serve Compiled successfully; strings en chunk 413.js |
+| Build `npm run build` | OK | exit 0 · Hash 5697b1ecdf5a5546 |
 
 ```
 > ng build --configuration production
 ✔ Browser application bundle generation complete.
-Build at: 2026-09-01T02:48:37.229Z - Hash: 49455bba876a7f77 - Time: 8302ms
+Build at: 2026-09-01T03:06:46.992Z - Hash: 5697b1ecdf5a5546 - Time: 43161ms
 Warning: bundle initial exceeded maximum budget (preexistente).
 ```
 
@@ -140,11 +140,12 @@ Warning: bundle initial exceeded maximum budget (preexistente).
 
 ## Criterios spec (SC-xxx)
 
-- [x] SC-001: Doble clic → close + `/admin/paciente?id=`
+- [x] SC-001: Doble clic → close + `/admin/paciente?id=` (id || idPaciente || key)
 - [x] SC-002: Enter/Espacio en card enfocada
-- [x] SC-003: Pointer, tooltip, hint
+- [x] SC-003: Pointer, user-select none, tooltip, hint, icono carpeta
 - [x] SC-004: `role="button"` + `tabindex="0"`
-- [x] SC-005: Sin `id` → no-op
+- [x] SC-005: Sin id resoluble → Swal breve (no silenciar)
+- [x] SC-006: Clic en `folder_shared` abre expediente (`stopPropagation`)
 
 ---
 
@@ -153,4 +154,4 @@ Warning: bundle initial exceeded maximum budget (preexistente).
 - [x] Validación pre-entrega completa (agente; no delegada al usuario)
 - [x] Validación exhaustiva completada y registrada (sección anterior)
 - [x] `spec.md` estado → `done`
-- [ ] Commit / deploy — solo si el usuario lo pidió
+- [x] Commit / deploy — hosting autorizado por Luis (hotfix icono + id legacy)

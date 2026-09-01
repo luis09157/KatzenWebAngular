@@ -7,7 +7,7 @@
 
 ## Resumen
 
-En `ClienteDialogComponent` (modo solo lectura) las cards de mascotas vinculadas reciben `(dblclick)` y teclado (Enter/Espacio). Si hay `paciente.id`, se cierra el diálogo y se navega a `/admin/paciente?id=…` — el mismo destino que el CTA de la ficha 058. Sin campos RTDB nuevos; el `id` ya viene de `cargarPacientesRelacionados()`.
+En `ClienteDialogComponent` (modo solo lectura) las cards de mascotas vinculadas reciben `(dblclick)` (con `preventDefault`), teclado (Enter/Espacio) y un botón `folder_shared` (mismo patrón que Directorio). El id se resuelve con `id || idPaciente || key`. Si hay id, se cierra el diálogo y se navega a `/admin/paciente?id=…`. Si no hay id, Swal breve (no no-op silencioso). Sin campos RTDB nuevos.
 
 ---
 
@@ -56,14 +56,14 @@ Katzen/Mascota/{id}   # id ya hidratado en pacientesRelacionados
 
 1. Staff abre ficha de cliente (doble clic en fila `/admin/clientes`, spec 058 SC-006).
 2. Sección **Mascotas vinculadas** lista cards con `paciente.id`.
-3. Doble clic (o Enter/Espacio en card enfocada) → `dialogRef.close()` → `router.navigate(['/admin/paciente'], { queryParams: { id: paciente.id } })`.
+3. Clic en icono carpeta, doble clic en la card, o Enter/Espacio → resolver `id || idPaciente || key` → `dialogRef.close()` → `router.navigate(['/admin/paciente'], { queryParams: { id } })`.
 4. `pacientes.component` lee `queryParamMap` `id` y abre el expediente (sidebar + tabs).
 
 ### Errores esperados
 
 | Caso | Código / mensaje usuario |
 |------|--------------------------|
-| `paciente.id` ausente | no-op (no cierra, no navega) |
+| Sin `id` / `idPaciente` / `key` | Swal breve «No se pudo abrir el expediente (falta id)»; no cierra ni navega |
 | Sin permiso al módulo paciente | `StaffRoleGuard` existente (fuera de este diff) |
 
 ---
@@ -121,7 +121,7 @@ Katzen/Mascota/{id}   # id ya hidratado en pacientesRelacionados
 |-----------|-------------------|
 | UI rompe build o navegación | Revertir los 4 archivos de `src/app/clientes/` listados arriba |
 | Navegación incorrecta (ficha 058) | Ajustar destino a `/admin/paciente` (no abrir `PacienteFichaDialog`) |
-| Card sin id cierra el diálogo | Restaurar no-op si falta `id` |
+| Card sin id cierra el diálogo | El Swal no cierra; si se cierra por error, restaurar el `return` antes de `close()` |
 
 ---
 

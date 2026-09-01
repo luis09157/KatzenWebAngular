@@ -824,16 +824,27 @@ export class ClienteDialogComponent implements OnInit {
   }
 
   /** Spec 062 — expediente completo (`pacientes.component`), no la ficha modal 058. */
-  abrirExpedientePaciente(paciente: { id?: string }): void {
-    const id = String(paciente?.id || '').trim();
+  resolverIdPaciente(paciente: { id?: string; idPaciente?: string; key?: string } | null | undefined): string {
+    const rec = (paciente ?? {}) as Record<string, unknown>;
+    return String(rec['id'] || rec['idPaciente'] || rec['key'] || '').trim();
+  }
+
+  abrirExpedientePaciente(paciente: { id?: string; idPaciente?: string; key?: string }): void {
+    const id = this.resolverIdPaciente(paciente);
     if (!id) {
+      void Swal.fire({
+        icon: 'info',
+        title: 'No se pudo abrir el expediente (falta id)',
+        timer: 2800,
+        showConfirmButton: false
+      });
       return;
     }
     this.dialogRef.close();
     this.router.navigate(['/admin/paciente'], { queryParams: { id } });
   }
 
-  onMascotaCardKeydown(event: KeyboardEvent, paciente: { id?: string }): void {
+  onMascotaCardKeydown(event: KeyboardEvent, paciente: { id?: string; idPaciente?: string; key?: string }): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       this.abrirExpedientePaciente(paciente);
