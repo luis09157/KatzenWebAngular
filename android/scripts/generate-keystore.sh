@@ -1,4 +1,6 @@
 #!/bin/bash
+# Ejecutar desde cualquier ruta: siempre trabaja relativo a la raíz del repo.
+cd "$(dirname "$0")/../.." || exit 1
 
 echo "Generando nueva keystore para KatzenVet..."
 echo ""

@@ -167,4 +167,50 @@ data/imports/
 Katzen supermamalon*.xlsx
 
 # Angular specific
-.angular/ 
+.angular/
+
+# PDV Eleventa (spec 064) — nunca versionar FDB, extractos con PII ni certificados SAT
+*.fdb
+*.FDB
+*.fbk
+pdv-extract.json
+pdv-extract.csv
+pdv-mapped.json
+pdv-tickets.json
+pdv-id-map.json
+scripts/pdv-eleventa/out/
+tmp/pdv-eleventa/
+FACTURACION_CERTIFICADOS*
+*.cer
+*.key
+*.pfx
+CSD*
+FIEL*
+
+# Android (Capacitor) — secretos de firma y artefactos generados
+android/keystore.properties
+android/local.properties
+android/**/.gradle/
+android/**/build/
+android/.idea/
+*.keystore
+*.jks
+
+# Cypress artefactos
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Datos locales / dumps / temporales
+data/
+tmp/
+*.log
+
+# Emuladores Firebase (export local)
+emulator-data/
+ui-debug.log
+database-debug.log
+firestore-debug.log
+pubsub-debug.log 
+.nx/cache
+.nx/workspace-data
