@@ -1,3 +1,17 @@
+.admin-emu-banner {
+  margin: 0;
+  padding: 10px 20px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.admin-sidenav__brand-label {
+  margin-left: 8px;
+}
+
 .admin-nav-group-label {
   padding: 16px 16px 6px;
   font-size: 0.6875rem;

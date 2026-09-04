@@ -99,6 +99,21 @@ export interface Producto {
   origen?: 'pos_preview';
   /** Riel visual del POS para ítems `soloDemo`. No aplica a catálogo real. */
   rielPos?: 'petshop' | 'consulta' | 'peluqueria';
+  /**
+   * Spec 064: si false, el POS no lo ofrece (uso interno).
+   * `getProductos()` sigue filtrando `activo !== false`; el import pone ambos en sync.
+   */
+  visiblePos?: boolean;
+  /** Spec 064: importado desde eleventa. Opcional / aditivo. */
+  origenPdv?: 'eleventa';
+  /** Código Eleventa (`CODIGO`) — EAN, KTZ, VAC, BACO. No usar como key RTDB. */
+  pdvCodigo?: string;
+  /** Entero Eleventa `PRODUCTOS.ID`. Nunca como key Firebase. */
+  pdvId?: number;
+  /** Paquete vendido como un SKU en mostrador (kits VAC/Paq). */
+  esKit?: boolean;
+  /** BOM: componentes a explotar para bajar stock real (fase 4 POS). */
+  kitComponentes?: { codigo: string; cantidad: number }[];
 }
 
 export interface ProductoFormData {

@@ -9,6 +9,10 @@
  * Lee adminEmail/adminPassword de cypress.env.json.
  * Escribe emails (y passwords) en cypress.env.smoke-roles.json (gitignored).
  * Nunca imprime passwords.
+ *
+ * ⚠️ Apunta a PRODUCCIÓN (katzen-a0e3e): exige CONFIRM_PROD=katzen-a0e3e
+ * (guard compartido scripts/lib/guard-prod.mjs); sin la variable aborta.
+ *   CONFIRM_PROD=katzen-a0e3e node scripts/smoke-008-provision-roles.mjs provision
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -17,6 +21,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getDatabase, ref, push, set, remove } from 'firebase/database';
+import { assertProdConfirmed, PROD_PROJECT_ID, PROD_DATABASE_URL } from './lib/guard-prod.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -26,10 +31,16 @@ const RESULTS = resolve(root, 'specs/008-rtdb-permisos-granulares/smoke-roles-rt
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDhRLUEpcjpt820tZ15helJVM5SuLUqwCY',
-  authDomain: 'katzen-a0e3e.firebaseapp.com',
-  databaseURL: 'https://katzen-a0e3e-default-rtdb.firebaseio.com',
-  projectId: 'katzen-a0e3e',
+  authDomain: `${PROD_PROJECT_ID}.firebaseapp.com`,
+  databaseURL: PROD_DATABASE_URL,
+  projectId: PROD_PROJECT_ID,
 };
+
+assertProdConfirmed({
+  script: 'smoke-008-provision-roles',
+  projectId: firebaseConfig.projectId,
+  databaseURL: firebaseConfig.databaseURL
+});
 
 const ROLES = ['doctor', 'recepcionista', 'peluquero'];
 

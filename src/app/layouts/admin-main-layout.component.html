@@ -3,7 +3,7 @@
     <div class="admin-sidenav__inner">
     <mat-toolbar class="admin-sidenav__brand">
       <mat-icon color="primary">pets</mat-icon>
-      <span class="mat-title-medium" style="margin-left:8px">KatzenVet</span>
+      <span class="mat-title-medium admin-sidenav__brand-label">KatzenVet</span>
     </mat-toolbar>
     <div class="admin-sidenav__scroll">
     <mat-nav-list>
@@ -144,6 +144,9 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
+    <div class="admin-emu-banner" *ngIf="rtdbEmulator" role="status">
+      Vista local del PDV (emulador). No es la clínica en Firebase. Catálogo eleventa: 685 SKU.
+    </div>
     <mat-toolbar class="m3-top-bar">
       <button mat-icon-button (click)="toggleSidenav()"><mat-icon>menu</mat-icon></button>
       <span class="mat-title-medium">{{ toolbarLabel }}</span>

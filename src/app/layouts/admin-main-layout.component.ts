@@ -11,6 +11,7 @@ import { LoggerService } from '../core/logger.service';
 import { resolveAdminRouteLabel } from '../core/config/admin-route-labels.config';
 import { PortalFcmService } from '../core/services/portal-fcm.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { environment } from '../../environments/environment';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -38,6 +39,8 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   sucursalSeleccionada = 'principal';
   toolbarLabel = 'Admin';
   registeringStaffPush = false;
+  /** Spec 064: ng serve apuntando al emulador RTDB. */
+  readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
 
   constructor(
     private authService: AuthService,
