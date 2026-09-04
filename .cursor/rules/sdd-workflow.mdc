@@ -1,78 +1,42 @@
 ---
-description: Flujo Spec-Driven Development — leer specs antes de implementar
+description: Flujo Spec-Driven Development — niveles de cambio, QA proporcional, prohibiciones duras
 alwaysApply: true
 ---
 
 # SDD — KatzenVet
 
-## Workflow Operativo de Seguridad y SDD
+## Prohibiciones duras (siempre)
 
-Antes de escribir o modificar cualquier línea de código, el agente debe cumplir estrictamente con este orden:
-
-1. **Lectura de Restricciones:** Leer `specs/memory/constitution.md` y verificar que la tarea no viole el aislamiento de producción ni los contratos de la RTDB con la app móvil.
-2. **Uso Exclusivo de Mocks:** Para probar vistas o flujos de Angular 17, emplear exclusivamente datos mock locales (`src/app/core/testing/mock-data.ts`), evitando llamadas a nodos reales de producción.
-3. **Validación de Impacto en Plan:** En el archivo `plan.md` de la feature, el agente debe rellenar obligatoriamente la sección **Contratos de Datos y UI (Obligatorio)** y el **Plan de Mitigación y Rollback**.
-4. **Verificación Local:** Al terminar la implementación, ejecutar y reportar el resultado de `npm run build` para asegurar la integridad del tipado y compilación antes de entregar.
-
----
+- **Nunca** `git commit` / `git push` / `firebase deploy` (hosting, functions, database, storage) sin autorización explícita de Luis Alfonso Niño Martínez.
+- **Nunca** conectar, leer ni escribir producción (`katzen-a0e3e`): solo localhost, emuladores Firebase o mocks (`src/app/core/testing/mock-data.ts`).
+- RTDB: cambios **aditivos** (nodos/campos opcionales); no romper contratos con la app móvil.
+- Solo cambios dentro del alcance pedido; refactors grandes requieren spec y confirmación.
 
 ## Antes de codear
 
-1. Leer `AGENTS.md`, `specs/memory/constitution.md` y `specs/memory/domain-context.md` (si la feature toca entidades o flujos clínicos)
-2. Si existe spec para la feature: `specs/NNN-*/spec.md` + `plan.md` + `tasks.md`
-3. Si NO existe: crear copia desde `specs/templates/` y obtener confirmación de alcance
-4. Completar `plan.md` (**Contratos de Datos y UI**, **Plan de Mitigación y Rollback**) **antes** de implementar
+1. Leer `specs/memory/constitution.md`; `specs/memory/domain-context.md` si toca entidades o flujos clínicos.
+2. Clasificar el cambio en **L1 / L2 / L3** (abajo) y aplicar solo lo que ese nivel exige.
+3. L2/L3 con spec: leer `specs/NNN-*/spec.md` (+ `plan.md`/`tasks.md` si existen). Sin spec en L3: crear desde `specs/templates/` y confirmar alcance.
 
-## Durante implementación
+## Niveles de cambio
 
-- Solo cambios dentro del alcance de la spec activa
-- Marcar progreso en `tasks.md`
-- UI admin → `docs/ADMIN-UI-ARCHITECTURE.md`
-- RTDB: cambios **aditivos**; compatibilidad app móvil
-- Pruebas UI: mocks locales o emuladores — **nunca** producción (`katzen-a0e3e`)
+| Nivel | Qué es | Validación exigida | Docs |
+|-------|--------|--------------------|------|
+| **L1 trivial** | CSS, copy, tooltip, padding, orden de columnas | `npm run build` + **1 screenshot** local (`:4200`) | Sin `plan.md`/`tasks.md`. Nota de una línea en la spec afectada si existe |
+| **L2 feature UI/lógica** | Componente, diálogo, util, servicio Angular, ruta admin | Unit tests del util + `npm run build` + smoke **375 / 1280** + registro **≤10 líneas** en `tasks.md`. Cypress **solo** si hay ruta nueva | `spec.md`; Contratos de Datos / Rollback en `spec.md` **si aplica**. Sin `plan.md` |
+| **L3 datos/infra** | `database.rules.json`, functions, scripts hacia prod, modelos compartidos con app móvil, imports/migraciones | **Guía QA completa** (`specs/templates/qa-validation-guide.md`) + emulador + **autorización explícita de Luis** | `plan.md` obligatorio con **Contratos de Datos y UI** + **Plan de Mitigación y Rollback**; `tasks.md` con registro QA |
 
-## Servidor local de desarrollo
+Ante duda entre niveles, elegir el superior. Un cambio L1 no requiere abrir tasks/plan ni tablas QA.
 
-Tras modificar código UI/frontend, el agente debe **asegurar que el servidor local sigue vivo** para que el usuario pueda ver los cambios:
+## Durante y al entregar
 
-1. Verificar que `ng serve` / `npm start` sigue corriendo en **http://localhost:4200** (p. ej. revisar terminals).
-2. Si no está corriendo o el proceso murió, reiniciar `npm start` en background.
-3. Confirmar al usuario la URL (`http://localhost:4200`) cuando quede listo.
-
-**Nota:** el live reload actualiza la página si el proceso está vivo; el problema a evitar es un proceso muerto que deja al usuario sin preview.
-
-## Validación pre-entrega (obligatoria)
-
-**Regla fuerte:** el agente ejecuta **todas** las validaciones de forma autónoma (multitask / en paralelo cuando sea posible) **antes de entregar** cualquier módulo, mejora, fix UI o funcionalidad. **Luis no es el QA por defecto**; no se entrega pidiendo que el usuario “pruebe y reporte”.
-
-Antes de dar por cerrada una entrega, el agente DEBE:
-
-1. Seguir **`specs/templates/qa-validation-guide.md` completo** (formularios, modales, edge cases, chips, loading, pickers, etc.).
-2. Ejecutar **`npm run build`** y **reportar** el resultado (exit code / errores).
-3. Asegurar servidor local vivo (`npm start` → **http://localhost:4200**) y hacer o simular **smoke visual** de lo tocado.
-4. **Registrar resultados** en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar cualquier ítem con `[x]`.
-5. Verificar las reglas de UI ya acordadas (cuando apliquen):
-   - Chips/badges de estado se ven **completos** (no mochos / sin clip)
-   - Diálogos picker/compactos con espaciado `--picker` (`admin-dialog-shell--picker`)
-   - Loading con mensaje contextual (Cargando / Guardando / Eliminando / Actualizando) y **nunca** overlay trabado
-   - **Timepicker dialog** donde hay campo de hora (`app-timepicker-field`)
-   - **Live preview local activo** al entregar cambios UI
-   - **Shells auth/portal/landing** centrados y equilibrados en desktop, responsivos; no layouts aplastados a un lado con huecos vacíos
-   - **Diálogos admin (spec 059):** padding del body no se quita por `.entity-summary`; tabs con `height: auto` + `overflow: visible` (preferir `dynamicHeight`); superficie no recorta contenido; `.entity-summary` compacto; fichas con tabs muestran el expediente; pickers `--picker` / CRUD shell estándar
-   - **Páginas admin (spec 061):** grid 3→2→1 según ancho **útil** de `.admin-content` (no forzar N columnas con sidenav); toolbar wrap alineado al inicio; buscador sin clip / «Nuevo» apila; padding cards (DUEÑO ≥20px); timeline gap ~8–12px; smoke 375 / 768 / 1280
-
-Sin este checklist registrado, la entrega **no está cerrada** (no marcar `spec.md` → `done`).
-
-## Al terminar
-
-- Completar **Validación pre-entrega (obligatoria)** arriba (no omitir)
-- Ejecutar resto de testing en `tasks.md` (Cypress si aplica)
-- Callable nuevo → documentar deploy; **no ejecutar** `firebase deploy` sin autorización explícita de Luis Alfonso Niño Martínez
-- **Hosting autorizado (spec 063):** tras `firebase deploy --only hosting`, aplicar retención mínima (`retainedReleaseCount: 1` en canal `live`) y borrar releases/versiones anteriores a la servida. No acumular historial de UI. Nunca deploy de functions/database/storage sin Luis.
-- Actualizar `spec.md` estado a `done` solo cuando la validación QA esté registrada
+- Mantener vivo `npm start` (http://localhost:4200) para que Luis vea el cambio; reiniciar si murió.
+- Reportar siempre el resultado de `npm run build` (exit code).
+- UI admin: patrones en `docs/ADMIN-UI-ARCHITECTURE.md` (rule `admin-ui-architecture.mdc` se activa al editar `src/app/**`).
+- Loading con `LoadingService` contextual y `hide()` en success **y** error; copy destructivo «Borrar».
+- `spec.md` → `done` solo con la validación de su nivel registrada. Regenerar índice: `node scripts/specs-index.mjs`.
+- Callable nuevo → documentar pasos de deploy; Luis autoriza. Hosting autorizado → retención 1 versión (spec 063).
 
 ## Prompt usuario típico
 
-> Implementa specs/00N-nombre/ según spec y plan.
-
-Adjuntar `@specs/00N-nombre/spec.md`.
+> Implementa specs/NNN-nombre/ según spec y plan. (`@specs/NNN-nombre/spec.md`)

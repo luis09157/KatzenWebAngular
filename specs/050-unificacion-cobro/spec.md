@@ -1,7 +1,7 @@
 # Spec: Unificación de cobro (ticket del día)
 
 **ID:** 050-unificacion-cobro  
-**Estado:** in_progress  
+**Estado:** superseded → 054 (decisiones pendientes consolidadas en `specs/054-cierre-sistema/DECISIONES-PENDIENTES.md`)  
 **Fecha:** 2026-08-28  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 039 (cobro-integridad), 045/046 (POS), 048 (hints)

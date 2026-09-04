@@ -6,73 +6,23 @@ Este directorio es la **fuente de verdad** para features y módulos nuevos.
 
 ```
 specs/
+├── INDEX.md                   # Índice autogenerado (node scripts/specs-index.mjs)
+├── README.md                  # Este archivo: flujo SDD
+├── ROADMAP.md                 # Plan maestro
+├── AUDIT-CODE.md              # Auditoría técnica viva
+├── QA-CRUD-MATRIX.md          # Cierre QA 2026-08-26 (histórico)
 ├── memory/
 │   ├── constitution.md        # Principios del proyecto
-│   └── domain-context.md      # Entidades, reglas de negocio, RTDB (dominio Katzen)
-├── AUDIT-CODE.md              # Auditoría técnica viva (hallazgos, gaps, prioridades)
-├── ROADMAP.md                 # Plan maestro SDD
-├── templates/                 # Plantillas para copiar
+│   └── domain-context.md      # Entidades, reglas de negocio, RTDB
+├── templates/
 │   ├── module-spec.template.md
-│   ├── module-plan.template.md
+│   ├── module-plan.template.md      # Solo obligatorio en L3
 │   ├── module-tasks.template.md
-│   └── qa-validation-guide.md # Guía QA exhaustiva (obligatoria al cerrar)
-├── 001-baseline/              # Snapshot del producto
-├── 002-portal-clientes-usuarios/
-├── 003-validacion-agenda-citas/  # Agenda: vet, duración, solape, cancelación
-├── 004-timepicker-dialog/        # Timepicker Material (reemplazo type=time)
-├── 005-loading-feedback-ux/      # Loading contextual + overlay no trabado
-├── 006-revocacion-sesiones-portal/ # revokeRefreshTokens al desactivar portal
-├── 007-politica-mermas-inventario/ # Bloqueo stock negativo, motivo merma, ajuste supervisor
-├── 008-rtdb-permisos-granulares/   # Histórico: writes por staffRole (supersedido por 011)
-├── 009-cascada-baja-cliente/       # Baja cliente → mascotas/citas/portal
-├── 010-notas-internas-historial/   # notas_internas aditivo (MVP admin)
-├── 011-staff-acceso-admin-unificado/ # Todo staff = acceso admin operativo
-├── 012-perfiles-dual-y-duenas/       # Matriz perfiles, dual post-login, vincular portal
-├── 013-registro-portal-cliente-landing/ # Auto-provision alta + self-registro landing
-├── 014-finanzas-caja-mvp/            # Caja MVP + (018) CSV / baño→caja
-├── 015-desvincular-dual/             # Unlink staff↔portal
-├── 016-notas-internas-aislamiento/   # Nodo staff-only Historiales_Notas_Internas
-├── 017-fallecido-archivar-recordatorios/
-├── 018-finanzas-csv-banio-caja/
-├── 019-deprecar-remove-ui/
-├── 020-portal-mascotas-cliente-id/   # Rules query cliente_id
-├── 021-costos-rentabilidad-clinica/  # Plantillas costo + margen caja + P&L día/mes
-├── 022-automatizacion-costos-dashboard/ # **done** A–E: valuación + baño/venta→caja + historial/pensión + gráficas + egresos + OC→egreso
-├── 023-push-fcm-recordatorios/          # **done** MVP CF push + FcmTokens
-├── 024-cfdi-preparacion/                # **done** datos fiscales; sin PAC
-├── 025-metricas-servicios-dashboard/    # KPIs por módulo + dashboard dueño `/admin/inicio`
-├── 026-proveedores-menu-visibilidad/    # Proveedores en sidenav + enlace desde producto
-├── 027-menu-visibilidad-modulos/        # Sub-ítems inventario en sidenav (026 follow-up)
-├── 028-portal-banos-finanzas-servicio/  # Portal baños read-only + tab ingresos por servicio
-├── 031-interconexion-modulos/           # **done** grafo IDs + atajos + portal pensión/recordatorios
-├── 032-ticket-visita-saldo-cliente/     # **done** ticket visita + CxC + portal visitas
-├── 033-vacuna-recordatorio-auto/       # **done** vacuna → recordatorio refuerzo
-├── 034-alergias-cruzadas-mascota/      # alergias canónicas + alertas cruzadas + portal
-├── 035-staff-uid-acto/                 # **done** staff UID/nombre por acto clínico
-├── 036-ticket-mejoras/                 # mejoras ticket (filtros, print, presets, CxC)
-├── 037-consentimientos-clinicos/       # **done** consentimientos admin + portal
-├── 043-producto-imagen-qr/            # foto opcional + QR + presets clínica
-├── 044-producto-picker/               # autocomplete unificado de producto
-├── 045-visita-hub-pos-grid/           # cuenta del día (ticket) + grid productos
-├── 046-ux-intuitiva-guiada/           # UX móvil: “te falta X”, walk-in, empty states
-├── 047-enlace-portal-cliente-existente/ # portal en ficha + self-reg correo/teléfono (ola 3 confirm)
-├── 051-login-auto-redirect/            # auto-entrada /admin/login con sesión Firebase
-├── 052-vacunas-esquemas-push-pwa/      # esquemas vacunación + push + PWA (olas 1–3; spec done)
-├── 053-desparasitacion-esquemas/       # desparasitación ola 1 (motor + confirm + recordatorio)
-├── 054-cierre-sistema/                 # cierre operable P0/P1/P2 · CIERRE.md
-├── 055-pos-movil-ticket/               # Caja POS mobile-first (ola 1)
-├── 056-servicios-clinica/              # Catálogo servicios con precio (ola 1; baño sigue en 022)
-├── 057-expediente-directorio-legacy/   # misma lista Buscar/Directorio + clientes/historial legacy
-├── 058-ficha-directorio-dblclick/      # doble clic Directorio → modal ficha + expediente resumido
-├── 059-dialogos-admin-layout-responsivo/ # regla permanente layout diálogos admin (padding, tabs, entity-summary)
-├── 060-modal-portal-instantaneo/       # overlay login portal en landing sin esperar Auth
-├── 061-admin-paginas-layout-responsivo/  # regla permanente layout páginas admin (grid, toolbar, search, padding)
-├── 062-cliente-mascota-abrir-expediente/ # doble clic mascota en ficha cliente → expediente completo
-├── 063-hosting-una-version/            # regla permanente: Hosting solo versión live (sin historial)
-└── NNN-nombre-feature/        # Una carpeta por entrega
+│   └── qa-validation-guide.md       # Fuente única de la checklist QA
+└── NNN-nombre-feature/        # Una carpeta por entrega (ver INDEX.md)
     ├── spec.md                # QUÉ y POR QUÉ (sin código)
-    ├── plan.md                # CÓMO (archivos, RTDB, functions)
-    └── tasks.md               # Checklist verificable + testing
+    ├── plan.md                # CÓMO (L3: Contratos de Datos + Rollback)
+    └── tasks.md               # Checklist + registro de validación
 ```
 
 ## Flujo para un módulo o feature nueva
@@ -105,21 +55,13 @@ Marca tasks.md al avanzar.
 
 Adjuntar con `@specs/003-mi-modulo/spec.md`.
 
-### 4. Verificar (pre-entrega obligatoria — la hace el agente)
+### 4. Verificar (la hace el agente, proporcional al nivel)
 
-**El agente ejecuta todas las validaciones de forma autónoma; el usuario no es el QA por defecto.**
-
-1. Aplicar **`specs/templates/qa-validation-guide.md` completo** (formularios, modales, edge cases, chips, pickers, loading, timepicker, build).
-2. Ejecutar y reportar `npm run build` (exit 0).
-3. Asegurar `npm start` vivo en http://localhost:4200 + smoke visual de lo tocado.
-4. Registrar resultados en la sección **Testing y validación exhaustiva** de `tasks.md` **antes** de marcar `[x]`.
-5. Ejecutar el resto de **Testing** en `tasks.md` (Cypress si aplica) solo con evidencia registrada.
-
-Regla Cursor: `.cursor/rules/sdd-workflow.mdc` → **Validación pre-entrega (obligatoria)**.
+El agente valida de forma autónoma según el **nivel de cambio** (L1 trivial / L2 feature / L3 datos-infra) definido en `.cursor/rules/sdd-workflow.mdc`. La checklist completa vive **solo** en `specs/templates/qa-validation-guide.md`; `npm run build` siempre; registro en `tasks.md` en L2/L3.
 
 ### 5. Cerrar
 
-En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cuando la validación pre-entrega esté registrada.
+En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cuando la validación de su nivel esté registrada. Luego regenerar el índice: `node scripts/specs-index.mjs`.
 
 ## Convención de nombres
 
@@ -130,29 +72,19 @@ En `spec.md` cambiar `Estado: draft` → `Estado: done` y fecha — **solo** cua
 
 ## Specs existentes
 
-| ID | Feature | Estado |
-|----|---------|--------|
-| 001 | Baseline producto | done |
-| 002 | Portal clientes en Usuarios | done |
-| 003 | Validación agenda citas | done |
-| 004 | Timepicker dialog | done — timepicker obligatorio en campos hora (pre-entrega) |
-| 005 | Loading feedback UX | done — loading contextual / overlay no trabado (pre-entrega en async admin) |
-| 052 | Vacunas: esquemas por especie + push anti-spam + PWA | **done** (olas 1–3; deploy scheduler FCM pendiente) |
-| 053 | Desparasitación: esquemas + confirmación + recordatorio | **in_progress** (ola 1 código; ola 2 listado/ticket) |
-| 054 | Cierre operable del producto | **in_progress** — [`CIERRE.md`](054-cierre-sistema/CIERRE.md) |
-| 055 | POS móvil Ticket del día | **in_progress** — ola 1 UI celular; olas 2 scanner / 3 atajos |
-| 058 | Ficha rápida al doble clic (Directorio) | done |
-| 059 | Layout responsivo de diálogos admin (regla UI permanente) | **in_progress** — padding/tabs/entity-summary |
-| 060 | Modal portal instantáneo en landing | **in_progress** — overlay sin esperar Auth |
-| 061 | Layout responsivo de páginas admin (regla UI permanente) | **in_progress** — grid/toolbar/search/padding/timeline |
-| 062 | Doble clic mascota en ficha cliente → expediente completo | **done** |
-| 063 | Hosting una versión live (sin historial de releases) | **done** — retención mínima + borrar viejas |
+Índice completo (número, nombre, estado) **autogenerado** en [`specs/INDEX.md`](INDEX.md). No editarlo a mano; regenerar tras cambiar cualquier `Estado:`:
+
+```bash
+node scripts/specs-index.mjs
+```
+
+Documentos transversales: [`ROADMAP.md`](ROADMAP.md) (plan maestro) · [`AUDIT-CODE.md`](AUDIT-CODE.md) (auditoría técnica) · [`QA-CRUD-MATRIX.md`](QA-CRUD-MATRIX.md) (cierre 2026-08-26, histórico) · [`054-cierre-sistema/CIERRE.md`](054-cierre-sistema/CIERRE.md) (cierre operable).
 
 ## Reglas Cursor relacionadas
 
-- `.cursor/rules/sdd-workflow.mdc` — flujo SDD (always apply)
+- `.cursor/rules/sdd-workflow.mdc` — flujo SDD + niveles L1/L2/L3 (always apply)
 - `.cursor/rules/new-admin-module.mdc` — crear módulos admin
-- `.cursor/rules/admin-ui-architecture.mdc` — diseño UI
+- `.cursor/rules/admin-ui-architecture.mdc` — diseño UI (se activa al editar `src/app/**`, `src/styles/**`)
 - `.cursor/rules/angular-firebase.mdc` — Angular + servicios
 - `.cursor/rules/cloud-functions.mdc` — Functions
 - `.cursor/rules/rtdb-rules.mdc` — Reglas RTDB

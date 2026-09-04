@@ -362,7 +362,7 @@ Spec: `specs/005-loading-feedback-ux/`.
 
 - **CRUD page:** `src/app/clientes/clientes.component.html` + `.scss`
 - **Dialog detail:** `src/app/pacientes-admin/paciente-admin-dialog.component.html` + `.scss`
-- **Handoff for external AI:** `docs/ADMIN-UI-GEMINI-HANDOFF.md`
+- **Handoff for external AI (archived, historical):** `docs/archive/ADMIN-UI-GEMINI-HANDOFF.md`
 
 ## KNOWN VIOLATIONS (migrate incrementally)
 

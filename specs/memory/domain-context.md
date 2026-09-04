@@ -597,8 +597,8 @@ flowchart TD
 4. **Inventario vs ventas/caja:** nodos `Venta` en rules sin integración web; ingresos baños deben integrarse (confirmado negocio).
 5. **Multi-sucursal:** infraestructura (`sucursalId`, filtro KPIs) pero solo una sucursal en `environment` — diseño futuro confirmado.
 6. **Dual access:** perfil `dual` — UI post-login + vincular staff↔cliente en `specs/012-perfiles-dual-y-duenas/`.
-7. **Notificaciones push:** recordatorios deben generar push Firebase — sin bridge en Functions web.
-8. **Notas internas historial:** requeridas por negocio; modelo de datos no existe aún.
+7. ~~**Notificaciones push:** recordatorios deben generar push Firebase — sin bridge en Functions web.~~ **Resuelto** — `specs/023-push-fcm-recordatorios/` (`onRecordatorioWritePush`, codebase `functions-fcm`, `FcmTokens`); esquemas vacunas/desparasitación en 052/053.
+8. ~~**Notas internas historial:** requeridas por negocio; modelo de datos no existe aún.~~ **Resuelto** — MVP `specs/010-notas-internas-historial/` (campo aditivo `notas_internas`) + aislamiento staff-only `specs/016-notas-internas-aislamiento/` (nodo `Historiales_Notas_Internas`).
 9. ~~**Validación agenda por veterinario:**~~ **Resuelto** — `specs/003-validacion-agenda-citas/` (1 vet/cita, sin solapamiento, duración default 30 min).
 10. ~~**Revocación sesiones portal (parcial):**~~ **Resuelto** en `specs/006-revocacion-sesiones-portal/` — `deactivatePortalClient` aplica `disabled: true` + `revokeRefreshTokens(uid)`; pendiente deploy Functions.
 11. ~~**Rol super admin / dueño:**~~ **Mínimo en 012** — config + Functions + opción UI; uso operativo de dueñas = doctoras.

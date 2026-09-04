@@ -1,7 +1,7 @@
 # Spec: Query portal mascotas por `cliente_id`
 
 **ID:** 020-portal-mascotas-cliente-id  
-**Estado:** done  
+**Estado:** done (retro, sin QA registrada)  
 **Fecha:** 2026-08-26  
 
 ---

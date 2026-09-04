@@ -1,7 +1,7 @@
 # Spec: Finanzas CSV + link baño→caja
 
 **ID:** 018-finanzas-csv-banio-caja  
-**Estado:** done  
+**Estado:** done (retro, sin QA registrada)  
 **Fecha:** 2026-08-26  
 **Extiende:** 014-finanzas-caja-mvp  
 

@@ -148,7 +148,7 @@ Patrón unificado estilo Stripe/Linear:
 Guías detalladas:
 
 - [`docs/ADMIN-UI-ARCHITECTURE.md`](docs/ADMIN-UI-ARCHITECTURE.md)
-- [`docs/ADMIN-UI-GEMINI-HANDOFF.md`](docs/ADMIN-UI-GEMINI-HANDOFF.md)
+- [`docs/archive/ADMIN-UI-GEMINI-HANDOFF.md`](docs/archive/ADMIN-UI-GEMINI-HANDOFF.md) (histórico)
 
 ---
 

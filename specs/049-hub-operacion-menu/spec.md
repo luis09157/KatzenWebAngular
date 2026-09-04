@@ -1,7 +1,7 @@
 # Spec: Hub operación y menú 3 mundos
 
 **ID:** 049-hub-operacion-menu  
-**Estado:** in_progress  
+**Estado:** superseded → 054 (decisiones pendientes consolidadas en `specs/054-cierre-sistema/DECISIONES-PENDIENTES.md`)  
 **Fecha:** 2026-08-28  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 048 (hints), 045/046 (POS), 025 (dashboard dueño)

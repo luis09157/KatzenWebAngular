@@ -1,7 +1,7 @@
 # Spec: Deprecar `.remove()` en servicios UI
 
 **ID:** 019-deprecar-remove-ui  
-**Estado:** done  
+**Estado:** done (retro, sin QA registrada)  
 **Fecha:** 2026-08-26  
 
 ---

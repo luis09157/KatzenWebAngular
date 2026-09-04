@@ -1,50 +1,27 @@
 ---
-description: KatzenVet Admin UI — Angular Material MDC, diálogos, tablas CRUD
-globs: src/app/**/*.html,src/app/**/*.scss,src/styles/admin*.scss,src/styles/katzen-tokens.css
-alwaysApply: true
+description: KatzenVet Admin UI — Angular Material MDC, diálogos, tablas CRUD (reglas estructurales)
+globs: src/app/**/*.ts,src/app/**/*.html,src/app/**/*.scss,src/app/**/*.css,src/styles/**
+alwaysApply: false
 ---
 
-# KatzenVet Admin UI Architecture
+# KatzenVet Admin UI
 
-Premium corporate dashboard (Stripe/Linear). Full spec: `docs/ADMIN-UI-ARCHITECTURE.md`.
+Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle de specs 059 (diálogos) / 061 (páginas): `docs/ADMIN-UI-ARCHITECTURE.md`. CSS canónico: `src/styles/admin-table.scss`, `admin-dialog.scss`, `admin-page-layout.scss`.
 
-## NEVER violate
+## NEVER
 
-1. **No `mat-dialog-title`** — use `<h2 class="admin-dialog-title">` (Material teleports the directive).
-2. **Dialog CSS** — target `.admin-dialog-panel` or component `:host`, never `.admin-content`.
-3. **Detail labels** — stack vertically; `display: block !important` on label and value.
-4. **Actions column** — `mat-column-acciones` fixed `120px`; `mat-icon-button` + `matTooltip` in `.row-actions`.
-5. **Status chips complete** — `.estado-badge` / `.admin-badge` must render fully (no clipped right edge). Do not shrink `mat-column-estado` below ~148px; keep `overflow: visible` on estado cells. Canonical CSS: `src/styles/admin-table.scss`.
-6. **Person names complete on wide screens** — veterinario / cliente / doctor / dueño / `mat-column-nombre` must show **full names** on wide viewports (no ellipsis when space exists). Medium: wrap ≤2 lines; narrow: wrap + `.table-scroll`. Canonical: `src/styles/admin-table.scss`.
-7. **Destructive action copy = "Borrar"** — UI labels, tooltips, menu items, legends and SweetAlert must say **Borrar** (never «Baja lógica» / «Dar de baja»). Internally it remains soft-delete (`activo: false`); method names/comments may keep `bajaLogica*`. Prefer «Borrar» over «Eliminar».
-8. **Multi-line cells** — fecha+hora (`.fecha-compact`) and paciente+dueño (`.cell-primary`) need visible vertical gap (~4–8px).
-9. **Desktop width** — admin pages use full `.admin-content` width (≥1200px); no nested tighter `max-width` on `.admin-page`; flexible text columns absorb space (no empty gaps while text looks cramped).
-10. **Auth/portal/landing balance** — Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system, centrada/equilibrada en desktop y responsiva; no layouts aplastados a un lado con huecos vacíos. Auth shells: reutilizar `.admin-auth-page` / `.portal-login-wrap` (incluir CSS en `styleUrls`; la encapsulación no hereda estilos de otro componente).
-11. **Panel search alignment** — Filtros/búsqueda dentro de `app-admin-data-panel` usan `.panel-search` (o `.buscador.panel-search`). El campo debe alinearse con el padding del contenido de la tabla (`margin: 8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`); sin overflow ni desfase visual a la izquierda. No inventar `.filter-field` sin ese margen lateral.
-12. **Dialog layout (spec 059)** — Nunca `:has(.entity-summary)` para quitar padding del body. `padding: 0` solo con layout interno (`.admin-dialog-layout` / `--padded` / `.info-grid`). Tabs en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie no recorta si el body no scrollea. `.entity-summary` compacto (16/12). Fichas con tabs muestran el expediente. Ficha: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers `--picker`; CRUD grandes shell estándar.
-13. **Páginas admin responsivas (spec 061)** — No forzar N columnas si el **ancho útil** de `.admin-content` (sidenav no cuenta) no las aguanta. Grid fluido 3→2→1 con container `admin-page` (≥~1100px útil 3 cols si cabe; ~720–1099 2; &lt;720 1). Toolbars `flex-wrap` alineadas al inicio; `matTooltip` below, no tapar la card. Buscadores sin clip; en estrecho «Nuevo» apila. Cards padding ≥16px (acento/DUEÑO ≥20px); gap ≥16px (20–24 desktop). Timelines gap ~8–12px. Desktop ancho sigue regla 9 (aprovechar ancho; no “todo chiquito”). Canonical: `src/styles/admin-page-layout.scss`. Diálogos = spec 059.
+1. **No `mat-dialog-title`** — usar `<h2 class="admin-dialog-title">` (Material teletransporta la directiva).
+2. **CSS de diálogos** — apuntar a `.admin-dialog-panel` o `:host` del componente, nunca a `.admin-content`. Nunca `:has(.entity-summary)` para quitar padding del body.
+3. **Copy destructivo = «Borrar»** — labels, tooltips, menús, SweetAlert. Nunca «Baja lógica» / «Dar de baja» (internamente sigue `activo: false`).
+4. **Chips de estado completos** — `.estado-badge` / `.admin-badge` sin clip; `mat-column-estado` ≥ ~148px, `overflow: visible`.
+5. **Loading** — `LoadingService` con mensaje contextual (`LOADING_MESSAGES`); cada `show()` → `hide()` en success **y** error; sin doble `show` diálogo+padre.
+6. **Dialog config** — `{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }`. Pickers compactos: `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER`; fichas: `ADMIN_DIALOG_FICHA`. No usar `--picker` en CRUD grandes.
+7. **Campos de hora** → `app-timepicker-field` (no `type="time"`).
 
-## Tokens (use CSS vars)
+## Patrones
 
-`--katzen-verde`, `--katzen-verde-fuerte`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-sm/md/lg`.
-
-## Refactor checklist
-
-1. Remove layout-breaking Material directives from HTML.
-2. Apply `.table-shell` (lists) or `.admin-form-layout` / `.admin-dialog-layout` (dialogs).
-3. Primary actions: `.btn-primary-teal` on `mat-raised-button`.
-
-## Dialog config
-
-```typescript
-{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }
-```
-
-Compact pickers (timepicker): `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER` (~420px). Body padding ≥28×32, gap ≥24px, footer ≥18×28×22. Do not use `--picker` on large CRUD forms.
-
-## Loading (obligatorio)
-
-- Usar `LoadingService` con mensaje contextual: `Cargando…` / `Guardando…` / `Eliminando…` / `Actualizando…` (`LOADING_MESSAGES`).
-- Cada `show()` → `hide()` en success **y** error (`finally` o `wrap`).
-- **No** doble `show` (diálogo + padre): deja el overlay trabado por el contador.
-- Spec: `specs/005-loading-feedback-ux/` · detalle: `docs/ADMIN-UI-ARCHITECTURE.md` § Loading.
+- Página: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; grid fluido 3→2→1 según ancho útil; desktop usa todo `.admin-content`.
+- Tabla: `.table-scroll` + `mat-table`; acciones `mat-column-acciones` 120px con `mat-icon-button` + `matTooltip` en `.row-actions`; nombres de persona completos en desktop.
+- Diálogo: `admin-dialog-shell` + `.admin-dialog-layout`; tabs `dynamicHeight`, `overflow: visible`; `.entity-summary` compacto.
+- Primarias: `.btn-primary-teal` en `mat-raised-button`. Tokens CSS: `--katzen-verde`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-*`.
+- Búsqueda en panel: `.panel-search` alineada al padding de la tabla. Shells auth/portal: `.admin-auth-page` / `.portal-login-wrap`, centrados y responsivos.

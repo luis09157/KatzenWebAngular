@@ -1,7 +1,7 @@
 # Spec: Aislamiento RTDB notas internas
 
 **ID:** 016-notas-internas-aislamiento  
-**Estado:** done  
+**Estado:** done (retro, sin QA registrada)  
 **Fecha:** 2026-08-26  
 
 ---

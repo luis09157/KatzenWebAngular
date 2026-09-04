@@ -1,8 +1,10 @@
 # Matriz QA CRUD — Admin KatzenVet
 
+> **Documento de cierre 2026-08-26 (histórico).** Para el QA vigente y su proceso por niveles ver `specs/templates/qa-validation-guide.md` y `.cursor/rules/sdd-workflow.mdc`.
+
 **Fecha cierre:** 2026-08-26 (mandato completo)  
 **Mandato:** Luis Alfonso Niño Martínez  
-**Entorno:** localhost `:4200` + Firebase prod vía Cypress autenticado  
+**Entorno:** localhost `:4200` + emulador Firebase / mocks (Cypress con sesión de prueba). El agente **no** usa producción (`constitution.md` Regla 1); los deploys listados abajo los autorizó Luis.  
 
 Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 
@@ -16,7 +18,7 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 | `npm run functions:build` | **PASS** |
 | `npm run cy:admin` (11 specs) | **45/46** luego fix alertas; modules **15/15**; finanzas re-run tras fix buscador |
 | Features 015–020 | Implementadas en repo (ver abajo) |
-| Resend `RESEND_API_KEY` | **OK** (2026-08-26) — secret + deploy callables portal; modo prueba sin dominio |
+| Resend `RESEND_API_KEY` | **OK** (2026-08-26, spec 038) — secret + deploy callables portal; modo prueba sin dominio propio |
 | localhost `:4200` | **VIVO** (`ng serve`) |
 
 ---
@@ -46,47 +48,10 @@ Leyenda: **PASS** | **FAIL** | **BLOQUEADO** | **N/A**
 
 ---
 
-## Resend — correo portal (sin dominio propio)
+## Resend — correo portal
 
-> **Correos diferidos por decisión Luis (2026-08-26):** no priorizar setup Resend ni marcar PASS de entrega hasta el **final** de lo que se construya. Seguir implementando features sin depender de correo real. Ver `specs/ROADMAP.md` → «Al final — Resend».
+**Estado real (spec 038):** `RESEND_API_KEY` en Secret Manager y callables portal (`provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner`) **desplegados 2026-08-26**. Sin dominio propio sigue en **modo prueba** (correo solo llega a la cuenta Resend); correo a clientes reales requiere Fase B: `specs/038-resend-correo-portal/FASE-B-DOMINIO.md` · resumen en `specs/038-resend-correo-portal/notas-resend.md`.
 
-### Verificación ciclo 2026-08-26 (agente)
-
-| Check | Resultado |
-|-------|-----------|
-| Docs AGENTS / ROADMAP / esta matrix | OK alineados |
-| Inventar `RESEND_API_KEY` | **NO** (prohibido) |
-| Secret en proyecto | Esperado **404** hasta que Luis setee |
-| Deploy functions portal mail | **BLOQUEADO** sin secret |
-| Código mail existente | OK (`portal-mail.ts`); `emailSent: false` si falta key |
-
-### Límites honestos
-
-| Escenario | ¿Funciona? |
-|-----------|------------|
-| Firebase Hosting `katzen-a0e3e.web.app` como dominio de envío | **No** |
-| Sin dominio propio | Solo **modo prueba** → email cuenta Resend |
-| Correo a clientes reales | **Pendiente** dominio + FROM |
-
-### Estado verificado
-
-```text
-RESEND_API_KEY → 404 Secret not found (Luis debe setear)
-PORTAL_FROM_EMAIL → 404 (opcional)
-```
-
-### Pasos para Luis
-
-1. Crear API key en https://resend.com
-2. `firebase functions:secrets:set RESEND_API_KEY`
-3. Opcional: `PORTAL_FROM_EMAIL` con dominio verificado
-4. `npm run functions:build && firebase deploy --only functions:provisionPortalClient,functions:resendPortalClientAccess,functions:registerPortalOwner`
-5. Probar solo al email de la cuenta Resend en modo prueba
-6. **No marcar PASS correo a clientes** hasta dominio propio
-
-### Decisión ciclo actual
-
-**Dejar al final.** No deploy mail. No inventar key.
 ---
 
 ## Matriz por módulo (delta)
@@ -121,4 +86,4 @@ PORTAL_FROM_EMAIL → 404 (opcional)
 - [x] hosting (UI) → https://katzen-a0e3e.web.app
 - [x] database (rules Mascota `cliente_id` + `Historiales_Notas_Internas` + `FcmTokens` 023)
 - [x] functions:`onRecordatorioWritePush` — **OK** codebase `fcm` (sin Resend) · deploy 2026-08-26
-- [ ] functions portal mail (`provisionPortalClient`, etc.) — **BLOQUEADO** sin `RESEND_API_KEY`. UI desvincular tiene **fallback RTDB** operativo.
+- [x] functions portal mail (`provisionPortalClient`, etc.) — **OK** 2026-08-26 con `RESEND_API_KEY` (spec 038); modo prueba hasta dominio propio.

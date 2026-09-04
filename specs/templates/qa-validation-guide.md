@@ -1,36 +1,38 @@
 # Guía de Pruebas y Validación Exhaustiva — KatzenVet
 
-**Uso:** Cursor y agentes IA deben aplicar esta guía **antes de marcar como completada** cualquier tarea, componente o vista de una feature SDD — y **antes de entregar** cualquier módulo, mejora o fix al usuario.
-
-**Referencia en specs:** copiar la sección **Testing y validación exhaustiva** de `module-tasks.template.md` al `tasks.md` de cada feature y registrar ahí los resultados.
+**Fuente única** de la checklist de validación pre-entrega. `AGENTS.md`, `.cursor/rules/sdd-workflow.mdc`, `constitution.md` y `README.md` solo enlazan aquí; no duplicar la lista en otros documentos.
 
 **Entorno:** localhost, emuladores Firebase o mocks locales — **nunca** producción (`katzen-a0e3e`). Ver `specs/memory/constitution.md`.
 
 ---
 
-## Rol del agente (no negociable)
+## Rol del agente
 
-Actúa como un **Ingeniero de QA Senior** y desarrollador riguroso.
+**El agente corre las validaciones; Luis no es el QA por defecto.** No entregues pidiendo que Luis “pruebe y reporte”. Registra el resultado en `tasks.md` antes de marcar `[x]` (L2/L3).
 
-**El agente corre las validaciones; el usuario no es el QA por defecto.** No entregues pidiendo que Luis “pruebe y reporte”. Ejecuta (o simula con evidencia) el set completo de forma **autónoma** — en multitask / en paralelo cuando sea posible — **antes de dar por cerrada** la entrega.
+## Qué aplicar según el nivel del cambio
 
-No marques `[x]` en `tasks.md` hasta haber ejecutado (o simulado con evidencia) cada ítem aplicable y **registrado el resultado** en la sección correspondiente de `tasks.md`.
+Los niveles se definen en `.cursor/rules/sdd-workflow.mdc`. La validación es proporcional; no aplicar la guía completa a un cambio de padding.
+
+| Nivel | Validación | Registro |
+|-------|------------|----------|
+| **L1 trivial** (CSS, copy, tooltip) | `npm run build` + 1 screenshot local (`:4200`) | Nota de una línea en la spec afectada si existe. Sin `tasks.md` |
+| **L2 feature UI/lógica** | Unit tests del util + `npm run build` + smoke 375 / 1280 con mocks. Cypress **solo** si hay ruta nueva. De §1–§3 solo los ítems que la feature toca | Tabla de 5 filas de `module-tasks.template.md` (≤10 líneas) |
+| **L3 datos/infra** (rules, functions, scripts a prod, modelos compartidos con móvil, imports) | **Esta guía completa** (§1–§5) + emulador Firebase + autorización explícita de Luis | Tabla completa (§4.3) en `tasks.md` + `plan.md` con Contratos de Datos / Rollback |
+
+Ante duda, elegir el nivel superior.
 
 ---
 
-## Checklist pre-entrega (obligatorio)
-
-Antes de responder que la feature/fix/módulo está listo, completar **todos** los ítems aplicables:
+## Checklist pre-entrega (L3 completo; L2 ítems aplicables)
 
 | # | Acción | Evidencia |
 |---|--------|-----------|
-| 1 | Seguir esta guía completa (§1–§4) | Resultados en `tasks.md` |
+| 1 | Seguir esta guía (§1–§4) según nivel | Resultados en `tasks.md` |
 | 2 | `npm run build` (exit 0) | Resumen reportado en `tasks.md` y al usuario |
-| 3 | Servidor local vivo (`npm start` → http://localhost:4200) + smoke visual de lo tocado | Confirmación URL / captura o simulación anotada |
+| 3 | Servidor local vivo (`npm start` → http://localhost:4200) + smoke visual de lo tocado | Captura o simulación anotada |
 | 4 | Registrar resultados en `tasks.md` **antes** de marcar `[x]` | Tabla QA rellenada |
 | 5 | Reglas de UI recientes (si aplica — ver §2.4) | Filas OK / N/A en tabla QA |
-
-Sin este checklist, la entrega **no está cerrada**.
 
 ---
 
@@ -208,11 +210,11 @@ npm run functions:build
 3. Hacer o simular smoke de las pantallas/diálogos tocados.
 4. Confirmar al usuario la URL al entregar.
 
-### 4.3 Registro en `tasks.md` (obligatorio antes de `[x]`)
+### 4.3 Registro en `tasks.md` (obligatorio antes de `[x]` en L2/L3)
 
 Antes de marcar cualquier tarea de implementación o testing como completada:
 
-1. Completar la sección **Testing y validación exhaustiva** en el `tasks.md` de la feature.
+1. Completar la sección **Validación** del `tasks.md` de la feature (L2: tabla de 5 filas de la plantilla; L3: plantilla de registro completa de abajo).
 2. Anotar por escenario: **OK**, **N/A** (con motivo) o **FALLO** (con descripción).
 3. Pegar output relevante de `npm run build` (o enlace a CI).
 4. Solo entonces marcar `[x]`.
@@ -281,7 +283,7 @@ Antes de responder "tarea completada" / entregar al usuario:
 ## Referencias
 
 - `specs/templates/module-tasks.template.md` — checklist ejecutable por feature
-- `.cursor/rules/sdd-workflow.mdc` — flujo SDD + Validación pre-entrega
+- `.cursor/rules/sdd-workflow.mdc` — flujo SDD + niveles de cambio L1/L2/L3
 - `docs/ADMIN-UI-ARCHITECTURE.md` — patrones UI admin (modales, tablas, feedback, pickers, chips)
 - `AGENTS.md` — comandos y restricciones del proyecto
 - `specs/004-timepicker-dialog/` · `specs/005-loading-feedback-ux/` · `specs/059-dialogos-admin-layout-responsivo/` · `specs/061-admin-paginas-layout-responsivo/`

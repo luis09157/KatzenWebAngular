@@ -61,19 +61,9 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 
 ## 4. Calidad y testing
 
-**QA pre-entrega no negociable:** el agente ejecuta **todas** las validaciones de `specs/templates/qa-validation-guide.md` de forma autónoma **antes de entregar**; Luis no es el QA por defecto. Registrar en `tasks.md` **antes** de marcar `[x]`.
-
-Toda feature lista para merge / entrega debe cumplir:
-
-| Verificación | Cuándo |
-|--------------|--------|
-| Guía QA completa + registro en `tasks.md` | Siempre, antes de cerrar |
-| `npm run build` | Siempre |
-| `npm run functions:build` | Si toca `functions/` |
-| Live preview `:4200` + smoke visual | Cambios UI |
-| Cypress smoke del módulo | Rutas admin nuevas o cambiadas |
-| Probar en localhost / emuladores | Flujo feliz + un error esperado |
-| UI acordadas (chips, `--picker`, loading, timepicker) | Si la feature toca esos patrones |
+- El agente valida de forma autónoma antes de entregar; Luis no es el QA por defecto. `npm run build` siempre; `npm run functions:build` si toca `functions/`.
+- La validación es **proporcional al nivel del cambio** (L1 trivial / L2 feature / L3 datos-infra) definido en `.cursor/rules/sdd-workflow.mdc`.
+- La checklist completa vive **solo** en `specs/templates/qa-validation-guide.md` (fuente única); registrar resultados en `tasks.md` antes de marcar `[x]` en L2/L3.
 
 ## 5. Deploy checklist (solo con autorización explícita de Luis)
 

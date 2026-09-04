@@ -9,6 +9,8 @@
 
 ---
 
+> **Nota (2026-09-04):** para el estado vivo de deuda técnica y ambigüedades, la fuente es `specs/memory/domain-context.md` §9. Este documento conserva el detalle de la auditoría inicial; los hallazgos 6–10 (citas) están **resueltos por la spec 003** (marcados en cada ítem).
+
 ## Resumen ejecutivo
 
 KatzenVet Web tiene una base sólida: Angular 17 lazy-loaded, guards de auth/roles en frontend, Cloud Functions con patrón `isCallerAdmin`, transacciones RTDB en inventario (salidas) y arquitectura admin documentada (`docs/ADMIN-UI-ARCHITECTURE.md`) mayormente respetada.
@@ -330,3 +332,4 @@ Priorizar spec `specs/NNN-rtdb-granular-permisos/` y `specs/NNN-validacion-agend
 |-------|--------|
 | 2026-08-25 | Auditoría inicial — 30 hallazgos documentados |
 | 2026-08-25 | Spec 003: ítems 6–10 citas resueltos (agenda, motivo, roles) |
+| 2026-09-04 | Nota: `domain-context.md` §9 es la fuente viva; este doc queda como detalle histórico |

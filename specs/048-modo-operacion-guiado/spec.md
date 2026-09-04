@@ -1,7 +1,7 @@
 # Spec: Modo operación guiado (hints + POS inventario)
 
 **ID:** 048-modo-operacion-guiado  
-**Estado:** in_progress  
+**Estado:** superseded → 054 (decisiones pendientes consolidadas en `specs/054-cierre-sistema/DECISIONES-PENDIENTES.md`)  
 **Fecha:** 2026-08-28  
 **Autor:** Luis Alfonso Niño Martínez + agente  
 **Relaciona:** 046 (UX guiada), 045 (cuenta del día / POS), 044 (producto picker)

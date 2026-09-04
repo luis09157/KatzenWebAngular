@@ -4,19 +4,9 @@ Plan para adoptar Spec-Driven Development y mantener el sistema al crecer.
 
 ---
 
-## Fase 1 — Infraestructura SDD ✅ (esta entrega)
+## Fase 1 — Infraestructura SDD ✅ cumplida (2026-08-25)
 
-| Tarea | Entregable | Estado |
-|-------|------------|--------|
-| Constitución del proyecto | `specs/memory/constitution.md` | ✅ |
-| Guía agentes | `AGENTS.md` | ✅ |
-| Plantillas spec/plan/tasks | `specs/templates/` | ✅ |
-| Baseline producto | `specs/001-baseline/spec.md` | ✅ |
-| Retro-spec portal usuarios | `specs/002-portal-clientes-usuarios/` | ✅ |
-| Rules Cursor SDD + dominio | `.cursor/rules/*.mdc` | ✅ |
-| README specs | `specs/README.md` | ✅ |
-
-**Testing fase 1:** revisar que Cursor carga rules; abrir chat con `@AGENTS.md` y `@specs/memory/constitution.md`.
+Constitución, `AGENTS.md`, plantillas, baseline 001, retro-spec 002, rules Cursor y `specs/README.md` en su lugar. Proceso vigente con niveles L1/L2/L3: `.cursor/rules/sdd-workflow.mdc`.
 
 ---
 
@@ -38,34 +28,13 @@ Auditoría integral del codebase (2026-08-25): [`specs/AUDIT-CODE.md`](AUDIT-COD
 
 ---
 
-## Fase 2 — Retro-documentar módulos críticos (1–2 semanas)
+## Fase 2 — Retro-documentar módulos críticos ✅ cumplida
 
-Prioridad para tener specs antes de refactorizar:
+Los módulos base (clientes, pacientes, citas, inventario, portal) quedaron documentados en `specs/001-baseline/` y `specs/memory/domain-context.md`; las mejoras posteriores tienen su propia spec (ver `specs/INDEX.md`). No existen carpetas `010-clientes` / `011-pacientes`: esos números se usaron para otras features.
 
-| Orden | Módulo | Carpeta spec | Cypress existente |
-|-------|--------|--------------|-------------------|
-| 1 | Clientes | `specs/010-clientes/` | `admin-crud-clientes.cy.ts` |
-| 2 | Pacientes / expediente | `specs/011-pacientes/` | `paciente-smoke.cy.ts` |
-| 3 | Citas | `specs/012-citas/` | en `admin-modules-authenticated` |
-| 4 | Inventario | `specs/013-inventario/` | parcial |
-| 5 | Portal dueños | `specs/014-portal/` | manual |
+## Fase 3 — Plantilla “nuevo módulo admin” ✅ cumplida
 
-**Por cada módulo:** copiar template → documentar rutas RTDB → listar criterios SC → enlazar tests Cypress.
-
----
-
-## Fase 3 — Plantilla “nuevo módulo admin” probada (cuando toque feature nueva)
-
-Usar `specs/templates/` para el **próximo módulo real** que pidas (ej. campañas, reportes, facturación).
-
-Checklist automático en `tasks.md`:
-
-1. `StaffModule` + routing + guard
-2. UI admin pattern (clientes como ref)
-3. RTDB rules si hay escritura
-4. Function callable si hay lógica sensible
-5. Entrada Cypress en `admin-modules-authenticated.cy.ts`
-6. `npm run build` + `npm run cy:admin`
+Plantillas de `specs/templates/` probadas desde la spec 003 en adelante; checklist de módulo nuevo en `.cursor/rules/new-admin-module.mdc`.
 
 ---
 
@@ -93,6 +62,8 @@ Checklist automático en `tasks.md`:
 
 ## Fase 6 — Features de dominio (backlog, sin fechas)
 
+**Prioridad actual (2026-09-04):** el backlog de producto se ordena por `specs/PLAN-UX-VETERINARIAS.md` (usabilidad para veterinarias sin perfil técnico: flujos guiados, caja automática, menú por rol, onboarding). Lo de abajo se toma solo si no choca con ese plan.
+
 Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*` antes de implementar.
 
 | Área | Feature | Prioridad sugerida |
@@ -105,7 +76,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Ops / enlaces** | **031 done:** prefill baños, expediente→cita/pensión, cita→caja, stock→OC, KPI links, FCM token SW-ready | Alta — **cerrada** |
 | **Finanzas / CxC** | **032/036 done.** ~~**045** hub ticket (cuenta del día + pendientes baño + venta desde ticket)~~ **done**. Walk-in petshop → **046 done**. | Alta |
 | **UX admin** | ~~**046** draft: flujos guiados “te falta X”, empty states, walk-in~~ **done** — `specs/046-ux-intuitiva-guiada/` | Alta — **cerrada** |
-| **Ops recepción** | **048/049/050** código mayormente listo. **054:** wizard ticket. **055:** POS móvil + precios inventario. **056:** catálogo Servicios de clínica + costo/IVA/ganancia (precio al público incluye IVA; sin deploy). | Alta |
+| **Ops recepción** | **048/049/050** superseded → **054** (decisiones Luis en `054-cierre-sistema/DECISIONES-PENDIENTES.md`). **054:** wizard ticket. **055:** POS móvil + precios inventario. **056:** catálogo Servicios de clínica + costo/IVA/ganancia (precio al público incluye IVA; sin deploy). | Alta |
 | **Ops clínicas** | **033–037 done**. **052 done** (código olas 1–3). **053 ola 1 hecha** (desparasitación → recordatorio). Deploy functions-fcm scheduler **pendiente autorización Luis**. Cierre: `specs/054-cierre-sistema/CIERRE.md`. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
@@ -115,18 +86,9 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 
 ---
 
-## Al final — Resend / correos portal
+## Resend / correos portal
 
-**Estado 2026-08-26:** **activado** — secret + deploy callables (`specs/038-resend-correo-portal/`).
-
-| Paso | Acción | Estado |
-|------|--------|--------|
-| 1 | `RESEND_API_KEY` en Secret Manager | **OK** |
-| 2 | Deploy `provisionPortalClient`, `resendPortalClientAccess`, `registerPortalOwner` | **OK** |
-| 3 | Smoke modo prueba (inbox cuenta Resend) | Pendiente Luis |
-| 4 | Dominio propio + `PORTAL_FROM_EMAIL` (clientes reales) | Fase B — ver `specs/038-resend-correo-portal/FASE-B-DOMINIO.md` |
-
-Detalle: `specs/QA-CRUD-MATRIX.md` · `AGENTS.md`.
+**Activado 2026-08-26** (`specs/038-resend-correo-portal/`): secret `RESEND_API_KEY` + deploy de callables portal. Pendiente: smoke modo prueba (inbox cuenta Resend, Luis) y **dominio propio + `PORTAL_FROM_EMAIL`** para clientes reales (Fase B — `specs/038-resend-correo-portal/FASE-B-DOMINIO.md`). Resumen: `specs/038-resend-correo-portal/notas-resend.md`.
 
 ---
 
@@ -149,7 +111,9 @@ El agente debe:
 
 ## Métricas de éxito SDD
 
-- [ ] Toda feature nueva tiene carpeta en `specs/`
-- [ ] Cero callables en frontend sin function desplegada (checklist deploy)
-- [ ] UI admin sin regresiones en `npm run cy:admin`
-- [ ] Mensajes de error legibles (no `"internal"` crudo)
+| Métrica | Estado 2026-09-04 |
+|---------|-------------------|
+| Toda feature nueva tiene carpeta en `specs/` | ✅ (64 specs; índice `specs/INDEX.md`) |
+| Callables usados en frontend con function desplegada | ✅ salvo pendientes autorizados por Luis (scheduler FCM 052, `registerPortalOwner` ola 3 de 047) |
+| UI admin sin regresiones en `npm run cy:admin` | ✅ al cierre 2026-08-26 (`QA-CRUD-MATRIX.md`); re-correr solo al tocar rutas admin (L2 con ruta nueva) |
+| Mensajes de error legibles (`ErrorMessagesService`) | ✅ patrón obligatorio en constitution §3 |

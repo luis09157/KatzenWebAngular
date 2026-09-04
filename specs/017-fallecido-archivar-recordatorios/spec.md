@@ -1,7 +1,7 @@
 # Spec: Fallecido → archivar recordatorios
 
 **ID:** 017-fallecido-archivar-recordatorios  
-**Estado:** done  
+**Estado:** done (retro, sin QA registrada)  
 **Fecha:** 2026-08-26  
 
 ---

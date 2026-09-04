@@ -42,7 +42,7 @@ No es un wishlist infinito. Lo que no está abajo **no bloquea** abrir la clíni
 |---|------|-------|
 | 1 | **053 ola 2** — listado/filtro desparasitaciones en Recordatorios + CTA cobro ticket | Tras usar ola 1 en clínica |
 | 2 | **047 ola 3** — match self-reg por teléfono + confirmación (no auto-vínculo) | **Código listo 2026-08-28**; deploy `registerPortalOwner` con **OK Luis** |
-| 3 | Cerrar QA de **048 / 049 / 050** (`in_progress` → `done`) | Código mayormente listo; falta registro QA en tasks |
+| 3 | Cerrar **048 / 049 / 050** (marcadas `superseded → 054` el 2026-09-04) | Código mayormente listo; decisiones de Luis en [`DECISIONES-PENDIENTES.md`](./DECISIONES-PENDIENTES.md) |
 | 4 | Deploy **functions-fcm scheduler** 052 (`onVacunaPushSchedule`) | Código listo; **autorización Luis** |
 | 5 | Medicamento controlado: salida inventario ligada a historial | Dominio §12; spec nueva |
 
