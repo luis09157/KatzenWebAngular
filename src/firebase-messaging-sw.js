@@ -17,7 +17,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const PORTAL_CACHE = 'katzen-portal-v3';
+const PORTAL_CACHE = 'katzen-portal-v4';
 const PRECACHE_URLS = [
   '/manifest.webmanifest',
   '/assets/katzen-logo.png',
@@ -99,7 +99,10 @@ self.addEventListener('fetch', (event) => {
   if (
     path.includes('firebase') ||
     path.startsWith('/__/') ||
-    path.endsWith('firebase-messaging-sw.js')
+    path.endsWith('firebase-messaging-sw.js') ||
+    path.endsWith('.js') ||
+    path.endsWith('.css') ||
+    path.endsWith('.map')
   ) {
     return;
   }

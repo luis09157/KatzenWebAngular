@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { registerFirebaseMessagingSw } from '../../core/utils/firebase-messaging-sw-register';
 
 /**
  * PWA solo portal (spec 052 ola 2). No se ofrece instalar el admin.
@@ -31,7 +32,7 @@ export class PortalPwaService {
     });
 
     if ('serviceWorker' in navigator) {
-      void navigator.serviceWorker.register('/firebase-messaging-sw.js?v=3').catch(() => undefined);
+      void registerFirebaseMessagingSw().catch(() => undefined);
     }
   }
 

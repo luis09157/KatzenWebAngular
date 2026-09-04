@@ -5,6 +5,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/messaging';
 import { environment } from '../../../environments/environment';
 import { LoggerService } from '../logger.service';
+import { registerFirebaseMessagingSw } from '../utils/firebase-messaging-sw-register';
 
 export type PortalFcmStatus =
   | 'unsupported'
@@ -85,7 +86,7 @@ export class PortalFcmService {
         return { status: 'denied', detail: 'Permiso de notificaciones denegado.' };
       }
 
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js?v=3');
+      const registration = await registerFirebaseMessagingSw();
       await navigator.serviceWorker.ready;
 
       this.messaging = this.messaging ?? firebase.messaging();
