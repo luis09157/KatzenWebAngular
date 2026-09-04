@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -11,6 +11,7 @@ import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
+import { connectRtdbEmulatorIfEnabled } from './core/firebase-emulator';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { LayoutsModule } from './layouts/layouts.module';
@@ -38,8 +39,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     PrivacidadModule
   ],
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => () => connectRtdbEmulatorIfEnabled()
+    },
     provideAnimationsAsync()
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    connectRtdbEmulatorIfEnabled();
+  }
+}

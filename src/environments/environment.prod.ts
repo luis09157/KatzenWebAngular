@@ -31,5 +31,8 @@ export const environment = {
   /** Spec 052: push programado (D-7 / D-0). Rollback: false + no redeployar scheduler. */
   pushProgramadoEnabled: true,
   /** POS 055: catálogo demo OFF en producción (nunca mezclar con RTDB). */
-  usarCatalogoDemoPos: false
+  /** POS 055: catálogo demo OFF en producción (nunca mezclar con RTDB). */
+  usarCatalogoDemoPos: false,
+  /** Nunca emulador en hosting / build prod. */
+  useRtdbEmulator: false
 }; 

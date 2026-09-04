@@ -24,5 +24,15 @@ export const environment = {
    * POS 055: catálogo de muestra local (6 ítems `demo-pos-*`).
    * Solo preview UI — no se guarda en inventario. Default ON en localhost.
    */
-  usarCatalogoDemoPos: true
+  /**
+   * POS 055: catálogo de muestra local (6 ítems `demo-pos-*`).
+   * Solo preview UI — no se guarda en inventario. Default ON en localhost.
+   */
+  usarCatalogoDemoPos: true,
+  /**
+   * Spec 064: `ng serve` lee el emulador RTDB (685 SKU eleventa), no katzen-a0e3e.
+   * Auth sigue en Firebase real. Apagar (`false`) para volver a ver la clínica de prod.
+   * `environment.prod.ts` siempre false.
+   */
+  useRtdbEmulator: true
 }; 

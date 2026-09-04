@@ -1,0 +1,22 @@
+# Build / deps
+dist/
+node_modules/
+.angular/
+functions/lib/
+functions/node_modules/
+functions-fcm/lib/
+functions-fcm/node_modules/
+
+# Nativo / artefactos
+android/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+emulator-data/
+data/
+tmp/
+
+# Generados / lockfiles
+package-lock.json
+specs/INDEX.md
+*.min.js

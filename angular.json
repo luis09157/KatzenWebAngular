@@ -64,8 +64,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "2.5mb",
+                  "maximumError": "3mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -102,12 +102,23 @@
             "scripts": [],
             "karmaConfig": "karma.conf.js"
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     }
   },
-  
   "cli": {
-    "analytics": "73d441dc-a067-48f8-9e09-81fe928e422d"
+    "analytics": "73d441dc-a067-48f8-9e09-81fe928e422d",
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

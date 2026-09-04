@@ -1,0 +1,8 @@
+{
+  "src/**/*.ts": ["prettier --write", "eslint --fix"],
+  "src/**/*.html": ["prettier --write", "eslint --fix"],
+  "src/**/*.{scss,css}": ["prettier --write"],
+  "{scripts,cypress}/**/*.{ts,mjs,js}": ["prettier --write"],
+  "*.{json,yml,yaml}": ["prettier --write"],
+  ".github/**/*.yml": ["prettier --write"]
+}
