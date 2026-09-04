@@ -219,6 +219,9 @@
         ".write": "auth != null && auth.token.role != 'client'",
         "Movimientos": {
           ".indexOn": ["fecha", "metodoPago", "activo", "tipo", "sucursalId", "categoria", "visitaId", "clienteId"]
+        },
+        "Cortes": {
+          ".indexOn": ["fecha", "activo", "sucursalId"]
         }
       },
       "Visitas": {

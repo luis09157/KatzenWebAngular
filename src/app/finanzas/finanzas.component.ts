@@ -11,6 +11,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.component';
+import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
 import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
 import { CajaService } from './caja.service';
 import { PlantillaCostoService } from './plantilla-costo.service';
@@ -320,6 +321,14 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   formatChartFecha(iso: string): string {
     if (!iso || iso.length < 10) return iso;
     return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+  }
+
+  abrirCorteCaja(): void {
+    this.dialog.open(CajaCorteDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '520px',
+      data: { fecha: this.fechaFiltro, movimientos: this.todos }
+    });
   }
 
   nuevoMovimiento(): void {

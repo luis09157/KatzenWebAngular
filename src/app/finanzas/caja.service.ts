@@ -15,6 +15,7 @@ import {
   BanioIngresoRefuerzo,
   PensionIngresoRefuerzo,
   CajaMetodoPago,
+  CajaCorte,
   CajaMovimiento,
   CajaMovimientoFormData,
   CajaPeriodoModo
@@ -23,6 +24,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class CajaService {
   private readonly movimientosPath = 'Katzen/Caja/Movimientos';
+  private readonly cortesPath = 'Katzen/Caja/Cortes';
 
   constructor(
     private db: AngularFireDatabase,
@@ -362,6 +364,24 @@ export class CajaService {
   /** @deprecated Preferir calcularKpisPeriodo('dia', fecha). */
   calcularKpisDia(movimientos: CajaMovimiento[], fechaDia: string): CajaDiaKpis {
     return this.calcularKpisPeriodo(movimientos, 'dia', fechaDia);
+  }
+
+  async guardarCorte(corte: Omit<CajaCorte, 'id' | 'createdAt' | 'createdBy' | 'activo'>): Promise<string> {
+    const now = new Date().toISOString();
+    const createdBy = await this.currentStaff.getStaffId();
+    const row: CajaCorte = {
+      ...corte,
+      activo: true,
+      createdAt: now,
+      createdBy
+    };
+    const ref = await this.db.list(this.cortesPath).push(row);
+    const id = ref.key;
+    if (!id) {
+      throw new Error('No se pudo guardar el corte');
+    }
+    await stampRtdbIdAfterPush(this.db, this.cortesPath, id);
+    return id;
   }
 
   hoyLocalIsoDate(): string {

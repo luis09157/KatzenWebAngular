@@ -18,9 +18,10 @@ import { FinanzasRoutingModule } from './finanzas-routing.module';
 import { FinanzasComponent } from './finanzas.component';
 import { CajaDialogModule } from './caja-dialog.module';
 import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
+import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
 
 @NgModule({
-  declarations: [FinanzasComponent, PlantillaCostoDialogComponent],
+  declarations: [FinanzasComponent, PlantillaCostoDialogComponent, CajaCorteDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

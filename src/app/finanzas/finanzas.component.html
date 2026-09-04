@@ -25,6 +25,10 @@
       title="Caja / costos / rentabilidad"
       subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día.">
       <div bannerActions>
+        <button mat-stroked-button type="button" *ngIf="isAdmin" (click)="abrirCorteCaja()">
+          <mat-icon>point_of_sale</mat-icon>
+          Corte de caja
+        </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" *ngIf="isAdmin" (click)="nuevoMovimiento()">
           <mat-icon>add</mat-icon>
           Registrar cobro

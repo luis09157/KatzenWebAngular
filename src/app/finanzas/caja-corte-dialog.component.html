@@ -1,0 +1,45 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Corte de caja</h2>
+      <p class="admin-dialog-subtitle">Arqueo de efectivo del día. Tarjeta y transferencia no entran al conteo físico.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Fecha</mat-label>
+        <input matInput type="date" formControlName="fecha" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Fondo inicial</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="fondoInicial" />
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+      <p>Ingresos en efectivo: <strong>{{ formatMoney(ingresosEfectivo) }}</strong></p>
+      <p>Egresos en efectivo: <strong>{{ formatMoney(egresosEfectivo) }}</strong></p>
+      <p>Efectivo esperado: <strong>{{ formatMoney(esperado) }}</strong></p>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Efectivo contado</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="efectivoContado" />
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+      <p>Diferencia: <strong>{{ formatMoney(diferencia) }}</strong> {{ cuadrado ? '(cuadrada)' : '' }}</p>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Notas (opcional)</mat-label>
+        <textarea matInput rows="2" formControlName="notas"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <div class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" [disabled]="loading" (click)="guardar()">
+      Guardar corte
+    </button>
+  </div>
+</div>

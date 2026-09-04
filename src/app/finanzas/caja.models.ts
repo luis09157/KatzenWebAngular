@@ -105,6 +105,24 @@ export interface CajaMovimientoFormData {
   movimientoInventarioIds?: string[];
 }
 
+/** Spec 064 — arqueo de turno (aditivo). */
+export interface CajaCorte {
+  id?: string;
+  fecha: string;
+  fondoInicial: number;
+  ingresosEfectivo: number;
+  egresosEfectivo: number;
+  esperado: number;
+  efectivoContado: number;
+  diferencia: number;
+  cuadrado: boolean;
+  notas?: string;
+  sucursalId?: string;
+  activo: boolean;
+  createdAt: string;
+  createdBy?: string;
+}
+
 export interface CajaDiaKpis {
   totalIngresos: number;
   totalEgresos: number;
