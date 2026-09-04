@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
@@ -33,7 +34,13 @@ describe('HistorialDialogComponent', () => {
   ];
 
   beforeEach(async () => {
-    const historialesService = jasmine.createSpyObj('HistorialesService', ['crearHistorial', 'actualizarHistorial']);
+    // Spec 016: al editar, el diálogo lee notas internas del nodo aislado.
+    const historialesService = jasmine.createSpyObj('HistorialesService', [
+      'crearHistorial',
+      'actualizarHistorial',
+      'getNotasInternas'
+    ]);
+    historialesService.getNotasInternas.and.resolveTo('');
     const pacientesService = jasmine.createSpyObj('PacientesService', ['getPaciente', 'registrarHistorialClinico']);
     const dialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
     const storage = jasmine.createSpyObj('AngularFireStorage', ['ref', 'upload']);
@@ -47,7 +54,8 @@ describe('HistorialDialogComponent', () => {
         MatInputModule,
         MatSelectModule,
         MatDatepickerModule,
-        MatNativeDateModule
+        MatNativeDateModule,
+        MatCheckboxModule
       ],
       providers: [
         { provide: HistorialesService, useValue: historialesService },
@@ -221,7 +229,8 @@ describe('HistorialDialogComponent', () => {
           MatInputModule,
           MatSelectModule,
           MatDatepickerModule,
-          MatNativeDateModule
+          MatNativeDateModule,
+          MatCheckboxModule
         ],
         providers: [
           { provide: HistorialesService, useValue: historialesServiceSpy },

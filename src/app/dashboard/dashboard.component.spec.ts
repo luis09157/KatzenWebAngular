@@ -1,21 +1,25 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { DashboardComponent } from './dashboard.component';
-import { AuthService } from '../auth/auth.service';
+import {
+  ADMIN_TEST_DECLARATIONS,
+  ADMIN_TEST_IMPORTS,
+  provideAdminTestStubs
+} from '../core/testing/angularfire-stubs';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('AuthService', ['logout']);
     await TestBed.configureTestingModule({
-      declarations: [ DashboardComponent ],
-      providers: [ { provide: AuthService, useValue: spy } ]
+      declarations: [DashboardComponent, ...ADMIN_TEST_DECLARATIONS],
+      imports: [...ADMIN_TEST_IMPORTS],
+      providers: [...provideAdminTestStubs()],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
-    authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
   });
 
   beforeEach(() => {

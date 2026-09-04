@@ -165,6 +165,10 @@ describe('HistorialesService', () => {
       const listSpy = jasmine.createSpyObj('AngularFireList', ['push']);
       listSpy.push.and.returnValue(Promise.resolve(mockRef));
       dbSpy.list.and.returnValue(listSpy);
+      // Tras el push se estampa `id` en el nodo (stampRtdbIdAfterPush → db.object().update()).
+      const objectSpy = jasmine.createSpyObj('AngularFireObject', ['update', 'set']);
+      objectSpy.update.and.resolveTo(undefined);
+      dbSpy.object.and.returnValue(objectSpy);
 
       const result = await service.crearHistorial(mockHistorial);
 
@@ -173,6 +177,32 @@ describe('HistorialesService', () => {
       const argumento = listSpy.push.calls.mostRecent().args[0];
       expect(argumento.fecha_registro).toBe('2025-12-28 13:50:00');
       expect(argumento.activo).toBe(true);
+      // Spec 016: notas_internas nunca se persiste en el nodo legible por portal.
+      expect(argumento.notas_internas).toBeNull();
+      expect(argumento.oculto_portal).toBe(false);
+      expect(dbSpy.object).toHaveBeenCalledWith('Katzen/Historiales_Clinicos/nuevo-id');
+      expect(objectSpy.update).toHaveBeenCalledWith({ id: 'nuevo-id' });
+    });
+
+    it('debe guardar notas_internas en el nodo aislado (spec 016)', async () => {
+      const listSpy = jasmine.createSpyObj('AngularFireList', ['push']);
+      listSpy.push.and.returnValue(Promise.resolve({ key: 'nuevo-id' }));
+      dbSpy.list.and.returnValue(listSpy);
+      const objectSpy = jasmine.createSpyObj('AngularFireObject', ['update', 'set']);
+      objectSpy.update.and.resolveTo(undefined);
+      objectSpy.set.and.resolveTo(undefined);
+      dbSpy.object.and.returnValue(objectSpy);
+
+      await service.crearHistorial({
+        diagnostico_presuntivo: 'Test',
+        paciente_id: 'pac1',
+        notas_internas: '  Solo staff  '
+      });
+
+      const argumento = listSpy.push.calls.mostRecent().args[0];
+      expect(argumento.notas_internas).toBeNull();
+      expect(dbSpy.object).toHaveBeenCalledWith('Katzen/Historiales_Notas_Internas/nuevo-id');
+      expect(objectSpy.set).toHaveBeenCalledWith(jasmine.objectContaining({ texto: 'Solo staff' }));
     });
 
     it('debe usar la fecha actual si no se proporciona fecha_registro', async () => {
@@ -185,6 +215,9 @@ describe('HistorialesService', () => {
       const listSpy = jasmine.createSpyObj('AngularFireList', ['push']);
       listSpy.push.and.returnValue(Promise.resolve(mockRef));
       dbSpy.list.and.returnValue(listSpy);
+      const objectSpy = jasmine.createSpyObj('AngularFireObject', ['update', 'set']);
+      objectSpy.update.and.resolveTo(undefined);
+      dbSpy.object.and.returnValue(objectSpy);
 
       await service.crearHistorial(mockHistorial);
 
