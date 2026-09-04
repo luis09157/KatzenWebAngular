@@ -93,7 +93,7 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading">
+  <button mat-raised-button color="primary" class="btn-primary-teal" (click)="guardar()" [disabled]="loading">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">done</mat-icon>
     {{loading ? 'Recibiendo...' : 'Confirmar Recepción'}}

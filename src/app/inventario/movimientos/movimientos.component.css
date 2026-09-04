@@ -65,14 +65,7 @@
   overflow: hidden;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  gap: 20px;
-}
+/* .loading-container: canónico en src/styles/admin-crud.scss */
 
 .resumen-info {
   padding: 16px 24px;

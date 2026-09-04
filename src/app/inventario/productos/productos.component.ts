@@ -55,6 +55,8 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   menuContext: Producto | null = null;
   /** Spec 045/046 — catálogo tipo POS. */
   vistaCatalogo: 'lista' | 'cuadricula' = 'cuadricula';
+  private detalleGuardUntil = 0;
+  private ignoreTrailingClickTimer: ReturnType<typeof setTimeout> | null = null;
 
   get productosFiltrados(): Producto[] {
     if (!this.dataSource) return this.productos;
@@ -120,6 +122,7 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.clearIgnoreTrailingClick();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -177,14 +180,63 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  /** Clic / doble clic / Enter abre el mismo diálogo de edición (stock, precios, ficha). */
+  abrirDetalleProducto(producto: Producto, event?: Event): void {
+    if (this.esEventoDeAccion(event) || !producto) {
+      return;
+    }
+    const now = Date.now();
+    if (now < this.detalleGuardUntil) {
+      return;
+    }
+    this.detalleGuardUntil = now + 450;
+    event?.preventDefault();
+    this.editarProducto(producto);
+  }
+
+  onFilaProductoKeydown(producto: Producto, event: Event): void {
+    if (this.esEventoDeAccion(event)) {
+      return;
+    }
+    const key = (event as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      this.abrirDetalleProducto(producto, event);
+    }
+  }
+
+  private esEventoDeAccion(event?: Event): boolean {
+    const target = event?.target as HTMLElement | null;
+    return !!target?.closest('button, a, .row-actions, .mat-mdc-menu-trigger, .producto-card__actions');
+  }
+
   editarProducto(producto: Producto): void {
+    this.armarIgnorarClicResidual();
     const dialogRef = this.dialog.open(ProductoDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       data: { producto: producto, modoEdicion: true }
     });
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+      this.clearIgnoreTrailingClick();
       if (result) this.cargarProductos();
     });
+  }
+
+  /** El 2º clic de un doble clic cae en el backdrop y cerraría el diálogo al instante. */
+  private armarIgnorarClicResidual(): void {
+    document.body.classList.add('admin-dialog-ignore-trailing-click');
+    if (this.ignoreTrailingClickTimer) {
+      clearTimeout(this.ignoreTrailingClickTimer);
+    }
+    this.ignoreTrailingClickTimer = setTimeout(() => this.clearIgnoreTrailingClick(), 450);
+  }
+
+  private clearIgnoreTrailingClick(): void {
+    document.body.classList.remove('admin-dialog-ignore-trailing-click');
+    if (this.ignoreTrailingClickTimer) {
+      clearTimeout(this.ignoreTrailingClickTimer);
+      this.ignoreTrailingClickTimer = null;
+    }
   }
 
   /** Spec 031: producto con stock bajo → OC prefilled. */

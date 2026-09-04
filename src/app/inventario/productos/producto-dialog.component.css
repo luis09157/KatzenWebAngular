@@ -31,3 +31,39 @@
   height: 16px;
   margin-right: 2px;
 }
+
+/* --- IVA row: checkbox flexible + tasa fija --- */
+.iva-row {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.iva-row__checkbox {
+  flex: 1 1 300px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.iva-row__checkbox mat-checkbox {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+::ng-deep .iva-row__checkbox .mdc-form-field {
+  white-space: normal !important;
+}
+
+::ng-deep .iva-row__checkbox .mdc-label {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+.iva-row__tasa {
+  flex: 0 0 150px;
+  width: 150px;
+}

@@ -199,20 +199,20 @@
         </span>
       </div>
 
-      <div class="form-grid" style="margin-top: 12px;">
-        <div class="checkboxes">
+      <div class="iva-row">
+        <div class="iva-row__checkbox">
           <mat-checkbox formControlName="iva_aplicable">
             <mat-icon>receipt</mat-icon>
             Aplicar IVA (el precio al público ya lo incluye; no es factura CFDI)
           </mat-checkbox>
         </div>
-        <mat-form-field appearance="outline" *ngIf="productoForm.get('iva_aplicable')?.value">
+        <mat-form-field appearance="outline" class="iva-row__tasa" *ngIf="productoForm.get('iva_aplicable')?.value">
           <mat-label>Tasa IVA %</mat-label>
           <input matInput type="number" formControlName="tasa_iva" min="0" max="100" step="1">
           <mat-hint>México general: 16%</mat-hint>
         </mat-form-field>
       </div>
-      <p class="mat-caption" style="margin: 8px 0 0; opacity: 0.85;">{{ hintIvaCategoria }}</p>
+      <p class="form-section__caption">{{ hintIvaCategoria }}</p>
     </section>
 
     <section class="form-section">
@@ -231,7 +231,7 @@
           </mat-error>
         </mat-form-field>
       </div>
-      <p class="mat-caption" style="margin: 8px 0 0;">
+      <p class="form-section__caption">
         ¿No está en la lista?
         <button type="button" mat-button color="primary" class="link-proveedores"
                 (click)="irAGestionProveedores()">
@@ -276,7 +276,7 @@
   <button mat-button (click)="cancelar()" [disabled]="loading">
     Cancelar
   </button>
-  <button mat-raised-button color="primary" (click)="guardar()" [disabled]="loading || productoForm.invalid">
+  <button mat-raised-button color="primary" class="btn-primary-teal" (click)="guardar()" [disabled]="loading || productoForm.invalid">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">save</mat-icon>
     {{loading ? 'Guardando...' : 'Guardar'}}

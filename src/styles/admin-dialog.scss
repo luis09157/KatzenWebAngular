@@ -374,15 +374,48 @@
   }
 }
 
+/*
+ * Título de sección de formulario (canónico único).
+ * Antes cada diálogo lo redefinía con `!important`; los valores de abajo son
+ * los que usaba la mayoría (vacunas, baños, usuarios, historiales, inventario).
+ * No redefinir en componentes: si un diálogo necesita otro margen, usar modificador.
+ */
 .form-section__title {
-  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
   padding-bottom: 8px;
   border-bottom: 1px solid #f3f4f6;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #065d60;
+  color: var(--katzen-verde-fuerte, #065d60);
+}
+
+/* Texto auxiliar bajo el título o al pie de una sección (antes iba inline en HTML). */
+.form-section__hint {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--admin-text-secondary, #6b7280);
+}
+
+.form-section__hint--muted {
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: var(--admin-radius-sm, 8px);
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Nota corta al pie de un bloque de campos (antes `class="mat-caption" style="..."`). */
+.form-section__caption {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--admin-text-secondary, #6b7280);
 }
 
 .form-grid {
@@ -672,14 +705,18 @@
   min-height: 40px;
 }
 
+/* Primaria de diálogo: `.btn-primary-teal` explícito o cualquier raised `color="primary"`
+   dentro del panel admin → mismo teal de marca (evita el teal-600 del tema Material). */
 .admin-dialog-panel .btn-primary-teal,
-.admin-dialog-actions .btn-primary-teal {
-  --mdc-protected-button-container-color: #0a969b;
+.admin-dialog-actions .btn-primary-teal,
+.admin-dialog-panel .mat-mdc-raised-button.mat-primary {
+  --mdc-protected-button-container-color: var(--katzen-verde, #0a969b);
   --mdc-protected-button-label-text-color: #fff;
 }
 
-.admin-dialog-actions .btn-primary-teal:hover:not([disabled]) {
-  --mdc-protected-button-container-color: #065d60;
+.admin-dialog-actions .btn-primary-teal:hover:not([disabled]),
+.admin-dialog-panel .mat-mdc-raised-button.mat-primary:hover:not([disabled]) {
+  --mdc-protected-button-container-color: var(--katzen-verde-fuerte, #065d60);
 }
 
 /* ── Vistas de detalle (solo lectura) ── */
@@ -1529,4 +1566,9 @@
   .admin-dialog-panel--pos .admin-dialog-header {
     padding: 12px 14px 10px !important;
   }
+}
+
+/* Evita que el 2º clic de un doble clic cierre el diálogo al caer en el backdrop. */
+body.admin-dialog-ignore-trailing-click .cdk-overlay-backdrop {
+  pointer-events: none !important;
 }

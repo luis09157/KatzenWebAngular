@@ -125,7 +125,7 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
   <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
-  <button mat-raised-button color="primary" (click)="guardar()" 
+  <button mat-raised-button color="primary" class="btn-primary-teal" (click)="guardar()" 
           [disabled]="loading || ordenForm.invalid || productosArray.length === 0">
     <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
     <mat-icon *ngIf="!loading">save</mat-icon>
