@@ -498,12 +498,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
   eliminarRecordatorio(recordatorio: any) {
     Swal.fire({
       icon: 'warning',
-      title: '¿Archivar recordatorio?',
-      text: 'Se marcará como inactivo. Los datos se conservan en RTDB.',
+      title: '¿Borrar este recordatorio?',
+      text: 'El recordatorio se ocultará del listado. Los datos se conservan.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, archivar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
@@ -511,15 +511,15 @@ export class PacientesComponent implements OnInit, OnDestroy {
           this.cargarRecordatorios(this.pacienteSeleccionado.id);
           Swal.fire({
             icon: 'success',
-            title: 'Archivado',
-            text: 'Recordatorio dado de baja correctamente'
+            title: 'Borrado',
+            text: 'Recordatorio borrado correctamente'
           });
         }).catch(error => {
           console.error('Error al eliminar recordatorio:', error);
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudo eliminar el recordatorio'
+            text: 'No se pudo borrar el recordatorio'
           });
         });
       }

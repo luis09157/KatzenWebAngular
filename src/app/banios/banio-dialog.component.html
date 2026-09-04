@@ -230,7 +230,7 @@
           Alergias del paciente
           <span class="form-section__badge form-section__badge--optional">Expediente</span>
         </h3>
-        <p class="form-section__hint" style="margin:0 0 10px;font-size:0.8125rem;color:var(--admin-muted,#6b7280)">
+        <p class="form-section__hint">
           Se guardan en la mascota (fuente de verdad) y como snapshot en el baño.
         </p>
         <app-alergias-editor
@@ -263,7 +263,7 @@
     <mat-dialog-actions class="admin-dialog-actions">
       <div class="admin-dialog-actions__right">
         <button mat-button type="button" (click)="cancelar()">Cancelar</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="!banioForm.valid || loading">
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="submit" [disabled]="!banioForm.valid || loading">
           <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ esEdicion ? 'Actualizar' : 'Crear' }}

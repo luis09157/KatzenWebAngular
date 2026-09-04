@@ -166,7 +166,7 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
     <button mat-button type="button" (click)="cerrar()">Cerrar</button>
-    <button mat-raised-button color="primary" *ngIf="!modoVer" [disabled]="!esFormularioValido()" (click)="guardar()">
+    <button mat-raised-button color="primary" class="btn-primary-teal" *ngIf="!modoVer" [disabled]="!esFormularioValido()" (click)="guardar()">
       Guardar
     </button>
   </mat-dialog-actions>

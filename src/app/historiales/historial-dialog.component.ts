@@ -360,12 +360,12 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Archivar historial?',
-      text: 'Se ocultará en el panel admin y en el portal del dueño. Los datos se conservan en RTDB.',
+      title: '¿Borrar este historial?',
+      text: 'Se ocultará en el panel admin y en el portal del dueño. Los datos se conservan.',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, archivar',
+      confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar'
     });
 

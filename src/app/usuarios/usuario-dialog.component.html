@@ -110,7 +110,7 @@
 
     <mat-dialog-actions class="admin-dialog-actions">
       <button type="button" mat-button (click)="cerrar()">Cancelar</button>
-      <button type="submit" mat-raised-button color="primary" [disabled]="usuarioForm.invalid">
+      <button type="submit" mat-raised-button color="primary" class="btn-primary-teal" [disabled]="usuarioForm.invalid">
         {{ isEditMode ? 'Actualizar' : 'Crear personal' }}
       </button>
     </mat-dialog-actions>
