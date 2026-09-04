@@ -12,7 +12,9 @@ export function roundMoney(n: number): number {
 
 export function sumLineas(lineas: VisitaLinea[] | undefined | null): number {
   if (!Array.isArray(lineas) || !lineas.length) return 0;
-  return roundMoney(lineas.reduce((s, l) => s + (Number(l?.monto) || 0), 0));
+  return roundMoney(
+    lineas.reduce((s, l) => (l?.fueDevuelto ? s : s + (Number(l?.monto) || 0)), 0)
+  );
 }
 
 export function deriveEstado(total: number, pagado: number, cancelada = false): VisitaEstado {

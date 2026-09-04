@@ -445,8 +445,19 @@
               <img *ngIf="fotoDeLinea(l)" [src]="fotoDeLinea(l)" [alt]="l.descripcion" />
               <mat-icon *ngIf="!fotoDeLinea(l)">{{ iconoLinea(l) }}</mat-icon>
             </span>
-            <span class="pos-cobro-lines__desc">{{ l.descripcion }}</span>
+            <span class="pos-cobro-lines__desc">
+              {{ l.descripcion }}
+              <small *ngIf="l.fueDevuelto" class="pos-devuelto">Devuelto</small>
+            </span>
             <strong class="pos-cobro-lines__monto">{{ formatMoney(l.monto) }}</strong>
+            <button
+              *ngIf="puedeDevolver(l)"
+              mat-button
+              type="button"
+              class="pos-devolver"
+              (click)="devolverLinea(l)">
+              Devolver
+            </button>
           </li>
         </ul>
         <div class="pos-cobro-total">
@@ -457,7 +468,10 @@
 
         <form [formGroup]="cobroForm" class="pos-cobro-form" *ngIf="!soloLectura && totales.saldo > 0">
           <p class="presets-label">Método de pago</p>
-          <div class="pos-metodos">
+          <button mat-button type="button" class="pos-mixto-toggle" (click)="togglePagoMixto()">
+            {{ cobroForm.get('mixto')?.value ? 'Un solo método' : 'Pago mixto (efectivo + tarjeta…)' }}
+          </button>
+          <div class="pos-metodos" *ngIf="!cobroForm.get('mixto')?.value">
             <button
               type="button"
               class="pos-metodo"
@@ -469,6 +483,7 @@
             </button>
           </div>
           <mat-form-field
+            *ngIf="!cobroForm.get('mixto')?.value"
             appearance="outline"
             class="full-width pos-monto-field"
             floatLabel="always"
@@ -477,6 +492,23 @@
             <input matInput type="number" min="0.01" step="0.01" formControlName="monto" inputmode="decimal" />
             <span matTextPrefix>$&nbsp;</span>
           </mat-form-field>
+          <div class="pos-mixto-grid" *ngIf="cobroForm.get('mixto')?.value">
+            <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+              <mat-label>Efectivo</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="montoEfectivo" inputmode="decimal" />
+              <span matTextPrefix>$&nbsp;</span>
+            </mat-form-field>
+            <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+              <mat-label>Tarjeta</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="montoTarjeta" inputmode="decimal" />
+              <span matTextPrefix>$&nbsp;</span>
+            </mat-form-field>
+            <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+              <mat-label>Transferencia</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="montoTransferencia" inputmode="decimal" />
+              <span matTextPrefix>$&nbsp;</span>
+            </mat-form-field>
+          </div>
           <button mat-button type="button" class="pos-cobrar-todo" (click)="cobrarTodo()">
             Cobrar todo ({{ formatMoney(totales.saldo) }})
           </button>

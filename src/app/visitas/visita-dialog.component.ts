@@ -9,6 +9,8 @@ import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { filtrarProductos, productoSinStock, productoStockBajo } from '../core/utils/producto-search.util';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago } from '../finanzas/caja.models';
+import { armarPartesPagoMixto, mensajePagoInvalido, validarPagoContraSaldo } from './pos-pago-mixto.util';
+import { puedeDevolverLinea } from './pos-devolucion.util';
 import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import { emptyDefaultsBanio, DefaultsBanioPorTamano, TamanoPerroBanio } from '../finanzas/defaults-banio.models';
 import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
@@ -419,7 +421,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     });
     this.cobroForm = this.fb.group({
       metodoPago: ['efectivo' as CajaMetodoPago, Validators.required],
-      monto: [null, [Validators.required, Validators.min(0.01)]]
+      monto: [null, [Validators.required, Validators.min(0.01)]],
+      mixto: [false],
+      montoEfectivo: [0],
+      montoTarjeta: [0],
+      montoTransferencia: [0]
     });
   }
 
@@ -893,7 +899,36 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   cobrarTodo(): void {
-    this.cobroForm.patchValue({ monto: this.totales.saldo });
+    const saldo = this.totales.saldo;
+    if (this.cobroForm.get('mixto')?.value) {
+      this.cobroForm.patchValue({
+        montoEfectivo: saldo,
+        montoTarjeta: 0,
+        montoTransferencia: 0,
+        monto: saldo
+      });
+      return;
+    }
+    this.cobroForm.patchValue({ monto: saldo });
+  }
+
+  togglePagoMixto(): void {
+    const on = !this.cobroForm.get('mixto')?.value;
+    this.cobroForm.patchValue({
+      mixto: on,
+      montoEfectivo: on ? this.totales.saldo : 0,
+      montoTarjeta: 0,
+      montoTransferencia: 0
+    });
+  }
+
+  puedeDevolver(linea: {
+    id?: string;
+    descripcion?: string;
+    fueDevuelto?: boolean;
+    monto?: number;
+  }): boolean {
+    return this.soloLectura && !!this.visitaId && puedeDevolverLinea(linea as Pick<VisitaLinea, 'monto'>);
   }
 
   formatMoney(n: number): string {
@@ -948,17 +983,25 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       Swal.fire('Sin líneas', 'Agrega al menos un servicio o producto al ticket.', 'warning');
       return;
     }
-    const montoPago = roundMoney(Number(this.cobroForm.get('monto')?.value) || 0);
-    const metodo = this.cobroForm.get('metodoPago')?.value as CajaMetodoPago;
-    if (!(montoPago > 0)) {
+    const mixto = !!this.cobroForm.get('mixto')?.value;
+    const partes = mixto
+      ? armarPartesPagoMixto({
+          efectivo: Number(this.cobroForm.get('montoEfectivo')?.value) || 0,
+          tarjeta: Number(this.cobroForm.get('montoTarjeta')?.value) || 0,
+          transferencia: Number(this.cobroForm.get('montoTransferencia')?.value) || 0
+        })
+      : armarPartesPagoMixto({
+          [this.cobroForm.get('metodoPago')?.value || 'efectivo']:
+            Number(this.cobroForm.get('monto')?.value) || 0
+        } as { efectivo?: number; tarjeta?: number; transferencia?: number });
+    const valid = validarPagoContraSaldo(partes, t.saldo);
+    const pagoErr = mensajePagoInvalido(valid);
+    if (pagoErr) {
       this.cobroForm.markAllAsTouched();
-      Swal.fire('Monto', 'Indica cuánto se cobra.', 'warning');
+      Swal.fire('Monto', pagoErr, 'warning');
       return;
     }
-    if (montoPago > t.saldo + 0.001) {
-      Swal.fire('Monto', 'El cobro no puede ser mayor al saldo del ticket.', 'warning');
-      return;
-    }
+    const montoPago = valid.total;
 
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
@@ -970,27 +1013,28 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       const movIdsInv = this.lineas
         .map(l => l.movimientoInventarioId)
         .filter((id): id is string => !!id);
-      const movId = await this.cajaService.crearMovimiento({
-        tipo: 'ingreso',
-        concepto: `Ticket ${raw.fecha} · ${raw.cliente || (this.modoMostrador ? 'Mostrador' : raw.cliente_id)}`,
-        monto: montoPago,
-        metodoPago: metodo || 'efectivo',
-        ivaDeclarado: false,
-        fecha: raw.fecha,
-        visitaId,
-        clienteId: this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
-        categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
-        movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined
-      });
       const visita = await this.visitasService.getVisita(visitaId);
       if (!visita) throw new Error('Visita no encontrada');
-      if (montoPago > roundMoney(visita.saldo) + 0.001) {
-        throw new Error('El monto no puede superar el saldo pendiente');
-      }
       const ids = [...(visita.cajaMovimientoIds || [])];
-      if (!ids.includes(movId)) ids.push(movId);
+      let pagadoAcc = visita.pagado || 0;
+      for (const parte of partes) {
+        const movId = await this.cajaService.crearMovimiento({
+          tipo: 'ingreso',
+          concepto: `Ticket ${raw.fecha} · ${raw.cliente || (this.modoMostrador ? 'Mostrador' : raw.cliente_id)}`,
+          monto: parte.monto,
+          metodoPago: parte.metodo,
+          ivaDeclarado: false,
+          fecha: raw.fecha,
+          visitaId,
+          clienteId: this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
+          categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
+          movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined
+        });
+        if (!ids.includes(movId)) ids.push(movId);
+        pagadoAcc = roundMoney(pagadoAcc + parte.monto);
+      }
       await this.visitasService.actualizarVisita(visitaId, {
-        pagado: roundMoney((visita.pagado || 0) + montoPago),
+        pagado: pagadoAcc,
         cajaMovimientoIds: ids
       });
       const esParcial = montoPago < saldoAntes - 0.001;
@@ -1004,6 +1048,40 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       this.dialogRef.close({ visitaId, cobrado: true, parcial: esParcial });
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  async devolverLinea(linea: { id: string; descripcion: string; fueDevuelto?: boolean; monto?: number }): Promise<void> {
+    if (!this.visitaId || !this.puedeDevolver(linea)) {
+      return;
+    }
+    const ask = await Swal.fire({
+      icon: 'question',
+      title: '¿Devolver esta línea?',
+      text: `${linea.descripcion}. Se reintegra stock si era producto y se registra un egreso en caja.`,
+      showCancelButton: true,
+      confirmButtonText: 'Devolver',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!ask.isConfirmed) {
+      return;
+    }
+    this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      await this.visitasService.devolverLineas(this.visitaId, [linea.id]);
+      const v = await this.visitasService.getVisita(this.visitaId);
+      if (v) {
+        this.lineas = [...(v.lineas || [])];
+        this.pagado = Number(v.pagado) || 0;
+        this.estadoLabel = VISITA_ESTADO_LABELS[v.estado] || v.estado;
+      }
+      Swal.fire({ icon: 'success', title: 'Devolución registrada', timer: 1800, showConfirmButton: false });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'devolver visita'), 'error');
     } finally {
       this.loading = false;
       this.loadingService.hide();

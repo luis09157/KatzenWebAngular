@@ -66,6 +66,9 @@ export interface VisitaLinea {
   ganancia?: number;
   aplicaIva?: boolean;
   tasaIva?: number;
+  /** Spec 064 — línea devuelta (aditivo). */
+  fueDevuelto?: boolean;
+  devueltaEn?: string;
 }
 
 export interface Visita {

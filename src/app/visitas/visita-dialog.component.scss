@@ -577,6 +577,27 @@
     min-height: 44px;
   }
 
+  .pos-mixto-toggle {
+    align-self: flex-start;
+    min-height: 44px;
+  }
+
+  .pos-mixto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .pos-devuelto {
+    display: block;
+    color: #b45309;
+    font-size: 0.75rem;
+  }
+
+  .pos-devolver {
+    min-height: 40px;
+  }
+
   /* Outline MDC: el wrapper blanco tapa el notch y el label cruza el borde. */
   .pos-monto-field.mat-mdc-form-field {
     width: 100%;

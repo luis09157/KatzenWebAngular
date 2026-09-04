@@ -7,6 +7,13 @@ import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago, CajaMovimientoFormData } from '../finanzas/caja.models';
+import { InventarioService } from '../inventario/inventario.service';
+import {
+  lineasADevolver,
+  marcarLineasDevueltas,
+  montoDevolucion,
+  reintegrosInventario
+} from './pos-devolucion.util';
 import {
   Visita,
   VisitaFormData,
@@ -31,7 +38,8 @@ export class VisitasService {
     private db: AngularFireDatabase,
     private currentStaff: CurrentStaffService,
     private clientesService: ClientesService,
-    private cajaService: CajaService
+    private cajaService: CajaService,
+    private inventario: InventarioService
   ) {}
 
   getVisitas(): Observable<Visita[]> {
@@ -362,6 +370,55 @@ export class VisitasService {
       cajaMovimientoIds: ids
     });
     return movId;
+  }
+
+  /** Spec 064 — devolución: egreso de caja + reintegro de stock + marca de línea. */
+  async devolverLineas(
+    visitaId: string,
+    lineaIds: string[],
+    metodoPago: CajaMetodoPago = 'efectivo'
+  ): Promise<void> {
+    const visita = await this.getVisita(visitaId);
+    if (!visita) throw new Error('Visita no encontrada');
+    if (visita.estado === 'cancelada') {
+      throw new Error('La visita cancelada no admite devoluciones');
+    }
+    const sel = lineasADevolver(visita.lineas || [], lineaIds);
+    if (!sel.length) {
+      throw new Error('No hay líneas para devolver');
+    }
+    const monto = montoDevolucion(sel);
+    const now = new Date().toISOString();
+    for (const r of reintegrosInventario(sel)) {
+      await this.inventario.registrarEntrada(
+        r.productoId,
+        r.cantidad,
+        0,
+        'Devolución de venta',
+        undefined,
+        `Visita ${visitaId}`
+      );
+    }
+    const movId = await this.cajaService.crearMovimiento({
+      tipo: 'egreso',
+      monto,
+      metodoPago,
+      ivaDeclarado: false,
+      concepto: `Devolución ticket ${visita.fecha} — ${visita.cliente || visita.cliente_id}`.slice(0, 120),
+      fecha: visita.fecha || hoyLocalIsoDate(),
+      clienteId: visita.cliente_id,
+      visitaId,
+      categoria: 'otro',
+      notas: `Líneas: ${sel.map(l => l.descripcion).join(', ')}`
+    });
+    const lineas = marcarLineasDevueltas(visita.lineas || [], sel.map(l => l.id), now);
+    const ids = [...(visita.cajaMovimientoIds || []), movId];
+    const nuevoPagado = roundMoney(Math.max(0, (visita.pagado || 0) - monto));
+    await this.actualizarVisita(visitaId, {
+      lineas,
+      pagado: nuevoPagado,
+      cajaMovimientoIds: ids
+    });
   }
 
   async bajaLogicaVisita(id: string): Promise<void> {

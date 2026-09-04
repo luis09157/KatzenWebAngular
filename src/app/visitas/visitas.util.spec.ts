@@ -26,6 +26,15 @@ describe('visitas.util', () => {
     expect(calc.estado).toBe('parcial');
   });
 
+  it('sumLineas ignora líneas devueltas', () => {
+    expect(
+      sumLineas([
+        { id: 'a', descripcion: 'A', monto: 100, categoria: 'otro' },
+        { id: 'b', descripcion: 'B', monto: 50, categoria: 'otro', fueDevuelto: true }
+      ] as any)
+    ).toBe(100);
+  });
+
   it('sumLineas maneja vacío', () => {
     expect(sumLineas([])).toBe(0);
     expect(sumLineas(null)).toBe(0);

@@ -5,6 +5,7 @@ import { VisitasService } from './visitas.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { CajaService } from '../finanzas/caja.service';
+import { InventarioService } from '../inventario/inventario.service';
 import { Visita } from './visitas.models';
 
 describe('VisitasService (spec 039/042 integridad cobro)', () => {
@@ -97,7 +98,8 @@ describe('VisitasService (spec 039/042 integridad cobro)', () => {
           provide: ClientesService,
           useValue: { actualizarCliente: () => Promise.resolve() }
         },
-        { provide: CajaService, useValue: {} }
+        { provide: CajaService, useValue: {} },
+        { provide: InventarioService, useValue: { registrarEntrada: () => Promise.resolve() } }
       ]
     });
 
