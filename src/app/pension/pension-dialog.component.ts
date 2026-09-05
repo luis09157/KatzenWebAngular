@@ -1,36 +1,41 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
-import {
-  costoMenorQueVentaValidator,
-  MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA
-} from '../core/utils/precio-margen.util';
+import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from '../core/utils/precio-margen.util';
 import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
 import {
   ESTADO_PENSION_LABELS,
   EstadoPension,
   PensionEstancia,
   TAMANO_PENSION_LABELS,
-  TamanoMascotaPension
+  TamanoMascotaPension,
 } from './pension.models';
 import {
-  ClientePacienteSelection
-} from '../shared/admin/cliente-paciente-picker.models';
+  AltaRapidaPickerDeps,
+  crearClienteRapidoDesdePicker,
+  crearMascotaRapidaDesdePicker,
+} from '../shared/admin/alta-rapida-picker.helper';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
+import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
+import { Cliente } from '../core/models';
+import { ClientesService } from '../clientes/clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { PensionService } from './pension.service';
 
 @Component({
   selector: 'app-pension-dialog',
   templateUrl: './pension-dialog.component.html',
   styleUrls: ['./pension-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class PensionDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   form: FormGroup;
   loading = false;
   esEdicion = false;
@@ -45,8 +50,11 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     private pensionService: PensionService,
     private defaultsPension: DefaultsPensionService,
     private dialogRef: MatDialogRef<PensionDialogComponent>,
+    private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
+    private clientesService: ClientesService,
+    private pacientesService: PacientesService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       estancia?: PensionEstancia;
@@ -68,7 +76,7 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
       precio_total: [null],
       costo_dia: [null, [costoMenorQueVentaValidator('precio_dia')]],
       estado: ['reservada' as EstadoPension, Validators.required],
-      notas: ['']
+      notas: [''],
     });
   }
 
@@ -90,7 +98,7 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         precio_total: e.precio_total ?? null,
         costo_dia: e.costo_dia ?? null,
         estado: e.estado,
-        notas: e.notas || ''
+        notas: e.notas || '',
       });
     } else {
       this.form.patchValue({
@@ -99,7 +107,7 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         paciente_id: this.data?.paciente_id || '',
         cliente_id: this.data?.cliente_id || '',
         paciente: this.data?.paciente || '',
-        cliente: this.data?.cliente || ''
+        cliente: this.data?.cliente || '',
       });
     }
 
@@ -159,6 +167,27 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({ precio_total: Math.round(precioDia * dias * 100) / 100 }, { emitEvent: false });
   }
 
+  private altaRapidaDeps(): AltaRapidaPickerDeps {
+    return {
+      dialog: this.dialog,
+      clientesService: this.clientesService,
+      pacientesService: this.pacientesService,
+      loadingService: this.loadingService,
+      errorMessages: this.errorMessages,
+      picker: this.picker,
+    };
+  }
+
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    if (this.esEdicion) return;
+    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
+  }
+
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    if (this.esEdicion) return;
+    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
+  }
+
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
     const tamano = this.inferirTamanoMascota(sel.pacienteData);
     if (tamano && !this.esEdicion) {
@@ -200,14 +229,10 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         fecha_salida_prevista: raw.fecha_salida_prevista || undefined,
         tamano_mascota: raw.tamano_mascota || undefined,
         precio_dia: Number(raw.precio_dia) || 0,
-        precio_total:
-          raw.precio_total != null && raw.precio_total !== ''
-            ? Number(raw.precio_total)
-            : undefined,
-        costo_dia:
-          raw.costo_dia != null && raw.costo_dia !== '' ? Number(raw.costo_dia) : undefined,
+        precio_total: raw.precio_total != null && raw.precio_total !== '' ? Number(raw.precio_total) : undefined,
+        costo_dia: raw.costo_dia != null && raw.costo_dia !== '' ? Number(raw.costo_dia) : undefined,
         estado: raw.estado as EstadoPension,
-        notas: raw.notas || ''
+        notas: raw.notas || '',
       };
       if (this.esEdicion && this.data.estancia?.id) {
         await this.pensionService.actualizarEstancia(this.data.estancia.id, payload);
@@ -219,7 +244,7 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         icon: 'success',
         title: this.esEdicion ? 'Estancia actualizada' : 'Estancia registrada',
         timer: 1600,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar pensión'), 'error');

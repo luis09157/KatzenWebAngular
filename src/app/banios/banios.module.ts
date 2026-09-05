@@ -34,15 +34,13 @@ import { BaniosService } from './banios.service';
 // Rutas
 import { baniosRoutes } from './banios-routing.module';
 import { SharedModule } from '../shared/shared.module';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
-  declarations: [
-    BaniosComponent,
-    BanioDialogComponent,
-    BanioDetalleComponent
-  ],
+  declarations: [BaniosComponent, BanioDialogComponent, BanioDetalleComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -50,7 +48,9 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     RouterModule.forChild(baniosRoutes),
     CajaDialogModule,
     VisitasDialogModule,
-    
+    ClientesDialogModule,
+    PacienteAdminDialogModule,
+
     // Angular Material
     MatTableModule,
     MatPaginatorModule,
@@ -70,10 +70,8 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     MatCheckboxModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    SharedModule
+    SharedModule,
   ],
-  providers: [
-    BaniosService
-  ]
+  providers: [BaniosService],
 })
-export class BaniosModule { }
+export class BaniosModule {}

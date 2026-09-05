@@ -2,7 +2,7 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
-      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de cita' : (data.cita ? 'Editar cita' : 'Nueva cita') }}</h2>
+      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de cita' : data.cita ? 'Editar cita' : 'Nueva cita' }}</h2>
       <p class="admin-dialog-subtitle">Paso a paso: dueño → mascota → fecha y hora.</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
@@ -33,7 +33,9 @@
             </div>
             <div class="detail-item">
               <span class="detail-item__label">Veterinario</span>
-              <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('veterinario') === '—'">{{ getDisplayValue('veterinario') }}</p>
+              <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('veterinario') === '—'">
+                {{ getDisplayValue('veterinario') }}
+              </p>
             </div>
             <div class="detail-item">
               <span class="detail-item__label">Fecha</span>
@@ -69,7 +71,11 @@
         <app-cliente-paciente-picker
           class="full-span"
           [formGroup]="citaForm"
-          [fields]="pickerFields">
+          [fields]="pickerFields"
+          [permitirCrear]="!modoVer"
+          (crearCliente)="crearClienteRapido($event)"
+          (crearPaciente)="crearMascotaRapida($event)"
+        >
         </app-cliente-paciente-picker>
       </section>
 
@@ -78,7 +84,7 @@
         <div class="form-grid form-grid--3">
           <mat-form-field appearance="outline">
             <mat-label>Fecha</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fecha" required>
+            <input matInput [matDatepicker]="picker" formControlName="fecha" required />
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">La fecha es requerida</mat-error>
@@ -87,18 +93,16 @@
             </mat-error>
           </mat-form-field>
 
-          <app-timepicker-field
-            formControlName="hora"
-            label="Hora"
-            [required]="true"
-            dialogTitle="Hora de la cita">
+          <app-timepicker-field formControlName="hora" label="Hora" [required]="true" dialogTitle="Hora de la cita">
           </app-timepicker-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Duración (min)</mat-label>
-            <input matInput type="number" formControlName="duracion_minutos" [min]="5" required>
+            <input matInput type="number" formControlName="duracion_minutos" [min]="5" required />
             <mat-hint>Predeterminado {{ duracionDefault }} min</mat-hint>
-            <mat-error *ngIf="citaForm.get('duracion_minutos')?.hasError('required')">La duración es requerida</mat-error>
+            <mat-error *ngIf="citaForm.get('duracion_minutos')?.hasError('required')"
+              >La duración es requerida</mat-error
+            >
             <mat-error *ngIf="citaForm.get('duracion_minutos')?.hasError('min')">Mínimo 5 minutos</mat-error>
           </mat-form-field>
 
@@ -129,7 +133,8 @@
             label="Veterinario"
             [required]="true"
             [prefillCurrentUser]="!data?.cita?.id"
-            hint="Se guarda el UID del staff y el nombre para compatibilidad.">
+            hint="Se guarda el UID del staff y el nombre para compatibilidad."
+          >
           </app-staff-picker>
         </div>
       </section>
@@ -139,8 +144,13 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Motivo de cancelación</mat-label>
-            <textarea matInput formControlName="motivo_cancelacion" rows="2"
-              placeholder="Explica por qué se cancela la cita…" required></textarea>
+            <textarea
+              matInput
+              formControlName="motivo_cancelacion"
+              rows="2"
+              placeholder="Explica por qué se cancela la cita…"
+              required
+            ></textarea>
             <mat-error *ngIf="citaForm.get('motivo_cancelacion')?.hasError('required')">
               El motivo de cancelación es obligatorio
             </mat-error>
@@ -156,8 +166,12 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Observaciones</mat-label>
-            <textarea matInput formControlName="observaciones" rows="3"
-              placeholder="Síntomas, antecedentes, medicamentos, alergias…"></textarea>
+            <textarea
+              matInput
+              formControlName="observaciones"
+              rows="3"
+              placeholder="Síntomas, antecedentes, medicamentos, alergias…"
+            ></textarea>
           </mat-form-field>
         </div>
       </section>
@@ -166,7 +180,14 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
     <button mat-button type="button" (click)="cerrar()">Cerrar</button>
-    <button mat-raised-button color="primary" class="btn-primary-teal" *ngIf="!modoVer" [disabled]="!esFormularioValido()" (click)="guardar()">
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      *ngIf="!modoVer"
+      [disabled]="!esFormularioValido()"
+      (click)="guardar()"
+    >
       Guardar
     </button>
   </mat-dialog-actions>

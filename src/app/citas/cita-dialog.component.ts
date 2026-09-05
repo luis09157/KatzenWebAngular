@@ -1,5 +1,5 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
@@ -7,19 +7,21 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { LoggerService } from '../core/logger.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
+import { LoadingService } from '../core/loading.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
+import { Cliente } from '../core/models';
+import { CITA_DURACION_DEFAULT_MIN, CITA_DURACION_MINIMA_MIN } from './cita-agenda.util';
 import {
-  CITA_DURACION_DEFAULT_MIN,
-  CITA_DURACION_MINIMA_MIN
-} from './cita-agenda.util';
-import {
-  ClientePacientePickerFields
-} from '../shared/admin/cliente-paciente-picker.models';
+  AltaRapidaPickerDeps,
+  crearClienteRapidoDesdePicker,
+  crearMascotaRapidaDesdePicker,
+} from '../shared/admin/alta-rapida-picker.helper';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
+import { ClientePacientePickerFields } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
-import {
-  mensajeHintClientePaciente
-} from '../shared/components/flow-hint/flow-hint.util';
+import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -42,10 +44,11 @@ import {
         },
       },
     },
-  ]
+  ],
 })
 export class CitaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   citaForm: FormGroup;
   modoVer = false;
   clientes: any[] = [];
@@ -74,18 +77,18 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     'Nutrición',
     'Comportamiento',
     'Grooming (Peluquería)',
-    'Otro'
+    'Otro',
   ];
   /** Campos del picker alineados al FormGroup de citas (nombreCliente legacy). */
   readonly pickerFields: ClientePacientePickerFields = {
     clienteId: 'cliente_id',
     pacienteId: 'paciente_id',
     clienteNombre: 'nombreCliente',
-    pacienteNombre: 'paciente'
+    pacienteNombre: 'paciente',
   };
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'veterinario_id',
-    nombreField: 'veterinario'
+    nombreField: 'veterinario',
   };
   /** doctor | administrador pueden fechas pasadas */
   puedeAgendarFechaPasada = false;
@@ -96,7 +99,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     if (this.modoVer) return '';
     const base = mensajeHintClientePaciente(this.citaForm, {
       clienteId: 'cliente_id',
-      pacienteId: 'paciente_id'
+      pacienteId: 'paciente_id',
     });
     if (base) return base;
     const fecha = this.citaForm.get('fecha')?.value;
@@ -115,7 +118,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private dateAdapter: DateAdapter<any>,
     private logger: LoggerService,
-    private authProfile: AuthProfileService
+    private authProfile: AuthProfileService,
+    private dialog: MatDialog,
+    private loadingService: LoadingService,
+    private errorMessages: ErrorMessagesService
   ) {
     this.modoVer = data.modoVer;
 
@@ -163,13 +169,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       estado: [data.cita?.estado || 'pendiente', Validators.required],
       veterinario: [data.cita?.veterinario || ''],
       veterinario_id: [data.cita?.veterinario_id || '', Validators.required],
-      duracion_minutos: [
-        duracionInicial,
-        [Validators.required, Validators.min(CITA_DURACION_MINIMA_MIN)]
-      ],
+      duracion_minutos: [duracionInicial, [Validators.required, Validators.min(CITA_DURACION_MINIMA_MIN)]],
       motivo_cancelacion: [data.cita?.motivo_cancelacion || ''],
       observaciones: [data.cita?.observaciones || ''],
-      nombreCliente: [data.cita?.nombreCliente || '']
+      nombreCliente: [data.cita?.nombreCliente || ''],
     });
   }
 
@@ -186,7 +189,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     if (nombre) {
       return String(nombre).split(' - ')[0].trim() || nombre;
     }
-    const cliente = this.clientes.find(c => c.id === this.data?.cita?.cliente_id);
+    const cliente = this.clientes.find((c) => c.id === this.data?.cita?.cliente_id);
     if (cliente) {
       return [cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(' ');
     }
@@ -195,7 +198,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
 
   getDisplayPaciente(): string {
     const pacienteId = this.data?.cita?.paciente_id ?? this.citaForm.get('paciente_id')?.value;
-    const paciente = this.pacientes.find(p => p.id === pacienteId);
+    const paciente = this.pacientes.find((p) => p.id === pacienteId);
     if (paciente?.nombre) {
       return paciente.especie ? `${paciente.nombre} (${paciente.especie})` : paciente.nombre;
     }
@@ -254,9 +257,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       this.puedeAgendarFechaPasada = false;
     }
 
-    this.citaForm.get('estado')!.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(estado => this.syncMotivoCancelacionValidators(estado));
+    this.citaForm
+      .get('estado')!
+      .valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((estado) => this.syncMotivoCancelacionValidators(estado));
 
     this.syncMotivoCancelacionValidators(this.citaForm.get('estado')!.value);
 
@@ -288,26 +292,53 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     control.updateValueAndValidity({ emitEvent: false });
   }
 
+  private altaRapidaDeps(): AltaRapidaPickerDeps {
+    return {
+      dialog: this.dialog,
+      clientesService: this.clientesService,
+      pacientesService: this.pacientesService,
+      loadingService: this.loadingService,
+      errorMessages: this.errorMessages,
+      picker: this.picker,
+    };
+  }
+
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    if (this.modoVer) return;
+    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
+  }
+
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    if (this.modoVer) return;
+    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
+  }
+
   cargarClientes() {
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: clientes => {
-        this.clientes = clientes || [];
-      },
-      error: error => {
-        this.logger.error('Error al cargar clientes en cita:', error);
-      }
-    });
+    this.clientesService
+      .getClientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (clientes) => {
+          this.clientes = clientes || [];
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar clientes en cita:', error);
+        },
+      });
   }
 
   cargarPacientes() {
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: pacientes => {
-        this.pacientes = pacientes || [];
-      },
-      error: error => {
-        this.logger.error('Error al cargar pacientes en cita:', error);
-      }
-    });
+    this.pacientesService
+      .getPacientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (pacientes) => {
+          this.pacientes = pacientes || [];
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar pacientes en cita:', error);
+        },
+      });
   }
 
   async guardar() {
@@ -378,14 +409,16 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   }
 
   esFormularioValido(): boolean {
-    return !!this.citaForm.valid &&
+    return (
+      !!this.citaForm.valid &&
       !!this.citaForm.get('cliente_id')?.value &&
       !!this.citaForm.get('paciente_id')?.value &&
       !!this.citaForm.get('fecha')?.value &&
       !!this.citaForm.get('hora')?.value &&
       !!this.citaForm.get('motivo')?.value &&
       (!!this.citaForm.get('veterinario_id')?.value || !!this.citaForm.get('veterinario')?.value) &&
-      Number(this.citaForm.get('duracion_minutos')?.value) >= CITA_DURACION_MINIMA_MIN;
+      Number(this.citaForm.get('duracion_minutos')?.value) >= CITA_DURACION_MINIMA_MIN
+    );
   }
 
   get muestraMotivoCancelacion(): boolean {
@@ -410,7 +443,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
           : CITA_DURACION_DEFAULT_MIN,
       motivo_cancelacion: cita.motivo_cancelacion || '',
       observaciones: cita.observaciones || '',
-      nombreCliente: cita.nombreCliente || ''
+      nombreCliente: cita.nombreCliente || '',
     });
     this.syncMotivoCancelacionValidators(cita.estado || 'pendiente');
   }

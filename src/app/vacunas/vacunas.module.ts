@@ -23,6 +23,8 @@ import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
 import { VacunaEsquemaConfirmDialogComponent } from './vacuna-esquema-confirm-dialog.component';
 import { SharedModule } from '../shared/shared.module';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
@@ -32,7 +34,7 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     VacunaDialogComponent,
     VacunaDetalleComponent,
     ConfirmarEliminacionVacunaDialogComponent,
-    VacunaEsquemaConfirmDialogComponent
+    VacunaEsquemaConfirmDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -54,11 +56,11 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     MatProgressSpinnerModule,
     MatCheckboxModule,
     SharedModule,
+    ClientesDialogModule,
+    PacienteAdminDialogModule,
     SalidaDialogModule,
-    VisitasDialogModule
+    VisitasDialogModule,
   ],
-  exports: [
-    VacunaDialogComponent
-  ]
+  exports: [VacunaDialogComponent],
 })
-export class VacunasModule { } 
+export class VacunasModule {}

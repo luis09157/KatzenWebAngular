@@ -12,6 +12,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SharedModule } from '../shared/shared.module';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { ConsentimientosRoutingModule } from './consentimientos-routing.module';
 import { ConsentimientosComponent } from './consentimientos.component';
 import { ConsentimientoDialogComponent } from './consentimiento-dialog.component';
@@ -23,6 +25,8 @@ import { ConsentimientoDialogComponent } from './consentimiento-dialog.component
     ReactiveFormsModule,
     ConsentimientosRoutingModule,
     SharedModule,
+    ClientesDialogModule,
+    PacienteAdminDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
@@ -32,7 +36,7 @@ import { ConsentimientoDialogComponent } from './consentimiento-dialog.component
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
-  ]
+    MatProgressSpinnerModule,
+  ],
 })
 export class ConsentimientosModule {}

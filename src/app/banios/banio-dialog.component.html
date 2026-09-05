@@ -2,7 +2,9 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar baño' : 'Nuevo baño' }}</h2>
-      <p class="admin-dialog-subtitle">Paso 1: dueño y mascota. Luego servicio y precio. El cobro se hace en Cuenta del día.</p>
+      <p class="admin-dialog-subtitle">
+        Paso 1: dueño y mascota. Luego servicio y precio. El cobro se hace en Cuenta del día.
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -14,17 +16,27 @@
       <app-flow-hint
         *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value"
         icon="person"
-        message="Primero elige o crea el dueño. Después la mascota.">
+        message="Primero elige o crea el dueño. Después la mascota."
+      >
       </app-flow-hint>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"
         [formGroup]="banioForm"
-        (selectionChange)="onClientePacienteSelected($event)">
+        [permitirCrear]="true"
+        (selectionChange)="onClientePacienteSelected($event)"
+        (crearCliente)="crearClienteRapido($event)"
+        (crearPaciente)="crearMascotaRapida($event)"
+      >
       </app-cliente-paciente-picker>
 
-      <div class="entity-summary entity-summary--compact"
-           *ngIf="!muestraPickerClientePaciente && (banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre)">
+      <div
+        class="entity-summary entity-summary--compact"
+        *ngIf="
+          !muestraPickerClientePaciente &&
+          (banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre)
+        "
+      >
         <h3 class="entity-summary__name">
           {{ data?.paciente_nombre || banioForm.get('paciente')?.value || 'Paciente' }}
         </h3>
@@ -43,7 +55,13 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Fecha del baño</mat-label>
-            <input matInput [matDatepicker]="fechaPicker" formControlName="fecha_banio" required [readonly]="esEdicion">
+            <input
+              matInput
+              [matDatepicker]="fechaPicker"
+              formControlName="fecha_banio"
+              required
+              [readonly]="esEdicion"
+            />
             <mat-datepicker-toggle matIconSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
             <mat-datepicker #fechaPicker></mat-datepicker>
           </mat-form-field>
@@ -52,7 +70,8 @@
             formControlName="hora_banio"
             label="Hora del baño"
             [required]="true"
-            dialogTitle="Hora del baño">
+            dialogTitle="Hora del baño"
+          >
           </app-timepicker-field>
         </div>
       </section>
@@ -117,12 +136,13 @@
             label="Peluquero"
             [required]="true"
             [prefillCurrentUser]="!esEdicion"
-            hint="UID del staff + nombre denormalizado.">
+            hint="UID del staff + nombre denormalizado."
+          >
           </app-staff-picker>
 
           <mat-form-field appearance="outline">
             <mat-label>Duración estimada (min)</mat-label>
-            <input matInput type="number" formControlName="duracion_estimada" min="15" required>
+            <input matInput type="number" formControlName="duracion_estimada" min="15" required />
           </mat-form-field>
         </div>
       </section>
@@ -141,8 +161,7 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Costo</mat-label>
-            <input matInput type="number" formControlName="costoEstimado" min="0" step="0.01"
-                   placeholder="Opcional">
+            <input matInput type="number" formControlName="costoEstimado" min="0" step="0.01" placeholder="Opcional" />
             <mat-hint *ngIf="!banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')">
               Costo interno del servicio · debe ser menor que el precio al cliente
             </mat-hint>
@@ -153,20 +172,33 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Margen deseado %</mat-label>
-            <input matInput type="number" [ngModel]="margenPct" [ngModelOptions]="{standalone: true}"
-                   (ngModelChange)="onMargenPctChange($event)" step="0.1"
-                   placeholder="Ej. 100 = duplicar costo">
+            <input
+              matInput
+              type="number"
+              [ngModel]="margenPct"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onMargenPctChange($event)"
+              step="0.1"
+              placeholder="Ej. 100 = duplicar costo"
+            />
             <mat-hint>Opcional · recalcula el precio al cliente desde el costo</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Precio al cliente</mat-label>
-            <input matInput type="number" formControlName="precio_total" min="0" required (input)="onPrecioTotalManual()">
+            <input
+              matInput
+              type="number"
+              formControlName="precio_total"
+              min="0"
+              required
+              (input)="onPrecioTotalManual()"
+            />
             <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
           </mat-form-field>
         </div>
         <p class="ganancia-banio" *ngIf="gananciaEstimada != null">
-          Ganancia: <strong>${{ gananciaEstimada | number:'1.2-2' }}</strong>
+          Ganancia: <strong>${{ gananciaEstimada | number: '1.2-2' }}</strong>
           (precio al cliente − costo)
         </p>
       </section>
@@ -177,12 +209,18 @@
           <span class="form-section__badge form-section__badge--optional">Opcional</span>
         </h3>
         <div class="dynamic-list">
-          <div class="dynamic-list__row"
-               *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index">
+          <div
+            class="dynamic-list__row"
+            *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index"
+          >
             <div class="form-grid form-grid--compact">
               <mat-form-field appearance="outline">
                 <mat-label>Servicio</mat-label>
-                <mat-select [(ngModel)]="servicio.servicio" [ngModelOptions]="{standalone: true}" (selectionChange)="actualizarPrecioServicio(servicio, i)">
+                <mat-select
+                  [(ngModel)]="servicio.servicio"
+                  [ngModelOptions]="{ standalone: true }"
+                  (selectionChange)="actualizarPrecioServicio(servicio, i)"
+                >
                   <mat-option *ngFor="let tipoServicio of serviciosAdicionales" [value]="tipoServicio.value">
                     {{ tipoServicio.label }} — ${{ tipoServicio.precio }}
                   </mat-option>
@@ -192,15 +230,32 @@
 
               <mat-form-field appearance="outline" *ngIf="servicio.servicio === 'otro'">
                 <mat-label>Servicio personalizado</mat-label>
-                <input matInput [(ngModel)]="servicio.servicioPersonalizado" [ngModelOptions]="{standalone: true}" placeholder="Descripción">
+                <input
+                  matInput
+                  [(ngModel)]="servicio.servicioPersonalizado"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Descripción"
+                />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Precio</mat-label>
-                <input matInput type="number" [(ngModel)]="servicio.precio" [ngModelOptions]="{standalone: true}" min="0">
+                <input
+                  matInput
+                  type="number"
+                  [(ngModel)]="servicio.precio"
+                  [ngModelOptions]="{ standalone: true }"
+                  min="0"
+                />
               </mat-form-field>
             </div>
-            <button mat-icon-button type="button" color="warn" (click)="removerServicioAdicional(i)" aria-label="Quitar servicio">
+            <button
+              mat-icon-button
+              type="button"
+              color="warn"
+              (click)="removerServicioAdicional(i)"
+              aria-label="Quitar servicio"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -219,8 +274,12 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Observaciones</mat-label>
-            <textarea matInput formControlName="observaciones" rows="3"
-              placeholder="Alergias, comportamiento, instrucciones especiales…"></textarea>
+            <textarea
+              matInput
+              formControlName="observaciones"
+              rows="3"
+              placeholder="Alergias, comportamiento, instrucciones especiales…"
+            ></textarea>
           </mat-form-field>
         </div>
       </section>
@@ -230,12 +289,8 @@
           Alergias del paciente
           <span class="form-section__badge form-section__badge--optional">Expediente</span>
         </h3>
-        <p class="form-section__hint">
-          Se guardan en la mascota (fuente de verdad) y como snapshot en el baño.
-        </p>
-        <app-alergias-editor
-          [alergias]="alergiasPaciente"
-          (alergiasChange)="onAlergiasPacienteChange($event)">
+        <p class="form-section__hint">Se guardan en la mascota (fuente de verdad) y como snapshot en el baño.</p>
+        <app-alergias-editor [alergias]="alergiasPaciente" (alergiasChange)="onAlergiasPacienteChange($event)">
         </app-alergias-editor>
       </section>
 
@@ -252,9 +307,7 @@
           </mat-form-field>
 
           <div class="form-section__checkbox">
-            <mat-checkbox formControlName="pagado" color="primary">
-              ¿Ya está pagado?
-            </mat-checkbox>
+            <mat-checkbox formControlName="pagado" color="primary"> ¿Ya está pagado? </mat-checkbox>
           </div>
         </div>
       </section>
@@ -263,7 +316,13 @@
     <mat-dialog-actions class="admin-dialog-actions">
       <div class="admin-dialog-actions__right">
         <button mat-button type="button" (click)="cancelar()">Cancelar</button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="submit" [disabled]="!banioForm.valid || loading">
+        <button
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          type="submit"
+          [disabled]="!banioForm.valid || loading"
+        >
           <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ esEdicion ? 'Actualizar' : 'Crear' }}

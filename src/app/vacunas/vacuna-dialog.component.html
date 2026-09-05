@@ -17,11 +17,18 @@
         class="full-span"
         [formGroup]="vacunaForm"
         [fields]="pickerFields"
-        (selectionChange)="onClientePacienteSelected($event)">
+        [permitirCrear]="true"
+        (selectionChange)="onClientePacienteSelected($event)"
+        (crearCliente)="crearClienteRapido($event)"
+        (crearPaciente)="crearMascotaRapida($event)"
+      >
       </app-cliente-paciente-picker>
 
-      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))">
-        <h3 class="entity-summary__name">{{ (data.paciente?.nombre || pacienteInfo?.nombre) || 'Sin nombre' }}</h3>
+      <div
+        class="entity-summary entity-summary--compact"
+        *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))"
+      >
+        <h3 class="entity-summary__name">{{ data.paciente?.nombre || pacienteInfo?.nombre || 'Sin nombre' }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
         <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="data.cliente || pacienteInfo?.cliente">
           Dueño: {{ data.cliente ? getNombreCompletoCliente(data.cliente) : pacienteInfo?.cliente }}
@@ -57,19 +64,21 @@
               </mat-option>
               <mat-option value="personalizada">Otra dosis personalizada</mat-option>
             </mat-select>
-            <mat-error *ngIf="vacunaForm.get('dosis')?.hasError('required')">
-              La dosis es requerida
-            </mat-error>
+            <mat-error *ngIf="vacunaForm.get('dosis')?.hasError('required')"> La dosis es requerida </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Número de lote</mat-label>
-            <input matInput formControlName="lote" placeholder="Número de lote de la vacuna">
+            <input matInput formControlName="lote" placeholder="Número de lote de la vacuna" />
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-span" *ngIf="vacunaForm.get('dosis')?.value === 'personalizada'">
+          <mat-form-field
+            appearance="outline"
+            class="full-span"
+            *ngIf="vacunaForm.get('dosis')?.value === 'personalizada'"
+          >
             <mat-label>Dosis personalizada</mat-label>
-            <input matInput formControlName="dosisPersonalizada" placeholder="Ej: 3.5ml, 0.1ml, etc.">
+            <input matInput formControlName="dosisPersonalizada" placeholder="Ej: 3.5ml, 0.1ml, etc." />
             <mat-error *ngIf="vacunaForm.get('dosisPersonalizada')?.hasError('required')">
               La dosis personalizada es requerida
             </mat-error>
@@ -85,7 +94,7 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Fecha de aplicación</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fechaAplicacion">
+            <input matInput [matDatepicker]="picker" formControlName="fechaAplicacion" />
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="vacunaForm.get('fechaAplicacion')?.hasError('required')">
@@ -95,19 +104,19 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Fecha de recordatorio</mat-label>
-            <input matInput [matDatepicker]="pickerRecordatorio" formControlName="fechaRecordatorio">
+            <input matInput [matDatepicker]="pickerRecordatorio" formControlName="fechaRecordatorio" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerRecordatorio"></mat-datepicker-toggle>
             <mat-datepicker #pickerRecordatorio></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Intervalo (días)</mat-label>
-            <input matInput type="number" formControlName="intervalo" (blur)="calcularProximaFecha()">
+            <input matInput type="number" formControlName="intervalo" (blur)="calcularProximaFecha()" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Próxima aplicación</mat-label>
-            <input matInput [matDatepicker]="pickerProxima" formControlName="proximaAplicacion">
+            <input matInput [matDatepicker]="pickerProxima" formControlName="proximaAplicacion" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerProxima"></mat-datepicker-toggle>
             <mat-datepicker #pickerProxima></mat-datepicker>
           </mat-form-field>
@@ -121,9 +130,7 @@
       </section>
 
       <section class="form-section">
-        <h3 class="form-section__title">
-          Estado y personal médico
-        </h3>
+        <h3 class="form-section__title">Estado y personal médico</h3>
         <div class="form-grid">
           <app-staff-picker
             [formGroup]="vacunaForm"
@@ -132,7 +139,8 @@
             label="Veterinario"
             [required]="false"
             [prefillCurrentUser]="!isEditMode"
-            hint="UID + nombre del staff (opcional).">
+            hint="UID + nombre del staff (opcional)."
+          >
           </app-staff-picker>
 
           <mat-form-field appearance="outline">
@@ -153,34 +161,44 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Reacción adversa</mat-label>
-            <textarea matInput formControlName="reaccion"
+            <textarea
+              matInput
+              formControlName="reaccion"
               placeholder="Describir cualquier reacción adversa observada"
-              rows="2"></textarea>
+              rows="2"
+            ></textarea>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Observaciones</mat-label>
-            <textarea matInput formControlName="observaciones"
+            <textarea
+              matInput
+              formControlName="observaciones"
               placeholder="Observaciones adicionales"
-              rows="3"></textarea>
+              rows="3"
+            ></textarea>
           </mat-form-field>
         </div>
       </section>
 
-      <input type="hidden" formControlName="idPaciente">
-      <input type="hidden" formControlName="idCliente">
-      <input type="hidden" formControlName="fechaRegistro">
-      <input type="hidden" formControlName="fechaActualizacion">
-      <input type="hidden" formControlName="stability">
+      <input type="hidden" formControlName="idPaciente" />
+      <input type="hidden" formControlName="idCliente" />
+      <input type="hidden" formControlName="fechaRegistro" />
+      <input type="hidden" formControlName="fechaActualizacion" />
+      <input type="hidden" formControlName="stability" />
     </mat-dialog-content>
 
     <mat-dialog-actions class="admin-dialog-actions">
       <div class="admin-dialog-actions__right">
-        <button type="button" mat-button (click)="cancelar()" [disabled]="loading">
-          Cancelar
-        </button>
-        <button type="button" mat-raised-button color="primary" class="btn-primary-teal"
-          (click)="guardarVacuna()" [disabled]="vacunaForm.invalid || loading">
+        <button type="button" mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
+        <button
+          type="button"
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          (click)="guardarVacuna()"
+          [disabled]="vacunaForm.invalid || loading"
+        >
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

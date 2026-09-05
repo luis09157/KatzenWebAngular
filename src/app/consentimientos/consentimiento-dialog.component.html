@@ -15,7 +15,11 @@
         *ngIf="!esEdicion"
         class="full-width"
         [formGroup]="form"
-        (selectionChange)="onClientePacienteSelected($event)">
+        [permitirCrear]="true"
+        (selectionChange)="onClientePacienteSelected($event)"
+        (crearCliente)="crearClienteRapido($event)"
+        (crearPaciente)="crearMascotaRapida($event)"
+      >
       </app-cliente-paciente-picker>
       <div class="entity-summary entity-summary--compact full-width" *ngIf="esEdicion">
         <h3 class="entity-summary__name">{{ form.get('paciente')?.value || 'Paciente' }}</h3>
@@ -53,7 +57,8 @@
         label="Registrado por"
         [required]="false"
         [prefillCurrentUser]="!esEdicion"
-        hint="Staff que registró el consentimiento.">
+        hint="Staff que registró el consentimiento."
+      >
       </app-staff-picker>
 
       <mat-form-field appearance="outline" *ngIf="esEdicion">
@@ -79,7 +84,8 @@
       class="btn-primary-teal"
       type="button"
       (click)="guardar()"
-      [disabled]="loading || form.invalid">
+      [disabled]="loading || form.invalid"
+    >
       {{ esEdicion ? 'Guardar' : 'Registrar' }}
     </button>
   </mat-dialog-actions>

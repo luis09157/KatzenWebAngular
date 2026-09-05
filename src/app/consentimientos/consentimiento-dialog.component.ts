@@ -1,13 +1,21 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import {
+  AltaRapidaPickerDeps,
+  crearClienteRapidoDesdePicker,
+  crearMascotaRapidaDesdePicker,
+} from '../shared/admin/alta-rapida-picker.helper';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
+import { Cliente } from '../core/models';
+import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
@@ -15,7 +23,7 @@ import {
   ConsentimientoTipo,
   CONSENTIMIENTO_ESTADO_LABELS,
   CONSENTIMIENTO_TIPO_LABELS,
-  CONSENTIMIENTO_TIPOS
+  CONSENTIMIENTO_TIPOS,
 } from './consentimientos.models';
 import { ConsentimientosService } from './consentimientos.service';
 import { hoyLocalIsoDate } from './consentimientos.util';
@@ -24,10 +32,11 @@ import { hoyLocalIsoDate } from './consentimientos.util';
   selector: 'app-consentimiento-dialog',
   templateUrl: './consentimiento-dialog.component.html',
   styleUrls: ['./consentimiento-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   form: FormGroup;
   loading = false;
   esEdicion = false;
@@ -39,14 +48,16 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
   readonly estadoLabels = CONSENTIMIENTO_ESTADO_LABELS;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'staff_uid',
-    nombreField: 'staff_nombre'
+    nombreField: 'staff_nombre',
   };
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ConsentimientoDialogComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: { consentimiento?: Consentimiento },
     private service: ConsentimientosService,
+    private clientesService: ClientesService,
     private pacientesService: PacientesService,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService
@@ -63,7 +74,7 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
       staff_uid: [''],
       staff_nombre: [''],
       notas: [''],
-      estado: ['vigente']
+      estado: ['vigente'],
     });
   }
 
@@ -84,7 +95,7 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
         staff_uid: c.staff_uid || '',
         staff_nombre: c.staff_nombre || '',
         notas: c.notas || '',
-        estado: c.estado || 'vigente'
+        estado: c.estado || 'vigente',
       });
       if (c.paciente_id) {
         void this.loadAlergias(c.paciente_id);
@@ -95,6 +106,27 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private altaRapidaDeps(): AltaRapidaPickerDeps {
+    return {
+      dialog: this.dialog,
+      clientesService: this.clientesService,
+      pacientesService: this.pacientesService,
+      loadingService: this.loadingService,
+      errorMessages: this.errorMessages,
+      picker: this.picker,
+    };
+  }
+
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    if (this.esEdicion) return;
+    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
+  }
+
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    if (this.esEdicion) return;
+    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -145,7 +177,7 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
           staff_uid: v.staff_uid || undefined,
           staff_nombre: v.staff_nombre || undefined,
           notas: v.notas || '',
-          estado: v.estado
+          estado: v.estado,
         });
       } else {
         await this.service.crear({
@@ -160,22 +192,18 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
           staff_uid: v.staff_uid || undefined,
           staff_nombre: v.staff_nombre || undefined,
           notas: v.notas || '',
-          estado: v.estado
+          estado: v.estado,
         });
       }
       Swal.fire({
         icon: 'success',
         title: this.esEdicion ? 'Consentimiento actualizado' : 'Consentimiento registrado',
         timer: 1400,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       this.dialogRef.close(true);
     } catch (error) {
-      Swal.fire(
-        'Error',
-        this.errorMessages.getUserMessage(error, 'guardar consentimiento'),
-        'error'
-      );
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar consentimiento'), 'error');
     } finally {
       this.loading = false;
       this.loadingService.hide();

@@ -1,6 +1,6 @@
-import { Component, OnInit, Inject, ViewEncapsulation} from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { Banio } from '../shared/banio.model';
@@ -12,7 +12,7 @@ import {
   TAMANO_PERRO_LABELS,
   TAMANOS_PERRO_ORDEN,
   TamanoPerroBanio,
-  emptyDefaultsBanio
+  emptyDefaultsBanio,
 } from '../finanzas/defaults-banio.models';
 import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
@@ -21,13 +21,20 @@ import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from '
 import {
   calcularMargenPorcentaje,
   calcularVentaDesdeMargen,
-  desglosarPrecioIvaIncluido
+  desglosarPrecioIvaIncluido,
 } from '../core/utils/precio-margen.util';
 import {
-  ClientePacienteSelection
-} from '../shared/admin/cliente-paciente-picker.models';
+  AltaRapidaPickerDeps,
+  crearClienteRapidoDesdePicker,
+  crearMascotaRapidaDesdePicker,
+} from '../shared/admin/alta-rapida-picker.helper';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
+import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
+import { Cliente } from '../core/models';
+import { ClientesService } from '../clientes/clientes.service';
+import { ErrorMessagesService } from '../core/error-messages.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -39,6 +46,7 @@ import { take } from 'rxjs/operators';
   encapsulation: ViewEncapsulation.None,
 })
 export class BanioDialogComponent implements OnInit {
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   banioForm: FormGroup;
   loading = false;
   esEdicion = false;
@@ -54,7 +62,7 @@ export class BanioDialogComponent implements OnInit {
   readonly tamanoLabels = TAMANO_PERRO_LABELS;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'peluquero_id',
-    nombreField: 'peluquero'
+    nombreField: 'peluquero',
   };
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
   private precioTotalManual = false;
@@ -71,7 +79,7 @@ export class BanioDialogComponent implements OnInit {
     return desglosarPrecioIvaIncluido({
       precioVenta: venta,
       costo,
-      aplicaIva: false
+      aplicaIva: false,
     }).ganancia;
   }
 
@@ -88,7 +96,7 @@ export class BanioDialogComponent implements OnInit {
     }
     return 'Precio final que se cobra al cliente (editable por registro)';
   }
-  
+
   // Opciones para los selects
   tiposServicios = [
     { value: 'baño_básico', label: 'Baño Básico', icon: 'shower' },
@@ -96,28 +104,28 @@ export class BanioDialogComponent implements OnInit {
     { value: 'corte_pelo', label: 'Corte de Pelo', icon: 'content_cut' },
     { value: 'corte_uñas', label: 'Corte de Uñas', icon: 'scissors' },
     { value: 'deslanado', label: 'Deslanado', icon: 'brush' },
-    { value: 'tratamiento_especial', label: 'Tratamiento Especial', icon: 'healing' }
+    { value: 'tratamiento_especial', label: 'Tratamiento Especial', icon: 'healing' },
   ];
 
   estados = [
     { value: 'programado', label: 'Programado', color: '#2196f3' },
     { value: 'en_proceso', label: 'En Proceso', color: '#ff9800' },
     { value: 'completado', label: 'Completado', color: '#4caf50' },
-    { value: 'cancelado', label: 'Cancelado', color: '#f44336' }
+    { value: 'cancelado', label: 'Cancelado', color: '#f44336' },
   ];
 
   prioridades = [
     { value: 'baja', label: 'Baja', color: '#4caf50' },
     { value: 'media', label: 'Media', color: '#ff9800' },
     { value: 'alta', label: 'Alta', color: '#f44336' },
-    { value: 'urgente', label: 'Urgente', color: '#9c27b0' }
+    { value: 'urgente', label: 'Urgente', color: '#9c27b0' },
   ];
 
   comportamientos = [
     { value: 'tranquilo', label: 'Tranquilo' },
     { value: 'nervioso', label: 'Nervioso' },
     { value: 'agresivo', label: 'Agresivo' },
-    { value: 'cooperativo', label: 'Cooperativo' }
+    { value: 'cooperativo', label: 'Cooperativo' },
   ];
 
   // Opciones predefinidas para servicios adicionales
@@ -128,16 +136,19 @@ export class BanioDialogComponent implements OnInit {
     { value: 'perfume', label: 'Perfume', precio: 40 },
     { value: 'lazo_decorativo', label: 'Lazo Decorativo', precio: 30 },
     { value: 'tratamiento_antipulgas', label: 'Tratamiento Antipulgas', precio: 120 },
-    { value: 'mascarilla_hidratante', label: 'Mascarilla Hidratante', precio: 90 }
+    { value: 'mascarilla_hidratante', label: 'Mascarilla Hidratante', precio: 90 },
   ];
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<BanioDialogComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private baniosService: BaniosService,
     private baniosPacienteService: BaniosPacienteService,
     private loadingService: LoadingService,
+    private errorMessages: ErrorMessagesService,
+    private clientesService: ClientesService,
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
     private pacientesService: PacientesService
@@ -169,7 +180,7 @@ export class BanioDialogComponent implements OnInit {
       tiempo_inicio: [''],
       tiempo_fin: [''],
       activo: [true],
-      created_by: ['system', Validators.required]
+      created_by: ['system', Validators.required],
     });
   }
 
@@ -178,7 +189,7 @@ export class BanioDialogComponent implements OnInit {
 
     // Verificar si se debe ocultar la información del paciente/cliente
     this.hidePatientInfo = this.data?.hidePatientInfo || false;
-    
+
     if (this.data && this.data.id) {
       this.esEdicion = true;
       this.cargarDatosBanio();
@@ -187,7 +198,7 @@ export class BanioDialogComponent implements OnInit {
       this.banioForm.get('cliente')?.clearValidators();
       this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
       this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
-      
+
       // Si se oculta la información del paciente, también limpiar validaciones de IDs
       if (this.hidePatientInfo) {
         this.banioForm.get('paciente_id')?.clearValidators();
@@ -195,7 +206,7 @@ export class BanioDialogComponent implements OnInit {
         this.banioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
         this.banioForm.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
       }
-      
+
       // Mantener la fecha original de alta (solo lectura en edición)
       this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
@@ -206,13 +217,13 @@ export class BanioDialogComponent implements OnInit {
           paciente: this.data.paciente,
           cliente_id: this.data.cliente_id,
           cliente: this.data.cliente,
-          created_by: 'system'
+          created_by: 'system',
         });
         void this.cargarAlergiasDesdeMascota(this.data.paciente_id);
       } else {
         this.banioForm.patchValue({ created_by: 'system' });
       }
-      
+
       // Si se oculta la información del paciente, no validar estos campos
       if (this.hidePatientInfo) {
         this.banioForm.get('paciente')?.clearValidators();
@@ -231,7 +242,7 @@ export class BanioDialogComponent implements OnInit {
         this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
       }
     }
-    
+
     this.configurarCalculoPrecio();
     this.configurarValidacionCostoVsVenta();
 
@@ -258,7 +269,7 @@ export class BanioDialogComponent implements OnInit {
 
   cargarDatosBanio() {
     if (this.data.id) {
-      this.baniosService.getBanioById(this.data.id).subscribe(banio => {
+      this.baniosService.getBanioById(this.data.id).subscribe((banio) => {
         if (banio) {
           // Normalizar datos para cumplir validaciones requeridas
           const normalizado: any = { ...banio };
@@ -332,14 +343,14 @@ export class BanioDialogComponent implements OnInit {
   private normalizarFecha(fecha: any): string {
     try {
       if (!fecha) return '';
-      
+
       let date: Date;
-      
+
       // Si ya es string en formato YYYY-MM-DD, retornarlo directamente
       if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
         return fecha;
       }
-      
+
       // Si es un objeto Date, usar los componentes directamente para evitar zona horaria
       if (fecha instanceof Date) {
         const year = fecha.getFullYear();
@@ -347,7 +358,7 @@ export class BanioDialogComponent implements OnInit {
         const day = fecha.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
       }
-      
+
       // Si es string, intentar parsearlo
       if (typeof fecha === 'string') {
         // Si viene en formato ISO con hora, extraer solo la fecha
@@ -357,7 +368,7 @@ export class BanioDialogComponent implements OnInit {
             return datePart;
           }
         }
-        
+
         // Si viene en formato YYYY-MM-DD HH:mm:ss
         if (fecha.includes(' ')) {
           const datePart = fecha.split(' ')[0];
@@ -365,7 +376,7 @@ export class BanioDialogComponent implements OnInit {
             return datePart;
           }
         }
-        
+
         // Intentar crear Date y extraer componentes
         date = new Date(fecha);
         if (!isNaN(date.getTime())) {
@@ -375,7 +386,7 @@ export class BanioDialogComponent implements OnInit {
           return `${year}-${month}-${day}`;
         }
       }
-      
+
       // Si no se pudo parsear, retornar string vacío
       console.warn('⚠️ No se pudo normalizar la fecha:', fecha);
       return '';
@@ -394,9 +405,12 @@ export class BanioDialogComponent implements OnInit {
       // Variantes con AM/PM en español o inglés
       const ampmMatch = texto
         .replace(/\s+/g, ' ')
-        .replace('a. m.', 'AM').replace('p. m.', 'PM')
-        .replace('a.m.', 'AM').replace('p.m.', 'PM')
-        .replace('am', 'AM').replace('pm', 'PM')
+        .replace('a. m.', 'AM')
+        .replace('p. m.', 'PM')
+        .replace('a.m.', 'AM')
+        .replace('p.m.', 'PM')
+        .replace('am', 'AM')
+        .replace('pm', 'PM')
         .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
       if (ampmMatch) {
         let h = parseInt(ampmMatch[1], 10);
@@ -511,7 +525,7 @@ export class BanioDialogComponent implements OnInit {
     try {
       const [defaults, plantillas] = await Promise.all([
         this.defaultsBanioService.getDefaultsOnce(),
-        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(() => [])
+        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(() => []),
       ]);
       this.defaultsBanio = defaults;
       this.plantillasCosto = plantillas || [];
@@ -525,6 +539,25 @@ export class BanioDialogComponent implements OnInit {
         this.onTamanoChange();
       }
     }
+  }
+
+  private altaRapidaDeps(): AltaRapidaPickerDeps {
+    return {
+      dialog: this.dialog,
+      clientesService: this.clientesService,
+      pacientesService: this.pacientesService,
+      loadingService: this.loadingService,
+      errorMessages: this.errorMessages,
+      picker: this.picker,
+    };
+  }
+
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
+  }
+
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -556,10 +589,7 @@ export class BanioDialogComponent implements OnInit {
     this.banioForm.patchValue({ alergias_conocidas: this.alergiasPaciente }, { emitEvent: false });
   }
 
-  private async cargarAlergiasDesdeMascota(
-    pacienteId: string,
-    fallbackBanio: string[] = []
-  ): Promise<void> {
+  private async cargarAlergiasDesdeMascota(pacienteId: string, fallbackBanio: string[] = []): Promise<void> {
     if (!pacienteId) {
       this.setAlergiasPaciente(fallbackBanio);
       return;
@@ -604,7 +634,7 @@ export class BanioDialogComponent implements OnInit {
         : 'Prefill desde defaults baño (Finanzas).';
     const patch: Record<string, unknown> = {
       costoEstimado: prefill.costoEstimado,
-      plantillaCostoId: prefill.plantillaCostoId || ''
+      plantillaCostoId: prefill.plantillaCostoId || '',
     };
     if (prefill.precioSugerido != null) {
       this.precioTotalManual = false;
@@ -626,10 +656,7 @@ export class BanioDialogComponent implements OnInit {
   private sincronizarPrecioBaseDesdeTotal(): void {
     const total = Number(this.banioForm.get('precio_total')?.value) || 0;
     const adicionales = this.totalServiciosAdicionales();
-    this.banioForm.patchValue(
-      { precio_base: Math.max(0, total - adicionales) },
-      { emitEvent: false }
-    );
+    this.banioForm.patchValue({ precio_base: Math.max(0, total - adicionales) }, { emitEvent: false });
   }
 
   private totalServiciosAdicionales(): number {
@@ -642,7 +669,7 @@ export class BanioDialogComponent implements OnInit {
   // Función para actualizar precio automáticamente cuando se selecciona un servicio
   actualizarPrecioServicio(servicio: any, index: number) {
     if (servicio.servicio && servicio.servicio !== 'otro') {
-      const servicioPredefinido = this.serviciosAdicionales.find(s => s.value === servicio.servicio);
+      const servicioPredefinido = this.serviciosAdicionales.find((s) => s.value === servicio.servicio);
       if (servicioPredefinido) {
         servicio.precio = servicioPredefinido.precio;
         // Forzar actualización del formulario
@@ -672,11 +699,11 @@ export class BanioDialogComponent implements OnInit {
     const nuevoServicio = {
       servicio: '',
       precio: 0,
-      servicioPersonalizado: ''
+      servicioPersonalizado: '',
     };
-    
+
     this.banioForm.patchValue({
-      servicios_adicionales: [...serviciosActuales, nuevoServicio]
+      servicios_adicionales: [...serviciosActuales, nuevoServicio],
     });
   }
 
@@ -693,28 +720,24 @@ export class BanioDialogComponent implements OnInit {
     this.banioForm.get('costoEstimado')?.markAsTouched();
 
     if (this.banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')) {
-      Swal.fire(
-        'Error',
-        MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA,
-        'error'
-      );
+      Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
       return;
     }
-    
+
     if (this.banioForm.valid) {
       this.loading = true;
-      
+
       // Obtener valores del formulario, incluyendo campos disabled
-      const banioData = { 
+      const banioData = {
         ...this.banioForm.value,
         // Incluir fecha_banio aunque esté disabled (en modo edición)
-        fecha_banio: this.banioForm.get('fecha_banio')?.value || this.banioForm.value.fecha_banio
+        fecha_banio: this.banioForm.get('fecha_banio')?.value || this.banioForm.value.fecha_banio,
       };
-      
+
       // Normalizar fecha a formato YYYY-MM-DD preservando exactamente la fecha seleccionada
       // Esto es crítico para permitir fechas pasadas sin que se cambien a la fecha actual
       banioData.fecha_banio = this.normalizarFecha(banioData.fecha_banio);
-      
+
       // Validar que la fecha se haya normalizado correctamente
       if (!banioData.fecha_banio || !/^\d{4}-\d{2}-\d{2}$/.test(banioData.fecha_banio)) {
         console.error('❌ Error: La fecha no se pudo normalizar correctamente:', banioData.fecha_banio);
@@ -722,7 +745,7 @@ export class BanioDialogComponent implements OnInit {
         this.loading = false;
         return;
       }
-      
+
       // Asegurar formato de hora válido antes de enviar
       banioData.hora_banio = this.normalizarHora(banioData.hora_banio);
 
@@ -736,7 +759,7 @@ export class BanioDialogComponent implements OnInit {
         // Asegurar que el campo created_by esté presente
         created_by: banioData.created_by || 'system',
         // Asegurar que productos_utilizados esté definido
-        productos_utilizados: banioData.productos_utilizados || []
+        productos_utilizados: banioData.productos_utilizados || [],
       };
 
       if (datosLimpios.costoEstimado != null && datosLimpios.costoEstimado !== '') {
@@ -750,24 +773,46 @@ export class BanioDialogComponent implements OnInit {
       if (!datosLimpios.plantillaCostoId) {
         delete datosLimpios.plantillaCostoId;
       }
-      
+
       // Remover campos undefined para evitar errores de Firebase
-      Object.keys(datosLimpios).forEach(key => {
+      Object.keys(datosLimpios).forEach((key) => {
         if (datosLimpios[key] === undefined) {
           delete datosLimpios[key];
         }
       });
-      
+
       if (this.esEdicion) {
         // Actualizar baño existente (solo campos permitidos)
         const permitidos: (keyof typeof datosLimpios)[] = [
-          'fecha_banio','hora_banio','tipo_servicio','estado','prioridad','observaciones',
-          'alergias_conocidas','comportamiento','peluquero_id','peluquero','precio_base','servicios_adicionales',
-          'precio_total','pagado','metodo_pago','duracion_estimada','tiempo_inicio','tiempo_fin','activo',
-          'updated_at','updated_by','tamano_perro','costoEstimado','plantillaCostoId'
+          'fecha_banio',
+          'hora_banio',
+          'tipo_servicio',
+          'estado',
+          'prioridad',
+          'observaciones',
+          'alergias_conocidas',
+          'comportamiento',
+          'peluquero_id',
+          'peluquero',
+          'precio_base',
+          'servicios_adicionales',
+          'precio_total',
+          'pagado',
+          'metodo_pago',
+          'duracion_estimada',
+          'tiempo_inicio',
+          'tiempo_fin',
+          'activo',
+          'updated_at',
+          'updated_by',
+          'tamano_perro',
+          'costoEstimado',
+          'plantillaCostoId',
         ];
         const payload: any = {};
-        permitidos.forEach(k => { if (datosLimpios[k] !== undefined && datosLimpios[k] !== '') payload[k] = datosLimpios[k]; });
+        permitidos.forEach((k) => {
+          if (datosLimpios[k] !== undefined && datosLimpios[k] !== '') payload[k] = datosLimpios[k];
+        });
         if (datosLimpios['costoEstimado'] != null && datosLimpios['costoEstimado'] !== '') {
           payload.costoEstimado = Number(datosLimpios['costoEstimado']);
         }
@@ -781,7 +826,7 @@ export class BanioDialogComponent implements OnInit {
         if (payload.estado && payload.estado !== 'completado') {
           payload.pagado = false;
         }
-        
+
         // Usar el servicio correcto dependiendo del contexto
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
         const metodoActualizar = this.hidePatientInfo ? 'actualizarBanioPaciente' : 'actualizarBanio';
@@ -793,7 +838,7 @@ export class BanioDialogComponent implements OnInit {
             this.loadingService.show();
             this.dialogRef.close(true);
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('❌ Error al actualizar baño:', error);
             this.loadingService.hide();
             setTimeout(() => Swal.fire('Error', `No se pudo actualizar el baño: ${error.message}`, 'error'), 0);
@@ -811,7 +856,7 @@ export class BanioDialogComponent implements OnInit {
             this.loadingService.show();
             this.dialogRef.close({ created: true, id: nuevoId });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('❌ Error al crear baño:', error);
             this.loadingService.hide();
             setTimeout(() => Swal.fire('Error', `No se pudo crear el baño: ${error.message}`, 'error'), 0);
@@ -828,12 +873,12 @@ export class BanioDialogComponent implements OnInit {
   }
 
   getTipoServicioIcon(tipo: string): string {
-    const tipoEncontrado = this.tiposServicios.find(t => t.value === tipo);
+    const tipoEncontrado = this.tiposServicios.find((t) => t.value === tipo);
     return tipoEncontrado ? tipoEncontrado.icon : 'pets';
   }
 
   getTipoServicioLabel(tipo: string): string {
-    const tipoEncontrado = this.tiposServicios.find(t => t.value === tipo);
+    const tipoEncontrado = this.tiposServicios.find((t) => t.value === tipo);
     return tipoEncontrado ? tipoEncontrado.label : tipo;
   }
 }

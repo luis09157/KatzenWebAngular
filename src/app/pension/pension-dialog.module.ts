@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { SharedModule } from '../shared/shared.module';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { PensionDialogComponent } from './pension-dialog.component';
 
 /** Diálogo de pensión sin routing — usable desde expediente (spec 031). */
@@ -22,8 +24,10 @@ import { PensionDialogComponent } from './pension-dialog.component';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    SharedModule
+    SharedModule,
+    ClientesDialogModule,
+    PacienteAdminDialogModule,
   ],
-  exports: [PensionDialogComponent]
+  exports: [PensionDialogComponent],
 })
 export class PensionDialogModule {}

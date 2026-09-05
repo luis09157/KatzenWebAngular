@@ -1,39 +1,35 @@
-import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
+import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { Cliente } from '../core/models';
+import {
+  AltaRapidaPickerDeps,
+  crearClienteRapidoDesdePicker,
+  crearMascotaRapidaDesdePicker,
+} from '../shared/admin/alta-rapida-picker.helper';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
-import {
-  ClientePacientePickerFields,
-  ClientePacienteSelection
-} from '../shared/admin/cliente-paciente-picker.models';
+import { ClientePacientePickerFields, ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { AsegurarRefuerzoResultado } from '../recordatorios/recordatorios.service';
 import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-recordatorio.util';
-import {
-  mensajeHintClientePaciente
-} from '../shared/components/flow-hint/flow-hint.util';
+import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
 import { fusionarTiposConejoEnCatalogo, TIPOS_VACUNAS_FALLBACK } from './esquema-vacuna.defaults';
-import {
-  ConfirmacionEsquemaResultado,
-  SugerenciaEsquema
-} from './esquema-vacuna.models';
-import {
-  esPacienteFallecido,
-  extraerHoraHhMm,
-  sugerirEsquema
-} from './esquema-vacuna.util';
+import { ConfirmacionEsquemaResultado, SugerenciaEsquema } from './esquema-vacuna.models';
+import { esPacienteFallecido, extraerHoraHhMm, sugerirEsquema } from './esquema-vacuna.util';
 import {
   VacunaEsquemaConfirmDialogComponent,
-  VacunaEsquemaConfirmData
+  VacunaEsquemaConfirmData,
 } from './vacuna-esquema-confirm-dialog.component';
 
 @Component({
@@ -44,6 +40,7 @@ import {
 })
 export class VacunaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   vacunaForm: FormGroup;
   isEditMode = false;
   loading = false;
@@ -54,11 +51,11 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     clienteId: 'idCliente',
     pacienteId: 'idPaciente',
     clienteNombre: 'clienteDisplay',
-    pacienteNombre: 'pacienteDisplay'
+    pacienteNombre: 'pacienteDisplay',
   };
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'veterinario_id',
-    nombreField: 'veterinario'
+    nombreField: 'veterinario',
   };
 
   get muestraPickerClientePaciente(): boolean {
@@ -95,19 +92,20 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     { value: '5ml', label: '5ml' },
     { value: '10ml', label: '10ml' },
     { value: '0.25ml', label: '0.25ml' },
-    { value: '0.75ml', label: '0.75ml' }
+    { value: '0.75ml', label: '0.75ml' },
   ];
 
   // Estados de la vacuna
   estados = [
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'aplicada', label: 'Aplicada' },
-    { value: 'cancelada', label: 'Cancelada' }
+    { value: 'cancelada', label: 'Cancelada' },
   ];
 
   constructor(
     private fb: FormBuilder,
     private vacunasService: VacunasService,
+    private clientesService: ClientesService,
     private pacientesService: PacientesService,
     private dialogRef: MatDialogRef<VacunaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -124,48 +122,51 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       dosis: ['', Validators.required],
       dosisPersonalizada: [''],
       lote: [''],
-      
+
       // Fechas
       fechaAplicacion: ['', Validators.required],
       fechaRecordatorio: [''],
       proximaAplicacion: [''],
       intervalo: [0],
-      
+
       // Estado y recordatorio
       aplicada: [false],
       recordatorio: [false],
-      
+
       // Personal médico (035: UID + nombre)
       veterinario: [''],
       veterinario_id: [''],
-      
+
       // Observaciones médicas
       reaccion: [''],
       observaciones: [''],
-      
+
       // IDs de relación
       idPaciente: ['', Validators.required],
       idCliente: ['', Validators.required],
       clienteDisplay: [''],
       pacienteDisplay: [''],
-      
+
       // Metadatos
       fechaRegistro: [''],
       fechaActualizacion: [''],
-      stability: [0]
+      stability: [0],
     });
 
     // Observar cambios en el campo dosis para validar dosis personalizada
-    this.vacunaForm.get('dosis')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
-      const dosisPersonalizadaControl = this.vacunaForm.get('dosisPersonalizada');
-      if (value === 'personalizada') {
-        dosisPersonalizadaControl?.setValidators([Validators.required]);
-      } else {
-        dosisPersonalizadaControl?.clearValidators();
-        dosisPersonalizadaControl?.setValue('');
-      }
-      dosisPersonalizadaControl?.updateValueAndValidity();
-    });
+    this.vacunaForm
+      .get('dosis')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const dosisPersonalizadaControl = this.vacunaForm.get('dosisPersonalizada');
+        if (value === 'personalizada') {
+          dosisPersonalizadaControl?.setValidators([Validators.required]);
+        } else {
+          dosisPersonalizadaControl?.clearValidators();
+          dosisPersonalizadaControl?.setValue('');
+        }
+        dosisPersonalizadaControl?.updateValueAndValidity();
+      });
   }
 
   ngOnDestroy(): void {
@@ -174,17 +175,20 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   }
 
   cargarInformacionPaciente(pacienteId: string) {
-    this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
-      this.pacienteInfo = paciente;
-      this.aplicarSugerenciaEsquema();
-    });
+    this.pacientesService
+      .getPaciente(pacienteId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((paciente) => {
+        this.pacienteInfo = paciente;
+        this.aplicarSugerenciaEsquema();
+      });
   }
 
   getNombreCompletoCliente(cliente: any): string {
     const nombre = cliente.nombre || '';
     const apellidoPaterno = cliente.apellidoPaterno || '';
     const apellidoMaterno = cliente.apellidoMaterno || '';
-    
+
     return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
   }
 
@@ -205,20 +209,20 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.logger.log('VacunaDialogComponent - Datos recibidos:', this.data);
-    
+
     // Cargar tipos de vacunas desde Firebase
     this.cargarTiposVacunas();
-    
+
     // Establecer IDs si vienen en los datos
     if (this.data?.paciente_id || this.data?.idPaciente) {
       this.vacunaForm.patchValue({
-        idPaciente: this.data.paciente_id || this.data.idPaciente
+        idPaciente: this.data.paciente_id || this.data.idPaciente,
       });
     }
-    
+
     if (this.data?.cliente_id || this.data?.idCliente) {
       this.vacunaForm.patchValue({
-        idCliente: this.data.cliente_id || this.data.idCliente
+        idCliente: this.data.cliente_id || this.data.idCliente,
       });
     }
 
@@ -252,7 +256,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         idCliente: this.data.idCliente || this.data.cliente_id || '',
         fechaRegistro: this.data.fechaRegistro || '',
         fechaActualizacion: this.data.fechaActualizacion || '',
-        stability: this.data.stability || 0
+        stability: this.data.stability || 0,
       });
     } else if (this.data?.paciente_id || this.data?.idPaciente) {
       this.vacunaForm.get('idPaciente')?.clearValidators();
@@ -261,15 +265,40 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       this.vacunaForm.get('idCliente')?.updateValueAndValidity({ emitEvent: false });
     }
 
-    this.vacunaForm.get('vacuna')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.aplicarSugerenciaEsquema();
-    });
-    this.vacunaForm.get('fechaAplicacion')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      if (this.aplicandoSugerencia) return;
-      this.aplicarSugerenciaEsquema(false);
-      this.calcularProximaFecha();
-    });
+    this.vacunaForm
+      .get('vacuna')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.aplicarSugerenciaEsquema();
+      });
+    this.vacunaForm
+      .get('fechaAplicacion')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.aplicandoSugerencia) return;
+        this.aplicarSugerenciaEsquema(false);
+        this.calcularProximaFecha();
+      });
     this.aplicarSugerenciaEsquema(!this.isEditMode);
+  }
+
+  private altaRapidaDeps(): AltaRapidaPickerDeps {
+    return {
+      dialog: this.matDialog,
+      clientesService: this.clientesService,
+      pacientesService: this.pacientesService,
+      loadingService: this.loadingService,
+      errorMessages: this.errorMessages,
+      picker: this.picker,
+    };
+  }
+
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
+  }
+
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
@@ -287,22 +316,22 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       this.logger.log('VacunaDialogComponent - Operación ya en progreso, ignorando llamada');
       return;
     }
-    
+
     // Generar ID único para esta operación
     this.operationId = 'op_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     this.logger.log('VacunaDialogComponent - ID de operación:', this.operationId);
-    
+
     // Validaciones personalizadas antes de guardar
     const errorValidacion = this.validarDatosFormulario();
     if (errorValidacion) {
       Swal.fire({
         icon: 'warning',
         title: 'Validación Fallida',
-        html: errorValidacion
+        html: errorValidacion,
       });
       return;
     }
-    
+
     if (this.vacunaForm.valid) {
       const confirmacion = await this.abrirConfirmacionEsquema();
       if (!confirmacion) {
@@ -311,19 +340,19 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
       this.loading = true;
       this.logger.log('VacunaDialogComponent - Iniciando guardado de vacuna');
-      
+
       try {
         const vacunaData = { ...this.vacunaForm.value };
         this.aplicarConfirmacionAVacuna(vacunaData, confirmacion);
-        
+
         // Si se seleccionó dosis personalizada, usar ese valor como dosis
         if (vacunaData.dosis === 'personalizada' && vacunaData.dosisPersonalizada) {
           vacunaData.dosis = vacunaData.dosisPersonalizada;
         }
-        
+
         // Limpiar el campo dosisPersonalizada antes de enviar
         delete vacunaData.dosisPersonalizada;
-        
+
         // Convertir fechas a formato ISO string si son objetos Date
         if (vacunaData.fechaAplicacion instanceof Date) {
           vacunaData.fechaAplicacion = vacunaData.fechaAplicacion.toISOString();
@@ -335,7 +364,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           vacunaData.proximaAplicacion = formatRtdbLocal(vacunaData.proximaAplicacion).slice(0, 10);
         }
 
-        const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
+        const tipoVacuna = this.tiposVacunas.find((t) => t.value === vacunaData.vacuna);
         vacunaData.nombreVacunaLabel = tipoVacuna ? tipoVacuna.label : undefined;
         vacunaData.pacienteEstado = this.estadoPacienteActual();
         vacunaData.confirmadoPorUid = await this.currentStaff.getStaffId();
@@ -348,7 +377,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           this.logger.log('VacunaDialogComponent - Actualizando vacuna existente');
           const actualizado = await this.vacunasService.actualizarVacuna(this.data.id, vacunaData);
           refuerzo = actualizado.refuerzo;
-          
+
           if (vacunaData.idPaciente) {
             await this.registrarVacunaEnLog(vacunaData, 'editada');
           }
@@ -360,9 +389,14 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           const vacunaId = resultado.key;
           vacunaData.id = vacunaId;
           refuerzo = resultado._refuerzo;
-          
-          this.logger.log('VacunaDialogComponent - Vacuna creada con ID:', vacunaId, '- Operación ID:', this.operationId);
-          
+
+          this.logger.log(
+            'VacunaDialogComponent - Vacuna creada con ID:',
+            vacunaId,
+            '- Operación ID:',
+            this.operationId
+          );
+
           if (vacunaData.idPaciente) {
             this.logger.log('VacunaDialogComponent - Registrando en log - Operación ID:', this.operationId);
             await this.registrarVacunaEnLog(vacunaData, 'creada');
@@ -370,45 +404,49 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           this.loadingService.hide();
           await this.mostrarExitoGuardado('Vacuna creada correctamente', refuerzo);
         }
-        
+
         this.logger.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
         this.loadingService.show();
         this.dialogRef.close(vacunaData);
       } catch (error) {
         this.logger.error('VacunaDialogComponent - Error al guardar vacuna:', error);
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: this.errorMessages.getUserMessage(error, 'guardar vacuna')
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: this.errorMessages.getUserMessage(error, 'guardar vacuna'),
+            }),
+          0
+        );
       } finally {
         this.loading = false;
       }
     } else {
       // Marcar todos los campos como tocados para mostrar errores
-      Object.keys(this.vacunaForm.controls).forEach(key => {
+      Object.keys(this.vacunaForm.controls).forEach((key) => {
         const control = this.vacunaForm.get(key);
         if (control?.invalid) {
           control.markAsTouched();
         }
       });
-      
+
       // Identificar campos faltantes
       const camposFaltantes: string[] = [];
       if (!this.vacunaForm.get('vacuna')?.value) camposFaltantes.push('Tipo de Vacuna');
       if (!this.vacunaForm.get('fechaAplicacion')?.value) camposFaltantes.push('Fecha de Aplicación');
       if (!this.vacunaForm.get('dosis')?.value) camposFaltantes.push('Dosis');
-      
+
       Swal.fire({
         icon: 'warning',
         title: 'Campos Obligatorios Incompletos',
         html: `
           <p>Los siguientes campos son requeridos:</p>
           <ul style="text-align: left; margin: 10px 40px;">
-            ${camposFaltantes.map(campo => `<li>${campo}</li>`).join('')}
+            ${camposFaltantes.map((campo) => `<li>${campo}</li>`).join('')}
           </ul>
-        `
+        `,
       });
     }
   }
@@ -420,14 +458,14 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     if (this.muestraPickerClientePaciente && !formValue.idPaciente) {
       return 'Debes seleccionar <strong>cliente y paciente</strong> del catálogo';
     }
-    
+
     // 1. Validar formato de dosis personalizada
     if (formValue.dosis === 'personalizada') {
       const dosisPersonalizada = formValue.dosisPersonalizada?.trim();
       if (!dosisPersonalizada) {
         return 'Debes especificar la <strong>dosis personalizada</strong>';
       }
-      
+
       // Validar formato (número seguido de unidad)
       const formatoValido = /^\d+(\.\d+)?\s?(ml|mg|g|cc|UI|IU)$/i.test(dosisPersonalizada);
       if (!formatoValido) {
@@ -437,12 +475,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         `;
       }
     }
-    
+
     // 2. Validar que la fecha de próxima aplicación sea posterior a fecha de aplicación
     if (formValue.proximaAplicacion && formValue.fechaAplicacion) {
       const fechaAplicacion = new Date(formValue.fechaAplicacion);
       const proximaAplicacion = new Date(formValue.proximaAplicacion);
-      
+
       if (proximaAplicacion <= fechaAplicacion) {
         return `
           <p>La <strong>Fecha de Próxima Dosis</strong> debe ser <strong>posterior</strong> a la Fecha de Aplicación.</p>
@@ -450,13 +488,13 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         `;
       }
     }
-    
+
     // 3. Validar que la fecha de recordatorio sea futura si el recordatorio está activo
     if (formValue.recordatorio && formValue.fechaRecordatorio) {
       const fechaRecordatorio = new Date(formValue.fechaRecordatorio);
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      
+
       if (fechaRecordatorio < hoy) {
         return `
           <p>La <strong>Fecha de Recordatorio</strong> debe ser <strong>futura</strong>.</p>
@@ -464,14 +502,14 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         `;
       }
     }
-    
+
     // 4. Validar fechas futuras solo para vacunas pendientes
     if (formValue.estado === 'pendiente' && formValue.fechaAplicacion) {
       const fechaAplicacion = new Date(formValue.fechaAplicacion);
       const hoy = new Date();
       const hace30Dias = new Date(hoy);
       hace30Dias.setDate(hoy.getDate() - 30);
-      
+
       if (fechaAplicacion < hace30Dias) {
         return `
           <p>Estás intentando crear una vacuna <strong>pendiente</strong> con una fecha de más de 30 días en el pasado.</p>
@@ -479,7 +517,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         `;
       }
     }
-    
+
     return null; // Sin errores
   }
 
@@ -493,7 +531,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     // Obtener información de la vacuna para el mensaje
     const nombreVacuna = this.getNombreVacunaParaMostrar();
     const nombrePaciente = this.pacienteInfo?.nombre || 'este paciente';
-    
+
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Borrar esta vacuna?',
@@ -509,31 +547,35 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
       this.loading = true;
-      
+
       try {
         // Usar baja lógica en lugar de eliminación física
         await this.vacunasService.bajaLogicaVacuna(this.data.id);
-        
+
         // Registrar en el log de actividades si hay paciente
         if (this.data.idPaciente) {
           await this.registrarEliminacionEnLog();
         }
-        
+
         this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         this.logger.error('Error al eliminar vacuna:', error);
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({
-          icon: 'error',
-          title: 'Error al borrar',
-          text: this.errorMessages.getUserMessage(error, 'eliminar vacuna')
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al borrar',
+              text: this.errorMessages.getUserMessage(error, 'eliminar vacuna'),
+            }),
+          0
+        );
       } finally {
         this.loading = false;
       }
@@ -544,11 +586,11 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   private getNombreVacunaParaMostrar(): string {
     const vacunaValue = this.data?.vacuna || this.vacunaForm.get('vacuna')?.value;
     if (!vacunaValue) return 'Vacuna';
-    
+
     // Buscar en tipos de vacunas
-    const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaValue);
+    const tipoVacuna = this.tiposVacunas.find((t) => t.value === vacunaValue);
     if (tipoVacuna) return tipoVacuna.label;
-    
+
     // Si no se encuentra, formatear el valor
     return vacunaValue
       .replace(/_/g, ' ')
@@ -561,24 +603,28 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     if (!this.data?.id) return;
 
     this.loading = true;
-    
+
     try {
       if (estado === 'aplicada') {
         await this.vacunasService.marcarAplicada(this.data.id);
       } else {
         await this.vacunasService.marcarPendiente(this.data.id);
       }
-      
+
       this.loadingService.show();
       this.dialogRef.close(true);
     } catch (error) {
       this.logger.error('Error al cambiar estado:', error);
       this.loadingService.hide();
-      setTimeout(() => Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna')
-      }), 0);
+      setTimeout(
+        () =>
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna'),
+          }),
+        0
+      );
     } finally {
       this.loading = false;
     }
@@ -588,12 +634,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   calcularProximaFecha() {
     const fecha = this.vacunaForm.get('fechaAplicacion')?.value;
     const intervalo = this.vacunaForm.get('intervalo')?.value;
-    
+
     if (fecha && intervalo) {
       const fechaActual = new Date(fecha);
-      const proximaFecha = new Date(fechaActual.getTime() + (intervalo * 24 * 60 * 60 * 1000));
+      const proximaFecha = new Date(fechaActual.getTime() + intervalo * 24 * 60 * 60 * 1000);
       this.vacunaForm.patchValue({
-        proximaAplicacion: proximaFecha
+        proximaAplicacion: proximaFecha,
       });
     }
   }
@@ -609,7 +655,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       fechaRecordatorio: v.fechaRecordatorio,
       proximaAplicacion: v.proximaAplicacion,
       fechaAplicacion: v.fechaAplicacion,
-      intervalo: v.intervalo
+      intervalo: v.intervalo,
     });
     if (!fecha) return null;
     return `Sugerencia de refuerzo: ${fecha.labelEs}. Se confirmará en el siguiente paso.`;
@@ -620,11 +666,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   }
 
   private estadoPacienteActual(): string {
-    return String(
-      this.pacienteInfo?.estado ||
-      this.data?.paciente?.estado ||
-      ''
-    );
+    return String(this.pacienteInfo?.estado || this.data?.paciente?.estado || '');
   }
 
   private construirSugerencia(): SugerenciaEsquema {
@@ -637,7 +679,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       tipo,
       edadTexto: paciente?.edad,
       fechaAplicacion: this.vacunaForm.get('fechaAplicacion')?.value,
-      estadoPaciente: this.estadoPacienteActual()
+      estadoPaciente: this.estadoPacienteActual(),
     });
   }
 
@@ -654,12 +696,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     if (s.puedeSugerir && s.intervaloSugeridoDias) {
       this.vacunaForm.patchValue({
         intervalo: s.intervaloSugeridoDias,
-        proximaAplicacion: s.proximaSugerida || ''
+        proximaAplicacion: s.proximaSugerida || '',
       });
     } else if (!s.puedeSugerir) {
       this.vacunaForm.patchValue({
         intervalo: 0,
-        proximaAplicacion: ''
+        proximaAplicacion: '',
       });
     }
     this.aplicandoSugerencia = false;
@@ -672,22 +714,19 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     const data: VacunaEsquemaConfirmData = {
       sugerencia,
       nombreVacuna: this.getNombreVacunaParaMostrar(),
-      nombrePaciente:
-        this.data?.paciente?.nombre ||
-        this.pacienteInfo?.nombre ||
-        'Paciente',
+      nombrePaciente: this.data?.paciente?.nombre || this.pacienteInfo?.nombre || 'Paciente',
       especie: sugerencia.especieNormalizada,
       fechaAplicacion: v.fechaAplicacion,
       intervaloActual: v.intervalo,
       proximaActual: v.proximaAplicacion || v.fechaRecordatorio,
       horaActual: extraerHoraHhMm(v.fechaRecordatorio || v.proximaAplicacion),
       tipoVacuna: v.vacuna,
-      fallecido: esPacienteFallecido(this.estadoPacienteActual())
+      fallecido: esPacienteFallecido(this.estadoPacienteActual()),
     };
     const ref = this.matDialog.open(VacunaEsquemaConfirmDialogComponent, {
       ...ADMIN_DIALOG_DETAIL,
       width: '560px',
-      data
+      data,
     });
     return firstValueFrom(ref.afterClosed());
   }
@@ -725,10 +764,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async mostrarExitoGuardado(
-    base: string,
-    refuerzo?: AsegurarRefuerzoResultado
-  ): Promise<void> {
+  private async mostrarExitoGuardado(base: string, refuerzo?: AsegurarRefuerzoResultado): Promise<void> {
     let text = base;
     if (refuerzo?.action === 'created') {
       text = `${base}\nSe creó recordatorio de refuerzo para el ${refuerzo.fechaLabel}.`;
@@ -740,45 +776,48 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     await Swal.fire({
       icon: 'success',
       title: '¡Éxito!',
-      text
+      text,
     });
   }
-  
+
   // Cargar tipos de vacunas desde Firebase con fallback
   cargarTiposVacunas() {
     this.logger.log('🔄 Cargando tipos de vacunas desde Firebase...');
-    
-    this.vacunasService.getTiposVacunas().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (tipos) => {
-        this.logger.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
-        
-        if (tipos && tipos.length > 0) {
-          // Filtrar solo los activos; fusionar tipos conejo ola 3 si faltan (aditivo, no pisa legacy).
-          this.tiposVacunas = fusionarTiposConejoEnCatalogo(
-            tipos.filter((tipo: { activo?: boolean }) => tipo.activo !== false)
-          );
-          this.logger.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
-        } else {
-          // Si no hay datos en Firebase, usar fallback
-          this.logger.log('⚠️ Firebase vacío, usando tipos predefinidos (fallback)');
+
+    this.vacunasService
+      .getTiposVacunas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tipos) => {
+          this.logger.log('📦 Tipos de vacunas obtenidos de Firebase:', tipos);
+
+          if (tipos && tipos.length > 0) {
+            // Filtrar solo los activos; fusionar tipos conejo ola 3 si faltan (aditivo, no pisa legacy).
+            this.tiposVacunas = fusionarTiposConejoEnCatalogo(
+              tipos.filter((tipo: { activo?: boolean }) => tipo.activo !== false)
+            );
+            this.logger.log('✅ Tipos de vacunas cargados desde Firebase:', this.tiposVacunas.length);
+          } else {
+            // Si no hay datos en Firebase, usar fallback
+            this.logger.log('⚠️ Firebase vacío, usando tipos predefinidos (fallback)');
+            this.tiposVacunas = [...this.tiposVacunasFallback];
+            this.inicializarTiposEnFirebase();
+          }
+        },
+        error: (error) => {
+          // Si hay error en Firebase, usar fallback
+          this.logger.error('❌ Error al cargar tipos de vacunas desde Firebase:', error);
+          this.logger.log('🔄 Usando tipos predefinidos (fallback)');
           this.tiposVacunas = [...this.tiposVacunasFallback];
-          this.inicializarTiposEnFirebase();
-        }
-      },
-      error: (error) => {
-        // Si hay error en Firebase, usar fallback
-        this.logger.error('❌ Error al cargar tipos de vacunas desde Firebase:', error);
-        this.logger.log('🔄 Usando tipos predefinidos (fallback)');
-        this.tiposVacunas = [...this.tiposVacunasFallback];
-      }
-    });
+        },
+      });
   }
 
   // Inicializar tipos de vacunas en Firebase si no existen
   private async inicializarTiposEnFirebase() {
     try {
       this.logger.log('🔄 Inicializando tipos de vacunas en Firebase...');
-      
+
       // Aquí podrías agregar lógica para poblar Firebase con los datos iniciales
       // Por ahora solo registramos el intento
       this.logger.log('ℹ️ Los tipos predefinidos están siendo usados como fallback');
@@ -797,16 +836,16 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const tipoVacuna = this.tiposVacunas.find(t => t.value === vacunaData.vacuna);
+      const tipoVacuna = this.tiposVacunas.find((t) => t.value === vacunaData.vacuna);
       const nombreVacuna = tipoVacuna ? tipoVacuna.label : vacunaData.vacuna || 'Vacuna sin nombre';
-      
+
       // Asegurar que fecha_aplicacion tenga un valor válido
       let fechaAplicacion = vacunaData.fechaAplicacion;
       if (!fechaAplicacion) {
         fechaAplicacion = new Date().toISOString();
         this.logger.warn('VacunaDialogComponent - fechaAplicacion undefined, usando fecha actual:', fechaAplicacion);
       }
-      
+
       const datosLog = {
         nombre_vacuna: nombreVacuna,
         dosis: vacunaData.dosis || 'Sin dosis',
@@ -814,7 +853,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         veterinario: vacunaData.veterinario || 'Sin veterinario',
         lote: vacunaData.lote || 'Sin lote',
         estado: vacunaData.aplicada ? 'aplicada' : 'pendiente',
-        observaciones: vacunaData.observaciones || 'Sin observaciones'
+        observaciones: vacunaData.observaciones || 'Sin observaciones',
       };
 
       this.logger.log('VacunaDialogComponent - Registrando en log:', datosLog);
@@ -829,9 +868,9 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
   // Registrar eliminación en log de actividades
   private async registrarEliminacionEnLog(): Promise<void> {
     try {
-      const tipoVacuna = this.tiposVacunas.find(t => t.value === this.data.vacuna);
+      const tipoVacuna = this.tiposVacunas.find((t) => t.value === this.data.vacuna);
       const nombreVacuna = tipoVacuna ? tipoVacuna.label : this.data.vacuna;
-      
+
       const actividad = {
         tipo: 'vacuna_eliminada',
         titulo: 'Vacuna Eliminada',
@@ -842,8 +881,8 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           nombre_vacuna: nombreVacuna,
           dosis: this.data.dosis,
           fecha_eliminacion: new Date().toISOString(),
-          motivo: 'Eliminación por usuario'
-        }
+          motivo: 'Eliminación por usuario',
+        },
       };
 
       await this.pacientesService.agregarLogActividad(this.data.idPaciente, actividad);
@@ -855,10 +894,10 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
   // Generar ID único (método auxiliar)
   private generateId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
-} 
+}
