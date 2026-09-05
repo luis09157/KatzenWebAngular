@@ -14,11 +14,7 @@ import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
-import {
-  fechaEnRango,
-  normalizeFechaIso,
-  resolverPeriodo
-} from '../core/utils/periodo-filtro.util';
+import { fechaEnRango, normalizeFechaIso, resolverPeriodo } from '../core/utils/periodo-filtro.util';
 import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
 import { InventarioService } from '../inventario/inventario.service';
 import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialog.component';
@@ -32,10 +28,17 @@ import { AuthProfileService } from '../core/services/auth-profile.service';
 @Component({
   selector: 'app-historiales',
   templateUrl: './historiales.component.html',
-  styleUrls: ['./historiales.component.css']
+  styleUrls: ['./historiales.component.css'],
 })
 export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
-  displayedColumns: string[] = ['fecha_registro', 'paciente', 'diagnostico_presuntivo', 'medico_atendio', 'estado', 'acciones'];
+  displayedColumns: string[] = [
+    'fecha_registro',
+    'paciente',
+    'diagnostico_presuntivo',
+    'medico_atendio',
+    'estado',
+    'acciones',
+  ];
   menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -49,12 +52,14 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     delMes: 0,
     consultasMes: 0,
     cirugiasMes: 0,
-    vacunasMes: 0
+    vacunasMes: 0,
   };
   private historialesRaw: any[] = [];
   loading = false;
   necesitaMigracion = false;
   isAdmin = false;
+  /** Spec 069 — migración de datos solo rol extremo. */
+  isSuperAdmin = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -76,6 +81,9 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     this.authProfileService.getAccessibleModules().then((modules) => {
       this.isAdmin = modules.includes('usuarios');
     });
+    this.authProfileService.getEffectiveStaffRole().then((role) => {
+      this.isSuperAdmin = role === 'super_admin';
+    });
     this.cargarDatos();
     this.cargarEstadisticas();
     this.verificarMigracion();
@@ -91,7 +99,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   verificarMigracion() {
-    this.migrationService.verificarHistorialesParaMigracion()
+    this.migrationService
+      .verificarHistorialesParaMigracion()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (necesita) => {
@@ -101,7 +110,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (error) => {
           this.logger.error('Error al verificar migración:', error);
           this.necesitaMigracion = false;
-        }
+        },
       });
   }
 
@@ -114,30 +123,29 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sí, ejecutar migración',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
       try {
         this.loading = true;
         await this.migrationService.migrarHistoriales();
-        
+
         // Recargar datos después de la migración
         this.cargarDatos();
         this.verificarMigracion();
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Migración Completada',
-          text: 'La base de datos ha sido migrada exitosamente. Todos los historiales ahora usan la nueva estructura.'
+          text: 'La base de datos ha sido migrada exitosamente. Todos los historiales ahora usan la nueva estructura.',
         });
-        
       } catch (error) {
         this.logger.error('Error en migración:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error en Migración',
-          text: 'Ocurrió un error durante la migración. Por favor, inténtalo de nuevo.'
+          text: 'Ocurrió un error durante la migración. Por favor, inténtalo de nuevo.',
         });
       } finally {
         this.loading = false;
@@ -146,11 +154,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cargarDatos() {
-    this.pacientesService.getPacientes()
+    this.pacientesService
+      .getPacientes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (pacientes) => {
-          (pacientes || []).forEach(p => {
+          (pacientes || []).forEach((p) => {
             this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
             this.pacientesClienteMap[p.id] = (p as any).cliente_id || (p as any).idCliente || '';
           });
@@ -162,22 +171,23 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudieron cargar los pacientes'
+            text: 'No se pudieron cargar los pacientes',
           });
-        }
+        },
       });
   }
 
   cargarHistoriales() {
-    this.historialesService.getHistorialesActivos()
+    this.historialesService
+      .getHistorialesActivos()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (historiales) => {
           this.historialesRaw = historiales || [];
-          this.dataSource.data = (historiales || []).map(historial => ({
+          this.dataSource.data = (historiales || []).map((historial) => ({
             ...historial,
             paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
-            fecha_registro: this.formatearFecha(historial.fecha_registro)
+            fecha_registro: this.formatearFecha(historial.fecha_registro),
           }));
           this.calcularKpisMes();
           this.loading = false;
@@ -191,14 +201,15 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'No se pudieron cargar los historiales'
+            text: 'No se pudieron cargar los historiales',
           });
-        }
+        },
       });
   }
 
   cargarEstadisticas() {
-    this.historialesService.getEstadisticasHistoriales()
+    this.historialesService
+      .getEstadisticasHistoriales()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stats) => {
@@ -211,9 +222,9 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: this.errorMessages.getUserMessage(error, 'cargar estadisticas historiales')
+            text: this.errorMessages.getUserMessage(error, 'cargar estadisticas historiales'),
           });
-        }
+        },
       });
   }
 
@@ -248,29 +259,21 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       (h) => h.activo !== false && fechaEnRango(h.fecha_registro, rango)
     );
     this.estadisticas.delMes = delMes.length;
-    this.estadisticas.consultasMes = delMes.filter(
-      (h) => this.clasificarHistorialTipo(h) === 'consulta'
-    ).length;
-    this.estadisticas.cirugiasMes = delMes.filter(
-      (h) => this.clasificarHistorialTipo(h) === 'cirugia'
-    ).length;
-    this.estadisticas.vacunasMes = delMes.filter(
-      (h) => this.clasificarHistorialTipo(h) === 'vacuna'
-    ).length;
+    this.estadisticas.consultasMes = delMes.filter((h) => this.clasificarHistorialTipo(h) === 'consulta').length;
+    this.estadisticas.cirugiasMes = delMes.filter((h) => this.clasificarHistorialTipo(h) === 'cirugia').length;
+    this.estadisticas.vacunasMes = delMes.filter((h) => this.clasificarHistorialTipo(h) === 'vacuna').length;
   }
 
   getPacientesUnicos(): number {
     const pacientesUnicos = new Set(
-      this.historialesRaw
-        .map((historial) => historial.paciente_id)
-        .filter((id) => id && id !== 'N/P')
+      this.historialesRaw.map((historial) => historial.paciente_id).filter((id) => id && id !== 'N/P')
     );
     return pacientesUnicos.size;
   }
 
   formatearFecha(fecha: any): string {
     if (!fecha) return 'N/P';
-    
+
     try {
       // Si es un objeto Date del DatePicker
       if (fecha instanceof Date) {
@@ -279,10 +282,10 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         });
       }
-      
+
       // Si es un string de fecha
       if (typeof fecha === 'string') {
         const date = new Date(fecha);
@@ -292,11 +295,11 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           });
         }
       }
-      
+
       return 'N/P';
     } catch (error) {
       this.logger.error('Error al formatear fecha:', error);
@@ -313,12 +316,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!pacienteId) {
       const dialogRef = this.dialog.open(HistorialDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { modoVer: false }
+        data: { modoVer: false },
       });
 
-      dialogRef.afterClosed()
+      dialogRef
+        .afterClosed()
         .pipe(takeUntil(this.destroy$))
-        .subscribe(result => {
+        .subscribe((result) => {
           if (result) {
             this.loadingService.hide();
             this.cargarHistoriales();
@@ -330,12 +334,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { paciente_id: pacienteId }
+      data: { paciente_id: pacienteId },
     });
 
-    dialogRef.afterClosed()
+    dialogRef
+      .afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
+      .subscribe((result) => {
         if (result) {
           this.loadingService.hide();
           this.cargarHistoriales();
@@ -347,19 +352,20 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   verHistorialDetalle(historial: any) {
     this.dialog.open(HistorialDetalleComponent, {
       ...ADMIN_DIALOG_DETAIL,
-      data: historial
+      data: historial,
     });
   }
 
   editarHistorial(historial: any) {
     const dialogRef = this.dialog.open(HistorialDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { historial, modoVer: false }
+      data: { historial, modoVer: false },
     });
-    
-    dialogRef.afterClosed()
+
+    dialogRef
+      .afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
+      .subscribe((result) => {
         if (result) {
           this.cargarHistoriales();
           this.cargarEstadisticas();
@@ -369,7 +375,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async bajaLogicaHistorial(id: string) {
     // Obtener los datos del historial antes de dar de baja para registrar en el log
-    this.historialesService.getHistorial(id)
+    this.historialesService
+      .getHistorial(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
@@ -381,18 +388,23 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Sí, borrar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
           });
 
           if (result.isConfirmed) {
             this.loadingService.show();
             try {
               await this.historialesService.bajaLogicaHistorial(id);
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar eliminación en historial del paciente', err));
+              this.pacientesService
+                .registrarEliminacionHistorialClinico(historial.paciente_id, historial)
+                .catch((err) => this.logger.error('Error al registrar eliminación en historial del paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: 'Borrado', text: 'El historial ha sido borrado' }), 0);
+              setTimeout(
+                () => Swal.fire({ icon: 'success', title: 'Borrado', text: 'El historial ha sido borrado' }),
+                0
+              );
             } catch (error) {
               this.loadingService.hide();
               setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo borrar el historial' }), 0);
@@ -404,7 +416,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async eliminarHistorial(id: string) {
     // Obtener los datos del historial antes de eliminarlo para registrar en el log
-    this.historialesService.getHistorial(id)
+    this.historialesService
+      .getHistorial(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
@@ -416,25 +429,34 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Sí, borrar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
           });
 
           if (result.isConfirmed) {
             this.loadingService.show();
             try {
               await this.historialesService.eliminarHistorial(id);
-              this.pacientesService.registrarEliminacionHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar eliminación en historial del paciente', err));
+              this.pacientesService
+                .registrarEliminacionHistorialClinico(historial.paciente_id, historial)
+                .catch((err) => this.logger.error('Error al registrar eliminación en historial del paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: 'Borrado', text: 'Historial borrado correctamente.' }), 0);
+              setTimeout(
+                () => Swal.fire({ icon: 'success', title: 'Borrado', text: 'Historial borrado correctamente.' }),
+                0
+              );
             } catch (error) {
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo borrar el historial'
-              }), 0);
+              setTimeout(
+                () =>
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo borrar el historial',
+                  }),
+                0
+              );
             }
           }
         }
@@ -443,7 +465,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async restaurarHistorial(id: string) {
     // Obtener los datos del historial antes de restaurarlo para registrar en el log
-    this.historialesService.getHistorial(id)
+    this.historialesService
+      .getHistorial(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
@@ -453,21 +476,34 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Sí, restaurar',
-            cancelButtonText: 'Cancelar'
+            cancelButtonText: 'Cancelar',
           });
 
           if (result.isConfirmed) {
             this.loadingService.show();
             try {
               await this.historialesService.restaurarHistorial(id);
-              this.pacientesService.registrarHistorialClinico(historial.paciente_id, historial).catch(err => this.logger.error('Error al registrar historial clínico en paciente', err));
+              this.pacientesService
+                .registrarHistorialClinico(historial.paciente_id, historial)
+                .catch((err) => this.logger.error('Error al registrar historial clínico en paciente', err));
               this.cargarHistoriales();
               this.cargarEstadisticas();
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'success', title: 'Restaurado', text: 'El historial fue restaurado correctamente.' }), 0);
+              setTimeout(
+                () =>
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Restaurado',
+                    text: 'El historial fue restaurado correctamente.',
+                  }),
+                0
+              );
             } catch (error) {
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' }), 0);
+              setTimeout(
+                () => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' }),
+                0
+              );
             }
           }
         }
@@ -480,14 +516,15 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.historialesService.buscarHistoriales(texto)
+    this.historialesService
+      .buscarHistoriales(texto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (historiales) => {
-          this.dataSource.data = historiales.map(historial => ({
+          this.dataSource.data = historiales.map((historial) => ({
             ...historial,
             paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
-            fecha_registro: this.formatearFecha(historial.fecha_registro)
+            fecha_registro: this.formatearFecha(historial.fecha_registro),
           }));
         },
         error: (error) => {
@@ -495,9 +532,9 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           Swal.fire({
             icon: 'error',
             title: 'Error en Búsqueda',
-            text: 'No se pudo realizar la búsqueda'
+            text: 'No se pudo realizar la búsqueda',
           });
-        }
+        },
       });
   }
 
@@ -515,8 +552,8 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         motivoDefault: 'uso_consulta',
         hideRegistrarEnCaja: true,
         titulo: 'Consumir inventario',
-        subtitulo: `Historial · ${historial.paciente || 'paciente'} · insumos de consulta/cirugía/vacuna`
-      }
+        subtitulo: `Historial · ${historial.paciente || 'paciente'} · insumos de consulta/cirugía/vacuna`,
+      },
     });
   }
 
@@ -529,7 +566,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         title: 'Cobro en cuenta del día',
         text: historial.visitaId
           ? `Historial en ticket ${historial.visitaId}. Cobra desde Cuenta del día.`
-          : 'Este historial ya fue cobrado.'
+          : 'Este historial ya fue cobrado.',
       });
       return;
     }
@@ -537,9 +574,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
     let costoSugerido = 0;
     let movimientoIds: string[] = [];
     try {
-      const consumos = await firstValueFrom(
-        this.inventarioService.getMovimientosPorHistorial(historial.id)
-      );
+      const consumos = await firstValueFrom(this.inventarioService.getMovimientosPorHistorial(historial.id));
       movimientoIds = (consumos || []).map((m) => m.id!).filter(Boolean);
       costoSugerido = this.inventarioService.sumarCostoConsumos(consumos || []);
     } catch (err) {
@@ -548,8 +583,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       this.loadingService.hide();
     }
 
-    const pacienteNombre =
-      historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
+    const pacienteNombre = historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
     const diag = String(historial.diagnostico_presuntivo || '').toLowerCase();
     let categoria: CajaCategoria = 'consulta';
     if (diag.includes('cirug') || diag.includes('qx') || diag.includes('esteriliz')) {
@@ -572,29 +606,26 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         notas:
           costoSugerido > 0
             ? `Costo sugerido desde ${movimientoIds.length} consumo(s) de inventario`
-            : 'Sin consumos de inventario; puedes elegir plantilla o capturar costo'
-      }
+            : 'Sin consumos de inventario; puedes elegir plantilla o capturar costo',
+      },
     });
 
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {
-      const cajaId = result?.movimientoId as string | undefined;
-      if (!cajaId || !movimientoIds.length) return;
-      this.loadingService.show(LOADING_MESSAGES.updating);
-      try {
-        await Promise.all(
-          movimientoIds.map((mid) => this.inventarioService.vincularMovimientoACaja(mid, cajaId))
-        );
-      } catch (error) {
-        this.logger.error('Error al vincular consumos↔caja:', error);
-        Swal.fire(
-          'Aviso',
-          this.errorMessages.getUserMessage(error, 'vincular inventario a caja'),
-          'warning'
-        );
-      } finally {
-        this.loadingService.hide();
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (result) => {
+        const cajaId = result?.movimientoId as string | undefined;
+        if (!cajaId || !movimientoIds.length) return;
+        this.loadingService.show(LOADING_MESSAGES.updating);
+        try {
+          await Promise.all(movimientoIds.map((mid) => this.inventarioService.vincularMovimientoACaja(mid, cajaId)));
+        } catch (error) {
+          this.logger.error('Error al vincular consumos↔caja:', error);
+          Swal.fire('Aviso', this.errorMessages.getUserMessage(error, 'vincular inventario a caja'), 'warning');
+        } finally {
+          this.loadingService.hide();
+        }
+      });
   }
 
   /** Spec 040 — historial clínico → ticket del día. */
@@ -604,14 +635,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire('info', 'Este historial ya está en un ticket o fue cobrado.', 'info');
       return;
     }
-    const clienteId =
-      historial.cliente_id || this.pacientesClienteMap[historial.paciente_id] || '';
+    const clienteId = historial.cliente_id || this.pacientesClienteMap[historial.paciente_id] || '';
     if (!clienteId) {
       Swal.fire('Falta cliente', 'No se pudo resolver el dueño del paciente.', 'warning');
       return;
     }
-    const pacienteNombre =
-      historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
+    const pacienteNombre = historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
     const monto = await promptMontoVisita(
       'Monto de la consulta',
       `¿Cuánto se cobrará por el historial de ${pacienteNombre}?`,
@@ -629,12 +658,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         monto,
         categoria: 'consulta',
         historialId: historial.id,
-        fecha: String(historial.fecha_registro || '').slice(0, 10) || undefined
+        fecha: String(historial.fecha_registro || '').slice(0, 10) || undefined,
       });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { visita: visita || undefined, cliente_id: clienteId }
+        data: { visita: visita || undefined, cliente_id: clienteId },
       });
       Swal.fire({ icon: 'success', title: 'Agregado a visita', timer: 1400, showConfirmButton: false });
       this.cargarHistoriales();

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
@@ -13,14 +13,9 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
-import {
-  ClientePacientePickerFields,
-  ClientePacienteSelection
-} from '../shared/admin/cliente-paciente-picker.models';
+import { ClientePacientePickerFields, ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
-import {
-  mensajeHintClientePaciente
-} from '../shared/components/flow-hint/flow-hint.util';
+import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-historial-dialog',
@@ -34,7 +29,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   isEditMode = false;
   loading = false;
   pacienteInfo: any = null;
-  
+
   // Propiedades para manejo de archivos
   archivosSeleccionados: File[] = [];
   archivosSubidos: string[] = [];
@@ -45,11 +40,11 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     clienteId: 'cliente_id',
     pacienteId: 'paciente_id',
     clienteNombre: 'cliente',
-    pacienteNombre: 'paciente_nombre'
+    pacienteNombre: 'paciente_nombre',
   };
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'medico_atendio_uid',
-    nombreField: 'medico_atendio'
+    nombreField: 'medico_atendio',
   };
 
   get muestraPickerClientePaciente(): boolean {
@@ -58,15 +53,18 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   }
 
   /** Spec 048 */
+  /** Spec 069 — campos extra (examen, diagnóstico, receta…) colapsados. */
+  mostrarMasDatos = false;
+
   get hintHistorial(): string {
     if (!this.muestraPickerClientePaciente) return '';
     return mensajeHintClientePaciente(
       this.historialForm,
       { clienteId: 'cliente_id', pacienteId: 'paciente_id' },
-      'Paso 3: registra fecha, historia clínica y examen físico.'
+      'Paso 3: escribe el motivo y una nota. Lo demás es opcional.'
     );
   }
-  
+
   // Opciones para hora y minuto
   horas: number[] = Array.from({ length: 24 }, (_, i) => i);
   minutos: number[] = Array.from({ length: 60 }, (_, i) => i);
@@ -85,50 +83,34 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
-      // Campos principales (requeridos)
+      // Spec 069 — mínimo clínico: motivo + nota. El resto opcional.
       historia_clinica: ['', Validators.required],
-      diagnostico_presuntivo: ['', Validators.required],
-      manejo_terapeutico: ['', Validators.required],
-      
-      // Examen físico
-      peso: ['', Validators.required],
-      tr: ['', Validators.required],
-      hallazgos: ['', Validators.required],
-      
-      // Estudios y receta
+      diagnostico_presuntivo: [''],
+      manejo_terapeutico: [''],
+      peso: [''],
+      tr: [''],
+      hallazgos: [''],
       estudios_solicitados: [''],
       receta: [''],
-      
-      // Archivos adjuntos (opcional)
       archivos: [''],
-      
-      // Información del médico (035: UID + nombre)
       medico_atendio: [''],
-      medico_atendio_uid: ['', Validators.required],
-      
-      // Fecha y hora del historial (requeridas)
+      medico_atendio_uid: [''],
       fecha_registro: [ahora, Validators.required],
       hora: [ahora.getHours(), Validators.required],
       minuto: [ahora.getMinutes(), Validators.required],
-      
-      // ID del paciente
       paciente_id: ['', Validators.required],
       cliente_id: [''],
       cliente: [''],
       paciente_nombre: [''],
-
-      // Visible en portal del dueño (app mobile)
       oculto_portal: [false],
-
-      // Solo staff (continuidad entre doctoras) — no mapear al portal
-      notas_internas: ['']
+      notas_internas: ['', Validators.required],
     });
   }
 
   ngOnInit() {
     if (this.data) {
       this.isEditMode = !!this.data.historial?.id;
-      
+
       // Si es un nuevo historial con paciente seleccionado
       if (!this.isEditMode && this.data.paciente_id) {
         this.cargarInformacionPaciente(this.data.paciente_id);
@@ -136,12 +118,12 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           paciente_id: this.data.paciente_id,
           cliente_id: this.data.cliente_id || '',
           cliente: this.data.cliente || '',
-          paciente_nombre: this.data.paciente || ''
+          paciente_nombre: this.data.paciente || '',
         });
         this.historialForm.get('paciente_id')?.clearValidators();
         this.historialForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
       }
-      
+
       // Si es edición, cargar información del paciente
       if (this.isEditMode && this.data.historial?.paciente_id) {
         this.cargarInformacionPaciente(this.data.historial.paciente_id);
@@ -165,7 +147,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         medico_atendio_uid: this.data.historial?.medico_atendio_uid || '',
         paciente_id: this.data.historial?.paciente_id || this.data.paciente_id || '',
         oculto_portal: this.data.historial?.oculto_portal === true,
-        notas_internas: this.data.historial?.notas_internas || ''
+        notas_internas: this.data.historial?.notas_internas || '',
       });
 
       if (this.isEditMode && this.data.historial?.id) {
@@ -178,7 +160,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           })
           .catch(() => undefined);
       }
-      
+
       // Manejar fecha y hora por separado (sin conversión de zona horaria)
       if (this.data.historial?.fecha_registro) {
         // Parsear la fecha string manualmente para evitar conversiones de zona horaria
@@ -186,29 +168,29 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         const partes = fechaStr.split(' ');
         const fechaPartes = partes[0].split('-');
         const horaPartes = partes[1] ? partes[1].split(':') : ['0', '0', '0'];
-        
+
         const año = parseInt(fechaPartes[0], 10);
         const mes = parseInt(fechaPartes[1], 10) - 1; // Mes es 0-indexed
         const dia = parseInt(fechaPartes[2], 10);
         const hora = parseInt(horaPartes[0], 10);
         const minuto = parseInt(horaPartes[1], 10);
-        
+
         // Crear fecha usando la zona horaria local
         const fechaLocal = new Date(año, mes, dia);
-        
+
         this.logger.log('Fecha cargada:', fechaStr, fechaLocal, hora, minuto);
-        
+
         this.historialForm.patchValue({
           fecha_registro: fechaLocal,
           hora: hora,
-          minuto: minuto
+          minuto: minuto,
         });
       } else {
         const ahora = new Date();
         this.historialForm.patchValue({
           fecha_registro: ahora,
           hora: ahora.getHours(),
-          minuto: ahora.getMinutes()
+          minuto: ahora.getMinutes(),
         });
       }
     }
@@ -220,18 +202,21 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   }
 
   cargarInformacionPaciente(pacienteId: string) {
-    this.pacientesService.getPaciente(pacienteId).pipe(takeUntil(this.destroy$)).subscribe(paciente => {
-      this.pacienteInfo = paciente;
-      if (paciente && !this.isEditMode) {
-        const clienteId = String((paciente as any).cliente_id || (paciente as any).idCliente || '');
-        this.historialForm.patchValue({
-          paciente_id: pacienteId,
-          paciente_nombre: paciente.nombre || '',
-          cliente_id: this.data?.cliente_id || clienteId,
-          cliente: this.data?.cliente || this.historialForm.get('cliente')?.value || ''
-        });
-      }
-    });
+    this.pacientesService
+      .getPaciente(pacienteId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((paciente) => {
+        this.pacienteInfo = paciente;
+        if (paciente && !this.isEditMode) {
+          const clienteId = String((paciente as any).cliente_id || (paciente as any).idCliente || '');
+          this.historialForm.patchValue({
+            paciente_id: pacienteId,
+            paciente_nombre: paciente.nombre || '',
+            cliente_id: this.data?.cliente_id || clienteId,
+            cliente: this.data?.cliente || this.historialForm.get('cliente')?.value || '',
+          });
+        }
+      });
   }
 
   getPacienteMeta(): string {
@@ -257,35 +242,35 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       this.logger.warn('Guardado ya en progreso, ignorando llamada adicional');
       return;
     }
-    
+
     if (this.historialForm.valid) {
       this.loading = true;
-      
+
       try {
         const historialData = this.historialForm.value;
-        
+
         // Combinar fecha con hora y minuto seleccionados (sin conversión de zona horaria)
         if (historialData.fecha_registro instanceof Date) {
           const fecha = historialData.fecha_registro;
           const hora = historialData.hora || 0;
           const minuto = historialData.minuto || 0;
-          
+
           // Construir fecha string directamente sin conversiones de zona horaria
           const año = fecha.getFullYear();
           const mes = String(fecha.getMonth() + 1).padStart(2, '0');
           const dia = String(fecha.getDate()).padStart(2, '0');
           const horaStr = String(hora).padStart(2, '0');
           const minutoStr = String(minuto).padStart(2, '0');
-          
+
           historialData.fecha_registro = `${año}-${mes}-${dia} ${horaStr}:${minutoStr}:00`;
-          
+
           this.logger.log('Fecha guardada:', historialData.fecha_registro);
         }
-        
+
         // Eliminar los campos temporales de hora y minuto
         delete historialData.hora;
         delete historialData.minuto;
-        
+
         // Subir archivos si hay alguno seleccionado (opcional)
         if (this.archivosSeleccionados.length > 0) {
           historialData.archivos = await this.subirArchivos();
@@ -297,16 +282,16 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         if (this.data?.cita_id && !this.isEditMode) {
           historialData.cita_id = this.data.cita_id;
         }
-        
+
         if (this.isEditMode && this.data.historial?.id) {
           // Actualizar historial existente
           await this.historialesService.actualizarHistorial(this.data.historial.id, historialData);
-          
+
           // Registrar en el log de actividades
           if (historialData.paciente_id) {
             await this.registrarHistorialEnLog(historialData, 'editado');
           }
-          
+
           this.loadingService.show();
           this.dialogRef.close(historialData);
         } else {
@@ -314,39 +299,43 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           const ref = await this.historialesService.crearHistorial(historialData);
           const historialId = ref.key;
           historialData.id = historialId;
-          
+
           // Registrar en el log de actividades
           if (historialData.paciente_id) {
             await this.registrarHistorialEnLog(historialData, 'creado');
           }
-          
+
           this.loadingService.show();
           this.dialogRef.close(historialData);
         }
       } catch (error) {
         this.logger.error('Error al guardar historial:', error);
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: this.errorMessages.getUserMessage(error, 'guardar historial')
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: this.errorMessages.getUserMessage(error, 'guardar historial'),
+            }),
+          0
+        );
       } finally {
         this.loading = false;
       }
     } else {
       // Marcar todos los campos como tocados para mostrar errores
-      Object.keys(this.historialForm.controls).forEach(key => {
+      Object.keys(this.historialForm.controls).forEach((key) => {
         const control = this.historialForm.get(key);
         if (control?.invalid) {
           control.markAsTouched();
         }
       });
-      
+
       Swal.fire({
         icon: 'warning',
         title: 'Campos requeridos',
-        text: 'Por favor completa los campos obligatorios'
+        text: 'Por favor completa los campos obligatorios',
       });
     }
   }
@@ -366,12 +355,12 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
       this.loading = true;
-      
+
       try {
         await this.historialesService.eliminarHistorial(this.data.historial.id);
         this.loadingService.show();
@@ -379,11 +368,15 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       } catch (error) {
         this.logger.error('Error al eliminar historial:', error);
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: this.errorMessages.getUserMessage(error, 'eliminar historial')
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: this.errorMessages.getUserMessage(error, 'eliminar historial'),
+            }),
+          0
+        );
       } finally {
         this.loading = false;
       }
@@ -396,37 +389,37 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     if (archivos) {
       for (let i = 0; i < archivos.length; i++) {
         const archivo = archivos[i];
-        
+
         // Validar tipo de archivo
         if (!this.validarTipoArchivo(archivo)) {
           Swal.fire({
             icon: 'error',
             title: 'Tipo de archivo no válido',
-            text: `El archivo "${archivo.name}" no es un tipo válido. Solo se permiten PDF, PNG, JPEG y JPG.`
+            text: `El archivo "${archivo.name}" no es un tipo válido. Solo se permiten PDF, PNG, JPEG y JPG.`,
           });
           continue;
         }
-        
+
         // Validar tamaño (máximo 10MB)
         if (archivo.size > 10 * 1024 * 1024) {
           Swal.fire({
             icon: 'error',
             title: 'Archivo demasiado grande',
-            text: `El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`
+            text: `El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`,
           });
           continue;
         }
-        
+
         // Validar cantidad máxima
         if (this.archivosSeleccionados.length >= this.maxArchivos) {
           Swal.fire({
             icon: 'warning',
             title: 'Límite de archivos alcanzado',
-            text: `Solo puedes subir un máximo de ${this.maxArchivos} archivos.`
+            text: `Solo puedes subir un máximo de ${this.maxArchivos} archivos.`,
           });
           break;
         }
-        
+
         this.archivosSeleccionados.push(archivo);
       }
     }
@@ -454,26 +447,26 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         const timestamp = Date.now();
         const nombreArchivo = `${timestamp}_${archivo.name}`;
         const rutaArchivo = `historiales_clinicos/${this.data.paciente_id}/${nombreArchivo}`;
-        
+
         const ref = this.storage.ref(rutaArchivo);
         const tarea = this.storage.upload(rutaArchivo, archivo);
-        
+
         await lastValueFrom(tarea.snapshotChanges());
         const url = await firstValueFrom(ref.getDownloadURL());
-        
+
         urlsArchivos.push(url);
       }
-      
+
       this.archivosSubidos = [...this.archivosSubidos, ...urlsArchivos];
       this.archivosSeleccionados = [];
-      
+
       return urlsArchivos;
     } catch (error) {
       this.logger.error('Error al subir archivos:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error al subir archivos',
-        text: this.errorMessages.getUserMessage(error, 'subir archivos')
+        text: this.errorMessages.getUserMessage(error, 'subir archivos'),
       });
       return [];
     } finally {
@@ -501,10 +494,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           receta: historialData.receta,
           medico_atendio: historialData.medico_atendio,
           // Archivos
-          archivos: historialData.archivos
+          archivos: historialData.archivos,
         },
         usuario: await this.currentStaff.getStaffLabel(),
-        paciente_id: historialData.paciente_id
+        paciente_id: historialData.paciente_id,
       };
 
       await this.pacientesService.registrarHistorialClinico(historialData.paciente_id, datosLog);
@@ -513,4 +506,4 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
       this.logger.error('Error al registrar historial en log:', error);
     }
   }
-} 
+}

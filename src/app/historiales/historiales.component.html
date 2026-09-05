@@ -1,31 +1,82 @@
 <div class="admin-page historiales-contenedor">
   <p class="section-eyebrow">Resumen del módulo · Este mes</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="teal" icon="calendar_month" [value]="estadisticas.delMes" label="Historiales del mes" hint="Registros activos en el mes"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" icon="medical_services" [value]="estadisticas.consultasMes" label="Consultas" hint="Por diagnóstico"></app-admin-stat-card>
-    <app-admin-stat-card accent="purple" icon="content_cut" [value]="estadisticas.cirugiasMes" label="Cirugías / Qx" hint="Heurística en diagnóstico"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" icon="vaccines" [value]="estadisticas.vacunasMes" label="Vacunas" hint="Heurística en diagnóstico"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="teal"
+      icon="calendar_month"
+      [value]="estadisticas.delMes"
+      label="Historiales del mes"
+      hint="Registros activos en el mes"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      icon="medical_services"
+      [value]="estadisticas.consultasMes"
+      label="Consultas"
+      hint="Por diagnóstico"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="purple"
+      icon="content_cut"
+      [value]="estadisticas.cirugiasMes"
+      label="Cirugías / Qx"
+      hint="Heurística en diagnóstico"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="vaccines"
+      [value]="estadisticas.vacunasMes"
+      label="Vacunas"
+      hint="Heurística en diagnóstico"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <p class="section-eyebrow">Histórico general</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="pink" icon="folder" [value]="estadisticas.total" label="Total historiales" hint="En el sistema"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.activos" label="Activos" hint="Registros vigentes"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" icon="schedule" [value]="getHistorialesRecientes()" label="Últimos 30 días" hint="Consultas recientes"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" icon="pets" [value]="getPacientesUnicos()" label="Pacientes únicos" hint="Con historial"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="pink"
+      icon="folder"
+      [value]="estadisticas.total"
+      label="Total historiales"
+      hint="En el sistema"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="check_circle"
+      [value]="estadisticas.activos"
+      label="Activos"
+      hint="Registros vigentes"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      icon="schedule"
+      [value]="getHistorialesRecientes()"
+      label="Últimos 30 días"
+      hint="Consultas recientes"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      icon="pets"
+      [value]="getPacientesUnicos()"
+      label="Pacientes únicos"
+      hint="Con historial"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-flow-hint
+    hintId="historiales-listado"
     icon="receipt_long"
     message="Registra la consulta aquí. Para cobrar, usa «Agregar al ticket del día» — no registres el servicio directo en finanzas."
-    variant="info">
+    variant="info"
+  >
   </app-flow-hint>
 
   <app-admin-page-banner
     accent="pink"
     icon="medical_services"
     title="Historiales clínicos"
-    subtitle="Documenta la consulta. El cobro se agrega al ticket del día.">
+    subtitle="Documenta la consulta. El cobro se agrega al ticket del día."
+  >
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalHistorial()">
         <mat-icon>add</mat-icon>
@@ -38,12 +89,21 @@
     accent="pink"
     title="Listado de historiales"
     description="Busca por paciente, diagnóstico, tratamiento o médico."
-    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
-    [showLegend]="!loading && !!dataSource?.data?.length">
-
+    [meta]="
+      !loading && dataSource?.data?.length
+        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales'
+        : ''
+    "
+    [showLegend]="!loading && !!dataSource?.data?.length"
+  >
     <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar historial</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Paciente, diagnóstico, tratamiento..." />
+      <input
+        matInput
+        (keyup)="aplicarFiltro($event)"
+        (input)="aplicarFiltro($event)"
+        placeholder="Paciente, diagnóstico, tratamiento..."
+      />
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
@@ -58,7 +118,8 @@
       title="Aún no hay historiales"
       message="Abre un historial con paciente. Luego puedes incluir el cobro en la cuenta del día."
       actionLabel="Nuevo historial"
-      (action)="abrirModalHistorial()">
+      (action)="abrirModalHistorial()"
+    >
     </app-admin-empty-state>
 
     <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
@@ -91,7 +152,9 @@
         <ng-container matColumnDef="medico_atendio">
           <th mat-header-cell *matHeaderCellDef>Médico</th>
           <td mat-cell *matCellDef="let historial">
-            <span class="tag tag-muted" *ngIf="historial.medico_atendio; else sinMedico">Atendido por · {{ historial.medico_atendio }}</span>
+            <span class="tag tag-muted" *ngIf="historial.medico_atendio; else sinMedico"
+              >Atendido por · {{ historial.medico_atendio }}</span
+            >
             <ng-template #sinMedico><span class="tag tag-muted">N/P</span></ng-template>
           </td>
         </ng-container>
@@ -99,7 +162,10 @@
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let historial">
-            <span class="estado-badge" [ngClass]="(historial.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
+            <span
+              class="estado-badge"
+              [ngClass]="(historial.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass"
+            >
               {{ historial.activo !== false ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
@@ -109,13 +175,30 @@
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let historial">
             <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verHistorialDetalle(historial)">
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Ver detalle"
+                (click)="verHistorialDetalle(historial)"
+              >
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Consumir inventario" (click)="consumirInventario(historial)">
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Consumir inventario"
+                (click)="consumirInventario(historial)"
+              >
                 <mat-icon>inventory_2</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Agregar al ticket del día" (click)="agregarAVisita(historial)" *ngIf="!historial.visitaId && !historial.cobradaEnVisitaId">
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Agregar al ticket del día"
+                (click)="agregarAVisita(historial)"
+                *ngIf="!historial.visitaId && !historial.cobradaEnVisitaId"
+              >
                 <mat-icon>receipt_long</mat-icon>
               </button>
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarHistorial(historial)">
@@ -125,32 +208,61 @@
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="historialMenu" (click)="menuContext = historial">
+            <button
+              mat-icon-button
+              type="button"
+              class="show-mobile-only"
+              matTooltip="Acciones"
+              [matMenuTriggerFor]="historialMenu"
+              (click)="menuContext = historial"
+            >
               <mat-icon>more_vert</mat-icon>
             </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" (dblclick)="verHistorialDetalle(row)"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="data-row"
+          (dblclick)="verHistorialDetalle(row)"
+        ></tr>
       </table>
     </div>
 
-    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+    <mat-paginator
+      *ngIf="!loading && dataSource?.data?.length"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons
+    ></mat-paginator>
   </app-admin-data-panel>
 
   <mat-menu #historialMenu="matMenu">
-    <button mat-menu-item (click)="verHistorialDetalle(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
-    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
+    <button mat-menu-item (click)="verHistorialDetalle(menuContext)" [disabled]="!menuContext">
+      <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext">
+      <mat-icon>inventory_2</mat-icon> Consumir inventario
+    </button>
     <button
       mat-menu-item
       (click)="agregarAVisita(menuContext)"
-      [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId">
+      [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId"
+    >
       <mat-icon>receipt_long</mat-icon>
       {{ menuContext?.visitaId ? 'Ya en ticket' : 'Agregar al ticket del día' }}
     </button>
-    <button mat-menu-item *ngIf="isAdmin && necesitaMigracion" (click)="ejecutarMigracion()"><mat-icon>sync</mat-icon> Migrar base de datos</button>
-    <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
+    <button mat-menu-item *ngIf="isSuperAdmin && necesitaMigracion" (click)="ejecutarMigracion()">
+      <mat-icon>sync</mat-icon> Migrar base de datos
+    </button>
+    <button mat-menu-item (click)="editarHistorial(menuContext)" [disabled]="!menuContext">
+      <mat-icon>edit</mat-icon> Editar
+    </button>
+    <button mat-menu-item (click)="bajaLogicaHistorial(menuContext?.id)" [disabled]="!menuContext">
+      <mat-icon>delete_outline</mat-icon> Borrar
+    </button>
   </mat-menu>
 </div>

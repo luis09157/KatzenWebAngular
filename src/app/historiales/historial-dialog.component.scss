@@ -99,6 +99,20 @@
   color: #6b7280;
 }
 
+.admin-dialog-panel app-historial-dialog .historial-mas-datos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0a969b;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .admin-dialog-panel app-historial-dialog .form-grid,
 .admin-dialog-panel app-historial-dialog .form-grid--3 {
   display: grid !important;

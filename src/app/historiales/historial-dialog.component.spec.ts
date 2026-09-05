@@ -30,7 +30,7 @@ describe('HistorialDialogComponent', () => {
     { provide: ErrorMessagesService, useValue: { getUserMessage: () => 'error' } },
     { provide: LoadingService, useValue: { show: () => undefined, hide: () => undefined } },
     { provide: LoggerService, useValue: { log: () => undefined, error: () => undefined, warn: () => undefined } },
-    { provide: CurrentStaffService, useValue: { getStaffId: async () => 'staff', getStaffLabel: async () => 'Staff' } }
+    { provide: CurrentStaffService, useValue: { getStaffId: async () => 'staff', getStaffLabel: async () => 'Staff' } },
   ];
 
   beforeEach(async () => {
@@ -38,7 +38,7 @@ describe('HistorialDialogComponent', () => {
     const historialesService = jasmine.createSpyObj('HistorialesService', [
       'crearHistorial',
       'actualizarHistorial',
-      'getNotasInternas'
+      'getNotasInternas',
     ]);
     historialesService.getNotasInternas.and.resolveTo('');
     const pacientesService = jasmine.createSpyObj('PacientesService', ['getPaciente', 'registrarHistorialClinico']);
@@ -55,7 +55,7 @@ describe('HistorialDialogComponent', () => {
         MatSelectModule,
         MatDatepickerModule,
         MatNativeDateModule,
-        MatCheckboxModule
+        MatCheckboxModule,
       ],
       providers: [
         { provide: HistorialesService, useValue: historialesService },
@@ -68,11 +68,11 @@ describe('HistorialDialogComponent', () => {
           useValue: {
             paciente_id: 'pac123',
             historial: null,
-            modoVer: false
-          }
-        }
+            modoVer: false,
+          },
+        },
       ],
-      schemas: [NO_ERRORS_SCHEMA]
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HistorialDialogComponent);
@@ -81,12 +81,14 @@ describe('HistorialDialogComponent', () => {
     pacientesServiceSpy = TestBed.inject(PacientesService) as jasmine.SpyObj<PacientesService>;
     dialogRefSpy = TestBed.inject(MatDialogRef) as jasmine.SpyObj<MatDialogRef<HistorialDialogComponent>>;
 
-    pacientesServiceSpy.getPaciente.and.returnValue(of({
-      id: 'pac123',
-      nombre: 'Firulais',
-      especie: 'Perro',
-      raza: 'Labrador'
-    }));
+    pacientesServiceSpy.getPaciente.and.returnValue(
+      of({
+        id: 'pac123',
+        nombre: 'Firulais',
+        especie: 'Perro',
+        raza: 'Labrador',
+      })
+    );
   });
 
   it('should create', () => {
@@ -138,34 +140,26 @@ describe('HistorialDialogComponent', () => {
       fixture.detectChanges();
     });
 
-    it('debe requerir campos obligatorios', () => {
+    it('debe exigir solo motivo y nota (spec 069)', () => {
       const form = component.historialForm;
 
       expect(form.get('historia_clinica')?.hasError('required')).toBe(true);
-      expect(form.get('diagnostico_presuntivo')?.hasError('required')).toBe(true);
-      expect(form.get('manejo_terapeutico')?.hasError('required')).toBe(true);
-      expect(form.get('peso')?.hasError('required')).toBe(true);
-      expect(form.get('tr')?.hasError('required')).toBe(true);
-      expect(form.get('hallazgos')?.hasError('required')).toBe(true);
-      expect(form.get('medico_atendio_uid')?.hasError('required')).toBe(true);
+      expect(form.get('notas_internas')?.hasError('required')).toBe(true);
+      expect(form.get('diagnostico_presuntivo')?.hasError('required')).toBeFalsy();
+      expect(form.get('manejo_terapeutico')?.hasError('required')).toBeFalsy();
+      expect(form.get('peso')?.hasError('required')).toBeFalsy();
+      expect(form.get('tr')?.hasError('required')).toBeFalsy();
+      expect(form.get('hallazgos')?.hasError('required')).toBeFalsy();
+      expect(form.get('medico_atendio_uid')?.hasError('required')).toBeFalsy();
     });
 
-    it('debe ser válido cuando todos los campos requeridos están llenos', () => {
+    it('debe ser válido con motivo + nota y defaults de fecha', () => {
       const form = component.historialForm;
 
       form.patchValue({
         historia_clinica: 'Historia de prueba',
-        diagnostico_presuntivo: 'Diagnóstico de prueba',
-        manejo_terapeutico: 'Tratamiento de prueba',
-        peso: '25',
-        tr: 'Normal',
-        hallazgos: 'Sin hallazgos',
-        medico_atendio: 'Dr. Juan Pérez',
-        medico_atendio_uid: 'uid-doctor-1',
-        fecha_registro: new Date(),
-        hora: 14,
-        minuto: 30,
-        paciente_id: 'pac123'
+        notas_internas: 'Nota de continuidad',
+        paciente_id: 'pac123',
       });
 
       expect(form.valid).toBe(true);
@@ -192,17 +186,11 @@ describe('HistorialDialogComponent', () => {
 
       form.patchValue({
         historia_clinica: 'Test',
-        diagnostico_presuntivo: 'Test',
-        manejo_terapeutico: 'Test',
-        peso: '25',
-        tr: 'Normal',
-        hallazgos: 'Test',
-        medico_atendio: 'Dr. Juan Pérez',
-        medico_atendio_uid: 'uid-doctor-1',
+        notas_internas: 'Nota',
         fecha_registro: new Date(2025, 11, 28),
         hora: 13,
         minuto: 50,
-        paciente_id: 'pac123'
+        paciente_id: 'pac123',
       });
 
       historialesServiceSpy.crearHistorial.and.returnValue(Promise.resolve({ key: 'nuevo-id' }));
@@ -230,7 +218,7 @@ describe('HistorialDialogComponent', () => {
           MatSelectModule,
           MatDatepickerModule,
           MatNativeDateModule,
-          MatCheckboxModule
+          MatCheckboxModule,
         ],
         providers: [
           { provide: HistorialesService, useValue: historialesServiceSpy },
@@ -247,13 +235,13 @@ describe('HistorialDialogComponent', () => {
                 fecha_registro: '2025-12-28 13:50:00',
                 paciente_id: 'pac123',
                 medico_atendio: 'Dr. Juan Pérez',
-                medico_atendio_uid: 'uid-doctor-1'
+                medico_atendio_uid: 'uid-doctor-1',
               },
-              modoVer: false
-            }
-          }
+              modoVer: false,
+            },
+          },
         ],
-        schemas: [NO_ERRORS_SCHEMA]
+        schemas: [NO_ERRORS_SCHEMA],
       }).compileComponents();
 
       const newFixture = TestBed.createComponent(HistorialDialogComponent);
@@ -282,14 +270,8 @@ describe('HistorialDialogComponent', () => {
       const form = component.historialForm;
       form.patchValue({
         historia_clinica: 'Test',
-        diagnostico_presuntivo: 'Test',
-        manejo_terapeutico: 'Test',
-        peso: '25',
-        tr: 'Normal',
-        hallazgos: 'Test',
-        medico_atendio: 'Dr. Juan Pérez',
-        medico_atendio_uid: 'uid-doctor-1',
-        paciente_id: 'pac123'
+        notas_internas: 'Nota',
+        paciente_id: 'pac123',
       });
 
       component.loading = true;
@@ -303,7 +285,7 @@ describe('HistorialDialogComponent', () => {
       const form = component.historialForm;
       form.patchValue({
         historia_clinica: '',
-        diagnostico_presuntivo: 'Test'
+        diagnostico_presuntivo: 'Test',
       });
 
       await component.guardarHistorial();

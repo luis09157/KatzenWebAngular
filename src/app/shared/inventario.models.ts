@@ -1,54 +1,19 @@
 // ==================== TIPOS Y ENUMS ====================
 export type CategoriaProducto =
-  | 'medicamento'
-  | 'vacuna'
-  | 'quirurgico'
-  | 'alimento'
-  | 'peluqueria'
-  | 'diagnostico'
-  | 'accesorio';
+  'medicamento' | 'vacuna' | 'quirurgico' | 'alimento' | 'peluqueria' | 'diagnostico' | 'accesorio';
 
 export type UnidadMedida =
-  | 'unidad'
-  | 'ml'
-  | 'gr'
-  | 'kg'
-  | 'litro'
-  | 'caja'
-  | 'paquete'
-  | 'tableta'
-  | 'capsula'
-  | 'frasco'
-  | 'dosis';
+  'unidad' | 'ml' | 'gr' | 'kg' | 'litro' | 'caja' | 'paquete' | 'tableta' | 'capsula' | 'frasco' | 'dosis';
 
-export type TipoMovimiento = 
-  | 'entrada' 
-  | 'salida' 
-  | 'ajuste' 
-  | 'merma' 
-  | 'devolucion' 
-  | 'transferencia';
+export type TipoMovimiento = 'entrada' | 'salida' | 'ajuste' | 'merma' | 'devolucion' | 'transferencia';
 
 export type EstadoLote = 'vigente' | 'por_vencer' | 'vencido' | 'agotado';
 
-export type EstadoOrden = 
-  | 'borrador' 
-  | 'enviada' 
-  | 'parcial' 
-  | 'recibida' 
-  | 'cancelada';
+export type EstadoOrden = 'borrador' | 'enviada' | 'parcial' | 'recibida' | 'cancelada';
 
-export type FormaPagoProveedor = 
-  | 'contado' 
-  | 'credito_15' 
-  | 'credito_30' 
-  | 'credito_60';
+export type FormaPagoProveedor = 'contado' | 'credito_15' | 'credito_30' | 'credito_60';
 
-export type TipoAlerta = 
-  | 'stock_bajo' 
-  | 'por_caducar' 
-  | 'caducado' 
-  | 'punto_reorden';
+export type TipoAlerta = 'stock_bajo' | 'por_caducar' | 'caducado' | 'punto_reorden';
 
 export type PrioridadAlerta = 'baja' | 'media' | 'alta' | 'critica';
 export type EstadoAlerta = 'pendiente' | 'en_proceso' | 'resuelta' | 'ignorada';
@@ -141,6 +106,8 @@ export interface ProductoFormData {
   controlado: boolean;
   /** Spec 043 — URL Storage opcional. */
   imagen_url?: string;
+  /** Spec 069 — solo UI de alta; se escribe en `stock_actual` (campo existente). */
+  stock_inicial?: number;
 }
 
 // ==================== LOTE ====================
@@ -322,4 +289,3 @@ export interface EstadisticasInventario {
     valor_total: number;
   }[];
 }
-

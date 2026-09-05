@@ -18,7 +18,7 @@ import {
   MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA,
   resolverTasaIva,
   sugerirIvaPorCategoria,
-  ventaMayorQueCostoValidator
+  ventaMayorQueCostoValidator,
 } from '../../core/utils/precio-margen.util';
 import {
   ETIQUETA_CATEGORIA_PRODUCTO,
@@ -28,7 +28,7 @@ import {
   generarQrDataUrl,
   imprimirEtiquetaProducto,
   marcaProductoODefault,
-  presetProductoPorCategoria
+  presetProductoPorCategoria,
 } from './producto-identificacion.util';
 
 @Component({
@@ -50,7 +50,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     'alimento',
     'peluqueria',
     'diagnostico',
-    'accesorio'
+    'accesorio',
   ];
 
   unidadesMedida: UnidadMedida[] = [
@@ -64,7 +64,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     'kg',
     'litro',
     'caja',
-    'paquete'
+    'paquete',
   ];
 
   readonly etiquetaCategoria = ETIQUETA_CATEGORIA_PRODUCTO;
@@ -84,6 +84,8 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   isUploading = false;
   imagenEliminada = false;
   qrDataUrl = '';
+  /** Spec 069 — extras colapsados en alta rápida. */
+  mostrarMasDatos = false;
 
   constructor(
     private fb: FormBuilder,
@@ -102,9 +104,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     const preset = presetProductoPorCategoria(cat);
     const ivaSug = sugerirIvaPorCategoria(cat);
     const ivaAplicable =
-      data.producto?.iva_aplicable !== undefined
-        ? data.producto.iva_aplicable
-        : ivaSug.iva_aplicable;
+      data.producto?.iva_aplicable !== undefined ? data.producto.iva_aplicable : ivaSug.iva_aplicable;
     const tasaIva =
       data.producto?.tasa_iva !== undefined && data.producto?.tasa_iva !== null
         ? data.producto.tasa_iva
@@ -115,77 +115,42 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     this.productoForm = this.fb.group({
       codigo_barras: [
         data.producto?.codigo_barras || (!this.modoEdicion ? generarCodigoInternoProducto(cat) : ''),
-        [Validators.required, Validators.minLength(3), Validators.maxLength(50)]
+        [Validators.required, Validators.minLength(3), Validators.maxLength(50)],
       ],
-      nombre: [
-        data.producto?.nombre || '',
-        [Validators.required, Validators.minLength(3), Validators.maxLength(200)]
-      ],
-      descripcion: [
-        data.producto?.descripcion || '',
-        [Validators.maxLength(500)]
-      ],
+      nombre: [data.producto?.nombre || '', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
+      descripcion: [data.producto?.descripcion || '', [Validators.maxLength(500)]],
       categoria: [cat, [Validators.required]],
-      subcategoria: [
-        data.producto?.subcategoria || '',
-        [Validators.maxLength(100)]
-      ],
-      marca: [
-        data.producto?.marca || '',
-        [Validators.maxLength(100)]
-      ],
+      subcategoria: [data.producto?.subcategoria || '', [Validators.maxLength(100)]],
+      marca: [data.producto?.marca || '', [Validators.maxLength(100)]],
       presentacion: [
         data.producto?.presentacion || (!this.modoEdicion ? preset.presentacion : ''),
-        [Validators.required, Validators.maxLength(100)]
+        [Validators.maxLength(100)],
       ],
-      unidad_medida: [
-        data.producto?.unidad_medida || preset.unidad,
-        [Validators.required]
+      stock_inicial: [
+        this.modoEdicion ? (data.producto?.stock_actual ?? 0) : 0,
+        this.modoEdicion ? [Validators.min(0)] : [Validators.required, Validators.min(0)],
       ],
-      stock_minimo: [
-        data.producto?.stock_minimo || 5,
-        [Validators.required, Validators.min(0)]
-      ],
-      stock_maximo: [
-        data.producto?.stock_maximo || 100,
-        [Validators.required, Validators.min(1)]
-      ],
-      punto_reorden: [
-        data.producto?.punto_reorden || 10,
-        [Validators.required, Validators.min(0)]
-      ],
-      ubicacion_almacen: [
-        data.producto?.ubicacion_almacen || '',
-        [Validators.maxLength(100)]
-      ],
-      requiere_refrigeracion: [
-        data.producto?.requiere_refrigeracion ?? preset.requiere_refrigeracion
-      ],
+      unidad_medida: [data.producto?.unidad_medida || preset.unidad, [Validators.required]],
+      stock_minimo: [data.producto?.stock_minimo || 5, [Validators.required, Validators.min(0)]],
+      stock_maximo: [data.producto?.stock_maximo || 100, [Validators.min(1)]],
+      punto_reorden: [data.producto?.punto_reorden || 10, [Validators.min(0)]],
+      ubicacion_almacen: [data.producto?.ubicacion_almacen || '', [Validators.maxLength(100)]],
+      requiere_refrigeracion: [data.producto?.requiere_refrigeracion ?? preset.requiere_refrigeracion],
       fecha_caducidad_alerta_dias: [
         data.producto?.fecha_caducidad_alerta_dias || preset.fecha_caducidad_alerta_dias,
-        [Validators.required, Validators.min(1), Validators.max(365)]
+        [Validators.min(1), Validators.max(365)],
       ],
-      precio_compra: [
-        data.producto?.precio_compra || 0,
-        [Validators.required, Validators.min(0)]
-      ],
+      precio_compra: [data.producto?.precio_compra || 0, [Validators.required, Validators.min(0)]],
       margen_objetivo: [null as number | null],
       precio_venta: [
         data.producto?.precio_venta || 0,
-        [Validators.required, Validators.min(0), ventaMayorQueCostoValidator('precio_compra')]
+        [Validators.required, Validators.min(0), ventaMayorQueCostoValidator('precio_compra')],
       ],
       iva_aplicable: [ivaAplicable],
       tasa_iva: [tasaIva, [Validators.min(0), Validators.max(100)]],
-      proveedor_principal_id: [
-        data.producto?.proveedor_principal_id || '',
-        [Validators.required]
-      ],
-      requiere_receta: [
-        data.producto?.requiere_receta || false
-      ],
-      controlado: [
-        data.producto?.controlado || false
-      ]
+      proveedor_principal_id: [data.producto?.proveedor_principal_id || ''],
+      requiere_receta: [data.producto?.requiere_receta || false],
+      controlado: [data.producto?.controlado || false],
     });
 
     if (data.producto?.imagen_url) {
@@ -262,7 +227,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
       precioVenta: venta,
       costo,
       aplicaIva: aplica,
-      tasaIva: resolverTasaIva(aplica, tasa)
+      tasaIva: resolverTasaIva(aplica, tasa),
     });
   }
 
@@ -282,13 +247,13 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
       Swal.fire('Código incompleto', 'El código debe tener al menos 3 caracteres para imprimir el QR.', 'info');
       return;
     }
-    const qr = this.qrDataUrl || await generarQrDataUrl(codigo);
+    const qr = this.qrDataUrl || (await generarQrDataUrl(codigo));
     if (!qr) return;
     imprimirEtiquetaProducto({
       nombre,
       codigo,
       presentacion: this.productoForm.get('presentacion')?.value,
-      qrDataUrl: qr
+      qrDataUrl: qr,
     });
   }
 
@@ -309,7 +274,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     this.selectedFile = file;
     this.imagenEliminada = false;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = (e) => {
       this.imagePreview = String(e.target?.result || '');
     };
     reader.readAsDataURL(file);
@@ -364,10 +329,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   private aplicarSugerenciaIva(categoria: CategoriaProducto): void {
     if (this.ivaManual || this.modoEdicion) return;
     const sug = sugerirIvaPorCategoria(categoria);
-    this.productoForm.patchValue(
-      { iva_aplicable: sug.iva_aplicable, tasa_iva: sug.tasa_iva },
-      { emitEvent: false }
-    );
+    this.productoForm.patchValue({ iva_aplicable: sug.iva_aplicable, tasa_iva: sug.tasa_iva }, { emitEvent: false });
   }
 
   private revalidarPrecios(): void {
@@ -375,13 +337,29 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
   }
 
   cargarProveedores(): void {
-    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (proveedores) => {
-        this.proveedores = proveedores;
-        if (proveedores.length === 0) this.crearProveedorPorDefecto();
-      },
-      error: (error) => { this.logger.error('Error al cargar proveedores:', error); }
-    });
+    this.inventarioService
+      .getProveedores()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (proveedores) => {
+          this.proveedores = proveedores;
+          if (proveedores.length === 0) {
+            this.crearProveedorPorDefecto();
+            return;
+          }
+          const actual = String(this.productoForm.get('proveedor_principal_id')?.value || '');
+          if (actual) return;
+          const general = proveedores.find((p) =>
+            /proveedor general/i.test(String(p.nombre_comercial || p.razon_social || ''))
+          );
+          this.productoForm.patchValue({
+            proveedor_principal_id: (general || proveedores[0]).id,
+          });
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar proveedores:', error);
+        },
+      });
   }
 
   /** Cierra el diálogo y abre el CRUD de proveedores (menú Inventario → Proveedores). */
@@ -404,7 +382,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         estado: 'Sin especificar',
         codigo_postal: '00000',
         dias_entrega: 7,
-        condiciones_pago: 'Contado'
+        condiciones_pago: 'Contado',
       });
 
       this.productoForm.patchValue({ proveedor_principal_id: proveedorId });
@@ -495,7 +473,8 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         tasa_iva: resolverTasaIva(ivaAplicable, raw.tasa_iva),
         proveedor_principal_id: raw.proveedor_principal_id,
         requiere_receta: raw.requiere_receta,
-        controlado: raw.controlado
+        controlado: raw.controlado,
+        stock_inicial: this.modoEdicion ? undefined : Number(raw.stock_inicial) || 0,
       };
 
       if (formData.stock_maximo <= formData.stock_minimo) {
@@ -537,7 +516,7 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
         title: 'Éxito',
         text: this.modoEdicion ? 'Producto actualizado correctamente' : 'Producto creado correctamente',
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       console.error('❌ Error al guardar producto:', error);
@@ -578,18 +557,23 @@ export class ProductoDialogComponent implements OnInit, OnDestroy {
     const filePath = `Inventario/Productos/${productoId}/${fileId}`;
     const fileRef = this.storage.ref(filePath);
     const uploadTask = this.storage.upload(filePath, this.selectedFile, {
-      contentType: this.selectedFile.type
+      contentType: this.selectedFile.type,
     });
-    uploadTask.percentageChanges().pipe(takeUntil(this.destroy$)).subscribe(pct => {
-      this.uploadProgress = pct || 0;
-    });
+    uploadTask
+      .percentageChanges()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((pct) => {
+        this.uploadProgress = pct || 0;
+      });
     try {
-      await lastValueFrom(uploadTask.snapshotChanges().pipe(
-        finalize(() => {
-          this.isUploading = false;
-          this.uploadProgress = 0;
-        })
-      ));
+      await lastValueFrom(
+        uploadTask.snapshotChanges().pipe(
+          finalize(() => {
+            this.isUploading = false;
+            this.uploadProgress = 0;
+          })
+        )
+      );
       return await firstValueFrom(fileRef.getDownloadURL());
     } catch (error) {
       this.isUploading = false;

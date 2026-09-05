@@ -2,7 +2,13 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ modoEdicion ? 'Editar producto' : 'Nuevo producto' }}</h2>
-      <p class="admin-dialog-subtitle">Foto opcional, código/QR y datos de stock. Cambia la categoría para sugerencias de clínica.</p>
+      <p class="admin-dialog-subtitle">
+        {{
+          modoEdicion
+            ? 'Actualiza el catálogo. El stock se mueve con entradas y salidas.'
+            : 'Nombre, precio, categoría y stock. Lo demás se completa solo.'
+        }}
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -10,276 +16,335 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
-  <form [formGroup]="productoForm" class="producto-form">
-    <div class="admin-dialog-layout">
-      <aside class="admin-dialog-aside">
-        <div class="admin-dialog-photo">
-          <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del producto" decoding="async">
-          <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
-            <mat-icon>inventory_2</mat-icon>
-            <span>Sin foto</span>
+    <form [formGroup]="productoForm" class="producto-form">
+      <div class="admin-dialog-layout">
+        <aside class="admin-dialog-aside">
+          <div class="admin-dialog-photo">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del producto" decoding="async" />
+            <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
+              <mat-icon>inventory_2</mat-icon>
+              <span>Sin foto</span>
+            </div>
+            <button
+              *ngIf="imagePreview"
+              mat-icon-button
+              type="button"
+              class="admin-dialog-photo__remove"
+              (click)="removeImage()"
+              aria-label="Quitar foto"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
           </div>
-          <button
-            *ngIf="imagePreview"
-            mat-icon-button
-            type="button"
-            class="admin-dialog-photo__remove"
-            (click)="removeImage()"
-            aria-label="Quitar foto">
-            <mat-icon>close</mat-icon>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden />
+          <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading || loading">
+            <mat-icon>photo_camera</mat-icon>
+            {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
           </button>
-        </div>
-        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
-        <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading || loading">
-          <mat-icon>photo_camera</mat-icon>
-          {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
-        </button>
-        <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+          <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
 
-        <div class="producto-ident-qr" *ngIf="qrDataUrl">
-          <img [src]="qrDataUrl" alt="Código QR del producto">
-          <button mat-stroked-button type="button" (click)="imprimirEtiqueta()">
-            <mat-icon>print</mat-icon>
-            Imprimir QR
-          </button>
-        </div>
-      </aside>
+          <div class="producto-ident-qr" *ngIf="qrDataUrl">
+            <img [src]="qrDataUrl" alt="Código QR del producto" />
+            <button mat-stroked-button type="button" (click)="imprimirEtiqueta()">
+              <mat-icon>print</mat-icon>
+              Imprimir QR
+            </button>
+          </div>
+        </aside>
 
-      <div class="admin-dialog-form">
-    <section class="form-section">
-      <h3 class="form-section__title">Información básica</h3>
-      <div class="form-grid">
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Código / barras</mat-label>
-          <input matInput formControlName="codigo_barras" placeholder="Se genera solo; pega el EAN si el empaque ya lo trae">
-          <button mat-icon-button matSuffix type="button" matTooltip="Generar código interno" (click)="regenerarCodigo()" aria-label="Generar código">
-            <mat-icon>autorenew</mat-icon>
-          </button>
-          <mat-hint>QR usa este mismo valor. Regenerar si no trae código de fábrica.</mat-hint>
-          <mat-error *ngIf="hasError('codigo_barras', 'required')">{{getErrorMessage('codigo_barras')}}</mat-error>
-          <mat-error *ngIf="hasError('codigo_barras', 'minlength') || hasError('codigo_barras', 'maxlength')">
-            {{getErrorMessage('codigo_barras')}}
-          </mat-error>
-        </mat-form-field>
+        <div class="admin-dialog-form">
+          <section class="form-section">
+            <h3 class="form-section__title">Lo esencial</h3>
+            <div class="form-grid">
+              <mat-form-field appearance="outline" class="full-span">
+                <mat-label>Nombre del producto</mat-label>
+                <input matInput formControlName="nombre" placeholder="Ej: Amoxicilina 500 mg, Croquetas adultas 2 kg" />
+                <mat-error *ngIf="hasError('nombre', 'required')">{{ getErrorMessage('nombre') }}</mat-error>
+              </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Nombre del Producto</mat-label>
-          <input matInput formControlName="nombre" placeholder="Ej: Amoxicilina 500 mg, Croquetas adultas 2 kg">
-          <mat-error *ngIf="hasError('nombre', 'required')">{{getErrorMessage('nombre')}}</mat-error>
-        </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Categoría</mat-label>
+                <mat-select formControlName="categoria">
+                  <mat-option *ngFor="let cat of categorias" [value]="cat">
+                    {{ etiquetaCategoria[cat] }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>category</mat-icon>
+              </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Descripción</mat-label>
-          <textarea matInput formControlName="descripcion" rows="3"
-                    placeholder="Opcional: concentración, especie, vía de administración"></textarea>
-        </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Precio de venta</mat-label>
+                <input matInput type="number" formControlName="precio_venta" min="0" step="0.01" />
+                <span matTextPrefix>$ &nbsp;</span>
+                <mat-error *ngIf="hasError('precio_venta', 'required') || hasError('precio_venta', 'min')">
+                  {{ getErrorMessage('precio_venta') }}
+                </mat-error>
+                <mat-error *ngIf="hasError('precio_venta', 'costoMayorOIgualVenta')">
+                  {{ getErrorMessage('precio_venta') }}
+                </mat-error>
+              </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Categoría</mat-label>
-          <mat-select formControlName="categoria">
-            <mat-option *ngFor="let cat of categorias" [value]="cat">
-              {{ etiquetaCategoria[cat] }}
-            </mat-option>
-          </mat-select>
-          <mat-icon matSuffix>category</mat-icon>
-        </mat-form-field>
+              <mat-form-field appearance="outline" *ngIf="!modoEdicion">
+                <mat-label>Stock inicial</mat-label>
+                <input matInput type="number" formControlName="stock_inicial" min="0" />
+                <mat-hint>Piezas que hay ahora en anaquel</mat-hint>
+              </mat-form-field>
+            </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Subcategoría</mat-label>
-          <input matInput formControlName="subcategoria" [placeholder]="hintSubcategoria">
-        </mat-form-field>
-      </div>
+            <button type="button" class="producto-mas-datos" (click)="mostrarMasDatos = !mostrarMasDatos">
+              <mat-icon>{{ mostrarMasDatos ? 'expand_less' : 'expand_more' }}</mat-icon>
+              {{ mostrarMasDatos ? 'Ocultar más datos' : 'Más datos (opcional)' }}
+            </button>
+          </section>
 
-      <div class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Marca</mat-label>
-          <input matInput formControlName="marca" placeholder="Opcional — si está vacío se guarda S/M">
-        </mat-form-field>
+          <ng-container *ngIf="mostrarMasDatos || modoEdicion">
+            <section class="form-section">
+              <h3 class="form-section__title">Identificación</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="full-span">
+                  <mat-label>Código / barras</mat-label>
+                  <input
+                    matInput
+                    formControlName="codigo_barras"
+                    placeholder="Se genera solo; pega el EAN si el empaque ya lo trae"
+                  />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    matTooltip="Generar código interno"
+                    (click)="regenerarCodigo()"
+                    aria-label="Generar código"
+                  >
+                    <mat-icon>autorenew</mat-icon>
+                  </button>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-span">
+                  <mat-label>Descripción</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="descripcion"
+                    rows="3"
+                    placeholder="Opcional: concentración, especie, vía de administración"
+                  ></textarea>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Subcategoría</mat-label>
+                  <input matInput formControlName="subcategoria" [placeholder]="hintSubcategoria" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Marca</mat-label>
+                  <input matInput formControlName="marca" placeholder="Opcional — si está vacío se guarda S/M" />
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Presentación</mat-label>
-          <input matInput formControlName="presentacion" placeholder="Ej: Caja 10 tabletas, frasco 100 ml">
-          <mat-error *ngIf="hasError('presentacion', 'required')">{{getErrorMessage('presentacion')}}</mat-error>
-        </mat-form-field>
-      </div>
-    </section>
+                <mat-form-field appearance="outline">
+                  <mat-label>Presentación</mat-label>
+                  <input matInput formControlName="presentacion" placeholder="Ej: Caja 10 tabletas, frasco 100 ml" />
+                  <mat-error *ngIf="hasError('presentacion', 'required')">{{
+                    getErrorMessage('presentacion')
+                  }}</mat-error>
+                </mat-form-field>
+              </div>
+            </section>
 
-    <section class="form-section">
-      <h3 class="form-section__title">Control de stock</h3>
-      <div class="form-grid form-grid--3">
-        <mat-form-field appearance="outline">
-          <mat-label>Unidad de Medida</mat-label>
-          <mat-select formControlName="unidad_medida">
-            <mat-option *ngFor="let unidad of unidadesMedida" [value]="unidad">
-              {{ etiquetaUnidad[unidad] }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+            <section class="form-section">
+              <h3 class="form-section__title">Control de stock</h3>
+              <div class="form-grid form-grid--3">
+                <mat-form-field appearance="outline">
+                  <mat-label>Unidad de Medida</mat-label>
+                  <mat-select formControlName="unidad_medida">
+                    <mat-option *ngFor="let unidad of unidadesMedida" [value]="unidad">
+                      {{ etiquetaUnidad[unidad] }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Stock Mínimo</mat-label>
-          <input matInput type="number" formControlName="stock_minimo" min="0">
-          <mat-error *ngIf="hasError('stock_minimo', 'required') || hasError('stock_minimo', 'min')">
-            {{getErrorMessage('stock_minimo')}}
-          </mat-error>
-        </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Stock Mínimo</mat-label>
+                  <input matInput type="number" formControlName="stock_minimo" min="0" />
+                  <mat-error *ngIf="hasError('stock_minimo', 'required') || hasError('stock_minimo', 'min')">
+                    {{ getErrorMessage('stock_minimo') }}
+                  </mat-error>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Stock Máximo</mat-label>
-          <input matInput type="number" formControlName="stock_maximo" min="1">
-          <mat-error *ngIf="hasError('stock_maximo', 'required') || hasError('stock_maximo', 'min')">
-            {{getErrorMessage('stock_maximo')}}
-          </mat-error>
-        </mat-form-field>
-      </div>
+                <mat-form-field appearance="outline">
+                  <mat-label>Stock Máximo</mat-label>
+                  <input matInput type="number" formControlName="stock_maximo" min="1" />
+                  <mat-error *ngIf="hasError('stock_maximo', 'required') || hasError('stock_maximo', 'min')">
+                    {{ getErrorMessage('stock_maximo') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
 
-      <div class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Punto de Reorden</mat-label>
-          <input matInput type="number" formControlName="punto_reorden" min="0">
-          <mat-hint>Se generará alerta al alcanzar este punto</mat-hint>
-        </mat-form-field>
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Punto de Reorden</mat-label>
+                  <input matInput type="number" formControlName="punto_reorden" min="0" />
+                  <mat-hint>Se generará alerta al alcanzar este punto</mat-hint>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Ubicación en Almacén</mat-label>
-          <input matInput formControlName="ubicacion_almacen" placeholder="Ej: Refrigerador 1, Estante A3">
-          <mat-icon matSuffix>location_on</mat-icon>
-        </mat-form-field>
-      </div>
-    </section>
+                <mat-form-field appearance="outline">
+                  <mat-label>Ubicación en Almacén</mat-label>
+                  <input matInput formControlName="ubicacion_almacen" placeholder="Ej: Refrigerador 1, Estante A3" />
+                  <mat-icon matSuffix>location_on</mat-icon>
+                </mat-form-field>
+              </div>
+            </section>
 
-    <section class="form-section">
-      <h3 class="form-section__title">Costo, precio de venta e IVA</h3>
-      <div class="form-grid form-grid--3">
-        <mat-form-field appearance="outline">
-          <mat-label>Costo (compra)</mat-label>
-          <input matInput type="number" formControlName="precio_compra" min="0" step="0.01">
-          <span matTextPrefix>$ &nbsp;</span>
-          <mat-hint>Lo que te cuesta a ti (neto)</mat-hint>
-          <mat-error *ngIf="hasError('precio_compra', 'required') || hasError('precio_compra', 'min')">
-            {{getErrorMessage('precio_compra')}}
-          </mat-error>
-        </mat-form-field>
+            <section class="form-section">
+              <h3 class="form-section__title">Costo, precio de venta e IVA</h3>
+              <div class="form-grid form-grid--3">
+                <mat-form-field appearance="outline">
+                  <mat-label>Costo (compra)</mat-label>
+                  <input matInput type="number" formControlName="precio_compra" min="0" step="0.01" />
+                  <span matTextPrefix>$ &nbsp;</span>
+                  <mat-hint>Lo que te cuesta a ti (neto)</mat-hint>
+                  <mat-error *ngIf="hasError('precio_compra', 'required') || hasError('precio_compra', 'min')">
+                    {{ getErrorMessage('precio_compra') }}
+                  </mat-error>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Margen deseado %</mat-label>
-          <input matInput type="number" formControlName="margen_objetivo" step="0.1"
-                 (input)="onMargenObjetivoChange()" placeholder="Ej. 100">
-          <mat-hint>Recalcula el precio de venta = costo × (1 + %)</mat-hint>
-        </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Margen deseado %</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="margen_objetivo"
+                    step="0.1"
+                    (input)="onMargenObjetivoChange()"
+                    placeholder="Ej. 100"
+                  />
+                  <mat-hint>Recalcula el precio de venta = costo × (1 + %)</mat-hint>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Precio de venta</mat-label>
-          <input matInput type="number" formControlName="precio_venta" min="0" step="0.01">
-          <span matTextPrefix>$ &nbsp;</span>
-          <mat-hint>Lo que cobra el cliente (incluye IVA si está activo)</mat-hint>
-          <mat-error *ngIf="hasError('precio_venta', 'required') || hasError('precio_venta', 'min')">
-            {{getErrorMessage('precio_venta')}}
-          </mat-error>
-          <mat-error *ngIf="hasError('precio_venta', 'costoMayorOIgualVenta')">
-            {{getErrorMessage('precio_venta')}}
-          </mat-error>
-        </mat-form-field>
-      </div>
+                <mat-form-field appearance="outline">
+                  <mat-label>Precio de venta</mat-label>
+                  <input matInput type="number" formControlName="precio_venta" min="0" step="0.01" />
+                  <span matTextPrefix>$ &nbsp;</span>
+                  <mat-hint>Lo que cobra el cliente (incluye IVA si está activo)</mat-hint>
+                  <mat-error *ngIf="hasError('precio_venta', 'required') || hasError('precio_venta', 'min')">
+                    {{ getErrorMessage('precio_venta') }}
+                  </mat-error>
+                  <mat-error *ngIf="hasError('precio_venta', 'costoMayorOIgualVenta')">
+                    {{ getErrorMessage('precio_venta') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
 
-      <div class="margen-info" [ngClass]="getMargenColor()">
-        <mat-icon>trending_up</mat-icon>
-        <span>Margen sobre precio al público: <strong>{{margenCalculado | number:'1.2-2'}}%</strong></span>
-      </div>
-      <div class="margen-info ganancia-desglose" *ngIf="desgloseIva.ventaPublica > 0 || desgloseIva.costo > 0">
-        <mat-icon>payments</mat-icon>
-        <span>
-          Ganancia:
-          <strong>${{ desgloseIva.ganancia | number:'1.2-2' }}</strong>
-          <ng-container *ngIf="desgloseIva.aplicaIva">
-            · IVA {{ desgloseIva.tasa }}% incluido ${{ desgloseIva.ivaTrasladado | number:'1.2-2' }}
-            · venta neta ${{ desgloseIva.ventaNeta | number:'1.2-2' }}
+              <div class="margen-info" [ngClass]="getMargenColor()">
+                <mat-icon>trending_up</mat-icon>
+                <span
+                  >Margen sobre precio al público: <strong>{{ margenCalculado | number: '1.2-2' }}%</strong></span
+                >
+              </div>
+              <div class="margen-info ganancia-desglose" *ngIf="desgloseIva.ventaPublica > 0 || desgloseIva.costo > 0">
+                <mat-icon>payments</mat-icon>
+                <span>
+                  Ganancia:
+                  <strong>${{ desgloseIva.ganancia | number: '1.2-2' }}</strong>
+                  <ng-container *ngIf="desgloseIva.aplicaIva">
+                    · IVA {{ desgloseIva.tasa }}% incluido ${{ desgloseIva.ivaTrasladado | number: '1.2-2' }} · venta
+                    neta ${{ desgloseIva.ventaNeta | number: '1.2-2' }}
+                  </ng-container>
+                  <ng-container *ngIf="!desgloseIva.aplicaIva"> (venta − costo)</ng-container>
+                </span>
+              </div>
+
+              <div class="iva-row">
+                <div class="iva-row__checkbox">
+                  <mat-checkbox formControlName="iva_aplicable">
+                    <mat-icon>receipt</mat-icon>
+                    Aplicar IVA (el precio al público ya lo incluye; no es factura CFDI)
+                  </mat-checkbox>
+                </div>
+                <mat-form-field
+                  appearance="outline"
+                  class="iva-row__tasa"
+                  *ngIf="productoForm.get('iva_aplicable')?.value"
+                >
+                  <mat-label>Tasa IVA %</mat-label>
+                  <input matInput type="number" formControlName="tasa_iva" min="0" max="100" step="1" />
+                  <mat-hint>México general: 16%</mat-hint>
+                </mat-form-field>
+              </div>
+              <p class="form-section__caption">{{ hintIvaCategoria }}</p>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section__title">Proveedor</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="full-span">
+                  <mat-label>Proveedor Principal</mat-label>
+                  <mat-select formControlName="proveedor_principal_id">
+                    <mat-option *ngFor="let prov of proveedores" [value]="prov.id">
+                      {{ prov.nombre_comercial }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matSuffix>local_shipping</mat-icon>
+                  <mat-error *ngIf="hasError('proveedor_principal_id', 'required')">
+                    {{ getErrorMessage('proveedor_principal_id') }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <p class="form-section__caption">
+                ¿No está en la lista?
+                <button
+                  type="button"
+                  mat-button
+                  color="primary"
+                  class="link-proveedores"
+                  (click)="irAGestionProveedores()"
+                >
+                  Administrar proveedores
+                </button>
+              </p>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section__title">Opciones adicionales</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="full-span">
+                  <mat-label>Días de Alerta antes de Caducidad</mat-label>
+                  <input matInput type="number" formControlName="fecha_caducidad_alerta_dias" min="1" max="365" />
+                  <mat-hint>Se generará alerta X días antes de que caduque</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="checkboxes">
+                <mat-checkbox formControlName="requiere_refrigeracion">
+                  <mat-icon>ac_unit</mat-icon>
+                  Requiere Refrigeración
+                </mat-checkbox>
+
+                <mat-checkbox formControlName="requiere_receta">
+                  <mat-icon>assignment</mat-icon>
+                  Requiere Receta Médica
+                </mat-checkbox>
+
+                <mat-checkbox formControlName="controlado">
+                  <mat-icon>warning</mat-icon>
+                  Medicamento Controlado
+                </mat-checkbox>
+              </div>
+            </section>
           </ng-container>
-          <ng-container *ngIf="!desgloseIva.aplicaIva"> (venta − costo)</ng-container>
-        </span>
-      </div>
-
-      <div class="iva-row">
-        <div class="iva-row__checkbox">
-          <mat-checkbox formControlName="iva_aplicable">
-            <mat-icon>receipt</mat-icon>
-            Aplicar IVA (el precio al público ya lo incluye; no es factura CFDI)
-          </mat-checkbox>
         </div>
-        <mat-form-field appearance="outline" class="iva-row__tasa" *ngIf="productoForm.get('iva_aplicable')?.value">
-          <mat-label>Tasa IVA %</mat-label>
-          <input matInput type="number" formControlName="tasa_iva" min="0" max="100" step="1">
-          <mat-hint>México general: 16%</mat-hint>
-        </mat-form-field>
       </div>
-      <p class="form-section__caption">{{ hintIvaCategoria }}</p>
-    </section>
-
-    <section class="form-section">
-      <h3 class="form-section__title">Proveedor</h3>
-      <div class="form-grid">
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Proveedor Principal</mat-label>
-          <mat-select formControlName="proveedor_principal_id">
-            <mat-option *ngFor="let prov of proveedores" [value]="prov.id">
-              {{prov.nombre_comercial}}
-            </mat-option>
-          </mat-select>
-          <mat-icon matSuffix>local_shipping</mat-icon>
-          <mat-error *ngIf="hasError('proveedor_principal_id', 'required')">
-            {{getErrorMessage('proveedor_principal_id')}}
-          </mat-error>
-        </mat-form-field>
-      </div>
-      <p class="form-section__caption">
-        ¿No está en la lista?
-        <button type="button" mat-button color="primary" class="link-proveedores"
-                (click)="irAGestionProveedores()">
-          Administrar proveedores
-        </button>
-      </p>
-    </section>
-
-    <section class="form-section">
-      <h3 class="form-section__title">Opciones adicionales</h3>
-      <div class="form-grid">
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Días de Alerta antes de Caducidad</mat-label>
-          <input matInput type="number" formControlName="fecha_caducidad_alerta_dias" min="1" max="365">
-          <mat-hint>Se generará alerta X días antes de que caduque</mat-hint>
-        </mat-form-field>
-      </div>
-
-      <div class="checkboxes">
-        <mat-checkbox formControlName="requiere_refrigeracion">
-          <mat-icon>ac_unit</mat-icon>
-          Requiere Refrigeración
-        </mat-checkbox>
-
-        <mat-checkbox formControlName="requiere_receta">
-          <mat-icon>assignment</mat-icon>
-          Requiere Receta Médica
-        </mat-checkbox>
-
-        <mat-checkbox formControlName="controlado">
-          <mat-icon>warning</mat-icon>
-          Medicamento Controlado
-        </mat-checkbox>
-      </div>
-    </section>
-      </div>
-    </div>
-  </form>
-</mat-dialog-content>
+    </form>
+  </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions">
-  <button mat-button (click)="cancelar()" [disabled]="loading">
-    Cancelar
-  </button>
-  <button mat-raised-button color="primary" class="btn-primary-teal" (click)="guardar()" [disabled]="loading || productoForm.invalid">
-    <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
-    <mat-icon *ngIf="!loading">save</mat-icon>
-    {{loading ? 'Guardando...' : 'Guardar'}}
-  </button>
+    <button mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      (click)="guardar()"
+      [disabled]="loading || productoForm.invalid"
+    >
+      <mat-spinner diameter="20" *ngIf="loading" class="button-spinner"></mat-spinner>
+      <mat-icon *ngIf="!loading">save</mat-icon>
+      {{ loading ? 'Guardando...' : 'Guardar' }}
+    </button>
   </mat-dialog-actions>
 </div>

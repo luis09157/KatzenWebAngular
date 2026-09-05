@@ -114,11 +114,12 @@ export class InventarioService {
           : 0;
 
       const timestamp = new Date().toISOString();
+      const { stock_inicial, ...productoSinInicial } = productoData;
 
       const producto: Producto = {
-        ...productoData,
+        ...productoSinInicial,
         tasa_iva: productoData.tasa_iva != null ? Number(productoData.tasa_iva) : productoData.iva_aplicable ? 16 : 0,
-        stock_actual: 0,
+        stock_actual: Number(stock_inicial) || 0,
         margen_ganancia: parseFloat(margen.toFixed(2)),
         proveedores_alternos: [],
         activo: true,
@@ -672,6 +673,7 @@ export class InventarioService {
           );
         }
       }
+      await this.generarAlertasAutomaticas();
     }
   }
 
@@ -704,15 +706,12 @@ export class InventarioService {
   // ==================== ALERTAS AUTOMÁTICAS ====================
 
   async generarAlertasAutomaticas(): Promise<void> {
-    console.log('🔄 Generando alertas automáticas...');
-
     const productos = await firstValueFrom(this.getProductos());
-    const alertasPath = 'Katzen/Inventario/Alertas';
+    const ahora = new Date().toISOString();
 
     for (const producto of productos) {
       if (!producto.id) continue;
 
-      // Alerta de stock bajo
       if (producto.stock_actual <= producto.stock_minimo) {
         const prioridad =
           producto.stock_actual === 0
@@ -721,66 +720,61 @@ export class InventarioService {
               ? 'alta'
               : 'media';
 
-        await this.db.list(alertasPath).push({
+        await this.crearAlerta({
           tipo: 'stock_bajo',
           prioridad,
           producto_id: producto.id,
           producto_nombre: producto.nombre,
           mensaje: `Stock bajo: ${producto.nombre} (${producto.stock_actual} ${producto.unidad_medida})`,
-          fecha_alerta: new Date().toISOString(),
+          fecha_alerta: ahora,
           estado: 'pendiente',
-          created_at: new Date().toISOString(),
+          created_at: ahora,
         });
       }
 
-      // Alerta de punto de reorden
       if (producto.stock_actual <= producto.punto_reorden && producto.stock_actual > producto.stock_minimo) {
-        await this.db.list(alertasPath).push({
+        await this.crearAlerta({
           tipo: 'punto_reorden',
           prioridad: 'media',
           producto_id: producto.id,
           producto_nombre: producto.nombre,
           mensaje: `Punto de reorden alcanzado: ${producto.nombre}`,
-          fecha_alerta: new Date().toISOString(),
+          fecha_alerta: ahora,
           estado: 'pendiente',
-          created_at: new Date().toISOString(),
+          created_at: ahora,
         });
       }
 
-      // Alerta de productos por caducar
       if (producto.fecha_caducidad) {
         const fechaCaducidad = new Date(producto.fecha_caducidad);
         const hoy = new Date();
         const diasRestantes = Math.floor((fechaCaducidad.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
         if (diasRestantes <= 0) {
-          await this.db.list(alertasPath).push({
+          await this.crearAlerta({
             tipo: 'caducado',
             prioridad: 'critica',
             producto_id: producto.id,
             producto_nombre: producto.nombre,
             mensaje: `Producto caducado: ${producto.nombre}`,
-            fecha_alerta: new Date().toISOString(),
+            fecha_alerta: ahora,
             estado: 'pendiente',
-            created_at: new Date().toISOString(),
+            created_at: ahora,
           });
         } else if (diasRestantes <= producto.fecha_caducidad_alerta_dias) {
           const prioridad = diasRestantes <= 7 ? 'alta' : diasRestantes <= 15 ? 'media' : 'baja';
-
-          await this.db.list(alertasPath).push({
+          await this.crearAlerta({
             tipo: 'por_caducar',
             prioridad,
             producto_id: producto.id,
             producto_nombre: producto.nombre,
             mensaje: `Producto por caducar en ${diasRestantes} días: ${producto.nombre}`,
-            fecha_alerta: new Date().toISOString(),
+            fecha_alerta: ahora,
             estado: 'pendiente',
-            created_at: new Date().toISOString(),
+            created_at: ahora,
           });
         }
       }
     }
-
-    console.log('✅ Alertas automáticas generadas');
   }
 }

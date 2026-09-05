@@ -7,24 +7,51 @@
   <ng-container *ngIf="!loading">
     <p class="section-eyebrow">Inventario · alertas activas</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="red" [value]="getEstadisticas().criticas" label="Críticas" hint="Requieren acción inmediata"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="getEstadisticas().porCaducar" label="Por caducar" hint="Vencimiento próximo"></app-admin-stat-card>
-      <app-admin-stat-card accent="pink" [value]="getEstadisticas().caducados" label="Caducados" hint="Productos vencidos"></app-admin-stat-card>
-      <app-admin-stat-card accent="teal" [value]="getEstadisticas().stockBajo" label="Stock bajo" hint="Bajo mínimo"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="red"
+        [value]="getEstadisticas().criticas"
+        label="Críticas"
+        hint="Requieren acción inmediata"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="getEstadisticas().porCaducar"
+        label="Por caducar"
+        hint="Vencimiento próximo"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="pink"
+        [value]="getEstadisticas().caducados"
+        label="Caducados"
+        hint="Productos vencidos"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="getEstadisticas().stockBajo"
+        label="Stock bajo"
+        hint="Bajo mínimo"
+      ></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
       accent="orange"
       icon="notifications_active"
       title="Alertas de inventario"
-      subtitle="Avisos de stock bajo o caducidad. Desde aquí puedes crear una orden de compra.">
+      subtitle="Avisos de stock bajo o caducidad. Desde aquí puedes crear una orden de compra."
+    >
       <div bannerActions>
         <button mat-stroked-button type="button" (click)="generarAlertasAutomaticas()">
-          <mat-icon>auto_fix_high</mat-icon>
-          Generar alertas
+          <mat-icon>refresh</mat-icon>
+          Actualizar
         </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button"
-          (click)="resolverTodas()" [disabled]="alertasFiltradas.length === 0">
+        <button
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          type="button"
+          (click)="resolverTodas()"
+          [disabled]="alertasFiltradas.length === 0"
+        >
           <mat-icon>done_all</mat-icon>
           Resolver todas
         </button>
@@ -34,10 +61,10 @@
     <app-admin-data-panel
       accent="orange"
       title="Listado de alertas"
-      description="Si no ves alertas, genera las automáticas o revisa el catálogo de productos."
+      description="Las alertas se revisan solas al abrir esta pantalla y al recibir una compra."
       [meta]="alertasFiltradas.length + ' alertas'"
-      [showLegend]="false">
-
+      [showLegend]="false"
+    >
       <div class="alertas-filtros panel-search">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Tipo</mat-label>
@@ -48,7 +75,9 @@
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Prioridad</mat-label>
           <mat-select [(ngModel)]="filtroPrioridad" (ngModelChange)="aplicarFiltros()">
-            <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.valor">{{ prioridad.etiqueta }}</mat-option>
+            <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.valor">{{
+              prioridad.etiqueta
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
         <button mat-stroked-button type="button" (click)="limpiarFiltros()">
@@ -61,9 +90,10 @@
         *ngIf="alertasFiltradas.length === 0"
         icon="check_circle"
         title="Sin alertas con estos filtros"
-        message="Todo en orden, o aún no se generaron. Puedes generar alertas automáticas o ir al catálogo."
-        actionLabel="Generar alertas"
-        (action)="generarAlertasAutomaticas()">
+        message="Todo en orden, o cambia los filtros. El catálogo se revisó al abrir."
+        actionLabel="Ver productos"
+        (action)="irAProductos()"
+      >
       </app-admin-empty-state>
 
       <div class="alertas-lista" *ngIf="alertasFiltradas.length > 0">
@@ -72,12 +102,15 @@
           class="alerta-row"
           [class.alerta-row--critica]="alerta.prioridad === 'critica'"
           [class.alerta-row--alta]="alerta.prioridad === 'alta'"
-          [class.alerta-row--resuelta]="alerta.estado === 'resuelta'">
+          [class.alerta-row--resuelta]="alerta.estado === 'resuelta'"
+        >
           <div class="alerta-row__main">
             <span class="estado-badge" [ngClass]="alerta.prioridad | adminPrioridadClass">{{ alerta.prioridad }}</span>
             <div class="alerta-row__text">
               <strong class="cell-nombre">{{ alerta.mensaje }}</strong>
-              <span class="cell-sub">{{ getProductoNombre(alerta.producto_id) }} · {{ formatearFecha(alerta.fecha_alerta) }}</span>
+              <span class="cell-sub"
+                >{{ getProductoNombre(alerta.producto_id) }} · {{ formatearFecha(alerta.fecha_alerta) }}</span
+              >
               <span class="cell-sub" *ngIf="alerta.tipo === 'stock_bajo'">
                 Stock: {{ getProductoStock(alerta.producto_id) }} {{ getProductoUnidad(alerta.producto_id) }}
               </span>
@@ -92,7 +125,8 @@
               type="button"
               matTooltip="Crear orden de compra"
               *ngIf="alerta.tipo === 'stock_bajo' || alerta.tipo === 'punto_reorden'"
-              (click)="crearOrdenDesdeAlerta(alerta)">
+              (click)="crearOrdenDesdeAlerta(alerta)"
+            >
               <mat-icon>shopping_cart</mat-icon>
             </button>
             <button
@@ -100,7 +134,8 @@
               type="button"
               matTooltip="Resolver"
               *ngIf="alerta.estado !== 'resuelta'"
-              (click)="resolverAlerta(alerta)">
+              (click)="resolverAlerta(alerta)"
+            >
               <mat-icon>check_circle</mat-icon>
             </button>
             <span *ngIf="alerta.estado === 'resuelta'" class="estado-badge estado-badge--success">Resuelta</span>

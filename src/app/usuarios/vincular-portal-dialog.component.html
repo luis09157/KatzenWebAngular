@@ -1,10 +1,10 @@
 <div class="admin-dialog-shell admin-dialog-shell--picker vincular-portal-dialog">
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">Vincular portal (dual)</h2>
+      <h2 class="admin-dialog-title">Vincular portal de mascotas</h2>
       <p class="admin-dialog-subtitle">
-        Asocia un cliente de clínica a <strong>{{ data.staffNombre }}</strong>
-        ({{ data.staffCorreo }}) para que use la misma cuenta en el portal de mascotas.
+        Asocia un cliente de clínica a <strong>{{ data.staffNombre }}</strong> ({{ data.staffCorreo }}) para que use la
+        misma cuenta en el portal de mascotas.
       </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
@@ -21,7 +21,12 @@
     <form *ngIf="!loading" [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Buscar cliente</mat-label>
-        <input matInput type="search" (keyup)="aplicarFiltro($any($event.target).value)" placeholder="Nombre o correo…" />
+        <input
+          matInput
+          type="search"
+          (keyup)="aplicarFiltro($any($event.target).value)"
+          placeholder="Nombre o correo…"
+        />
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
 
@@ -42,7 +47,14 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
     <button type="button" mat-button (click)="cerrar()">Cancelar</button>
-    <button type="button" mat-raised-button color="primary" class="btn-primary-teal" (click)="confirmar()" [disabled]="loading || form.invalid">
+    <button
+      type="button"
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      (click)="confirmar()"
+      [disabled]="loading || form.invalid"
+    >
       Vincular
     </button>
   </mat-dialog-actions>

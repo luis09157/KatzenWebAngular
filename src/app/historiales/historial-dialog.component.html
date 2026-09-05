@@ -17,13 +17,17 @@
         class="full-span"
         [formGroup]="historialForm"
         [fields]="pickerFields"
-        (selectionChange)="onClientePacienteSelected($event)">
+        (selectionChange)="onClientePacienteSelected($event)"
+      >
       </app-cliente-paciente-picker>
 
       <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && pacienteInfo">
         <h3 class="entity-summary__name">{{ pacienteInfo.nombre || 'Sin nombre' }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
-        <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="pacienteInfo.nombreCliente || pacienteInfo.cliente">
+        <p
+          class="entity-summary__meta entity-summary__meta--secondary"
+          *ngIf="pacienteInfo.nombreCliente || pacienteInfo.cliente"
+        >
           Dueño: {{ pacienteInfo.nombreCliente || pacienteInfo.cliente }}
         </p>
       </div>
@@ -32,239 +36,295 @@
 
       <section class="form-section">
         <h3 class="form-section__title">
-          Fecha y hora del historial
+          Motivo de la consulta
           <span class="form-section__badge">Requerido</span>
         </h3>
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Fecha de registro</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fecha_registro" placeholder="Selecciona la fecha">
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-            <mat-hint>Fecha en que se realizó la consulta</mat-hint>
-            <mat-error *ngIf="historialForm.get('fecha_registro')?.hasError('required')">La fecha es requerida</mat-error>
+            <mat-label>Motivo / historia</mat-label>
+            <textarea
+              matInput
+              formControlName="historia_clinica"
+              rows="4"
+              placeholder="Ej: Llegó por vómito desde anoche, no come…"
+            ></textarea>
+            <mat-error *ngIf="historialForm.get('historia_clinica')?.hasError('required')"
+              >El motivo es requerido</mat-error
+            >
           </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Hora</mat-label>
-            <mat-select formControlName="hora">
-              <mat-option *ngFor="let h of horas" [value]="h">{{ h.toString().padStart(2, '0') }}:00</mat-option>
-            </mat-select>
-            <mat-error *ngIf="historialForm.get('hora')?.hasError('required')">La hora es requerida</mat-error>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Minutos</mat-label>
-            <mat-select formControlName="minuto">
-              <mat-option *ngFor="let m of minutos" [value]="m">{{ m.toString().padStart(2, '0') }}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="historialForm.get('minuto')?.hasError('required')">Los minutos son requeridos</mat-error>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Historia clínica
-          <span class="form-section__badge">Requerido</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Describe la historia clínica</mat-label>
-            <textarea matInput formControlName="historia_clinica" rows="4"
-              placeholder="Ej: El paciente presenta antecedentes de…"></textarea>
-            <mat-error *ngIf="historialForm.get('historia_clinica')?.hasError('required')">La historia clínica es requerida</mat-error>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Examen físico
-          <span class="form-section__badge">Requerido</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>Peso (kg)</mat-label>
-            <input matInput type="number" formControlName="peso" placeholder="Ej: 25.5">
-            <mat-error *ngIf="historialForm.get('peso')?.hasError('required')">El peso es requerido</mat-error>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>TR</mat-label>
-            <input matInput formControlName="tr" placeholder="Ej: Normal, Alterado">
-            <mat-error *ngIf="historialForm.get('tr')?.hasError('required')">El TR es requerido</mat-error>
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Hallazgos del examen físico</mat-label>
-            <textarea matInput formControlName="hallazgos" rows="3" placeholder="Ej: Se observa…"></textarea>
-            <mat-error *ngIf="historialForm.get('hallazgos')?.hasError('required')">Los hallazgos son requeridos</mat-error>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Diagnóstico presuntivo
-          <span class="form-section__badge">Requerido</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Describe el diagnóstico presuntivo</mat-label>
-            <textarea matInput formControlName="diagnostico_presuntivo" rows="4"
-              placeholder="Ej: Se sospecha…"></textarea>
-            <mat-error *ngIf="historialForm.get('diagnostico_presuntivo')?.hasError('required')">El diagnóstico presuntivo es requerido</mat-error>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Estudios solicitados
-          <span class="form-section__badge form-section__badge--optional">Opcional</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Lista de estudios solicitados</mat-label>
-            <textarea matInput formControlName="estudios_solicitados" rows="3"
-              placeholder="Ej: Hemograma completo, Radiografía torácica…"></textarea>
-          </mat-form-field>
-        </div>
-
-        <div class="archivos-section">
-          <div class="archivos-header">
-            <h4>Archivos adjuntos</h4>
-            <span class="archivos-info">PDF, PNG, JPEG hasta 10 MB (máx. 5 archivos)</span>
-          </div>
-          <div class="archivo-input-container">
-            <input type="file" #archivoInput multiple accept=".pdf,.png,.jpeg,.jpg"
-              (change)="onArchivoSeleccionado($event)" class="archivo-input"
-              [disabled]="archivosSeleccionados.length >= maxArchivos">
-            <button type="button" mat-stroked-button color="primary" (click)="archivoInput.click()"
-              [disabled]="archivosSeleccionados.length >= maxArchivos">
-              <mat-icon>attach_file</mat-icon>
-              Seleccionar archivos
-            </button>
-          </div>
-          <div class="archivos-lista" *ngIf="archivosSeleccionados.length > 0">
-            <h5>Archivos a subir</h5>
-            <div class="archivo-item" *ngFor="let archivo of archivosSeleccionados; let i = index">
-              <div class="archivo-info">
-                <mat-icon>description</mat-icon>
-                <span>{{ archivo.name }}</span>
-                <span class="archivo-tamaño">({{ (archivo.size / 1024 / 1024).toFixed(2) }} MB)</span>
-              </div>
-              <button type="button" mat-icon-button color="warn" (click)="removerArchivo(i)" aria-label="Quitar archivo">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-          </div>
-          <div class="archivos-lista" *ngIf="archivosSubidos.length > 0">
-            <h5>Archivos subidos</h5>
-            <div class="archivo-item" *ngFor="let archivo of archivosSubidos; let i = index">
-              <div class="archivo-info">
-                <mat-icon>cloud_done</mat-icon>
-                <span>Archivo {{ i + 1 }}</span>
-                <a [href]="archivo" target="_blank" rel="noopener noreferrer" class="archivo-link">
-                  <mat-icon>open_in_new</mat-icon>
-                  Ver
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="archivo-loading" *ngIf="subiendoArchivos">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>Subiendo archivos…</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Manejo terapéutico
-          <span class="form-section__badge">Requerido</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Describe el manejo terapéutico</mat-label>
-            <textarea matInput formControlName="manejo_terapeutico" rows="4"
-              placeholder="Ej: Se implementará el siguiente manejo…"></textarea>
-            <mat-error *ngIf="historialForm.get('manejo_terapeutico')?.hasError('required')">El manejo terapéutico es requerido</mat-error>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Receta
-          <span class="form-section__badge form-section__badge--optional">Opcional</span>
-        </h3>
-        <div class="form-grid">
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Detalles de la receta médica</mat-label>
-            <textarea matInput formControlName="receta" rows="4"
-              placeholder="Ej: Medicamento X — dosis, frecuencia, duración…"></textarea>
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <h3 class="form-section__title">
-          Médico que atendió
-          <span class="form-section__badge">Requerido</span>
-        </h3>
-        <div class="form-grid">
-          <app-staff-picker
-            class="full-span"
-            [formGroup]="historialForm"
-            [fields]="staffPickerFields"
-            roleFilter="doctor"
-            label="Médico veterinario"
-            [required]="true"
-            [prefillCurrentUser]="!isEditMode"
-            hint="Se guarda el UID del médico y el nombre para compatibilidad.">
-          </app-staff-picker>
         </div>
       </section>
 
       <section class="form-section">
         <h3 class="form-section__title">
           <mat-icon>lock</mat-icon>
-          Notas internas (solo médicos)
+          Nota clínica
+          <span class="form-section__badge">Requerido</span>
         </h3>
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Notas internas</mat-label>
-            <textarea matInput formControlName="notas_internas" rows="3"
-              placeholder="Continuidad clínica entre doctoras — no visible al dueño"></textarea>
+            <mat-label>Nota (solo el equipo la ve)</mat-label>
+            <textarea
+              matInput
+              formControlName="notas_internas"
+              rows="3"
+              placeholder="Qué se hizo, qué sigue, continuidad entre doctoras…"
+            ></textarea>
+            <mat-error *ngIf="historialForm.get('notas_internas')?.hasError('required')"
+              >La nota es requerida</mat-error
+            >
           </mat-form-field>
         </div>
-        <p class="hint-text">
-          Campo aditivo opcional. El portal web no lo muestra; la app móvil debe ignorarlo.
-        </p>
+        <p class="hint-text">No se muestra al dueño en el portal.</p>
       </section>
 
-      <section class="form-section">
-        <mat-checkbox formControlName="oculto_portal" color="warn">
-          Ocultar del portal del dueño (app móvil)
-        </mat-checkbox>
-        <p class="hint-text">
-          Si está marcado, el dueño no verá este historial en la app. La baja en listados admin usa el campo activo.
-        </p>
-      </section>
+      <button type="button" class="historial-mas-datos" (click)="mostrarMasDatos = !mostrarMasDatos">
+        <mat-icon>{{ mostrarMasDatos ? 'expand_less' : 'expand_more' }}</mat-icon>
+        {{ mostrarMasDatos ? 'Ocultar más datos' : 'Más datos (opcional)' }}
+      </button>
 
-      <input type="hidden" formControlName="paciente_id">
+      <ng-container *ngIf="mostrarMasDatos">
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Fecha y hora
+            <span class="form-section__badge form-section__badge--optional">Con default de ahora</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Fecha de registro</mat-label>
+              <input
+                matInput
+                [matDatepicker]="picker"
+                formControlName="fecha_registro"
+                placeholder="Selecciona la fecha"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Hora</mat-label>
+              <mat-select formControlName="hora">
+                <mat-option *ngFor="let h of horas" [value]="h">{{ h.toString().padStart(2, '0') }}:00</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Minutos</mat-label>
+              <mat-select formControlName="minuto">
+                <mat-option *ngFor="let m of minutos" [value]="m">{{ m.toString().padStart(2, '0') }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Examen físico
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Peso (kg)</mat-label>
+              <input matInput type="number" formControlName="peso" placeholder="Ej: 25.5" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>TR</mat-label>
+              <input matInput formControlName="tr" placeholder="Ej: Normal, Alterado" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Hallazgos del examen físico</mat-label>
+              <textarea matInput formControlName="hallazgos" rows="3" placeholder="Ej: Se observa…"></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Diagnóstico presuntivo
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Describe el diagnóstico presuntivo</mat-label>
+              <textarea
+                matInput
+                formControlName="diagnostico_presuntivo"
+                rows="4"
+                placeholder="Ej: Se sospecha…"
+              ></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Estudios solicitados
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Lista de estudios solicitados</mat-label>
+              <textarea
+                matInput
+                formControlName="estudios_solicitados"
+                rows="3"
+                placeholder="Ej: Hemograma completo, Radiografía torácica…"
+              ></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="archivos-section">
+            <div class="archivos-header">
+              <h4>Archivos adjuntos</h4>
+              <span class="archivos-info">PDF, PNG, JPEG hasta 10 MB (máx. 5 archivos)</span>
+            </div>
+            <div class="archivo-input-container">
+              <input
+                type="file"
+                #archivoInput
+                multiple
+                accept=".pdf,.png,.jpeg,.jpg"
+                (change)="onArchivoSeleccionado($event)"
+                class="archivo-input"
+                [disabled]="archivosSeleccionados.length >= maxArchivos"
+              />
+              <button
+                type="button"
+                mat-stroked-button
+                color="primary"
+                (click)="archivoInput.click()"
+                [disabled]="archivosSeleccionados.length >= maxArchivos"
+              >
+                <mat-icon>attach_file</mat-icon>
+                Seleccionar archivos
+              </button>
+            </div>
+            <div class="archivos-lista" *ngIf="archivosSeleccionados.length > 0">
+              <h5>Archivos a subir</h5>
+              <div class="archivo-item" *ngFor="let archivo of archivosSeleccionados; let i = index">
+                <div class="archivo-info">
+                  <mat-icon>description</mat-icon>
+                  <span>{{ archivo.name }}</span>
+                  <span class="archivo-tamaño">({{ (archivo.size / 1024 / 1024).toFixed(2) }} MB)</span>
+                </div>
+                <button
+                  type="button"
+                  mat-icon-button
+                  color="warn"
+                  (click)="removerArchivo(i)"
+                  aria-label="Quitar archivo"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="archivos-lista" *ngIf="archivosSubidos.length > 0">
+              <h5>Archivos subidos</h5>
+              <div class="archivo-item" *ngFor="let archivo of archivosSubidos; let i = index">
+                <div class="archivo-info">
+                  <mat-icon>cloud_done</mat-icon>
+                  <span>Archivo {{ i + 1 }}</span>
+                  <a [href]="archivo" target="_blank" rel="noopener noreferrer" class="archivo-link">
+                    <mat-icon>open_in_new</mat-icon>
+                    Ver
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="archivo-loading" *ngIf="subiendoArchivos">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Subiendo archivos…</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Manejo terapéutico
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Describe el manejo terapéutico</mat-label>
+              <textarea
+                matInput
+                formControlName="manejo_terapeutico"
+                rows="4"
+                placeholder="Ej: Se implementará el siguiente manejo…"
+              ></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Receta
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-span">
+              <mat-label>Detalles de la receta médica</mat-label>
+              <textarea
+                matInput
+                formControlName="receta"
+                rows="4"
+                placeholder="Ej: Medicamento X — dosis, frecuencia, duración…"
+              ></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="form-section__title">
+            Médico que atendió
+            <span class="form-section__badge form-section__badge--optional">Opcional</span>
+          </h3>
+          <div class="form-grid">
+            <app-staff-picker
+              class="full-span"
+              [formGroup]="historialForm"
+              [fields]="staffPickerFields"
+              roleFilter="doctor"
+              label="Médico veterinario"
+              [required]="false"
+              [prefillCurrentUser]="!isEditMode"
+            >
+            </app-staff-picker>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <mat-checkbox formControlName="oculto_portal" color="warn"> Ocultar del portal del dueño </mat-checkbox>
+          <p class="hint-text">Si está marcado, el dueño no verá este historial en el portal.</p>
+        </section>
+      </ng-container>
+
+      <input type="hidden" formControlName="paciente_id" />
     </mat-dialog-content>
 
     <mat-dialog-actions class="admin-dialog-actions">
       <div class="admin-dialog-actions__left">
-        <button *ngIf="isEditMode" type="button" mat-stroked-button color="warn"
-          (click)="eliminarHistorial()" [disabled]="loading">
+        <button
+          *ngIf="isEditMode"
+          type="button"
+          mat-stroked-button
+          color="warn"
+          (click)="eliminarHistorial()"
+          [disabled]="loading"
+        >
           <mat-icon>delete</mat-icon>
           Borrar
         </button>
       </div>
       <div class="admin-dialog-actions__right">
         <button type="button" mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
-        <button type="button" mat-raised-button color="primary" class="btn-primary-teal"
-          (click)="guardarHistorial()" [disabled]="historialForm.invalid || loading">
+        <button
+          type="button"
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          (click)="guardarHistorial()"
+          [disabled]="historialForm.invalid || loading"
+        >
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

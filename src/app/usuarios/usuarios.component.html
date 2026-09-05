@@ -49,7 +49,7 @@
         *ngIf="selectedTabIndex === 0"
       >
         <mat-icon>person_add</mat-icon>
-        Nuevo personal staff
+        Nuevo personal
       </button>
     </div>
   </app-admin-page-banner>
@@ -58,14 +58,14 @@
     <mat-tab label="Staff">
       <div *ngIf="loadingStaff" class="loading-container">
         <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando personal staff…</p>
+        <p>Cargando personal…</p>
       </div>
 
       <app-admin-data-panel
         *ngIf="!loadingStaff"
         accent="purple"
-        title="Personal staff"
-        description="Administradores, doctoras y personal operativo. Dual = también portal de mascotas."
+        title="Personal"
+        description="Administradores, doctoras y personal operativo. «También portal» = usa la misma cuenta para ver mascotas."
         [meta]="
           dataSource.data.length
             ? dataSource.filteredData.length + ' en pantalla · ' + getTotalUsuarios() + ' totales'
@@ -126,7 +126,7 @@
                   *ngIf="isDualStaff(usuario)"
                   class="admin-badge admin-badge--info"
                   matTooltip="clienteId: {{ getDualClienteId(usuario) }}"
-                  >Dual</span
+                  >También portal</span
                 >
                 <span *ngIf="!isDualStaff(usuario)" class="cell-sub">—</span>
               </td>
@@ -157,7 +157,7 @@
                     *ngIf="!isDualStaff(usuario)"
                     mat-icon-button
                     type="button"
-                    matTooltip="Vincular portal (dual)"
+                    matTooltip="Vincular portal de mascotas"
                     (click)="vincularPortalDual(usuario)"
                     [disabled]="saving"
                   >

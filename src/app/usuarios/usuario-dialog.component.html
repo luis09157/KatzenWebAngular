@@ -2,8 +2,18 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
-      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de personal staff' : (isEditMode ? 'Editar personal staff' : 'Nuevo personal staff') }}</h2>
-      <p class="admin-dialog-subtitle">{{ modoVer ? 'Consulta datos de acceso y perfil staff.' : (isEditMode ? 'Modifica datos y perfil del personal.' : 'Registra una cuenta staff en el panel admin.') }}</p>
+      <h2 class="admin-dialog-title">
+        {{ modoVer ? 'Detalle de personal' : isEditMode ? 'Editar personal' : 'Nuevo personal' }}
+      </h2>
+      <p class="admin-dialog-subtitle">
+        {{
+          modoVer
+            ? 'Consulta datos de acceso y perfil staff.'
+            : isEditMode
+              ? 'Modifica datos y perfil del personal.'
+              : 'Registra una cuenta staff en el panel admin.'
+        }}
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -83,7 +93,7 @@
 
         <section class="form-section" *ngIf="!isEditMode">
           <h3 class="form-section__title">Acceso al sistema</h3>
-          <p class="section-hint">Se creará la cuenta en Firebase Auth y el perfil de acceso staff.</p>
+          <p class="section-hint">Se creará el usuario y su acceso al panel.</p>
           <div class="form-grid">
             <mat-form-field appearance="outline">
               <mat-label>Contraseña temporal</mat-label>
@@ -101,9 +111,7 @@
 
         <section class="form-section" *ngIf="isEditMode">
           <h3 class="form-section__title">Estado del personal</h3>
-          <mat-slide-toggle formControlName="activo" color="primary">
-            Personal activo
-          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="activo" color="primary"> Personal activo </mat-slide-toggle>
         </section>
       </div>
     </mat-dialog-content>

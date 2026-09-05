@@ -67,3 +67,17 @@
   flex: 0 0 150px;
   width: 150px;
 }
+
+.producto-mas-datos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0a969b;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

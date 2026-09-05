@@ -14,7 +14,7 @@ import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 @Component({
   selector: 'app-alertas',
   templateUrl: './alertas.component.html',
-  styleUrls: ['./alertas.component.scss']
+  styleUrls: ['./alertas.component.scss'],
 })
 export class AlertasComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -31,7 +31,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
     { valor: 'stock_bajo', etiqueta: 'Stock Bajo', icono: 'inventory', color: '#f44336' },
     { valor: 'por_caducar', etiqueta: 'Por Caducar', icono: 'event_busy', color: '#ff9800' },
     { valor: 'caducado', etiqueta: 'Caducado', icono: 'cancel', color: '#d32f2f' },
-    { valor: 'punto_reorden', etiqueta: 'Punto de Reorden', icono: 'shopping_cart', color: '#ffc107' }
+    { valor: 'punto_reorden', etiqueta: 'Punto de Reorden', icono: 'shopping_cart', color: '#ffc107' },
   ];
 
   prioridades = [
@@ -39,7 +39,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
     { valor: 'critica', etiqueta: 'Crítica', color: '#d32f2f' },
     { valor: 'alta', etiqueta: 'Alta', color: '#f44336' },
     { valor: 'media', etiqueta: 'Media', color: '#ff9800' },
-    { valor: 'baja', etiqueta: 'Baja', color: '#2196f3' }
+    { valor: 'baja', etiqueta: 'Baja', color: '#2196f3' },
   ];
 
   constructor(
@@ -51,6 +51,17 @@ export class AlertasComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    void this.refrescarAlertasAlAbrir();
+  }
+
+  /** Spec 069 — genera sin pedir confirmación y luego lista. */
+  private async refrescarAlertasAlAbrir(): Promise<void> {
+    this.loading = true;
+    try {
+      await this.inventarioService.generarAlertasAutomaticas();
+    } catch (error) {
+      this.logger.error('Error al generar alertas al abrir:', error);
+    }
     this.cargarDatos();
   }
 
@@ -61,28 +72,34 @@ export class AlertasComponent implements OnInit, OnDestroy {
 
   cargarDatos(): void {
     this.loading = true;
-    this.inventarioService.getProductos().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (productos) => {
-        productos.forEach(p => {
-          if (p.id) this.productos.set(p.id, p);
-        });
-        this.inventarioService.getAlertas().pipe(takeUntil(this.destroy$)).subscribe({
-          next: (alertas) => {
-            this.alertas = alertas;
-            this.aplicarFiltros();
-            this.loading = false;
-          },
-          error: (error) => {
-            this.logger.error('Error al cargar alertas:', error);
-            this.loading = false;
-          }
-        });
-      },
-      error: (error) => {
-        this.logger.error('Error al cargar productos:', error);
-        this.loading = false;
-      }
-    });
+    this.inventarioService
+      .getProductos()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (productos) => {
+          productos.forEach((p) => {
+            if (p.id) this.productos.set(p.id, p);
+          });
+          this.inventarioService
+            .getAlertas()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (alertas) => {
+                this.alertas = alertas;
+                this.aplicarFiltros();
+                this.loading = false;
+              },
+              error: (error) => {
+                this.logger.error('Error al cargar alertas:', error);
+                this.loading = false;
+              },
+            });
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar productos:', error);
+          this.loading = false;
+        },
+      });
   }
 
   aplicarFiltros(): void {
@@ -90,20 +107,20 @@ export class AlertasComponent implements OnInit, OnDestroy {
 
     // Filtrar por tipo
     if (this.filtroTipo !== 'todas') {
-      filtradas = filtradas.filter(a => a.tipo === this.filtroTipo);
+      filtradas = filtradas.filter((a) => a.tipo === this.filtroTipo);
     }
 
     // Filtrar por prioridad
     if (this.filtroPrioridad !== 'todas') {
-      filtradas = filtradas.filter(a => a.prioridad === this.filtroPrioridad);
+      filtradas = filtradas.filter((a) => a.prioridad === this.filtroPrioridad);
     }
 
     // Ordenar por prioridad y fecha
     filtradas.sort((a, b) => {
-      const prioridadOrden = { 'critica': 1, 'alta': 2, 'media': 3, 'baja': 4 };
+      const prioridadOrden = { critica: 1, alta: 2, media: 3, baja: 4 };
       const ordenA = prioridadOrden[a.prioridad as keyof typeof prioridadOrden] || 5;
       const ordenB = prioridadOrden[b.prioridad as keyof typeof prioridadOrden] || 5;
-      
+
       if (ordenA !== ordenB) return ordenA - ordenB;
       return new Date(b.fecha_alerta).getTime() - new Date(a.fecha_alerta).getTime();
     });
@@ -123,9 +140,13 @@ export class AlertasComponent implements OnInit, OnDestroy {
     return this.productos.get(productoId)?.unidad_medida || '';
   }
 
+  irAProductos(): void {
+    this.router.navigate(['/admin/inventario/productos']);
+  }
+
   verProducto(productoId: string): void {
     this.router.navigate(['/admin/inventario/productos'], {
-      queryParams: { highlight: productoId }
+      queryParams: { highlight: productoId },
     });
   }
 
@@ -139,34 +160,37 @@ export class AlertasComponent implements OnInit, OnDestroy {
       data: {
         productoId: alerta.producto_id,
         proveedorId: producto?.proveedor_principal_id || undefined,
-        cantidad: Math.max(1, Number(producto?.stock_minimo) || 1)
-      }
+        cantidad: Math.max(1, Number(producto?.stock_minimo) || 1),
+      },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((ok) => {
-      if (ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Orden creada',
-          text: 'Puedes verla en Órdenes de compra.',
-          timer: 1800,
-          showConfirmButton: false
-        });
-      }
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((ok) => {
+        if (ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Orden creada',
+            text: 'Puedes verla en Órdenes de compra.',
+            timer: 1800,
+            showConfirmButton: false,
+          });
+        }
+      });
   }
 
   getColorAlerta(prioridad: string): string {
-    const colores: {[key: string]: string} = {
-      'critica': '#d32f2f',
-      'alta': '#f44336',
-      'media': '#ff9800',
-      'baja': '#2196f3'
+    const colores: { [key: string]: string } = {
+      critica: '#d32f2f',
+      alta: '#f44336',
+      media: '#ff9800',
+      baja: '#2196f3',
     };
     return colores[prioridad] || '#757575';
   }
 
   getIconoAlerta(tipo: string): string {
-    const alerta = this.tiposAlerta.find(t => t.valor === tipo);
+    const alerta = this.tiposAlerta.find((t) => t.valor === tipo);
     return alerta?.icono || 'notifications';
   }
 
@@ -179,7 +203,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, resolver',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
@@ -189,7 +213,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
           icon: 'success',
           title: 'Alerta Resuelta',
           timer: 1500,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
         this.cargarDatos();
       } catch (error) {
@@ -200,8 +224,8 @@ export class AlertasComponent implements OnInit, OnDestroy {
   }
 
   async resolverTodas(): Promise<void> {
-    const alertasActivas = this.alertasFiltradas.filter(a => a.estado === 'pendiente' || a.estado === 'en_proceso');
-    
+    const alertasActivas = this.alertasFiltradas.filter((a) => a.estado === 'pendiente' || a.estado === 'en_proceso');
+
     if (alertasActivas.length === 0) {
       Swal.fire('Sin Alertas', 'No hay alertas pendientes para resolver', 'info');
       return;
@@ -213,7 +237,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, resolver todas',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
@@ -228,7 +252,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
           title: 'Alertas Resueltas',
           text: `${alertasActivas.length} alertas marcadas como resueltas`,
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
         this.cargarDatos();
       } catch (error) {
@@ -259,7 +283,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
       porCaducar,
       caducados,
       stockBajo,
-      puntoReorden
+      puntoReorden,
     };
   }
 
@@ -270,7 +294,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 
@@ -281,31 +305,13 @@ export class AlertasComponent implements OnInit, OnDestroy {
   }
 
   async generarAlertasAutomaticas(): Promise<void> {
-    const result = await Swal.fire({
-      title: 'Generar Alertas',
-      text: 'Se revisará el inventario y se generarán alertas automáticas',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Generar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await this.inventarioService.generarAlertasAutomaticas();
-        Swal.fire({
-          icon: 'success',
-          title: 'Alertas Generadas',
-          text: 'Se han generado las alertas automáticas',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        this.cargarDatos();
-      } catch (error) {
-        console.error('❌ Error al generar alertas:', error);
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'generar alertas'), 'error');
-      }
+    this.loading = true;
+    try {
+      await this.inventarioService.generarAlertasAutomaticas();
+      this.cargarDatos();
+    } catch (error) {
+      this.loading = false;
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'generar alertas'), 'error');
     }
   }
 }
-

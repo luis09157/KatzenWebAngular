@@ -1,17 +1,41 @@
 <div class="admin-page vacunas-contenedor">
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="teal" [value]="estadisticas.delMes" label="Vacunas del mes" hint="Registradas este mes"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" icon="event" [value]="estadisticas.estaSemana" label="Refuerzos esta semana" hint="Próxima dosis en estos 7 días"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" icon="warning" [value]="estadisticas.vencidas" label="Refuerzos vencidos" hint="Fecha de siguiente dosis pasada"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.aplicadas" label="Aplicadas" hint="Completadas"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="teal"
+      [value]="estadisticas.delMes"
+      label="Vacunas del mes"
+      hint="Registradas este mes"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      icon="event"
+      [value]="estadisticas.estaSemana"
+      label="Refuerzos esta semana"
+      hint="Próxima dosis en estos 7 días"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      icon="warning"
+      [value]="estadisticas.vencidas"
+      label="Refuerzos vencidos"
+      hint="Fecha de siguiente dosis pasada"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="check_circle"
+      [value]="estadisticas.aplicadas"
+      label="Aplicadas"
+      hint="Completadas"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner
     accent="green"
     icon="vaccines"
     title="Vacunas"
-    subtitle="Registra la aplicación aquí. El cobro se hace en Cuenta del día.">
+    subtitle="Registra la aplicación aquí. El cobro se hace en Cuenta del día."
+  >
     <div bannerActions>
       <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalVacuna()">
         <mat-icon>add</mat-icon>
@@ -21,20 +45,31 @@
   </app-admin-page-banner>
 
   <app-flow-hint
+    hintId="vacunas-listado"
     icon="notifications_active"
-    message="El dueño recibe el aviso cerca de la fecha acordada (7 días antes y el mismo día), no el día en que se vacunó a meses vista. Activa avisos de clínica en el menú lateral si quieres el resumen del día.">
+    message="El dueño recibe el aviso cerca de la fecha acordada (7 días antes y el mismo día), no el día en que se vacunó a meses vista. Activa avisos de clínica en el menú lateral si quieres el resumen del día."
+  >
   </app-flow-hint>
 
   <app-admin-data-panel
     accent="green"
     title="Listado de vacunas"
     description="Busca por paciente, tipo de vacuna o veterinario."
-    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
-    [showLegend]="!loading && !!dataSource?.data?.length">
-
+    [meta]="
+      !loading && dataSource?.data?.length
+        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales'
+        : ''
+    "
+    [showLegend]="!loading && !!dataSource?.data?.length"
+  >
     <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar vacuna</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Paciente, tipo de vacuna..." />
+      <input
+        matInput
+        (keyup)="aplicarFiltro($event)"
+        (input)="aplicarFiltro($event)"
+        placeholder="Paciente, tipo de vacuna..."
+      />
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
@@ -49,7 +84,8 @@
       title="Aún no hay vacunas"
       message="Elige paciente y vacuna. Luego puedes agregar el cobro a la cuenta del día."
       actionLabel="Nueva vacuna"
-      (action)="abrirModalVacuna()">
+      (action)="abrirModalVacuna()"
+    >
     </app-admin-empty-state>
 
     <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
@@ -73,7 +109,9 @@
         <ng-container matColumnDef="tipo_vacuna">
           <th mat-header-cell *matHeaderCellDef>Tipo de vacuna</th>
           <td mat-cell *matCellDef="let vacuna">
-            <span class="tag" [style.color]="getVacunaColor(vacuna.tipo_vacuna)">{{ getNombreVacuna(vacuna.tipo_vacuna) }}</span>
+            <span class="tag" [style.color]="getVacunaColor(vacuna.tipo_vacuna)">{{
+              getNombreVacuna(vacuna.tipo_vacuna)
+            }}</span>
           </td>
         </ng-container>
 
@@ -96,7 +134,9 @@
         <ng-container matColumnDef="veterinario">
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
           <td mat-cell *matCellDef="let vacuna">
-            <span class="tag tag-muted" *ngIf="vacuna.veterinario; else sinVetVac">Atendido por · {{ vacuna.veterinario }}</span>
+            <span class="tag tag-muted" *ngIf="vacuna.veterinario; else sinVetVac"
+              >Atendido por · {{ vacuna.veterinario }}</span
+            >
             <ng-template #sinVetVac><span class="tag tag-muted">N/A</span></ng-template>
           </td>
         </ng-container>
@@ -105,34 +145,81 @@
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let vacuna">
             <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verVacuna(vacuna)"><mat-icon>visibility</mat-icon></button>
-              <button mat-icon-button type="button" matTooltip="Consumir inventario" (click)="consumirInventario(vacuna)"><mat-icon>inventory_2</mat-icon></button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarVacuna(vacuna)"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarVacuna(vacuna)"><mat-icon>delete_outline</mat-icon></button>
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Ver detalle"
+                (click)="verVacuna(vacuna)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Consumir inventario"
+                (click)="consumirInventario(vacuna)"
+              >
+                <mat-icon>inventory_2</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarVacuna(vacuna)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarVacuna(vacuna)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
             </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="vacunaMenu" (click)="menuContext = vacuna"><mat-icon>more_vert</mat-icon></button>
+            <button
+              mat-icon-button
+              type="button"
+              class="show-mobile-only"
+              matTooltip="Acciones"
+              [matMenuTriggerFor]="vacunaMenu"
+              (click)="menuContext = vacuna"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" (dblclick)="verVacuna(row)"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="data-row" (dblclick)="verVacuna(row)"></tr>
       </table>
     </div>
 
-    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+    <mat-paginator
+      *ngIf="!loading && dataSource?.data?.length"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons
+    ></mat-paginator>
   </app-admin-data-panel>
 
   <mat-menu #vacunaMenu="matMenu">
-    <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
-    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext"><mat-icon>inventory_2</mat-icon> Consumir inventario</button>
+    <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext">
+      <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+    <button mat-menu-item (click)="consumirInventario(menuContext)" [disabled]="!menuContext">
+      <mat-icon>inventory_2</mat-icon> Consumir inventario
+    </button>
     <button
       mat-menu-item
       (click)="agregarAVisita(menuContext)"
-      [disabled]="!menuContext || menuContext?.visitaId || (menuContext?.estado !== 'aplicada' && menuContext?.estado !== 'completada' && menuContext?.aplicada !== true)">
+      [disabled]="
+        !menuContext ||
+        menuContext?.visitaId ||
+        (menuContext?.estado !== 'aplicada' && menuContext?.estado !== 'completada' && menuContext?.aplicada !== true)
+      "
+    >
       <mat-icon>receipt_long</mat-icon>
       {{ menuContext?.visitaId ? 'Ya en cuenta' : 'Agregar a cuenta' }}
     </button>
-    <button mat-menu-item (click)="editarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="eliminarVacuna(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
+    <button mat-menu-item (click)="editarVacuna(menuContext)" [disabled]="!menuContext">
+      <mat-icon>edit</mat-icon> Editar
+    </button>
+    <button mat-menu-item (click)="eliminarVacuna(menuContext)" [disabled]="!menuContext">
+      <mat-icon>delete_outline</mat-icon> Borrar
+    </button>
   </mat-menu>
 </div>
