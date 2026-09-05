@@ -24,6 +24,8 @@ export interface Paciente {
   alergias?: string[];
   /** Legacy / texto libre; se normaliza en lectura junto a `alergias`. */
   alergiasTexto?: string;
+  /** Spec 068 — folio de la mascota (Excel/clínica). Si falta, se persiste/deriva KV-XXXXXX. */
+  expediente?: string;
   [key: string]: unknown;
 }
 
@@ -34,6 +36,7 @@ export interface Cliente {
   apellidoMaterno?: string;
   telefono?: string;
   correo?: string;
+  /** Folio opcional del dueño. No es el número de expediente de la mascota (spec 068). */
   expediente?: string;
   direccion?: string;
   activo?: boolean;

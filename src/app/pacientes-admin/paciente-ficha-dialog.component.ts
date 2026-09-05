@@ -9,6 +9,7 @@ import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
 import { getPacienteNombre } from '../core/utils/paciente-search.util';
+import { etiquetaExpedientePaciente } from '../core/utils/folio-expediente-paciente.util';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { collectRelatedIds, pickLegacyString } from '../core/utils/rtdb-row.util';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
@@ -23,7 +24,7 @@ export interface PacienteFichaDialogData {
   selector: 'app-paciente-ficha-dialog',
   templateUrl: './paciente-ficha-dialog.component.html',
   styleUrls: ['./paciente-ficha-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -109,6 +110,13 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
     return pickLegacyString(this.paciente, 'microchip', 'Microchip', 'chip');
   }
 
+  get etiquetaExpediente(): string {
+    return etiquetaExpedientePaciente({
+      id: String(this.paciente?.['id'] || ''),
+      expediente: pickLegacyString(this.paciente, 'expediente', 'Expediente', 'numeroExpediente'),
+    });
+  }
+
   get duenoNombre(): string {
     return getClienteNombreCompleto(this.cliente as any) || 'Sin dueño';
   }
@@ -144,57 +152,66 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
     this.seccionesPendientes = 3;
     this.loadingClinico = true;
 
-    this.historialesService.getHistorialesPorPaciente(id, extra).pipe(takeUntil(this.destroy$)).subscribe({
-      next: rows => {
-        this.historial = (rows || []).map(h => ({
-          ...h,
-          fecha_formateada: this.formatearFecha(h.fecha_registro),
-          tiempo_transcurrido: this.getTiempoTranscurrido(h.fecha_registro)
-        }));
-        this.marcarSeccionLista();
-      },
-      error: error => {
-        this.historial = [];
-        this.marcarSeccionLista();
-        this.avisarSeccion('cargar historial ficha', error);
-      }
-    });
+    this.historialesService
+      .getHistorialesPorPaciente(id, extra)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.historial = (rows || []).map((h) => ({
+            ...h,
+            fecha_formateada: this.formatearFecha(h.fecha_registro),
+            tiempo_transcurrido: this.getTiempoTranscurrido(h.fecha_registro),
+          }));
+          this.marcarSeccionLista();
+        },
+        error: (error) => {
+          this.historial = [];
+          this.marcarSeccionLista();
+          this.avisarSeccion('cargar historial ficha', error);
+        },
+      });
 
-    this.vacunasService.getVacunasPorPaciente(id, extra).pipe(takeUntil(this.destroy$)).subscribe({
-      next: rows => {
-        this.vacunas = (rows || []).map(v => {
-          const fechaRaw = v.fechaAplicacion || v.fechaRegistro || v.fecha;
-          return {
-            ...v,
-            fecha_formateada: this.formatearFechaCorta(fechaRaw)
-          };
-        });
-        this.marcarSeccionLista();
-      },
-      error: error => {
-        this.vacunas = [];
-        this.marcarSeccionLista();
-        this.avisarSeccion('cargar vacunas ficha', error);
-      }
-    });
+    this.vacunasService
+      .getVacunasPorPaciente(id, extra)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.vacunas = (rows || []).map((v) => {
+            const fechaRaw = v.fechaAplicacion || v.fechaRegistro || v.fecha;
+            return {
+              ...v,
+              fecha_formateada: this.formatearFechaCorta(fechaRaw),
+            };
+          });
+          this.marcarSeccionLista();
+        },
+        error: (error) => {
+          this.vacunas = [];
+          this.marcarSeccionLista();
+          this.avisarSeccion('cargar vacunas ficha', error);
+        },
+      });
 
-    this.recordatoriosService.getRecordatoriosPorPaciente(id, extra).pipe(takeUntil(this.destroy$)).subscribe({
-      next: rows => {
-        this.recordatorios = (rows || []).map(r => {
-          const fechaRaw = r.fecha_hora_recordatorio || r.fecha_recordatorio || null;
-          return {
-            ...r,
-            fecha_formateada: this.formatearFechaCorta(fechaRaw)
-          };
-        });
-        this.marcarSeccionLista();
-      },
-      error: error => {
-        this.recordatorios = [];
-        this.marcarSeccionLista();
-        this.avisarSeccion('cargar recordatorios ficha', error);
-      }
-    });
+    this.recordatoriosService
+      .getRecordatoriosPorPaciente(id, extra)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.recordatorios = (rows || []).map((r) => {
+            const fechaRaw = r.fecha_hora_recordatorio || r.fecha_recordatorio || null;
+            return {
+              ...r,
+              fecha_formateada: this.formatearFechaCorta(fechaRaw),
+            };
+          });
+          this.marcarSeccionLista();
+        },
+        error: (error) => {
+          this.recordatorios = [];
+          this.marcarSeccionLista();
+          this.avisarSeccion('cargar recordatorios ficha', error);
+        },
+      });
   }
 
   private marcarSeccionLista(): void {
@@ -213,7 +230,7 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
       toast: true,
       position: 'top-end',
       timer: 4500,
-      showConfirmButton: false
+      showConfirmButton: false,
     });
   }
 
@@ -264,7 +281,7 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       });
     } catch {
       return 'N/P';
@@ -283,7 +300,7 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
       return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit'
+        day: '2-digit',
       });
     } catch {
       return 'N/P';
@@ -319,5 +336,4 @@ export class PacienteFichaDialogComponent implements OnInit, OnDestroy {
       return '';
     }
   }
-
 }

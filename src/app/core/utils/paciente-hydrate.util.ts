@@ -13,6 +13,8 @@ export function hydratePaciente(key: string | null | undefined, raw: unknown): P
   const color = pickLegacyString(rec, 'color', 'Color');
   const cid = getPacienteClienteId(row);
   const pesoRaw = rec['peso'] ?? rec['Peso'];
+  // Spec 068: folio de la mascota (Excel/clínica). No tomar el del dueño.
+  const expediente = pickLegacyString(rec, 'expediente', 'Expediente', 'numeroExpediente');
 
   return {
     ...row,
@@ -22,6 +24,7 @@ export function hydratePaciente(key: string | null | undefined, raw: unknown): P
     ...(sexo ? { sexo } : {}),
     ...(color ? { color } : {}),
     ...(pesoRaw != null && String(pesoRaw).trim() !== '' ? { peso: pesoRaw as string | number } : {}),
-    ...(cid ? { cliente_id: cid, idCliente: cid } : {})
+    ...(expediente ? { expediente } : {}),
+    ...(cid ? { cliente_id: cid, idCliente: cid } : {}),
   };
 }

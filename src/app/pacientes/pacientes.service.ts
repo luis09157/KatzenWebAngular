@@ -8,9 +8,10 @@ import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-page
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 import { calcularPacienteEstadisticas, PacienteEstadisticas } from '../core/utils/entity-stats.util';
 import { hydratePaciente } from '../core/utils/paciente-hydrate.util';
+import { resolverExpedienteParaPersistir } from '../core/utils/folio-expediente-paciente.util';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PacientesService {
   private readonly pageSizeDefault = 100;
@@ -26,50 +27,50 @@ export class PacientesService {
     pageSize = this.pageSizeDefault,
     endBeforeKey?: string | null
   ): Observable<RtdbPageResult<Paciente>> {
-    return this.pagedList.fetchPage<Paciente>(
-      'Katzen/Mascota',
-      pageSize,
-      endBeforeKey,
-      (p) => p.activo !== false
-    ).pipe(
-      map(page => ({
-        ...page,
-        items: page.items
-          .map(p => hydratePaciente(p.id, p) as Paciente & { id: string })
-          .sort((a, b) => {
-          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
-          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
-          return fechaB.getTime() - fechaA.getTime();
-        })
-      }))
-    );
+    return this.pagedList
+      .fetchPage<Paciente>('Katzen/Mascota', pageSize, endBeforeKey, (p) => p.activo !== false)
+      .pipe(
+        map((page) => ({
+          ...page,
+          items: page.items
+            .map((p) => hydratePaciente(p.id, p) as Paciente & { id: string })
+            .sort((a, b) => {
+              const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
+              const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
+              return fechaB.getTime() - fechaA.getTime();
+            }),
+        }))
+      );
   }
 
   getPacientes(): Observable<Paciente[]> {
-    return this.db.list('Katzen/Mascota').snapshotChanges().pipe(
-      map(actions => actions
-        .map(a => hydratePaciente(a.key, a.payload.val()))
-        .filter((paciente: Paciente) => paciente.activo !== false)
-        .sort((a, b) => {
-          const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
-          const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
-          return fechaB.getTime() - fechaA.getTime();
-        })
-      )
-    );
+    return this.db
+      .list('Katzen/Mascota')
+      .snapshotChanges()
+      .pipe(
+        map((actions) =>
+          actions
+            .map((a) => hydratePaciente(a.key, a.payload.val()))
+            .filter((paciente: Paciente) => paciente.activo !== false)
+            .sort((a, b) => {
+              const fechaA = new Date(a.fecha_creacion || a.fecha_registro || (a as any).created_at || 0);
+              const fechaB = new Date(b.fecha_creacion || b.fecha_registro || (b as any).created_at || 0);
+              return fechaB.getTime() - fechaA.getTime();
+            })
+        )
+      );
   }
 
   /** Totales reales en RTDB (toda la colección activa), independiente de la paginación de la tabla. */
   getEstadisticas(sucursalId: string): Observable<PacienteEstadisticas> {
-    return this.getPacientes().pipe(
-      map(pacientes => calcularPacienteEstadisticas(pacientes, sucursalId))
-    );
+    return this.getPacientes().pipe(map((pacientes) => calcularPacienteEstadisticas(pacientes, sucursalId)));
   }
 
   getPaciente(id: string): Observable<Paciente | null> {
-    return this.db.object(`Katzen/Mascota/${id}`).valueChanges().pipe(
-      map(val => (val != null && typeof val === 'object' ? hydratePaciente(id, val) : null))
-    );
+    return this.db
+      .object(`Katzen/Mascota/${id}`)
+      .valueChanges()
+      .pipe(map((val) => (val != null && typeof val === 'object' ? hydratePaciente(id, val) : null)));
   }
 
   guardarPaciente(paciente: Paciente & { id: string }) {
@@ -77,6 +78,7 @@ export class PacientesService {
     if (paciente.activo === undefined) {
       paciente.activo = true;
     }
+    paciente.expediente = resolverExpedienteParaPersistir(paciente.expediente, paciente.id);
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
@@ -84,13 +86,17 @@ export class PacientesService {
     paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente;
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
-    return this.db.list('Katzen/Mascota').push(paciente).then(async (ref) => {
-      if (!ref.key) {
-        throw new Error('No se pudo crear el paciente');
-      }
-      await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key });
-      return ref.key;
-    });
+    return this.db
+      .list('Katzen/Mascota')
+      .push(paciente)
+      .then(async (ref) => {
+        if (!ref.key) {
+          throw new Error('No se pudo crear el paciente');
+        }
+        const expediente = resolverExpedienteParaPersistir(paciente.expediente, ref.key);
+        await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key, expediente });
+        return ref.key;
+      });
   }
 
   /** @deprecated Usar bajaLogicaPaciente — preserva datos en RTDB */
@@ -99,11 +105,15 @@ export class PacientesService {
   }
 
   actualizarPaciente(id: string, cambios: Partial<Paciente>) {
-    const estado = String((cambios as { estado?: string }).estado || '').trim();
+    const next: Partial<Paciente> = { ...cambios };
+    if ('expediente' in next) {
+      next.expediente = resolverExpedienteParaPersistir(next.expediente, id);
+    }
+    const estado = String((next as { estado?: string }).estado || '').trim();
     const marcarFallecido = estado.toLowerCase() === 'fallecido';
     return this.db
       .object(`Katzen/Mascota/${id}`)
-      .update(cambios)
+      .update(next)
       .then(async () => {
         if (marcarFallecido) {
           await this.archivarRecordatoriosPorPaciente(id);
@@ -141,14 +151,14 @@ export class PacientesService {
   bajaLogicaPaciente(id: string) {
     return this.db.object(`Katzen/Mascota/${id}`).update({
       activo: false,
-      fechaBaja: rtdbFechaAhora()
+      fechaBaja: rtdbFechaAhora(),
     });
   }
 
   reactivarPaciente(id: string) {
     return this.db.object(`Katzen/Mascota/${id}`).update({
       activo: true,
-      fechaBaja: ''
+      fechaBaja: '',
     });
   }
 
@@ -157,34 +167,38 @@ export class PacientesService {
       this.logger.error('Error: pacienteId está vacío');
       return Promise.reject('pacienteId está vacío');
     }
-    
+
     const logRef = this.db.list(`Katzen/Log_Paciente/${pacienteId}`);
     const logEntry = {
       ...actividad,
       fecha_creacion: new Date().toISOString(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    
+
     this.logger.log('Log entry a guardar:', logEntry);
     this.logger.log('Ruta en Firebase:', `Katzen/Log_Paciente/${pacienteId}`);
-    
-    return logRef.push(logEntry).then((ref) => {
-      this.logger.log('Log de actividad guardado exitosamente con ID:', ref.key);
-      return Promise.resolve();
-    }).catch(error => {
-      this.logger.error('Error al guardar log de actividad:', error);
-      return Promise.reject(error);
-    });
+
+    return logRef
+      .push(logEntry)
+      .then((ref) => {
+        this.logger.log('Log de actividad guardado exitosamente con ID:', ref.key);
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        this.logger.error('Error al guardar log de actividad:', error);
+        return Promise.reject(error);
+      });
   }
 
   getLogActividades(pacienteId: string): Observable<any[]> {
     this.logger.log('Obteniendo log de actividades para paciente:', pacienteId);
-    return this.db.list(`Katzen/Log_Paciente/${pacienteId}`)
+    return this.db
+      .list(`Katzen/Log_Paciente/${pacienteId}`)
       .snapshotChanges()
       .pipe(
-        map(changes => {
+        map((changes) => {
           const log = changes
-            .map(c => ({ id: c.payload.key, ...c.payload.val() as any }))
+            .map((c) => ({ id: c.payload.key, ...(c.payload.val() as any) }))
             .sort((a, b) => b.timestamp - a.timestamp); // Más reciente primero
           this.logger.log('Log obtenido de Firebase:', log);
           return log;
@@ -195,7 +209,7 @@ export class PacientesService {
   // Métodos para registrar diferentes tipos de actividades
   registrarHistorialClinico(pacienteId: string, historial: any): Promise<void> {
     this.logger.log('Registrando historial clínico en log:', { pacienteId, historial });
-    
+
     const actividad = {
       tipo: 'historial_clinico',
       titulo: 'Historial Clínico',
@@ -205,10 +219,10 @@ export class PacientesService {
       datos: {
         diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
         tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
-        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
-      }
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos',
+      },
     };
-    
+
     return this.agregarLogActividad(pacienteId, actividad);
   }
 
@@ -219,7 +233,7 @@ export class PacientesService {
       fechaAplicacion = new Date().toISOString();
       console.warn('PacientesService - fecha_aplicacion undefined, usando fecha actual:', fechaAplicacion);
     }
-    
+
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna',
       titulo: 'Vacuna Aplicada',
@@ -229,14 +243,14 @@ export class PacientesService {
       datos: {
         nombre_vacuna: vacuna.nombre_vacuna,
         dosis: vacuna.dosis,
-        fecha_aplicacion: fechaAplicacion
-      }
+        fecha_aplicacion: fechaAplicacion,
+      },
     });
   }
 
   registrarRecordatorio(pacienteId: string, recordatorio: any): Promise<void> {
     this.logger.log('Registrando recordatorio en log:', { pacienteId, recordatorio });
-    
+
     const actividad = {
       tipo: 'recordatorio',
       titulo: 'Recordatorio',
@@ -246,10 +260,10 @@ export class PacientesService {
       datos: {
         titulo: recordatorio.titulo || 'Sin título',
         fecha_recordatorio: recordatorio.fecha_hora_recordatorio || recordatorio.fecha_recordatorio,
-        prioridad: recordatorio.prioridad || 'media'
-      }
+        prioridad: recordatorio.prioridad || 'media',
+      },
     };
-    
+
     return this.agregarLogActividad(pacienteId, actividad);
   }
 
@@ -263,8 +277,8 @@ export class PacientesService {
       datos: {
         motivo: cita.motivo,
         fecha_hora: cita.fecha_hora,
-        estado: cita.estado
-      }
+        estado: cita.estado,
+      },
     });
   }
 
@@ -279,8 +293,8 @@ export class PacientesService {
       datos: {
         diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
         tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
-        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
-      }
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos',
+      },
     });
   }
 
@@ -291,7 +305,7 @@ export class PacientesService {
       fechaAplicacion = new Date().toISOString();
       console.warn('PacientesService - fecha_aplicacion undefined en edición, usando fecha actual:', fechaAplicacion);
     }
-    
+
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna_editada',
       titulo: 'Vacuna Editada',
@@ -301,8 +315,8 @@ export class PacientesService {
       datos: {
         nombre_vacuna: vacuna.nombre_vacuna,
         dosis: vacuna.dosis,
-        fecha_aplicacion: fechaAplicacion
-      }
+        fecha_aplicacion: fechaAplicacion,
+      },
     });
   }
 
@@ -316,8 +330,8 @@ export class PacientesService {
       datos: {
         titulo: recordatorio.titulo,
         fecha_recordatorio: recordatorio.fecha_hora_recordatorio,
-        prioridad: recordatorio.prioridad
-      }
+        prioridad: recordatorio.prioridad,
+      },
     });
   }
 
@@ -332,8 +346,8 @@ export class PacientesService {
       datos: {
         diagnostico: historial.diagnostico_presuntivo || historial.diagnostico || 'Sin diagnóstico',
         tratamiento: historial.manejo_terapeutico || historial.tratamiento || 'Sin tratamiento',
-        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos'
-      }
+        medicamentos: historial.receta || historial.medicamentos || 'Sin medicamentos',
+      },
     });
   }
 
@@ -341,14 +355,17 @@ export class PacientesService {
     // Usar los campos correctos según la estructura de la base de datos
     const nombreVacuna = vacuna.vacuna || 'Vacuna sin nombre';
     const dosis = vacuna.dosis || 'Sin dosis';
-    
+
     // Asegurar que fecha_aplicacion tenga un valor válido
     let fechaAplicacion = vacuna.fechaAplicacion || vacuna.fechaRegistro;
     if (!fechaAplicacion) {
       fechaAplicacion = new Date().toISOString();
-      console.warn('PacientesService - fechaAplicacion undefined en eliminación, usando fecha actual:', fechaAplicacion);
+      console.warn(
+        'PacientesService - fechaAplicacion undefined en eliminación, usando fecha actual:',
+        fechaAplicacion
+      );
     }
-    
+
     return this.agregarLogActividad(pacienteId, {
       tipo: 'vacuna_eliminada',
       titulo: 'Vacuna Eliminada',
@@ -358,8 +375,8 @@ export class PacientesService {
       datos: {
         nombre_vacuna: nombreVacuna,
         dosis: dosis,
-        fecha_aplicacion: fechaAplicacion
-      }
+        fecha_aplicacion: fechaAplicacion,
+      },
     });
   }
 
@@ -373,15 +390,15 @@ export class PacientesService {
       datos: {
         titulo: recordatorio.titulo,
         fecha_recordatorio: recordatorio.fecha_hora_recordatorio,
-        prioridad: recordatorio.prioridad
-      }
+        prioridad: recordatorio.prioridad,
+      },
     });
   }
 
   // Método de prueba para verificar la conexión a Firebase
   probarLogActividad(pacienteId: string): Promise<void> {
     this.logger.log('Probando log de actividad para paciente:', pacienteId);
-    
+
     const actividadPrueba = {
       tipo: 'prueba',
       titulo: 'Prueba de Log',
@@ -390,10 +407,10 @@ export class PacientesService {
       color: '#2196f3',
       datos: {
         mensaje: 'Prueba exitosa',
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
-    
+
     return this.agregarLogActividad(pacienteId, actividadPrueba);
   }
-} 
+}

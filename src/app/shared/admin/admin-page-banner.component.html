@@ -4,7 +4,10 @@
       <mat-icon>{{ icon }}</mat-icon>
     </div>
     <div class="banner-text">
-      <h2>{{ title }}</h2>
+      <div class="banner-title-row">
+        <h2>{{ title }}</h2>
+        <span class="banner-badge" *ngIf="badge">{{ badge }}</span>
+      </div>
       <p *ngIf="subtitle">{{ subtitle }}</p>
     </div>
   </div>

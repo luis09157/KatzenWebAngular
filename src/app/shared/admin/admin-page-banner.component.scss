@@ -28,12 +28,24 @@
   box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06);
 }
 
-.admin-banner--teal { border-top-color: #0a969b; }
-.admin-banner--blue { border-top-color: #1e88e5; }
-.admin-banner--purple { border-top-color: #7b1fa2; }
-.admin-banner--pink { border-top-color: #ad067e; }
-.admin-banner--green { border-top-color: #00897b; }
-.admin-banner--orange { border-top-color: #f57c00; }
+.admin-banner--teal {
+  border-top-color: #0a969b;
+}
+.admin-banner--blue {
+  border-top-color: #1e88e5;
+}
+.admin-banner--purple {
+  border-top-color: #7b1fa2;
+}
+.admin-banner--pink {
+  border-top-color: #ad067e;
+}
+.admin-banner--green {
+  border-top-color: #00897b;
+}
+.admin-banner--orange {
+  border-top-color: #f57c00;
+}
 
 .banner-content {
   display: flex;
@@ -55,12 +67,30 @@
   flex-shrink: 0;
 }
 
-.admin-banner--teal .banner-icon { background: #ecfdf5; color: #065d60; }
-.admin-banner--blue .banner-icon { background: #eff6ff; color: #1d4ed8; }
-.admin-banner--purple .banner-icon { background: #f5f3ff; color: #6d28d9; }
-.admin-banner--pink .banner-icon { background: #fdf2f8; color: #9d174d; }
-.admin-banner--green .banner-icon { background: #ecfdf5; color: #047857; }
-.admin-banner--orange .banner-icon { background: #fff7ed; color: #c2410c; }
+.admin-banner--teal .banner-icon {
+  background: #ecfdf5;
+  color: #065d60;
+}
+.admin-banner--blue .banner-icon {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.admin-banner--purple .banner-icon {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+.admin-banner--pink .banner-icon {
+  background: #fdf2f8;
+  color: #9d174d;
+}
+.admin-banner--green .banner-icon {
+  background: #ecfdf5;
+  color: #047857;
+}
+.admin-banner--orange .banner-icon {
+  background: #fff7ed;
+  color: #c2410c;
+}
 
 .banner-icon mat-icon {
   font-size: 24px;
@@ -73,8 +103,16 @@
   flex: 1 1 auto;
 }
 
-.banner-text h2 {
+.banner-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   margin: 0 0 4px;
+}
+
+.banner-text h2 {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: #032d60;
@@ -82,6 +120,22 @@
   overflow: visible;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.banner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: var(--admin-radius-pill, 999px);
+  background: #ecfdf5;
+  color: var(--katzen-verde, #0a969b);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .banner-text p {

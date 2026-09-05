@@ -11,6 +11,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import { filtrarClientes, getClienteDisplayLabel, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
+import { folioExpedientePaciente } from '../core/utils/folio-expediente-paciente.util';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -76,6 +77,14 @@ export class PacienteAdminDialogComponent implements OnInit {
     return String(raw).trim() || '—';
   }
 
+  /** Folio visible en ficha de solo lectura: capturado o KV derivado. */
+  get folioExpedienteVista(): string {
+    return folioExpedientePaciente({
+      id: this.data?.paciente?.id,
+      expediente: this.pacienteForm.get('expediente')?.value || this.data?.paciente?.expediente,
+    });
+  }
+
   getDisplayFecha(field: string): string {
     const raw = this.pacienteForm.get(field)?.value ?? this.data?.paciente?.[field];
     if (!raw) {
@@ -105,13 +114,14 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.pacienteForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       especie: ['', Validators.required],
-      raza: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      sexo: ['', Validators.required],
+      raza: ['', [Validators.maxLength(50)]],
+      sexo: [''],
       estado: ['Vivo', Validators.required], // Campo de estado con valor por defecto 'Vivo'
       edad: [''],
       fechaFallecimiento: [''], // Nuevo campo para fecha de fallecimiento
       color: ['', [Validators.maxLength(30)]],
       peso: ['', [Validators.pattern(/^\d*\.?\d*$/), Validators.min(0), Validators.max(200)]],
+      expediente: ['', [Validators.maxLength(20)]],
       idCliente: [''], // Sin validación visible, se llena automáticamente
       nombreCliente: ['', Validators.required],
     });

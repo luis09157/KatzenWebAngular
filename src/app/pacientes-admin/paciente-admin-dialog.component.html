@@ -32,6 +32,7 @@
           <div class="entity-summary">
             <h3 class="entity-summary__name">{{ getDisplayValue('nombre') }}</h3>
             <p class="entity-summary__meta">{{ getDisplayValue('especie') }} · {{ getDisplayValue('raza') }}</p>
+            <p class="entity-summary__meta">N° de expediente {{ folioExpedienteVista }}</p>
           </div>
 
           <section class="detail-section">
@@ -116,7 +117,7 @@
 
         <button type="button" class="paciente-rapido__toggle" (click)="mostrarMasDatosRapido = !mostrarMasDatosRapido">
           <mat-icon>{{ mostrarMasDatosRapido ? 'expand_less' : 'expand_more' }}</mat-icon>
-          {{ mostrarMasDatosRapido ? 'Ocultar datos opcionales' : 'Raza y sexo (opcional)' }}
+          {{ mostrarMasDatosRapido ? 'Ocultar datos opcionales' : 'Más datos (opcional)' }}
         </button>
 
         <div class="paciente-rapido__grid" *ngIf="mostrarMasDatosRapido">
@@ -131,6 +132,12 @@
               <mat-option value="">—</mat-option>
               <mat-option *ngFor="let sexo of sexos" [value]="sexo">{{ sexo }}</mat-option>
             </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>N° de expediente</mat-label>
+            <input matInput formControlName="expediente" placeholder="Opcional" maxlength="20" />
+            <mat-hint>Si lo dejas vacío se genera solo (KV-…)</mat-hint>
+            <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
           </mat-form-field>
         </div>
 
@@ -213,13 +220,19 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Raza</mat-label>
-                <input matInput formControlName="raza" />
+                <input matInput formControlName="raza" placeholder="Opcional" />
                 <mat-error *ngIf="isFieldInvalid('raza')">{{ getErrorMessage('raza') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Color</mat-label>
                 <input matInput formControlName="color" />
                 <mat-error *ngIf="isFieldInvalid('color')">{{ getErrorMessage('color') }}</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>N° de expediente</mat-label>
+                <input matInput formControlName="expediente" placeholder="Ej. 1847" maxlength="20" />
+                <mat-hint>Si lo dejas vacío se genera solo (KV-…)</mat-hint>
+                <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
               </mat-form-field>
             </div>
           </section>
@@ -230,9 +243,9 @@
               <mat-form-field appearance="outline">
                 <mat-label>Sexo</mat-label>
                 <mat-select formControlName="sexo">
+                  <mat-option value="">—</mat-option>
                   <mat-option *ngFor="let sexo of sexos" [value]="sexo">{{ sexo }}</mat-option>
                 </mat-select>
-                <mat-error *ngIf="isFieldInvalid('sexo')">{{ getErrorMessage('sexo') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Estado</mat-label>

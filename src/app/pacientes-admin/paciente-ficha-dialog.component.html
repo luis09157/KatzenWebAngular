@@ -14,13 +14,14 @@
     <section class="ficha-top" aria-label="Datos del paciente y dueño">
       <aside class="ficha-photo">
         <div class="admin-dialog-photo">
-          <img [src]="fotoUrl" [alt]="nombre" decoding="async">
+          <img [src]="fotoUrl" [alt]="nombre" decoding="async" />
         </div>
         <span class="estado-badge" [ngClass]="estado | adminEstadoClass">{{ estado | titlecase }}</span>
       </aside>
 
       <div class="ficha-facts">
         <div class="ficha-chips">
+          <span class="tag tag-expediente">{{ etiquetaExpediente }}</span>
           <span class="tag tag-muted">{{ edadLabel }}</span>
           <span class="tag tag-muted" *ngIf="pesoLabel">{{ pesoLabel }}</span>
           <span class="tag tag-sex" *ngIf="sexo">{{ sexo }}</span>
@@ -57,7 +58,9 @@
     <section class="ficha-expediente" aria-label="Expediente clínico">
       <header class="ficha-expediente__head">
         <h3>Expediente clínico</h3>
-        <p *ngIf="!loadingClinico">{{ historial.length }} historial · {{ vacunas.length }} vacunas · {{ recordatorios.length }} recordatorios</p>
+        <p *ngIf="!loadingClinico">
+          {{ historial.length }} historial · {{ vacunas.length }} vacunas · {{ recordatorios.length }} recordatorios
+        </p>
       </header>
 
       <div class="ficha-clinico" *ngIf="loadingClinico">
@@ -65,11 +68,7 @@
         <p>Cargando expediente…</p>
       </div>
 
-      <mat-tab-group
-        *ngIf="!loadingClinico"
-        class="ficha-tabs"
-        animationDuration="0ms"
-        dynamicHeight>
+      <mat-tab-group *ngIf="!loadingClinico" class="ficha-tabs" animationDuration="0ms" dynamicHeight>
         <mat-tab>
           <ng-template mat-tab-label>Historial ({{ historial.length }})</ng-template>
           <div class="tab-panel">
@@ -80,9 +79,15 @@
                 </div>
                 <div class="clinical-list__body">
                   <div class="clinical-list__title">{{ item.diagnostico_presuntivo || 'Sin diagnóstico' }}</div>
-                  <div class="clinical-list__meta">{{ item.fecha_formateada }}<span *ngIf="item.tiempo_transcurrido"> · {{ item.tiempo_transcurrido }}</span></div>
+                  <div class="clinical-list__meta">
+                    {{ item.fecha_formateada
+                    }}<span *ngIf="item.tiempo_transcurrido"> · {{ item.tiempo_transcurrido }}</span>
+                  </div>
                   <div class="clinical-list__tags">
-                    <span class="estado-badge" [ngClass]="(item.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
+                    <span
+                      class="estado-badge"
+                      [ngClass]="(item.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass"
+                    >
                       {{ item.activo !== false ? 'Activo' : 'Inactivo' }}
                     </span>
                   </div>
@@ -92,7 +97,9 @@
               </article>
             </div>
             <ng-template #emptyHistorial>
-              <p class="ficha-empty">Aún no hay historial. Ábrelo en el expediente completo para registrar la primera entrada.</p>
+              <p class="ficha-empty">
+                Aún no hay historial. Ábrelo en el expediente completo para registrar la primera entrada.
+              </p>
             </ng-template>
           </div>
         </mat-tab>
@@ -106,10 +113,15 @@
                   <mat-icon>vaccines</mat-icon>
                 </div>
                 <div class="clinical-list__body">
-                  <div class="clinical-list__title">{{ (vacuna.vacuna || 'Vacuna') | titlecase }}</div>
-                  <div class="clinical-list__meta">{{ vacuna.fecha_formateada }}<span *ngIf="vacuna.dosis"> · Dosis {{ vacuna.dosis }}</span></div>
+                  <div class="clinical-list__title">{{ vacuna.vacuna || 'Vacuna' | titlecase }}</div>
+                  <div class="clinical-list__meta">
+                    {{ vacuna.fecha_formateada }}<span *ngIf="vacuna.dosis"> · Dosis {{ vacuna.dosis }}</span>
+                  </div>
                   <div class="clinical-list__tags">
-                    <span class="estado-badge" [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass">
+                    <span
+                      class="estado-badge"
+                      [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass"
+                    >
                       {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
                     </span>
                   </div>
@@ -135,7 +147,9 @@
                   <div class="clinical-list__title">{{ rec.titulo || 'Sin título' }}</div>
                   <div class="clinical-list__meta">{{ rec.fecha_formateada }}</div>
                   <div class="clinical-list__tags">
-                    <span class="estado-badge" [ngClass]="rec.estado | adminEstadoClass">{{ (rec.estado || 'pendiente') | titlecase }}</span>
+                    <span class="estado-badge" [ngClass]="rec.estado | adminEstadoClass">{{
+                      rec.estado || 'pendiente' | titlecase
+                    }}</span>
                     <span class="tag tag-muted" *ngIf="rec.prioridad">{{ rec.prioridad | titlecase }}</span>
                   </div>
                 </div>
@@ -152,7 +166,13 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
     <button mat-button type="button" (click)="cerrar()">Cerrar</button>
-    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirExpedienteCompleto()">
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      (click)="abrirExpedienteCompleto()"
+    >
       <mat-icon>folder_shared</mat-icon>
       Abrir expediente completo
     </button>

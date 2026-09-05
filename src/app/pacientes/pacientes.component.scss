@@ -203,6 +203,21 @@
   color: #6b7280;
 }
 
+:host-context(.admin-content) .patient-card__expediente {
+  margin: 8px 0 4px;
+  padding: 4px 10px;
+  display: inline-block;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: var(--admin-radius-pill, 999px);
+  background: #ecfdf5;
+  color: var(--katzen-verde, #0a969b);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: visible;
+}
+
 :host-context(.admin-content) .patient-card__owner {
   display: flex;
   flex-direction: column;
@@ -281,7 +296,9 @@
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 :host-context(.admin-content) .clinical-list__item:hover {
