@@ -1,0 +1,38 @@
+/* Spec 066 — panel de uso; layout global en admin-table.scss / admin-data-panel.scss */
+:host {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.uso-sistema-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 4px 28px 12px;
+}
+
+.uso-sistema-nota {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--admin-text-secondary);
+}
+
+:host ::ng-deep .uso-sistema-table .mat-column-veces,
+:host ::ng-deep .uso-sistema-table .mat-mdc-column-veces {
+  width: 110px;
+  min-width: 110px;
+}
+
+:host ::ng-deep .uso-sistema-table .mat-column-ultimo,
+:host ::ng-deep .uso-sistema-table .mat-mdc-column-ultimo {
+  width: 200px;
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .uso-sistema-toolbar {
+    padding: 4px 16px 12px;
+  }
+}

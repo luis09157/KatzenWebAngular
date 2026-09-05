@@ -2,3 +2,42 @@
 :host {
   display: block;
 }
+
+/* Spec 066: 5 acciones por fila (ver, editar, WhatsApp, llamar, más). */
+:host ::ng-deep .recordatorios-table th.mat-column-acciones,
+:host ::ng-deep .recordatorios-table td.mat-column-acciones,
+:host ::ng-deep .recordatorios-table .mat-mdc-header-cell.mat-column-acciones,
+:host ::ng-deep .recordatorios-table .mat-mdc-cell.mat-column-acciones {
+  width: 216px !important;
+  min-width: 216px !important;
+  max-width: 216px !important;
+}
+
+/* El chip «WhatsApp ✓ fecha» se lee en minúsculas y completo. */
+:host ::ng-deep .recordatorio-wa-chip {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.6875rem;
+}
+
+:host ::ng-deep .recordatorio-wa-btn:not([disabled]) .mat-icon,
+:host ::ng-deep .recordatorio-tel-btn .mat-icon {
+  color: var(--katzen-verde);
+}
+
+/* El span envuelve al botón deshabilitado para que el tooltip «Teléfono incompleto» sí aparezca. */
+:host ::ng-deep .recordatorio-wa-disabled {
+  display: inline-flex;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  :host ::ng-deep .recordatorios-table th.mat-column-acciones,
+  :host ::ng-deep .recordatorios-table td.mat-column-acciones,
+  :host ::ng-deep .recordatorios-table .mat-mdc-header-cell.mat-column-acciones,
+  :host ::ng-deep .recordatorios-table .mat-mdc-cell.mat-column-acciones {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+  }
+}

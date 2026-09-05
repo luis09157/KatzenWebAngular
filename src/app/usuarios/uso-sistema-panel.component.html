@@ -1,0 +1,56 @@
+<app-admin-data-panel
+  accent="blue"
+  title="Uso del sistema (este equipo)"
+  description="Cuántas veces se abrió cada módulo en esta computadora. Módulos que nadie abre son candidatos a quitarse del menú."
+  [meta]="filas.length ? totalAperturas + ' aperturas · ' + filas.length + ' módulos' : ''"
+  [showLegend]="false"
+>
+  <div class="uso-sistema-toolbar">
+    <p class="uso-sistema-nota">
+      Menos usados primero. El conteo es local: no se envía a ningún lado ni identifica personas.
+    </p>
+    <button mat-stroked-button type="button" (click)="reiniciarConteo()" [disabled]="!filas.length">
+      <mat-icon>restart_alt</mat-icon>
+      Reiniciar conteo
+    </button>
+  </div>
+
+  <app-admin-empty-state
+    *ngIf="!filas.length"
+    icon="insights"
+    title="Aún no hay uso registrado"
+    message="Navega por los módulos del menú y aquí verás cuántas veces se abre cada uno."
+  >
+  </app-admin-empty-state>
+
+  <div class="table-scroll" *ngIf="filas.length">
+    <table mat-table [dataSource]="filas" class="uso-sistema-table">
+      <ng-container matColumnDef="modulo">
+        <th mat-header-cell *matHeaderCellDef>Módulo</th>
+        <td mat-cell *matCellDef="let fila">
+          <div class="cell-primary">
+            <strong>{{ fila.label }}</strong>
+            <span class="cell-sub" *ngIf="fila.label !== fila.modulo">/admin/{{ fila.modulo }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="veces">
+        <th mat-header-cell *matHeaderCellDef>Veces</th>
+        <td mat-cell *matCellDef="let fila">
+          <span class="tag" [ngClass]="fila.count <= 1 ? 'tag-muted' : 'tag-accent'">{{ fila.count }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ultimo">
+        <th mat-header-cell *matHeaderCellDef>Último uso</th>
+        <td mat-cell *matCellDef="let fila">
+          <span class="cell-sub">{{ formatearUltimo(fila.lastAt) }}</span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas" class="data-row"></tr>
+    </table>
+  </div>
+</app-admin-data-panel>

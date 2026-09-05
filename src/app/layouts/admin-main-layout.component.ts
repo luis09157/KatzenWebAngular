@@ -11,13 +11,14 @@ import { LoggerService } from '../core/logger.service';
 import { resolveAdminRouteLabel } from '../core/config/admin-route-labels.config';
 import { PortalFcmService } from '../core/services/portal-fcm.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { UsageMetricsService } from '../core/services/usage-metrics.service';
 import { environment } from '../../environments/environment';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin-main-layout',
   templateUrl: './admin-main-layout.component.html',
-  styleUrls: ['./admin-main-layout.component.css']
+  styleUrls: ['./admin-main-layout.component.css'],
 })
 export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -49,11 +50,14 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     private router: Router,
     private logger: LoggerService,
     private portalFcm: PortalFcmService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private usageMetrics: UsageMetricsService
   ) {}
 
   ngOnInit() {
     this.checkMobile();
+    // Spec 066: conteo local de aperturas por módulo (localStorage, sin datos personales).
+    this.usageMetrics.startTracking();
     this.sucursales = this.sucursalContext.sucursales;
     this.sucursalSeleccionada = this.sucursalContext.getSelectedId();
     window.addEventListener('resize', this.resizeHandler);
@@ -67,25 +71,27 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
         const nav = event as NavigationEnd;
         this.toolbarLabel = resolveAdminRouteLabel(nav.urlAfterRedirects || nav.url);
       });
-    this.authService.user$.pipe(
-      takeUntil(this.destroy$),
-      switchMap(user => {
-        if (!user?.uid) return of(null);
-        this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
-        return this.authProfileService.resolveAccess().then(async access => {
-          const staffRole = await this.authProfileService.getEffectiveStaffRole();
-          this.staffRole = staffRole;
-          this.navCompact = staffRoleShowsCompactNav(staffRole);
-          const nav = navModulesForStaffRole(staffRole);
-          this.navModules = new Set(nav);
-          const modules = await this.authProfileService.getAccessibleModules();
-          this.accessibleModules = new Set(modules);
-          this.isAdmin = modules.includes('usuarios');
-          this.canGoPortal = !!(access.clientAccess && access.clienteId);
-          return null;
-        });
-      })
-    ).subscribe();
+    this.authService.user$
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((user) => {
+          if (!user?.uid) return of(null);
+          this.usuario = { nombre: user.displayName || 'Administrador', rol: 'admin', email: user.email || '' };
+          return this.authProfileService.resolveAccess().then(async (access) => {
+            const staffRole = await this.authProfileService.getEffectiveStaffRole();
+            this.staffRole = staffRole;
+            this.navCompact = staffRoleShowsCompactNav(staffRole);
+            const nav = navModulesForStaffRole(staffRole);
+            this.navModules = new Set(nav);
+            const modules = await this.authProfileService.getAccessibleModules();
+            this.accessibleModules = new Set(modules);
+            this.isAdmin = modules.includes('usuarios');
+            this.canGoPortal = !!(access.clientAccess && access.clienteId);
+            return null;
+          });
+        })
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -135,12 +141,15 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   logout() {
     this.logger.log('Iniciando logout...');
-    this.authService.logout().then(() => {
-      this.logger.log('Logout exitoso, redirigiendo...');
-    }).catch(error => {
-      this.logger.error('Error en logout:', error);
-      this.router.navigate(['/admin/login']);
-    });
+    this.authService
+      .logout()
+      .then(() => {
+        this.logger.log('Logout exitoso, redirigiendo...');
+      })
+      .catch((error) => {
+        this.logger.error('Error en logout:', error);
+        this.router.navigate(['/admin/login']);
+      });
   }
 
   navegar(ruta: string) {
@@ -211,13 +220,13 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
         await Swal.fire({
           icon: 'success',
           title: 'Avisos de clínica activados',
-          text: 'Recibirás un resumen (Hoy N vacunas) cerca de la fecha, no al registrar un refuerzo lejano.'
+          text: 'Recibirás un resumen (Hoy N vacunas) cerca de la fecha, no al registrar un refuerzo lejano.',
         });
       } else if (result.status === 'denied') {
         await Swal.fire({
           icon: 'warning',
           title: 'Permiso denegado',
-          text: 'Habilita notificaciones en el navegador para avisos de vacunas.'
+          text: 'Habilita notificaciones en el navegador para avisos de vacunas.',
         });
       } else {
         await Swal.fire({
@@ -225,17 +234,17 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
           title: 'No se activaron los avisos',
           text:
             result.detail ||
-            this.errorMessages.getUserMessage(new Error(result.detail || 'push'), 'activar avisos clínica')
+            this.errorMessages.getUserMessage(new Error(result.detail || 'push'), 'activar avisos clínica'),
         });
       }
     } catch (error) {
       await Swal.fire({
         icon: 'error',
         title: 'No se pudieron activar los avisos',
-        text: this.errorMessages.getUserMessage(error, 'activar avisos clínica')
+        text: this.errorMessages.getUserMessage(error, 'activar avisos clínica'),
       });
     } finally {
       this.registeringStaffPush = false;
     }
   }
-} 
+}

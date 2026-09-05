@@ -1,17 +1,42 @@
 <div class="admin-page recordatorios-contenedor">
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="blue" icon="notifications" [value]="estadisticas.total" label="Total recordatorios" hint="En el sistema"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" icon="schedule" [value]="estadisticas.pendientes" label="Pendientes" hint="Por atender"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" icon="check_circle" [value]="estadisticas.completados" label="Completados" hint="Finalizados"></app-admin-stat-card>
-    <app-admin-stat-card accent="purple" icon="pets" [value]="estadisticas.pacientesUnicos" label="Pacientes únicos" hint="Con recordatorio"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      icon="notifications"
+      [value]="estadisticas.total"
+      label="Total recordatorios"
+      hint="En el sistema"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      icon="schedule"
+      [value]="estadisticas.pendientes"
+      label="Pendientes"
+      hint="Por atender"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="check_circle"
+      [value]="estadisticas.completados"
+      label="Completados"
+      hint="Finalizados"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="purple"
+      icon="pets"
+      [value]="estadisticas.pacientesUnicos"
+      label="Pacientes únicos"
+      hint="Con recordatorio"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-admin-page-banner
     accent="blue"
     icon="notifications"
     title="Administración de Recordatorios"
-    subtitle="Vacunas, desparasitación, medicamentos y seguimientos.">
+    subtitle="Vacunas, desparasitación, medicamentos y seguimientos."
+  >
     <div bannerActions>
       <button mat-stroked-button color="primary" type="button" (click)="abrirRegistrarDesparasitacion()">
         <mat-icon>medication</mat-icon>
@@ -28,12 +53,21 @@
     accent="blue"
     title="Listado de recordatorios"
     description="Busca por título, paciente, tipo o prioridad."
-    [meta]="!loading && dataSource?.data?.length ? (dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales') : ''"
-    [showLegend]="!loading && !!dataSource?.data?.length">
-
+    [meta]="
+      !loading && dataSource?.data?.length
+        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales'
+        : ''
+    "
+    [showLegend]="!loading && !!dataSource?.data?.length"
+  >
     <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar recordatorio</mat-label>
-      <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Título, paciente, tipo..." />
+      <input
+        matInput
+        (keyup)="aplicarFiltro($event)"
+        (input)="aplicarFiltro($event)"
+        placeholder="Título, paciente, tipo..."
+      />
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
@@ -48,11 +82,12 @@
       title="Aún no hay recordatorios"
       message="Crea recordatorios de vacunas, desparasitación o seguimiento. Elige dueño y mascota primero."
       actionLabel="Nuevo recordatorio"
-      (action)="abrirModalRecordatorio()">
+      (action)="abrirModalRecordatorio()"
+    >
     </app-admin-empty-state>
 
     <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
-      <table mat-table [dataSource]="dataSource">
+      <table mat-table [dataSource]="dataSource" class="recordatorios-table">
         <ng-container matColumnDef="fecha_recordatorio">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let recordatorio">
@@ -65,6 +100,13 @@
           <td mat-cell *matCellDef="let recordatorio">
             <div class="cell-primary">
               <strong>{{ recordatorio.titulo }}</strong>
+              <span
+                *ngIf="recordatorio.whatsappChip"
+                class="admin-badge admin-badge--success recordatorio-wa-chip"
+                matTooltip="Recordatorio enviado por WhatsApp"
+              >
+                WhatsApp ✓ {{ recordatorio.whatsappChip }}
+              </span>
             </div>
           </td>
         </ng-container>
@@ -105,27 +147,135 @@
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let recordatorio">
             <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verRecordatorio(recordatorio)"><mat-icon>visibility</mat-icon></button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarRecordatorio(recordatorio)"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button type="button" matTooltip="Más acciones" [matMenuTriggerFor]="recordatorioMenu" (click)="menuContext = recordatorio"><mat-icon>more_vert</mat-icon></button>
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Ver detalle"
+                (click)="verRecordatorio(recordatorio)"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarRecordatorio(recordatorio)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <a
+                *ngIf="recordatorio.whatsappTel"
+                mat-icon-button
+                class="recordatorio-wa-btn"
+                matTooltip="Enviar por WhatsApp"
+                [href]="recordatorio.whatsappUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="marcarWhatsappEnviado(recordatorio)"
+              >
+                <mat-icon>chat</mat-icon>
+              </a>
+              <span
+                *ngIf="!recordatorio.whatsappTel && recordatorio.telefonoCapturado"
+                class="recordatorio-wa-disabled"
+                matTooltip="Teléfono incompleto"
+              >
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="recordatorio-wa-btn"
+                  disabled
+                  aria-label="Enviar por WhatsApp (teléfono incompleto)"
+                >
+                  <mat-icon>chat</mat-icon>
+                </button>
+              </span>
+              <a
+                *ngIf="recordatorio.whatsappTel"
+                mat-icon-button
+                class="recordatorio-tel-btn"
+                matTooltip="Llamar"
+                [href]="recordatorio.telUrl"
+              >
+                <mat-icon>call</mat-icon>
+              </a>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Más acciones"
+                [matMenuTriggerFor]="recordatorioMenu"
+                (click)="menuContext = recordatorio"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
             </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="recordatorioMenu" (click)="menuContext = recordatorio"><mat-icon>more_vert</mat-icon></button>
+            <button
+              mat-icon-button
+              type="button"
+              class="show-mobile-only"
+              matTooltip="Acciones"
+              [matMenuTriggerFor]="recordatorioMenu"
+              (click)="menuContext = recordatorio"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" (dblclick)="verRecordatorio(row)"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="data-row"
+          (dblclick)="verRecordatorio(row)"
+        ></tr>
       </table>
     </div>
 
-    <mat-paginator *ngIf="!loading && dataSource?.data?.length" #paginator [pageSize]="pageSize" [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+    <mat-paginator
+      *ngIf="!loading && dataSource?.data?.length"
+      #paginator
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons
+    ></mat-paginator>
   </app-admin-data-panel>
 
   <mat-menu #recordatorioMenu="matMenu">
-    <button mat-menu-item (click)="verRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
-    <button mat-menu-item (click)="editarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="eliminarRecordatorio(menuContext)" [disabled]="!menuContext"><mat-icon>delete_outline</mat-icon> Borrar</button>
-    <button mat-menu-item *ngIf="menuContext?.estado === 'pendiente'" (click)="cambiarEstado(menuContext, 'completado')"><mat-icon>check</mat-icon> Marcar completado</button>
-    <button mat-menu-item *ngIf="menuContext?.estado === 'completado'" (click)="cambiarEstado(menuContext, 'pendiente')"><mat-icon>schedule</mat-icon> Marcar pendiente</button>
+    <button mat-menu-item (click)="verRecordatorio(menuContext)" [disabled]="!menuContext">
+      <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+    <button mat-menu-item (click)="editarRecordatorio(menuContext)" [disabled]="!menuContext">
+      <mat-icon>edit</mat-icon> Editar
+    </button>
+    <a
+      mat-menu-item
+      *ngIf="menuContext?.whatsappTel"
+      [href]="menuContext?.whatsappUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      (click)="marcarWhatsappEnviado(menuContext)"
+    >
+      <mat-icon>chat</mat-icon> Enviar por WhatsApp
+    </a>
+    <button mat-menu-item *ngIf="!menuContext?.whatsappTel && menuContext?.telefonoCapturado" disabled>
+      <mat-icon>chat</mat-icon> WhatsApp — teléfono incompleto
+    </button>
+    <a mat-menu-item *ngIf="menuContext?.whatsappTel" [href]="menuContext?.telUrl">
+      <mat-icon>call</mat-icon> Llamar
+    </a>
+    <button mat-menu-item (click)="eliminarRecordatorio(menuContext)" [disabled]="!menuContext">
+      <mat-icon>delete_outline</mat-icon> Borrar
+    </button>
+    <button
+      mat-menu-item
+      *ngIf="menuContext?.estado === 'pendiente'"
+      (click)="cambiarEstado(menuContext, 'completado')"
+    >
+      <mat-icon>check</mat-icon> Marcar completado
+    </button>
+    <button
+      mat-menu-item
+      *ngIf="menuContext?.estado === 'completado'"
+      (click)="cambiarEstado(menuContext, 'pendiente')"
+    >
+      <mat-icon>schedule</mat-icon> Marcar pendiente
+    </button>
   </mat-menu>
 </div>

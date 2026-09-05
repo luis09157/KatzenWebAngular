@@ -10,62 +10,122 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import { LoggerService } from '../core/logger.service';
-import { LoadingService } from '../core/loading.service';
-import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { ClientesService } from '../clientes/clientes.service';
+import { Cliente, Paciente } from '../core/models';
+import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
+import {
+  buildMensajeWhatsappRecordatorio,
+  buildTelUrl,
+  buildWhatsappUrl,
+  formatearFechaCortaEs,
+  normalizarTelefonoMx,
+  tieneTelefonoCapturado,
+} from './recordatorio-whatsapp.util';
+
+/** Fila de la tabla: recordatorio RTDB + campos derivados para UI (spec 066). */
+interface RecordatorioRow {
+  id: string;
+  paciente: string;
+  fecha_recordatorio: string;
+  /** Fecha cruda (ISO local) para el mensaje de WhatsApp. */
+  fechaRaw: string;
+  clienteNombre: string;
+  telefonoCapturado: boolean;
+  whatsappTel: string | null;
+  whatsappUrl: string;
+  telUrl: string;
+  whatsappChip: string;
+  whatsappEnviadoEn?: number;
+  [key: string]: unknown;
+}
 
 @Component({
   selector: 'app-recordatorios',
   templateUrl: './recordatorios.component.html',
-  styleUrls: ['./recordatorios.component.css']
+  styleUrls: ['./recordatorios.component.css'],
 })
 export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_recordatorio', 'titulo', 'tipo', 'estado', 'prioridad', 'paciente', 'acciones'];
-  menuContext: any = null;
-  dataSource = new MatTableDataSource<any>([]);
+  menuContext: RecordatorioRow | null = null;
+  dataSource = new MatTableDataSource<RecordatorioRow>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
+  private pacientesById: { [id: string]: Paciente } = {};
+  private clientesById: { [id: string]: Cliente } = {};
+  /** Recordatorios activos sin enriquecer (para re-mapear cuando llegan clientes). */
+  private recordatoriosCrudos: Array<Record<string, unknown>> = [];
   loading = false;
   estadisticas = {
     total: 0,
     pendientes: 0,
     completados: 0,
-    pacientesUnicos: 0
+    pacientesUnicos: 0,
   };
 
   constructor(
     private recordatoriosService: RecordatoriosService,
     private pacientesService: PacientesService,
+    private clientesService: ClientesService,
     private dialog: MatDialog,
     private logger: LoggerService,
     private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: pacientes => {
-        (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
-        });
-        this.cargarRecordatorios();
-      },
-      error: error => {
-        this.logger.error('Error al cargar pacientes para recordatorios:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los datos de pacientes.',
-          showCancelButton: true,
-          confirmButtonText: 'Reintentar',
-          cancelButtonText: 'Cerrar'
-        }).then(result => {
-          if (result.isConfirmed) {
-            this.ngOnInit();
-          }
-        });
-      }
-    });
+    this.dataSource.filterPredicate = (row, filtro) => {
+      const texto = [row['titulo'], row.paciente, row['tipo'], row['estado'], row['prioridad'], row.clienteNombre]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return texto.includes(filtro);
+    };
+    // Spec 066: teléfono del dueño para WhatsApp / Llamar. Si falla, la tabla sigue sin esas acciones.
+    this.clientesService
+      .getClientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (clientes) => {
+          const mapa: { [id: string]: Cliente } = {};
+          (clientes || []).forEach((c) => {
+            if (c.id) mapa[String(c.id)] = c;
+          });
+          this.clientesById = mapa;
+          this.refrescarFilas();
+        },
+        error: (error) => this.logger.warn('Recordatorios: no se pudieron cargar clientes para WhatsApp', error),
+      });
+    this.pacientesService
+      .getPacientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (pacientes) => {
+          (pacientes || []).forEach((p: Paciente) => {
+            if (!p.id) return;
+            this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+            this.pacientesById[p.id] = p;
+          });
+          this.cargarRecordatorios();
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar pacientes para recordatorios:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los datos de pacientes.',
+            showCancelButton: true,
+            confirmButtonText: 'Reintentar',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.ngOnInit();
+            }
+          });
+        },
+      });
   }
 
   ngAfterViewInit(): void {
@@ -79,72 +139,143 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
 
   cargarRecordatorios() {
     this.loading = true;
-    this.recordatoriosService.getRecordatorios().pipe(takeUntil(this.destroy$)).subscribe({
-      next: recordatorios => {
-        const recordatoriosActivos = (recordatorios || []).filter((r: { activo?: boolean }) => r.activo !== false);
-        this.dataSource.data = recordatoriosActivos.map((recordatorio: any) => ({
-          ...recordatorio,
-          paciente: this.pacientesMap[recordatorio.paciente_id] || 'N/P',
-          fecha_recordatorio: this.formatearFecha(recordatorio.fecha_recordatorio)
-        }));
-        this.calcularEstadisticas(recordatoriosActivos);
-        this.loading = false;
-        setTimeout(() => {
-          if (this.paginator) this.dataSource.paginator = this.paginator;
-        }, 0);
-      },
-      error: error => {
-        this.logger.error('Error al cargar recordatorios:', error);
-        this.loading = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los recordatorios.',
-          showCancelButton: true,
-          confirmButtonText: 'Reintentar',
-          cancelButtonText: 'Cerrar'
-        }).then(result => {
-          if (result.isConfirmed) {
-            this.cargarRecordatorios();
-          }
-        });
-      }
-    });
+    this.recordatoriosService
+      .getRecordatorios()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (recordatorios) => {
+          const recordatoriosActivos = (recordatorios || []).filter((r: { activo?: boolean }) => r.activo !== false);
+          this.recordatoriosCrudos = recordatoriosActivos;
+          this.refrescarFilas();
+          this.calcularEstadisticas(recordatoriosActivos);
+          this.loading = false;
+          setTimeout(() => {
+            if (this.paginator) this.dataSource.paginator = this.paginator;
+          }, 0);
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar recordatorios:', error);
+          this.loading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los recordatorios.',
+            showCancelButton: true,
+            confirmButtonText: 'Reintentar',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.cargarRecordatorios();
+            }
+          });
+        },
+      });
+  }
+
+  /** Re-mapea filas con lo que haya de pacientes/clientes (llegan por separado). */
+  private refrescarFilas(): void {
+    this.dataSource.data = this.recordatoriosCrudos.map((r) => this.enriquecerFila(r));
+  }
+
+  private enriquecerFila(recordatorio: Record<string, unknown>): RecordatorioRow {
+    const pacienteId = String(recordatorio['paciente_id'] || '');
+    const paciente = this.pacientesById[pacienteId];
+    const clienteId = String(recordatorio['cliente_id'] || getPacienteClienteId(paciente) || '');
+    const cliente = clienteId ? this.clientesById[clienteId] : undefined;
+    const telefonoRaw = cliente ? String(cliente.telefono ?? '') : '';
+    const whatsappTel = normalizarTelefonoMx(telefonoRaw);
+    const fechaRaw = String(recordatorio['fecha_hora_recordatorio'] || recordatorio['fecha_recordatorio'] || '');
+    const nombreMascota = paciente?.nombre || this.pacientesMap[pacienteId] || '';
+    const clienteNombre = cliente
+      ? [cliente.nombre, cliente.apellidoPaterno].filter(Boolean).join(' ').trim() || String(cliente.razonSocial || '')
+      : '';
+    const whatsappUrl = whatsappTel
+      ? buildWhatsappUrl(
+          whatsappTel,
+          buildMensajeWhatsappRecordatorio({
+            nombreDueno: cliente?.nombre || clienteNombre,
+            nombreMascota,
+            tipo: String(recordatorio['tipo'] || ''),
+            fecha: fechaRaw,
+            titulo: String(recordatorio['titulo'] || ''),
+          })
+        )
+      : '';
+    const enviadoEn = Number(recordatorio['whatsappEnviadoEn']) || undefined;
+    return {
+      ...recordatorio,
+      id: String(recordatorio['id'] || ''),
+      paciente: nombreMascota || 'N/P',
+      fecha_recordatorio: this.formatearFecha(recordatorio['fecha_recordatorio']),
+      fechaRaw,
+      clienteNombre,
+      telefonoCapturado: tieneTelefonoCapturado(telefonoRaw),
+      whatsappTel,
+      whatsappUrl,
+      telUrl: whatsappTel ? buildTelUrl(whatsappTel) : '',
+      whatsappChip: enviadoEn ? formatearFechaCortaEs(enviadoEn) : '',
+      whatsappEnviadoEn: enviadoEn,
+    };
+  }
+
+  /**
+   * Spec 066: el enlace `wa.me` abre en pestaña nueva (href nativo); aquí solo registramos
+   * `whatsappEnviadoEn` (campo opcional aditivo). El listado se refresca solo (snapshotChanges).
+   */
+  async marcarWhatsappEnviado(recordatorio: RecordatorioRow | null): Promise<void> {
+    if (!recordatorio?.id || !recordatorio.whatsappTel) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      await this.recordatoriosService.actualizarRecordatorio(recordatorio.id, { whatsappEnviadoEn: Date.now() });
+      this.loadingService.hide();
+    } catch (error) {
+      this.loadingService.hide();
+      this.logger.error('No se pudo registrar el envío por WhatsApp:', error);
+      setTimeout(
+        () =>
+          Swal.fire({
+            icon: 'warning',
+            title: 'WhatsApp abierto',
+            text: 'Se abrió el mensaje, pero no se pudo guardar la marca «enviado». Intenta de nuevo.',
+          }),
+        0
+      );
+    }
   }
 
   calcularEstadisticas(recordatorios: any[]) {
     this.estadisticas.total = recordatorios.length;
-    this.estadisticas.pendientes = recordatorios.filter(r => r.estado === 'pendiente').length;
-    this.estadisticas.completados = recordatorios.filter(r => r.estado === 'completado').length;
-    
+    this.estadisticas.pendientes = recordatorios.filter((r) => r.estado === 'pendiente').length;
+    this.estadisticas.completados = recordatorios.filter((r) => r.estado === 'completado').length;
+
     // Pacientes únicos
-    const pacientesIds = [...new Set(recordatorios.map(r => r.paciente_id))];
+    const pacientesIds = [...new Set(recordatorios.map((r) => r.paciente_id))];
     this.estadisticas.pacientesUnicos = pacientesIds.length;
   }
 
   formatearFecha(fecha: any): string {
     if (!fecha) return 'N/P';
-    
+
     try {
       if (fecha instanceof Date) {
         return fecha.toLocaleDateString('es-ES', {
           year: 'numeric',
           month: '2-digit',
-          day: '2-digit'
+          day: '2-digit',
         });
       }
-      
+
       if (typeof fecha === 'string') {
         const date = new Date(fecha);
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
           });
         }
       }
-      
+
       return 'N/P';
     } catch (error) {
       return 'N/P';
@@ -162,28 +293,34 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
         ...ADMIN_DIALOG_FORM,
         panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
-        data: recordatorio
+        data: recordatorio,
       });
-      
-      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result) {
-          this.loadingService.hide();
-          this.cargarRecordatorios();
-        }
-      });
+
+      dialogRef
+        .afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((result) => {
+          if (result) {
+            this.loadingService.hide();
+            this.cargarRecordatorios();
+          }
+        });
     } else {
       const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
         ...ADMIN_DIALOG_FORM,
         panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
-        data: {}
+        data: {},
       });
 
-      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result) {
-          this.loadingService.hide();
-          this.cargarRecordatorios();
-        }
-      });
+      dialogRef
+        .afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((result) => {
+          if (result) {
+            this.loadingService.hide();
+            this.cargarRecordatorios();
+          }
+        });
     }
   }
 
@@ -191,14 +328,17 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
     const dialogRef = this.dialog.open(RecordatorioDialogComponent, {
       ...ADMIN_DIALOG_FORM,
       panelClass: ['admin-dialog-panel', 'recordatorio-dialog-container'],
-      data: { registrarDesparasitacion: true }
+      data: { registrarDesparasitacion: true },
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) {
-        this.loadingService.hide();
-        this.cargarRecordatorios();
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) {
+          this.loadingService.hide();
+          this.cargarRecordatorios();
+        }
+      });
   }
 
   editarRecordatorio(recordatorio: any) {
@@ -208,7 +348,7 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   verRecordatorio(recordatorio: any) {
     this.dialog.open(RecordatorioDetalleComponent, {
       ...ADMIN_DIALOG_DETAIL,
-      data: recordatorio
+      data: recordatorio,
     });
   }
 
@@ -221,7 +361,7 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
@@ -255,7 +395,10 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       }, 0);
     } catch (error) {
       this.loadingService.hide();
-      setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar el estado del recordatorio' }), 0);
+      setTimeout(
+        () => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar el estado del recordatorio' }),
+        0
+      );
     }
   }
 
@@ -305,4 +448,4 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
         return 'notifications';
     }
   }
-} 
+}

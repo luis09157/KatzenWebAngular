@@ -16,6 +16,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { UsuarioDialogComponent } from './usuario-dialog.component';
 import { ProvisionPortalClienteDialogComponent } from './provision-portal-cliente-dialog.component';
 import { VincularPortalDialogComponent } from './vincular-portal-dialog.component';
+import { UsoSistemaPanelComponent } from './uso-sistema-panel.component';
 import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -31,7 +32,8 @@ import { FormsModule } from '@angular/forms';
     UsuariosComponent,
     UsuarioDialogComponent,
     ProvisionPortalClienteDialogComponent,
-    VincularPortalDialogComponent
+    VincularPortalDialogComponent,
+    UsoSistemaPanelComponent,
   ],
   imports: [
     CommonModule,
@@ -54,7 +56,7 @@ import { FormsModule } from '@angular/forms';
     MatCheckboxModule,
     FormsModule,
     SharedModule,
-    ClientesDialogModule
-  ]
+    ClientesDialogModule,
+  ],
 })
-export class UsuariosModule { }
+export class UsuariosModule {}
