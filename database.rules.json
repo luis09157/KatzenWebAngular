@@ -120,6 +120,9 @@
         },
         "Vacunacion": {
           ".write": "auth != null && auth.token.role != 'client'"
+        },
+        "clinica": {
+          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || auth.token.staffRole == 'super_admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'super_admin')"
         }
       },
       "ContactosWeb": {
@@ -222,6 +225,9 @@
         },
         "Cortes": {
           ".indexOn": ["fecha", "activo", "sucursalId"]
+        },
+        "Turnos": {
+          ".indexOn": ["abiertaEn", "corteId"]
         }
       },
       "Visitas": {
