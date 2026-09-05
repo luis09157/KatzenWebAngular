@@ -2,7 +2,7 @@
 
 > **Autogenerado** por `node scripts/specs-index.mjs` a partir de `specs/NNN-*/spec.md`. **No editar a mano**: cambia el `Estado:` en la spec y regenera.
 
-Total: **67** specs · `done`: 55 · `in_progress`: 9 · `superseded`: 3
+Total: **67** specs · `done`: 56 · `in_progress`: 8 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -72,4 +72,4 @@ Total: **67** specs · `done`: 55 · `in_progress`: 9 · `superseded`: 3
 | 064 | [migracion-pdv-firebird](064-migracion-pdv-firebird/spec.md) | Migración PDV Firebird (Eleventa) → KatzenVet | in_progress |
 | 065 | [pos-venta-rapida-guiada](065-pos-venta-rapida-guiada/spec.md) | POS — venta rápida guiada | done |
 | 066 | [whatsapp-recordatorios-metrica-uso](066-whatsapp-recordatorios-metrica-uso/spec.md) | Recordatorio por WhatsApp + métrica de uso por módulo | done |
-| 067 | [respaldo-rtdb](067-respaldo-rtdb/spec.md) | Respaldo semanal de RTDB a Cloud Storage | in_progress (código + docs listos; **sin deploy**) |
+| 067 | [respaldo-rtdb](067-respaldo-rtdb/spec.md) | Respaldo semanal de RTDB a Cloud Storage | done |

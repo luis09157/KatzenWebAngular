@@ -9,7 +9,7 @@ Runbook corto para lo que corre solo en producción y cómo intervenir. Todo dep
 | Function | Codebase | Cron (TZ) | Qué hace | Estado |
 |----------|----------|-----------|----------|--------|
 | `onVacunaPushSchedule` | `fcm` (`functions-fcm/`) | `0 10 * * *` `America/Mexico_City` (16:00Z) | Push FCM + inbox a dueños con refuerzo de vacuna/desparasitación en D-7 y D-0; resumen a staff. Solo escribe campos `push*` en `Katzen/Recordatorios` e inbox `Notificaciones`/`NotificacionesClinica`. | **Desplegada** (2026-08-29; update 2026-09-04). Spec 052. |
-| `backupRtdbSemanal` | `default` (`functions/`) | `0 3 * * 0` `America/Monterrey` (domingo 09:00Z) | Exporta `Katzen/` completo a `gs://katzen-a0e3e.appspot.com/backups/rtdb/YYYY/MM/DD/Katzen.json.gz` + `manifest.json`; borra respaldos > 8 semanas. **Solo lectura** RTDB. | **NO desplegada.** Código listo. Spec 067. |
+| `backupRtdbSemanal` | `default` (`functions/`) | `0 3 * * 0` `America/Monterrey` (domingo 09:00Z) | Exporta `Katzen/` completo a `gs://katzen-a0e3e.appspot.com/backups/rtdb/YYYY/MM/DD/Katzen.json.gz` + `manifest.json`; borra respaldos > 8 semanas. **Solo lectura** RTDB. | **Desplegada 2026-09-04 18:07 CST** (`us-central1`, scheduled, 512 MiB). Spec 067. |
 
 Comandos de observación (solo lectura, seguros):
 
@@ -25,7 +25,7 @@ firebase functions:log --only backupRtdbSemanal -n 30     # tras deploy
 
 ### Estado
 
-**No está desplegada.** Existe en `functions/src/backup-rtdb.ts` y se exporta desde `functions/src/index.ts`, pero no corre en producción hasta que Luis autorice el deploy. Hoy **no hay respaldo automático** de RTDB fuera de Firebase.
+**Desplegada 2026-09-04 18:07 CST** (`backupRtdbSemanal`, codebase `default`, `us-central1`, scheduled). El primer objeto en Storage llega el siguiente domingo 03:00 Monterrey (o Force run del job `firebase-schedule-backupRtdbSemanal-us-central1`).
 
 ### Deploy (solo Luis o con su autorización explícita)
 

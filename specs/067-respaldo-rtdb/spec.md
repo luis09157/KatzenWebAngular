@@ -1,7 +1,7 @@
 # Spec: Respaldo semanal de RTDB a Cloud Storage
 
 **ID:** 067-respaldo-rtdb  
-**Estado:** in_progress (código + docs listos; **sin deploy**)  
+**Estado:** done  
 **Fecha:** 2026-09-04  
 **Autor:** Agent (origen: `specs/PLAN-UX-VETERINARIAS.md` § Extras #6 — «Hoy no hay respaldo fuera de Firebase»)  
 **Nivel:** **L3** (Cloud Function programada que lee producción completa y escribe en Storage)

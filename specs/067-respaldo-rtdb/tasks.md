@@ -23,9 +23,9 @@
 - [x] `storage.rules` — sin cambios (`backups/**` ya denegado por default)
 - [x] `cd functions && npm run build` — exit 0
 - [x] Tests `node --test test/*.test.js` — 21 pass (7 nuevos + 14 previos)
-- [x] Deploy documentado (`plan.md` § Deploy, `docs/OPERACION.md`) — **NO ejecutado**
-- [ ] **Deploy** `firebase deploy --only functions:backupRtdbSemanal` — solo con autorización de Luis
-- [ ] Post-deploy: `functions:list`, forzar run en Cloud Scheduler, `gsutil ls gs://katzen-a0e3e.appspot.com/backups/rtdb/`, revisar `manifest.json` (`bytesJson`)
+- [x] Deploy documentado (`plan.md` § Deploy, `docs/OPERACION.md`)
+- [x] **Deploy** `firebase deploy --only functions:backupRtdbSemanal` — 2026-09-04 18:07 CST (America/Monterrey), autorizado por Luis. Create `backupRtdbSemanal(us-central1)` v2 scheduled 512 MiB nodejs22. Cron código: `0 3 * * 0` `America/Monterrey`.
+- [x] Post-deploy: `firebase functions:list` confirma `backupRtdbSemanal │ v2 │ scheduled │ us-central1 │ 512 │ nodejs22`. Primer objeto `.gz` / `manifest.json`: pendiente del primer tick domingo 03:00 Monterrey (o Force run en Cloud Scheduler).
 
 ### Frontend
 
@@ -45,8 +45,9 @@
 | RTDB aditiva / compatible app móvil | **OK** | cero escrituras RTDB; solo lectura semanal |
 | Chips completos + loading contextual | N/A | sin UI |
 | Emulador (functions + database + storage) → `runBackupRtdb()` | pendiente | opcional antes del deploy; ver `plan.md` § Estrategia de Datos de Prueba |
-| Autorización explícita de Luis para deploy | **pendiente** | — |
-| Post-deploy: objeto `.gz` + `manifest.json` en bucket | pendiente | tras primer tick / force run |
+| Autorización explícita de Luis para deploy | **OK** | 2026-09-04 18:07 CST |
+| Post-deploy: `functions:list` scheduled | **OK** | `backupRtdbSemanal` v2 scheduled us-central1 512 MiB |
+| Post-deploy: objeto `.gz` + `manifest.json` en bucket | pendiente | primer tick domingo 03:00 Monterrey / Force run |
 
 ```
 # cd functions && npm run build
@@ -86,7 +87,7 @@ exit 0
 ## Cierre
 
 - [x] Validación L3 de **código** registrada arriba
-- [ ] Deploy autorizado y verificado → entonces `spec.md` estado → `done` + `node scripts/specs-index.mjs`
-- [ ] Commit — solo si Luis lo pide
+- [x] Deploy autorizado y verificado (`functions:list`) → `spec.md` estado → `done` + `node scripts/specs-index.mjs`
+- [x] Commit C `db38f17`; registro de deploy en commit aparte (HEAD ya no era C)
 
-**Estado:** código y docs listos, **sin deploy**. Sin commit.
+**Estado:** desplegada 2026-09-04 18:07 CST. Primer archivo en Storage: siguiente domingo 03:00 Monterrey.
