@@ -1,145 +1,297 @@
 <mat-sidenav-container class="admin-shell">
   <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="sidenavOpened" class="admin-sidenav">
     <div class="admin-sidenav__inner">
-    <mat-toolbar class="admin-sidenav__brand">
-      <mat-icon color="primary">pets</mat-icon>
-      <span class="mat-title-medium admin-sidenav__brand-label">KatzenVet</span>
-    </mat-toolbar>
-    <div class="admin-sidenav__scroll">
-    <mat-nav-list>
-      <a *ngIf="canShow('inicio')" mat-list-item routerLink="/admin/inicio" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Inicio</span>
-      </a>
+      <mat-toolbar class="admin-sidenav__brand">
+        <mat-icon color="primary">pets</mat-icon>
+        <span class="mat-title-medium admin-sidenav__brand-label">KatzenVet</span>
+      </mat-toolbar>
+      <div class="admin-sidenav__scroll">
+        <mat-nav-list>
+          <a
+            *ngIf="canShow('inicio')"
+            mat-list-item
+            routerLink="/admin/inicio"
+            routerLinkActive="active"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>today</mat-icon>
+            <span matListItemTitle>Hoy</span>
+          </a>
+          <a
+            *ngIf="canShow('paciente')"
+            mat-list-item
+            routerLink="/admin/paciente"
+            routerLinkActive="active"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>pets</mat-icon>
+            <span matListItemTitle>Pacientes</span>
+          </a>
 
-      <div class="admin-nav-group-label" *ngIf="hasClinicaNav">Atención clínica</div>
-      <a *ngIf="canShow('paciente')" mat-list-item routerLink="/admin/paciente" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>search</mat-icon>
-        <span matListItemTitle>Buscar paciente</span>
-      </a>
-      <a *ngIf="canShow('citas')" mat-list-item routerLink="/admin/citas" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>event</mat-icon>
-        <span matListItemTitle>Citas</span>
-      </a>
-      <a *ngIf="canShow('historiales')" mat-list-item routerLink="/admin/historiales" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>medical_services</mat-icon>
-        <span matListItemTitle>Historiales</span>
-      </a>
-      <a *ngIf="canShow('vacunas')" mat-list-item routerLink="/admin/vacunas" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>vaccines</mat-icon>
-        <span matListItemTitle>Vacunas</span>
-      </a>
-      <a *ngIf="canShow('banios')" mat-list-item routerLink="/admin/banios" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>spa</mat-icon>
-        <span matListItemTitle>Peluquería</span>
-      </a>
-      <a *ngIf="canShow('pension')" mat-list-item routerLink="/admin/pension" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>hotel</mat-icon>
-        <span matListItemTitle>Pensión</span>
-      </a>
-      <a *ngIf="canShow('recordatorios')" mat-list-item routerLink="/admin/recordatorios" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>notifications</mat-icon>
-        <span matListItemTitle>Recordatorios</span>
-      </a>
-      <a *ngIf="canShow('consentimientos')" mat-list-item routerLink="/admin/consentimientos" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
-        <span matListItemTitle>Consentimientos</span>
-      </a>
+          <div class="admin-nav-group-label" *ngIf="hasAgendaNav">Agenda</div>
+          <a
+            *ngIf="canShow('citas')"
+            mat-list-item
+            routerLink="/admin/citas"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>event</mat-icon>
+            <span matListItemTitle>Citas</span>
+          </a>
+          <a
+            *ngIf="canShow('banios')"
+            mat-list-item
+            routerLink="/admin/banios"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>spa</mat-icon>
+            <span matListItemTitle>Peluquería</span>
+          </a>
+          <a
+            *ngIf="canShow('pension')"
+            mat-list-item
+            routerLink="/admin/pension"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>hotel</mat-icon>
+            <span matListItemTitle>Pensión</span>
+          </a>
 
-      <mat-divider *ngIf="hasPosNav && hasClinicaNav"></mat-divider>
-      <div class="admin-nav-group-label" *ngIf="hasPosNav">Punto de venta</div>
-      <a *ngIf="canShow('visitas')" mat-list-item routerLink="/admin/visitas" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle>Punto de venta</span>
-      </a>
+          <a
+            *ngIf="canShow('visitas')"
+            mat-list-item
+            routerLink="/admin/visitas"
+            routerLinkActive="active"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>point_of_sale</mat-icon>
+            <span matListItemTitle>Cobrar</span>
+          </a>
+          <a
+            *ngIf="canShow('recordatorios')"
+            mat-list-item
+            routerLink="/admin/recordatorios"
+            routerLinkActive="active"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>notifications</mat-icon>
+            <span matListItemTitle>Recordatorios</span>
+          </a>
 
-      <mat-divider *ngIf="hasAdminNav && (hasClinicaNav || hasPosNav)"></mat-divider>
-      <div class="admin-nav-group-label" *ngIf="hasAdminNav">Administración</div>
-      <a *ngIf="canShow('clientes')" mat-list-item routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>people</mat-icon>
-        <span matListItemTitle>Clientes</span>
-      </a>
-      <a *ngIf="canShow('pacientes-admin')" mat-list-item routerLink="/admin/pacientes-admin" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>pets</mat-icon>
-        <span matListItemTitle title="Directorio de pacientes">Directorio de pacientes</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario" routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>inventory_2</mat-icon>
-        <span matListItemTitle>Inventario</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/productos" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>category</mat-icon>
-        <span matListItemTitle>Productos</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/movimientos" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>swap_horiz</mat-icon>
-        <span matListItemTitle>Movimientos</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/proveedores" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>local_shipping</mat-icon>
-        <span matListItemTitle>Proveedores</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/ordenes" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle title="Órdenes de compra">Órdenes de compra</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/alertas" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>notification_important</mat-icon>
-        <span matListItemTitle>Alertas</span>
-      </a>
-      <a *ngIf="canShow('inventario')" mat-list-item routerLink="/admin/inventario/reportes" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>assessment</mat-icon>
-        <span matListItemTitle>Reportes</span>
-      </a>
-      <a *ngIf="canShow('servicios-clinica')" mat-list-item routerLink="/admin/servicios-clinica" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>medical_services</mat-icon>
-        <span matListItemTitle title="Servicios de clínica">Servicios de clínica</span>
-      </a>
-      <a *ngIf="canShow('finanzas')" mat-list-item routerLink="/admin/finanzas" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
-        <span matListItemTitle>Caja / finanzas</span>
-      </a>
-      <a *ngIf="canShow('usuarios')" mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>manage_accounts</mat-icon>
-        <span matListItemTitle title="Personal y portal">Personal y portal</span>
-      </a>
-      <a *ngIf="canShow('contactos-web')" mat-list-item routerLink="/admin/contactos-web" routerLinkActive="active" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>mail</mat-icon>
-        <span matListItemTitle>Contactos web</span>
-      </a>
-      <a *ngIf="muestraDashboardMetricas" mat-list-item routerLink="/admin/inicio" routerLinkActive="active"
-         class="admin-nav-subitem" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>insights</mat-icon>
-        <span matListItemTitle title="Dashboard métricas">Dashboard métricas</span>
-      </a>
-    </mat-nav-list>
-    <mat-divider></mat-divider>
-    <mat-nav-list>
-      <a *ngIf="canGoPortal" mat-list-item (click)="irAMiPortal()">
-        <mat-icon matListItemIcon>pets</mat-icon>
-        <span matListItemTitle>Ir a mi portal</span>
-      </a>
-      <a *ngIf="!canGoPortal" mat-list-item routerLink="/portal/login" (click)="closeSidenav()">
-        <mat-icon matListItemIcon>smartphone</mat-icon>
-        <span matListItemTitle>Portal del dueño</span>
-      </a>
-      <a mat-list-item (click)="activarAvisosClinica()" [class.admin-nav-disabled]="registeringStaffPush">
-        <mat-icon matListItemIcon>notifications_active</mat-icon>
-        <span matListItemTitle [title]="registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas'">{{ registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas' }}</span>
-      </a>
-      <a mat-list-item (click)="logout()">
-        <mat-icon matListItemIcon>logout</mat-icon>
-        <span matListItemTitle>Cerrar sesión</span>
-      </a>
-    </mat-nav-list>
-    </div>
+          <div class="admin-nav-group-label" *ngIf="hasMasNav">Más</div>
+          <a
+            *ngIf="canShow('clientes')"
+            mat-list-item
+            routerLink="/admin/clientes"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Clientes</span>
+          </a>
+          <a
+            *ngIf="canShow('consentimientos')"
+            mat-list-item
+            routerLink="/admin/consentimientos"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
+            <span matListItemTitle>Consentimientos</span>
+          </a>
+          <a
+            *ngIf="canShow('historiales')"
+            mat-list-item
+            routerLink="/admin/historiales"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>medical_services</mat-icon>
+            <span matListItemTitle>Historiales</span>
+          </a>
+          <a
+            *ngIf="canShow('vacunas')"
+            mat-list-item
+            routerLink="/admin/vacunas"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>vaccines</mat-icon>
+            <span matListItemTitle>Vacunas</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>inventory_2</mat-icon>
+            <span matListItemTitle>Inventario</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/productos"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>category</mat-icon>
+            <span matListItemTitle>Productos</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/movimientos"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>swap_horiz</mat-icon>
+            <span matListItemTitle>Movimientos</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/proveedores"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>local_shipping</mat-icon>
+            <span matListItemTitle>Proveedores</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/ordenes"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>receipt_long</mat-icon>
+            <span matListItemTitle title="Órdenes de compra">Órdenes de compra</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/alertas"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>notification_important</mat-icon>
+            <span matListItemTitle>Alertas</span>
+            <span class="admin-nav-badge" *ngIf="alertasStockCount > 0">{{
+              alertasStockCount > 99 ? '99+' : alertasStockCount
+            }}</span>
+          </a>
+          <a
+            *ngIf="canShow('inventario')"
+            mat-list-item
+            routerLink="/admin/inventario/reportes"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>assessment</mat-icon>
+            <span matListItemTitle>Reportes</span>
+          </a>
+          <a
+            *ngIf="canShow('servicios-clinica')"
+            mat-list-item
+            routerLink="/admin/servicios-clinica"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>medical_services</mat-icon>
+            <span matListItemTitle title="Servicios de clínica">Servicios de clínica</span>
+          </a>
+          <a
+            *ngIf="canShow('finanzas')"
+            mat-list-item
+            routerLink="/admin/finanzas"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
+            <span matListItemTitle>Caja / finanzas</span>
+          </a>
+          <a
+            *ngIf="canShow('usuarios')"
+            mat-list-item
+            routerLink="/admin/usuarios"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>manage_accounts</mat-icon>
+            <span matListItemTitle title="Personal y portal">Personal y portal</span>
+          </a>
+          <a
+            *ngIf="canShow('contactos-web')"
+            mat-list-item
+            routerLink="/admin/contactos-web"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>mail</mat-icon>
+            <span matListItemTitle>Contactos web</span>
+          </a>
+          <a
+            *ngIf="canShow('configuracion')"
+            mat-list-item
+            routerLink="/admin/configuracion"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>settings</mat-icon>
+            <span matListItemTitle>Configuración</span>
+          </a>
+        </mat-nav-list>
+        <mat-divider></mat-divider>
+        <mat-nav-list>
+          <a *ngIf="canGoPortal" mat-list-item (click)="irAMiPortal()">
+            <mat-icon matListItemIcon>pets</mat-icon>
+            <span matListItemTitle>Ir a mi portal</span>
+          </a>
+          <a *ngIf="!canGoPortal" mat-list-item routerLink="/portal/login" (click)="closeSidenav()">
+            <mat-icon matListItemIcon>smartphone</mat-icon>
+            <span matListItemTitle>Portal del dueño</span>
+          </a>
+          <a mat-list-item (click)="activarAvisosClinica()" [class.admin-nav-disabled]="registeringStaffPush">
+            <mat-icon matListItemIcon>notifications_active</mat-icon>
+            <span matListItemTitle [title]="registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas'">{{
+              registeringStaffPush ? 'Activando avisos…' : 'Activar avisos de vacunas'
+            }}</span>
+          </a>
+          <a mat-list-item (click)="abrirAyuda()">
+            <mat-icon matListItemIcon>help_outline</mat-icon>
+            <span matListItemTitle>Ayuda</span>
+          </a>
+          <a mat-list-item (click)="logout()">
+            <mat-icon matListItemIcon>logout</mat-icon>
+            <span matListItemTitle>Cerrar sesión</span>
+          </a>
+        </mat-nav-list>
+      </div>
     </div>
   </mat-sidenav>
 
@@ -166,7 +318,8 @@
         type="button"
         class="admin-toolbar-more"
         [matMenuTriggerFor]="toolbarOverflow"
-        aria-label="Cuenta, sucursal y más">
+        aria-label="Cuenta, sucursal y más"
+      >
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #toolbarOverflow="matMenu" class="admin-toolbar-overflow">
@@ -179,7 +332,8 @@
             mat-menu-item
             type="button"
             *ngFor="let sucursal of sucursales"
-            (click)="onSucursalChange(sucursal.id)">
+            (click)="onSucursalChange(sucursal.id)"
+          >
             <mat-icon>{{ sucursal.id === sucursalSeleccionada ? 'check' : 'store' }}</mat-icon>
             <span>{{ sucursal.nombre }}</span>
           </button>

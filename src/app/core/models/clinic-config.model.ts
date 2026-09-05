@@ -1,4 +1,6 @@
-/** Configuración clínica aditiva (RTDB `Katzen/Config/*`). Spec 030. */
+/** Configuración clínica aditiva (RTDB `Katzen/Config/*`). Spec 030 + 072. */
+export type { ClinicaConfig } from '../utils/clinica-config.util';
+
 export interface InversionMetaConfig {
   montoMeta?: number;
   updatedAt?: string;

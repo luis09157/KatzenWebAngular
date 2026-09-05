@@ -1,0 +1,74 @@
+<div class="admin-page configuracion-contenedor">
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando configuración…</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <app-admin-page-banner
+      accent="teal"
+      icon="settings"
+      title="Configuración de la clínica"
+      subtitle="Nombre, horario e IVA que ven todas las estaciones. El logo es una liga a la imagen."
+    >
+    </app-admin-page-banner>
+
+    <app-admin-data-panel
+      accent="teal"
+      title="Datos de la clínica"
+      description="Se guardan para que el ticket y WhatsApp usen el mismo nombre."
+      [showLegend]="false"
+    >
+      <form class="config-form admin-dialog-form" [formGroup]="form" (ngSubmit)="guardar()">
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Nombre de la clínica</mat-label>
+          <input matInput formControlName="nombre" maxlength="80" autocomplete="organization" />
+          <mat-error *ngIf="form.get('nombre')?.invalid">Escribe el nombre (mínimo 2 letras).</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Logo (liga de la imagen, opcional)</mat-label>
+          <input matInput formControlName="logoUrl" placeholder="https://…" autocomplete="off" />
+        </mat-form-field>
+
+        <div class="config-logo-preview" *ngIf="form.get('logoUrl')?.value">
+          <img [src]="form.get('logoUrl')?.value" alt="Vista previa del logo" />
+        </div>
+
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Horario</mat-label>
+          <textarea
+            matInput
+            formControlName="horario"
+            rows="3"
+            placeholder="Lun–Vie 9:00–19:00 · Sáb 9:00–14:00"
+          ></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>IVA por defecto (%)</mat-label>
+          <input matInput type="number" formControlName="ivaDefaultPct" min="0" max="100" step="0.01" />
+        </mat-form-field>
+
+        <div class="full-span">
+          <app-staff-picker
+            [formGroup]="form"
+            [fields]="{ uidField: 'vetDefaultUid', nombreField: 'vetDefaultNombre' }"
+            roleFilter="doctor"
+            [fallbackAllIfEmpty]="true"
+            label="Veterinaria de preferencia"
+            [required]="false"
+          >
+          </app-staff-picker>
+        </div>
+
+        <div class="config-actions">
+          <button mat-raised-button color="primary" class="btn-primary-teal" type="submit" [disabled]="saving">
+            <mat-icon>save</mat-icon>
+            Guardar
+          </button>
+        </div>
+      </form>
+    </app-admin-data-panel>
+  </ng-container>
+</div>

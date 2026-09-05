@@ -464,6 +464,24 @@
   outline-offset: 2px;
 }
 
+.admin-dialog-panel app-cliente-dialog .canal-recordatorios {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.admin-dialog-panel app-cliente-dialog .canal-recordatorios--ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-dialog-panel app-cliente-dialog .canal-recordatorios--no {
+  background: #fffbeb;
+  color: #b45309;
+}
+
 @media (max-width: 640px) {
   .admin-dialog-panel app-cliente-dialog .cliente-rapido {
     padding: 16px 16px 8px;

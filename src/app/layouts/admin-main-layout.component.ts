@@ -13,6 +13,10 @@ import { PortalFcmService } from '../core/services/portal-fcm.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { UsageMetricsService } from '../core/services/usage-metrics.service';
 import { environment } from '../../environments/environment';
+import { InventarioService } from '../inventario/inventario.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
+import { AyudaDialogComponent } from '../ayuda/ayuda-dialog.component';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -42,6 +46,8 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   registeringStaffPush = false;
   /** Spec 064: ng serve apuntando al emulador RTDB. */
   readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
+  /** Spec 069 — alertas de stock activas para badge del menú. */
+  alertasStockCount = 0;
 
   constructor(
     private authService: AuthService,
@@ -51,7 +57,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private portalFcm: PortalFcmService,
     private errorMessages: ErrorMessagesService,
-    private usageMetrics: UsageMetricsService
+    private usageMetrics: UsageMetricsService,
+    private inventarioService: InventarioService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -87,6 +95,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
             this.accessibleModules = new Set(modules);
             this.isAdmin = modules.includes('usuarios');
             this.canGoPortal = !!(access.clientAccess && access.clienteId);
+            if (this.canShow('inventario')) {
+              this.suscribirAlertasStock();
+            }
             return null;
           });
         })
@@ -172,38 +183,42 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     return this.accessibleModules.has(module);
   }
 
-  get muestraDashboardMetricas(): boolean {
-    return this.canShow('inicio') && !this.navCompact;
+  private suscribirAlertasStock(): void {
+    this.inventarioService
+      .getAlertas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (alertas) => {
+          this.alertasStockCount = (alertas || []).filter((a) => a.estado !== 'resuelta').length;
+        },
+        error: () => {
+          this.alertasStockCount = 0;
+        },
+      });
   }
 
-  get hasClinicaNav(): boolean {
-    return (
-      this.canShow('paciente') ||
-      this.canShow('citas') ||
-      this.canShow('historiales') ||
-      this.canShow('vacunas') ||
-      this.canShow('banios') ||
-      this.canShow('pension') ||
-      this.canShow('recordatorios') ||
-      this.canShow('consentimientos')
-    );
+  get hasAgendaNav(): boolean {
+    return this.canShow('citas') || this.canShow('banios') || this.canShow('pension');
   }
 
-  get hasPosNav(): boolean {
-    return this.canShow('visitas');
-  }
-
-  get hasAdminNav(): boolean {
+  get hasMasNav(): boolean {
     return (
       this.canShow('clientes') ||
-      this.canShow('pacientes-admin') ||
+      this.canShow('consentimientos') ||
+      this.canShow('historiales') ||
+      this.canShow('vacunas') ||
       this.canShow('inventario') ||
       this.canShow('finanzas') ||
       this.canShow('servicios-clinica') ||
       this.canShow('usuarios') ||
       this.canShow('contactos-web') ||
-      this.canShow('inicio')
+      this.canShow('configuracion')
     );
+  }
+
+  abrirAyuda(): void {
+    this.dialog.open(AyudaDialogComponent, { ...ADMIN_DIALOG_DETAIL });
+    this.closeSidenav();
   }
 
   irAMiPortal(): void {

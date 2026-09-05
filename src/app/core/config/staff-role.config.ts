@@ -16,7 +16,8 @@ export type StaffModule =
   | 'visitas'
   | 'consentimientos'
   | 'usuarios'
-  | 'servicios-clinica';
+  | 'servicios-clinica'
+  | 'configuracion';
 
 export const ALL_STAFF_MODULES: StaffModule[] = [
   'inicio',
@@ -35,24 +36,48 @@ export const ALL_STAFF_MODULES: StaffModule[] = [
   'visitas',
   'consentimientos',
   'usuarios',
-  'servicios-clinica'
+  'servicios-clinica',
+  'configuracion',
+];
+
+/** Clínico + POS (vet / recepción). Sin finanzas, personal, inventario admin ni config. */
+export const STAFF_MODULES_CLINICO_POS: StaffModule[] = [
+  'inicio',
+  'paciente',
+  'clientes',
+  'citas',
+  'historiales',
+  'vacunas',
+  'recordatorios',
+  'banios',
+  'pension',
+  'visitas',
+  'consentimientos',
+];
+
+export const STAFF_MODULES_PELUQUERO: StaffModule[] = [
+  'inicio',
+  'paciente',
+  'clientes',
+  'citas',
+  'banios',
+  'visitas',
+  'recordatorios',
 ];
 
 /**
- * Matriz rol → módulos permitidos. `*` = acceso total.
- * Política 011 (2026-08-26): todo staff (excepto portal client) tiene acceso admin
- * unificado; el rol solo identifica organización/identidad.
+ * Matriz rol → módulos permitidos por URL (spec 072).
+ * Admin/dueño: acceso total. El resto ya no es `*` (cierra el hueco de 011).
  */
 export const STAFF_MODULE_ACCESS: Record<string, StaffModule[] | '*'> = {
   administrador: '*',
   admin: '*',
-  doctor: '*',
-  recepcionista: '*',
-  peluquero: '*',
-  /** Dueño del sistema / desarrollador (alias operativo de acceso total). */
+  doctor: STAFF_MODULES_CLINICO_POS,
+  recepcionista: STAFF_MODULES_CLINICO_POS,
+  peluquero: STAFF_MODULES_PELUQUERO,
   super_admin: '*',
   dueno: '*',
-  dueño: '*'
+  dueño: '*',
 };
 
 export function mapUsuarioPerfilToStaffRole(perfil: string | undefined | null): string {
@@ -74,6 +99,16 @@ export function normalizeStaffRole(role: string | undefined | null): string {
   return r;
 }
 
+export function staffRoleIsAdminOperativo(staffRole: string | undefined | null): boolean {
+  const role = normalizeStaffRole(staffRole);
+  return role === 'administrador' || role === 'super_admin';
+}
+
+/** 054 #3 / 072: ingresos, meta y tops solo dueño/admin. */
+export function staffRoleSeesOwnerDashboard(staffRole: string | undefined | null): boolean {
+  return staffRoleIsAdminOperativo(staffRole);
+}
+
 export function modulesForStaffRole(staffRole: string): StaffModule[] {
   const role = normalizeStaffRole(staffRole);
   const access = STAFF_MODULE_ACCESS[role];
@@ -83,8 +118,7 @@ export function modulesForStaffRole(staffRole: string): StaffModule[] {
   if (Array.isArray(access)) {
     return access;
   }
-  // Rol staff desconocido: acceso admin completo (política 011)
-  return ALL_STAFF_MODULES;
+  return STAFF_MODULES_CLINICO_POS;
 }
 
 export function staffRoleCanAccessModule(staffRole: string, module: StaffModule): boolean {
@@ -96,13 +130,11 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
   if (Array.isArray(access)) {
     return access.includes(module);
   }
-  // Rol desconocido staff → permitir (política unificada)
-  return true;
+  return STAFF_MODULES_CLINICO_POS.includes(module);
 }
 
 /**
- * Menú compacto (spec 054). No restringe StaffRoleGuard ni RTDB:
- * recepción/peluquería siguen pudiendo abrir módulos por URL (política 011).
+ * Menú compacto (spec 054 + 072). Doctor ya no ve el catálogo admin completo.
  */
 export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
   recepcionista: [
@@ -110,28 +142,51 @@ export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
     'paciente',
     'citas',
     'clientes',
-    'pacientes-admin',
     'visitas',
     'banios',
     'recordatorios',
-    'pension'
+    'pension',
+    'consentimientos',
+    'historiales',
+    'vacunas',
   ],
-  peluquero: [
+  peluquero: ['inicio', 'paciente', 'clientes', 'citas', 'banios', 'visitas', 'recordatorios'],
+  doctor: [
     'inicio',
     'paciente',
-    'clientes',
     'citas',
-    'banios',
     'visitas',
-    'recordatorios'
+    'recordatorios',
+    'banios',
+    'pension',
+    'clientes',
+    'consentimientos',
+    'historiales',
+    'vacunas',
   ],
-  doctor: '*',
   administrador: '*',
   admin: '*',
   super_admin: '*',
   dueno: '*',
-  dueño: '*'
+  dueño: '*',
 };
+
+/** Hijos de Agenda (no van sueltos al nivel de Cobrar). */
+export const STAFF_NAV_AGENDA: StaffModule[] = ['citas', 'banios', 'pension'];
+
+/** Ítems de Más (visibles según rol / nav). */
+export const STAFF_NAV_MAS: StaffModule[] = [
+  'clientes',
+  'consentimientos',
+  'historiales',
+  'vacunas',
+  'inventario',
+  'servicios-clinica',
+  'finanzas',
+  'usuarios',
+  'contactos-web',
+  'configuracion',
+];
 
 export function staffRoleShowsCompactNav(staffRole: string | undefined | null): boolean {
   const role = normalizeStaffRole(staffRole);
@@ -145,7 +200,7 @@ export function navModulesForStaffRole(staffRole: string): StaffModule[] {
   if (!nav || nav === '*') {
     return modulesForStaffRole(role);
   }
-  return nav.filter(m => staffRoleCanAccessModule(role, m));
+  return nav.filter((m) => staffRoleCanAccessModule(role, m));
 }
 
 /**
@@ -155,4 +210,23 @@ export function navModulesForStaffRole(staffRole: string): StaffModule[] {
 export function staffRoleIsVeterinarioOperativo(staffRole: string | undefined | null): boolean {
   const role = normalizeStaffRole(staffRole);
   return role === 'administrador' || role === 'doctor' || role === 'super_admin';
+}
+
+export function mensajeAccesoDenegadoModulo(module: StaffModule | string): string {
+  switch (module) {
+    case 'finanzas':
+      return 'Caja y finanzas las ve administración. Te llevamos a Hoy.';
+    case 'usuarios':
+      return 'El personal lo administra la dueña o un administrador.';
+    case 'inventario':
+      return 'El inventario lo ve administración.';
+    case 'configuracion':
+      return 'La configuración de la clínica la cambia administración.';
+    case 'servicios-clinica':
+      return 'El catálogo de servicios lo edita administración.';
+    case 'contactos-web':
+      return 'Los mensajes de la página web los ve administración.';
+    default:
+      return 'No tienes acceso a esta pantalla. Te llevamos a Hoy.';
+  }
 }

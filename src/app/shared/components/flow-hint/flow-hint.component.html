@@ -1,10 +1,12 @@
 <p
-  *ngIf="message"
+  *ngIf="visible"
   class="flow-hint"
   [class.flow-hint--inline]="layout === 'inline'"
   [class.flow-hint--footer]="layout === 'footer'"
   [class.flow-hint--warn]="variant === 'warn'"
-  [class.flow-hint--success]="variant === 'success'">
+  [class.flow-hint--success]="variant === 'success'"
+>
   <mat-icon *ngIf="icon" class="flow-hint__icon" aria-hidden="true">{{ icon }}</mat-icon>
   <span class="flow-hint__text">{{ message }}</span>
+  <button *ngIf="hintId" type="button" class="flow-hint__dismiss" (click)="ocultar()">No volver a mostrar</button>
 </p>

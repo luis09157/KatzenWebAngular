@@ -1,0 +1,30 @@
+<div class="admin-dialog-shell ayuda-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Ayuda — el día a día</h2>
+      <p class="admin-dialog-subtitle">Cuatro caminos. Si te trabas, empieza por Hoy.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <section class="ayuda-flujo" *ngFor="let f of flujos">
+      <h3 class="ayuda-flujo__title">
+        <mat-icon aria-hidden="true">{{ f.icono }}</mat-icon>
+        {{ f.titulo }}
+      </h3>
+      <ol class="ayuda-flujo__pasos">
+        <li *ngFor="let paso of f.pasos">{{ paso }}</li>
+      </ol>
+    </section>
+  </mat-dialog-content>
+
+  <footer class="admin-dialog-footer">
+    <span class="ayuda-spacer"></span>
+    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="cerrar()">
+      Entendido
+    </button>
+  </footer>
+</div>

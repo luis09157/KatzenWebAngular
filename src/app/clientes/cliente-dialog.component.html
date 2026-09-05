@@ -198,6 +198,14 @@
               <span class="estado-badge" [class]="portalEstadoClass">{{ portalEstadoLabel }}</span>
               <span class="portal-access-email" *ngIf="correoPortal">{{ correoPortal }}</span>
             </div>
+            <p
+              *ngIf="canalRecordatorios"
+              class="canal-recordatorios"
+              [class.canal-recordatorios--ok]="canalRecordatorios.recibira"
+              [class.canal-recordatorios--no]="!canalRecordatorios.recibira"
+            >
+              {{ canalRecordatorios.mensaje }}
+            </p>
             <div class="portal-access-actions">
               <button
                 *ngIf="puedeEnviarAccesoPortal"
@@ -352,7 +360,16 @@
 
     <!-- Formulario crear / editar -->
     <form *ngIf="!modoVer && !modoRapido" [formGroup]="clienteForm">
+      <p
+        *ngIf="muestraCanalRecordatorios && canalRecordatorios"
+        class="canal-recordatorios"
+        [class.canal-recordatorios--ok]="canalRecordatorios.recibira"
+        [class.canal-recordatorios--no]="!canalRecordatorios.recibira"
+      >
+        {{ canalRecordatorios.mensaje }}
+      </p>
       <app-flow-hint
+        hintId="cliente-form"
         icon="info"
         [message]="
           data.cliente
@@ -414,11 +431,11 @@
               <mat-form-field appearance="outline">
                 <mat-label>Género</mat-label>
                 <mat-select formControlName="genero">
+                  <mat-option value="">—</mat-option>
                   <mat-option value="Masculino">Masculino</mat-option>
                   <mat-option value="Femenino">Femenino</mat-option>
                   <mat-option value="No binario">No binario</mat-option>
                 </mat-select>
-                <mat-error *ngIf="isFieldInvalid('genero')">{{ getErrorMessage('genero') }}</mat-error>
               </mat-form-field>
             </div>
           </section>

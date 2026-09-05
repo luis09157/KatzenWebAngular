@@ -14,6 +14,8 @@ import { pacientePerteneceACliente } from '../core/utils/paciente-cliente.util';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { LoggerService } from '../core/logger.service';
 import { LOADING_MESSAGES } from '../core/loading.service';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { CanalRecordatorioVista, evaluarCanalRecordatorioCliente } from '../core/utils/recordatorio-canal-cliente.util';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -37,6 +39,8 @@ export class ClienteDialogComponent implements OnInit {
   pacientesRelacionados: any[] = [];
   cargandoPacientes: boolean = false;
   portalActionBusy = false;
+  tieneAvisosPush = false;
+  canalRecordatorios: CanalRecordatorioVista | null = null;
 
   // Propiedades para carga de imágenes
   selectedFile: File | null = null;
@@ -59,7 +63,8 @@ export class ClienteDialogComponent implements OnInit {
     private loadingService: LoadingService,
     private firebaseFunctions: FirebaseFunctionsService,
     private logger: LoggerService,
-    private router: Router
+    private router: Router,
+    private db: AngularFireDatabase
   ) {
     this.modoVer = data.modoVer;
     this.modoRapido = data?.modo === 'rapido' && !data?.cliente?.id;
@@ -79,7 +84,7 @@ export class ClienteDialogComponent implements OnInit {
           : [Validators.required, Validators.minLength(2), Validators.maxLength(50)],
       ],
       apellidoMaterno: [data.cliente?.apellidoMaterno || '', [Validators.minLength(2), Validators.maxLength(50)]],
-      genero: [data.cliente?.genero || '', this.modoRapido ? [] : [Validators.required]],
+      genero: [data.cliente?.genero || ''],
       telefono: [data.cliente?.telefono || prefill.telefono, [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       calle: [data.cliente?.calle || '', [Validators.minLength(3), Validators.maxLength(100)]],
       numero: [data.cliente?.numero || '', [Validators.maxLength(10)]],
@@ -111,7 +116,7 @@ export class ClienteDialogComponent implements OnInit {
 
   /** Campos sin los cuales la ficha no sirve (rápido: nombre + teléfono). */
   get camposObligatorios(): string[] {
-    return this.modoRapido ? ['nombre', 'telefono'] : ['nombre', 'apellidoPaterno', 'genero', 'telefono'];
+    return this.modoRapido ? ['nombre', 'telefono'] : ['nombre', 'apellidoPaterno', 'telefono'];
   }
 
   /** Lo que la recepcionista escribió en el picker: si son dígitos → teléfono; si no → nombre. */
@@ -321,6 +326,35 @@ export class ClienteDialogComponent implements OnInit {
     if (this.modoVer && this.data?.cliente?.id) {
       this.cargarPacientesRelacionados();
     }
+    void this.refrescarCanalRecordatorios();
+  }
+
+  get muestraCanalRecordatorios(): boolean {
+    return !!(this.data?.cliente?.id || this.modoVer);
+  }
+
+  private refrescarVistaCanal(): void {
+    const c = this.data?.cliente || {};
+    this.canalRecordatorios = evaluarCanalRecordatorioCliente({
+      correo: this.correoPortal || c.correo,
+      portalEmail: c.portalEmail,
+      portalActivo: c.portalActivo,
+      authUid: c.authUid,
+      tieneAvisosPush: this.tieneAvisosPush,
+    });
+  }
+
+  private async refrescarCanalRecordatorios(): Promise<void> {
+    const uid = String(this.data?.cliente?.authUid || '').trim();
+    if (uid) {
+      try {
+        const tokens = await firstValueFrom(this.db.object(`Katzen/FcmTokens/${uid}`).valueChanges());
+        this.tieneAvisosPush = !!tokens && typeof tokens === 'object' && Object.keys(tokens as object).length > 0;
+      } catch {
+        this.tieneAvisosPush = false;
+      }
+    }
+    this.refrescarVistaCanal();
   }
 
   cargarCodigosPostales() {

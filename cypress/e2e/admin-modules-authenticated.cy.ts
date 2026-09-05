@@ -6,7 +6,11 @@ describe('Admin modules authenticated', () => {
 
   const modules: Array<{ path: string; container: string; title: string }> = [
     { path: '/admin/citas', container: '.citas-contenedor', title: 'Administración de Citas' },
-    { path: '/admin/historiales', container: '.historiales-contenedor', title: 'Administración de Historiales Clínicos' },
+    {
+      path: '/admin/historiales',
+      container: '.historiales-contenedor',
+      title: 'Administración de Historiales Clínicos',
+    },
     { path: '/admin/vacunas', container: '.vacunas-contenedor', title: 'Administración de Vacunas' },
     { path: '/admin/recordatorios', container: '.recordatorios-contenedor', title: 'Administración de Recordatorios' },
     { path: '/admin/usuarios', container: '.usuarios-contenedor', title: 'Personal staff y portal' },
@@ -22,7 +26,8 @@ describe('Admin modules authenticated', () => {
     { path: '/admin/visitas', container: '.visitas-contenedor', title: 'Visitas / tickets' },
     { path: '/admin/consentimientos', container: '.consentimientos-contenedor', title: 'Consentimientos clínicos' },
     { path: '/admin/pension', container: '.pension-contenedor', title: 'Pensión / alojamiento' },
-    { path: '/admin/servicios-clinica', container: '.servicios-clinica-contenedor', title: 'Servicios de clínica' }
+    { path: '/admin/servicios-clinica', container: '.servicios-clinica-contenedor', title: 'Servicios de clínica' },
+    { path: '/admin/configuracion', container: '.configuracion-contenedor', title: 'Configuración de la clínica' },
   ];
 
   modules.forEach(({ path, container, title }) => {

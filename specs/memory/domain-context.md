@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-08-31 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` + costo/IVA/ganancia (precio al público incluye IVA; baño sigue 022).
+**Última revisión:** 2026-09-04 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` · **069** Fase 1 UX · **070** Fase 2: asistente «Llegó un paciente»; kits POS explotan `kitComponentes` (N salidas); sin BOM no se inventan componentes · **071** Fase 3: turno `Caja/Turnos/{fecha}`, ticket 80 mm + `Visitas.folio?` · **072** Fase 4: menú 6 grupos; `STAFF_MODULE_ACCESS` por rol; `Katzen/Config/clinica`.
 
 ---
 
@@ -71,6 +71,7 @@ erDiagram
 | Orden de compra | `Katzen/Inventario/OrdenesCompra/{id}` | Push key | Folio `OC-{timestamp}` |
 | Alerta inventario | `Katzen/Inventario/Alertas/{id}` | Push key | Auto-generadas por stock/caducidad |
 | Movimiento de caja | `Katzen/Caja/Movimientos/{id}` | Push key | Ingresos/egresos; categoría + costo/margen opcionales (021); `visitaId?` (032) |
+| Turno de caja | `Katzen/Caja/Turnos/{fecha}` | `YYYY-MM-DD` | **071** aditivo; `abiertaEn`, `fondoInicial`, `corteId?` |
 | Visita / ticket | `Katzen/Visitas/{id}` | Push key | **032** ticket + CxC; **036** pulido UX; **055** Caja POS móvil (UI; mismos nodos) |
 | Plantilla costo servicio | `Katzen/Finanzas/PlantillasCosto/{id}` | Push key | BOM ligero: ítems producto o gasto libre (021) |
 | Peluquero | `Katzen/Peluqueros/{id}` | Push key | Catálogo operativo |
@@ -80,6 +81,7 @@ erDiagram
 | Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
 | Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
 | Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056** tarifa (no stock): consulta, diagnóstico, domicilio, honorarios. Campos aditivos `precio_costo`, `aplicaIva`, `tasaIva`. Baño **no** vive aquí. |
+| Config clínica | `Katzen/Config/clinica` | hijo único | **072** aditivo: nombre, logoUrl, horario, ivaDefaultPct, vet default. Staff lee; admin escribe. |
 
 ### 2.3 Catálogos auxiliares
 
@@ -114,7 +116,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `nombre`, `apellidoPaterno`, `apellidoMaterno` | string | Nombre completo en UI |
 | `telefono`, `correo` | string | Correo requerido para portal; teléfono 10 dígitos en UI admin (formatos legacy posibles) |
 | `telefonoNorm?` | string | **047 ola 3** 10 dígitos MX (aditivo; Functions al vincular/crear) |
-| `expediente`, `direccion` | string | Opcionales |
+| `expediente`, `direccion` | string | Opcionales. `expediente` es del **dueño**, no de la mascota (spec 068). |
 | `activo` | boolean | `false` → oculto en listas; baja lógica |
 | `fecha_registro` | string ISO | Alta web |
 | `sucursalId` | string | Stamp automático (`SucursalContextService`) |
@@ -138,6 +140,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `foto`, `imageUrl`, `rutaImagen` | string | Portal mapea varios alias |
 | `alergias?` | string[] | **034** fuente de verdad alergias (aditivo); UI chips + alerta cruzada |
 | `alergiasTexto?` | string | **034** legacy/texto libre; lectura normalizada junto a `alergias` |
+| `expediente?` | string | **068** folio de la **mascota** (Excel/clínica). Si falta, web persiste/deriva `KV-XXXXXX`. No usar `Cliente.expediente`. |
 | `fecha_creacion`, `fechaBaja` | string | |
 | `sucursalId` | string | Stamp en altas |
 
@@ -241,6 +244,8 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Movimientos** (`Katzen/Caja/Movimientos/{id}`): `tipo` ingreso|egreso, `monto`, `metodoPago`, `ivaDeclarado`, `concepto`, `fecha`, opcionales `banioId`, `citaId`, `visitaId` (**032**), `categoria` (ingresos: baño/corte/cirugía/venta/consulta/vacuna/pensión; egresos: publicidad/proveedores/gasolina/operativo/otro — **022 D**), `plantillaCostoId`, `costoAsociado`, `margenEstimado`, `movimientoInventarioIds?`, `activo`.
 
+**Turnos** (`Katzen/Caja/Turnos/{YYYY-MM-DD}` — **071**, aditivo): `abiertaEn`, `fondoInicial` (último corte o 0), `corteId?`. Apertura implícita en el primer ingreso del día. No lo consume la app móvil. Rules: staff write (padre `Caja`) + `.indexOn` laxo.
+
 **Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio` (`banio|corte|cirugia|consulta|vacuna|pension|otro`), `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
 **Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en config; override al registrar baño; `precio_total` siempre por registro.
@@ -263,7 +268,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas entran al ticket con `precio_venta` de inventario. **Servicios de clínica (056):** consulta, ultrasonido, domicilio y honorarios viven en `Katzen/ServiciosClinica` (no stock); el riel Consulta los lista y no pide monto si hay precio. **Única excepción editable:** baño/peluquería — tarifa default 022 precargada; no se migra a ServiciosClinica en ola 1. Consulta genérica pide monto solo si no hay servicio de catálogo ni producto inventario con precio.
 
-Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?` / `servicioClinicaId?` / snapshot `costo?` `precio_venta?` `iva?` `ganancia?` — **056**; el cajero no captura costo), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `activo`.
+Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?` / `servicioClinicaId?` / snapshot `costo?` `precio_venta?` `iva?` `ganancia?` — **056**; el cajero no captura costo), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `folio?` (**071** `KV-YYYYMMDD-NNN` al cobrar), `activo`.
 
 **Modelo mental:** Peluquería / citas / inventario = **operación**; Visitas = **cuenta (dinero del dueño)**; Caja = **pago**. No cobrar el mismo baño en caja y en ticket.
 

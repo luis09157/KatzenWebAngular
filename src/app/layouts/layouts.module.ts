@@ -12,14 +12,14 @@ import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule } from '@angular/material/dialog';
+import { AyudaDialogModule } from '../ayuda/ayuda-dialog.module';
 
 // Layout Components
 import { AdminMainLayoutComponent } from './admin-main-layout.component';
 
 @NgModule({
-  declarations: [
-    AdminMainLayoutComponent
-  ],
+  declarations: [AdminMainLayoutComponent],
   imports: [
     CommonModule,
     RouterModule,
@@ -33,10 +33,10 @@ import { AdminMainLayoutComponent } from './admin-main-layout.component';
     MatListModule,
     MatDividerModule,
     MatFormFieldModule,
-    MatSelectModule
+    MatSelectModule,
+    MatDialogModule,
+    AyudaDialogModule,
   ],
-  exports: [
-    AdminMainLayoutComponent
-  ]
+  exports: [AdminMainLayoutComponent],
 })
-export class LayoutsModule { }
+export class LayoutsModule {}

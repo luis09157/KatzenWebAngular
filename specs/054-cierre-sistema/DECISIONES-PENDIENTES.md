@@ -15,8 +15,10 @@
 
 1. **¿Se aceptan como `done` tal cual?** Los tres bloques funcionan en el código actual; falta que Luis valide en uso real de recepción que los hints (048), el hub/menú (049) y el cobro único (050) no estorban el flujo diario. Si sí → marcar el ítem 3 de `CIERRE.md` como cumplido.
 2. **050 — ¿eliminar por completo el cobro directo en caja desde baños/citas/historiales/pensión?** Hoy está *oculto* por flag; borrar el código legacy es un paso irreversible que requiere confirmación.
-3. **049 — ¿el hub reemplaza al dashboard dueño (025) como pantalla inicial para todo el staff, o solo para recepción?** Hoy conviven; definir por rol.
-4. **048 — ¿los hints se muestran siempre o se pueden ocultar por usuario?** No hay preferencia persistida; añadirla implicaría un campo aditivo en `Katzen/Usuarios/{uid}` (nivel L3 por tocar RTDB).
+3. **049 — ¿el hub reemplaza al dashboard dueño (025) como pantalla inicial para todo el staff, o solo para recepción?**  
+   **Cerrada 2026-09-04 (spec 072 / Luis, Fase 4):** el hub **Hoy** es la home de vet/recepción/peluquero. Owner-dash (ingresos, meta, tops) **solo admin/dueño**. Conviven en `/admin/inicio` para admin; el resto no ve KPIs de negocio.
+4. **048 — ¿los hints se muestran siempre o se pueden ocultar por usuario?**  
+   **Cerrada 2026-09-04 (spec 072 / Luis, Fase 4):** se ocultan con «No volver a mostrar» en **localStorage** (`kz-flow-hint:{id}`). L2, sin `Katzen/Usuarios`. No es preferencia compartida entre estaciones.
 
 ## Cómo cerrar
 

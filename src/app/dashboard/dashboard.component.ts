@@ -14,11 +14,7 @@ import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
 import { InversionMetaProgress } from '../core/models/clinic-config.model';
 import { InversionMetaDialogComponent } from './inversion-meta-dialog.component';
-import {
-  PeriodoPreset,
-  formatMoneyMx,
-  formatLabelEs
-} from '../core/utils/periodo-filtro.util';
+import { PeriodoPreset, formatMoneyMx, formatLabelEs } from '../core/utils/periodo-filtro.util';
 import { LoggerService } from '../core/logger.service';
 import { BaniosService } from '../banios/banios.service';
 import { HistorialesService } from '../historiales/historiales.service';
@@ -32,6 +28,20 @@ import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.component';
+import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from '../citas/cita-atender.util';
+import { AuthProfileService } from '../core/services/auth-profile.service';
+import { staffRoleSeesOwnerDashboard } from '../core/config/staff-role.config';
+import { RecordatoriosService } from '../recordatorios/recordatorios.service';
+import { InventarioService } from '../inventario/inventario.service';
+import { esEstanciaPensionHoy, esRecordatorioHoyOVencido } from './hoy-operacion.util';
+import {
+  buildMensajeWhatsappRecordatorio,
+  buildTelUrl,
+  buildWhatsappUrl,
+  normalizarTelefonoMx,
+} from '../recordatorios/recordatorio-whatsapp.util';
+import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -40,12 +50,9 @@ import Swal from 'sweetalert2';
   styleUrls: ['./dashboard.component.css'],
   animations: [
     trigger('routeAnimations', [
-      transition('* <=> *', [
-        style({ opacity: 0 }),
-        animate('250ms', style({ opacity: 1 }))
-      ])
-    ])
-  ]
+      transition('* <=> *', [style({ opacity: 0 }), animate('250ms', style({ opacity: 1 }))]),
+    ]),
+  ],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -60,8 +67,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
   monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
   ];
   loading = false;
   ownerLoading = false;
@@ -76,7 +93,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { id: 'este_mes', label: 'Este mes' },
     { id: 'mes_anterior', label: 'Mes anterior' },
     { id: '30d', label: '30 días' },
-    { id: '60d', label: '60 días' }
+    { id: '60d', label: '60 días' },
   ];
 
   /** Hub recepción (spec 049) */
@@ -84,6 +101,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   porCobrarTotal = 0;
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   citasHoyCount = 0;
+  citasHoy: any[] = [];
+  readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
+  verOwnerDash = false;
+  verStockBajo = false;
+  recordatoriosHoy: Array<{
+    id: string;
+    titulo: string;
+    paciente: string;
+    cliente: string;
+    fecha: string;
+    whatsappUrl: string;
+    telUrl: string;
+    whatsappTel: string | null;
+  }> = [];
+  pensionHoy: Array<{ id?: string; paciente?: string; cliente?: string; fecha_ingreso?: string }> = [];
+  stockBajoCount = 0;
   private clientesMapHub: Record<string, string> = {};
   private pacientesClienteMapHub: Record<string, { cliente_id: string; nombre?: string }> = {};
 
@@ -129,11 +162,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private vacunasService: VacunasService,
     private historialesService: HistorialesService,
     private loadingService: LoadingService,
-    private errorMessages: ErrorMessagesService
+    private errorMessages: ErrorMessagesService,
+    private authProfile: AuthProfileService,
+    private recordatoriosService: RecordatoriosService,
+    private inventarioService: InventarioService
   ) {}
 
   ngOnInit(): void {
     this.loading = true;
+    void this.authProfile.getEffectiveStaffRole().then((role) => {
+      this.verOwnerDash = staffRoleSeesOwnerDashboard(role);
+      this.verStockBajo = this.verOwnerDash;
+      if (this.verOwnerDash) {
+        this.cargarOwnerDashboard();
+        this.cargarInversionMeta();
+        this.cargarStockBajo();
+      }
+    });
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -145,9 +190,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadClientesYPacientes();
     this.loadCitas();
     this.generateCalendar();
-    this.cargarOwnerDashboard();
-    this.cargarInversionMeta();
     this.cargarPorCobrarHoy();
+    this.cargarRecordatoriosHoy();
+    this.cargarPensionHoy();
   }
 
   ngOnDestroy(): void {
@@ -175,29 +220,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (p) => (this.inversionMeta = p),
-        error: (err) => this.logger.error('Error meta inversión:', err)
+        error: (err) => this.logger.error('Error meta inversión:', err),
       });
   }
 
   abrirConfigMeta(): void {
     const ref = this.dialog.open(InversionMetaDialogComponent, {
       ...ADMIN_DIALOG_CONFIRM,
-      data: { montoMeta: this.inversionMeta?.montoMeta }
+      data: { montoMeta: this.inversionMeta?.montoMeta },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
-      if (result?.saved) this.cargarInversionMeta();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result?.saved) this.cargarInversionMeta();
+      });
   }
 
   cargarOwnerDashboard(): void {
     this.ownerLoading = true;
     this.ownerSub?.unsubscribe();
     this.ownerSub = this.ownerDashboard
-      .snapshot$(
-        this.periodoPreset,
-        this.desdeCustom || undefined,
-        this.hastaCustom || undefined
-      )
+      .snapshot$(this.periodoPreset, this.desdeCustom || undefined, this.hastaCustom || undefined)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (snap) => {
@@ -207,7 +251,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.logger.error('Error dashboard dueño:', err);
           this.ownerLoading = false;
-        }
+        },
       });
   }
 
@@ -233,8 +277,118 @@ export class DashboardComponent implements OnInit, OnDestroy {
   nuevaVentaMostrador(): void {
     this.dialog.open(VisitaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { esMostrador: true }
+      data: { esMostrador: true },
     });
+  }
+
+  llegoUnPaciente(): void {
+    abrirAltaRapidaDialog(this.dialog);
+  }
+
+  puedeAtender(cita: { paciente_id?: string; idPaciente?: string } | null): boolean {
+    return puedeAtenderCita(cita);
+  }
+
+  private cargarRecordatoriosHoy(): void {
+    combineLatest([
+      this.recordatoriosService.getRecordatorios(),
+      this.clientesService.getClientes(),
+      this.pacientesService.getPacientes(),
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([recs, clientes, pacientes]) => {
+          const hoy = hoyLocalIsoDate();
+          const clientesById: Record<string, { nombre?: string; telefono?: string }> = {};
+          (clientes || []).forEach(
+            (c: { id?: string; nombre?: string; nombre_completo?: string; telefono?: string }) => {
+              if (c?.id) clientesById[c.id] = { nombre: c.nombre || c.nombre_completo, telefono: c.telefono };
+            }
+          );
+          const pacientesById: Record<string, { nombre?: string; cliente_id?: string; idCliente?: string }> = {};
+          (pacientes || []).forEach((p: { id?: string; nombre?: string; cliente_id?: string; idCliente?: string }) => {
+            if (p?.id) pacientesById[p.id] = p;
+          });
+          this.recordatoriosHoy = (recs || [])
+            .filter((r: Record<string, unknown>) => esRecordatorioHoyOVencido(r, hoy))
+            .slice(0, 12)
+            .map((r: Record<string, unknown>) => {
+              const pid = String(r['paciente_id'] || r['idPaciente'] || '');
+              const pac = pacientesById[pid];
+              const cid = pac ? getPacienteClienteId(pac) : String(r['cliente_id'] || '');
+              const cli = clientesById[cid];
+              const tel = normalizarTelefonoMx(cli?.telefono);
+              const fecha = String(r['fecha_hora_recordatorio'] || r['fecha_recordatorio'] || '').slice(0, 10);
+              return {
+                id: String(r['id'] || ''),
+                titulo: String(r['titulo'] || r['tipo'] || 'Recordatorio'),
+                paciente: pac?.nombre || String(r['paciente'] || 'Mascota'),
+                cliente: cli?.nombre || String(r['cliente'] || 'Dueño'),
+                fecha,
+                whatsappTel: tel,
+                whatsappUrl: tel
+                  ? buildWhatsappUrl(
+                      tel,
+                      buildMensajeWhatsappRecordatorio({
+                        nombreDueno: cli?.nombre,
+                        nombreMascota: pac?.nombre,
+                        tipo: String(r['tipo'] || ''),
+                        fecha,
+                        titulo: String(r['titulo'] || ''),
+                      })
+                    )
+                  : '',
+                telUrl: tel ? buildTelUrl(tel) : '',
+              };
+            });
+        },
+        error: (err) => this.logger.error('Recordatorios hoy (hub):', err),
+      });
+  }
+
+  private cargarPensionHoy(): void {
+    this.pensionService
+      .getEstancias()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.pensionHoy = (rows || []).filter((e) => esEstanciaPensionHoy(e)).slice(0, 12);
+        },
+        error: (err) => this.logger.error('Pensión hoy (hub):', err),
+      });
+  }
+
+  private cargarStockBajo(): void {
+    this.inventarioService
+      .getAlertas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (alertas) => {
+          this.stockBajoCount = (alertas || []).filter((a) => a.estado !== 'resuelta').length;
+        },
+        error: () => {
+          this.stockBajoCount = 0;
+        },
+      });
+  }
+
+  async marcarRecordatorioHecho(id: string): Promise<void> {
+    if (!id) return;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      await this.recordatoriosService.marcarCompletado(id);
+      this.recordatoriosHoy = this.recordatoriosHoy.filter((r) => r.id !== id);
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar recordatorio'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  atenderCita(cita: { paciente_id?: string; idPaciente?: string } | null): void {
+    const id = pacienteIdDeCita(cita);
+    if (!id) return;
+    void this.router.navigate(['/admin/paciente'], { queryParams: { id } });
   }
 
   tipoPorCobrarLabel(tipo: string): string {
@@ -244,7 +398,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       cita: 'Cita',
       pension: 'Pensión',
       vacuna: 'Vacuna',
-      historial: 'Historial'
+      historial: 'Historial',
     };
     return map[tipo] || tipo;
   }
@@ -258,7 +412,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.vacunasService.getVacunas(),
       this.historialesService.getHistoriales(),
       this.clientesService.getClientes(),
-      this.pacientesService.getPacientes()
+      this.pacientesService.getPacientes(),
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -283,11 +437,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
             vacunas: vacunas || [],
             historiales: historiales || [],
             clientesMap: this.clientesMapHub,
-            pacientesClienteMap: this.pacientesClienteMapHub
+            pacientesClienteMap: this.pacientesClienteMapHub,
           });
           this.porCobrarTotal = totalPorCobrarHoy(this.porCobrarItems);
         },
-        error: (err) => this.logger.error('Por cobrar hoy (hub):', err)
+        error: (err) => this.logger.error('Por cobrar hoy (hub):', err),
       });
   }
 
@@ -297,19 +451,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (visita) {
         this.dialog.open(VisitaDialogComponent, {
           ...ADMIN_DIALOG_FORM,
-          data: { visita }
+          data: { visita },
         });
       }
       return;
     }
     let monto = item.monto;
     if (!(monto > 0)) {
-      monto =
-        (await promptMontoVisita(
-          'Monto del servicio',
-          `¿Cuánto se cobrará por ${item.descripcion}?`,
-          0
-        )) ?? 0;
+      monto = (await promptMontoVisita('Monto del servicio', `¿Cuánto se cobrará por ${item.descripcion}?`, 0)) ?? 0;
       if (!(monto > 0)) return;
     }
     this.loadingService.show(LOADING_MESSAGES.saving);
@@ -330,7 +479,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         descripcion: item.descripcion,
         monto,
         categoria: cat as any,
-        fecha: item.fecha
+        fecha: item.fecha,
       };
       if (item.tipo === 'banio') opts.banioId = item.id;
       if (item.tipo === 'cita') opts.citaId = item.id;
@@ -342,7 +491,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente }
+        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente },
       });
       Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
       this.cargarPorCobrarHoy();
@@ -371,7 +520,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           (clientes || []).forEach((c: any) => {
             this.clientesMap[c.id] = c.nombre || c.nombreCliente || 'N/P';
           });
-        }
+        },
       });
     this.pacientesService
       .getPacientes()
@@ -381,7 +530,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           (pacientes || []).forEach((p: any) => {
             this.pacientesMap[p.id] = p.nombre || 'N/P';
           });
-        }
+        },
       });
   }
 
@@ -393,7 +542,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (citas) => {
           this.citas = (citas || []).filter((c: any) => c.activo !== false);
           const hoy = hoyLocalIsoDate();
-          this.citasHoyCount = this.citas.filter((c) => this.getCitaDateKey(c) === hoy).length;
+          this.citasHoy = this.citas.filter((c) => this.getCitaDateKey(c) === hoy);
+          this.citasHoyCount = this.citasHoy.length;
           this.citasMap = {};
           this.citas.forEach((cita) => {
             const key = this.getCitaDateKey(cita);
@@ -406,7 +556,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.loading = false;
-        }
+        },
       });
   }
 
@@ -438,7 +588,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         isCurrentMonth: false,
         isToday: false,
         hasCitas: false,
-        citas: []
+        citas: [],
       });
     }
     const today = new Date();
@@ -455,7 +605,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           date.getMonth() === today.getMonth() &&
           date.getFullYear() === today.getFullYear(),
         hasCitas: dayCitas.length > 0,
-        citas: dayCitas
+        citas: dayCitas,
       });
     }
     while (days.length % 7 !== 0) {
@@ -464,7 +614,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         isCurrentMonth: false,
         isToday: false,
         hasCitas: false,
-        citas: []
+        citas: [],
       });
     }
     this.calendarDays = days;
@@ -492,8 +642,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         fecha: day.date,
         citas: day.citas,
         clientesMap: this.clientesMap,
-        pacientesMap: this.pacientesMap
-      }
+        pacientesMap: this.pacientesMap,
+      },
     });
   }
 

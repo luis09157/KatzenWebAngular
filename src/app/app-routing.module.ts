@@ -9,10 +9,10 @@ import { PrivacidadComponent } from './landing/privacidad/privacidad.component';
 const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'privacidad', component: PrivacidadComponent },
-  { path: 'portal', loadChildren: () => import('./portal/portal.module').then(m => m.PortalModule) },
+  { path: 'portal', loadChildren: () => import('./portal/portal.module').then((m) => m.PortalModule) },
   { path: 'login', redirectTo: '/admin/login', pathMatch: 'full' },
-  { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
-  { path: 'auth', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) },
+  { path: 'admin/login', loadChildren: () => import('./auth/auth.module').then((m) => m.AuthModule) },
+  { path: 'auth', loadChildren: () => import('./auth/auth.module').then((m) => m.AuthModule) },
   {
     path: 'admin',
     component: AdminMainLayoutComponent,
@@ -20,116 +20,121 @@ const routes: Routes = [
     children: [
       {
         path: 'inicio',
-        loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
+        loadChildren: () => import('./dashboard/dashboard.module').then((m) => m.DashboardModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'inicio' }
+        data: { staffModule: 'inicio' },
       },
       {
         path: 'usuarios',
-        loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule),
+        loadChildren: () => import('./usuarios/usuarios.module').then((m) => m.UsuariosModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'usuarios' }
+        data: { staffModule: 'usuarios' },
       },
       {
         path: 'clientes',
-        loadChildren: () => import('./clientes/clientes.module').then(m => m.ClientesModule),
+        loadChildren: () => import('./clientes/clientes.module').then((m) => m.ClientesModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'clientes' }
+        data: { staffModule: 'clientes' },
       },
       {
         path: 'contactos-web',
-        loadChildren: () => import('./contactos-web/contactos-web.module').then(m => m.ContactosWebModule),
+        loadChildren: () => import('./contactos-web/contactos-web.module').then((m) => m.ContactosWebModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'contactos-web' }
+        data: { staffModule: 'contactos-web' },
       },
       {
         path: 'paciente',
-        loadChildren: () => import('./pacientes/pacientes.module').then(m => m.PacientesModule),
+        loadChildren: () => import('./pacientes/pacientes.module').then((m) => m.PacientesModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'paciente' }
+        data: { staffModule: 'paciente' },
       },
       {
         path: 'pacientes-admin',
-        loadChildren: () => import('./pacientes-admin/pacientes-admin.module').then(m => m.PacientesAdminModule),
+        loadChildren: () => import('./pacientes-admin/pacientes-admin.module').then((m) => m.PacientesAdminModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'pacientes-admin' }
+        data: { staffModule: 'pacientes-admin' },
       },
       {
         path: 'citas',
-        loadChildren: () => import('./citas/citas.module').then(m => m.CitasModule),
+        loadChildren: () => import('./citas/citas.module').then((m) => m.CitasModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'citas' }
+        data: { staffModule: 'citas' },
       },
       {
         path: 'historiales',
-        loadChildren: () => import('./historiales/historiales.module').then(m => m.HistorialesModule),
+        loadChildren: () => import('./historiales/historiales.module').then((m) => m.HistorialesModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'historiales' }
+        data: { staffModule: 'historiales' },
       },
       {
         path: 'recordatorios',
-        loadChildren: () => import('./recordatorios/recordatorios.module').then(m => m.RecordatoriosModule),
+        loadChildren: () => import('./recordatorios/recordatorios.module').then((m) => m.RecordatoriosModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'recordatorios' }
+        data: { staffModule: 'recordatorios' },
       },
       {
         path: 'vacunas',
-        loadChildren: () => import('./vacunas/vacunas.module').then(m => m.VacunasModule),
+        loadChildren: () => import('./vacunas/vacunas.module').then((m) => m.VacunasModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'vacunas' }
+        data: { staffModule: 'vacunas' },
       },
       {
         path: 'banios',
-        loadChildren: () => import('./banios/banios.module').then(m => m.BaniosModule),
+        loadChildren: () => import('./banios/banios.module').then((m) => m.BaniosModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'banios' }
+        data: { staffModule: 'banios' },
       },
       {
         path: 'inventario',
-        loadChildren: () => import('./inventario/inventario.module').then(m => m.InventarioModule),
+        loadChildren: () => import('./inventario/inventario.module').then((m) => m.InventarioModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'inventario' }
+        data: { staffModule: 'inventario' },
       },
       {
         path: 'finanzas',
-        loadChildren: () => import('./finanzas/finanzas.module').then(m => m.FinanzasModule),
+        loadChildren: () => import('./finanzas/finanzas.module').then((m) => m.FinanzasModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'finanzas' }
+        data: { staffModule: 'finanzas' },
       },
       {
         path: 'pension',
-        loadChildren: () => import('./pension/pension.module').then(m => m.PensionModule),
+        loadChildren: () => import('./pension/pension.module').then((m) => m.PensionModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'pension' }
+        data: { staffModule: 'pension' },
       },
       {
         path: 'visitas',
-        loadChildren: () => import('./visitas/visitas.module').then(m => m.VisitasModule),
+        loadChildren: () => import('./visitas/visitas.module').then((m) => m.VisitasModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'visitas' }
+        data: { staffModule: 'visitas' },
       },
       {
         path: 'consentimientos',
-        loadChildren: () =>
-          import('./consentimientos/consentimientos.module').then(m => m.ConsentimientosModule),
+        loadChildren: () => import('./consentimientos/consentimientos.module').then((m) => m.ConsentimientosModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'consentimientos' }
+        data: { staffModule: 'consentimientos' },
       },
       {
         path: 'servicios-clinica',
         loadChildren: () =>
-          import('./servicios-clinica/servicios-clinica.module').then(m => m.ServiciosClinicaModule),
+          import('./servicios-clinica/servicios-clinica.module').then((m) => m.ServiciosClinicaModule),
         canActivate: [StaffRoleGuard],
-        data: { staffModule: 'servicios-clinica' }
+        data: { staffModule: 'servicios-clinica' },
       },
-      { path: '', redirectTo: 'inicio', pathMatch: 'full' }
-    ]
+      {
+        path: 'configuracion',
+        loadChildren: () => import('./configuracion/configuracion.module').then((m) => m.ConfiguracionModule),
+        canActivate: [StaffRoleGuard],
+        data: { staffModule: 'configuracion' },
+      },
+      { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+    ],
   },
-  { path: '**', redirectTo: '/' }
+  { path: '**', redirectTo: '/' },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}

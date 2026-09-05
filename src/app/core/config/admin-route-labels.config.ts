@@ -1,7 +1,7 @@
 /** Labels de toolbar admin por segmento de ruta (spec 049). */
 export const ADMIN_ROUTE_LABELS: Record<string, string> = {
   inicio: 'Inicio',
-  paciente: 'Buscar paciente',
+  paciente: 'Pacientes',
   'pacientes-admin': 'Directorio de pacientes',
   clientes: 'Clientes',
   'contactos-web': 'Contactos web',
@@ -22,7 +22,8 @@ export const ADMIN_ROUTE_LABELS: Record<string, string> = {
   visitas: 'Punto de venta',
   pension: 'Pensión',
   consentimientos: 'Consentimientos',
-  usuarios: 'Personal y portal'
+  usuarios: 'Personal y portal',
+  configuracion: 'Configuración',
 };
 
 /** Resuelve label para URL admin (ej. `/admin/inventario/productos` → Productos). */
@@ -31,7 +32,10 @@ export function resolveAdminRouteLabel(url: string): string {
   if (!path.startsWith('/admin')) {
     return 'Admin';
   }
-  const segments = path.replace(/^\/admin\/?/, '').split('/').filter(Boolean);
+  const segments = path
+    .replace(/^\/admin\/?/, '')
+    .split('/')
+    .filter(Boolean);
   if (!segments.length) {
     return ADMIN_ROUTE_LABELS['inicio'];
   }

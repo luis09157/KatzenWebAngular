@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { AuthProfileService } from '../core/services/auth-profile.service';
-import { StaffModule } from '../core/config/staff-role.config';
+import { StaffModule, mensajeAccesoDenegadoModulo } from '../core/config/staff-role.config';
 import { LoggerService } from '../core/logger.service';
+import Swal from 'sweetalert2';
 
 @Injectable({ providedIn: 'root' })
 export class StaffRoleGuard implements CanActivate {
@@ -29,6 +30,12 @@ export class StaffRoleGuard implements CanActivate {
     }
 
     this.logger.log(`StaffRoleGuard: acceso denegado al módulo "${staffModule}"`);
+    await Swal.fire({
+      icon: 'info',
+      title: 'Esta pantalla no está en tu día a día',
+      text: mensajeAccesoDenegadoModulo(staffModule),
+      confirmButtonText: 'Ir a Hoy',
+    });
     await this.router.navigate(['/admin/inicio']);
     return false;
   }

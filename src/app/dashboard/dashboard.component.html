@@ -9,11 +9,23 @@
     <section class="operacion-hub" aria-label="Hub de operación">
       <header class="operacion-hub__header">
         <div>
-          <p class="section-eyebrow">{{ getSaludo() }} · Recepción</p>
+          <p class="section-eyebrow">{{ getSaludo() }} · Hoy</p>
           <h1 class="operacion-hub__title">¿Qué vas a hacer hoy?</h1>
-          <p class="operacion-hub__subtitle">Elige un flujo: clínica, mostrador o administración.</p>
+          <p class="operacion-hub__subtitle">
+            Citas, avisos, cobros y quién está en pensión. Empieza por «Llegó un paciente».
+          </p>
         </div>
         <div class="operacion-hub__quick">
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal operacion-hub__cta"
+            type="button"
+            (click)="llegoUnPaciente()"
+          >
+            <mat-icon>pets</mat-icon>
+            Llegó un paciente
+          </button>
           <button mat-stroked-button type="button" routerLink="/admin/visitas">
             <mat-icon>receipt_long</mat-icon>
             Punto de venta
@@ -24,7 +36,7 @@
           </button>
           <button mat-stroked-button type="button" routerLink="/admin/paciente">
             <mat-icon>search</mat-icon>
-            Buscar paciente
+            Pacientes
           </button>
           <button mat-stroked-button type="button" routerLink="/admin/citas">
             <mat-icon>event</mat-icon>
@@ -33,36 +45,98 @@
         </div>
       </header>
 
+      <app-caja-corte-banner></app-caja-corte-banner>
+
       <div class="operacion-hub__tiles">
         <app-admin-module-card
           title="Clínica"
           description="Citas, historiales, vacunas, baños, pensión y consentimientos."
           route="citas"
           accent="teal"
-          ctaLabel="Ir a citas">
+          ctaLabel="Ir a citas"
+        >
         </app-admin-module-card>
         <app-admin-module-card
           title="Punto de venta"
           description="Tres rieles en la misma caja: petshop, consulta y peluquería."
           route="visitas"
           accent="purple"
-          ctaLabel="Nueva venta">
+          ctaLabel="Nueva venta"
+        >
         </app-admin-module-card>
         <app-admin-module-card
+          *ngIf="verOwnerDash"
           title="Inventario / Admin"
           description="Stock, movimientos, clientes, finanzas y configuración."
           route="inventario"
           accent="orange"
-          ctaLabel="Ir a inventario">
+          ctaLabel="Ir a inventario"
+        >
         </app-admin-module-card>
       </div>
+
+      <app-admin-data-panel
+        *ngIf="citasHoy.length"
+        accent="teal"
+        title="Citas de hoy"
+        [description]="citasHoyCount + ' en agenda'"
+        [showLegend]="false"
+      >
+        <ul class="citas-hoy-list">
+          <li *ngFor="let cita of citasHoy">
+            <div class="cell-primary">
+              <strong>{{ pacientesMap[cita.paciente_id] || cita.paciente || 'Mascota' }}</strong>
+              <span class="cell-sub"
+                >{{ clientesMap[cita.cliente_id] || cita.cliente || 'Dueño' }} · {{ cita.hora || '' }}</span
+              >
+            </div>
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              [disabled]="!puedeAtender(cita)"
+              [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
+              (click)="atenderCita(cita)"
+            >
+              Atender
+            </button>
+          </li>
+        </ul>
+      </app-admin-data-panel>
+
+      <app-admin-data-panel
+        *ngIf="recordatoriosHoy.length"
+        accent="orange"
+        title="Recordatorios de hoy y vencidos"
+        [description]="recordatoriosHoy.length + ' por atender'"
+        [showLegend]="false"
+      >
+        <ul class="citas-hoy-list">
+          <li *ngFor="let rec of recordatoriosHoy">
+            <div class="cell-primary">
+              <strong>{{ rec.paciente }}</strong>
+              <span class="cell-sub">{{ rec.cliente }} · {{ rec.titulo }} · {{ rec.fecha }}</span>
+            </div>
+            <div class="hoy-rec-actions">
+              <a *ngIf="rec.telUrl" mat-stroked-button [href]="rec.telUrl">Llamar</a>
+              <a *ngIf="rec.whatsappUrl" mat-stroked-button [href]="rec.whatsappUrl" target="_blank" rel="noopener"
+                >WhatsApp</a
+              >
+              <button mat-stroked-button color="primary" type="button" (click)="marcarRecordatorioHecho(rec.id)">
+                Hecho
+              </button>
+            </div>
+          </li>
+        </ul>
+      </app-admin-data-panel>
 
       <app-admin-data-panel
         *ngIf="porCobrarItems.length"
         accent="purple"
         title="Por cobrar hoy"
         [description]="'Pendientes del día · ' + formatMoney(porCobrarTotal)"
-        [showLegend]="false">
+        [showLegend]="false"
+      >
         <div class="table-scroll por-cobrar-scroll">
           <table mat-table [dataSource]="porCobrarItems" class="admin-table por-cobrar-table">
             <ng-container matColumnDef="tipo">
@@ -102,12 +176,42 @@
           <a routerLink="/admin/visitas">Ver todos los tickets del día →</a>
         </p>
       </app-admin-data-panel>
+
+      <app-admin-data-panel
+        *ngIf="pensionHoy.length"
+        accent="teal"
+        title="En pensión hoy"
+        [description]="pensionHoy.length + ' alojadas'"
+        [showLegend]="false"
+      >
+        <ul class="citas-hoy-list">
+          <li *ngFor="let est of pensionHoy">
+            <div class="cell-primary">
+              <strong>{{ est.paciente || 'Mascota' }}</strong>
+              <span class="cell-sub">{{ est.cliente || 'Dueño' }} · ingreso {{ est.fecha_ingreso || '' }}</span>
+            </div>
+            <a mat-stroked-button routerLink="/admin/pension">Ver pensión</a>
+          </li>
+        </ul>
+      </app-admin-data-panel>
+
+      <app-admin-data-panel
+        *ngIf="verStockBajo && stockBajoCount > 0"
+        accent="orange"
+        title="Stock bajo"
+        [description]="stockBajoCount + ' alertas de reposición'"
+        [showLegend]="false"
+      >
+        <p class="operacion-hub__link">
+          <a routerLink="/admin/inventario/alertas">Ver alertas de inventario →</a>
+        </p>
+      </app-admin-data-panel>
     </section>
 
-    <mat-divider class="operacion-hub__divider"></mat-divider>
+    <mat-divider class="operacion-hub__divider" *ngIf="verOwnerDash"></mat-divider>
 
-    <!-- Dashboard dueño (spec 025) -->
-    <section class="owner-dash" aria-label="Dashboard de negocio">
+    <!-- Dashboard dueño (spec 025 / 072: solo admin) -->
+    <section class="owner-dash" *ngIf="verOwnerDash" aria-label="Dashboard de negocio">
       <header class="owner-dash__header">
         <div>
           <p class="section-eyebrow">{{ getSaludo() }} · Métricas del negocio</p>
@@ -122,7 +226,8 @@
               type="button"
               *ngFor="let p of presets"
               [class.periodo-activo]="periodoPreset === p.id"
-              (click)="setPreset(p.id)">
+              (click)="setPreset(p.id)"
+            >
               {{ p.label }}
             </button>
           </div>
@@ -134,7 +239,13 @@
             <mat-label>Hasta</mat-label>
             <input matInput type="date" [(ngModel)]="hastaCustom" />
           </mat-form-field>
-          <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="aplicarRangoCustom()">
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal"
+            type="button"
+            (click)="aplicarRangoCustom()"
+          >
             Aplicar
           </button>
         </div>
@@ -153,37 +264,65 @@
             [value]="formatMoney(snap.financieros.ventaBruta)"
             label="Ingresos brutos"
             hint="Caja + baños (precio de venta)"
-            link="/admin/finanzas">
+            link="/admin/finanzas"
+          >
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="orange"
             [value]="formatMoney(snap.financieros.costosAsociados)"
             label="Costos de servicio"
             hint="Caja + costoEstimado baños"
-            link="/admin/finanzas">
+            link="/admin/finanzas"
+          >
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="pink"
             [value]="formatMoney(snap.financieros.gastosOperativos)"
             label="Gastos operativos"
             hint="Egresos del período"
-            link="/admin/finanzas">
+            link="/admin/finanzas"
+          >
           </app-admin-stat-card>
           <app-admin-stat-card
             accent="green"
             [value]="formatMoney(snap.financieros.gananciaNeta)"
             label="Ganancia neta"
             hint="Ingresos − costos − gastos · si costo=venta → ≈$0"
-            link="/admin/finanzas">
+            link="/admin/finanzas"
+          >
           </app-admin-stat-card>
         </app-admin-kpi-grid>
 
         <p class="section-eyebrow">Operación</p>
         <app-admin-kpi-grid>
-          <app-admin-stat-card accent="purple" [value]="snap.operativos.citasHoy" label="Citas hoy" hint="Agenda del día" link="/admin/citas"></app-admin-stat-card>
-          <app-admin-stat-card accent="teal" [value]="snap.operativos.baniosPeriodo" label="Baños del período" hint="Servicios registrados" link="/admin/banios"></app-admin-stat-card>
-          <app-admin-stat-card accent="orange" [value]="snap.operativos.stockBajo" label="Stock bajo" hint="Requieren reposición" link="/admin/inventario/alertas"></app-admin-stat-card>
-          <app-admin-stat-card accent="blue" [value]="snap.operativos.clientesNuevosPeriodo" label="Clientes nuevos" hint="Alta en el período" link="/admin/clientes"></app-admin-stat-card>
+          <app-admin-stat-card
+            accent="purple"
+            [value]="snap.operativos.citasHoy"
+            label="Citas hoy"
+            hint="Agenda del día"
+            link="/admin/citas"
+          ></app-admin-stat-card>
+          <app-admin-stat-card
+            accent="teal"
+            [value]="snap.operativos.baniosPeriodo"
+            label="Baños del período"
+            hint="Servicios registrados"
+            link="/admin/banios"
+          ></app-admin-stat-card>
+          <app-admin-stat-card
+            accent="orange"
+            [value]="snap.operativos.stockBajo"
+            label="Stock bajo"
+            hint="Requieren reposición"
+            link="/admin/inventario/alertas"
+          ></app-admin-stat-card>
+          <app-admin-stat-card
+            accent="blue"
+            [value]="snap.operativos.clientesNuevosPeriodo"
+            label="Clientes nuevos"
+            hint="Alta en el período"
+            link="/admin/clientes"
+          ></app-admin-stat-card>
         </app-admin-kpi-grid>
 
         <div class="owner-dash__mid">
@@ -191,7 +330,8 @@
             accent="teal"
             title="Resumen financiero"
             [description]="snap.rango.label"
-            [showLegend]="false">
+            [showLegend]="false"
+          >
             <ul class="owner-resumen">
               <li *ngFor="let row of snap.resumen" [ngClass]="'owner-resumen__' + row.tone">
                 <span>{{ row.label }}</span>
@@ -215,8 +355,13 @@
           <app-admin-data-panel
             accent="teal"
             title="Meta de inversión"
-            [description]="inversionMeta?.configurada ? ('Meta ' + formatMoney(inversionMeta!.montoMeta)) : 'Configura el monto objetivo de recuperación'"
-            [showLegend]="false">
+            [description]="
+              inversionMeta?.configurada
+                ? 'Meta ' + formatMoney(inversionMeta!.montoMeta)
+                : 'Configura el monto objetivo de recuperación'
+            "
+            [showLegend]="false"
+          >
             <div class="owner-meta">
               <div class="owner-meta__actions" *ngIf="inversionMeta">
                 <button mat-stroked-button type="button" (click)="abrirConfigMeta()">
@@ -225,17 +370,30 @@
                 </button>
               </div>
               <p class="owner-meta__hint" *ngIf="!inversionMeta?.configurada">
-                Define cuánto quieres recuperar de la inversión inicial. El progreso usa la ganancia neta acumulada (caja + baños).
+                Define cuánto quieres recuperar de la inversión inicial. El progreso usa la ganancia neta acumulada
+                (caja + baños).
               </p>
               <ng-container *ngIf="inversionMeta?.configurada">
                 <div class="owner-meta__stats">
-                  <span>Acumulado <strong>{{ formatMoney(inversionMeta!.gananciaAcumulada) }}</strong></span>
-                  <span>Faltan <strong>{{ formatMoney(inversionMeta!.faltante) }}</strong></span>
+                  <span
+                    >Acumulado <strong>{{ formatMoney(inversionMeta!.gananciaAcumulada) }}</strong></span
+                  >
+                  <span
+                    >Faltan <strong>{{ formatMoney(inversionMeta!.faltante) }}</strong></span
+                  >
                 </div>
-                <div class="owner-meta__bar" role="progressbar" [attr.aria-valuenow]="inversionMeta!.porcentaje" aria-valuemin="0" aria-valuemax="100">
+                <div
+                  class="owner-meta__bar"
+                  role="progressbar"
+                  [attr.aria-valuenow]="inversionMeta!.porcentaje"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
                   <div class="owner-meta__fill" [style.width.%]="inversionMeta!.porcentaje"></div>
                 </div>
-                <p class="owner-meta__pct">Progreso {{ inversionMeta!.porcentaje }}% · ganancia neta acumulada vs meta</p>
+                <p class="owner-meta__pct">
+                  Progreso {{ inversionMeta!.porcentaje }}% · ganancia neta acumulada vs meta
+                </p>
               </ng-container>
             </div>
           </app-admin-data-panel>
@@ -246,12 +404,14 @@
             accent="teal"
             title="Top servicios (caja)"
             description="Ingresos por categoría en el período"
-            [showLegend]="false">
+            [showLegend]="false"
+          >
             <app-admin-empty-state
               *ngIf="!snap.topServicios.length"
               icon="spa"
               title="Sin cobros categorizados"
-              message="Registra ingresos en Finanzas o vincula baños/pensión a caja para ver el ranking.">
+              message="Registra ingresos en Finanzas o vincula baños/pensión a caja para ver el ranking."
+            >
             </app-admin-empty-state>
             <ol class="owner-rank" *ngIf="snap.topServicios.length">
               <li *ngFor="let item of snap.topServicios">
@@ -269,12 +429,14 @@
             accent="orange"
             title="Top productos vendidos"
             description="Ventas de inventario en caja"
-            [showLegend]="false">
+            [showLegend]="false"
+          >
             <app-admin-empty-state
               *ngIf="!snap.topProductos.length"
               icon="inventory_2"
               title="Sin ventas de producto"
-              message="Al registrar una salida con cobro en caja (venta_producto) aparecerá aquí.">
+              message="Al registrar una salida con cobro en caja (venta_producto) aparecerá aquí."
+            >
             </app-admin-empty-state>
             <ol class="owner-rank" *ngIf="snap.topProductos.length">
               <li *ngFor="let item of snap.topProductos">
@@ -293,24 +455,32 @@
           accent="teal"
           title="Ingresos por día"
           description="Serie del período (sin librería de charts)"
-          [showLegend]="false">
+          [showLegend]="false"
+        >
           <app-admin-empty-state
             *ngIf="!snap.financieros.ventaBruta"
             icon="show_chart"
             title="Sin ingresos en el período"
-            message="Cuando haya cobros en caja verás la curva diaria aquí.">
+            message="Cuando haya cobros en caja verás la curva diaria aquí."
+          >
           </app-admin-empty-state>
           <div class="owner-chart" *ngIf="snap.financieros.ventaBruta">
             <svg class="owner-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <polygon *ngIf="chartAreaPoints" [attr.points]="chartAreaPoints" class="owner-chart__area"></polygon>
-              <polyline *ngIf="chartPoints" [attr.points]="chartPoints" class="owner-chart__line" fill="none"></polyline>
+              <polyline
+                *ngIf="chartPoints"
+                [attr.points]="chartPoints"
+                class="owner-chart__line"
+                fill="none"
+              ></polyline>
             </svg>
             <div class="owner-chart__bars" aria-label="Ingresos diarios">
               <div class="owner-chart__col" *ngFor="let d of snap.serieIngresos">
                 <div
                   class="owner-chart__bar"
                   [style.height.%]="barPct(d.ingresos)"
-                  [matTooltip]="formatChartFecha(d.fecha) + ': ' + formatMoney(d.ingresos)"></div>
+                  [matTooltip]="formatChartFecha(d.fecha) + ': ' + formatMoney(d.ingresos)"
+                ></div>
               </div>
             </div>
             <div class="owner-chart__legend">
@@ -327,8 +497,8 @@
       id="calendario-citas"
       title="Calendario de citas"
       description="Doble clic en un día con citas para ver el detalle del día."
-      [showLegend]="false">
-
+      [showLegend]="false"
+    >
       <div class="calendar-toolbar">
         <button mat-icon-button type="button" (click)="previousMonth()" aria-label="Mes anterior">
           <mat-icon>chevron_left</mat-icon>
@@ -360,7 +530,8 @@
             (dblclick)="showCitasForDay(day)"
             [style.cursor]="day.hasCitas ? 'pointer' : 'default'"
             [matTooltip]="day.hasCitas ? 'Doble clic para ver citas' : ''"
-            matTooltipPosition="above">
+            matTooltipPosition="above"
+          >
             <div class="day-number">{{ day.day }}</div>
             <div *ngIf="day.hasCitas" class="citas-indicator">
               <div class="citas-dot"></div>

@@ -1,0 +1,39 @@
+.ayuda-flujo {
+  margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border, #e5e7eb);
+}
+
+.ayuda-flujo:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+
+.ayuda-flujo__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #032d60;
+}
+
+.ayuda-flujo__title mat-icon {
+  color: var(--katzen-verde, #0a969b);
+}
+
+.ayuda-flujo__pasos {
+  margin: 0;
+  padding-left: 1.35rem;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.ayuda-flujo__pasos li + li {
+  margin-top: 6px;
+}
+
+.ayuda-spacer {
+  flex: 1;
+}

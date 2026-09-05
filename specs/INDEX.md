@@ -2,7 +2,7 @@
 
 > **Autogenerado** por `node scripts/specs-index.mjs` a partir de `specs/NNN-*/spec.md`. **No editar a mano**: cambia el `Estado:` en la spec y regenera.
 
-Total: **67** specs · `done`: 56 · `in_progress`: 8 · `superseded`: 3
+Total: **72** specs · `done`: 60 · `in_progress`: 9 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -73,3 +73,8 @@ Total: **67** specs · `done`: 56 · `in_progress`: 8 · `superseded`: 3
 | 065 | [pos-venta-rapida-guiada](065-pos-venta-rapida-guiada/spec.md) | POS — venta rápida guiada | done |
 | 066 | [whatsapp-recordatorios-metrica-uso](066-whatsapp-recordatorios-metrica-uso/spec.md) | Recordatorio por WhatsApp + métrica de uso por módulo | done |
 | 067 | [respaldo-rtdb](067-respaldo-rtdb/spec.md) | Respaldo semanal de RTDB a Cloud Storage | done |
+| 068 | [numero-expediente-visible](068-numero-expediente-visible/spec.md) | Número de expediente visible en ficha de paciente | done |
+| 069 | [fase1-quitar-friccion](069-fase1-quitar-friccion/spec.md) | Fase 1 — Quitar fricción operativa | done |
+| 070 | [fase2-flujos-guiados](070-fase2-flujos-guiados/spec.md) | Fase 2 — Flujos guiados | done |
+| 071 | [fase3-caja-automatica](071-fase3-caja-automatica/spec.md) | Fase 3 — Caja y finanzas automáticas | done |
+| 072 | [fase4-hoy-roles-onboarding](072-fase4-hoy-roles-onboarding/spec.md) | Fase 4 — Hoy, roles y onboarding | in_progress |

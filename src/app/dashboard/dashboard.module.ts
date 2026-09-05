@@ -31,6 +31,11 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { SharedModule } from '../shared/shared.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AltaRapidaDialogModule } from '../alta-rapida/alta-rapida-dialog.module';
+import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
+import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { RecordatoriosService } from '../recordatorios/recordatorios.service';
+import { InventarioService } from '../inventario/inventario.service';
 
 @NgModule({
   declarations: [
@@ -38,7 +43,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     AdminLayoutComponent,
     ExpedientePacienteComponent,
     CitasDiaDialogComponent,
-    InversionMetaDialogComponent
+    InversionMetaDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -59,7 +64,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatProgressSpinnerModule,
     SharedModule,
-    RouterModule
+    RouterModule,
+    AltaRapidaDialogModule,
+    VisitasDialogModule,
+    CajaDialogModule,
   ],
   providers: [
     CitasService,
@@ -69,7 +77,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     VacunasService,
     HistorialesService,
     ClientesService,
-    PacientesService
-  ]
+    PacientesService,
+    RecordatoriosService,
+    InventarioService,
+  ],
 })
-export class DashboardModule { }
+export class DashboardModule {}

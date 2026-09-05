@@ -3,17 +3,16 @@
  * Requiere credenciales en cypress.env.json (provision via scripts/smoke-008-provision-roles.mjs).
  * No persiste writes: diálogos se cancelan.
  *
- * Política 011: doctor / recepcionista / peluquero tienen los mismos módulos que
- * administrador. Solo portal client queda restringido.
+ * Spec 072: doctor / recepcionista / peluquero ya no tienen el mismo menú ni
+ * acceso URL que administrador (Finanzas/Personal/Inventario según rol).
+ * Este archivo histórico de 008/011 queda desactualizado; no usarlo como QA de 072.
  *
  * Escrituras RTDB operativas ALLOW se validan con:
  *   node scripts/smoke-008-provision-roles.mjs rtdb-probe
  */
 describe('Admin roles 008 smoke', () => {
   const expectNav = (path: string, visible: boolean) => {
-    cy.get('mat-sidenav mat-nav-list a[routerLink="' + path + '"]').should(
-      visible ? 'exist' : 'not.exist'
-    );
+    cy.get('mat-sidenav mat-nav-list a[routerLink="' + path + '"]').should(visible ? 'exist' : 'not.exist');
   };
 
   /** Todos los módulos admin deben ser visibles para cualquier staff (política 011). */
