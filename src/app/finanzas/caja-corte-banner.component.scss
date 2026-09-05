@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.caja-corte-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #fdba74;
+  border-radius: var(--admin-radius-md, 12px);
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.caja-corte-banner__text {
+  min-width: 0;
+  flex: 1 1 220px;
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    color: #c2410c;
+  }
+}
+
+button {
+  flex: 0 0 auto;
+  min-height: 42px;
+}

@@ -129,4 +129,17 @@ describe('pos-ticket-whatsapp (spec 065)', () => {
     expect(folioCortoVisita('')).toBe('');
     expect(folioCortoVisita(null)).toBe('');
   });
+
+  it('folio persistido 071 gana sobre el id', () => {
+    const texto = generarTextoTicketWhatsApp({
+      fecha: '2026-09-04',
+      visitaId: '-OabcDEF123xyz',
+      folio: 'KV-20260904-007',
+      esMostrador: true,
+      lineas: lineasBase,
+      pagos: [{ metodo: 'efectivo', monto: 850 }],
+    });
+    expect(texto).toContain('Folio KV-20260904-007');
+    expect(texto).not.toContain('Folio 123XYZ');
+  });
 });

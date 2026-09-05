@@ -6,30 +6,60 @@
 
   <ng-container *ngIf="!(loading && selectedTab === 0)">
     <app-flow-hint
+      hintId="finanzas-caja"
       icon="receipt_long"
       variant="warn"
-      message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin).">
+      message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin)."
+    >
     </app-flow-hint>
 
     <p class="section-eyebrow">Finanzas de la clínica</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="green" [value]="formatMoney(kpis.neto)" label="Neto caja" hint="Ingresos − egresos"></app-admin-stat-card>
-      <app-admin-stat-card accent="teal" [value]="formatMoney(kpis.totalIngresos)" label="Ingresos" hint="Cobros del período"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" [value]="formatMoney(kpis.margenEstimado)" label="Margen estimado" hint="Solo cobros con costo · sin costo → no entra aquí"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" [value]="formatMoney(kpis.totalEgresos)" label="Gastos" hint="Egresos del período"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="green"
+        [value]="formatMoney(kpis.neto)"
+        label="Neto caja"
+        hint="Ingresos − egresos"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="formatMoney(kpis.totalIngresos)"
+        label="Ingresos"
+        hint="Cobros del período"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="formatMoney(kpis.margenEstimado)"
+        label="Margen estimado"
+        hint="Solo cobros con costo · sin costo → no entra aquí"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="formatMoney(kpis.totalEgresos)"
+        label="Gastos"
+        hint="Egresos del período"
+      ></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
       accent="teal"
       icon="account_balance_wallet"
       title="Caja / costos / rentabilidad"
-      subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día.">
+      subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día."
+    >
       <div bannerActions>
         <button mat-stroked-button type="button" *ngIf="isAdmin" (click)="abrirCorteCaja()">
           <mat-icon>point_of_sale</mat-icon>
           Corte de caja
         </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" *ngIf="isAdmin" (click)="nuevoMovimiento()">
+        <button
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          type="button"
+          *ngIf="isAdmin"
+          (click)="nuevoMovimiento()"
+        >
           <mat-icon>add</mat-icon>
           Registrar cobro
         </button>
@@ -43,21 +73,24 @@
             mat-stroked-button
             type="button"
             [class.periodo-activo]="periodoModo === 'dia'"
-            (click)="onPeriodoModoChange('dia')">
+            (click)="onPeriodoModoChange('dia')"
+          >
             Día
           </button>
           <button
             mat-stroked-button
             type="button"
             [class.periodo-activo]="periodoModo === 'semana'"
-            (click)="onPeriodoModoChange('semana')">
+            (click)="onPeriodoModoChange('semana')"
+          >
             Semana
           </button>
           <button
             mat-stroked-button
             type="button"
             [class.periodo-activo]="periodoModo === 'mes'"
-            (click)="onPeriodoModoChange('mes')">
+            (click)="onPeriodoModoChange('mes')"
+          >
             Mes
           </button>
         </div>
@@ -65,7 +98,8 @@
           *ngIf="periodoModo === 'dia' || periodoModo === 'semana'"
           appearance="outline"
           subscriptSizing="dynamic"
-          class="fecha-filtro">
+          class="fecha-filtro"
+        >
           <mat-label>{{ periodoModo === 'semana' ? 'Día de la semana' : 'Fecha' }}</mat-label>
           <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
         </mat-form-field>
@@ -73,7 +107,8 @@
           *ngIf="periodoModo === 'mes'"
           appearance="outline"
           subscriptSizing="dynamic"
-          class="fecha-filtro">
+          class="fecha-filtro"
+        >
           <mat-label>Mes</mat-label>
           <input matInput type="month" [value]="mesFiltro" (change)="onMesChange($event)" />
         </mat-form-field>
@@ -87,10 +122,7 @@
       </div>
     </div>
 
-    <mat-tab-group
-      class="finanzas-tabs"
-      [(selectedIndex)]="selectedTab"
-      animationDuration="200ms">
+    <mat-tab-group class="finanzas-tabs" [(selectedIndex)]="selectedTab" animationDuration="200ms">
       <!-- TAB CAJA -->
       <mat-tab label="Caja">
         <app-admin-data-panel
@@ -98,8 +130,8 @@
           title="Movimientos"
           [description]="'Listado · ' + periodoLabel"
           [meta]="kpis.movimientosActivos + ' movimientos'"
-          [showLegend]="!!dataSource.data.length">
-
+          [showLegend]="!!dataSource.data.length"
+        >
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="buscador panel-search">
             <mat-label>Buscar</mat-label>
             <mat-icon matPrefix>search</mat-icon>
@@ -112,7 +144,8 @@
             title="Sin movimientos"
             message="No hay cobros ni gastos para este período."
             actionLabel="Registrar cobro"
-            (action)="nuevoMovimiento()">
+            (action)="nuevoMovimiento()"
+          >
           </app-admin-empty-state>
 
           <div class="table-scroll" *ngIf="dataSource.data.length > 0">
@@ -139,7 +172,11 @@
               <ng-container matColumnDef="tipo">
                 <th mat-header-cell *matHeaderCellDef>Tipo</th>
                 <td mat-cell *matCellDef="let row">
-                  <span class="estado-badge" [class.estado-badge--ok]="row.tipo === 'ingreso'" [class.estado-badge--warn]="row.tipo === 'egreso'">
+                  <span
+                    class="estado-badge"
+                    [class.estado-badge--ok]="row.tipo === 'ingreso'"
+                    [class.estado-badge--warn]="row.tipo === 'egreso'"
+                  >
                     {{ row.tipo === 'ingreso' ? 'Ingreso' : 'Egreso' }}
                   </span>
                 </td>
@@ -153,7 +190,11 @@
               <ng-container matColumnDef="iva">
                 <th mat-header-cell *matHeaderCellDef>IVA</th>
                 <td mat-cell *matCellDef="let row">
-                  <span class="estado-badge" [class.estado-badge--ok]="row.ivaDeclarado" [class.estado-badge--muted]="!row.ivaDeclarado">
+                  <span
+                    class="estado-badge"
+                    [class.estado-badge--ok]="row.ivaDeclarado"
+                    [class.estado-badge--muted]="!row.ivaDeclarado"
+                  >
                     {{ row.ivaDeclarado ? 'Declarado' : 'No declarado' }}
                   </span>
                 </td>
@@ -196,8 +237,78 @@
             *ngIf="dataSource.data.length > 0"
             [pageSize]="pageSize"
             [pageSizeOptions]="[25, 50, 100]"
-            showFirstLastButtons>
+            showFirstLastButtons
+          >
           </mat-paginator>
+        </app-admin-data-panel>
+      </mat-tab>
+
+      <mat-tab label="Ventas hoy">
+        <app-admin-data-panel
+          accent="teal"
+          title="Ventas por veterinaria hoy"
+          description="Tickets del día agrupados por quién atendió. Sin filtros."
+          [meta]="ventasVetHoy.length + ' veterinarias'"
+          [showLegend]="!!ventasVetHoy.length"
+        >
+          <app-admin-empty-state
+            *ngIf="ventasVetHoy.length === 0"
+            icon="groups"
+            title="Sin ventas de hoy"
+            message="Cuando se cobren tickets, verás el total por veterinaria aquí."
+          >
+          </app-admin-empty-state>
+
+          <div class="table-scroll" *ngIf="ventasVetHoy.length">
+            <table mat-table [dataSource]="ventasVetHoy" class="caja-table">
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Veterinaria</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="cell-nombre">{{ row.nombre }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="tickets">
+                <th mat-header-cell *matHeaderCellDef>Tickets</th>
+                <td mat-cell *matCellDef="let row">{{ row.tickets }}</td>
+              </ng-container>
+              <ng-container matColumnDef="pagado">
+                <th mat-header-cell *matHeaderCellDef>Cobrado</th>
+                <td mat-cell *matCellDef="let row">
+                  <strong>{{ formatMoney(row.pagado) }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef>Total tickets</th>
+                <td mat-cell *matCellDef="let row">{{ formatMoney(row.total) }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="ventasVetColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: ventasVetColumns"></tr>
+            </table>
+          </div>
+        </app-admin-data-panel>
+
+        <app-admin-data-panel
+          accent="orange"
+          title="Cuentas por cobrar"
+          description="Saldo pendiente de clientes. El detalle vive en Clientes — no se duplica aquí."
+          [meta]="cxcDeudores + ' con deuda'"
+          [showLegend]="false"
+        >
+          <p class="cxc-resumen">
+            Total por cobrar: <strong>{{ formatMoney(cxcTotal) }}</strong> · {{ cxcDeudores }} cliente{{
+              cxcDeudores === 1 ? '' : 's'
+            }}
+          </p>
+          <a
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal"
+            routerLink="/admin/clientes"
+            [queryParams]="{ deuda: '1' }"
+          >
+            <mat-icon>account_balance_wallet</mat-icon>
+            Ver cuentas por cobrar
+          </a>
         </app-admin-data-panel>
       </mat-tab>
 
@@ -208,13 +319,14 @@
           title="Ingresos por categoría"
           [description]="'Desglose de cobros · ' + periodoLabel"
           [meta]="formatMoney(totalIngresosServicio) + ' total'"
-          [showLegend]="!!chartIngresosServicio.length">
-
+          [showLegend]="!!chartIngresosServicio.length"
+        >
           <app-admin-empty-state
             *ngIf="chartIngresosServicio.length === 0"
             icon="bar_chart"
             title="Sin ingresos en el período"
-            message="Registra cobros categorizados o completa baños para ver el desglose.">
+            message="Registra cobros categorizados o completa baños para ver el desglose."
+          >
           </app-admin-empty-state>
 
           <div class="rent-charts" *ngIf="chartIngresosServicio.length > 0">
@@ -225,8 +337,8 @@
                   <div class="rent-bar-track">
                     <div
                       class="rent-bar-fill rent-bar-fill--ok"
-                      [style.height.%]="barPct(row.total, ingresosServicioMax)">
-                    </div>
+                      [style.height.%]="barPct(row.total, ingresosServicioMax)"
+                    ></div>
                   </div>
                   <span class="rent-bar-value">{{ formatMoney(row.total) }}</span>
                   <span class="rent-bar-label">{{ row.label }}</span>
@@ -257,11 +369,7 @@
                   <ng-container matColumnDef="pct">
                     <th mat-header-cell *matHeaderCellDef>%</th>
                     <td mat-cell *matCellDef="let row">
-                      {{
-                        totalIngresosServicio
-                          ? ((row.total / totalIngresosServicio) * 100).toFixed(1)
-                          : '0'
-                      }}%
+                      {{ totalIngresosServicio ? ((row.total / totalIngresosServicio) * 100).toFixed(1) : '0' }}%
                     </td>
                   </ng-container>
                   <tr mat-header-row *matHeaderRowDef="ingresosServicioColumns"></tr>
@@ -286,8 +394,8 @@
           title="Defaults baño por tamaño"
           description="Costo, precio sugerido y plantilla opcional (P/M/G). El modal de baño prellena al elegir tamaño; 0 = sin tarifa."
           meta="3 tamaños"
-          [showLegend]="false">
-
+          [showLegend]="false"
+        >
           <div class="defaults-banio-grid" *ngIf="defaultsForm" [formGroup]="defaultsForm">
             <div class="defaults-banio-row" *ngFor="let t of tamanosBanio" [formGroupName]="t">
               <strong class="defaults-banio-label">{{ tamanoLabels[t] }}</strong>
@@ -304,7 +412,7 @@
                 <mat-select formControlName="plantillaCostoId">
                   <mat-option value="">Sin plantilla</mat-option>
                   <mat-option *ngFor="let p of plantillasBanio" [value]="p.id">
-                    {{ p.nombre }} · ${{ p.costoTotalEstimado | number:'1.0-0' }}
+                    {{ p.nombre }} · ${{ p.costoTotalEstimado | number: '1.0-0' }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -315,7 +423,8 @@
               class="btn-primary-teal"
               type="button"
               [disabled]="savingDefaults"
-              (click)="guardarDefaultsBanio()">
+              (click)="guardarDefaultsBanio()"
+            >
               <mat-icon>save</mat-icon>
               Guardar defaults
             </button>
@@ -328,8 +437,8 @@
           title="Defaults pensión por tamaño"
           description="Precio/día y costo/día. Opcional: ID de producto de comida y cantidad/día para opt-in al cobrar."
           meta="3 tamaños"
-          [showLegend]="false">
-
+          [showLegend]="false"
+        >
           <div class="defaults-banio-grid" *ngIf="defaultsPensionForm" [formGroup]="defaultsPensionForm">
             <div class="defaults-banio-row defaults-pension-row" *ngFor="let t of tamanosPension" [formGroupName]="t">
               <strong class="defaults-banio-label">{{ tamanoPensionLabels[t] }}</strong>
@@ -356,7 +465,8 @@
               class="btn-primary-teal"
               type="button"
               [disabled]="savingDefaultsPension"
-              (click)="guardarDefaultsPension()">
+              (click)="guardarDefaultsPension()"
+            >
               <mat-icon>save</mat-icon>
               Guardar defaults pensión
             </button>
@@ -369,14 +479,15 @@
           title="Plantillas de costo"
           description="Baño, corte, cirugía… con ítems de inventario o gastos libres. Úsalas al cobrar para ver margen."
           [meta]="plantillasDataSource.data.length + ' plantillas'"
-          [showLegend]="!!plantillasDataSource.data.length">
-
+          [showLegend]="!!plantillasDataSource.data.length"
+        >
           <button
             mat-raised-button
             color="primary"
             class="btn-primary-teal panel-action"
             type="button"
-            (click)="nuevaPlantilla()">
+            (click)="nuevaPlantilla()"
+          >
             <mat-icon>add</mat-icon>
             Nueva plantilla
           </button>
@@ -387,7 +498,8 @@
             title="Sin plantillas"
             message="Crea una plantilla (ej. Baño completo) con productos o gastos de costo."
             actionLabel="Nueva plantilla"
-            (action)="nuevaPlantilla()">
+            (action)="nuevaPlantilla()"
+          >
           </app-admin-empty-state>
 
           <div class="table-scroll" *ngIf="plantillasDataSource.data.length > 0">
@@ -452,8 +564,8 @@
           accent="teal"
           title="Resumen fácil de leer"
           [description]="'Qué entró y qué salió · ' + periodoLabel"
-          meta="P&amp;L simple (sin factura SAT)">
-
+          meta="P&amp;L simple (sin factura SAT)"
+        >
           <div class="rentabilidad-grid">
             <div class="rent-card">
               <span class="rent-label">Lo que cobraste (ingresos)</span>
@@ -466,7 +578,9 @@
             </div>
             <div class="rent-card">
               <span class="rent-label">Margen de esos servicios</span>
-              <strong class="rent-value" [class.rent-warn]="kpis.margenEstimado < 0">{{ formatMoney(kpis.margenEstimado) }}</strong>
+              <strong class="rent-value" [class.rent-warn]="kpis.margenEstimado < 0">{{
+                formatMoney(kpis.margenEstimado)
+              }}</strong>
             </div>
             <div class="rent-card">
               <span class="rent-label">Gastos (publicidad, gasolina…)</span>
@@ -491,8 +605,8 @@
           title="Gráficas del período"
           [description]="'Ingresos, egresos y ganancia · ' + periodoLabel"
           meta="Vista rápida para doctoras"
-          [showLegend]="false">
-
+          [showLegend]="false"
+        >
           <div class="rent-charts">
             <section class="rent-chart-block" aria-label="Ingresos vs egresos vs ganancia">
               <h3 class="rent-chart-title">Resumen</h3>
@@ -504,8 +618,8 @@
                       [class.rent-bar-fill--ok]="bar.tone === 'ok'"
                       [class.rent-bar-fill--egreso]="bar.tone === 'egreso'"
                       [class.rent-bar-fill--warn]="bar.tone === 'warn'"
-                      [style.height.%]="barPct(bar.value)">
-                    </div>
+                      [style.height.%]="barPct(bar.value)"
+                    ></div>
                   </div>
                   <span class="rent-bar-value">{{ formatMoney(bar.value) }}</span>
                   <span class="rent-bar-label">{{ bar.label }}</span>
@@ -532,7 +646,8 @@
             <section
               class="rent-chart-block rent-chart-block--wide"
               aria-label="Evolución diaria"
-              *ngIf="periodoModo !== 'dia' && chartSerie.length">
+              *ngIf="periodoModo !== 'dia' && chartSerie.length"
+            >
               <h3 class="rent-chart-title">Día a día</h3>
               <div class="rent-serie">
                 <div class="rent-serie-col" *ngFor="let d of chartSerie">
@@ -540,11 +655,13 @@
                     <div
                       class="rent-serie-bar rent-serie-bar--ing"
                       [style.height.%]="barPct(d.ingresos, serieMax)"
-                      [matTooltip]="'Ingresos ' + formatMoney(d.ingresos)"></div>
+                      [matTooltip]="'Ingresos ' + formatMoney(d.ingresos)"
+                    ></div>
                     <div
                       class="rent-serie-bar rent-serie-bar--egr"
                       [style.height.%]="barPct(d.egresos, serieMax)"
-                      [matTooltip]="'Egresos ' + formatMoney(d.egresos)"></div>
+                      [matTooltip]="'Egresos ' + formatMoney(d.egresos)"
+                    ></div>
                   </div>
                   <span class="rent-serie-label">{{ formatChartFecha(d.fecha) }}</span>
                 </div>

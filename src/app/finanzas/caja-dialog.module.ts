@@ -9,9 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.component';
+import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
+import { CajaCorteBannerComponent } from './caja-corte-banner.component';
 
 @NgModule({
-  declarations: [CajaMovimientoDialogComponent],
+  declarations: [CajaMovimientoDialogComponent, CajaCorteDialogComponent, CajaCorteBannerComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -21,8 +23,8 @@ import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.componen
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
   ],
-  exports: [CajaMovimientoDialogComponent]
+  exports: [CajaMovimientoDialogComponent, CajaCorteDialogComponent, CajaCorteBannerComponent],
 })
 export class CajaDialogModule {}

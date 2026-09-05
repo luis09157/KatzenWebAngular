@@ -14,11 +14,13 @@ import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
+import { exportToCsv } from '../../core/utils/csv-export.util';
+import { columnasCsvOrdenes, mapOrdenACsvRow, nombreArchivoCsvOrdenes } from './orden-compra-csv.util';
 
 @Component({
   selector: 'app-ordenes',
   templateUrl: './ordenes.component.html',
-  styleUrls: ['./ordenes.component.css']
+  styleUrls: ['./ordenes.component.css'],
 })
 export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -33,7 +35,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
     'total',
     'estado',
     'fecha_entrega_esperada',
-    'acciones'
+    'acciones',
   ];
 
   dataSource: MatTableDataSource<OrdenCompra>;
@@ -73,7 +75,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
     { valor: 'enviada', etiqueta: 'Enviadas' },
     { valor: 'parcialmente_recibida', etiqueta: 'Parcialmente Recibidas' },
     { valor: 'recibida', etiqueta: 'Recibidas' },
-    { valor: 'cancelada', etiqueta: 'Canceladas' }
+    { valor: 'cancelada', etiqueta: 'Canceladas' },
   ];
 
   constructor(
@@ -107,36 +109,42 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   cargarDatos(): void {
     this.loading = true;
-    this.inventarioService.getProveedores().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (proveedores) => {
-        this.proveedores.clear();
-        proveedores.forEach(p => {
-          if (p.id) this.proveedores.set(p.id, p);
-        });
-        this.inventarioService.getOrdenesCompra().pipe(takeUntil(this.destroy$)).subscribe({
-          next: (ordenes) => {
-            this.ordenes = ordenes;
-            this.aplicarFiltros();
-            this.loading = false;
-          },
-          error: (error) => {
-            this.logger.error('Error al cargar órdenes:', error);
-            this.loading = false;
-          }
-        });
-      },
-      error: (error) => {
-        this.logger.error('Error al cargar proveedores:', error);
-        this.loading = false;
-      }
-    });
+    this.inventarioService
+      .getProveedores()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (proveedores) => {
+          this.proveedores.clear();
+          proveedores.forEach((p) => {
+            if (p.id) this.proveedores.set(p.id, p);
+          });
+          this.inventarioService
+            .getOrdenesCompra()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (ordenes) => {
+                this.ordenes = ordenes;
+                this.aplicarFiltros();
+                this.loading = false;
+              },
+              error: (error) => {
+                this.logger.error('Error al cargar órdenes:', error);
+                this.loading = false;
+              },
+            });
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar proveedores:', error);
+          this.loading = false;
+        },
+      });
   }
 
   aplicarFiltros(): void {
     let ordenesFiltradas = [...this.ordenes];
 
     if (this.filtroEstado !== 'todos') {
-      ordenesFiltradas = ordenesFiltradas.filter(o => o.estado === this.filtroEstado);
+      ordenesFiltradas = ordenesFiltradas.filter((o) => o.estado === this.filtroEstado);
     }
 
     this.dataSource.data = ordenesFiltradas;
@@ -147,33 +155,42 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   nuevaOrden(): void {
     const dialogRef = this.dialog.open(OrdenDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      disableClose: true
+      disableClose: true,
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   private abrirOrdenConProducto(productoId: string, proveedorId?: string): void {
     const dialogRef = this.dialog.open(OrdenDialogComponent, {
       ...ADMIN_DIALOG_FORM,
       disableClose: true,
-      data: { productoId, proveedorId }
+      data: { productoId, proveedorId },
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   recibirOrden(orden: OrdenCompra): void {
     const dialogRef = this.dialog.open(RecibirOrdenDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       disableClose: true,
-      data: { orden }
+      data: { orden },
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   async cancelarOrden(orden: OrdenCompra): Promise<void> {
@@ -189,7 +206,7 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, cancelar orden',
-      cancelButtonText: 'No'
+      cancelButtonText: 'No',
     });
 
     if (result.isConfirmed && orden.id) {
@@ -209,34 +226,34 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getEstadoColor(estado: string): string {
-    const colores: {[key: string]: string} = {
-      'pendiente': '#ff9800',
-      'enviada': '#2196f3',
-      'parcialmente_recibida': '#ff5722',
-      'recibida': '#4caf50',
-      'cancelada': '#757575'
+    const colores: { [key: string]: string } = {
+      pendiente: '#ff9800',
+      enviada: '#2196f3',
+      parcialmente_recibida: '#ff5722',
+      recibida: '#4caf50',
+      cancelada: '#757575',
     };
     return colores[estado] || '#999';
   }
 
   getEstadoIcono(estado: string): string {
-    const iconos: {[key: string]: string} = {
-      'pendiente': 'schedule',
-      'enviada': 'local_shipping',
-      'parcialmente_recibida': 'hourglass_bottom',
-      'recibida': 'check_circle',
-      'cancelada': 'cancel'
+    const iconos: { [key: string]: string } = {
+      pendiente: 'schedule',
+      enviada: 'local_shipping',
+      parcialmente_recibida: 'hourglass_bottom',
+      recibida: 'check_circle',
+      cancelada: 'cancel',
     };
     return iconos[estado] || 'help';
   }
 
   getEstadoTexto(estado: string): string {
-    const textos: {[key: string]: string} = {
-      'pendiente': 'Pendiente',
-      'enviada': 'Enviada',
-      'parcialmente_recibida': 'Parcialmente Recibida',
-      'recibida': 'Recibida',
-      'cancelada': 'Cancelada'
+    const textos: { [key: string]: string } = {
+      pendiente: 'Pendiente',
+      enviada: 'Enviada',
+      parcialmente_recibida: 'Parcialmente Recibida',
+      recibida: 'Recibida',
+      cancelada: 'Cancelada',
     };
     return textos[estado] || estado;
   }
@@ -246,13 +263,12 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
     return date.toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 
   puedeRecibir(orden: OrdenCompra): boolean {
-    return orden.estado === 'borrador' || 
-           orden.estado === 'parcial';
+    return orden.estado === 'borrador' || orden.estado === 'parcial';
   }
 
   puedeCancelar(orden: OrdenCompra): boolean {
@@ -260,8 +276,12 @@ export class OrdenesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   exportarExcel(): void {
-    this.logger.log('Exportar órdenes a Excel');
-    Swal.fire('Próximamente', 'Exportación en desarrollo', 'info');
+    const filas = this.dataSource.filteredData?.length ? this.dataSource.filteredData : this.dataSource.data;
+    if (!filas.length) {
+      Swal.fire('Sin datos', 'No hay órdenes para exportar.', 'info');
+      return;
+    }
+    const rows = filas.map((o) => mapOrdenACsvRow(o, this.getProveedorNombre(o.proveedor_id)));
+    exportToCsv(nombreArchivoCsvOrdenes(), rows, columnasCsvOrdenes());
   }
 }
-

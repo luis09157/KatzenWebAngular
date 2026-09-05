@@ -13,19 +13,20 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+import { RouterModule } from '@angular/router';
 import { SharedModule } from '../shared/shared.module';
 import { FinanzasRoutingModule } from './finanzas-routing.module';
 import { FinanzasComponent } from './finanzas.component';
 import { CajaDialogModule } from './caja-dialog.module';
 import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
-import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
 
 @NgModule({
-  declarations: [FinanzasComponent, PlantillaCostoDialogComponent, CajaCorteDialogComponent],
+  declarations: [FinanzasComponent, PlantillaCostoDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FinanzasRoutingModule,
+    RouterModule,
     SharedModule,
     CajaDialogModule,
     MatTableModule,
@@ -39,7 +40,7 @@ import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
     MatCheckboxModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatTabsModule
-  ]
+    MatTabsModule,
+  ],
 })
 export class FinanzasModule {}

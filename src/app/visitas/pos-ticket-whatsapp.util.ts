@@ -22,8 +22,10 @@ export interface TicketWhatsAppInput {
   clinica?: string;
   /** Fecha del ticket `yyyy-mm-dd` (o texto ya formateado). */
   fecha: string;
-  /** Id de la visita; se recorta a folio corto. */
+  /** Id de la visita; se recorta a folio corto si no hay `folio`. */
   visitaId?: string | null;
+  /** Spec 071 — folio persistido (KV-YYYYMMDD-NNN). Gana sobre el id. */
+  folio?: string | null;
   /** Nombre del cliente; vacío o mostrador → «Venta de mostrador». */
   cliente?: string | null;
   esMostrador?: boolean;
@@ -125,7 +127,7 @@ export function generarTextoTicketWhatsApp(input: TicketWhatsAppInput): string {
   const clinica = String(input.clinica || CLINICA_NOMBRE_TICKET).trim() || CLINICA_NOMBRE_TICKET;
   const lineas = (input.lineas || []).filter(Boolean);
   const { total, iva, devuelto } = totalesTicketWhatsApp(lineas);
-  const folio = folioCortoVisita(input.visitaId);
+  const folio = String(input.folio || '').trim() || folioCortoVisita(input.visitaId);
   const esMostrador =
     input.esMostrador === true || !String(input.cliente || '').trim() || /mostrador/i.test(String(input.cliente));
 

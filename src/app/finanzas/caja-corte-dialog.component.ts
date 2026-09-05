@@ -7,10 +7,12 @@ import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { CajaMovimiento } from './caja.models';
 import { CajaService } from './caja.service';
 import { calcularCorteCaja, efectivoNetoDelDia } from './caja-corte.util';
+import { yaHayCorteDelDia } from './caja-turno.util';
 
 @Component({
   selector: 'app-caja-corte-dialog',
-  templateUrl: './caja-corte-dialog.component.html'
+  templateUrl: './caja-corte-dialog.component.html',
+  styleUrls: ['./caja-corte-dialog.component.scss'],
 })
 export class CajaCorteDialogComponent implements OnInit {
   form: FormGroup;
@@ -18,6 +20,7 @@ export class CajaCorteDialogComponent implements OnInit {
   esperado = 0;
   diferencia = 0;
   cuadrado = false;
+  yaHayCorte = false;
 
   constructor(
     private fb: FormBuilder,
@@ -25,21 +28,23 @@ export class CajaCorteDialogComponent implements OnInit {
     private loadingService: LoadingService,
     private errorMessages: ErrorMessagesService,
     private dialogRef: MatDialogRef<CajaCorteDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { fecha: string; movimientos: CajaMovimiento[] }
+    @Inject(MAT_DIALOG_DATA) public data: { fecha: string; movimientos: CajaMovimiento[]; fondoInicial?: number }
   ) {
     const fecha = data?.fecha || this.caja.hoyLocalIsoDate();
     const neto = efectivoNetoDelDia(data?.movimientos || [], fecha);
     this.form = this.fb.group({
       fecha: [fecha, Validators.required],
-      fondoInicial: [0, [Validators.required, Validators.min(0)]],
+      fondoInicial: [Number(data?.fondoInicial) || 0, [Validators.required, Validators.min(0)]],
       efectivoContado: [null, [Validators.required, Validators.min(0)]],
-      notas: ['']
+      notas: [''],
     });
     this.recalc(neto.ingresos, neto.egresos);
   }
 
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => this.recalcFromForm());
+    this.form.get('fecha')?.valueChanges.subscribe(() => void this.prefijarFondoYCorte());
+    void this.prefijarFondoYCorte();
   }
 
   get ingresosEfectivo(): number {
@@ -48,6 +53,27 @@ export class CajaCorteDialogComponent implements OnInit {
 
   get egresosEfectivo(): number {
     return efectivoNetoDelDia(this.data?.movimientos || [], this.form.get('fecha')?.value).egresos;
+  }
+
+  private async prefijarFondoYCorte(): Promise<void> {
+    const fecha = String(this.form.get('fecha')?.value || this.caja.hoyLocalIsoDate()).slice(0, 10);
+    try {
+      const [turno, cortes] = await Promise.all([this.caja.getTurnoOnce(fecha), this.caja.getCortesOnce()]);
+      this.yaHayCorte = yaHayCorteDelDia(cortes, fecha);
+      if (this.yaHayCorte) {
+        this.form.disable({ emitEvent: false });
+        return;
+      }
+      if (this.form.disabled) {
+        this.form.enable({ emitEvent: false });
+      }
+      const fondo = turno?.fondoInicial != null ? Number(turno.fondoInicial) : Number(this.data?.fondoInicial) || 0;
+      if (this.form.get('fondoInicial')?.pristine) {
+        this.form.patchValue({ fondoInicial: fondo }, { emitEvent: true });
+      }
+    } catch {
+      /* defaults 0 */
+    }
   }
 
   private recalcFromForm(): void {
@@ -59,7 +85,7 @@ export class CajaCorteDialogComponent implements OnInit {
       fondoInicial: Number(this.form.get('fondoInicial')?.value) || 0,
       ingresosEfectivo: ingresos,
       egresosEfectivo: egresos,
-      efectivoContado: Number(this.form.get('efectivoContado')?.value) || 0
+      efectivoContado: Number(this.form.get('efectivoContado')?.value) || 0,
     });
     this.esperado = r.esperado;
     this.diferencia = r.diferencia;
@@ -75,6 +101,10 @@ export class CajaCorteDialogComponent implements OnInit {
   }
 
   async guardar(): Promise<void> {
+    if (this.yaHayCorte) {
+      Swal.fire('Corte del día', 'Ya hay un corte de este día. No se guarda un segundo corte.', 'info');
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -92,14 +122,16 @@ export class CajaCorteDialogComponent implements OnInit {
         efectivoContado: Number(v.efectivoContado) || 0,
         diferencia: this.diferencia,
         cuadrado: this.cuadrado,
-        notas: String(v.notas || '').trim() || undefined
+        notas: String(v.notas || '').trim() || undefined,
       });
       Swal.fire({
         icon: this.cuadrado ? 'success' : 'info',
         title: this.cuadrado ? 'Caja cuadrada' : 'Corte guardado',
-        text: this.cuadrado ? 'El efectivo coincide con lo esperado.' : `Diferencia ${this.formatMoney(this.diferencia)}.`,
+        text: this.cuadrado
+          ? 'El efectivo coincide con lo esperado.'
+          : `Diferencia ${this.formatMoney(this.diferencia)}.`,
         timer: 2200,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       this.dialogRef.close({ saved: true });
     } catch (error) {

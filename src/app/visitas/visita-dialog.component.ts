@@ -1,4 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -15,14 +16,19 @@ import { ClienteDialogComponent } from '../clientes/cliente-dialog.component';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { CajaService } from '../finanzas/caja.service';
+import { ClinicConfigService } from '../core/services/clinic-config.service';
+import { CLINICA_NOMBRE_DEFAULT } from '../core/utils/clinica-config.util';
 import { CajaMetodoPago } from '../finanzas/caja.models';
 import {
   PartePagoMixto,
   armarPartesPagoMixto,
+  calcularCambioEfectivo,
   mensajePagoInvalido,
+  pagoIncluyeEfectivo,
   validarPagoContraSaldo,
 } from './pos-pago-mixto.util';
 import { generarTextoTicketWhatsApp, telefonoWhatsAppValido, urlWhatsAppTicket } from './pos-ticket-whatsapp.util';
+import { Ticket80View, buildTicket80View } from './ticket-80mm.util';
 import { puedeDevolverLinea } from './pos-devolucion.util';
 import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import { emptyDefaultsBanio, DefaultsBanioPorTamano, TamanoPerroBanio } from '../finanzas/defaults-banio.models';
@@ -71,6 +77,7 @@ import {
   roundMoney,
 } from './visitas.util';
 import { snapshotEconomiaLinea } from '../core/utils/precio-margen.util';
+import { MENSAJE_KIT_SIN_BOM, productoEsKit, resolverVentaKit, stockReservadoEnCarrito } from './pos-kit-bom.util';
 import {
   BanioPendienteTicket,
   banioYaEnLineas,
@@ -157,6 +164,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   telefonoWhatsApp = '';
   resultadoCobro: { visitaId: string; cobrado: true; parcial: boolean } | null = null;
   ultimoPago: { partes: PartePagoMixto[]; saldoPendiente: number } | null = null;
+  folioTicket = '';
+  ultimoRecibido: number | null = null;
+  ultimoCambio: number | null = null;
   @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   readonly productoSinStockFn = productoSinStock;
   readonly staffPickerFields: StaffPickerFields = {
@@ -187,6 +197,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   private productosPeluqueria: ProductoPeluqueria[] = [];
   tamanoPaciente: TamanoPerroBanio | '' = '';
   precioBanioDefault: number | null = null;
+  clinicaNombre = CLINICA_NOMBRE_DEFAULT;
 
   readonly metodosPago: Array<{ value: CajaMetodoPago; label: string; icon: string }> = [
     { value: 'efectivo', label: 'Efectivo', icon: 'payments' },
@@ -302,6 +313,37 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return !!this.visitaId && (!!this.resultadoCobro || (this.soloLectura && this.totales.pagado > 0));
   }
 
+  ticketWhatsAppInput() {
+    const raw = this.form.getRawValue();
+    const esMostrador = this.modoMostrador || esClienteMostrador(raw.cliente_id);
+    const recibido =
+      this.ultimoRecibido != null
+        ? this.ultimoRecibido
+        : this.incluyeEfectivo
+          ? Number(this.cobroForm.get('recibidoEfectivo')?.value) || this.montoEfectivoCobro
+          : null;
+    const cambio =
+      this.ultimoCambio != null ? this.ultimoCambio : this.incluyeEfectivo ? this.cambioEfectivo.cambio : null;
+    return {
+      fecha: String(raw.fecha || hoyLocalIsoDate()),
+      visitaId: this.visitaId,
+      folio: this.folioTicket || undefined,
+      cliente: esMostrador ? '' : String(raw.cliente || ''),
+      esMostrador,
+      paciente: esMostrador ? '' : String(raw.paciente || ''),
+      lineas: this.lineas,
+      pagos: this.ultimoPago?.partes || [],
+      recibido,
+      cambio,
+      saldoPendiente: this.ultimoPago?.saldoPendiente ?? this.totales.saldo,
+      clinica: this.clinicaNombre,
+    };
+  }
+
+  get ticket80(): Ticket80View {
+    return buildTicket80View(this.ticketWhatsAppInput());
+  }
+
   get whatsappTelefonoValido(): boolean {
     return telefonoWhatsAppValido(this.telefonoWhatsApp);
   }
@@ -321,6 +363,30 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return `Cobrar resto ${this.formatMoney(t.saldo)}`;
     }
     return `Cobrar ${this.formatMoney(t.saldo)}`;
+  }
+
+  get incluyeEfectivo(): boolean {
+    return pagoIncluyeEfectivo(
+      this.cobroForm.get('metodoPago')?.value,
+      !!this.cobroForm.get('mixto')?.value,
+      Number(this.cobroForm.get('montoEfectivo')?.value) || 0
+    );
+  }
+
+  get montoEfectivoCobro(): number {
+    if (this.cobroForm.get('mixto')?.value) {
+      return Number(this.cobroForm.get('montoEfectivo')?.value) || 0;
+    }
+    if (this.cobroForm.get('metodoPago')?.value === 'efectivo') {
+      return Number(this.cobroForm.get('monto')?.value) || this.totales.saldo;
+    }
+    return 0;
+  }
+
+  get cambioEfectivo(): { ok: boolean; cambio: number; error?: string } {
+    const recibido = Number(this.cobroForm.get('recibidoEfectivo')?.value);
+    const rec = Number.isFinite(recibido) && recibido > 0 ? recibido : this.montoEfectivoCobro;
+    return calcularCambioEfectivo(rec, this.montoEfectivoCobro);
   }
 
   get accionBloqueoHint(): string {
@@ -434,6 +500,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private cajaService: CajaService,
     private clientesService: ClientesService,
     private dialog: MatDialog,
+    private router: Router,
+    private clinicConfig: ClinicConfigService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       visita?: Visita;
@@ -443,6 +511,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       paciente?: string;
       fecha?: string;
       ventaMostrador?: boolean;
+      /** Spec 070 — salida inventario tipo venta → POS. */
+      productoId?: string;
+      productoCantidad?: number;
     }
   ) {
     this.form = this.fb.group({
@@ -472,10 +543,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       montoEfectivo: [0],
       montoTarjeta: [0],
       montoTransferencia: [0],
+      recibidoEfectivo: [null as number | null],
     });
   }
 
   ngOnInit(): void {
+    this.clinicConfig
+      .nombreClinica$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((nombre) => {
+        this.clinicaNombre = nombre || CLINICA_NOMBRE_DEFAULT;
+      });
     this.dialogRef.addPanelClass('admin-dialog-panel--pos');
     if (typeof window !== 'undefined' && window.innerWidth < 721) {
       this.dialogRef.updateSize('100vw', '100vh');
@@ -489,6 +567,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       const v = this.data.visita;
       this.lineas = [...(v.lineas || [])];
       this.pagado = Number(v.pagado) || 0;
+      this.folioTicket = String(v.folio || '').trim();
       this.estadoLabel = VISITA_ESTADO_LABELS[v.estado] || v.estado;
       this.form.patchValue({
         cliente_id: v.cliente_id,
@@ -590,8 +669,20 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.irPaso(this.pasoWizard - 1);
   }
 
+  irAInventarioProductos(): void {
+    this.dialogRef.close(false);
+    void this.router.navigate(['/admin/inventario/productos']);
+  }
+
   irACobrar(): void {
     if (!this.puedeIrACobrar) return;
+    const saldo = this.totales.saldo;
+    if (!this.cobroForm.get('monto')?.value) {
+      this.cobroForm.patchValue({ monto: saldo });
+    }
+    if (this.cobroForm.get('recibidoEfectivo')?.value == null) {
+      this.cobroForm.patchValue({ recibidoEfectivo: this.montoEfectivoCobro || saldo });
+    }
     this.irPaso(3);
   }
 
@@ -897,18 +988,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   /** Spec 065 — abre WhatsApp con el ticket ya escrito (`wa.me`). */
   enviarTicketWhatsApp(): void {
     if (!this.puedeEnviarWhatsApp) return;
-    const raw = this.form.getRawValue();
-    const esMostrador = this.modoMostrador || esClienteMostrador(raw.cliente_id);
-    const texto = generarTextoTicketWhatsApp({
-      fecha: String(raw.fecha || hoyLocalIsoDate()),
-      visitaId: this.visitaId,
-      cliente: esMostrador ? '' : String(raw.cliente || ''),
-      esMostrador,
-      paciente: esMostrador ? '' : String(raw.paciente || ''),
-      lineas: this.lineas,
-      pagos: this.ultimoPago?.partes || [],
-      saldoPendiente: this.ultimoPago?.saldoPendiente ?? this.totales.saldo,
-    });
+    const texto = generarTextoTicketWhatsApp(this.ticketWhatsAppInput());
     const url = urlWhatsAppTicket(this.telefonoWhatsApp, texto);
     if (!url) {
       Swal.fire('Teléfono', 'Escribe un teléfono de 10 dígitos para enviar el ticket.', 'warning');
@@ -1213,7 +1293,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    this.cobroForm.patchValue({ monto: saldo });
+    this.cobroForm.patchValue({ monto: saldo, recibidoEfectivo: saldo });
   }
 
   togglePagoMixto(): void {
@@ -1299,6 +1379,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       Swal.fire('Monto', pagoErr, 'warning');
       return;
     }
+    if (this.incluyeEfectivo && !this.cambioEfectivo.ok) {
+      Swal.fire('Efectivo', this.cambioEfectivo.error || 'El efectivo recibido no alcanza.', 'warning');
+      return;
+    }
     const montoPago = valid.total;
 
     this.loading = true;
@@ -1333,7 +1417,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         pagado: pagadoAcc,
         cajaMovimientoIds: ids,
       });
+      this.folioTicket = await this.visitasService.asignarFolioSiFalta(visitaId);
       const esParcial = montoPago < saldoAntes - 0.001;
+      this.ultimoRecibido = this.incluyeEfectivo
+        ? Number(this.cobroForm.get('recibidoEfectivo')?.value) || this.montoEfectivoCobro
+        : null;
+      this.ultimoCambio = this.incluyeEfectivo ? this.cambioEfectivo.cambio : null;
       // Spec 065 — el diálogo se queda abierto para imprimir / enviar por WhatsApp; se cierra con «Cerrar».
       this.pagado = pagadoAcc;
       this.resultadoCobro = { visitaId, cobrado: true, parcial: esParcial };
@@ -1410,6 +1499,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   imprimir(): void {
+    document.body.classList.add('visita-printing');
+    const cleanup = () => {
+      document.body.classList.remove('visita-printing');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
     window.print();
   }
 
@@ -1499,23 +1594,45 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           this.productosCatalogo = mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
+          this.aplicarProductoPrecargado();
         },
         error: () => {
           this.productosCatalogo = mezclarCatalogoPos([], MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
+          this.aplicarProductoPrecargado();
         },
       });
+  }
+
+  private aplicarProductoPrecargado(): void {
+    const pid = String(this.data?.productoId || '').trim();
+    if (!pid || this.soloLectura) return;
+    if (this.lineas.some((l) => l.productoId === pid && l.categoria === 'venta_producto')) return;
+    const p = this.productosCatalogo.find((row) => row.id === pid);
+    if (!p) return;
+    this.pushProducto(p, Math.max(1, Number(this.data?.productoCantidad) || 1));
   }
 
   private pushProducto(p: Producto, qty: number): void {
     if (this.soloLectura || !p?.id) return;
     const cantidad = Math.max(1, Number(qty) || 1);
-    const stock = Number(p.stock_actual) || 0;
     const ya = this.qtyEnCarrito(p.id);
-    if (stock < ya + cantidad) {
-      Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`, 'warning');
-      return;
+    if (productoEsKit(p)) {
+      const otras = this.lineas.filter((l) => l.productoId !== p.id);
+      const reserved = stockReservadoEnCarrito(otras, this.productosCatalogo);
+      const kit = resolverVentaKit(p, ya + cantidad, this.productosCatalogo, reserved);
+      if (!kit.ok) {
+        const titulo = kit.motivo === 'sin_bom' ? MENSAJE_KIT_SIN_BOM : 'No se puede vender el paquete';
+        Swal.fire(titulo, kit.mensaje, 'warning');
+        return;
+      }
+    } else {
+      const stock = Number(p.stock_actual) || 0;
+      if (stock < ya + cantidad) {
+        Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`, 'warning');
+        return;
+      }
     }
     const unit = Number(p.precio_venta) || 0;
     if (!(unit > 0)) {
@@ -1564,6 +1681,28 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (this.pagado > 0) return;
     const actual = this.lineas.find((l) => l.id === id);
     if (!actual || actual.movimientoInventarioId) return;
+    if (delta > 0 && actual.productoId) {
+      const p = this.productosCatalogo.find((x) => x.id === actual.productoId);
+      if (p) {
+        const nextQty = (Number(actual.cantidad) || 1) + delta;
+        if (productoEsKit(p)) {
+          const otras = this.lineas.filter((l) => l.id !== id);
+          const reserved = stockReservadoEnCarrito(otras, this.productosCatalogo);
+          const kit = resolverVentaKit(p, nextQty, this.productosCatalogo, reserved);
+          if (!kit.ok) {
+            Swal.fire(
+              kit.motivo === 'sin_bom' ? MENSAJE_KIT_SIN_BOM : 'No se puede vender el paquete',
+              kit.mensaje,
+              'warning'
+            );
+            return;
+          }
+        } else if ((Number(p.stock_actual) || 0) < nextQty) {
+          Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${p.stock_actual} ${p.unidad_medida}.`, 'warning');
+          return;
+        }
+      }
+    }
     const next = ajustarCantidadLinea(actual, delta);
     if (!next) {
       this.quitarLinea(id);
@@ -1751,17 +1890,40 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           continue;
         }
         const qty = Math.max(1, Number(linea.cantidad) || 1);
-        const movId = await this.inventarioService.registrarSalida(
-          linea.productoId,
-          qty,
-          'venta_directa',
-          pacienteId || '',
-          '',
-          '',
-          `Ticket visita · ${linea.descripcion}`,
-          this.visitaId || ''
-        );
-        out.push({ ...linea, cantidad: qty, movimientoInventarioId: movId });
+        const prod = this.productosCatalogo.find((p) => p.id === linea.productoId);
+        if (productoEsKit(prod)) {
+          const kit = resolverVentaKit(prod!, qty, this.productosCatalogo, {});
+          if (!kit.ok) {
+            throw new Error(kit.mensaje || MENSAJE_KIT_SIN_BOM);
+          }
+          let firstId = '';
+          for (const s of kit.salidas) {
+            const movId = await this.inventarioService.registrarSalida(
+              s.productoId,
+              s.cantidad,
+              'venta_directa',
+              pacienteId || '',
+              '',
+              '',
+              `Ticket visita · kit ${prod!.nombre} · ${s.nombre} × ${s.cantidad}`,
+              this.visitaId || ''
+            );
+            if (!firstId) firstId = movId;
+          }
+          out.push({ ...linea, cantidad: qty, movimientoInventarioId: firstId });
+        } else {
+          const movId = await this.inventarioService.registrarSalida(
+            linea.productoId,
+            qty,
+            'venta_directa',
+            pacienteId || '',
+            '',
+            '',
+            `Ticket visita · ${linea.descripcion}`,
+            this.visitaId || ''
+          );
+          out.push({ ...linea, cantidad: qty, movimientoInventarioId: movId });
+        }
       } else {
         out.push(linea);
       }

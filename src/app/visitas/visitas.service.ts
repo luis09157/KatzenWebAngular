@@ -12,6 +12,7 @@ import { lineasADevolver, marcarLineasDevueltas, montoDevolucion, reintegrosInve
 import { Visita, VisitaFormData, VisitaLinea, VisitaLineaCategoria, VISITA_LINEA_A_CAJA } from './visitas.models';
 import { agregarSaldoCliente, hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
 import { esClienteMostrador } from './visita-mostrador.util';
+import { siguienteFolioTicketDia } from './folio-ticket-visita.util';
 
 /** RTDB `push`/`update` rechaza `undefined`; la venta de mostrador no trae paciente. */
 function omitUndefined<T extends Record<string, unknown>>(obj: T): T {
@@ -356,7 +357,26 @@ export class VisitasService {
       pagado: nuevoPagado,
       cajaMovimientoIds: ids,
     });
+    await this.asignarFolioSiFalta(visitaId);
     return movId;
+  }
+
+  /** Spec 071 — folio KV-YYYYMMDD-NNN al primer cobro. */
+  async asignarFolioSiFalta(visitaId: string): Promise<string> {
+    const visita = await this.getVisita(visitaId);
+    if (!visita) throw new Error('Visita no encontrada');
+    const ya = String(visita.folio || '').trim();
+    if (ya) return ya;
+    const fecha = visita.fecha || hoyLocalIsoDate();
+    const todas = await firstValueFrom(this.getVisitas().pipe(take(1)));
+    const existentes = (todas || [])
+      .filter((v) => String(v.fecha || '') === fecha && String(v.folio || '').trim())
+      .map((v) => String(v.folio));
+    const folio = siguienteFolioTicketDia(fecha, existentes);
+    if (folio) {
+      await this.actualizarVisita(visitaId, { folio });
+    }
+    return folio;
   }
 
   /** Spec 064 — devolución: egreso de caja + reintegro de stock + marca de línea. */

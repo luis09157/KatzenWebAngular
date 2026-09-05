@@ -14,6 +14,7 @@ import { SharedModule } from '../shared/shared.module';
 import { VisitasRoutingModule } from './visitas-routing.module';
 import { VisitasComponent } from './visitas.component';
 import { VisitasDialogModule } from './visitas-dialog.module';
+import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 
 @NgModule({
   declarations: [VisitasComponent],
@@ -23,6 +24,7 @@ import { VisitasDialogModule } from './visitas-dialog.module';
     VisitasRoutingModule,
     SharedModule,
     VisitasDialogModule,
+    CajaDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
@@ -31,7 +33,7 @@ import { VisitasDialogModule } from './visitas-dialog.module';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
-  ]
+    MatProgressSpinnerModule,
+  ],
 })
 export class VisitasModule {}

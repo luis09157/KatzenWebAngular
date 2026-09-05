@@ -1,0 +1,10 @@
+<aside class="caja-corte-banner" *ngIf="visible" role="status">
+  <div class="caja-corte-banner__text">
+    <strong>Hacer corte de caja</strong>
+    <p>Hay un turno abierto. Cuenta el efectivo y cierra el día.</p>
+  </div>
+  <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirCorte()">
+    <mat-icon>point_of_sale</mat-icon>
+    Hacer corte
+  </button>
+</aside>

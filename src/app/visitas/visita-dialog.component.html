@@ -52,15 +52,43 @@
     </nav>
 
     <div class="visita-print-sheet" id="visita-print-sheet">
-      <div class="print-only print-brand">
-        <h1>KatzenVet — Punto de venta</h1>
-        <p>{{ form.get('fecha')?.value }} · {{ form.get('cliente')?.value || 'Cliente' }}</p>
-        <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
+      <div class="print-only ticket-80" id="ticket-80">
+        <header class="ticket-80__head">
+          <strong class="ticket-80__clinica">{{ ticket80.clinica }}</strong>
+          <p>Ticket de venta</p>
+          <p>
+            Fecha: {{ ticket80.fecha }}<ng-container *ngIf="ticket80.folio"> · Folio {{ ticket80.folio }}</ng-container>
+          </p>
+          <p>Cliente: {{ ticket80.cliente }}</p>
+          <p *ngIf="ticket80.paciente">Mascota: {{ ticket80.paciente }}</p>
+        </header>
+        <ul class="ticket-80__lines">
+          <li *ngFor="let l of ticket80.lineas">
+            {{ l.qty }} × {{ l.nombre }} = {{ l.importe }}<span *ngIf="l.devuelto"> (devuelto)</span>
+          </li>
+          <li *ngIf="!ticket80.lineas.length">Sin artículos</li>
+        </ul>
+        <div class="ticket-80__totales">
+          <p *ngIf="ticket80.descuento">Descuento: {{ ticket80.descuento }}</p>
+          <p *ngIf="ticket80.devuelto">Devoluciones: {{ ticket80.devuelto }}</p>
+          <p *ngIf="ticket80.iva">IVA incluido: {{ ticket80.iva }}</p>
+          <p class="ticket-80__total">Total: {{ ticket80.total }}</p>
+          <p *ngIf="ticket80.pagoUnico">Pago: {{ ticket80.pagoUnico }}</p>
+          <ng-container *ngIf="!ticket80.pagoUnico && ticket80.pagos.length">
+            <p>Pago mixto:</p>
+            <p *ngFor="let p of ticket80.pagos">- {{ p.label }}: {{ p.monto }}</p>
+          </ng-container>
+          <p *ngIf="ticket80.recibido">Recibido: {{ ticket80.recibido }}</p>
+          <p *ngIf="ticket80.cambio">Cambio: {{ ticket80.cambio }}</p>
+          <p *ngIf="ticket80.saldoPendiente">Saldo pendiente: {{ ticket80.saldoPendiente }}</p>
+        </div>
+        <p class="ticket-80__foot">Gracias por su visita</p>
       </div>
 
       <!-- Paso 1: ¿Es cliente / trae mascota? — opcional en productos; obligatorio en servicio clínico -->
       <div class="pos-step pos-step--dueno no-print" *ngIf="pasoWizard === 1 && !soloLectura">
         <app-flow-hint
+          hintId="pos-cliente"
           [icon]="accionPendiente ? 'pets' : 'person_search'"
           [variant]="accionPendiente ? 'warn' : 'info'"
           [message]="hintBloqueCliente"
@@ -208,7 +236,10 @@
             </p>
             <p class="hint-empty pos-grid__hint" *ngIf="cargandoCatalogo">Cargando productos…</p>
             <p class="hint-empty pos-grid__hint" *ngIf="!cargandoCatalogo && !productosFiltrados.length">
-              Sin coincidencias. Prueba nombre o código.
+              Sin coincidencias.
+              <button type="button" mat-button color="primary" (click)="irAInventarioProductos()">
+                Abrir catálogo de productos
+              </button>
             </p>
             <article
               class="pos-card"
@@ -764,6 +795,33 @@
               <span matTextPrefix>$&nbsp;</span>
             </mat-form-field>
           </div>
+          <ng-container *ngIf="incluyeEfectivo">
+            <mat-form-field
+              appearance="outline"
+              class="full-width pos-monto-field"
+              floatLabel="always"
+              subscriptSizing="dynamic"
+            >
+              <mat-label>Recibí</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="recibidoEfectivo"
+                inputmode="decimal"
+              />
+              <span matTextPrefix>$&nbsp;</span>
+            </mat-form-field>
+            <p
+              class="pos-cambio"
+              [class.pos-cambio--ok]="cambioEfectivo.ok && cambioEfectivo.cambio > 0"
+              [class.pos-cambio--warn]="!cambioEfectivo.ok"
+            >
+              <ng-container *ngIf="cambioEfectivo.ok">Cambio {{ formatMoney(cambioEfectivo.cambio) }}</ng-container>
+              <ng-container *ngIf="!cambioEfectivo.ok">{{ cambioEfectivo.error }}</ng-container>
+            </p>
+          </ng-container>
           <button mat-button type="button" class="pos-cobrar-todo" (click)="cobrarTodo()">
             Cobrar todo ({{ formatMoney(totales.saldo) }})
           </button>

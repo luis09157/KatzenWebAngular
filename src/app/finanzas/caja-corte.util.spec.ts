@@ -1,5 +1,6 @@
 import { calcularCorteCaja, efectivoNetoDelDia } from './caja-corte.util';
 import { CajaMovimiento } from './caja.models';
+import { puedeGuardarCorteDelDia } from './caja-turno.util';
 
 describe('caja-corte (spec 064 ola B)', () => {
   it('esperado = fondo + ingresos − egresos', () => {
@@ -7,7 +8,7 @@ describe('caja-corte (spec 064 ola B)', () => {
       fondoInicial: 500,
       ingresosEfectivo: 1160,
       egresosEfectivo: 60,
-      efectivoContado: 1600
+      efectivoContado: 1600,
     });
     expect(r.esperado).toBe(1600);
     expect(r.diferencia).toBe(0);
@@ -19,7 +20,7 @@ describe('caja-corte (spec 064 ola B)', () => {
       fondoInicial: 200,
       ingresosEfectivo: 100,
       egresosEfectivo: 0,
-      efectivoContado: 280
+      efectivoContado: 280,
     });
     expect(r.esperado).toBe(300);
     expect(r.diferencia).toBe(-20);
@@ -31,8 +32,13 @@ describe('caja-corte (spec 064 ola B)', () => {
       { tipo: 'ingreso', monto: 50, metodoPago: 'efectivo', fecha: '2026-08-31', activo: true },
       { tipo: 'ingreso', monto: 80, metodoPago: 'tarjeta', fecha: '2026-08-31', activo: true },
       { tipo: 'egreso', monto: 10, metodoPago: 'efectivo', fecha: '2026-08-31', activo: true },
-      { tipo: 'ingreso', monto: 99, metodoPago: 'efectivo', fecha: '2026-08-30', activo: true }
+      { tipo: 'ingreso', monto: 99, metodoPago: 'efectivo', fecha: '2026-08-30', activo: true },
     ] as CajaMovimiento[];
     expect(efectivoNetoDelDia(movs, '2026-08-31')).toEqual({ ingresos: 50, egresos: 10 });
+  });
+
+  it('no permite segundo corte el mismo día (071)', () => {
+    expect(puedeGuardarCorteDelDia([{ fecha: '2026-09-04', activo: true }], '2026-09-04')).toBeFalse();
+    expect(puedeGuardarCorteDelDia([], '2026-09-04')).toBeTrue();
   });
 });

@@ -22,14 +22,14 @@ import {
   TAMANO_PERRO_LABELS,
   TAMANOS_PERRO_ORDEN,
   TamanoPerroBanio,
-  emptyDefaultsBanio
+  emptyDefaultsBanio,
 } from './defaults-banio.models';
 import {
   DefaultsPensionPorTamano,
   TAMANO_PENSION_DEFAULT_LABELS,
   TAMANOS_PENSION_ORDEN,
   TamanoMascotaPensionDefault,
-  emptyDefaultsPension
+  emptyDefaultsPension,
 } from './defaults-pension.models';
 import {
   CAJA_CATEGORIA_LABELS,
@@ -39,18 +39,21 @@ import {
   CajaEgresoDesglose,
   CajaIngresoDesglose,
   CajaMovimiento,
-  CajaPeriodoModo
+  CajaPeriodoModo,
 } from './caja.models';
 import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models';
 import { BaniosService } from '../banios/banios.service';
 import { Banio } from '../shared/banio.model';
 import { PensionService } from '../pension/pension.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import { VisitasService } from '../visitas/visitas.service';
+import { ClientesService } from '../clientes/clientes.service';
+import { agruparVentasPorVeterinaria, resumenCxcClientes, VentaPorVeterinaria } from './ventas-por-veterinaria.util';
 
 @Component({
   selector: 'app-finanzas',
   templateUrl: './finanzas.component.html',
-  styleUrls: ['./finanzas.component.scss']
+  styleUrls: ['./finanzas.component.scss'],
 })
 export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -61,6 +64,11 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   periodoModo: CajaPeriodoModo = 'dia';
   fechaFiltro = '';
   mesFiltro = '';
+
+  ventasVetHoy: VentaPorVeterinaria[] = [];
+  ventasVetColumns = ['nombre', 'tickets', 'pagado', 'total'];
+  cxcTotal = 0;
+  cxcDeudores = 0;
 
   ingresosServicioColumns = ['label', 'count', 'total', 'pct'];
   displayedColumns = ['fecha', 'concepto', 'categoria', 'tipo', 'metodo', 'iva', 'monto', 'margen', 'acciones'];
@@ -122,7 +130,9 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private logger: LoggerService,
-    private authProfileService: AuthProfileService
+    private authProfileService: AuthProfileService,
+    private visitasService: VisitasService,
+    private clientesService: ClientesService
   ) {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
     this.mesFiltro = this.cajaService.mesLocalIso();
@@ -140,6 +150,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarPlantillas();
     this.cargarDefaultsBanio();
     this.cargarDefaultsPension();
+    this.cargarVentasHoy();
+    this.cargarCxc();
   }
 
   ngAfterViewInit(): void {
@@ -165,8 +177,41 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       totalCostosAsociados: 0,
       margenEstimado: 0,
       ingresosConCosto: 0,
-      ingresosSinCosto: 0
+      ingresosSinCosto: 0,
     };
+  }
+
+  cargarVentasHoy(): void {
+    this.visitasService
+      .getVisitas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.ventasVetHoy = agruparVentasPorVeterinaria(rows || [], this.cajaService.hoyLocalIsoDate());
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar ventas por veterinaria:', error);
+          this.ventasVetHoy = [];
+        },
+      });
+  }
+
+  cargarCxc(): void {
+    this.clientesService
+      .getClientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          const r = resumenCxcClientes(rows || []);
+          this.cxcTotal = r.total;
+          this.cxcDeudores = r.deudores;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar CxC:', error);
+          this.cxcTotal = 0;
+          this.cxcDeudores = 0;
+        },
+      });
   }
 
   cargarBanios(): void {
@@ -181,7 +226,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (error) => {
           this.logger.error('Error al cargar baños para ingresos:', error);
           this.todosBanios = [];
-        }
+        },
       });
   }
 
@@ -197,7 +242,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (error) => {
           this.logger.error('Error al cargar pensión para ingresos:', error);
           this.todosPension = [];
-        }
+        },
       });
   }
 
@@ -219,7 +264,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           this.logger.error('Error al cargar caja:', error);
           this.loading = false;
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar caja'), 'error');
-        }
+        },
       });
   }
 
@@ -239,7 +284,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           this.plantillas = [];
           this.plantillasDataSource.data = [];
           this.loadingPlantillas = false;
-        }
+        },
       });
   }
 
@@ -271,24 +316,15 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.todosBanios,
       this.todosPension
     );
-    this.totalIngresosServicio = this.chartIngresosServicio.reduce(
-      (acc, row) => acc + (Number(row.total) || 0),
-      0
-    );
-    this.ingresosServicioMax = Math.max(
-      1,
-      ...this.chartIngresosServicio.map((row) => row.total)
-    );
+    this.totalIngresosServicio = this.chartIngresosServicio.reduce((acc, row) => acc + (Number(row.total) || 0), 0);
+    this.ingresosServicioMax = Math.max(1, ...this.chartIngresosServicio.map((row) => row.total));
     this.chartSerie = this.cajaService.serieDiaria(this.todos, this.periodoModo, valor);
     this.chartMax = Math.max(
       1,
       ...this.chartResumen.map((b) => Math.abs(b.value)),
       ...this.chartEgresos.map((e) => e.total)
     );
-    this.serieMax = Math.max(
-      1,
-      ...this.chartSerie.flatMap((d) => [d.ingresos, d.egresos, Math.abs(d.ganancia)])
-    );
+    this.serieMax = Math.max(1, ...this.chartSerie.flatMap((d) => [d.ingresos, d.egresos, Math.abs(d.ganancia)]));
     if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
   }
 
@@ -327,7 +363,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dialog.open(CajaCorteDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       width: '520px',
-      data: { fecha: this.fechaFiltro, movimientos: this.todos }
+      data: { fecha: this.fechaFiltro, movimientos: this.todos },
     });
   }
 
@@ -336,11 +372,14 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       ...ADMIN_DIALOG_CONFIG,
       width: '640px',
       disableClose: true,
-      data: { fechaDefault: this.fechaFiltro }
+      data: { fechaDefault: this.fechaFiltro },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
-      /* snapshot refresca */
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        /* snapshot refresca */
+      });
   }
 
   nuevaPlantilla(): void {
@@ -349,11 +388,14 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       width: '720px',
       maxWidth: '96vw',
       disableClose: true,
-      data: {}
+      data: {},
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
-      /* snapshot refresca */
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        /* snapshot refresca */
+      });
   }
 
   editarPlantilla(p: PlantillaCosto): void {
@@ -362,17 +404,18 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       width: '720px',
       maxWidth: '96vw',
       disableClose: true,
-      data: { plantilla: p }
+      data: { plantilla: p },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
-      /* snapshot refresca */
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        /* snapshot refresca */
+      });
   }
 
   exportarCsv(): void {
-    const rows = this.dataSource.filteredData?.length
-      ? this.dataSource.filteredData
-      : this.dataSource.data;
+    const rows = this.dataSource.filteredData?.length ? this.dataSource.filteredData : this.dataSource.data;
     if (!rows.length) {
       Swal.fire('Sin datos', 'No hay movimientos para exportar en este período.', 'info');
       return;
@@ -388,7 +431,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       'costoAsociado',
       'margenEstimado',
       'notas',
-      'banioId'
+      'banioId',
     ];
     const escape = (v: unknown) => {
       const s = String(v ?? '');
@@ -408,11 +451,11 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
           m.costoAsociado != null ? Number(m.costoAsociado).toFixed(2) : '',
           m.margenEstimado != null ? Number(m.margenEstimado).toFixed(2) : '',
           m.notas || '',
-          m.banioId || ''
+          m.banioId || '',
         ]
           .map(escape)
           .join(',')
-      )
+      ),
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -432,7 +475,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#d33',
     });
     if (!result.isConfirmed) return;
 
@@ -443,7 +486,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'success',
         title: 'Borrado',
         timer: 1600,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar movimiento de caja'), 'error');
@@ -461,7 +504,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#d33',
     });
     if (!result.isConfirmed) return;
 
@@ -472,7 +515,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'success',
         title: 'Borrado',
         timer: 1600,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar plantilla de costo'), 'error');
@@ -485,7 +528,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     const map: Record<string, string> = {
       efectivo: 'Efectivo',
       tarjeta: 'Tarjeta',
-      transferencia: 'Transferencia'
+      transferencia: 'Transferencia',
     };
     return map[m.metodoPago] || m.metodoPago;
   }
@@ -510,12 +553,12 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.fb.group({
         costoDefault: [data[t]?.costoDefault ?? 0, [Validators.min(0)]],
         precioSugerido: [data[t]?.precioSugerido ?? null, [Validators.min(0)]],
-        plantillaCostoId: [data[t]?.plantillaCostoId ?? '']
+        plantillaCostoId: [data[t]?.plantillaCostoId ?? ''],
       });
     return this.fb.group({
       pequeno: row('pequeno'),
       mediano: row('mediano'),
-      grande: row('grande')
+      grande: row('grande'),
     });
   }
 
@@ -525,12 +568,12 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         precioDia: [data[t]?.precioDia ?? 0, [Validators.min(0)]],
         costoDia: [data[t]?.costoDia ?? null, [Validators.min(0)]],
         productoComidaId: [data[t]?.productoComidaId ?? ''],
-        cantidadComidaPorDia: [data[t]?.cantidadComidaPorDia ?? null, [Validators.min(0)]]
+        cantidadComidaPorDia: [data[t]?.cantidadComidaPorDia ?? null, [Validators.min(0)]],
       });
     return this.fb.group({
       pequeno: row('pequeno'),
       mediano: row('mediano'),
-      grande: row('grande')
+      grande: row('grande'),
     });
   }
 
@@ -545,7 +588,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (err) => {
           this.logger.error('Error defaults baño:', err);
           this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
-        }
+        },
       });
   }
 
@@ -560,7 +603,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (err) => {
           this.logger.error('Error defaults pensión:', err);
           this.defaultsPensionForm = this.buildDefaultsPensionForm(emptyDefaultsPension());
-        }
+        },
       });
   }
 
@@ -580,7 +623,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
             raw.pequeno.precioSugerido != null && raw.pequeno.precioSugerido !== ''
               ? Number(raw.pequeno.precioSugerido)
               : undefined,
-          plantillaCostoId: raw.pequeno.plantillaCostoId || undefined
+          plantillaCostoId: raw.pequeno.plantillaCostoId || undefined,
         },
         mediano: {
           costoDefault: Number(raw.mediano.costoDefault) || 0,
@@ -588,7 +631,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
             raw.mediano.precioSugerido != null && raw.mediano.precioSugerido !== ''
               ? Number(raw.mediano.precioSugerido)
               : undefined,
-          plantillaCostoId: raw.mediano.plantillaCostoId || undefined
+          plantillaCostoId: raw.mediano.plantillaCostoId || undefined,
         },
         grande: {
           costoDefault: Number(raw.grande.costoDefault) || 0,
@@ -596,15 +639,15 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
             raw.grande.precioSugerido != null && raw.grande.precioSugerido !== ''
               ? Number(raw.grande.precioSugerido)
               : undefined,
-          plantillaCostoId: raw.grande.plantillaCostoId || undefined
-        }
+          plantillaCostoId: raw.grande.plantillaCostoId || undefined,
+        },
       };
       await this.defaultsBanioService.guardarDefaults(payload);
       Swal.fire({
         icon: 'success',
         title: 'Defaults baño guardados',
         timer: 1600,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       this.logger.error('Error al guardar defaults baño:', error);
@@ -628,34 +671,29 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         const r = raw[t];
         return {
           precioDia: Number(r.precioDia) || 0,
-          costoDia:
-            r.costoDia != null && r.costoDia !== '' ? Number(r.costoDia) : undefined,
+          costoDia: r.costoDia != null && r.costoDia !== '' ? Number(r.costoDia) : undefined,
           productoComidaId: r.productoComidaId ? String(r.productoComidaId).trim() : undefined,
           cantidadComidaPorDia:
             r.cantidadComidaPorDia != null && r.cantidadComidaPorDia !== ''
               ? Number(r.cantidadComidaPorDia)
-              : undefined
+              : undefined,
         };
       };
       const payload: DefaultsPensionPorTamano = {
         pequeno: row('pequeno'),
         mediano: row('mediano'),
-        grande: row('grande')
+        grande: row('grande'),
       };
       await this.defaultsPensionService.guardarDefaults(payload);
       Swal.fire({
         icon: 'success',
         title: 'Defaults pensión guardados',
         timer: 1600,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (error) {
       this.logger.error('Error al guardar defaults pensión:', error);
-      Swal.fire(
-        'Error',
-        this.errorMessages.getUserMessage(error, 'guardar defaults pensión'),
-        'error'
-      );
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar defaults pensión'), 'error');
     } finally {
       this.loadingService.hide();
       this.savingDefaultsPension = false;

@@ -4,20 +4,13 @@ import { CajaCategoria } from '../finanzas/caja.models';
 export type VisitaEstado = 'abierta' | 'parcial' | 'cerrada' | 'cancelada';
 
 export type VisitaLineaCategoria =
-  | 'consulta'
-  | 'vacuna'
-  | 'banio'
-  | 'corte'
-  | 'venta_producto'
-  | 'pension'
-  | 'cirugia'
-  | 'otro';
+  'consulta' | 'vacuna' | 'banio' | 'corte' | 'venta_producto' | 'pension' | 'cirugia' | 'otro';
 
 export const VISITA_ESTADO_LABELS: Record<VisitaEstado, string> = {
   abierta: 'Abierta',
   parcial: 'Pago parcial',
   cerrada: 'Cerrada',
-  cancelada: 'Cancelada'
+  cancelada: 'Cancelada',
 };
 
 export const VISITA_LINEA_CATEGORIA_LABELS: Record<VisitaLineaCategoria, string> = {
@@ -28,7 +21,7 @@ export const VISITA_LINEA_CATEGORIA_LABELS: Record<VisitaLineaCategoria, string>
   venta_producto: 'Producto',
   pension: 'Pensión',
   cirugia: 'Cirugía',
-  otro: 'Otro'
+  otro: 'Otro',
 };
 
 /** Mapeo categoría de línea → categoría de caja al cobrar. */
@@ -40,7 +33,7 @@ export const VISITA_LINEA_A_CAJA: Record<VisitaLineaCategoria, CajaCategoria> = 
   venta_producto: 'venta_producto',
   pension: 'pension',
   cirugia: 'cirugia',
-  otro: 'otro'
+  otro: 'otro',
 };
 
 export interface VisitaLinea {
@@ -88,6 +81,8 @@ export interface Visita {
   /** Spec 035 — staff que atendió (opcional). */
   atendidoPorUid?: string;
   atendidoPorNombre?: string;
+  /** Spec 071 — folio de ticket (KV-YYYYMMDD-NNN). Aditivo. */
+  folio?: string;
   /** Spec 046 — venta de mostrador sin cliente real. */
   esMostrador?: boolean;
   activo: boolean;

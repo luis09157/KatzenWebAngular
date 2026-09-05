@@ -29,7 +29,7 @@ export const CAJA_CATEGORIA_LABELS: Record<CajaCategoria, string> = {
   proveedores: 'Proveedores',
   gasolina: 'Gasolina',
   operativo: 'Operativo / generales',
-  otro: 'Otro'
+  otro: 'Otro',
 };
 
 /** Categorías típicas de ingreso. */
@@ -41,17 +41,11 @@ export const CAJA_CATEGORIAS_INGRESO: CajaCategoria[] = [
   'consulta',
   'vacuna',
   'pension',
-  'otro'
+  'otro',
 ];
 
 /** Categorías tipificadas de egreso (022 Fase D — sin módulo Gastos). */
-export const CAJA_CATEGORIAS_EGRESO: CajaCategoria[] = [
-  'publicidad',
-  'proveedores',
-  'gasolina',
-  'operativo',
-  'otro'
-];
+export const CAJA_CATEGORIAS_EGRESO: CajaCategoria[] = ['publicidad', 'proveedores', 'gasolina', 'operativo', 'otro'];
 
 export interface CajaMovimiento {
   id?: string;
@@ -103,6 +97,16 @@ export interface CajaMovimientoFormData {
   costoAsociado?: number;
   /** Spec 022 — IDs de movimientos de inventario ligados. */
   movimientoInventarioIds?: string[];
+}
+
+/** Spec 071 — turno diario (aditivo). Clave RTDB = fecha YYYY-MM-DD. */
+export interface CajaTurno {
+  fecha?: string;
+  abiertaEn: string;
+  fondoInicial: number;
+  corteId?: string;
+  sucursalId?: string;
+  createdBy?: string;
 }
 
 /** Spec 064 — arqueo de turno (aditivo). */

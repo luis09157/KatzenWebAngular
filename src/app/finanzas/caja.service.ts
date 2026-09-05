@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, firstValueFrom, map, catchError, throwError } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { debeExcluirRefuerzoIngresoServicio } from '../core/utils/cobro-integridad.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
@@ -16,15 +17,18 @@ import {
   PensionIngresoRefuerzo,
   CajaMetodoPago,
   CajaCorte,
+  CajaTurno,
   CajaMovimiento,
   CajaMovimientoFormData,
-  CajaPeriodoModo
+  CajaPeriodoModo,
 } from './caja.models';
+import { fondoInicialDesdeUltimoCorte, yaHayCorteDelDia } from './caja-turno.util';
 
 @Injectable({ providedIn: 'root' })
 export class CajaService {
   private readonly movimientosPath = 'Katzen/Caja/Movimientos';
   private readonly cortesPath = 'Katzen/Caja/Cortes';
+  private readonly turnosPath = 'Katzen/Caja/Turnos';
 
   constructor(
     private db: AngularFireDatabase,
@@ -58,9 +62,7 @@ export class CajaService {
     const createdBy = await this.currentStaff.getStaffId();
     const monto = Number(data.monto);
     const costo =
-      data.costoAsociado != null && !Number.isNaN(Number(data.costoAsociado))
-        ? Number(data.costoAsociado)
-        : undefined;
+      data.costoAsociado != null && !Number.isNaN(Number(data.costoAsociado)) ? Number(data.costoAsociado) : undefined;
 
     const movimiento: CajaMovimiento = {
       tipo: data.tipo,
@@ -72,7 +74,7 @@ export class CajaService {
       activo: true,
       createdAt: now,
       updatedAt: now,
-      createdBy
+      createdBy,
     };
 
     if (data.banioId) {
@@ -108,13 +110,20 @@ export class CajaService {
 
     const ref = await this.db.list<CajaMovimiento>(this.movimientosPath).push(movimiento);
     await stampRtdbIdAfterPush(this.db, this.movimientosPath, ref.key);
+    if (data.tipo === 'ingreso') {
+      try {
+        await this.asegurarTurnoDelDia(data.fecha);
+      } catch (err) {
+        console.error('Turno de caja no se pudo abrir (el cobro sí quedó):', err);
+      }
+    }
     return ref.key!;
   }
 
   async bajaLogicaMovimiento(id: string): Promise<void> {
     await this.db.object(`${this.movimientosPath}/${id}`).update({
       activo: false,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     });
   }
 
@@ -134,7 +143,7 @@ export class CajaService {
       const lastDay = new Date(y, m, 0).getDate();
       return {
         desde: `${prefix}-01`,
-        hasta: `${prefix}-${String(lastDay).padStart(2, '0')}`
+        hasta: `${prefix}-${String(lastDay).padStart(2, '0')}`,
       };
     }
     // semana: lunes–domingo de la fecha de referencia
@@ -150,11 +159,7 @@ export class CajaService {
   }
 
   /** Filtra por día, semana (lun–dom) o mes. */
-  filtrarPorPeriodo(
-    movimientos: CajaMovimiento[],
-    modo: CajaPeriodoModo,
-    valor: string
-  ): CajaMovimiento[] {
+  filtrarPorPeriodo(movimientos: CajaMovimiento[], modo: CajaPeriodoModo, valor: string): CajaMovimiento[] {
     const rango = this.rangoPeriodo(modo, valor);
     if (!rango) return [];
     return movimientos.filter((m) => {
@@ -165,27 +170,19 @@ export class CajaService {
   }
 
   /** KPIs del período. */
-  calcularKpisPeriodo(
-    movimientos: CajaMovimiento[],
-    modo: CajaPeriodoModo,
-    valor: string
-  ): CajaDiaKpis {
+  calcularKpisPeriodo(movimientos: CajaMovimiento[], modo: CajaPeriodoModo, valor: string): CajaDiaKpis {
     const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor);
     const sum = (pred: (m: CajaMovimiento) => boolean) =>
       delPeriodo.filter(pred).reduce((acc, m) => acc + (Number(m.monto) || 0), 0);
 
     const totalIngresos = sum((m) => m.tipo === 'ingreso');
     const totalEgresos = sum((m) => m.tipo === 'egreso');
-    const porMetodo = (metodo: CajaMetodoPago) =>
-      sum((m) => m.tipo === 'ingreso' && m.metodoPago === metodo);
+    const porMetodo = (metodo: CajaMetodoPago) => sum((m) => m.tipo === 'ingreso' && m.metodoPago === metodo);
 
     const conCosto = delPeriodo.filter(
       (m) => m.tipo === 'ingreso' && m.costoAsociado != null && !Number.isNaN(Number(m.costoAsociado))
     );
-    const totalCostosAsociados = conCosto.reduce(
-      (acc, m) => acc + (Number(m.costoAsociado) || 0),
-      0
-    );
+    const totalCostosAsociados = conCosto.reduce((acc, m) => acc + (Number(m.costoAsociado) || 0), 0);
     const margenEstimado = conCosto.reduce((acc, m) => {
       if (m.margenEstimado != null) return acc + Number(m.margenEstimado);
       return acc + ((Number(m.monto) || 0) - (Number(m.costoAsociado) || 0));
@@ -206,7 +203,7 @@ export class CajaService {
       totalCostosAsociados,
       margenEstimado,
       ingresosConCosto,
-      ingresosSinCosto
+      ingresosSinCosto,
     };
   }
 
@@ -218,20 +215,14 @@ export class CajaService {
       {
         label: 'Ganancia',
         value: kpis.neto,
-        tone: kpis.neto >= 0 ? 'ok' : 'warn'
-      }
+        tone: kpis.neto >= 0 ? 'ok' : 'warn',
+      },
     ];
   }
 
   /** Desglose de egresos por categoría. */
-  desgloseEgresos(
-    movimientos: CajaMovimiento[],
-    modo: CajaPeriodoModo,
-    valor: string
-  ): CajaEgresoDesglose[] {
-    const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter(
-      (m) => m.tipo === 'egreso'
-    );
+  desgloseEgresos(movimientos: CajaMovimiento[], modo: CajaPeriodoModo, valor: string): CajaEgresoDesglose[] {
+    const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter((m) => m.tipo === 'egreso');
     const map = new Map<string, number>();
     for (const m of delPeriodo) {
       const key = m.categoria || 'sin_categoria';
@@ -244,7 +235,7 @@ export class CajaService {
           categoria === 'sin_categoria'
             ? 'Sin categoría'
             : CAJA_CATEGORIA_LABELS[categoria as CajaCategoria] || categoria,
-        total
+        total,
       }))
       .sort((a, b) => b.total - a.total);
   }
@@ -259,9 +250,7 @@ export class CajaService {
     banios: BanioIngresoRefuerzo[] = [],
     pensiones: PensionIngresoRefuerzo[] = []
   ): CajaIngresoDesglose[] {
-    const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter(
-      (m) => m.tipo === 'ingreso'
-    );
+    const delPeriodo = this.filtrarPorPeriodo(movimientos, modo, valor).filter((m) => m.tipo === 'ingreso');
     const map = new Map<string, { total: number; count: number }>();
     for (const m of delPeriodo) {
       const key = m.categoria || 'otro';
@@ -317,7 +306,7 @@ export class CajaService {
           ? 'Sin categoría'
           : CAJA_CATEGORIA_LABELS[categoria as CajaCategoria] || categoria,
       total: v.total,
-      count: v.count
+      count: v.count,
     }));
 
     return rows.sort((a, b) => {
@@ -351,12 +340,8 @@ export class CajaService {
     const filtrados = this.filtrarPorPeriodo(movimientos, modo, valor);
     return days.map((fecha) => {
       const delDia = filtrados.filter((m) => m.fecha === fecha);
-      const ingresos = delDia
-        .filter((m) => m.tipo === 'ingreso')
-        .reduce((a, m) => a + (Number(m.monto) || 0), 0);
-      const egresos = delDia
-        .filter((m) => m.tipo === 'egreso')
-        .reduce((a, m) => a + (Number(m.monto) || 0), 0);
+      const ingresos = delDia.filter((m) => m.tipo === 'ingreso').reduce((a, m) => a + (Number(m.monto) || 0), 0);
+      const egresos = delDia.filter((m) => m.tipo === 'egreso').reduce((a, m) => a + (Number(m.monto) || 0), 0);
       return { fecha, ingresos, egresos, ganancia: ingresos - egresos };
     });
   }
@@ -366,14 +351,103 @@ export class CajaService {
     return this.calcularKpisPeriodo(movimientos, 'dia', fechaDia);
   }
 
+  getCortes(): Observable<CajaCorte[]> {
+    return this.db
+      .list<CajaCorte>(this.cortesPath)
+      .snapshotChanges()
+      .pipe(
+        map((changes) =>
+          changes
+            .map((c) => ({ id: c.payload.key!, ...(c.payload.val() as CajaCorte) }))
+            .filter((c) => c.activo !== false)
+            .sort(
+              (a, b) =>
+                String(b.fecha || '').localeCompare(String(a.fecha || '')) ||
+                String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+            )
+        ),
+        catchError((error) => {
+          console.error('Error al obtener cortes de caja:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  getTurno(fecha: string): Observable<CajaTurno | null> {
+    const key = String(fecha || '').slice(0, 10);
+    return this.db
+      .object<CajaTurno>(`${this.turnosPath}/${key}`)
+      .valueChanges()
+      .pipe(map((v) => (v && v.abiertaEn ? { fecha: key, ...v } : null)));
+  }
+
+  async getTurnoOnce(fecha: string): Promise<CajaTurno | null> {
+    return firstValueFrom(this.getTurno(fecha).pipe(take(1)));
+  }
+
+  async getCortesOnce(): Promise<CajaCorte[]> {
+    return firstValueFrom(this.getCortes().pipe(take(1)));
+  }
+
+  /**
+   * Spec 071 — apertura implícita en el primer cobro del día.
+   * No pisa un turno ya abierto. Si el día ya tiene corte, no reabre.
+   */
+  async asegurarTurnoDelDia(fecha?: string): Promise<CajaTurno> {
+    const key = String(fecha || this.hoyLocalIsoDate()).slice(0, 10);
+    const existing = await this.getTurnoOnce(key);
+    if (existing?.abiertaEn) return existing;
+
+    const cortes = await this.getCortesOnce();
+    if (yaHayCorteDelDia(cortes, key)) {
+      const corte = cortes.find((c) => c.activo !== false && String(c.fecha || '').slice(0, 10) === key);
+      return {
+        fecha: key,
+        abiertaEn: corte?.createdAt || new Date().toISOString(),
+        fondoInicial: Number(corte?.fondoInicial) || 0,
+        corteId: corte?.id,
+      };
+    }
+
+    const createdBy = await this.currentStaff.getStaffId();
+    const row: CajaTurno = {
+      abiertaEn: new Date().toISOString(),
+      fondoInicial: fondoInicialDesdeUltimoCorte(cortes),
+      createdBy: createdBy || undefined,
+    };
+    await this.db.object(`${this.turnosPath}/${key}`).update(row);
+    return { fecha: key, ...row };
+  }
+
+  async marcarCorteEnTurno(fecha: string, corteId: string): Promise<void> {
+    const key = String(fecha || '').slice(0, 10);
+    if (!key || !corteId) return;
+    const existing = await this.getTurnoOnce(key);
+    if (!existing) {
+      await this.db.object(`${this.turnosPath}/${key}`).update({
+        abiertaEn: new Date().toISOString(),
+        fondoInicial: 0,
+        corteId,
+      });
+      return;
+    }
+    await this.db.object(`${this.turnosPath}/${key}`).update({ corteId });
+  }
+
   async guardarCorte(corte: Omit<CajaCorte, 'id' | 'createdAt' | 'createdBy' | 'activo'>): Promise<string> {
+    const fecha = String(corte.fecha || this.hoyLocalIsoDate()).slice(0, 10);
+    const cortes = await this.getCortesOnce();
+    if (yaHayCorteDelDia(cortes, fecha)) {
+      throw new Error('Ya hay un corte de este día. No se guarda un segundo corte.');
+    }
     const now = new Date().toISOString();
     const createdBy = await this.currentStaff.getStaffId();
     const row: CajaCorte = {
       ...corte,
+      fecha,
       activo: true,
       createdAt: now,
-      createdBy
+      createdBy,
     };
     const ref = await this.db.list(this.cortesPath).push(row);
     const id = ref.key;
@@ -381,6 +455,7 @@ export class CajaService {
       throw new Error('No se pudo guardar el corte');
     }
     await stampRtdbIdAfterPush(this.db, this.cortesPath, id);
+    await this.marcarCorteEnTurno(fecha, id);
     return id;
   }
 
