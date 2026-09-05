@@ -1,15 +1,28 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { filtrarProductos, productoSinStock, productoStockBajo } from '../core/utils/producto-search.util';
+import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
+import { Cliente, Paciente } from '../core/models';
+import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
+import { ClientesService } from '../clientes/clientes.service';
+import { ClienteDialogComponent } from '../clientes/cliente-dialog.component';
+import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago } from '../finanzas/caja.models';
-import { armarPartesPagoMixto, mensajePagoInvalido, validarPagoContraSaldo } from './pos-pago-mixto.util';
+import {
+  PartePagoMixto,
+  armarPartesPagoMixto,
+  mensajePagoInvalido,
+  validarPagoContraSaldo,
+} from './pos-pago-mixto.util';
+import { generarTextoTicketWhatsApp, telefonoWhatsAppValido, urlWhatsAppTicket } from './pos-ticket-whatsapp.util';
 import { puedeDevolverLinea } from './pos-devolucion.util';
 import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import { emptyDefaultsBanio, DefaultsBanioPorTamano, TamanoPerroBanio } from '../finanzas/defaults-banio.models';
@@ -35,7 +48,7 @@ import {
   iconoTipoServicioClinica,
   labelTipoServicioClinica,
   resolverLineaServicioClinica,
-  serviciosParaRielConsulta
+  serviciosParaRielConsulta,
 } from '../servicios-clinica/servicios-clinica.util';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
@@ -44,7 +57,7 @@ import {
   VisitaLineaCategoria,
   VISITA_ESTADO_LABELS,
   VISITA_LINEA_A_CAJA,
-  VISITA_LINEA_CATEGORIA_LABELS
+  VISITA_LINEA_CATEGORIA_LABELS,
 } from './visitas.models';
 import { VisitasService } from './visitas.service';
 import {
@@ -55,28 +68,23 @@ import {
   nuevaLineaId,
   precioUnitarioLinea,
   recalcularVisita,
-  roundMoney
+  roundMoney,
 } from './visitas.util';
 import { snapshotEconomiaLinea } from '../core/utils/precio-margen.util';
 import {
   BanioPendienteTicket,
   banioYaEnLineas,
   descripcionLineaBanio,
-  filtrarBaniosPendientesTicket
+  filtrarBaniosPendientesTicket,
 } from './pendientes-visita.util';
 import {
   CLIENTE_MOSTRADOR_ID,
   CLIENTE_MOSTRADOR_NOMBRE,
   esClienteMostrador,
-  esVisitaMostrador
+  esVisitaMostrador,
 } from './visita-mostrador.util';
 import { promptMontoVisita } from './visita-atalho.util';
-import {
-  PosRiel,
-  filtrarProductosPorRiel,
-  mensajeRielBloqueado,
-  puedeUsarRiel
-} from './pos-rieles.util';
+import { PosRiel, filtrarProductosPorRiel, mensajeRielBloqueado, puedeUsarRiel } from './pos-rieles.util';
 import {
   COPY_BANIO_AJUSTABLE,
   COPY_PRECIO_INVENTARIO,
@@ -85,7 +93,7 @@ import {
   filtrarCatalogoPorCategoria,
   inferirTamanoBanio,
   resolverAtajoConsulta,
-  resolverPrecioBanioPos
+  resolverPrecioBanioPos,
 } from './pos-precios.util';
 import {
   BANNER_CATALOGO_DEMO_POS,
@@ -93,14 +101,9 @@ import {
   esIdProductoDemoPos,
   esProductoDemoPos,
   lineasSinProductosDemo,
-  mezclarCatalogoPos
+  mezclarCatalogoPos,
 } from './pos-catalogo-demo.util';
-import {
-  iconoPlaceholderPos,
-  kindPlaceholderLinea,
-  kindPlaceholderProducto,
-  urlFotoProducto
-} from './pos-foto.util';
+import { iconoPlaceholderPos, kindPlaceholderLinea, kindPlaceholderProducto, urlFotoProducto } from './pos-foto.util';
 
 type SheetModo = 'producto' | 'linea' | 'carrito' | 'scanner';
 
@@ -108,7 +111,7 @@ type SheetModo = 'producto' | 'linea' | 'carrito' | 'scanner';
   selector: 'app-visita-dialog',
   templateUrl: './visita-dialog.component.html',
   styleUrls: ['./visita-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class VisitaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -144,10 +147,21 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   sheetLinea: VisitaLinea | null = null;
   sheetQty = 1;
   scannerCodigo = '';
+  /**
+   * Spec 065 — venta rápida: el cliente se pide solo cuando se agrega un servicio clínico.
+   * `accionPendiente` guarda el riel al que se vuelve tras resolver dueño + mascota.
+   */
+  accionPendiente: { riel: PosRiel } | null = null;
+  mensajeRequiereCliente = '';
+  telefonoCliente = '';
+  telefonoWhatsApp = '';
+  resultadoCobro: { visitaId: string; cobrado: true; parcial: boolean } | null = null;
+  ultimoPago: { partes: PartePagoMixto[]; saldoPendiente: number } | null = null;
+  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   readonly productoSinStockFn = productoSinStock;
   readonly staffPickerFields: StaffPickerFields = {
     uidField: 'atendidoPorUid',
-    nombreField: 'atendidoPorNombre'
+    nombreField: 'atendidoPorNombre',
   };
 
   readonly categoriaLabels = VISITA_LINEA_CATEGORIA_LABELS;
@@ -160,7 +174,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     'venta_producto',
     'pension',
     'cirugia',
-    'otro'
+    'otro',
   ];
 
   readonly copyPrecioInventario = COPY_PRECIO_INVENTARIO;
@@ -177,7 +191,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   readonly metodosPago: Array<{ value: CajaMetodoPago; label: string; icon: string }> = [
     { value: 'efectivo', label: 'Efectivo', icon: 'payments' },
     { value: 'tarjeta', label: 'Tarjeta', icon: 'credit_card' },
-    { value: 'transferencia', label: 'Transferencia', icon: 'account_balance' }
+    { value: 'transferencia', label: 'Transferencia', icon: 'account_balance' },
   ];
 
   get totales() {
@@ -192,7 +206,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return {
       modoMostrador: this.modoMostrador,
       clienteId: String(this.form?.get('cliente_id')?.value || ''),
-      pacienteId: String(this.form?.get('paciente_id')?.value || '')
+      pacienteId: String(this.form?.get('paciente_id')?.value || ''),
     };
   }
 
@@ -203,20 +217,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   get medicamentosFiltrados(): Producto[] {
     return filtrarProductos(
-      filtrarCatalogoPorCategoria(
-        filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
-        'medicamento'
-      ),
+      filtrarCatalogoPorCategoria(filtrarProductosPorRiel(this.productosCatalogo, 'consulta'), 'medicamento'),
       this.catalogSearch.value
     );
   }
 
   get vacunasFiltradas(): Producto[] {
     return filtrarProductos(
-      filtrarCatalogoPorCategoria(
-        filtrarProductosPorRiel(this.productosCatalogo, 'consulta'),
-        'vacuna'
-      ),
+      filtrarCatalogoPorCategoria(filtrarProductosPorRiel(this.productosCatalogo, 'consulta'), 'vacuna'),
       this.catalogSearch.value
     );
   }
@@ -224,10 +232,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   get clinicosOtrosFiltrados(): Producto[] {
     const consultaId = this.atajoConsultaProducto?.id;
     const base = filtrarProductosPorRiel(this.productosCatalogo, 'consulta').filter(
-      (p) =>
-        p.categoria !== 'medicamento' &&
-        p.categoria !== 'vacuna' &&
-        p.id !== consultaId
+      (p) => p.categoria !== 'medicamento' && p.categoria !== 'vacuna' && p.id !== consultaId
     );
     return filtrarProductos(base, this.catalogSearch.value);
   }
@@ -254,21 +259,59 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   get tituloPos(): string {
+    if (this.resultadoCobro) return this.resultadoCobro.parcial ? 'Pago parcial' : 'Venta cobrada';
     if (this.soloLectura) return 'Ticket cerrado';
     return this.esEdicion ? 'Caja' : 'Nueva venta';
   }
 
   get subtituloPos(): string {
     const cliente = String(this.form.get('cliente')?.value || '').trim();
-    if (this.modoMostrador) return 'Mostrador · sin cliente registrado';
-    if (cliente) return cliente;
-    return 'Cliente → caja → cobrar';
+    const paciente = String(this.form.get('paciente')?.value || '').trim();
+    if (this.resultadoCobro) {
+      return this.resultadoCobro.parcial ? 'Pago parcial registrado' : 'Venta cobrada · ticket en $0';
+    }
+    if (this.modoMostrador) return 'Venta rápida · sin cliente (opcional)';
+    if (cliente) return paciente ? `${cliente} · ${paciente}` : cliente;
+    return 'Elige al dueño o sigue sin cliente';
   }
 
   get chipClienteLabel(): string {
-    if (this.modoMostrador) return 'Mostrador';
+    if (this.modoMostrador) return 'Sin cliente · ¿Es cliente?';
     const nombre = String(this.form.get('cliente')?.value || '').trim();
-    return nombre || 'Elegir cliente';
+    const paciente = String(this.form.get('paciente')?.value || '').trim();
+    if (!nombre) return 'Elegir dueño';
+    return paciente ? `${nombre} · ${paciente}` : nombre;
+  }
+
+  /** Spec 065 — copy del bloque «¿Es cliente / trae mascota?». */
+  get hintBloqueCliente(): string {
+    if (this.mensajeRequiereCliente) return this.mensajeRequiereCliente;
+    return 'Opcional para productos: liga el ticket a un dueño para guardar su historial y saldo. Para consulta, vacuna, baño o pensión sí hace falta dueño y mascota.';
+  }
+
+  get tieneClienteReal(): boolean {
+    return !this.modoMostrador && !!String(this.form.get('cliente_id')?.value || '').trim();
+  }
+
+  get tienePaciente(): boolean {
+    return !!String(this.form.get('paciente_id')?.value || '').trim();
+  }
+
+  /** Bloque WhatsApp visible tras cobrar (o en ticket cerrado con pagos). */
+  get puedeEnviarWhatsApp(): boolean {
+    return !!this.visitaId && (!!this.resultadoCobro || (this.soloLectura && this.totales.pagado > 0));
+  }
+
+  get whatsappTelefonoValido(): boolean {
+    return telefonoWhatsAppValido(this.telefonoWhatsApp);
+  }
+
+  get whatsappHint(): string {
+    if (this.modoMostrador)
+      return 'Venta de mostrador: escribe el teléfono del comprador si quiere su ticket (opcional).';
+    if (!this.telefonoCliente)
+      return 'Este dueño no tiene teléfono registrado. Escríbelo aquí para enviarle el ticket.';
+    return 'Se abre WhatsApp con el ticket ya escrito; solo toca enviar.';
   }
 
   get cobrarLabel(): string {
@@ -282,8 +325,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   get accionBloqueoHint(): string {
     if (this.soloLectura) return '';
+    if (this.mensajeRequiereCliente) return this.mensajeRequiereCliente;
     if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige el dueño, o usa venta de mostrador.';
+      return 'Elige al dueño, o sigue sin cliente para vender solo productos.';
     }
     if (this.form.invalid && !this.modoMostrador) {
       return 'Completa la fecha y el dueño para continuar.';
@@ -303,7 +347,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   get guardarBloqueoHint(): string {
     if (this.soloLectura) return 'Ticket cerrado o cancelado';
     if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige el dueño o activa venta de mostrador';
+      return 'Elige al dueño o sigue sin cliente';
     }
     if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
     if (!String(this.form.get('fecha')?.value || '').trim()) return 'Indica la fecha';
@@ -313,7 +357,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   get cobrarBloqueoHint(): string {
     if (this.soloLectura) return 'Ticket cerrado o cancelado';
     if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige el dueño o activa venta de mostrador';
+      return 'Elige al dueño o sigue sin cliente';
     }
     if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
     if (!this.lineas.length) return 'Agrega líneas al ticket';
@@ -326,9 +370,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (this.mostrandoProducto) {
       return 'Al guardar o cobrar se registrará la salida de inventario por la cantidad vendida.';
     }
-    const productos = this.lineas.filter(l => l.categoria === 'venta_producto');
+    const productos = this.lineas.filter((l) => l.categoria === 'venta_producto');
     if (!productos.length) return '';
-    const pendientes = productos.filter(l => !l.movimientoInventarioId);
+    const pendientes = productos.filter((l) => !l.movimientoInventarioId);
     if (pendientes.length) {
       return `${pendientes.length} producto(s) en el ticket: al guardar o cobrar se descontará del stock en Inventario.`;
     }
@@ -388,6 +432,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
     private cajaService: CajaService,
+    private clientesService: ClientesService,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       visita?: Visita;
@@ -407,17 +453,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       fecha: [hoyLocalIsoDate(), Validators.required],
       notas: [''],
       atendidoPorUid: [''],
-      atendidoPorNombre: ['']
+      atendidoPorNombre: [''],
     });
     this.lineaForm = this.fb.group({
       descripcion: ['', [Validators.required, Validators.minLength(2)]],
       monto: [null, [Validators.required, Validators.min(0.01)]],
-      categoria: ['consulta' as VisitaLineaCategoria, Validators.required]
+      categoria: ['consulta' as VisitaLineaCategoria, Validators.required],
     });
     this.productoForm = this.fb.group({
       producto_id: ['', Validators.required],
       producto_nombre: [''],
-      cantidad: [1, [Validators.required, Validators.min(1)]]
+      cantidad: [1, [Validators.required, Validators.min(1)]],
     });
     this.cobroForm = this.fb.group({
       metodoPago: ['efectivo' as CajaMetodoPago, Validators.required],
@@ -425,7 +471,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       mixto: [false],
       montoEfectivo: [0],
       montoTarjeta: [0],
-      montoTransferencia: [0]
+      montoTransferencia: [0],
     });
   }
 
@@ -452,7 +498,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         fecha: v.fecha,
         notas: v.notas || '',
         atendidoPorUid: v.atendidoPorUid || '',
-        atendidoPorNombre: v.atendidoPorNombre || ''
+        atendidoPorNombre: v.atendidoPorNombre || '',
       });
       if (esVisitaMostrador(v)) {
         this.modoMostrador = true;
@@ -469,32 +515,48 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       if (v.paciente_id) {
         void this.cargarAlergias(v.paciente_id);
       }
+      if (!esVisitaMostrador(v) && v.cliente_id) {
+        void this.cargarTelefonoCliente(v.cliente_id);
+      }
     } else {
       this.form.patchValue({
         cliente_id: this.data?.cliente_id || '',
         cliente: this.data?.cliente || '',
         paciente_id: this.data?.paciente_id || '',
         paciente: this.data?.paciente || '',
-        fecha: this.data?.fecha || hoyLocalIsoDate()
+        fecha: this.data?.fecha || hoyLocalIsoDate(),
       });
       if (this.data?.paciente_id) {
         void this.cargarAlergias(this.data.paciente_id);
       }
+      if (this.data?.cliente_id && !esClienteMostrador(this.data.cliente_id)) {
+        void this.cargarTelefonoCliente(this.data.cliente_id);
+      }
     }
 
-    if (this.data?.ventaMostrador && !this.esEdicion) {
+    // Spec 065 — venta rápida por defecto: sin cliente el POS abre en productos (mostrador implícito).
+    if (!this.esEdicion && (this.data?.ventaMostrador || !this.tieneDuenoOMostrador)) {
       this.activarVentaMostrador();
     }
 
     if (this.esEdicion) {
       this.pasoWizard = this.soloLectura ? 3 : 2;
-    } else if (this.tieneDuenoOMostrador) {
+    } else {
       this.pasoWizard = 2;
     }
 
-    this.form.get('cliente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
-    this.form.get('fecha')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
-    this.form.get('paciente_id')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => void this.cargarPendientes());
+    this.form
+      .get('cliente_id')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => void this.cargarPendientes());
+    this.form
+      .get('fecha')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => void this.cargarPendientes());
+    this.form
+      .get('paciente_id')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => void this.cargarPendientes());
     void this.cargarPendientes();
     this.cargarCatalogo();
     this.cargarServiciosClinica();
@@ -542,8 +604,108 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }
       return;
     }
+    // Spec 065 — el servicio clínico pide dueño + mascota en ese momento y regresa al riel.
+    this.pedirClientePara(riel);
+  }
+
+  /** Copy «te falta X» según el servicio que se quiso agregar. */
+  mensajeRequiereClientePara(riel: PosRiel): string {
+    const faltaMascota = this.tieneClienteReal && !this.tienePaciente;
+    const dueno = String(this.form.get('cliente')?.value || '').trim();
+    if (riel === 'peluqueria') {
+      return faltaMascota
+        ? `Elige o agrega la mascota de ${dueno} para registrar el baño.`
+        : 'Para registrar un baño necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
+    }
+    return faltaMascota
+      ? `Elige o agrega la mascota de ${dueno} para registrar la consulta.`
+      : 'Para registrar una consulta necesito saber de qué paciente es. Elige al dueño y la mascota, o créalos aquí.';
+  }
+
+  /** Abre el bloque «¿Es cliente / trae mascota?» con la acción pendiente para reanudar el cobro. */
+  pedirClientePara(riel: PosRiel): void {
+    if (this.soloLectura) return;
+    this.accionPendiente = { riel };
+    if (this.modoMostrador) {
+      this.vincularClienteReal();
+    }
+    this.mensajeRequiereCliente = this.mensajeRequiereClientePara(riel);
     this.rielHint = mensajeRielBloqueado(riel, this.contextoRiel);
     this.posTab = riel;
+    this.cerrarSheet();
+    this.pasoWizard = 1;
+  }
+
+  /** Abrir el bloque de cliente sin acción pendiente (chip «¿Es cliente?»). */
+  abrirBloqueCliente(): void {
+    if (this.soloLectura) return;
+    this.mensajeRequiereCliente = '';
+    if (this.modoMostrador) {
+      this.vincularClienteReal();
+    }
+    this.cerrarSheet();
+    this.pasoWizard = 1;
+  }
+
+  /** En servicio clínico la mascota es obligatoria; al ligar el ticket es opcional. */
+  get pacienteRequeridoEnPicker(): boolean {
+    return !!this.accionPendiente;
+  }
+
+  /** «Seguir sin cliente»: vuelve a mostrador y a la caja; descarta la acción clínica pendiente. */
+  seguirSinCliente(): void {
+    if (this.soloLectura) return;
+    this.accionPendiente = null;
+    this.mensajeRequiereCliente = '';
+    this.rielHint = '';
+    this.activarVentaMostrador();
+    this.posTab = 'petshop';
+    this.irPaso(2);
+  }
+
+  /** Cliente ya resuelto (con o sin mascota): volver a la caja; reanuda el riel si ya se puede. */
+  continuarACaja(): void {
+    if (!this.tieneDuenoOMostrador) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    if (this.accionPendiente && !puedeUsarRiel(this.accionPendiente.riel, this.contextoRiel)) {
+      this.mensajeRequiereCliente = this.mensajeRequiereClientePara(this.accionPendiente.riel);
+      return;
+    }
+    this.mensajeRequiereCliente = '';
+    if (this.accionPendiente) {
+      this.posTab = this.accionPendiente.riel;
+      this.rielHint = '';
+      this.accionPendiente = null;
+    }
+    this.irPaso(2);
+  }
+
+  private reanudarAccionPendiente(): void {
+    if (!this.accionPendiente) return;
+    const riel = this.accionPendiente.riel;
+    if (!puedeUsarRiel(riel, this.contextoRiel)) {
+      this.mensajeRequiereCliente = this.mensajeRequiereClientePara(riel);
+      return;
+    }
+    this.accionPendiente = null;
+    this.mensajeRequiereCliente = '';
+    this.rielHint = '';
+    this.posTab = riel;
+    this.catalogSearch.setValue('');
+    this.pasoWizard = 2;
+    const cliente = String(this.form.get('cliente')?.value || '').trim();
+    const paciente = String(this.form.get('paciente')?.value || '').trim();
+    void Swal.fire({
+      toast: true,
+      icon: 'success',
+      title: `${cliente} · ${paciente}`,
+      text: riel === 'peluqueria' ? 'Listo. Ahora agrega el baño.' : 'Listo. Ahora agrega la consulta o el servicio.',
+      timer: 2600,
+      showConfirmButton: false,
+      position: 'top',
+    });
   }
 
   async nuevoBanioEnTicket(): Promise<void> {
@@ -555,7 +717,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.recalcularPrecioBanioDefault();
     const monto = await promptMontoVisita('Nuevo baño', this.copyBanioAjustable, {
       sugerido: this.precioBanioDefault ?? undefined,
-      forzarDialogo: true
+      forzarDialogo: true,
     });
     if (!(monto != null && monto > 0)) return;
     this.lineas = [
@@ -565,8 +727,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         descripcion: `Baño · ${mascota}`,
         monto: roundMoney(monto),
         categoria: 'banio',
-        cantidad: 1
-      }
+        cantidad: 1,
+      },
     ];
   }
 
@@ -592,7 +754,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       cliente_id: sel.cliente_id || '',
       cliente: sel.cliente || '',
       paciente_id: sel.paciente_id || '',
-      paciente: sel.paciente || ''
+      paciente: sel.paciente || '',
     });
     const fromSel = normalizeAlergias(sel.pacienteData);
     if (fromSel.length) {
@@ -607,6 +769,152 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     );
     this.recalcularPrecioBanioDefault();
     void this.cargarPendientes();
+
+    // Spec 065 — teléfono para WhatsApp y reanudar el servicio clínico pendiente.
+    const tel = String(sel.clienteData?.telefono || '').trim();
+    if (tel) {
+      this.telefonoCliente = tel;
+    } else if (sel.cliente_id && !esClienteMostrador(sel.cliente_id)) {
+      void this.cargarTelefonoCliente(sel.cliente_id);
+    } else {
+      this.telefonoCliente = '';
+    }
+    this.reanudarAccionPendiente();
+  }
+
+  /** Spec 065 — «Cliente nuevo» desde el picker: alta rápida, selección automática y ¿trae mascota? */
+  async crearClienteRapido(prefill = ''): Promise<void> {
+    if (this.soloLectura) return;
+    const ref = this.dialog.open(ClienteDialogComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      autoFocus: '[cdkFocusInitial]',
+      data: { modo: 'rapido', prefill },
+    });
+    const result = (await firstValueFrom(ref.afterClosed())) as (Cliente & { id?: string }) | undefined;
+    if (!result) return;
+
+    let cliente: Cliente;
+    this.loadingService.show('Guardando cliente…');
+    try {
+      const id = await this.clientesService.guardarCliente({ ...result, id: '' });
+      cliente = { ...result, id, activo: true };
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar cliente'), 'error');
+      return;
+    } finally {
+      this.loadingService.hide();
+    }
+
+    this.seleccionarClienteCreado(cliente);
+    const nombre = getClienteNombreCompleto(cliente) || 'el cliente';
+    const ask = await Swal.fire({
+      icon: 'question',
+      title: '¿Trae mascota?',
+      text: `Puedes registrar la mascota de ${nombre} ahora o después.`,
+      showCancelButton: true,
+      confirmButtonText: 'Sí, registrar mascota',
+      cancelButtonText: 'Ahora no',
+    });
+    if (ask.isConfirmed) {
+      await this.crearMascotaRapida(cliente);
+    }
+  }
+
+  /** Spec 065 — «Agregar mascota» para el dueño actual: alta rápida y selección automática. */
+  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
+    if (this.soloLectura) return;
+    const dueno: Cliente | null = cliente?.id
+      ? cliente
+      : this.tieneClienteReal
+        ? {
+            id: String(this.form.get('cliente_id')?.value || ''),
+            nombre: String(this.form.get('cliente')?.value || ''),
+            telefono: this.telefonoCliente,
+          }
+        : null;
+    if (!dueno?.id) {
+      Swal.fire('Falta el dueño', 'Primero elige o crea al dueño de la mascota.', 'info');
+      return;
+    }
+    const ref = this.dialog.open(PacienteAdminDialogComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      autoFocus: '[cdkFocusInitial]',
+      data: { modo: 'rapido', cliente: dueno },
+    });
+    const result = (await firstValueFrom(ref.afterClosed())) as Paciente | undefined;
+    if (!result) return;
+
+    this.loadingService.show('Guardando mascota…');
+    try {
+      const id = await this.pacientesService.crearPaciente(result);
+      const paciente: Paciente = { ...result, id, activo: true };
+      this.seleccionarPacienteCreado(paciente, dueno);
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar paciente'), 'error');
+    } finally {
+      this.loadingService.hide();
+    }
+  }
+
+  private seleccionarClienteCreado(cliente: Cliente): void {
+    if (this.picker) {
+      this.picker.seleccionarClienteExterno(cliente);
+      return;
+    }
+    this.onClientePacienteSelected({
+      cliente_id: String(cliente.id || ''),
+      cliente: getClienteNombreCompleto(cliente),
+      paciente_id: '',
+      paciente: '',
+      clienteData: cliente,
+    });
+  }
+
+  private seleccionarPacienteCreado(paciente: Paciente, cliente: Cliente): void {
+    if (this.picker) {
+      this.picker.seleccionarPacienteExterno(paciente, cliente);
+      return;
+    }
+    this.onClientePacienteSelected({
+      cliente_id: String(cliente.id || ''),
+      cliente: getClienteNombreCompleto(cliente) || String(cliente.nombre || ''),
+      paciente_id: String(paciente.id || ''),
+      paciente: String(paciente.nombre || ''),
+      clienteData: cliente,
+      pacienteData: paciente,
+    });
+  }
+
+  private async cargarTelefonoCliente(clienteId: string): Promise<void> {
+    try {
+      const c = await firstValueFrom(this.clientesService.getCliente(clienteId).pipe(take(1)));
+      this.telefonoCliente = String(c?.telefono || '').trim();
+    } catch {
+      this.telefonoCliente = '';
+    }
+  }
+
+  /** Spec 065 — abre WhatsApp con el ticket ya escrito (`wa.me`). */
+  enviarTicketWhatsApp(): void {
+    if (!this.puedeEnviarWhatsApp) return;
+    const raw = this.form.getRawValue();
+    const esMostrador = this.modoMostrador || esClienteMostrador(raw.cliente_id);
+    const texto = generarTextoTicketWhatsApp({
+      fecha: String(raw.fecha || hoyLocalIsoDate()),
+      visitaId: this.visitaId,
+      cliente: esMostrador ? '' : String(raw.cliente || ''),
+      esMostrador,
+      paciente: esMostrador ? '' : String(raw.paciente || ''),
+      lineas: this.lineas,
+      pagos: this.ultimoPago?.partes || [],
+      saldoPendiente: this.ultimoPago?.saldoPendiente ?? this.totales.saldo,
+    });
+    const url = urlWhatsAppTicket(this.telefonoWhatsApp, texto);
+    if (!url) {
+      Swal.fire('Teléfono', 'Escribe un teléfono de 10 dígitos para enviar el ticket.', 'warning');
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
   }
 
   activarVentaMostrador(): void {
@@ -616,7 +924,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       cliente_id: CLIENTE_MOSTRADOR_ID,
       cliente: CLIENTE_MOSTRADOR_NOMBRE,
       paciente_id: '',
-      paciente: ''
+      paciente: '',
     });
     this.form.get('cliente_id')?.clearValidators();
     this.form.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
@@ -633,7 +941,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       cliente_id: '',
       cliente: '',
       paciente_id: '',
-      paciente: ''
+      paciente: '',
     });
     this.form.get('cliente_id')?.setValidators([Validators.required]);
     this.form.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
@@ -645,16 +953,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   qtyEnCarrito(productoId: string | undefined): number {
     if (!productoId) return 0;
-    return this.lineas
-      .filter(l => l.productoId === productoId)
-      .reduce((s, l) => s + cantidadLinea(l), 0);
+    return this.lineas.filter((l) => l.productoId === productoId).reduce((s, l) => s + cantidadLinea(l), 0);
   }
 
   qtyServicioEnCarrito(servicioId: string | undefined): number {
     if (!servicioId) return 0;
-    return this.lineas
-      .filter((l) => l.servicioClinicaId === servicioId)
-      .reduce((s, l) => s + cantidadLinea(l), 0);
+    return this.lineas.filter((l) => l.servicioClinicaId === servicioId).reduce((s, l) => s + cantidadLinea(l), 0);
   }
 
   esLineaProducto(linea: VisitaLinea): boolean {
@@ -893,8 +1197,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         descripcion: 'Consulta general',
         monto: roundMoney(monto),
         categoria: 'consulta',
-        cantidad: 1
-      }
+        cantidad: 1,
+      },
     ];
   }
 
@@ -905,7 +1209,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         montoEfectivo: saldo,
         montoTarjeta: 0,
         montoTransferencia: 0,
-        monto: saldo
+        monto: saldo,
       });
       return;
     }
@@ -918,16 +1222,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       mixto: on,
       montoEfectivo: on ? this.totales.saldo : 0,
       montoTarjeta: 0,
-      montoTransferencia: 0
+      montoTransferencia: 0,
     });
   }
 
-  puedeDevolver(linea: {
-    id?: string;
-    descripcion?: string;
-    fueDevuelto?: boolean;
-    monto?: number;
-  }): boolean {
+  puedeDevolver(linea: { id?: string; descripcion?: string; fueDevuelto?: boolean; monto?: number }): boolean {
     return this.soloLectura && !!this.visitaId && puedeDevolverLinea(linea as Pick<VisitaLinea, 'monto'>);
   }
 
@@ -936,7 +1235,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   cancelar(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close(this.resultadoCobro ?? false);
   }
 
   incluirBanioPendiente(p: BanioPendienteTicket): void {
@@ -946,7 +1245,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       this.recalcularPrecioBanioDefault();
       void promptMontoVisita('Monto del baño', this.copyBanioAjustable, {
         sugerido: this.precioBanioDefault ?? undefined,
-        forzarDialogo: true
+        forzarDialogo: true,
       }).then((asked) => {
         if (!(asked != null && asked > 0)) return;
         this.pushLineaBanio(p, asked);
@@ -958,7 +1257,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   quitarLinea(id: string): void {
     if (this.pagado > 0) return;
-    this.lineas = this.lineas.filter(l => l.id !== id);
+    this.lineas = this.lineas.filter((l) => l.id !== id);
     void this.cargarPendientes();
   }
 
@@ -988,11 +1287,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       ? armarPartesPagoMixto({
           efectivo: Number(this.cobroForm.get('montoEfectivo')?.value) || 0,
           tarjeta: Number(this.cobroForm.get('montoTarjeta')?.value) || 0,
-          transferencia: Number(this.cobroForm.get('montoTransferencia')?.value) || 0
+          transferencia: Number(this.cobroForm.get('montoTransferencia')?.value) || 0,
         })
       : armarPartesPagoMixto({
-          [this.cobroForm.get('metodoPago')?.value || 'efectivo']:
-            Number(this.cobroForm.get('monto')?.value) || 0
+          [this.cobroForm.get('metodoPago')?.value || 'efectivo']: Number(this.cobroForm.get('monto')?.value) || 0,
         } as { efectivo?: number; tarjeta?: number; transferencia?: number });
     const valid = validarPagoContraSaldo(partes, t.saldo);
     const pagoErr = mensajePagoInvalido(valid);
@@ -1010,9 +1308,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       const cat = this.lineas.length === 1 ? this.lineas[0].categoria : 'otro';
       const raw = this.form.getRawValue();
       const saldoAntes = t.saldo;
-      const movIdsInv = this.lineas
-        .map(l => l.movimientoInventarioId)
-        .filter((id): id is string => !!id);
+      const movIdsInv = this.lineas.map((l) => l.movimientoInventarioId).filter((id): id is string => !!id);
       const visita = await this.visitasService.getVisita(visitaId);
       if (!visita) throw new Error('Visita no encontrada');
       const ids = [...(visita.cajaMovimientoIds || [])];
@@ -1028,24 +1324,44 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           visitaId,
           clienteId: this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
           categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
-          movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined
+          movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined,
         });
         if (!ids.includes(movId)) ids.push(movId);
         pagadoAcc = roundMoney(pagadoAcc + parte.monto);
       }
       await this.visitasService.actualizarVisita(visitaId, {
         pagado: pagadoAcc,
-        cajaMovimientoIds: ids
+        cajaMovimientoIds: ids,
       });
       const esParcial = montoPago < saldoAntes - 0.001;
-      Swal.fire({
+      // Spec 065 — el diálogo se queda abierto para imprimir / enviar por WhatsApp; se cierra con «Cerrar».
+      this.pagado = pagadoAcc;
+      this.resultadoCobro = { visitaId, cobrado: true, parcial: esParcial };
+      this.ultimoPago = { partes, saldoPendiente: roundMoney(Math.max(0, saldoAntes - montoPago)) };
+      this.telefonoWhatsApp = this.telefonoCliente || '';
+      this.estadoLabel = VISITA_ESTADO_LABELS[this.totales.estado] || this.estadoLabel;
+      if (!esParcial) {
+        this.soloLectura = true;
+        this.form.disable({ emitEvent: false });
+        this.lineaForm.disable({ emitEvent: false });
+        this.productoForm.disable({ emitEvent: false });
+        this.cobroForm.disable({ emitEvent: false });
+      } else {
+        this.cobroForm.patchValue({ monto: this.totales.saldo, mixto: false });
+      }
+      this.pasoWizard = 3;
+      this.cerrarSheet();
+      void Swal.fire({
+        toast: true,
+        position: 'top',
         icon: 'success',
         title: esParcial ? 'Pago parcial registrado' : 'Venta cobrada',
-        text: esParcial ? 'Queda saldo. Puedes cobrar el resto después.' : 'Ticket en $0.',
-        timer: 2200,
-        showConfirmButton: false
+        text: esParcial
+          ? 'Queda saldo. Puedes cobrar el resto después.'
+          : 'Ticket en $0. Puedes enviarlo por WhatsApp.',
+        timer: 2600,
+        showConfirmButton: false,
       });
-      this.dialogRef.close({ visitaId, cobrado: true, parcial: esParcial });
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
     } finally {
@@ -1054,7 +1370,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  async devolverLinea(linea: { id: string; descripcion: string; fueDevuelto?: boolean; monto?: number }): Promise<void> {
+  async devolverLinea(linea: {
+    id: string;
+    descripcion: string;
+    fueDevuelto?: boolean;
+    monto?: number;
+  }): Promise<void> {
     if (!this.visitaId || !this.puedeDevolver(linea)) {
       return;
     }
@@ -1064,7 +1385,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       text: `${linea.descripcion}. Se reintegra stock si era producto y se registra un egreso en caja.`,
       showCancelButton: true,
       confirmButtonText: 'Devolver',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (!ask.isConfirmed) {
       return;
@@ -1111,9 +1432,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       monto = decision.monto;
     }
     if (!(monto > 0)) return;
-    const existente = this.lineas.find(
-      (l) => l.servicioClinicaId === s.id && !l.movimientoInventarioId
-    );
+    const existente = this.lineas.find((l) => l.servicioClinicaId === s.id && !l.movimientoInventarioId);
     if (existente) {
       this.aplicarDeltaLinea(existente.id, 1);
       return;
@@ -1132,9 +1451,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           costo: s.precio_costo,
           aplicaIva: s.aplicaIva === true,
           tasaIva: s.tasaIva,
-          cantidad: 1
-        })
-      }
+          cantidad: 1,
+        }),
+      },
     ];
   }
 
@@ -1164,7 +1483,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.serviciosCatalogo = [];
-        }
+        },
       });
   }
 
@@ -1175,25 +1494,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       .getProductos()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: rows => {
-          const rtdb = (rows || []).filter(p => p && p.activo !== false);
-          this.productosCatalogo = mezclarCatalogoPos(
-            rtdb,
-            MOCK_PRODUCTOS_POS,
-            this.muestraCatalogoDemo
-          );
+        next: (rows) => {
+          const rtdb = (rows || []).filter((p) => p && p.activo !== false);
+          this.productosCatalogo = mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
         },
         error: () => {
-          this.productosCatalogo = mezclarCatalogoPos(
-            [],
-            MOCK_PRODUCTOS_POS,
-            this.muestraCatalogoDemo
-          );
+          this.productosCatalogo = mezclarCatalogoPos([], MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
-        }
+        },
       });
   }
 
@@ -1203,11 +1514,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     const stock = Number(p.stock_actual) || 0;
     const ya = this.qtyEnCarrito(p.id);
     if (stock < ya + cantidad) {
-      Swal.fire(
-        'Sin stock suficiente',
-        `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`,
-        'warning'
-      );
+      Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`, 'warning');
       return;
     }
     const unit = Number(p.precio_venta) || 0;
@@ -1216,7 +1523,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     const existente = this.lineas.find(
-      l => l.productoId === p.id && l.categoria === 'venta_producto' && !l.movimientoInventarioId
+      (l) => l.productoId === p.id && l.categoria === 'venta_producto' && !l.movimientoInventarioId
     );
     if (existente) {
       this.aplicarDeltaLinea(existente.id, cantidad);
@@ -1236,9 +1543,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           costo: p.precio_compra,
           aplicaIva: !!p.iva_aplicable,
           tasaIva: p.tasa_iva,
-          cantidad
-        })
-      }
+          cantidad,
+        }),
+      },
     ];
     if (productoStockBajo(p)) {
       void Swal.fire({
@@ -1248,21 +1555,21 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         text: `"${p.nombre}" está por debajo del mínimo (${p.stock_minimo}). El precio viene del inventario.`,
         timer: 2400,
         showConfirmButton: false,
-        position: 'top'
+        position: 'top',
       });
     }
   }
 
   private aplicarDeltaLinea(id: string, delta: number): void {
     if (this.pagado > 0) return;
-    const actual = this.lineas.find(l => l.id === id);
+    const actual = this.lineas.find((l) => l.id === id);
     if (!actual || actual.movimientoInventarioId) return;
     const next = ajustarCantidadLinea(actual, delta);
     if (!next) {
       this.quitarLinea(id);
       return;
     }
-    this.lineas = this.lineas.map(l => (l.id === id ? next : l));
+    this.lineas = this.lineas.map((l) => (l.id === id ? next : l));
   }
 
   private async cargarAlergias(pacienteId: string): Promise<void> {
@@ -1283,7 +1590,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     const clienteId = String(this.form.get('cliente_id')?.value || '').trim();
-    const fecha = String(this.form.get('fecha')?.value || '').trim().slice(0, 10);
+    const fecha = String(this.form.get('fecha')?.value || '')
+      .trim()
+      .slice(0, 10);
     if (!clienteId || !fecha) {
       this.pendientesBanio = [];
       return;
@@ -1293,8 +1602,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       this.pendientesBanio = filtrarBaniosPendientesTicket(banios || [], {
         clienteId,
         fecha,
-        pacienteId: String(this.form.get('paciente_id')?.value || '').trim() || undefined
-      }).filter(p => !banioYaEnLineas(this.lineas, p.id));
+        pacienteId: String(this.form.get('paciente_id')?.value || '').trim() || undefined,
+      }).filter((p) => !banioYaEnLineas(this.lineas, p.id));
     } catch {
       this.pendientesBanio = [];
     }
@@ -1307,7 +1616,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       plantillas: this.plantillasCosto,
       tiposServicio: this.tiposServicio,
       productosPeluqueria: this.productosPeluqueria,
-      catalogoInventario: this.productosCatalogo
+      catalogoInventario: this.productosCatalogo,
     }).precio;
   }
 
@@ -1316,15 +1625,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     try {
       const [defaults, plantillas, tipos, peluqueria] = await Promise.all([
         this.defaultsBanioService.getDefaultsOnce().catch(() => emptyDefaultsBanio()),
-        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(
-          () => [] as PlantillaCosto[]
-        ),
-        firstValueFrom(this.baniosService.getTiposServicios().pipe(take(1))).catch(
-          () => [] as TipoServicio[]
-        ),
-        firstValueFrom(this.baniosService.getProductos().pipe(take(1))).catch(
-          () => [] as ProductoPeluqueria[]
-        )
+        firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(() => [] as PlantillaCosto[]),
+        firstValueFrom(this.baniosService.getTiposServicios().pipe(take(1))).catch(() => [] as TipoServicio[]),
+        firstValueFrom(this.baniosService.getProductos().pipe(take(1))).catch(() => [] as ProductoPeluqueria[]),
       ]);
       this.defaultsBanio = defaults || emptyDefaultsBanio();
       this.plantillasCosto = plantillas || [];
@@ -1350,11 +1653,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           precioVenta: monto,
           costo: p.costoEstimado,
           aplicaIva: false,
-          cantidad: 1
-        })
-      }
+          cantidad: 1,
+        }),
+      },
     ];
-    this.pendientesBanio = this.pendientesBanio.filter(x => x.id !== p.id);
+    this.pendientesBanio = this.pendientesBanio.filter((x) => x.id !== p.id);
   }
 
   private async persistir(): Promise<string> {
@@ -1374,10 +1677,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
 
     if (!this.visitaId && !esMostrador) {
-      const existente = await this.visitasService.buscarVisitaAbiertaDelDia(
-        clienteId,
-        raw.fecha || hoyLocalIsoDate()
-      );
+      const existente = await this.visitasService.buscarVisitaAbiertaDelDia(clienteId, raw.fecha || hoyLocalIsoDate());
       if (existente?.id) {
         const conf = await Swal.fire({
           icon: 'question',
@@ -1385,7 +1685,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           html: `Cliente <strong>${existente.cliente || clienteNombre}</strong> · ${existente.fecha}<br/>Saldo ${this.formatMoney(existente.saldo)}. ¿Usar ese ticket en lugar de crear otro?`,
           showCancelButton: true,
           confirmButtonText: 'Usar ticket existente',
-          cancelButtonText: 'Crear otro'
+          cancelButtonText: 'Crear otro',
         });
         if (conf.isConfirmed) {
           this.visitaId = existente.id;
@@ -1399,9 +1699,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
     const persistibles = lineasSinProductosDemo(this.lineas, this.productosCatalogo);
     if (!persistibles.length) {
-      throw new Error(
-        'El catálogo de muestra no se cobra ni se guarda. Agrega productos reales del inventario.'
-      );
+      throw new Error('El catálogo de muestra no se cobra ni se guarda. Agrega productos reales del inventario.');
     }
     this.lineas = await this.asegurarSalidasProducto(persistibles, String(raw.paciente_id || ''));
 
@@ -1416,7 +1714,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         atendidoPorUid: raw.atendidoPorUid || undefined,
         atendidoPorNombre: raw.atendidoPorNombre || undefined,
         esMostrador: esMostrador || undefined,
-        lineas: this.lineas
+        lineas: this.lineas,
       });
       return this.visitaId;
     }
@@ -1430,7 +1728,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       atendidoPorUid: raw.atendidoPorUid || undefined,
       atendidoPorNombre: raw.atendidoPorNombre || undefined,
       esMostrador: esMostrador || undefined,
-      lineas: this.lineas
+      lineas: this.lineas,
     });
     this.visitaId = id;
     this.esEdicion = true;
@@ -1448,7 +1746,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       if (linea.categoria === 'venta_producto' && linea.productoId && !linea.movimientoInventarioId) {
         if (
           esIdProductoDemoPos(linea.productoId) ||
-          esProductoDemoPos(this.productosCatalogo.find(p => p.id === linea.productoId))
+          esProductoDemoPos(this.productosCatalogo.find((p) => p.id === linea.productoId))
         ) {
           continue;
         }
@@ -1457,11 +1755,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           linea.productoId,
           qty,
           'venta_directa',
-          pacienteId || undefined,
-          undefined,
-          undefined,
+          pacienteId || '',
+          '',
+          '',
           `Ticket visita · ${linea.descripcion}`,
-          this.visitaId || undefined
+          this.visitaId || ''
         );
         out.push({ ...linea, cantidad: qty, movimientoInventarioId: movId });
       } else {

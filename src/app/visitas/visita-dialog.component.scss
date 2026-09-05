@@ -78,6 +78,24 @@
     color: #fff;
   }
 
+  .visita-wizard__step--cliente {
+    margin-left: auto;
+    max-width: min(46%, 280px);
+
+    mat-icon {
+      flex-shrink: 0;
+    }
+
+    &.is-set {
+      border-color: var(--katzen-verde, #0d9488);
+    }
+  }
+
+  .visita-wizard__cliente-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .visita-print-sheet {
     display: flex;
     flex-direction: column;
@@ -162,6 +180,35 @@
 
   .pos-dueno-form {
     margin-top: 8px;
+  }
+
+  .pos-dueno-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .pos-whatsapp {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md, 12px);
+    background: var(--admin-surface, var(--admin-bg));
+
+    .section-title {
+      margin: 0;
+    }
+
+    .hint-empty {
+      margin: 0;
+    }
+
+    .pos-btn-full {
+      min-height: 44px;
+    }
   }
 
   .pos-more-toggle {
@@ -595,7 +642,7 @@
   }
 
   .pos-devolver {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   /* Outline MDC: el wrapper blanco tapa el notch y el label cruza el borde. */
@@ -705,7 +752,9 @@
 
     &--empty {
       background: #f0fdfa;
-      mat-icon { color: #0f766e; }
+      mat-icon {
+        color: #0f766e;
+      }
     }
   }
 

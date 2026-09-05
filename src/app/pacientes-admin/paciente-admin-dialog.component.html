@@ -17,7 +17,7 @@
       <div class="admin-dialog-layout admin-dialog-layout--readonly">
         <aside class="admin-dialog-aside">
           <div class="admin-dialog-photo">
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="" decoding="async">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="" decoding="async" />
             <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
               <mat-icon>pets</mat-icon>
               <span>Sin foto</span>
@@ -39,15 +39,21 @@
             <div class="detail-grid">
               <div class="detail-item">
                 <span class="detail-item__label">Sexo</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('sexo') === '—'">{{ getDisplayValue('sexo') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('sexo') === '—'">
+                  {{ getDisplayValue('sexo') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Peso</span>
-                <p class="detail-item__value">{{ getDisplayValue('peso') !== '—' ? getDisplayValue('peso') + ' kg' : '—' }}</p>
+                <p class="detail-item__value">
+                  {{ getDisplayValue('peso') !== '—' ? getDisplayValue('peso') + ' kg' : '—' }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Color</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('color') === '—'">{{ getDisplayValue('color') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('color') === '—'">
+                  {{ getDisplayValue('color') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Fecha de nacimiento</span>
@@ -55,7 +61,9 @@
               </div>
               <div class="detail-item detail-item--wide" *ngIf="getDisplayValue('estado') === 'Fallecido'">
                 <span class="detail-item__label">Fallecimiento</span>
-                <p class="detail-item__value">{{ getDisplayFecha('fechaFallecimiento') }} · {{ getEdadAlFallecimiento() }}</p>
+                <p class="detail-item__value">
+                  {{ getDisplayFecha('fechaFallecimiento') }} · {{ getEdadAlFallecimiento() }}
+                </p>
               </div>
             </div>
           </section>
@@ -87,13 +95,83 @@
     </mat-dialog-actions>
   </ng-container>
 
+  <!-- Spec 065 — alta rápida (POS / pickers): nombre + especie; raza y sexo opcionales; dueño prefijado -->
+  <form *ngIf="!isViewMode && isRapido" [formGroup]="pacienteForm" (ngSubmit)="onSubmit()" class="paciente-rapido">
+    <mat-dialog-content class="admin-dialog-body">
+      <div class="paciente-rapido__body">
+        <div class="paciente-rapido__grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de la mascota</mat-label>
+            <input matInput formControlName="nombre" placeholder="Ej. Firulais" autocomplete="off" cdkFocusInitial />
+            <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Especie</mat-label>
+            <mat-select formControlName="especie">
+              <mat-option *ngFor="let especie of especies" [value]="especie">{{ especie }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFieldInvalid('especie')">{{ getErrorMessage('especie') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <button type="button" class="paciente-rapido__toggle" (click)="mostrarMasDatosRapido = !mostrarMasDatosRapido">
+          <mat-icon>{{ mostrarMasDatosRapido ? 'expand_less' : 'expand_more' }}</mat-icon>
+          {{ mostrarMasDatosRapido ? 'Ocultar datos opcionales' : 'Raza y sexo (opcional)' }}
+        </button>
+
+        <div class="paciente-rapido__grid" *ngIf="mostrarMasDatosRapido">
+          <mat-form-field appearance="outline">
+            <mat-label>Raza</mat-label>
+            <input matInput formControlName="raza" placeholder="Opcional" />
+            <mat-error *ngIf="isFieldInvalid('raza')">{{ getErrorMessage('raza') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Sexo</mat-label>
+            <mat-select formControlName="sexo">
+              <mat-option value="">—</mat-option>
+              <mat-option *ngFor="let sexo of sexos" [value]="sexo">{{ sexo }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <section class="form-section paciente-rapido__dueno" *ngIf="!duenoPrefijado">
+          <h3 class="form-section__title">Dueño</h3>
+          <mat-form-field appearance="outline" class="full-span">
+            <mat-label>Teléfono o nombre del dueño</mat-label>
+            <input matInput formControlName="nombreCliente" [matAutocomplete]="autoRapido" />
+            <mat-icon matPrefix>person_search</mat-icon>
+            <mat-autocomplete #autoRapido="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
+              <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+                {{ getNombreCompleto(cliente) }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="isFieldInvalid('nombreCliente')">{{ getErrorMessage('nombreCliente') }}</mat-error>
+          </mat-form-field>
+        </section>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="admin-dialog-actions">
+      <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal"
+        type="submit"
+        [disabled]="!pacienteForm.valid || loading"
+      >
+        Guardar mascota
+      </button>
+    </mat-dialog-actions>
+  </form>
+
   <!-- Modo crear / editar -->
-  <form *ngIf="!isViewMode" [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
+  <form *ngIf="!isViewMode && !isRapido" [formGroup]="pacienteForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="admin-dialog-body">
       <div class="admin-dialog-layout">
         <aside class="admin-dialog-aside">
           <div class="admin-dialog-photo">
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del paciente" decoding="async">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del paciente" decoding="async" />
             <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
               <mat-icon>pets</mat-icon>
               <span>Sin foto</span>
@@ -104,11 +182,12 @@
               type="button"
               class="admin-dialog-photo__remove"
               (click)="removeImage()"
-              aria-label="Quitar foto">
+              aria-label="Quitar foto"
+            >
               <mat-icon>close</mat-icon>
             </button>
           </div>
-          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden />
           <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
             <mat-icon>photo_camera</mat-icon>
             {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
@@ -122,7 +201,7 @@
             <div class="form-grid">
               <mat-form-field appearance="outline">
                 <mat-label>Nombre</mat-label>
-                <input matInput formControlName="nombre">
+                <input matInput formControlName="nombre" />
                 <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
@@ -134,12 +213,12 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Raza</mat-label>
-                <input matInput formControlName="raza">
+                <input matInput formControlName="raza" />
                 <mat-error *ngIf="isFieldInvalid('raza')">{{ getErrorMessage('raza') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Color</mat-label>
-                <input matInput formControlName="color">
+                <input matInput formControlName="color" />
                 <mat-error *ngIf="isFieldInvalid('color')">{{ getErrorMessage('color') }}</mat-error>
               </mat-form-field>
             </div>
@@ -163,25 +242,30 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Peso (kg)</mat-label>
-                <input matInput formControlName="peso">
+                <input matInput formControlName="peso" />
                 <mat-error *ngIf="isFieldInvalid('peso')">{{ getErrorMessage('peso') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Fecha de nacimiento</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="edad" [max]="maxDate">
+                <input matInput [matDatepicker]="picker" formControlName="edad" [max]="maxDate" />
                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                 <mat-datepicker #picker></mat-datepicker>
               </mat-form-field>
               <ng-container *ngIf="pacienteForm.get('estado')?.value === 'Fallecido'">
                 <mat-form-field appearance="outline">
                   <mat-label>Fecha de fallecimiento</mat-label>
-                  <input matInput [matDatepicker]="fallecimientoPicker" formControlName="fechaFallecimiento" [max]="maxDate">
+                  <input
+                    matInput
+                    [matDatepicker]="fallecimientoPicker"
+                    formControlName="fechaFallecimiento"
+                    [max]="maxDate"
+                  />
                   <mat-datepicker-toggle matSuffix [for]="fallecimientoPicker"></mat-datepicker-toggle>
                   <mat-datepicker #fallecimientoPicker></mat-datepicker>
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>Edad al fallecimiento</mat-label>
-                  <input matInput [value]="getEdadAlFallecimiento()" readonly>
+                  <input matInput [value]="getEdadAlFallecimiento()" readonly />
                 </mat-form-field>
               </ng-container>
             </div>
@@ -200,7 +284,7 @@
             <div class="form-grid">
               <mat-form-field appearance="outline" class="full-span">
                 <mat-label>Cliente / dueño</mat-label>
-                <input matInput formControlName="nombreCliente" [matAutocomplete]="auto">
+                <input matInput formControlName="nombreCliente" [matAutocomplete]="auto" />
                 <mat-icon matPrefix>person_search</mat-icon>
                 <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onClienteSelected($event.option.value)">
                   <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
@@ -217,7 +301,13 @@
 
     <mat-dialog-actions class="admin-dialog-actions">
       <button mat-button type="button" (click)="onCancel()">Cancelar</button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" type="submit" [disabled]="!pacienteForm.valid || loading || isUploading">
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal"
+        type="submit"
+        [disabled]="!pacienteForm.valid || loading || isUploading"
+      >
         {{ isEditMode ? 'Guardar cambios' : 'Crear paciente' }}
       </button>
     </mat-dialog-actions>

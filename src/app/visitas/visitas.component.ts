@@ -34,7 +34,7 @@ export type VisitasFiltroRapido = 'todas' | 'hoy' | 'abiertas' | 'deudas' | 'por
 @Component({
   selector: 'app-visitas',
   templateUrl: './visitas.component.html',
-  styleUrls: ['./visitas.component.scss']
+  styleUrls: ['./visitas.component.scss'],
 })
 export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -97,10 +97,16 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       const q = filter.trim().toLowerCase();
       if (!q) return true;
       return (
-        String(row.cliente || '').toLowerCase().includes(q) ||
-        String(row.paciente || '').toLowerCase().includes(q) ||
+        String(row.cliente || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(row.paciente || '')
+          .toLowerCase()
+          .includes(q) ||
         String(row.fecha || '').includes(q) ||
-        String(row.estado || '').toLowerCase().includes(q)
+        String(row.estado || '')
+          .toLowerCase()
+          .includes(q)
       );
     };
     this.cargar();
@@ -153,7 +159,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
           this.logger.error('Error al cargar visitas:', error);
           this.loading = false;
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar visitas'), 'error');
-        }
+        },
       });
   }
 
@@ -177,11 +183,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 'por_cobrar':
         base = base.filter(
-          (v) =>
-            v.fecha === hoy &&
-            (Number(v.saldo) || 0) > 0 &&
-            v.estado !== 'cancelada' &&
-            v.estado !== 'cerrada'
+          (v) => v.fecha === hoy && (Number(v.saldo) || 0) > 0 && v.estado !== 'cancelada' && v.estado !== 'cerrada'
         );
         break;
       default:
@@ -222,7 +224,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       this.vacunasService.getVacunas(),
       this.historialesService.getHistoriales(),
       this.clientesService.getClientes(),
-      this.pacientesService.getPacientes()
+      this.pacientesService.getPacientes(),
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -237,7 +239,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
             const cid = p.cliente_id || p.idCliente || '';
             this.pacientesClienteMap[p.id] = {
               cliente_id: cid,
-              nombre: p.nombre
+              nombre: p.nombre,
             };
           });
           const hoy = hoyLocalIsoDate();
@@ -250,11 +252,11 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
             vacunas: vacunas || [],
             historiales: historiales || [],
             clientesMap: this.clientesMap,
-            pacientesClienteMap: this.pacientesClienteMap
+            pacientesClienteMap: this.pacientesClienteMap,
           });
           this.porCobrarTotal = totalPorCobrarHoy(this.porCobrarItems);
         },
-        error: (err) => this.logger.error('Por cobrar hoy:', err)
+        error: (err) => this.logger.error('Por cobrar hoy:', err),
       });
   }
 
@@ -265,7 +267,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       cita: 'Cita',
       pension: 'Pensión',
       vacuna: 'Vacuna',
-      historial: 'Historial'
+      historial: 'Historial',
     };
     return map[tipo] || tipo;
   }
@@ -280,12 +282,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     let monto = item.monto;
     if (!(monto > 0)) {
-      monto =
-        (await promptMontoVisita(
-          'Monto del servicio',
-          `¿Cuánto se cobrará por ${item.descripcion}?`,
-          0
-        )) ?? 0;
+      monto = (await promptMontoVisita('Monto del servicio', `¿Cuánto se cobrará por ${item.descripcion}?`, 0)) ?? 0;
       if (!(monto > 0)) return;
     }
     this.loadingService.show(LOADING_MESSAGES.saving);
@@ -308,7 +305,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         descripcion: item.descripcion,
         monto,
         categoria: cat as any,
-        fecha: item.fecha
+        fecha: item.fecha,
       };
       if (item.tipo === 'banio') opts.banioId = item.id;
       if (item.tipo === 'cita') opts.citaId = item.id;
@@ -320,7 +317,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_POS,
-        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente }
+        data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente },
       });
       Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
       this.cargar();
@@ -371,31 +368,40 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   nueva(): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
       ...ADMIN_DIALOG_POS,
-      data: {}
+      data: { ventaMostrador: true },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
-      if (r) this.cargar();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) this.cargar();
+      });
   }
 
   nuevaMostrador(): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
       ...ADMIN_DIALOG_POS,
-      data: { ventaMostrador: true }
+      data: { ventaMostrador: true },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
-      if (r) this.cargar();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) this.cargar();
+      });
   }
 
   editar(row: Visita): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
       ...ADMIN_DIALOG_POS,
-      data: { visita: row }
+      data: { visita: row },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
-      if (r) this.cargar();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) this.cargar();
+      });
   }
 
   async borrar(row: Visita): Promise<void> {
@@ -406,7 +412,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
       text: 'Se cancela el ticket. El historial de caja no se elimina.',
       showCancelButton: true,
       confirmButtonText: 'Borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (!conf.isConfirmed) return;
     this.loadingService.show(LOADING_MESSAGES.deleting);

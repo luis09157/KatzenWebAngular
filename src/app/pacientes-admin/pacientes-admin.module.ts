@@ -26,6 +26,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 // Components
 import { PacientesAdminComponent } from './pacientes-admin.component';
 import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component';
+import { PacienteAdminDialogModule } from './paciente-admin-dialog.module';
 import { PacienteFichaDialogComponent } from './paciente-ficha-dialog.component';
 
 // Services
@@ -38,22 +39,18 @@ console.log('🔍 PacientesAdminModule cargado');
 console.log('🔍 PacientesAdminComponent declarado:', !!PacientesAdminComponent);
 console.log('🔍 PacienteAdminDialogComponent declarado:', !!PacienteAdminDialogComponent);
 
-const routes: Routes = [
-  { path: '', component: PacientesAdminComponent }
-];
+const routes: Routes = [{ path: '', component: PacientesAdminComponent }];
 
 @NgModule({
-  declarations: [
-    PacientesAdminComponent,
-    PacienteAdminDialogComponent,
-    PacienteFichaDialogComponent
-  ],
+  declarations: [PacientesAdminComponent, PacienteFichaDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
     RouterModule.forChild(routes),
-    
+    // Spec 065 — el diálogo de mascota vive en su propio módulo (reutilizable desde POS)
+    PacienteAdminDialogModule,
+
     // Material Modules
     MatTableModule,
     MatPaginatorModule,
@@ -73,11 +70,8 @@ const routes: Routes = [
     MatProgressBarModule,
     MatMenuModule,
     MatTabsModule,
-    SharedModule
+    SharedModule,
   ],
-  providers: [
-    PacientesService,
-    ClientesService
-  ]
+  providers: [PacientesService, ClientesService],
 })
-export class PacientesAdminModule { } 
+export class PacientesAdminModule {}

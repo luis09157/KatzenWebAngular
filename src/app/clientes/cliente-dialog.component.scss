@@ -284,7 +284,10 @@
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   strong {
     font-size: 0.9375rem;
@@ -418,5 +421,55 @@
 
   .admin-dialog-panel app-cliente-dialog .detail-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Spec 065 — alta rápida (POS / pickers): sin aside de foto; táctil ≥44px */
+.admin-dialog-panel app-cliente-dialog .cliente-rapido {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 28px 8px;
+}
+
+.admin-dialog-panel app-cliente-dialog .cliente-rapido__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+
+.admin-dialog-panel app-cliente-dialog .cliente-rapido__grid mat-form-field {
+  width: 100%;
+}
+
+.admin-dialog-panel app-cliente-dialog .cliente-rapido__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 44px;
+  margin: 4px 0 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--admin-radius-sm, 8px);
+  background: transparent;
+  color: var(--katzen-verde-fuerte, #065d60);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-dialog-panel app-cliente-dialog .cliente-rapido__toggle:focus-visible {
+  outline: 2px solid var(--katzen-verde, #0a969b);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-cliente-dialog .cliente-rapido {
+    padding: 16px 16px 8px;
+  }
+
+  .admin-dialog-panel app-cliente-dialog .cliente-rapido__grid {
+    grid-template-columns: 1fr;
   }
 }

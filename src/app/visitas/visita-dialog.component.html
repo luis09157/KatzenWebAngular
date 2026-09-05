@@ -7,7 +7,8 @@
     </div>
     <span
       class="estado-badge pos-header__estado"
-      [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'">
+      [ngClass]="totales.estado === 'parcial' ? 'warning' : totales.estado === 'cerrada' ? 'activo' : 'pendiente'"
+    >
       {{ estadoLabels[totales.estado] || estadoLabel }}
     </span>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
@@ -17,17 +18,36 @@
 
   <mat-dialog-content class="admin-dialog-body pos-body">
     <nav class="visita-wizard no-print" *ngIf="!soloLectura" aria-label="Pasos del ticket">
-      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 1" (click)="irPaso(1)">
+      <button
+        type="button"
+        class="visita-wizard__step"
+        [class.is-active]="pasoWizard === 2"
+        [disabled]="!tieneDuenoOMostrador"
+        (click)="continuarACaja()"
+      >
         <span class="visita-wizard__num">1</span>
-        Dueño
-      </button>
-      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 2" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(2)">
-        <span class="visita-wizard__num">2</span>
         Caja
       </button>
-      <button type="button" class="visita-wizard__step" [class.is-active]="pasoWizard === 3" [disabled]="!tieneDuenoOMostrador" (click)="irPaso(3)">
-        <span class="visita-wizard__num">3</span>
+      <button
+        type="button"
+        class="visita-wizard__step"
+        [class.is-active]="pasoWizard === 3"
+        [disabled]="!puedeIrACobrar"
+        (click)="irACobrar()"
+      >
+        <span class="visita-wizard__num">2</span>
         Cobrar
+      </button>
+      <button
+        type="button"
+        class="visita-wizard__step visita-wizard__step--cliente"
+        [class.is-active]="pasoWizard === 1"
+        [class.is-set]="tieneClienteReal"
+        (click)="abrirBloqueCliente()"
+        [attr.aria-label]="'Cliente y mascota: ' + chipClienteLabel"
+      >
+        <mat-icon>{{ tieneClienteReal ? 'person' : 'person_search' }}</mat-icon>
+        <span class="visita-wizard__cliente-text">{{ chipClienteLabel }}</span>
       </button>
     </nav>
 
@@ -38,22 +58,29 @@
         <p *ngIf="form.get('paciente')?.value">Paciente: {{ form.get('paciente')?.value }}</p>
       </div>
 
-      <!-- Paso 1: dueño / mostrador — picker, no crear fichas -->
+      <!-- Paso 1: ¿Es cliente / trae mascota? — opcional en productos; obligatorio en servicio clínico -->
       <div class="pos-step pos-step--dueno no-print" *ngIf="pasoWizard === 1 && !soloLectura">
-        <div class="pos-tiles">
-          <button type="button" class="pos-tile" [class.is-on]="!modoMostrador && !!form.get('cliente_id')?.value" (click)="elegirClienteClinica()">
-            <span class="pos-tile__foto pos-tile__foto--ph" aria-hidden="true">
-              <mat-icon>person</mat-icon>
-            </span>
-            <span class="pos-tile__title">Cliente de la clínica</span>
-            <span class="pos-tile__hint">Busca dueño y mascota · no crea fichas</span>
+        <app-flow-hint
+          [icon]="accionPendiente ? 'pets' : 'person_search'"
+          [variant]="accionPendiente ? 'warn' : 'info'"
+          [message]="hintBloqueCliente"
+        >
+        </app-flow-hint>
+
+        <div class="mostrador-activo" *ngIf="modoMostrador">
+          <span class="estado-badge muted">Venta de mostrador · sin cliente</span>
+          <button mat-stroked-button color="primary" type="button" class="pos-btn-full" (click)="vincularClienteReal()">
+            <mat-icon>person_search</mat-icon>
+            ¿Es cliente / trae mascota?
           </button>
-          <button type="button" class="pos-tile pos-tile--accent" [class.is-on]="modoMostrador" (click)="ventaMostradorUnTap()">
-            <span class="pos-tile__foto pos-tile__foto--ph" aria-hidden="true">
-              <mat-icon>storefront</mat-icon>
-            </span>
-            <span class="pos-tile__title">Venta de mostrador</span>
-            <span class="pos-tile__hint">Sin registro · solo petshop</span>
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal pos-btn-full"
+            type="button"
+            (click)="seguirSinCliente()"
+          >
+            Seguir sin cliente
           </button>
         </div>
 
@@ -61,19 +88,31 @@
           <app-cliente-paciente-picker
             class="full-width"
             [formGroup]="form"
-            (selectionChange)="onClientePacienteSelected($event)">
+            [permitirCrear]="true"
+            [autofocus]="true"
+            [pacienteRequerido]="pacienteRequeridoEnPicker"
+            (selectionChange)="onClientePacienteSelected($event)"
+            (crearCliente)="crearClienteRapido($event)"
+            (crearPaciente)="crearMascotaRapida($event)"
+          >
           </app-cliente-paciente-picker>
-          <p class="hint-empty">Elige un dueño y mascota ya registrados. Aquí no se dan de alta clientes ni pacientes.</p>
           <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+          <div class="pos-dueno-actions">
+            <button mat-stroked-button type="button" class="pos-btn-full" (click)="seguirSinCliente()">
+              {{ accionPendiente ? 'Volver a productos (sin cliente)' : 'Seguir sin cliente' }}
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal pos-btn-full"
+              type="button"
+              [disabled]="!tieneDuenoOMostrador || (accionPendiente && !tienePaciente)"
+              (click)="continuarACaja()"
+            >
+              {{ accionPendiente ? 'Continuar al servicio' : 'Continuar a la caja' }}
+            </button>
+          </div>
         </form>
-
-        <div class="mostrador-activo" *ngIf="modoMostrador">
-          <span class="estado-badge muted">Mostrador / público</span>
-          <button mat-stroked-button color="primary" type="button" (click)="vincularClienteReal()">
-            <mat-icon>person_search</mat-icon>
-            ¿Es cliente? Vincular
-          </button>
-        </div>
 
         <button type="button" class="pos-more-toggle" (click)="mostrarDetalles = !mostrarDetalles">
           {{ mostrarDetalles ? 'Ocultar fecha y notas' : 'Fecha, notas y quién atendió' }}
@@ -92,23 +131,14 @@
             [required]="false"
             [prefillCurrentUser]="!esEdicion"
             [disabled]="soloLectura"
-            hint="Opcional. Quién cobró o atendió.">
+            hint="Opcional. Quién cobró o atendió."
+          >
           </app-staff-picker>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Notas</mat-label>
             <textarea matInput rows="2" formControlName="notas" maxlength="500"></textarea>
           </mat-form-field>
         </form>
-
-        <button
-          mat-raised-button
-          color="primary"
-          class="btn-primary-teal pos-btn-full"
-          type="button"
-          [disabled]="!tieneDuenoOMostrador"
-          (click)="irPaso(2)">
-          Continuar a la caja
-        </button>
       </div>
 
       <!-- Paso 2: catálogo táctil con foto -->
@@ -119,7 +149,8 @@
             class="pos-demo-banner"
             icon="visibility"
             variant="warn"
-            [message]="bannerCatalogoDemo">
+            [message]="bannerCatalogoDemo"
+          >
           </app-flow-hint>
           <div class="pos-search-sticky" *ngIf="posTab === 'petshop'">
             <mat-icon class="pos-search-sticky__icon">search</mat-icon>
@@ -128,44 +159,70 @@
               type="search"
               [formControl]="catalogSearch"
               placeholder="Buscar productos"
-              autocomplete="off" />
+              autocomplete="off"
+            />
             <button
               type="button"
               class="pos-search-sticky__scan"
               (click)="abrirScanner()"
-              aria-label="Escanear o pegar código">
+              aria-label="Escanear o pegar código"
+            >
               <mat-icon>qr_code_scanner</mat-icon>
             </button>
           </div>
 
           <div class="pos-chips" role="tablist" aria-label="Qué vas a vender">
-            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'petshop'" (click)="elegirRiel('petshop')">
+            <button
+              type="button"
+              class="pos-chip"
+              role="tab"
+              [class.is-on]="posTab === 'petshop'"
+              (click)="elegirRiel('petshop')"
+            >
               Petshop
             </button>
-            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'consulta'" (click)="elegirRiel('consulta')">
+            <button
+              type="button"
+              class="pos-chip"
+              role="tab"
+              [class.is-on]="posTab === 'consulta'"
+              (click)="elegirRiel('consulta')"
+            >
               Consulta
             </button>
-            <button type="button" class="pos-chip" role="tab" [class.is-on]="posTab === 'peluqueria'" (click)="elegirRiel('peluqueria')">
+            <button
+              type="button"
+              class="pos-chip"
+              role="tab"
+              [class.is-on]="posTab === 'peluqueria'"
+              (click)="elegirRiel('peluqueria')"
+            >
               Peluquería
             </button>
           </div>
           <p class="pos-riel-hint" *ngIf="rielHint">{{ rielHint }}</p>
 
           <div class="pos-grid" *ngIf="posTab === 'petshop'">
-            <p class="hint-empty pos-grid__hint" *ngIf="modoMostrador">Mostrador: solo petshop. Consulta y peluquería piden dueño.</p>
+            <p class="hint-empty pos-grid__hint" *ngIf="modoMostrador">
+              Mostrador: solo petshop. Consulta y peluquería piden dueño.
+            </p>
             <p class="hint-empty pos-grid__hint" *ngIf="cargandoCatalogo">Cargando productos…</p>
-            <p class="hint-empty pos-grid__hint" *ngIf="!cargandoCatalogo && !productosFiltrados.length">Sin coincidencias. Prueba nombre o código.</p>
+            <p class="hint-empty pos-grid__hint" *ngIf="!cargandoCatalogo && !productosFiltrados.length">
+              Sin coincidencias. Prueba nombre o código.
+            </p>
             <article
               class="pos-card"
               *ngFor="let p of productosFiltrados"
               [class.is-disabled]="productoSinStockFn(p)"
-              [class.is-in-cart]="qtyEnCarrito(p.id) > 0">
+              [class.is-in-cart]="qtyEnCarrito(p.id) > 0"
+            >
               <button
                 type="button"
                 class="pos-card__hit"
                 (click)="tapProducto(p, $event)"
                 [disabled]="productoSinStockFn(p)"
-                [attr.aria-label]="'Agregar ' + p.nombre">
+                [attr.aria-label]="'Agregar ' + p.nombre"
+              >
                 <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                   <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
                 </span>
@@ -179,10 +236,32 @@
                 <span class="pos-card__meta">{{ copyPrecioInventario }}</span>
               </button>
               <div class="pos-card__ctrl" *ngIf="qtyEnCarrito(p.id)">
-                <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, -1, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar uno">−</button>
+                <button
+                  type="button"
+                  class="pos-hit"
+                  (click)="ajustarProductoEnCarrito(p, -1, $event)"
+                  [disabled]="!puedeAjustarProducto(p)"
+                  aria-label="Quitar uno"
+                >
+                  −
+                </button>
                 <span class="pos-card__ctrl-qty">{{ qtyEnCarrito(p.id) }}</span>
-                <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, 1, $event)" [disabled]="productoSinStockFn(p)" aria-label="Agregar uno">+</button>
-                <button type="button" class="pos-hit pos-hit--danger" (click)="quitarProductoDelCarrito(p, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar del ticket">
+                <button
+                  type="button"
+                  class="pos-hit"
+                  (click)="ajustarProductoEnCarrito(p, 1, $event)"
+                  [disabled]="productoSinStockFn(p)"
+                  aria-label="Agregar uno"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="pos-hit pos-hit--danger"
+                  (click)="quitarProductoDelCarrito(p, $event)"
+                  [disabled]="!puedeAjustarProducto(p)"
+                  aria-label="Quitar del ticket"
+                >
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
@@ -194,12 +273,14 @@
               <article
                 class="pos-card pos-card--svc"
                 *ngFor="let s of serviciosConsultaFiltrados"
-                [class.is-in-cart]="qtyServicioEnCarrito(s.id) > 0">
+                [class.is-in-cart]="qtyServicioEnCarrito(s.id) > 0"
+              >
                 <button
                   type="button"
                   class="pos-card__hit"
                   (click)="tapServicioClinica(s, $event)"
-                  [attr.aria-label]="'Agregar ' + s.nombre">
+                  [attr.aria-label]="'Agregar ' + s.nombre"
+                >
                   <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>{{ iconoServicioClinica(s) }}</mat-icon>
                   </span>
@@ -207,24 +288,55 @@
                   <span class="pos-card__name">{{ s.nombre }}</span>
                   <span class="pos-card__price" *ngIf="s.precio_venta > 0">{{ formatMoney(s.precio_venta) }}</span>
                   <span class="pos-card__price" *ngIf="!(s.precio_venta > 0)">Pide monto</span>
-                  <span class="pos-card__meta">{{ s.precio_venta > 0 ? copyPrecioServicio : labelTipoServicio(s) }}</span>
+                  <span class="pos-card__meta">{{
+                    s.precio_venta > 0 ? copyPrecioServicio : labelTipoServicio(s)
+                  }}</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyServicioEnCarrito(s.id)">
-                  <button type="button" class="pos-hit" (click)="ajustarServicioEnCarrito(s, -1, $event)" [disabled]="pagado > 0" aria-label="Quitar uno">−</button>
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarServicioEnCarrito(s, -1, $event)"
+                    [disabled]="pagado > 0"
+                    aria-label="Quitar uno"
+                  >
+                    −
+                  </button>
                   <span class="pos-card__ctrl-qty">{{ qtyServicioEnCarrito(s.id) }}</span>
-                  <button type="button" class="pos-hit" (click)="ajustarServicioEnCarrito(s, 1, $event)" [disabled]="pagado > 0" aria-label="Agregar uno">+</button>
-                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarServicioDelCarrito(s, $event)" [disabled]="pagado > 0" aria-label="Quitar del ticket">
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarServicioEnCarrito(s, 1, $event)"
+                    [disabled]="pagado > 0"
+                    aria-label="Agregar uno"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="pos-hit pos-hit--danger"
+                    (click)="quitarServicioDelCarrito(s, $event)"
+                    [disabled]="pagado > 0"
+                    aria-label="Quitar del ticket"
+                  >
                     <mat-icon>delete_outline</mat-icon>
                   </button>
                 </div>
               </article>
               <article class="pos-card pos-card--svc" *ngIf="!hayConsultaCatalogo">
-                <button type="button" class="pos-card__hit" (click)="agregarConsultaAtajo()" aria-label="Agregar consulta">
+                <button
+                  type="button"
+                  class="pos-card__hit"
+                  (click)="agregarConsultaAtajo()"
+                  aria-label="Agregar consulta"
+                >
                   <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>{{ iconoConsultaAtajo() }}</mat-icon>
                   </span>
                   <span class="pos-card__name">Consulta</span>
-                  <span class="pos-card__price" *ngIf="atajoConsultaPrecio != null">{{ formatMoney(atajoConsultaPrecio) }}</span>
+                  <span class="pos-card__price" *ngIf="atajoConsultaPrecio != null">{{
+                    formatMoney(atajoConsultaPrecio)
+                  }}</span>
                   <span class="pos-card__price" *ngIf="atajoConsultaPideMonto">Pide monto</span>
                   <span class="pos-card__meta" *ngIf="atajoConsultaPrecio != null">{{ copyPrecioInventario }}</span>
                 </button>
@@ -233,13 +345,15 @@
                 class="pos-card"
                 *ngFor="let p of medicamentosFiltrados"
                 [class.is-disabled]="productoSinStockFn(p)"
-                [class.is-in-cart]="qtyEnCarrito(p.id) > 0">
+                [class.is-in-cart]="qtyEnCarrito(p.id) > 0"
+              >
                 <button
                   type="button"
                   class="pos-card__hit"
                   (click)="tapProducto(p, $event)"
                   [disabled]="productoSinStockFn(p)"
-                  [attr.aria-label]="'Agregar ' + p.nombre">
+                  [attr.aria-label]="'Agregar ' + p.nombre"
+                >
                   <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
                   </span>
@@ -253,10 +367,32 @@
                   <span class="pos-card__meta">{{ copyPrecioInventario }}</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyEnCarrito(p.id)">
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, -1, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar uno">−</button>
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, -1, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar uno"
+                  >
+                    −
+                  </button>
                   <span class="pos-card__ctrl-qty">{{ qtyEnCarrito(p.id) }}</span>
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, 1, $event)" [disabled]="productoSinStockFn(p)" aria-label="Agregar uno">+</button>
-                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarProductoDelCarrito(p, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar del ticket">
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, 1, $event)"
+                    [disabled]="productoSinStockFn(p)"
+                    aria-label="Agregar uno"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="pos-hit pos-hit--danger"
+                    (click)="quitarProductoDelCarrito(p, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar del ticket"
+                  >
                     <mat-icon>delete_outline</mat-icon>
                   </button>
                 </div>
@@ -265,13 +401,15 @@
                 class="pos-card"
                 *ngFor="let p of vacunasFiltradas"
                 [class.is-disabled]="productoSinStockFn(p)"
-                [class.is-in-cart]="qtyEnCarrito(p.id) > 0">
+                [class.is-in-cart]="qtyEnCarrito(p.id) > 0"
+              >
                 <button
                   type="button"
                   class="pos-card__hit"
                   (click)="tapProducto(p, $event)"
                   [disabled]="productoSinStockFn(p)"
-                  [attr.aria-label]="'Agregar ' + p.nombre">
+                  [attr.aria-label]="'Agregar ' + p.nombre"
+                >
                   <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
                   </span>
@@ -285,10 +423,32 @@
                   <span class="pos-card__meta">{{ copyPrecioInventario }}</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyEnCarrito(p.id)">
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, -1, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar uno">−</button>
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, -1, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar uno"
+                  >
+                    −
+                  </button>
                   <span class="pos-card__ctrl-qty">{{ qtyEnCarrito(p.id) }}</span>
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, 1, $event)" [disabled]="productoSinStockFn(p)" aria-label="Agregar uno">+</button>
-                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarProductoDelCarrito(p, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar del ticket">
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, 1, $event)"
+                    [disabled]="productoSinStockFn(p)"
+                    aria-label="Agregar uno"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="pos-hit pos-hit--danger"
+                    (click)="quitarProductoDelCarrito(p, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar del ticket"
+                  >
                     <mat-icon>delete_outline</mat-icon>
                   </button>
                 </div>
@@ -297,13 +457,15 @@
                 class="pos-card"
                 *ngFor="let p of clinicosOtrosFiltrados"
                 [class.is-disabled]="productoSinStockFn(p)"
-                [class.is-in-cart]="qtyEnCarrito(p.id) > 0">
+                [class.is-in-cart]="qtyEnCarrito(p.id) > 0"
+              >
                 <button
                   type="button"
                   class="pos-card__hit"
                   (click)="tapProducto(p, $event)"
                   [disabled]="productoSinStockFn(p)"
-                  [attr.aria-label]="'Agregar ' + p.nombre">
+                  [attr.aria-label]="'Agregar ' + p.nombre"
+                >
                   <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
                   </span>
@@ -317,10 +479,32 @@
                   <span class="pos-card__meta">{{ copyPrecioInventario }}</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyEnCarrito(p.id)">
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, -1, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar uno">−</button>
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, -1, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar uno"
+                  >
+                    −
+                  </button>
                   <span class="pos-card__ctrl-qty">{{ qtyEnCarrito(p.id) }}</span>
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, 1, $event)" [disabled]="productoSinStockFn(p)" aria-label="Agregar uno">+</button>
-                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarProductoDelCarrito(p, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar del ticket">
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, 1, $event)"
+                    [disabled]="productoSinStockFn(p)"
+                    aria-label="Agregar uno"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="pos-hit pos-hit--danger"
+                    (click)="quitarProductoDelCarrito(p, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar del ticket"
+                  >
                     <mat-icon>delete_outline</mat-icon>
                   </button>
                 </div>
@@ -337,7 +521,9 @@
                     <mat-icon>spa</mat-icon>
                   </span>
                   <span class="pos-card__name">Nuevo baño</span>
-                  <span class="pos-card__price" *ngIf="precioBanioDefault != null">{{ formatMoney(precioBanioDefault) }}</span>
+                  <span class="pos-card__price" *ngIf="precioBanioDefault != null">{{
+                    formatMoney(precioBanioDefault)
+                  }}</span>
                   <span class="pos-card__price" *ngIf="precioBanioDefault == null">Ajustar precio</span>
                   <span class="pos-card__meta">{{ copyBanioAjustable }}</span>
                 </button>
@@ -346,13 +532,15 @@
                 class="pos-card"
                 *ngFor="let p of productosFiltrados"
                 [class.is-disabled]="productoSinStockFn(p)"
-                [class.is-in-cart]="qtyEnCarrito(p.id) > 0">
+                [class.is-in-cart]="qtyEnCarrito(p.id) > 0"
+              >
                 <button
                   type="button"
                   class="pos-card__hit"
                   (click)="tapProducto(p, $event)"
                   [disabled]="productoSinStockFn(p)"
-                  [attr.aria-label]="'Agregar ' + p.nombre">
+                  [attr.aria-label]="'Agregar ' + p.nombre"
+                >
                   <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
                   </span>
@@ -366,16 +554,43 @@
                   <span class="pos-card__meta">{{ copyPrecioInventario }}</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyEnCarrito(p.id)">
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, -1, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar uno">−</button>
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, -1, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar uno"
+                  >
+                    −
+                  </button>
                   <span class="pos-card__ctrl-qty">{{ qtyEnCarrito(p.id) }}</span>
-                  <button type="button" class="pos-hit" (click)="ajustarProductoEnCarrito(p, 1, $event)" [disabled]="productoSinStockFn(p)" aria-label="Agregar uno">+</button>
-                  <button type="button" class="pos-hit pos-hit--danger" (click)="quitarProductoDelCarrito(p, $event)" [disabled]="!puedeAjustarProducto(p)" aria-label="Quitar del ticket">
+                  <button
+                    type="button"
+                    class="pos-hit"
+                    (click)="ajustarProductoEnCarrito(p, 1, $event)"
+                    [disabled]="productoSinStockFn(p)"
+                    aria-label="Agregar uno"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="pos-hit pos-hit--danger"
+                    (click)="quitarProductoDelCarrito(p, $event)"
+                    [disabled]="!puedeAjustarProducto(p)"
+                    aria-label="Quitar del ticket"
+                  >
                     <mat-icon>delete_outline</mat-icon>
                   </button>
                 </div>
               </article>
               <article class="pos-card pos-card--svc" *ngFor="let p of pendientesBanio">
-                <button type="button" class="pos-card__hit" (click)="incluirBanioPendiente(p)" [attr.aria-label]="'Incluir baño de ' + (p.paciente || 'mascota')">
+                <button
+                  type="button"
+                  class="pos-card__hit"
+                  (click)="incluirBanioPendiente(p)"
+                  [attr.aria-label]="'Incluir baño de ' + (p.paciente || 'mascota')"
+                >
                   <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>pets</mat-icon>
                   </span>
@@ -392,8 +607,14 @@
           <ng-template #rielBloqueado>
             <div class="mostrador-activo">
               <p class="hint-empty">{{ rielHint }}</p>
-              <button mat-stroked-button color="primary" type="button" class="pos-btn-full" (click)="vincularClienteReal(); irPaso(1)">
-                Elegir dueño y mascota
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                class="pos-btn-full"
+                (click)="pedirClientePara(posTab)"
+              >
+                Elegir o crear dueño y mascota
               </button>
             </div>
           </ng-template>
@@ -417,10 +638,32 @@
                 </span>
               </button>
               <div class="linea-qty-ctrl">
-                <button type="button" class="pos-hit" (click)="ajustarLineaCarrito(l, -1, $event)" [disabled]="!puedeAjustarLinea(l)" aria-label="Menos">−</button>
+                <button
+                  type="button"
+                  class="pos-hit"
+                  (click)="ajustarLineaCarrito(l, -1, $event)"
+                  [disabled]="!puedeAjustarLinea(l)"
+                  aria-label="Menos"
+                >
+                  −
+                </button>
                 <span class="linea-qty">{{ cantidadDe(l) }}</span>
-                <button type="button" class="pos-hit" (click)="ajustarLineaCarrito(l, 1, $event)" [disabled]="!puedeAjustarLinea(l)" aria-label="Más">+</button>
-                <button type="button" class="pos-hit pos-hit--danger" (click)="quitarLineaGrande(l, $event)" [disabled]="pagado > 0" aria-label="Quitar">
+                <button
+                  type="button"
+                  class="pos-hit"
+                  (click)="ajustarLineaCarrito(l, 1, $event)"
+                  [disabled]="!puedeAjustarLinea(l)"
+                  aria-label="Más"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="pos-hit pos-hit--danger"
+                  (click)="quitarLineaGrande(l, $event)"
+                  [disabled]="pagado > 0"
+                  aria-label="Quitar"
+                >
                   <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
@@ -430,9 +673,15 @@
             <p class="hint-empty">Vacío. Toca una foto para agregar.</p>
           </ng-template>
           <div class="pos-cart-totales">
-            <div><span class="lbl">Subtotal</span><strong>{{ formatMoney(totales.total) }}</strong></div>
-            <div><span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong></div>
-            <div><span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong></div>
+            <div>
+              <span class="lbl">Subtotal</span><strong>{{ formatMoney(totales.total) }}</strong>
+            </div>
+            <div>
+              <span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong>
+            </div>
+            <div>
+              <span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong>
+            </div>
           </div>
         </aside>
       </div>
@@ -450,12 +699,7 @@
               <small *ngIf="l.fueDevuelto" class="pos-devuelto">Devuelto</small>
             </span>
             <strong class="pos-cobro-lines__monto">{{ formatMoney(l.monto) }}</strong>
-            <button
-              *ngIf="puedeDevolver(l)"
-              mat-button
-              type="button"
-              class="pos-devolver"
-              (click)="devolverLinea(l)">
+            <button *ngIf="puedeDevolver(l)" mat-button type="button" class="pos-devolver" (click)="devolverLinea(l)">
               Devolver
             </button>
           </li>
@@ -463,7 +707,9 @@
         <div class="pos-cobro-total">
           <span class="pos-cobro-total__lbl">{{ totales.saldo > 0 ? 'Saldo a cobrar' : 'Total' }}</span>
           <p class="pos-total-huge">{{ formatMoney(totales.saldo > 0 ? totales.saldo : totales.total) }}</p>
-          <p class="hint-empty" *ngIf="totales.pagado > 0">Ya pagado {{ formatMoney(totales.pagado) }} · saldo {{ formatMoney(totales.saldo) }}</p>
+          <p class="hint-empty" *ngIf="totales.pagado > 0">
+            Ya pagado {{ formatMoney(totales.pagado) }} · saldo {{ formatMoney(totales.saldo) }}
+          </p>
         </div>
 
         <form [formGroup]="cobroForm" class="pos-cobro-form" *ngIf="!soloLectura && totales.saldo > 0">
@@ -477,7 +723,8 @@
               class="pos-metodo"
               *ngFor="let m of metodosPago"
               [class.is-on]="cobroForm.get('metodoPago')?.value === m.value"
-              (click)="cobroForm.patchValue({ metodoPago: m.value })">
+              (click)="cobroForm.patchValue({ metodoPago: m.value })"
+            >
               <mat-icon>{{ m.icon }}</mat-icon>
               {{ m.label }}
             </button>
@@ -487,7 +734,8 @@
             appearance="outline"
             class="full-width pos-monto-field"
             floatLabel="always"
-            subscriptSizing="dynamic">
+            subscriptSizing="dynamic"
+          >
             <mat-label>Monto a cobrar</mat-label>
             <input matInput type="number" min="0.01" step="0.01" formControlName="monto" inputmode="decimal" />
             <span matTextPrefix>$&nbsp;</span>
@@ -505,7 +753,14 @@
             </mat-form-field>
             <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
               <mat-label>Transferencia</mat-label>
-              <input matInput type="number" min="0" step="0.01" formControlName="montoTransferencia" inputmode="decimal" />
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="montoTransferencia"
+                inputmode="decimal"
+              />
               <span matTextPrefix>$&nbsp;</span>
             </mat-form-field>
           </div>
@@ -513,13 +768,48 @@
             Cobrar todo ({{ formatMoney(totales.saldo) }})
           </button>
         </form>
+
+        <div class="pos-whatsapp" *ngIf="puedeEnviarWhatsApp">
+          <h3 class="section-title">Enviar ticket por WhatsApp</h3>
+          <p class="hint-empty">{{ whatsappHint }}</p>
+          <mat-form-field
+            appearance="outline"
+            class="full-width pos-monto-field"
+            floatLabel="always"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>Teléfono (10 dígitos)</mat-label>
+            <input
+              matInput
+              type="tel"
+              inputmode="numeric"
+              maxlength="15"
+              autocomplete="tel"
+              [(ngModel)]="telefonoWhatsApp"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="55 1234 5678"
+            />
+            <mat-icon matSuffix>phone_iphone</mat-icon>
+          </mat-form-field>
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal pos-btn-full"
+            type="button"
+            [disabled]="!whatsappTelefonoValido"
+            (click)="enviarTicketWhatsApp()"
+          >
+            <mat-icon>chat</mat-icon>
+            Enviar por WhatsApp
+          </button>
+        </div>
       </div>
     </div>
   </mat-dialog-content>
 
   <!-- Sticky: cliente/mostrador + Cobrar -->
   <div class="pos-sticky no-print" *ngIf="!soloLectura && pasoWizard === 2">
-    <button type="button" class="pos-sticky__cliente" (click)="irPaso(1)">
+    <button type="button" class="pos-sticky__cliente" (click)="abrirBloqueCliente()">
       <span class="pos-sticky__avatar" aria-hidden="true">
         <mat-icon>{{ modoMostrador ? 'storefront' : 'person' }}</mat-icon>
       </span>
@@ -534,7 +824,8 @@
       class="btn-primary-teal pos-sticky__cobrar"
       type="button"
       [disabled]="!puedeIrACobrar"
-      (click)="irACobrar()">
+      (click)="irACobrar()"
+    >
       {{ cobrarLabel }}
     </button>
   </div>
@@ -552,8 +843,15 @@
         [(ngModel)]="scannerCodigo"
         placeholder="Código o QR"
         autocomplete="off"
-        (keyup.enter)="aplicarCodigoEscaneado()" />
-      <button mat-raised-button color="primary" class="btn-primary-teal pos-btn-full" type="button" (click)="aplicarCodigoEscaneado()">
+        (keyup.enter)="aplicarCodigoEscaneado()"
+      />
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal pos-btn-full"
+        type="button"
+        (click)="aplicarCodigoEscaneado()"
+      >
         Buscar y agregar
       </button>
     </ng-container>
@@ -574,10 +872,32 @@
           </span>
         </button>
         <div class="linea-qty-ctrl">
-          <button type="button" class="pos-hit" (click)="ajustarLineaCarrito(l, -1, $event)" [disabled]="!puedeAjustarLinea(l)" aria-label="Menos">−</button>
+          <button
+            type="button"
+            class="pos-hit"
+            (click)="ajustarLineaCarrito(l, -1, $event)"
+            [disabled]="!puedeAjustarLinea(l)"
+            aria-label="Menos"
+          >
+            −
+          </button>
           <span class="linea-qty">{{ cantidadDe(l) }}</span>
-          <button type="button" class="pos-hit" (click)="ajustarLineaCarrito(l, 1, $event)" [disabled]="!puedeAjustarLinea(l)" aria-label="Más">+</button>
-          <button type="button" class="pos-hit pos-hit--danger" (click)="quitarLineaGrande(l, $event)" [disabled]="pagado > 0" aria-label="Quitar">
+          <button
+            type="button"
+            class="pos-hit"
+            (click)="ajustarLineaCarrito(l, 1, $event)"
+            [disabled]="!puedeAjustarLinea(l)"
+            aria-label="Más"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            class="pos-hit pos-hit--danger"
+            (click)="quitarLineaGrande(l, $event)"
+            [disabled]="pagado > 0"
+            aria-label="Quitar"
+          >
             <mat-icon>delete_outline</mat-icon>
           </button>
         </div>
@@ -585,8 +905,14 @@
     </ng-container>
     <ng-container *ngIf="sheetModo !== 'carrito' && sheetModo !== 'scanner'">
       <div class="pos-sheet__media">
-        <img *ngIf="sheetProducto && fotoDeProducto(sheetProducto)" [src]="fotoDeProducto(sheetProducto)" [alt]="sheetTitulo" />
-        <mat-icon *ngIf="!(sheetProducto && fotoDeProducto(sheetProducto))">{{ sheetLinea ? iconoLinea(sheetLinea) : 'inventory_2' }}</mat-icon>
+        <img
+          *ngIf="sheetProducto && fotoDeProducto(sheetProducto)"
+          [src]="fotoDeProducto(sheetProducto)"
+          [alt]="sheetTitulo"
+        />
+        <mat-icon *ngIf="!(sheetProducto && fotoDeProducto(sheetProducto))">{{
+          sheetLinea ? iconoLinea(sheetLinea) : 'inventory_2'
+        }}</mat-icon>
       </div>
       <h3 class="section-title">{{ sheetTitulo }}</h3>
       <p class="pos-sheet__precio">{{ formatMoney(sheetMontoPreview) }}</p>
@@ -595,10 +921,23 @@
         <span class="pos-qty__val">{{ sheetQty }}</span>
         <button type="button" class="pos-hit" (click)="sheetMas()" aria-label="Más">+</button>
       </div>
-      <button mat-raised-button color="primary" class="btn-primary-teal pos-btn-full" type="button" (click)="confirmarSheet()">
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal pos-btn-full"
+        type="button"
+        (click)="confirmarSheet()"
+      >
         {{ sheetModo === 'linea' ? 'Actualizar' : 'Agregar al ticket' }}
       </button>
-      <button mat-button color="warn" type="button" class="pos-btn-full" *ngIf="sheetModo === 'linea' && puedeQuitarSheet" (click)="borrarSheet()">
+      <button
+        mat-button
+        color="warn"
+        type="button"
+        class="pos-btn-full"
+        *ngIf="sheetModo === 'linea' && puedeQuitarSheet"
+        (click)="borrarSheet()"
+      >
         Quitar del ticket
       </button>
     </ng-container>
@@ -608,7 +947,15 @@
   <mat-dialog-actions class="admin-dialog-actions no-print pos-footer" *ngIf="pasoWizard !== 2 || soloLectura">
     <div class="pos-footer__group pos-footer__group--nav">
       <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cerrar</button>
-      <button mat-stroked-button type="button" *ngIf="!soloLectura && pasoWizard > 1" (click)="atrasPaso()" [disabled]="loading">Atrás</button>
+      <button
+        mat-stroked-button
+        type="button"
+        *ngIf="!soloLectura && pasoWizard > 1"
+        (click)="atrasPaso()"
+        [disabled]="loading"
+      >
+        Atrás
+      </button>
     </div>
     <div class="pos-footer__group pos-footer__group--tools">
       <button mat-stroked-button type="button" (click)="imprimir()" [disabled]="loading || !lineas.length">
@@ -619,10 +966,22 @@
         mat-stroked-button
         color="primary"
         type="button"
+        *ngIf="puedeEnviarWhatsApp"
+        [disabled]="!whatsappTelefonoValido"
+        (click)="enviarTicketWhatsApp()"
+      >
+        <mat-icon>chat</mat-icon>
+        WhatsApp
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        type="button"
         *ngIf="pasoWizard === 3 || soloLectura || esEdicion"
         (click)="guardar()"
         [disabled]="!puedeGuardar"
-        [matTooltip]="guardarBloqueoHint">
+        [matTooltip]="guardarBloqueoHint"
+      >
         {{ loading ? 'Guardando…' : 'Guardar' }}
       </button>
     </div>
@@ -634,7 +993,8 @@
         type="button"
         (click)="confirmarCobro()"
         [disabled]="!puedeCobrar || loading"
-        [matTooltip]="cobrarBloqueoHint">
+        [matTooltip]="cobrarBloqueoHint"
+      >
         {{ loading ? 'Cobrando…' : cobrarLabel }}
       </button>
     </div>
@@ -642,6 +1002,7 @@
   <app-flow-hint
     layout="footer"
     *ngIf="!soloLectura && accionBloqueoHint && pasoWizard !== 2"
-    [message]="accionBloqueoHint">
+    [message]="accionBloqueoHint"
+  >
   </app-flow-hint>
 </div>

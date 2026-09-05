@@ -11,6 +11,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
+import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { VisitaDialogComponent } from './visita-dialog.component';
 import { ClienteCuentaDialogComponent } from './cliente-cuenta-dialog.component';
 import { VisitaDiaFlujoDialogComponent } from './visita-dia-flujo-dialog.component';
@@ -30,8 +32,11 @@ import { VisitaDiaFlujoDialogComponent } from './visita-dia-flujo-dialog.compone
     MatTooltipModule,
     MatProgressSpinnerModule,
     SharedModule,
-    CajaDialogModule
+    CajaDialogModule,
+    // Spec 065 — alta rápida de cliente y mascota desde el POS
+    ClientesDialogModule,
+    PacienteAdminDialogModule,
   ],
-  exports: [VisitaDialogComponent, ClienteCuentaDialogComponent, VisitaDiaFlujoDialogComponent]
+  exports: [VisitaDialogComponent, ClienteCuentaDialogComponent, VisitaDiaFlujoDialogComponent],
 })
 export class VisitasDialogModule {}

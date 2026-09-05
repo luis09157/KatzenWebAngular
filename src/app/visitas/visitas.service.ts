@@ -8,27 +8,19 @@ import { ClientesService } from '../clientes/clientes.service';
 import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago, CajaMovimientoFormData } from '../finanzas/caja.models';
 import { InventarioService } from '../inventario/inventario.service';
-import {
-  lineasADevolver,
-  marcarLineasDevueltas,
-  montoDevolucion,
-  reintegrosInventario
-} from './pos-devolucion.util';
-import {
-  Visita,
-  VisitaFormData,
-  VisitaLinea,
-  VisitaLineaCategoria,
-  VISITA_LINEA_A_CAJA
-} from './visitas.models';
-import {
-  agregarSaldoCliente,
-  hoyLocalIsoDate,
-  nuevaLineaId,
-  recalcularVisita,
-  roundMoney
-} from './visitas.util';
+import { lineasADevolver, marcarLineasDevueltas, montoDevolucion, reintegrosInventario } from './pos-devolucion.util';
+import { Visita, VisitaFormData, VisitaLinea, VisitaLineaCategoria, VISITA_LINEA_A_CAJA } from './visitas.models';
+import { agregarSaldoCliente, hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
 import { esClienteMostrador } from './visita-mostrador.util';
+
+/** RTDB `push`/`update` rechaza `undefined`; la venta de mostrador no trae paciente. */
+function omitUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return out as T;
+}
 
 @Injectable({ providedIn: 'root' })
 export class VisitasService {
@@ -75,9 +67,7 @@ export class VisitasService {
   }
 
   async getVisita(id: string): Promise<Visita | null> {
-    const val = await firstValueFrom(
-      this.db.object<Visita>(`${this.path}/${id}`).valueChanges().pipe(take(1))
-    );
+    const val = await firstValueFrom(this.db.object<Visita>(`${this.path}/${id}`).valueChanges().pipe(take(1)));
     if (!val) return null;
     return this.normalize(id, val);
   }
@@ -106,9 +96,11 @@ export class VisitasService {
       activo: true,
       created_at: now,
       updated_at: now,
-      created_by: staffId || 'system'
+      created_by: staffId || 'system',
     };
-    const ref = await this.db.list<Visita>(this.path).push(payload);
+    const ref = await this.db
+      .list<Visita>(this.path)
+      .push(omitUndefined(payload as unknown as Record<string, unknown>) as unknown as Visita);
     await stampRtdbIdAfterPush(this.db, this.path, ref.key);
     await this.vincularOrigenesDesdeLineas(ref.key!, lineas);
     await this.syncSaldoCliente(data.cliente_id);
@@ -124,19 +116,21 @@ export class VisitasService {
     const calc = recalcularVisita({
       lineas: mergedLineas,
       pagado: mergedPagado,
-      estado: patch.estado ?? current.estado
+      estado: patch.estado ?? current.estado,
     });
 
     const nuevoEstado = patch.estado === 'cancelada' ? 'cancelada' : calc.estado;
-    await this.db.object(`${this.path}/${id}`).update({
-      ...patch,
-      lineas: mergedLineas,
-      total: calc.total,
-      pagado: calc.pagado,
-      saldo: calc.saldo,
-      estado: nuevoEstado,
-      updated_at: new Date().toISOString()
-    });
+    await this.db.object(`${this.path}/${id}`).update(
+      omitUndefined({
+        ...patch,
+        lineas: mergedLineas,
+        total: calc.total,
+        pagado: calc.pagado,
+        saldo: calc.saldo,
+        estado: nuevoEstado,
+        updated_at: new Date().toISOString(),
+      } as Record<string, unknown>)
+    );
 
     if (patch.lineas != null) {
       await this.vincularOrigenesDesdeLineas(id, mergedLineas);
@@ -151,13 +145,11 @@ export class VisitasService {
         estado: nuevoEstado,
         pagado: calc.pagado,
         saldo: calc.saldo,
-        total: calc.total
+        total: calc.total,
       });
     }
 
-    await this.syncSaldoCliente(
-      patch.cliente_id != null ? String(patch.cliente_id) : current.cliente_id
-    );
+    await this.syncSaldoCliente(patch.cliente_id != null ? String(patch.cliente_id) : current.cliente_id);
     if (patch.cliente_id != null && patch.cliente_id !== current.cliente_id) {
       await this.syncSaldoCliente(current.cliente_id);
     }
@@ -182,7 +174,7 @@ export class VisitasService {
       cantidad: linea.cantidad,
       pensionId: linea.pensionId,
       historialId: linea.historialId,
-      movimientoInventarioId: linea.movimientoInventarioId
+      movimientoInventarioId: linea.movimientoInventarioId,
     };
     await this.setLineas(id, [...(visita.lineas || []), next]);
   }
@@ -194,10 +186,7 @@ export class VisitasService {
     const lista = await firstValueFrom(this.getVisitasPorCliente(clienteId).pipe(take(1)));
     return (
       (lista || []).find(
-        (v) =>
-          v.fecha === fechaIso &&
-          (v.estado === 'abierta' || v.estado === 'parcial') &&
-          v.activo !== false
+        (v) => v.fecha === fechaIso && (v.estado === 'abierta' || v.estado === 'parcial') && v.activo !== false
       ) || null
     );
   }
@@ -221,7 +210,7 @@ export class VisitasService {
       cliente: opts.cliente,
       paciente_id: opts.paciente_id,
       paciente: opts.paciente,
-      fecha
+      fecha,
     });
     const created = await this.getVisita(id);
     if (!created) throw new Error('No se pudo crear la visita');
@@ -261,13 +250,13 @@ export class VisitasService {
       vacunaId: opts.vacunaId,
       historialId: opts.historialId,
       productoId: opts.productoId,
-      movimientoInventarioId: opts.movimientoInventarioId
+      movimientoInventarioId: opts.movimientoInventarioId,
     });
     if (opts.paciente_id && !visita.paciente_id) {
       await this.db.object(`${this.path}/${visita.id}`).update({
         paciente_id: opts.paciente_id,
         paciente: opts.paciente || visita.paciente || '',
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
     }
     await this.marcarVisitaIdEnOrigen(visita.id!, opts);
@@ -283,7 +272,7 @@ export class VisitasService {
         pensionId: linea.pensionId,
         vacunaId: linea.vacunaId,
         historialId: linea.historialId,
-        movimientoInventarioId: linea.movimientoInventarioId
+        movimientoInventarioId: linea.movimientoInventarioId,
       });
     }
   }
@@ -345,9 +334,7 @@ export class VisitasService {
       throw new Error('El monto no puede superar el saldo pendiente');
     }
 
-    const categoria =
-      opts.categoria ||
-      (visita.lineas?.length === 1 ? visita.lineas[0].categoria : 'otro');
+    const categoria = opts.categoria || (visita.lineas?.length === 1 ? visita.lineas[0].categoria : 'otro');
 
     const form: CajaMovimientoFormData = {
       tipo: 'ingreso',
@@ -359,7 +346,7 @@ export class VisitasService {
       clienteId: visita.cliente_id,
       visitaId,
       notas: opts.notas,
-      categoria: VISITA_LINEA_A_CAJA[categoria] || 'otro'
+      categoria: VISITA_LINEA_A_CAJA[categoria] || 'otro',
     };
 
     const movId = await this.cajaService.crearMovimiento(form);
@@ -367,17 +354,13 @@ export class VisitasService {
     const nuevoPagado = roundMoney(visita.pagado + monto);
     await this.actualizarVisita(visitaId, {
       pagado: nuevoPagado,
-      cajaMovimientoIds: ids
+      cajaMovimientoIds: ids,
     });
     return movId;
   }
 
   /** Spec 064 — devolución: egreso de caja + reintegro de stock + marca de línea. */
-  async devolverLineas(
-    visitaId: string,
-    lineaIds: string[],
-    metodoPago: CajaMetodoPago = 'efectivo'
-  ): Promise<void> {
+  async devolverLineas(visitaId: string, lineaIds: string[], metodoPago: CajaMetodoPago = 'efectivo'): Promise<void> {
     const visita = await this.getVisita(visitaId);
     if (!visita) throw new Error('Visita no encontrada');
     if (visita.estado === 'cancelada') {
@@ -409,15 +392,19 @@ export class VisitasService {
       clienteId: visita.cliente_id,
       visitaId,
       categoria: 'otro',
-      notas: `Líneas: ${sel.map(l => l.descripcion).join(', ')}`
+      notas: `Líneas: ${sel.map((l) => l.descripcion).join(', ')}`,
     });
-    const lineas = marcarLineasDevueltas(visita.lineas || [], sel.map(l => l.id), now);
+    const lineas = marcarLineasDevueltas(
+      visita.lineas || [],
+      sel.map((l) => l.id),
+      now
+    );
     const ids = [...(visita.cajaMovimientoIds || []), movId];
     const nuevoPagado = roundMoney(Math.max(0, (visita.pagado || 0) - monto));
     await this.actualizarVisita(visitaId, {
       lineas,
       pagado: nuevoPagado,
-      cajaMovimientoIds: ids
+      cajaMovimientoIds: ids,
     });
   }
 
@@ -448,33 +435,33 @@ export class VisitasService {
       if (linea.banioId) {
         await this.db.object(`Katzen/Banios/${linea.banioId}`).update({
           pagado: true,
-          updated_at: now
+          updated_at: now,
         });
       }
       if (linea.citaId) {
         await this.db.object(`Katzen/Citas/${linea.citaId}`).update({
           cobrada: true,
           cobradaEnVisitaId: visita.id,
-          updated_at: now
+          updated_at: now,
         });
       }
       if (linea.pensionId) {
         await this.db.object(`Katzen/Pension/Estancias/${linea.pensionId}`).update({
           cobradaEnVisitaId: visita.id,
-          updated_at: now
+          updated_at: now,
         });
       }
       if (linea.vacunaId) {
         await this.db.object(`Katzen/Vacunas/${linea.vacunaId}`).update({
           cobradaEnVisitaId: visita.id,
-          updated_at: now
+          updated_at: now,
         });
       }
       if (linea.historialId) {
         await this.db.object(`Katzen/Historiales_Clinicos/${linea.historialId}`).update({
           cobradaEnVisitaId: visita.id,
           cobrada: true,
-          updated_at: now
+          updated_at: now,
         });
       }
       if (linea.movimientoInventarioId) {
@@ -482,9 +469,7 @@ export class VisitasService {
         const cajaId = cajaIds.length ? cajaIds[cajaIds.length - 1] : undefined;
         const patch: Record<string, string> = { updated_at: now };
         if (cajaId) patch['cajaMovimientoId'] = cajaId;
-        await this.db
-          .object(`Katzen/Inventario/Movimientos/${linea.movimientoInventarioId}`)
-          .update(patch);
+        await this.db.object(`Katzen/Inventario/Movimientos/${linea.movimientoInventarioId}`).update(patch);
       }
     }
   }
@@ -494,7 +479,7 @@ export class VisitasService {
     const calc = recalcularVisita({
       lineas,
       pagado: Number(raw?.pagado) || 0,
-      estado: raw?.estado
+      estado: raw?.estado,
     });
     return {
       ...raw,
@@ -505,7 +490,7 @@ export class VisitasService {
       saldo: calc.saldo,
       estado: raw?.estado === 'cancelada' ? 'cancelada' : calc.estado,
       cajaMovimientoIds: Array.isArray(raw?.cajaMovimientoIds) ? raw.cajaMovimientoIds : [],
-      activo: raw?.activo !== false
+      activo: raw?.activo !== false,
     };
   }
 }

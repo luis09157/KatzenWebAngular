@@ -5,8 +5,35 @@
   width: 100%;
 }
 
-.cliente-paciente-picker__field.full-span {
+.cliente-paciente-picker__field.full-span,
+.cliente-paciente-picker__row.full-span {
   grid-column: 1 / -1;
+}
+
+/* Spec 065 — fila campo + botón «Cliente nuevo» / «Agregar mascota» (táctil ≥44px). */
+.cliente-paciente-picker__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+
+  .cliente-paciente-picker__field {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.cliente-paciente-picker__crear.mat-mdc-outlined-button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  margin-top: 4px;
+  padding: 0 14px;
+  border-radius: var(--admin-radius-md, 12px);
+  white-space: nowrap;
+
+  mat-icon {
+    margin-right: 4px;
+  }
 }
 
 .cliente-paciente-picker--disabled {
@@ -16,5 +43,14 @@
 @media (max-width: 640px) {
   .cliente-paciente-picker {
     grid-template-columns: 1fr;
+  }
+
+  .cliente-paciente-picker__row {
+    flex-wrap: wrap;
+  }
+
+  .cliente-paciente-picker__crear.mat-mdc-outlined-button {
+    width: 100%;
+    margin-top: 0;
   }
 }

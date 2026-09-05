@@ -2,9 +2,25 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <span class="admin-dialog-badge admin-dialog-badge--readonly" *ngIf="modoVer">Solo lectura</span>
-      <h2 class="admin-dialog-title">{{ modoVer ? 'Detalle de cliente' : (data.cliente ? 'Editar cliente' : 'Nuevo cliente') }}</h2>
+      <h2 class="admin-dialog-title">
+        {{
+          modoVer
+            ? 'Detalle de cliente'
+            : data.cliente
+              ? 'Editar cliente'
+              : modoRapido
+                ? 'Cliente nuevo'
+                : 'Nuevo cliente'
+        }}
+      </h2>
       <p class="admin-dialog-subtitle">
-        {{ modoVer ? 'Consulta datos de contacto, dirección y mascotas vinculadas.' : 'Completa la ficha del cliente para el expediente clínico.' }}
+        {{
+          modoVer
+            ? 'Consulta datos de contacto, dirección y mascotas vinculadas.'
+            : modoRapido
+              ? 'Solo nombre y teléfono. Lo demás se puede completar después desde Clientes.'
+              : 'Completa la ficha del cliente para el expediente clínico.'
+        }}
       </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
@@ -18,7 +34,7 @@
       <div class="admin-dialog-layout admin-dialog-layout--readonly">
         <aside class="admin-dialog-aside">
           <div class="admin-dialog-photo admin-dialog-photo--round">
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async" />
             <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
               <mat-icon>person</mat-icon>
               <span>Sin foto</span>
@@ -41,11 +57,15 @@
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Correo</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('correo') === '—'">{{ getDisplayValue('correo') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('correo') === '—'">
+                  {{ getDisplayValue('correo') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Expediente</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('expediente') === '—'">{{ getDisplayValue('expediente') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('expediente') === '—'">
+                  {{ getDisplayValue('expediente') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Género</span>
@@ -59,34 +79,55 @@
             <div class="detail-grid">
               <div class="detail-item">
                 <span class="detail-item__label">Código postal</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('codigoPostal') === '—'">{{ getDisplayValue('codigoPostal') }}</p>
+                <p
+                  class="detail-item__value"
+                  [class.detail-item__value--muted]="getDisplayValue('codigoPostal') === '—'"
+                >
+                  {{ getDisplayValue('codigoPostal') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Municipio</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('municipio') === '—'">{{ getDisplayValue('municipio') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('municipio') === '—'">
+                  {{ getDisplayValue('municipio') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Colonia</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('colonia') === '—'">{{ getDisplayValue('colonia') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('colonia') === '—'">
+                  {{ getDisplayValue('colonia') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Calle</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('calle') === '—'">{{ getDisplayValue('calle') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('calle') === '—'">
+                  {{ getDisplayValue('calle') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Número</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('numero') === '—'">{{ getDisplayValue('numero') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('numero') === '—'">
+                  {{ getDisplayValue('numero') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Km a casa</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('kilometrosCasa') === '—'">
+                <p
+                  class="detail-item__value"
+                  [class.detail-item__value--muted]="getDisplayValue('kilometrosCasa') === '—'"
+                >
                   {{ getDisplayValue('kilometrosCasa') !== '—' ? getDisplayValue('kilometrosCasa') + ' km' : '—' }}
                 </p>
               </div>
               <div class="detail-item detail-item--wide" *ngIf="getDisplayValue('urlGoogleMaps') !== '—'">
                 <span class="detail-item__label">Google Maps</span>
                 <p class="detail-item__value">
-                  <a class="detail-item__link" [href]="getDisplayValue('urlGoogleMaps')" target="_blank" rel="noopener noreferrer">
+                  <a
+                    class="detail-item__link"
+                    [href]="getDisplayValue('urlGoogleMaps')"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Abrir en Google Maps
                   </a>
                 </p>
@@ -104,23 +145,42 @@
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">RFC</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('rfc') === '—'">{{ getDisplayValue('rfc') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('rfc') === '—'">
+                  {{ getDisplayValue('rfc') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Razón social</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('razonSocial') === '—'">{{ getDisplayValue('razonSocial') }}</p>
+                <p
+                  class="detail-item__value"
+                  [class.detail-item__value--muted]="getDisplayValue('razonSocial') === '—'"
+                >
+                  {{ getDisplayValue('razonSocial') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Uso CFDI</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('usoCfdi') === '—'">{{ getDisplayValue('usoCfdi') }}</p>
+                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('usoCfdi') === '—'">
+                  {{ getDisplayValue('usoCfdi') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">Régimen fiscal</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('regimenFiscal') === '—'">{{ getDisplayValue('regimenFiscal') }}</p>
+                <p
+                  class="detail-item__value"
+                  [class.detail-item__value--muted]="getDisplayValue('regimenFiscal') === '—'"
+                >
+                  {{ getDisplayValue('regimenFiscal') }}
+                </p>
               </div>
               <div class="detail-item">
                 <span class="detail-item__label">C.P. fiscal</span>
-                <p class="detail-item__value" [class.detail-item__value--muted]="getDisplayValue('codigoPostalFiscal') === '—'">{{ getDisplayValue('codigoPostalFiscal') }}</p>
+                <p
+                  class="detail-item__value"
+                  [class.detail-item__value--muted]="getDisplayValue('codigoPostalFiscal') === '—'"
+                >
+                  {{ getDisplayValue('codigoPostalFiscal') }}
+                </p>
               </div>
             </div>
           </section>
@@ -131,8 +191,8 @@
               Acceso al portal
             </h4>
             <p class="portal-access-hint">
-              El dueño ve en el portal las mascotas y datos de <strong>esta</strong> ficha clínica.
-              La contraseña temporal solo llega por correo; aquí no se muestra.
+              El dueño ve en el portal las mascotas y datos de <strong>esta</strong> ficha clínica. La contraseña
+              temporal solo llega por correo; aquí no se muestra.
             </p>
             <div class="portal-access-row">
               <span class="estado-badge" [class]="portalEstadoClass">{{ portalEstadoLabel }}</span>
@@ -146,7 +206,8 @@
                 class="btn-primary-teal"
                 type="button"
                 [disabled]="portalActionBusy"
-                (click)="enviarAccesoPortal()">
+                (click)="enviarAccesoPortal()"
+              >
                 <mat-icon>send</mat-icon>
                 Enviar acceso al portal
               </button>
@@ -156,7 +217,8 @@
                 color="primary"
                 type="button"
                 [disabled]="portalActionBusy"
-                (click)="reenviarAccesoPortal()">
+                (click)="reenviarAccesoPortal()"
+              >
                 <mat-icon>mark_email_read</mat-icon>
                 Reenviar acceso
               </button>
@@ -192,7 +254,8 @@
                 tabindex="0"
                 matTooltip="Doble clic abre el expediente"
                 (dblclick)="$event.preventDefault(); abrirExpedientePaciente(paciente)"
-                (keydown)="onMascotaCardKeydown($event, paciente)">
+                (keydown)="onMascotaCardKeydown($event, paciente)"
+              >
                 <div class="mascota-card__top">
                   <strong>{{ nombreMascotaCard(paciente) }}</strong>
                   <button
@@ -202,18 +265,22 @@
                     class="mascota-card__expediente"
                     matTooltip="Ver expediente"
                     (click)="$event.stopPropagation(); abrirExpedientePaciente(paciente)"
-                    (dblclick)="$event.stopPropagation(); $event.preventDefault()">
+                    (dblclick)="$event.stopPropagation(); $event.preventDefault()"
+                  >
                     <mat-icon>folder_shared</mat-icon>
                   </button>
                 </div>
                 <span>{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</span>
                 <span class="mascota-meta">{{ paciente.sexo || 'Sexo N/P' }} · {{ calcularEdad(paciente.edad) }}</span>
-                <span class="mascota-estado" [class.inactivo]="paciente.estado === 'Fallecido'">{{ paciente.estado || 'Vivo' }}</span>
+                <span class="mascota-estado" [class.inactivo]="paciente.estado === 'Fallecido'">{{
+                  paciente.estado || 'Vivo'
+                }}</span>
                 <button
                   type="button"
                   class="mascota-card__ver-expediente"
                   (click)="$event.stopPropagation(); abrirExpedientePaciente(paciente)"
-                  (dblclick)="$event.stopPropagation(); $event.preventDefault()">
+                  (dblclick)="$event.stopPropagation(); $event.preventDefault()"
+                >
                   Ver expediente
                 </button>
               </div>
@@ -223,18 +290,81 @@
       </div>
     </ng-container>
 
+    <!-- Spec 065 — alta rápida (POS / pickers): nombre + teléfono; resto opcional y colapsado -->
+    <form *ngIf="!modoVer && modoRapido" [formGroup]="clienteForm" class="cliente-rapido" (ngSubmit)="guardar()">
+      <div class="cliente-rapido__grid">
+        <mat-form-field appearance="outline" class="cliente-rapido__field">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" placeholder="Nombre del dueño" autocomplete="off" cdkFocusInitial />
+          <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="cliente-rapido__field">
+          <mat-label>Teléfono</mat-label>
+          <input
+            matInput
+            formControlName="telefono"
+            placeholder="10 dígitos"
+            type="tel"
+            inputmode="numeric"
+            (keypress)="soloNumeros($event)"
+            maxlength="10"
+            autocomplete="off"
+          />
+          <mat-icon matSuffix>phone_iphone</mat-icon>
+          <mat-hint>Sirve para buscarlo después y enviarle el ticket por WhatsApp</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <button type="button" class="cliente-rapido__toggle" (click)="mostrarMasDatosRapido = !mostrarMasDatosRapido">
+        <mat-icon>{{ mostrarMasDatosRapido ? 'expand_less' : 'expand_more' }}</mat-icon>
+        {{ mostrarMasDatosRapido ? 'Ocultar datos opcionales' : 'Apellidos, género y correo (opcional)' }}
+      </button>
+
+      <div class="cliente-rapido__grid cliente-rapido__grid--opcional" *ngIf="mostrarMasDatosRapido">
+        <mat-form-field appearance="outline">
+          <mat-label>Apellido paterno</mat-label>
+          <input matInput formControlName="apellidoPaterno" placeholder="Opcional" />
+          <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{ getErrorMessage('apellidoPaterno') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Apellido materno</mat-label>
+          <input matInput formControlName="apellidoMaterno" placeholder="Opcional" />
+          <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{ getErrorMessage('apellidoMaterno') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Género</mat-label>
+          <mat-select formControlName="genero">
+            <mat-option value="">—</mat-option>
+            <mat-option value="Masculino">Masculino</mat-option>
+            <mat-option value="Femenino">Femenino</mat-option>
+            <mat-option value="No binario">No binario</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Correo</mat-label>
+          <input matInput formControlName="correo" placeholder="correo@ejemplo.com" type="email" autocomplete="off" />
+          <mat-hint>Para enviarle acceso al portal más adelante</mat-hint>
+          <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+
     <!-- Formulario crear / editar -->
-    <form *ngIf="!modoVer" [formGroup]="clienteForm">
+    <form *ngIf="!modoVer && !modoRapido" [formGroup]="clienteForm">
       <app-flow-hint
         icon="info"
-        [message]="data.cliente
-          ? 'Actualiza teléfono y dirección cuando cambien. El acceso al portal se envía desde el detalle del cliente.'
-          : 'Mínimo: nombre, apellido paterno, teléfono y género. Después puedes registrar mascotas y enviar acceso al portal desde el detalle.'">
+        [message]="
+          data.cliente
+            ? 'Actualiza teléfono y dirección cuando cambien. El acceso al portal se envía desde el detalle del cliente.'
+            : 'Mínimo: nombre, apellido paterno, teléfono y género. Después puedes registrar mascotas y enviar acceso al portal desde el detalle.'
+        "
+      >
       </app-flow-hint>
       <div class="admin-dialog-layout">
         <aside class="admin-dialog-aside">
           <div class="admin-dialog-photo admin-dialog-photo--round">
-            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async">
+            <img *ngIf="imagePreview" [src]="imagePreview" alt="Foto del cliente" decoding="async" />
             <div *ngIf="!imagePreview" class="admin-dialog-photo__placeholder">
               <mat-icon>person</mat-icon>
               <span>Sin foto</span>
@@ -245,11 +375,12 @@
               type="button"
               class="admin-dialog-photo__remove"
               (click)="removeImage()"
-              aria-label="Quitar foto">
+              aria-label="Quitar foto"
+            >
               <mat-icon>close</mat-icon>
             </button>
           </div>
-          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden />
           <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploading">
             <mat-icon>photo_camera</mat-icon>
             {{ imagePreview ? 'Cambiar' : 'Agregar foto' }}
@@ -263,18 +394,22 @@
             <div class="form-grid form-grid--3">
               <mat-form-field appearance="outline">
                 <mat-label>Nombre</mat-label>
-                <input matInput formControlName="nombre" placeholder="Nombre">
+                <input matInput formControlName="nombre" placeholder="Nombre" />
                 <mat-error *ngIf="isFieldInvalid('nombre')">{{ getErrorMessage('nombre') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Apellido paterno</mat-label>
-                <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno">
-                <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{ getErrorMessage('apellidoPaterno') }}</mat-error>
+                <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno" />
+                <mat-error *ngIf="isFieldInvalid('apellidoPaterno')">{{
+                  getErrorMessage('apellidoPaterno')
+                }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Apellido materno</mat-label>
-                <input matInput formControlName="apellidoMaterno" placeholder="Opcional">
-                <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{ getErrorMessage('apellidoMaterno') }}</mat-error>
+                <input matInput formControlName="apellidoMaterno" placeholder="Opcional" />
+                <mat-error *ngIf="isFieldInvalid('apellidoMaterno')">{{
+                  getErrorMessage('apellidoMaterno')
+                }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Género</mat-label>
@@ -293,18 +428,29 @@
             <div class="form-grid form-grid--3">
               <mat-form-field appearance="outline">
                 <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="telefono" placeholder="10 dígitos" (keypress)="soloNumeros($event)" maxlength="10">
+                <input
+                  matInput
+                  formControlName="telefono"
+                  placeholder="10 dígitos"
+                  (keypress)="soloNumeros($event)"
+                  maxlength="10"
+                />
                 <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Correo</mat-label>
-                <input matInput formControlName="correo" placeholder="correo@ejemplo.com">
-                <mat-icon matSuffix *ngIf="data.cliente?.id && data.cliente?.correo" matTooltip="El correo no se puede editar">lock</mat-icon>
+                <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />
+                <mat-icon
+                  matSuffix
+                  *ngIf="data.cliente?.id && data.cliente?.correo"
+                  matTooltip="El correo no se puede editar"
+                  >lock</mat-icon
+                >
                 <mat-error *ngIf="isFieldInvalid('correo')">{{ getErrorMessage('correo') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Expediente</mat-label>
-                <input matInput formControlName="expediente" placeholder="Número de expediente">
+                <input matInput formControlName="expediente" placeholder="Número de expediente" />
                 <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
               </mat-form-field>
             </div>
@@ -315,45 +461,57 @@
             <div class="form-grid">
               <mat-form-field appearance="outline">
                 <mat-label>Código postal</mat-label>
-                <input matInput formControlName="codigoPostal" placeholder="00000" maxlength="5" (input)="onCodigoPostalInput($event)">
+                <input
+                  matInput
+                  formControlName="codigoPostal"
+                  placeholder="00000"
+                  maxlength="5"
+                  (input)="onCodigoPostalInput($event)"
+                />
                 <mat-icon matSuffix>location_on</mat-icon>
                 <mat-hint>Autocompleta colonia y municipio</mat-hint>
                 <mat-error *ngIf="isFieldInvalid('codigoPostal')">{{ getErrorMessage('codigoPostal') }}</mat-error>
               </mat-form-field>
-              <mat-form-field appearance="outline" *ngIf="mostrarSelectorColonias && coloniasDisponibles.length > 0" class="full-span">
+              <mat-form-field
+                appearance="outline"
+                *ngIf="mostrarSelectorColonias && coloniasDisponibles.length > 0"
+                class="full-span"
+              >
                 <mat-label>Selecciona colonia</mat-label>
                 <mat-select (selectionChange)="seleccionarColonia($event.value)">
-                  <mat-option *ngFor="let colonia of coloniasDisponibles" [value]="colonia">{{ colonia.colonia }}</mat-option>
+                  <mat-option *ngFor="let colonia of coloniasDisponibles" [value]="colonia">{{
+                    colonia.colonia
+                  }}</mat-option>
                 </mat-select>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Municipio</mat-label>
-                <input matInput formControlName="municipio" placeholder="Municipio">
+                <input matInput formControlName="municipio" placeholder="Municipio" />
                 <mat-error *ngIf="isFieldInvalid('municipio')">{{ getErrorMessage('municipio') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Colonia</mat-label>
-                <input matInput formControlName="colonia" placeholder="Colonia">
+                <input matInput formControlName="colonia" placeholder="Colonia" />
                 <mat-error *ngIf="isFieldInvalid('colonia')">{{ getErrorMessage('colonia') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Calle</mat-label>
-                <input matInput formControlName="calle" placeholder="Calle">
+                <input matInput formControlName="calle" placeholder="Calle" />
                 <mat-error *ngIf="isFieldInvalid('calle')">{{ getErrorMessage('calle') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Número</mat-label>
-                <input matInput formControlName="numero" placeholder="Número">
+                <input matInput formControlName="numero" placeholder="Número" />
                 <mat-error *ngIf="isFieldInvalid('numero')">{{ getErrorMessage('numero') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Km a casa</mat-label>
-                <input matInput formControlName="kilometrosCasa" placeholder="0.0" type="number" step="0.1">
+                <input matInput formControlName="kilometrosCasa" placeholder="0.0" type="number" step="0.1" />
                 <mat-error *ngIf="isFieldInvalid('kilometrosCasa')">{{ getErrorMessage('kilometrosCasa') }}</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline" class="full-span">
                 <mat-label>Google Maps</mat-label>
-                <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/…">
+                <input matInput formControlName="urlGoogleMaps" placeholder="https://maps.google.com/…" />
                 <mat-error *ngIf="isFieldInvalid('urlGoogleMaps')">{{ getErrorMessage('urlGoogleMaps') }}</mat-error>
               </mat-form-field>
             </div>
@@ -368,12 +526,17 @@
               </mat-checkbox>
               <mat-form-field appearance="outline">
                 <mat-label>RFC</mat-label>
-                <input matInput formControlName="rfc" [style.text-transform]="'uppercase'" placeholder="XAXX010101000">
+                <input
+                  matInput
+                  formControlName="rfc"
+                  [style.text-transform]="'uppercase'"
+                  placeholder="XAXX010101000"
+                />
                 <mat-error *ngIf="isFieldInvalid('rfc')">RFC inválido</mat-error>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Razón social</mat-label>
-                <input matInput formControlName="razonSocial" placeholder="Si difiere del nombre">
+                <input matInput formControlName="razonSocial" placeholder="Si difiere del nombre" />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Uso CFDI</mat-label>
@@ -391,7 +554,7 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>C.P. fiscal</mat-label>
-                <input matInput formControlName="codigoPostalFiscal" placeholder="Si ≠ domicilio" maxlength="5">
+                <input matInput formControlName="codigoPostalFiscal" placeholder="Si ≠ domicilio" maxlength="5" />
                 <mat-error *ngIf="isFieldInvalid('codigoPostalFiscal')">C.P. de 5 dígitos</mat-error>
               </mat-form-field>
             </div>
@@ -403,8 +566,15 @@
 
   <mat-dialog-actions class="admin-dialog-actions">
     <button mat-button type="button" (click)="cerrar()">Cerrar</button>
-    <button mat-raised-button color="primary" class="btn-primary-teal" *ngIf="!modoVer" (click)="guardar()" [disabled]="!isFormValidForSave()">
-      Guardar
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      *ngIf="!modoVer"
+      (click)="guardar()"
+      [disabled]="!isFormValidForSave()"
+    >
+      {{ modoRapido ? 'Guardar cliente' : 'Guardar' }}
     </button>
   </mat-dialog-actions>
 </div>

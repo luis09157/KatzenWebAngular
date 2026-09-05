@@ -10,18 +10,25 @@ import { finalize } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
-import { filtrarClientes, getClienteDisplayLabel } from '../core/utils/cliente-search.util';
+import { filtrarClientes, getClienteDisplayLabel, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
   templateUrl: './paciente-admin-dialog.component.html',
   styleUrls: ['./paciente-admin-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class PacienteAdminDialogComponent implements OnInit {
   pacienteForm: FormGroup;
   isEditMode = false;
   isViewMode = false;
+  /**
+   * Spec 065 — alta rápida desde POS / pickers: nombre + especie obligatorios,
+   * raza y sexo opcionales, dueño prefijado (`data.cliente`). Sin foto ni alergias.
+   */
+  isRapido = false;
+  mostrarMasDatosRapido = false;
+  duenoPrefijado = '';
   loading = false;
   /** Spec 034 — lista editable de alergias (fuente de verdad Mascota). */
   alergiasLista: string[] = [];
@@ -34,23 +41,30 @@ export class PacienteAdminDialogComponent implements OnInit {
   clientes: any[] = [];
   filteredClientes: Observable<any[]>;
   maxDate = new Date(); // Fecha máxima: hoy
-  
+
   // Propiedades para manejo de imagen
   selectedFile: File | null = null;
   imagePreview: string | null = null;
   uploadProgress: number = 0;
   isUploading = false;
-  defaultImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik03NSA0MEM2NS4wNTc2IDQwIDU3IDQ4LjA1NzYgNTcgNThDNTcgNjcuOTQyNCA2NS4wNTc2IDc2IDc1IDc2Qzg0Ljk0MjQgNzYgOTMgNjcuOTQyNCA5MyA1OEM5MyA0OC4wNTc2IDg0Ljk0MjQgNDAgNzUgNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSA4MEM2NS4wNTc2IDgwIDU3IDg4LjA1NzYgNTcgOThDNTcgMTA3Ljk0MiA2NS4wNTc2IDExNiA3NSAxMTZDODQuOTQyNCAxMTYgOTMgMTA3Ljk0MiA5MyA5OEM5MyA4OC4wNTc2IDg0Ljk0MjQgODAgNzUgODBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSAxMjBDNjUuMDU3NiAxMjAgNTcgMTI4LjA1OCA1NyAxMzhDNTcgMTQ3Ljk0MiA2NS4wNTc2IDE1NiA3NSAxNTZDODQuOTQyNCAxNTYgOTMgMTQ3Ljk0MiA5MyAxMzhDOTMgMTI4LjA1OCA4NC45NDI0IDEyMCA3NSAxMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+Cjwvc3ZnPgo=';
+  defaultImageUrl =
+    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik03NSA0MEM2NS4wNTc2IDQwIDU3IDQ4LjA1NzYgNTcgNThDNTcgNjcuOTQyNCA2NS4wNTc2IDc2IDc1IDc2Qzg0Ljk0MjQgNzYgOTMgNjcuOTQyNCA5MyA1OEM5MyA0OC4wNTc2IDg0Ljk0MjQgNDAgNzUgNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSA4MEM2NS4wNTc2IDgwIDU3IDg4LjA1NzYgNTcgOThDNTcgMTA3Ljk0MiA2NS4wNTc2IDExNiA3NSAxMTZDODQuOTQyNCAxMTYgOTMgMTA3Ljk0MiA5MyA5OEM5MyA4OC4wNTc2IDg0Ljk0MjQgODAgNzUgODBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSAxMjBDNjUuMDU3NiAxMjAgNTcgMTI4LjA1OCA1NyAxMzhDNTcgMTQ3Ljk0MiA2NS4wNTc2IDE1NiA3NSAxNTZDODQuOTQyNCAxNTYgOTMgMTQ3Ljk0MiA5MyAxMzhDOTMgMTI4LjA1OCA4NC45NDI0IDEyMCA3NSAxMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+Cjwvc3ZnPgo=';
 
   get dialogTitle(): string {
     if (this.isViewMode) return 'Detalle del paciente';
     if (this.isEditMode) return 'Editar paciente';
+    if (this.isRapido) return 'Mascota nueva';
     return 'Nuevo paciente';
   }
 
   get dialogSubtitle(): string {
     if (this.isViewMode) return 'Consulta la ficha clínica y datos del dueño.';
     if (this.isEditMode) return 'Actualiza la información de la mascota registrada.';
+    if (this.isRapido) {
+      return this.duenoPrefijado
+        ? `Dueño: ${this.duenoPrefijado}. Solo nombre y especie; lo demás se completa después.`
+        : 'Solo nombre y especie; lo demás se completa después en Pacientes.';
+    }
     return 'Registra una nueva mascota y vincúlala a un cliente.';
   }
 
@@ -88,19 +102,19 @@ export class PacienteAdminDialogComponent implements OnInit {
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService
   ) {
-              this.pacienteForm = this.fb.group({
-            nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-            especie: ['', Validators.required],
-            raza: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-            sexo: ['', Validators.required],
-            estado: ['Vivo', Validators.required], // Campo de estado con valor por defecto 'Vivo'
-            edad: [''],
-            fechaFallecimiento: [''], // Nuevo campo para fecha de fallecimiento
-            color: ['', [Validators.maxLength(30)]],
-            peso: ['', [Validators.pattern(/^\d*\.?\d*$/), Validators.min(0), Validators.max(200)]],
-            idCliente: [''], // Sin validación visible, se llena automáticamente
-            nombreCliente: ['', Validators.required]
-          });
+    this.pacienteForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      especie: ['', Validators.required],
+      raza: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      sexo: ['', Validators.required],
+      estado: ['Vivo', Validators.required], // Campo de estado con valor por defecto 'Vivo'
+      edad: [''],
+      fechaFallecimiento: [''], // Nuevo campo para fecha de fallecimiento
+      color: ['', [Validators.maxLength(30)]],
+      peso: ['', [Validators.pattern(/^\d*\.?\d*$/), Validators.min(0), Validators.max(200)]],
+      idCliente: [''], // Sin validación visible, se llena automáticamente
+      nombreCliente: ['', Validators.required],
+    });
   }
 
   ngOnInit() {
@@ -108,10 +122,15 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.cargarClientes();
     this.setupDateValidation();
     this.setupEstadoChangeListener();
-    
+
+    if (this.data?.modo === 'rapido' && !this.data?.paciente) {
+      this.configurarModoRapido();
+      return;
+    }
+
     if (this.data && this.data.paciente) {
       console.log('🔍 Datos recibidos en el diálogo:', this.data);
-      
+
       // Detectar el modo
       if (this.data.modo === 'ver') {
         this.isViewMode = true;
@@ -120,11 +139,11 @@ export class PacienteAdminDialogComponent implements OnInit {
         this.isEditMode = true;
         this.isViewMode = false;
       }
-      
+
       // Preparar los datos del paciente, convirtiendo la fecha si es necesario
       const pacienteData = { ...this.data.paciente };
       console.log('🔍 Datos originales del paciente:', pacienteData);
-      
+
       let fechaConvertida: Date | null = null;
       if (pacienteData.edad && typeof pacienteData.edad === 'string') {
         console.log('📅 Convirtiendo fecha string:', pacienteData.edad);
@@ -133,10 +152,10 @@ export class PacienteAdminDialogComponent implements OnInit {
       } else {
         console.log('⚠️ No se encontró campo edad o no es string:', pacienteData.edad);
       }
-      
+
       // Preparar datos para el formulario
       const formData = { ...pacienteData };
-      
+
       // Convertir fecha de fallecimiento si existe
       let fechaFallecimientoConvertida: Date | null = null;
       if (formData.fechaFallecimiento && typeof formData.fechaFallecimiento === 'string') {
@@ -144,45 +163,45 @@ export class PacienteAdminDialogComponent implements OnInit {
         delete formData.fechaFallecimiento;
         console.log('📅 Fecha de fallecimiento convertida:', fechaFallecimientoConvertida);
       }
-      
+
       // Primero asignar todos los datos excepto las fechas
       delete formData.edad;
       console.log('🔍 Datos del paciente antes de patchValue:', formData);
       this.pacienteForm.patchValue(formData);
       this.alergiasLista = normalizeAlergias(pacienteData);
-      
+
       // Luego asignar la fecha específicamente con setTimeout para asegurar que el datepicker esté listo
       if (fechaConvertida) {
         setTimeout(() => {
           console.log('📅 Asignando fecha al formulario:', fechaConvertida);
           this.pacienteForm.get('edad')?.setValue(fechaConvertida);
-          
+
           // Verificar que la fecha se asignó correctamente
           const edadValue = this.pacienteForm.get('edad')?.value;
           console.log('📅 Valor final del campo edad:', edadValue);
-          
+
           // Forzar detección de cambios
           this.pacienteForm.get('edad')?.markAsTouched();
           this.pacienteForm.get('edad')?.updateValueAndValidity();
         }, 200); // Aumenté el timeout a 200ms
       }
-      
+
       // Asignar fecha de fallecimiento si existe
       if (fechaFallecimientoConvertida) {
         setTimeout(() => {
           console.log('📅 Asignando fecha de fallecimiento al formulario:', fechaFallecimientoConvertida);
           this.pacienteForm.get('fechaFallecimiento')?.setValue(fechaFallecimientoConvertida);
-          
+
           // Verificar que la fecha se asignó correctamente
           const fechaFallecimientoValue = this.pacienteForm.get('fechaFallecimiento')?.value;
           console.log('📅 Valor final del campo fechaFallecimiento:', fechaFallecimientoValue);
-          
+
           // Forzar detección de cambios
           this.pacienteForm.get('fechaFallecimiento')?.markAsTouched();
           this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
         }, 300); // Timeout ligeramente mayor para asegurar que el campo esté listo
       }
-      
+
       // Cargar imagen existente si el paciente tiene una
       if (this.data.paciente.imageUrl && this.data.paciente.imageUrl !== this.defaultImageUrl) {
         this.imagePreview = this.data.paciente.imageUrl;
@@ -196,13 +215,32 @@ export class PacienteAdminDialogComponent implements OnInit {
     }
   }
 
+  /** Spec 065 — relaja raza/sexo y prefija el dueño que viene del POS / picker. */
+  private configurarModoRapido(): void {
+    this.isRapido = true;
+    this.isEditMode = false;
+    this.isViewMode = false;
+    this.pacienteForm.get('raza')?.setValidators([Validators.maxLength(50)]);
+    this.pacienteForm.get('raza')?.updateValueAndValidity({ emitEvent: false });
+    this.pacienteForm.get('sexo')?.clearValidators();
+    this.pacienteForm.get('sexo')?.updateValueAndValidity({ emitEvent: false });
+
+    const dueno = this.data?.cliente;
+    const idCliente = String(dueno?.id || '').trim();
+    if (idCliente) {
+      const nombre = getClienteNombreCompleto(dueno).trim() || String(dueno?.nombre || '').trim();
+      this.duenoPrefijado = nombre;
+      this.pacienteForm.patchValue({ idCliente, nombreCliente: nombre || 'Dueño' });
+    }
+  }
+
   setupDateValidation() {
     // Obtener la fecha de hoy
     const today = new Date();
     today.setHours(23, 59, 59, 999); // Fin del día de hoy
-    
+
     // Validar que la fecha no sea futura
-    this.pacienteForm.get('edad')?.valueChanges.subscribe(date => {
+    this.pacienteForm.get('edad')?.valueChanges.subscribe((date) => {
       if (date && date > today) {
         this.pacienteForm.get('edad')?.setErrors({ futureDate: true });
       }
@@ -211,7 +249,7 @@ export class PacienteAdminDialogComponent implements OnInit {
 
   setupEstadoChangeListener() {
     // Escuchar cambios en el campo estado
-    this.pacienteForm.get('estado')?.valueChanges.subscribe(estado => {
+    this.pacienteForm.get('estado')?.valueChanges.subscribe((estado) => {
       if (estado === 'Fallecido') {
         // Si el estado es Fallecido, hacer requerida la fecha de fallecimiento
         this.pacienteForm.get('fechaFallecimiento')?.setValidators([Validators.required]);
@@ -224,22 +262,26 @@ export class PacienteAdminDialogComponent implements OnInit {
     });
 
     // Escuchar cambios en la fecha de fallecimiento para calcular edad automáticamente
-    this.pacienteForm.get('fechaFallecimiento')?.valueChanges.subscribe(fechaFallecimiento => {
+    this.pacienteForm.get('fechaFallecimiento')?.valueChanges.subscribe((fechaFallecimiento) => {
       if (fechaFallecimiento && this.pacienteForm.get('estado')?.value === 'Fallecido') {
         this.calcularYMostrarEdadAlFallecimiento();
       }
     });
 
     // Escuchar cambios en la fecha de nacimiento para calcular edad automáticamente
-    this.pacienteForm.get('edad')?.valueChanges.subscribe(fechaNacimiento => {
-      if (fechaNacimiento && this.pacienteForm.get('estado')?.value === 'Fallecido' && this.pacienteForm.get('fechaFallecimiento')?.value) {
+    this.pacienteForm.get('edad')?.valueChanges.subscribe((fechaNacimiento) => {
+      if (
+        fechaNacimiento &&
+        this.pacienteForm.get('estado')?.value === 'Fallecido' &&
+        this.pacienteForm.get('fechaFallecimiento')?.value
+      ) {
         this.calcularYMostrarEdadAlFallecimiento();
       }
     });
   }
 
   cargarClientes() {
-    this.clientesService.getClientes().subscribe(clientes => {
+    this.clientesService.getClientes().subscribe((clientes) => {
       this.clientes = clientes || [];
       this.setupAutocomplete();
     });
@@ -248,16 +290,19 @@ export class PacienteAdminDialogComponent implements OnInit {
   setupAutocomplete() {
     this.filteredClientes = this.pacienteForm.get('nombreCliente')!.valueChanges.pipe(
       startWith(''),
-      map(value => this._filterClientes(value))
+      map((value) => this._filterClientes(value))
     );
   }
 
   private _filterClientes(value: string | any): any[] {
-    const raw = value == null || value === '' ? '' : typeof value === 'string'
-      ? value
-      : (value && typeof value === 'object'
-          ? getClienteDisplayLabel(value)
-          : String(value ?? ''));
+    const raw =
+      value == null || value === ''
+        ? ''
+        : typeof value === 'string'
+          ? value
+          : value && typeof value === 'object'
+            ? getClienteDisplayLabel(value)
+            : String(value ?? '');
     return filtrarClientes(this.clientes, raw);
   }
 
@@ -269,7 +314,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     const nombreCompleto = this.getNombreCompleto(cliente);
     this.pacienteForm.patchValue({
       idCliente: cliente.id,
-      nombreCliente: nombreCompleto
+      nombreCliente: nombreCompleto,
     });
   }
 
@@ -279,7 +324,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     }
 
     // Marcar todos los campos como touched para mostrar errores
-    Object.keys(this.pacienteForm.controls).forEach(key => {
+    Object.keys(this.pacienteForm.controls).forEach((key) => {
       const control = this.pacienteForm.get(key);
       control?.markAsTouched();
     });
@@ -289,14 +334,14 @@ export class PacienteAdminDialogComponent implements OnInit {
       Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
       return;
     }
-    
+
     // Validar fecha futura
     const edadField = this.pacienteForm.get('edad');
     if (edadField?.value && edadField?.hasError('futureDate')) {
       Swal.fire('Error', 'La fecha de nacimiento no puede ser posterior a hoy', 'error');
       return;
     }
-    
+
     if (this.pacienteForm.valid) {
       this.loading = true;
       this.loadingService.show();
@@ -328,9 +373,9 @@ export class PacienteAdminDialogComponent implements OnInit {
           idCliente: formValues.idCliente,
           cliente_id: formValues.idCliente,
           imageUrl: imageUrl,
-          imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.paciente?.imageFileName || ''),
+          imageFileName: this.selectedFile ? this.selectedFile.name : this.data?.paciente?.imageFileName || '',
           fecha: new Date().toLocaleString('es-ES'),
-          alergias: normalizeAlergias(this.alergiasLista)
+          alergias: normalizeAlergias(this.alergiasLista),
         };
 
         if (this.isEditMode || this.isViewMode) {
@@ -359,41 +404,41 @@ export class PacienteAdminDialogComponent implements OnInit {
   // Métodos para obtener mensajes de error
   getErrorMessage(fieldName: string): string {
     const field = this.pacienteForm.get(fieldName);
-    
+
     if (field?.hasError('required')) {
       return 'Este campo es requerido';
     }
-    
+
     if (field?.hasError('minlength')) {
       const requiredLength = field.errors?.['minlength']?.requiredLength;
       return `Mínimo ${requiredLength} caracteres`;
     }
-    
+
     if (field?.hasError('maxlength')) {
       const requiredLength = field.errors?.['maxlength']?.requiredLength;
       return `Máximo ${requiredLength} caracteres`;
     }
-    
+
     if (field?.hasError('pattern')) {
       return 'Formato inválido';
     }
-    
+
     if (field?.hasError('min')) {
       return 'El valor mínimo es 0';
     }
-    
+
     if (field?.hasError('max')) {
       return 'El valor máximo es 200 kg';
     }
-    
+
     if (field?.hasError('futureDate')) {
       return 'La fecha no puede ser posterior a hoy';
     }
-    
+
     if (fieldName === 'fechaFallecimiento' && field?.hasError('required')) {
       return 'La fecha de fallecimiento es requerida cuando el estado es Fallecido';
     }
-    
+
     return '';
   }
 
@@ -411,15 +456,15 @@ export class PacienteAdminDialogComponent implements OnInit {
         Swal.fire('Error', 'Solo se permiten archivos de imagen', 'error');
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
         return;
       }
-      
+
       this.selectedFile = file;
-      
+
       // Crear preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -443,18 +488,20 @@ export class PacienteAdminDialogComponent implements OnInit {
     const uploadTask = this.storage.upload(filePath, this.selectedFile);
 
     // Monitorear progreso
-    uploadTask.percentageChanges().subscribe(percentage => {
+    uploadTask.percentageChanges().subscribe((percentage) => {
       this.uploadProgress = percentage || 0;
     });
 
     try {
-      await lastValueFrom(uploadTask.snapshotChanges().pipe(
-        finalize(() => {
-          this.isUploading = false;
-          this.uploadProgress = 0;
-        })
-      ));
-      
+      await lastValueFrom(
+        uploadTask.snapshotChanges().pipe(
+          finalize(() => {
+            this.isUploading = false;
+            this.uploadProgress = 0;
+          })
+        )
+      );
+
       const downloadURL = await firstValueFrom(fileRef.getDownloadURL());
       return downloadURL;
     } catch (error) {
@@ -477,32 +524,32 @@ export class PacienteAdminDialogComponent implements OnInit {
       console.log('❌ Fecha string vacía');
       return null;
     }
-    
+
     console.log('🔄 Convirtiendo fecha:', fechaString);
-    
+
     try {
       const partes = fechaString.split('/');
       console.log('📅 Partes de la fecha:', partes);
-      
+
       if (partes.length !== 3) {
         console.log('❌ Formato de fecha inválido, se esperaban 3 partes');
         return null;
       }
-      
+
       const dia = parseInt(partes[0]);
       const mes = parseInt(partes[1]) - 1; // Los meses en JS van de 0 a 11
       const año = parseInt(partes[2]);
-      
+
       console.log('📅 Dia:', dia, 'Mes:', mes, 'Año:', año);
-      
+
       const fecha = new Date(año, mes, dia);
-      
+
       // Verificar que la fecha sea válida
       if (isNaN(fecha.getTime())) {
         console.log('❌ Fecha inválida después de crear Date object');
         return null;
       }
-      
+
       console.log('✅ Fecha convertida exitosamente:', fecha);
       return fecha;
     } catch (error) {
@@ -516,11 +563,11 @@ export class PacienteAdminDialogComponent implements OnInit {
     if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
       return '';
     }
-    
+
     const dia = fecha.getDate().toString().padStart(2, '0');
     const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const año = fecha.getFullYear();
-    
+
     return `${dia}/${mes}/${año}`;
   }
 
@@ -529,18 +576,18 @@ export class PacienteAdminDialogComponent implements OnInit {
     if (!fechaNacimiento || !fechaFallecimiento) {
       return 0;
     }
-    
+
     try {
       const nacimiento = this.convertirFechaStringADate(fechaNacimiento);
       const fallecimiento = this.convertirFechaStringADate(fechaFallecimiento);
-      
+
       if (!nacimiento || !fallecimiento) {
         return 0;
       }
-      
+
       const diferencia = fallecimiento.getTime() - nacimiento.getTime();
       const edadEnMilisegundos = diferencia / (1000 * 60 * 60 * 24 * 365.25);
-      
+
       return Math.floor(edadEnMilisegundos);
     } catch (error) {
       console.error('Error al calcular edad al fallecimiento:', error);
@@ -552,31 +599,31 @@ export class PacienteAdminDialogComponent implements OnInit {
   getEdadAlFallecimiento(): string {
     const fechaNacimiento = this.pacienteForm.get('edad')?.value;
     const fechaFallecimiento = this.pacienteForm.get('fechaFallecimiento')?.value;
-    
+
     if (!fechaNacimiento || !fechaFallecimiento) {
       return 'Selecciona ambas fechas';
     }
-    
+
     // Convertir fechas a string si son objetos Date
     let fechaNacString = '';
     let fechaFallecimientoString = '';
-    
+
     if (fechaNacimiento instanceof Date) {
       fechaNacString = this.convertirDateAString(fechaNacimiento);
     } else if (typeof fechaNacimiento === 'string') {
       fechaNacString = fechaNacimiento;
     }
-    
+
     if (fechaFallecimiento instanceof Date) {
       fechaFallecimientoString = this.convertirDateAString(fechaFallecimiento);
     } else if (typeof fechaFallecimiento === 'string') {
       fechaFallecimientoString = fechaFallecimiento;
     }
-    
+
     if (!fechaNacString || !fechaFallecimientoString) {
       return 'Selecciona ambas fechas';
     }
-    
+
     const edad = this.calcularEdadAlFallecimiento(fechaNacString, fechaFallecimientoString);
     return `${edad} años`;
   }
@@ -585,40 +632,40 @@ export class PacienteAdminDialogComponent implements OnInit {
   calcularYMostrarEdadAlFallecimiento() {
     const fechaNacimiento = this.pacienteForm.get('edad')?.value;
     const fechaFallecimiento = this.pacienteForm.get('fechaFallecimiento')?.value;
-    
+
     if (!fechaNacimiento || !fechaFallecimiento) {
       return;
     }
-    
+
     // Convertir fechas a string si son objetos Date
     let fechaNacString = '';
     let fechaFallecimientoString = '';
-    
+
     if (fechaNacimiento instanceof Date) {
       fechaNacString = this.convertirDateAString(fechaNacimiento);
     } else if (typeof fechaNacimiento === 'string') {
       fechaNacString = fechaNacimiento;
     }
-    
+
     if (fechaFallecimiento instanceof Date) {
       fechaFallecimientoString = this.convertirDateAString(fechaFallecimiento);
     } else if (typeof fechaFallecimiento === 'string') {
       fechaFallecimientoString = fechaFallecimiento;
     }
-    
+
     if (!fechaNacString || !fechaFallecimientoString) {
       return;
     }
-    
+
     const edad = this.calcularEdadAlFallecimiento(fechaNacString, fechaFallecimientoString);
-    
+
     // Mostrar la edad calculada en el campo de solo lectura
     console.log(`📊 Edad calculada al fallecimiento: ${edad} años`);
-    
+
     // Forzar la detección de cambios para actualizar la vista
     setTimeout(() => {
       // Esto forzará la actualización del campo de solo lectura
       this.pacienteForm.get('fechaFallecimiento')?.updateValueAndValidity();
     }, 100);
   }
-} 
+}

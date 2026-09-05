@@ -1,77 +1,134 @@
-<section class="cliente-paciente-picker" [class.cliente-paciente-picker--disabled]="disabled">
-  <mat-form-field appearance="outline" class="cliente-paciente-picker__field full-span">
-    <mat-label>Cliente (dueño)</mat-label>
-    <mat-icon matPrefix>person_search</mat-icon>
-    <input
-      matInput
-      [formControl]="clienteSearch"
-      placeholder="Buscar por nombre, teléfono o expediente…"
-      [matAutocomplete]="autoCliente"
-      [readonly]="disabled"
-      required
-    />
-    <button
-      mat-icon-button
-      matSuffix
-      type="button"
-      *ngIf="clienteSeleccionado && !disabled"
-      (click)="limpiarCliente()"
-      aria-label="Cambiar cliente">
-      <mat-icon>close</mat-icon>
-    </button>
-    <mat-autocomplete
-      #autoCliente="matAutocomplete"
-      [displayWith]="getClienteLabel"
-      (optionSelected)="onClienteSelected($event.option.value)">
-      <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
-        {{ getClienteLabel(cliente) }}
-      </mat-option>
-    </mat-autocomplete>
-    <mat-error *ngIf="clienteIdControl?.hasError('required') && clienteIdControl?.touched">
-      Selecciona un cliente del catálogo
-    </mat-error>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="cliente-paciente-picker__field full-span">
-    <mat-label>Paciente (mascota)</mat-label>
-    <mat-icon matPrefix>pets</mat-icon>
-
-    <ng-container *ngIf="!pacienteAutocomplete">
-      <mat-select
-        [formControlName]="fieldNames.pacienteId"
-        [disabled]="!clienteSeleccionado || disabled"
-        (selectionChange)="onPacienteSelected($event.value)"
-        required>
-        <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
-          {{ getPacienteLabel(paciente) }}
-        </mat-option>
-      </mat-select>
-    </ng-container>
-
-    <ng-container *ngIf="pacienteAutocomplete">
+<section
+  class="cliente-paciente-picker"
+  [class.cliente-paciente-picker--disabled]="disabled"
+  [class.cliente-paciente-picker--crear]="permitirCrear"
+>
+  <div class="cliente-paciente-picker__row full-span">
+    <mat-form-field appearance="outline" class="cliente-paciente-picker__field">
+      <mat-label>Dueño (cliente)</mat-label>
+      <mat-icon matPrefix>person_search</mat-icon>
       <input
+        #clienteInput
         matInput
-        [formControl]="pacienteSearch"
-        placeholder="Buscar mascota del cliente…"
-        [matAutocomplete]="autoPaciente"
-        [readonly]="!clienteSeleccionado || disabled"
+        [formControl]="clienteSearch"
+        placeholder="Teléfono o nombre del dueño"
+        [matAutocomplete]="autoCliente"
+        [readonly]="disabled"
+        autocomplete="off"
+        required
       />
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        *ngIf="clienteSeleccionado && !disabled"
+        (click)="limpiarCliente()"
+        aria-label="Cambiar cliente"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
       <mat-autocomplete
-        #autoPaciente="matAutocomplete"
-        [displayWith]="getPacienteLabel"
-        (optionSelected)="onPacienteAutocompleteSelected($event.option.value)">
-        <mat-option *ngFor="let paciente of filteredPacientes | async" [value]="paciente">
-          {{ getPacienteLabel(paciente) }}
+        #autoCliente="matAutocomplete"
+        [displayWith]="getClienteLabel"
+        (optionSelected)="onClienteSelected($event.option.value)"
+      >
+        <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+          {{ getClienteLabel(cliente) }}
         </mat-option>
       </mat-autocomplete>
-    </ng-container>
+      <mat-hint *ngIf="!clienteSeleccionado && permitirCrear">
+        Escribe el teléfono o el nombre. Si no aparece, usa «Cliente nuevo».
+      </mat-hint>
+      <mat-error *ngIf="clienteIdControl?.hasError('required') && clienteIdControl?.touched">
+        Selecciona un cliente del catálogo
+      </mat-error>
+    </mat-form-field>
+    <button
+      *ngIf="permitirCrear && !disabled"
+      mat-stroked-button
+      color="primary"
+      type="button"
+      class="cliente-paciente-picker__crear"
+      (click)="solicitarCrearCliente()"
+      aria-label="Cliente nuevo"
+    >
+      <mat-icon>person_add</mat-icon>
+      Cliente nuevo
+    </button>
+  </div>
 
-    <mat-hint *ngIf="!clienteSeleccionado">Primero elige un cliente</mat-hint>
-    <mat-hint *ngIf="clienteSeleccionado && pacientesDelCliente.length === 0">
-      Este cliente no tiene mascotas activas
-    </mat-hint>
-    <mat-error *ngIf="pacienteIdControl?.hasError('required') && pacienteIdControl?.touched">
-      Selecciona una mascota del cliente
-    </mat-error>
-  </mat-form-field>
+  <div class="cliente-paciente-picker__row full-span">
+    <mat-form-field appearance="outline" class="cliente-paciente-picker__field">
+      <mat-label>Mascota (paciente){{ pacienteRequerido ? '' : ' · opcional' }}</mat-label>
+      <mat-icon matPrefix>pets</mat-icon>
+
+      <ng-container *ngIf="!pacienteAutocomplete">
+        <mat-select
+          *ngIf="pacienteRequerido"
+          [formControlName]="fieldNames.pacienteId"
+          [disabled]="!clienteSeleccionado || disabled"
+          (selectionChange)="onPacienteSelected($event.value)"
+          required
+        >
+          <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
+            {{ getPacienteLabel(paciente) }}
+          </mat-option>
+        </mat-select>
+        <mat-select
+          *ngIf="!pacienteRequerido"
+          [formControlName]="fieldNames.pacienteId"
+          [disabled]="!clienteSeleccionado || disabled"
+          (selectionChange)="onPacienteSelected($event.value)"
+        >
+          <mat-option *ngFor="let paciente of pacientesDelCliente" [value]="paciente.id">
+            {{ getPacienteLabel(paciente) }}
+          </mat-option>
+        </mat-select>
+      </ng-container>
+
+      <ng-container *ngIf="pacienteAutocomplete">
+        <input
+          matInput
+          [formControl]="pacienteSearch"
+          placeholder="Buscar mascota del cliente…"
+          [matAutocomplete]="autoPaciente"
+          [readonly]="!clienteSeleccionado || disabled"
+        />
+        <mat-autocomplete
+          #autoPaciente="matAutocomplete"
+          [displayWith]="getPacienteLabel"
+          (optionSelected)="onPacienteAutocompleteSelected($event.option.value)"
+        >
+          <mat-option *ngFor="let paciente of filteredPacientes | async" [value]="paciente">
+            {{ getPacienteLabel(paciente) }}
+          </mat-option>
+        </mat-autocomplete>
+      </ng-container>
+
+      <mat-hint *ngIf="!clienteSeleccionado">Primero elige al dueño</mat-hint>
+      <mat-hint *ngIf="clienteSeleccionado && pacientesDelCliente.length === 0">
+        {{
+          permitirCrear
+            ? 'Este dueño aún no tiene mascotas. Usa «Agregar mascota».'
+            : 'Este cliente no tiene mascotas activas'
+        }}
+      </mat-hint>
+      <mat-error *ngIf="pacienteIdControl?.hasError('required') && pacienteIdControl?.touched">
+        Selecciona una mascota del cliente
+      </mat-error>
+    </mat-form-field>
+    <button
+      *ngIf="permitirCrear && !disabled"
+      mat-stroked-button
+      color="primary"
+      type="button"
+      class="cliente-paciente-picker__crear"
+      [disabled]="!clienteSeleccionado"
+      (click)="solicitarCrearPaciente()"
+      aria-label="Agregar mascota"
+    >
+      <mat-icon>add</mat-icon>
+      Agregar mascota
+    </button>
+  </div>
 </section>

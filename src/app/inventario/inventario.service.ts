@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, map, catchError, throwError, firstValueFrom, of } from 'rxjs';
-import { 
-  Producto, 
+import {
+  Producto,
   ProductoFormData,
   Movimiento,
   Proveedor,
   ProveedorFormData,
   OrdenCompra,
   Alerta,
-  EstadisticasInventario
+  EstadisticasInventario,
 } from '../shared/inventario.models';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
@@ -18,7 +18,7 @@ import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { calcularNuevoStock, validarMotivoMovimiento } from './inventario-stock.util';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InventarioService {
   private readonly productosPath = 'Katzen/Inventario/Productos';
@@ -38,19 +38,20 @@ export class InventarioService {
 
   getProductos(): Observable<Producto[]> {
     console.log('🔄 Obteniendo productos...');
-    return this.db.list<Producto>(this.productosPath)
+    return this.db
+      .list<Producto>(this.productosPath)
       .snapshotChanges()
       .pipe(
-        map(changes => {
+        map((changes) => {
           const productos = changes
-            .map(c => ({ id: c.payload.key, ...c.payload.val() }))
-            .filter(p => p.activo !== false)
+            .map((c) => ({ id: c.payload.key, ...c.payload.val() }))
+            .filter((p) => p.activo !== false)
             .sort((a, b) => a.nombre.localeCompare(b.nombre));
-          
+
           console.log(`✅ ${productos.length} productos obtenidos`);
           return productos;
         }),
-        catchError(error => {
+        catchError((error) => {
           console.error('❌ Error al obtener productos:', error);
           return throwError(() => error);
         })
@@ -58,15 +59,11 @@ export class InventarioService {
   }
 
   getProductosPorCategoria(categoria: string): Observable<Producto[]> {
-    return this.getProductos().pipe(
-      map(productos => productos.filter(p => p.categoria === categoria))
-    );
+    return this.getProductos().pipe(map((productos) => productos.filter((p) => p.categoria === categoria)));
   }
 
   getProductosBajoStock(): Observable<Producto[]> {
-    return this.getProductos().pipe(
-      map(productos => productos.filter(p => p.stock_actual <= p.stock_minimo))
-    );
+    return this.getProductos().pipe(map((productos) => productos.filter((p) => p.stock_actual <= p.stock_minimo)));
   }
 
   getProductosPorCaducar(dias: number = 30): Observable<Producto[]> {
@@ -75,20 +72,21 @@ export class InventarioService {
     fechaLimite.setDate(hoy.getDate() + dias);
 
     return this.getProductos().pipe(
-      map(productos => productos.filter(p => {
-        if (!p.fecha_caducidad) return false;
-        const fechaCad = new Date(p.fecha_caducidad);
-        return fechaCad <= fechaLimite && fechaCad >= hoy;
-      }))
+      map((productos) =>
+        productos.filter((p) => {
+          if (!p.fecha_caducidad) return false;
+          const fechaCad = new Date(p.fecha_caducidad);
+          return fechaCad <= fechaLimite && fechaCad >= hoy;
+        })
+      )
     );
   }
 
   getProductoById(id: string): Observable<Producto | null> {
-    return this.db.object<Producto>(`${this.productosPath}/${id}`)
+    return this.db
+      .object<Producto>(`${this.productosPath}/${id}`)
       .valueChanges()
-      .pipe(
-        map(producto => producto ? { id, ...producto } : null)
-      );
+      .pipe(map((producto) => (producto ? { id, ...producto } : null)));
   }
 
   async crearProducto(productoData: ProductoFormData): Promise<string> {
@@ -97,8 +95,8 @@ export class InventarioService {
 
       // Validar código de barras único
       const productos = await firstValueFrom(this.getProductos());
-      const duplicado = productos.find(p => p.codigo_barras === productoData.codigo_barras);
-      
+      const duplicado = productos.find((p) => p.codigo_barras === productoData.codigo_barras);
+
       if (duplicado) {
         throw new Error('Ya existe un producto con este código de barras');
       }
@@ -110,26 +108,22 @@ export class InventarioService {
         );
       }
 
-      const margen = productoData.precio_compra > 0 
-        ? ((productoData.precio_venta - productoData.precio_compra) / productoData.precio_compra) * 100
-        : 0;
+      const margen =
+        productoData.precio_compra > 0
+          ? ((productoData.precio_venta - productoData.precio_compra) / productoData.precio_compra) * 100
+          : 0;
 
       const timestamp = new Date().toISOString();
 
       const producto: Producto = {
         ...productoData,
-        tasa_iva:
-          productoData.tasa_iva != null
-            ? Number(productoData.tasa_iva)
-            : productoData.iva_aplicable
-              ? 16
-              : 0,
+        tasa_iva: productoData.tasa_iva != null ? Number(productoData.tasa_iva) : productoData.iva_aplicable ? 16 : 0,
         stock_actual: 0,
         margen_ganancia: parseFloat(margen.toFixed(2)),
         proveedores_alternos: [],
         activo: true,
         created_at: timestamp,
-        updated_at: timestamp
+        updated_at: timestamp,
       };
 
       const ref = await this.db.list<Producto>(this.productosPath).push(producto);
@@ -181,12 +175,15 @@ export class InventarioService {
   buscarProductos(texto: string): Observable<Producto[]> {
     const textoLower = texto.toLowerCase();
     return this.getProductos().pipe(
-      map(productos => productos.filter(p =>
-        p.nombre.toLowerCase().includes(textoLower) ||
-        p.codigo_barras.toLowerCase().includes(textoLower) ||
-        p.descripcion.toLowerCase().includes(textoLower) ||
-        p.marca.toLowerCase().includes(textoLower)
-      ))
+      map((productos) =>
+        productos.filter(
+          (p) =>
+            p.nombre.toLowerCase().includes(textoLower) ||
+            p.codigo_barras.toLowerCase().includes(textoLower) ||
+            p.descripcion.toLowerCase().includes(textoLower) ||
+            p.marca.toLowerCase().includes(textoLower)
+        )
+      )
     );
   }
 
@@ -214,7 +211,7 @@ export class InventarioService {
       usuario_responsable_id: usuarioId,
       cantidad_anterior: 0,
       cantidad_nueva: 0,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
   }
 
@@ -235,31 +232,28 @@ export class InventarioService {
     const producto = snap.val() as { precio_compra?: number } | null;
     const costoUnitario = Math.max(0, Number(producto?.precio_compra) || 0);
     const qty = Number(cantidad) || 0;
-    return this.registrarMovimiento({
+    const movimiento: Movimiento = {
       tipo: 'salida',
       producto_id: productoId,
       cantidad: cantidad,
       costo_unitario: costoUnitario,
       costo_total: Math.round(costoUnitario * qty * 100) / 100,
       motivo: motivo,
-      paciente_id: pacienteId,
-      historial_clinico_id: historialId,
-      venta_id: ventaId,
-      visitaId: visitaId || undefined,
       usuario_responsable_id: usuarioId,
       observaciones: observaciones || '',
       cantidad_anterior: 0,
       cantidad_nueva: 0,
-      created_at: new Date().toISOString()
-    });
+      created_at: new Date().toISOString(),
+    };
+    // Spec 065 — venta de mostrador: no hay paciente/visita aún; RTDB rechaza `undefined`.
+    if (pacienteId) movimiento.paciente_id = pacienteId;
+    if (historialId) movimiento.historial_clinico_id = historialId;
+    if (ventaId) movimiento.venta_id = ventaId;
+    if (visitaId) movimiento.visitaId = visitaId;
+    return this.registrarMovimiento(movimiento);
   }
 
-  async registrarMerma(
-    productoId: string,
-    cantidad: number,
-    motivo: string,
-    observaciones?: string
-  ): Promise<string> {
+  async registrarMerma(productoId: string, cantidad: number, motivo: string, observaciones?: string): Promise<string> {
     console.log('🔄 Registrando merma de producto...');
     const usuarioId = await this.currentStaff.getStaffId();
     return this.registrarMovimiento({
@@ -273,16 +267,11 @@ export class InventarioService {
       observaciones: observaciones || '',
       cantidad_anterior: 0,
       cantidad_nueva: 0,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
   }
 
-  async registrarAjuste(
-    productoId: string,
-    nuevoStock: number,
-    motivo: string,
-    observaciones?: string
-  ): Promise<void> {
+  async registrarAjuste(productoId: string, nuevoStock: number, motivo: string, observaciones?: string): Promise<void> {
     console.log('🔄 Registrando ajuste de inventario...');
     await this.assertPuedeRegistrarAjuste();
     const usuarioId = await this.currentStaff.getStaffId();
@@ -297,7 +286,7 @@ export class InventarioService {
       observaciones: observaciones || '',
       cantidad_anterior: 0,
       cantidad_nueva: 0,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
   }
 
@@ -308,9 +297,7 @@ export class InventarioService {
   async assertPuedeRegistrarAjuste(): Promise<void> {
     const role = await this.authProfile.getEffectiveStaffRole();
     if (!staffRoleIsVeterinarioOperativo(role)) {
-      throw new Error(
-        'Solo un supervisor (administrador o veterinario) puede registrar ajustes de inventario'
-      );
+      throw new Error('Solo un supervisor (administrador o veterinario) puede registrar ajustes de inventario');
     }
   }
 
@@ -333,11 +320,7 @@ export class InventarioService {
         }
 
         const cantidadAnterior = producto.stock_actual ?? 0;
-        const calculo = calcularNuevoStock(
-          movimiento.tipo,
-          cantidadAnterior,
-          movimiento.cantidad
-        );
+        const calculo = calcularNuevoStock(movimiento.tipo, cantidadAnterior, movimiento.cantidad);
 
         if (calculo.ok === false) {
           stockError = calculo.error;
@@ -370,18 +353,20 @@ export class InventarioService {
 
   async vincularMovimientoACaja(movimientoId: string, cajaMovimientoId: string): Promise<void> {
     await this.db.object(`${this.movimientosPath}/${movimientoId}`).update({
-      cajaMovimientoId
+      cajaMovimientoId,
     });
   }
 
   getMovimientosPorProducto(productoId: string): Observable<Movimiento[]> {
-    return this.db.list<Movimiento>(this.movimientosPath)
+    return this.db
+      .list<Movimiento>(this.movimientosPath)
       .snapshotChanges()
       .pipe(
-        map(changes => changes
-          .map(c => ({ id: c.payload.key, ...c.payload.val() }))
-          .filter(m => m.producto_id === productoId)
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        map((changes) =>
+          changes
+            .map((c) => ({ id: c.payload.key, ...c.payload.val() }))
+            .filter((m) => m.producto_id === productoId)
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         )
       );
   }
@@ -392,37 +377,32 @@ export class InventarioService {
       return of([]);
     }
     return this.db
-      .list<Movimiento>(this.movimientosPath, (ref) =>
-        ref.orderByChild('historial_clinico_id').equalTo(historialId)
-      )
+      .list<Movimiento>(this.movimientosPath, (ref) => ref.orderByChild('historial_clinico_id').equalTo(historialId))
       .snapshotChanges()
       .pipe(
         map((changes) =>
           changes
             .map((c) => ({ id: c.payload.key!, ...(c.payload.val() as Movimiento) }))
             .filter((m) => m.tipo === 'salida' || m.tipo === 'merma')
-            .sort(
-              (a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            )
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         )
       );
   }
 
   /** Suma costo_total de salidas de un historial (sugerencia costoAsociado). */
   sumarCostoConsumos(movimientos: Movimiento[]): number {
-    return Math.round(
-      (movimientos || []).reduce((acc, m) => acc + (Number(m.costo_total) || 0), 0) * 100
-    ) / 100;
+    return Math.round((movimientos || []).reduce((acc, m) => acc + (Number(m.costo_total) || 0), 0) * 100) / 100;
   }
 
   getTodosLosMovimientos(): Observable<Movimiento[]> {
-    return this.db.list<Movimiento>(this.movimientosPath)
+    return this.db
+      .list<Movimiento>(this.movimientosPath)
       .snapshotChanges()
       .pipe(
-        map(changes => changes
-          .map(c => ({ id: c.payload.key, ...c.payload.val() }))
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        map((changes) =>
+          changes
+            .map((c) => ({ id: c.payload.key, ...c.payload.val() }))
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         )
       );
   }
@@ -431,13 +411,15 @@ export class InventarioService {
 
   /** Solo proveedores activos (selects de producto/OC y listado admin). Borrados = activo:false. */
   getProveedores(): Observable<Proveedor[]> {
-    return this.db.list<Proveedor>(this.proveedoresPath)
+    return this.db
+      .list<Proveedor>(this.proveedoresPath)
       .snapshotChanges()
       .pipe(
-        map(changes => changes
-          .map(c => ({ id: c.payload.key, ...c.payload.val() }))
-          .filter(p => p.activo !== false)
-          .sort((a, b) => a.nombre_comercial.localeCompare(b.nombre_comercial))
+        map((changes) =>
+          changes
+            .map((c) => ({ id: c.payload.key, ...c.payload.val() }))
+            .filter((p) => p.activo !== false)
+            .sort((a, b) => a.nombre_comercial.localeCompare(b.nombre_comercial))
         )
       );
   }
@@ -454,7 +436,7 @@ export class InventarioService {
         calificacion: 5,
         activo: true,
         created_at: timestamp,
-        updated_at: timestamp
+        updated_at: timestamp,
       };
 
       const ref = await this.db.list<Proveedor>(this.proveedoresPath).push(proveedor);
@@ -491,7 +473,7 @@ export class InventarioService {
           mensaje: `Stock bajo: ${producto.nombre} (${producto.stock_actual} ${producto.unidad_medida})`,
           fecha_alerta: new Date().toISOString(),
           estado: 'pendiente',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
         console.log('⚠️ Alerta de stock bajo creada');
       }
@@ -506,7 +488,7 @@ export class InventarioService {
           mensaje: `Punto de reorden alcanzado: ${producto.nombre} (Stock: ${producto.stock_actual})`,
           fecha_alerta: new Date().toISOString(),
           estado: 'pendiente',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
         console.log('⚠️ Alerta de punto de reorden creada');
       }
@@ -519,10 +501,8 @@ export class InventarioService {
     try {
       // Verificar si ya existe alerta similar pendiente
       const alertas = await firstValueFrom(this.getAlertas());
-      const existe = alertas.some(a => 
-        a.producto_id === alerta.producto_id &&
-        a.tipo === alerta.tipo &&
-        a.estado === 'pendiente'
+      const existe = alertas.some(
+        (a) => a.producto_id === alerta.producto_id && a.tipo === alerta.tipo && a.estado === 'pendiente'
       );
 
       if (!existe) {
@@ -537,18 +517,19 @@ export class InventarioService {
   }
 
   getAlertas(): Observable<Alerta[]> {
-    return this.db.list<Alerta>(this.alertasPath)
+    return this.db
+      .list<Alerta>(this.alertasPath)
       .snapshotChanges()
       .pipe(
-        map(changes => {
+        map((changes) => {
           const alertas = changes
-            .map(c => ({ id: c.payload.key, ...c.payload.val() }))
-            .filter(a => a.estado !== 'resuelta' && a.estado !== 'ignorada')
+            .map((c) => ({ id: c.payload.key, ...c.payload.val() }))
+            .filter((a) => a.estado !== 'resuelta' && a.estado !== 'ignorada')
             .sort((a, b) => {
               const prioridades = { critica: 4, alta: 3, media: 2, baja: 1 };
               return prioridades[b.prioridad] - prioridades[a.prioridad];
             });
-          
+
           console.log(`🔔 ${alertas.length} alertas activas`);
           return alertas;
         })
@@ -558,7 +539,7 @@ export class InventarioService {
   resolverAlerta(alertaId: string): Promise<void> {
     return this.db.object(`${this.alertasPath}/${alertaId}`).update({
       estado: 'resuelta',
-      fecha_resolucion: new Date().toISOString()
+      fecha_resolucion: new Date().toISOString(),
     });
   }
 
@@ -584,13 +565,11 @@ export class InventarioService {
         invertido_costo: invertido,
         valor_precio_venta: valorVenta,
         margen_potencial: valorVenta - invertido,
-        productos_bajo_stock: productos.filter(
-          (p) => p.activo !== false && p.stock_actual <= p.stock_minimo
-        ).length,
+        productos_bajo_stock: productos.filter((p) => p.activo !== false && p.stock_actual <= p.stock_minimo).length,
         productos_por_caducar: 0,
         productos_caducados: 0,
         productos_sin_movimiento_30dias: 0,
-        categorias_resumen: []
+        categorias_resumen: [],
       };
 
       // Resumen por categorías (a costo)
@@ -600,7 +579,7 @@ export class InventarioService {
         cantidad_productos: productos.filter((p) => p.activo !== false && p.categoria === cat).length,
         valor_total: productos
           .filter((p) => p.activo !== false && p.categoria === cat && (p.stock_actual || 0) > 0)
-          .reduce((sum, p) => sum + (p.stock_actual || 0) * (p.precio_compra || 0), 0)
+          .reduce((sum, p) => sum + (p.stock_actual || 0) * (p.precio_compra || 0), 0),
       }));
 
       console.log('✅ Estadísticas calculadas');
@@ -612,15 +591,18 @@ export class InventarioService {
   }
 
   // ==================== ÓRDENES DE COMPRA ====================
-  
+
   getOrdenesCompra(): Observable<OrdenCompra[]> {
-    return this.db.list<OrdenCompra>('Katzen/Inventario/OrdenesCompra')
+    return this.db
+      .list<OrdenCompra>('Katzen/Inventario/OrdenesCompra')
       .snapshotChanges()
       .pipe(
-        map(changes => changes.map(c => ({
-          id: c.payload.key!,
-          ...(c.payload.val() as OrdenCompra)
-        })))
+        map((changes) =>
+          changes.map((c) => ({
+            id: c.payload.key!,
+            ...(c.payload.val() as OrdenCompra),
+          }))
+        )
       );
   }
 
@@ -641,7 +623,7 @@ export class InventarioService {
       pagada: false,
       usuario_solicita_id: usuarioId,
       observaciones: ordenData.observaciones,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     const ref = await this.db.list('Katzen/Inventario/OrdenesCompra').push(orden);
@@ -654,33 +636,33 @@ export class InventarioService {
     // Actualizar cantidades recibidas en la orden
     const ordenRef = this.db.object(`Katzen/Inventario/OrdenesCompra/${ordenId}`);
     const orden = await firstValueFrom(ordenRef.valueChanges() as Observable<OrdenCompra>);
-    
+
     if (orden) {
       // Actualizar items recibidos
-      productos.forEach(p => {
-        const item = orden.items.find(i => i.producto_id === p.producto_id);
+      productos.forEach((p) => {
+        const item = orden.items.find((i) => i.producto_id === p.producto_id);
         if (item) {
           item.cantidad_recibida += p.cantidad_a_recibir;
         }
       });
 
       // Determinar nuevo estado
-      const todoRecibido = orden.items.every(i => i.cantidad_recibida >= i.cantidad_solicitada);
-      const algoRecibido = orden.items.some(i => i.cantidad_recibida > 0);
-      
+      const todoRecibido = orden.items.every((i) => i.cantidad_recibida >= i.cantidad_solicitada);
+      const algoRecibido = orden.items.some((i) => i.cantidad_recibida > 0);
+
       await ordenRef.update({
         items: orden.items,
         estado: todoRecibido ? 'recibida' : algoRecibido ? 'parcial' : orden.estado,
         fecha_entrega_real: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
 
       // Registrar entradas de inventario
       for (const p of productos) {
         if (p.cantidad_a_recibir > 0) {
-          const item = orden.items.find(i => i.producto_id === p.producto_id);
+          const item = orden.items.find((i) => i.producto_id === p.producto_id);
           const precioUnitario = item?.precio_unitario || 0;
-          
+
           await this.registrarEntrada(
             p.producto_id,
             p.cantidad_a_recibir,
@@ -696,7 +678,7 @@ export class InventarioService {
   async cancelarOrdenCompra(ordenId: string): Promise<void> {
     await this.db.object(`Katzen/Inventario/OrdenesCompra/${ordenId}`).update({
       estado: 'cancelada',
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
   }
 
@@ -704,7 +686,7 @@ export class InventarioService {
   async vincularOrdenACaja(ordenId: string, cajaMovimientoId: string, marcarPagada = true): Promise<void> {
     const patch: Record<string, unknown> = {
       cajaMovimientoId,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
     if (marcarPagada) {
       patch['pagada'] = true;
@@ -715,26 +697,30 @@ export class InventarioService {
   async eliminarProveedor(proveedorId: string): Promise<void> {
     await this.db.object(`Katzen/Inventario/Proveedores/${proveedorId}`).update({
       activo: false,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
   }
 
   // ==================== ALERTAS AUTOMÁTICAS ====================
-  
+
   async generarAlertasAutomaticas(): Promise<void> {
     console.log('🔄 Generando alertas automáticas...');
-    
+
     const productos = await firstValueFrom(this.getProductos());
     const alertasPath = 'Katzen/Inventario/Alertas';
-    
+
     for (const producto of productos) {
       if (!producto.id) continue;
 
       // Alerta de stock bajo
       if (producto.stock_actual <= producto.stock_minimo) {
-        const prioridad = producto.stock_actual === 0 ? 'critica' : 
-                         producto.stock_actual < producto.stock_minimo / 2 ? 'alta' : 'media';
-        
+        const prioridad =
+          producto.stock_actual === 0
+            ? 'critica'
+            : producto.stock_actual < producto.stock_minimo / 2
+              ? 'alta'
+              : 'media';
+
         await this.db.list(alertasPath).push({
           tipo: 'stock_bajo',
           prioridad,
@@ -743,7 +729,7 @@ export class InventarioService {
           mensaje: `Stock bajo: ${producto.nombre} (${producto.stock_actual} ${producto.unidad_medida})`,
           fecha_alerta: new Date().toISOString(),
           estado: 'pendiente',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
       }
 
@@ -757,7 +743,7 @@ export class InventarioService {
           mensaje: `Punto de reorden alcanzado: ${producto.nombre}`,
           fecha_alerta: new Date().toISOString(),
           estado: 'pendiente',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
       }
 
@@ -766,7 +752,7 @@ export class InventarioService {
         const fechaCaducidad = new Date(producto.fecha_caducidad);
         const hoy = new Date();
         const diasRestantes = Math.floor((fechaCaducidad.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         if (diasRestantes <= 0) {
           await this.db.list(alertasPath).push({
             tipo: 'caducado',
@@ -776,11 +762,11 @@ export class InventarioService {
             mensaje: `Producto caducado: ${producto.nombre}`,
             fecha_alerta: new Date().toISOString(),
             estado: 'pendiente',
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           });
         } else if (diasRestantes <= producto.fecha_caducidad_alerta_dias) {
           const prioridad = diasRestantes <= 7 ? 'alta' : diasRestantes <= 15 ? 'media' : 'baja';
-          
+
           await this.db.list(alertasPath).push({
             tipo: 'por_caducar',
             prioridad,
@@ -789,13 +775,12 @@ export class InventarioService {
             mensaje: `Producto por caducar en ${diasRestantes} días: ${producto.nombre}`,
             fecha_alerta: new Date().toISOString(),
             estado: 'pendiente',
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           });
         }
       }
     }
-    
+
     console.log('✅ Alertas automáticas generadas');
   }
 }
-

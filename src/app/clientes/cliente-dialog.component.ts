@@ -19,11 +19,17 @@ import { LOADING_MESSAGES } from '../core/loading.service';
   selector: 'app-cliente-dialog',
   templateUrl: './cliente-dialog.component.html',
   styleUrls: ['./cliente-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ClienteDialogComponent implements OnInit {
   clienteForm: FormGroup;
   modoVer: boolean = false;
+  /**
+   * Spec 065 — alta rápida desde POS / pickers: solo nombre y teléfono obligatorios;
+   * apellidos, género y correo opcionales y colapsados. Sin foto, dirección ni fiscales.
+   */
+  modoRapido = false;
+  mostrarMasDatosRapido = false;
   codigosPostales: any = {};
   coloniasDisponibles: any[] = [];
   mostrarSelectorColonias: boolean = false;
@@ -38,7 +44,8 @@ export class ClienteDialogComponent implements OnInit {
   uploadProgress: number = 0;
   isUploading: boolean = false;
   hasImageChanges: boolean = false;
-  defaultImageUrl: string = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyUzYuNDggMjIgMTIgMjJTMjIgMTcuNTIgMjIgMTJTNzUuNTIgMiAxMiAyWk0xMiAyMEM3LjU4IDIwIDQgMTYuNDIgNCAxMlM3LjU4IDQgMTIgNFMyMCA3LjU4IDIwIDEyUzE2LjQyIDIwIDEyIDIwWiIgZmlsbD0iIzk5OTk5OSIvPgo8cGF0aCBkPSJNMTIgNkM5Ljc5IDYgOCA3Ljc5IDggMTBTOS43OSAxNCAxMiAxNFMxNiAxMi4yMSAxNiAxMFMxNC4yMSA2IDEyIDZaIiBmaWxsPSIjOTk5OTk5Ii8+Cjwvc3ZnPgo=';
+  defaultImageUrl: string =
+    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyUzYuNDggMjIgMTIgMjJTMjIgMTcuNTIgMjIgMTJTNzUuNTIgMiAxMiAyWk0xMiAyMEM3LjU4IDIwIDQgMTYuNDIgNCAxMlM3LjU4IDQgMTIgNFMyMCA3LjU4IDIwIDEyUzE2LjQyIDIwIDEyIDIwWiIgZmlsbD0iIzk5OTk5OSIvPgo8cGF0aCBkPSJNMTIgNkM5Ljc5IDYgOCA3Ljc5IDggMTBTOS43OSAxNCAxMiAxNFMxNiAxMi4yMSAxNiAxMFMxNC4yMSA2IDEyIDZaIiBmaWxsPSIjOTk5OTk5Ii8+Cjwvc3ZnPgo=';
 
   constructor(
     public dialogRef: MatDialogRef<ClienteDialogComponent>,
@@ -55,15 +62,25 @@ export class ClienteDialogComponent implements OnInit {
     private router: Router
   ) {
     this.modoVer = data.modoVer;
+    this.modoRapido = data?.modo === 'rapido' && !data?.cliente?.id;
     const isEditMode = !!data.cliente?.id; // Verificar si estamos editando
     const tieneCorreo = !!data.cliente?.correo; // Verificar si ya tiene correo
-    
+    const prefill = this.modoRapido ? this.prefillRapido(data?.prefill) : { nombre: '', telefono: '' };
+
     this.clienteForm = this.fb.group({
-      nombre: [data.cliente?.nombre || '', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      apellidoPaterno: [data.cliente?.apellidoPaterno || '', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      nombre: [
+        data.cliente?.nombre || prefill.nombre,
+        [Validators.required, Validators.minLength(2), Validators.maxLength(50)],
+      ],
+      apellidoPaterno: [
+        data.cliente?.apellidoPaterno || '',
+        this.modoRapido
+          ? [Validators.maxLength(50)]
+          : [Validators.required, Validators.minLength(2), Validators.maxLength(50)],
+      ],
       apellidoMaterno: [data.cliente?.apellidoMaterno || '', [Validators.minLength(2), Validators.maxLength(50)]],
-      genero: [data.cliente?.genero || '', [Validators.required]],
-      telefono: [data.cliente?.telefono || '', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+      genero: [data.cliente?.genero || '', this.modoRapido ? [] : [Validators.required]],
+      telefono: [data.cliente?.telefono || prefill.telefono, [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       calle: [data.cliente?.calle || '', [Validators.minLength(3), Validators.maxLength(100)]],
       numero: [data.cliente?.numero || '', [Validators.maxLength(10)]],
       colonia: [data.cliente?.colonia || '', [Validators.minLength(2), Validators.maxLength(50)]],
@@ -71,12 +88,12 @@ export class ClienteDialogComponent implements OnInit {
       codigoPostal: [data.cliente?.codigoPostal || '', [Validators.pattern('^[0-9]{5}$')]],
       expediente: [data.cliente?.expediente || '', [Validators.maxLength(20)]],
       correo: [
-        { 
-          value: data.cliente?.correo || '', 
-          disabled: isEditMode && tieneCorreo // Bloquear solo si está editando Y ya tiene correo
-        }, 
-        [Validators.email], 
-        isEditMode ? [] : [this.emailUnicoValidator.bind(this)] // Solo validar si NO es edición
+        {
+          value: data.cliente?.correo || '',
+          disabled: isEditMode && tieneCorreo, // Bloquear solo si está editando Y ya tiene correo
+        },
+        [Validators.email],
+        isEditMode ? [] : [this.emailUnicoValidator.bind(this)], // Solo validar si NO es edición
       ],
       imageUrl: [data.cliente?.imageUrl || ''],
       imageFileName: [data.cliente?.imageFileName || ''],
@@ -84,18 +101,28 @@ export class ClienteDialogComponent implements OnInit {
       urlGoogleMaps: [data.cliente?.urlGoogleMaps || '', [Validators.pattern('^https?://.*')]],
       // Spec 024 — datos fiscales (aditivos; timbrado fase 2)
       requiereFactura: [!!data.cliente?.requiereFactura],
-      rfc: [
-        data.cliente?.rfc || '',
-        [Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]
-      ],
+      rfc: [data.cliente?.rfc || '', [Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]],
       razonSocial: [data.cliente?.razonSocial || '', [Validators.maxLength(120)]],
       usoCfdi: [data.cliente?.usoCfdi || ''],
       regimenFiscal: [data.cliente?.regimenFiscal || ''],
-      codigoPostalFiscal: [
-        data.cliente?.codigoPostalFiscal || '',
-        [Validators.pattern('^[0-9]{5}$')]
-      ]
+      codigoPostalFiscal: [data.cliente?.codigoPostalFiscal || '', [Validators.pattern('^[0-9]{5}$')]],
     });
+  }
+
+  /** Campos sin los cuales la ficha no sirve (rápido: nombre + teléfono). */
+  get camposObligatorios(): string[] {
+    return this.modoRapido ? ['nombre', 'telefono'] : ['nombre', 'apellidoPaterno', 'genero', 'telefono'];
+  }
+
+  /** Lo que la recepcionista escribió en el picker: si son dígitos → teléfono; si no → nombre. */
+  private prefillRapido(texto: unknown): { nombre: string; telefono: string } {
+    const raw = String(texto ?? '').trim();
+    if (!raw) return { nombre: '', telefono: '' };
+    const digitos = raw.replace(/\D+/g, '');
+    if (/^[\d\s()+\-.]+$/.test(raw) && digitos.length >= 3) {
+      return { nombre: '', telefono: digitos.length === 10 ? digitos : '' };
+    }
+    return { nombre: raw, telefono: '' };
   }
 
   /** Catálogo corto uso CFDI (fase preparación; no timbra). */
@@ -103,14 +130,14 @@ export class ClienteDialogComponent implements OnInit {
     { value: 'G03', label: 'G03 — Gastos en general' },
     { value: 'D01', label: 'D01 — Honorarios médicos' },
     { value: 'S01', label: 'S01 — Sin efectos fiscales' },
-    { value: 'CN01', label: 'CN01 — Nómina' }
+    { value: 'CN01', label: 'CN01 — Nómina' },
   ];
 
   readonly regimenesFiscales: Array<{ value: string; label: string }> = [
     { value: '612', label: '612 — Personas físicas actividad empresarial' },
     { value: '605', label: '605 — Sueldos y salarios' },
     { value: '601', label: '601 — General de ley personas morales' },
-    { value: '616', label: '616 — Sin obligaciones fiscales' }
+    { value: '616', label: '616 — Sin obligaciones fiscales' },
   ];
 
   getDisplayValue(field: string): string {
@@ -128,8 +155,8 @@ export class ClienteDialogComponent implements OnInit {
     const partes = [
       this.getDisplayValue('nombre'),
       this.getDisplayValue('apellidoPaterno'),
-      this.getDisplayValue('apellidoMaterno')
-    ].filter(v => v !== '—');
+      this.getDisplayValue('apellidoMaterno'),
+    ].filter((v) => v !== '—');
     return partes.length ? partes.join(' ') : '—';
   }
 
@@ -207,7 +234,7 @@ export class ClienteDialogComponent implements OnInit {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Enviar acceso',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (!confirm.isConfirmed) {
       return;
@@ -219,7 +246,7 @@ export class ClienteDialogComponent implements OnInit {
       this.data.cliente = {
         ...this.data.cliente,
         portalActivo: true,
-        portalEmail: this.correoPortal
+        portalEmail: this.correoPortal,
       };
       try {
         const fresh = await firstValueFrom(this.clientesService.getCliente(id));
@@ -234,9 +261,7 @@ export class ClienteDialogComponent implements OnInit {
         icon: res.emailSent ? 'success' : 'warning',
         title: res.emailSent ? 'Acceso enviado' : 'Portal activado (sin correo)',
         text: res.message || 'Cuenta lista. El dueño debe revisar su bandeja.',
-        footer: res.emailSent
-          ? undefined
-          : 'Si Resend está en modo prueba, el correo solo llega a la cuenta Resend.'
+        footer: res.emailSent ? undefined : 'Si Resend está en modo prueba, el correo solo llega a la cuenta Resend.',
       });
     } catch (error) {
       this.logger.error('Error al enviar acceso portal desde ficha cliente:', error);
@@ -258,7 +283,7 @@ export class ClienteDialogComponent implements OnInit {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Reenviar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (!confirm.isConfirmed) {
       return;
@@ -271,7 +296,7 @@ export class ClienteDialogComponent implements OnInit {
       await Swal.fire({
         icon: res.emailSent ? 'success' : 'warning',
         title: res.emailSent ? 'Acceso reenviado' : 'Contraseña renovada (sin correo)',
-        text: res.message || 'Listo.'
+        text: res.message || 'Listo.',
       });
     } catch (error) {
       this.logger.error('Error al reenviar acceso portal desde ficha cliente:', error);
@@ -286,12 +311,12 @@ export class ClienteDialogComponent implements OnInit {
     this.cargarCodigosPostales();
     this.cargarClientes();
     this.setupCodigoPostalListener();
-    
+
     // Cargar imagen existente si estamos editando
     if (this.data?.cliente?.imageUrl && this.data.cliente.imageUrl !== this.defaultImageUrl) {
       this.imagePreview = this.data.cliente.imageUrl;
     }
-    
+
     // Cargar pacientes relacionados si estamos en modo ver
     if (this.modoVer && this.data?.cliente?.id) {
       this.cargarPacientesRelacionados();
@@ -311,7 +336,7 @@ export class ClienteDialogComponent implements OnInit {
   }
 
   setupCodigoPostalListener() {
-    this.clienteForm.get('codigoPostal')?.valueChanges.subscribe(codigo => {
+    this.clienteForm.get('codigoPostal')?.valueChanges.subscribe((codigo) => {
       if (codigo && codigo.length === 5) {
         this.autocompletarDireccion(codigo);
       }
@@ -320,13 +345,13 @@ export class ClienteDialogComponent implements OnInit {
 
   autocompletarDireccion(codigoPostal: string) {
     const colonias = this.codigosPostales[codigoPostal];
-    
+
     if (colonias && colonias.length > 0) {
       console.log('Código postal encontrado:', codigoPostal);
       console.log('Colonias disponibles:', colonias);
-      
+
       this.coloniasDisponibles = colonias;
-      
+
       if (colonias.length === 1) {
         // Si solo hay una colonia, autocompletar directamente
         const colonia = colonias[0];
@@ -369,16 +394,16 @@ export class ClienteDialogComponent implements OnInit {
   emailUnicoValidator(control: AbstractControl): Observable<ValidationErrors | null> {
     const email = control.value;
     if (!email) {
-      return new Observable(observer => observer.next(null));
+      return new Observable((observer) => observer.next(null));
     }
 
-    return new Observable(observer => {
+    return new Observable((observer) => {
       // Esperar a que los clientes estén cargados
       if (this.todosLosClientes.length === 0) {
         console.log('⚠️ No hay clientes cargados aún, esperando...');
         // Esperar un poco y volver a intentar
         setTimeout(() => {
-          this.emailUnicoValidator(control).subscribe(result => {
+          this.emailUnicoValidator(control).subscribe((result) => {
             observer.next(result);
             observer.complete();
           });
@@ -391,17 +416,17 @@ export class ClienteDialogComponent implements OnInit {
       console.log('Email a validar:', email);
       console.log('Cliente actual ID:', clienteActual?.id);
       console.log('Total clientes cargados:', this.todosLosClientes.length);
-      
+
       // Filtrar clientes que no sean el actual
-      const otrosClientes = this.todosLosClientes.filter(cliente => {
+      const otrosClientes = this.todosLosClientes.filter((cliente) => {
         const noEsActual = cliente.id !== clienteActual?.id;
         console.log(`Cliente ${cliente.id}: ${cliente.correo} - Es actual: ${!noEsActual}`);
         return noEsActual;
       });
-      
+
       console.log('Clientes a comparar (excluyendo actual):', otrosClientes.length);
-      
-      const emailExiste = otrosClientes.some(cliente => {
+
+      const emailExiste = otrosClientes.some((cliente) => {
         const tieneMismoEmail = cliente.correo && cliente.correo.toLowerCase() === email.toLowerCase();
         console.log(`Cliente ${cliente.id}: ${cliente.correo} - Mismo email: ${tieneMismoEmail}`);
         return tieneMismoEmail;
@@ -423,37 +448,37 @@ export class ClienteDialogComponent implements OnInit {
     console.log('🚀 Iniciando proceso de guardado...');
     console.log('📋 Estado del formulario:', {
       valid: this.clienteForm.valid,
-      invalid: this.clienteForm.invalid
+      invalid: this.clienteForm.invalid,
     });
-    
+
     // Verificar validación del formulario excluyendo el campo correo si está deshabilitado
     const formValid = this.clienteForm.valid;
     const hasImageChanges = this.hasImageChanges;
-    
+
     // Siempre verificar que los campos requeridos estén completos (excepto correo en edición)
     let formValidForEdit = true;
-    const requiredFields = ['nombre', 'apellidoPaterno', 'genero', 'telefono'];
+    const requiredFields = this.camposObligatorios;
     console.log('🔍 Verificando campos requeridos...');
-    
+
     const camposFaltantes: string[] = [];
-    
+
     for (const fieldName of requiredFields) {
       const field = this.clienteForm.get(fieldName);
       const fieldValue = field?.value;
       const fieldValid = field?.valid;
       const fieldTouched = field?.touched;
-      
+
       console.log(`Campo ${fieldName}:`, {
         valor: fieldValue,
         valido: fieldValid,
         tocado: fieldTouched,
-        errores: field?.errors
+        errores: field?.errors,
       });
-      
+
       if (field && field.invalid) {
         formValidForEdit = false;
         console.log(`❌ Campo requerido inválido: ${fieldName}`);
-        
+
         // Agregar nombre amigable del campo faltante
         switch (fieldName) {
           case 'nombre':
@@ -471,7 +496,7 @@ export class ClienteDialogComponent implements OnInit {
         }
       }
     }
-    
+
     console.log('✅ Formulario válido para guardar:', formValidForEdit);
     console.log('🖼️ Tiene cambios de imagen:', hasImageChanges);
 
@@ -482,7 +507,7 @@ export class ClienteDialogComponent implements OnInit {
         title: 'Campos requeridos',
         text: mensaje,
         icon: 'warning',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
       });
       return;
     }
@@ -492,11 +517,11 @@ export class ClienteDialogComponent implements OnInit {
       // Solo validar email único si NO estamos editando
       const isEditMode = !!this.data?.cliente?.id;
       const email = this.clienteForm.get('correo')?.value;
-      
+
       if (email && !isEditMode) {
         console.log('🔍 Iniciando validación final de email (NUEVO CLIENTE)...');
         console.log('Clientes cargados:', this.todosLosClientes.length);
-        
+
         // Si no hay clientes cargados, cargar de nuevo
         if (this.todosLosClientes.length === 0) {
           console.log('⚠️ No hay clientes cargados, cargando de nuevo...');
@@ -509,13 +534,13 @@ export class ClienteDialogComponent implements OnInit {
         }
 
         const clienteActual = this.data?.cliente;
-        
+
         // Filtrar clientes que no sean el actual
-        const otrosClientes = this.todosLosClientes.filter(cliente => {
+        const otrosClientes = this.todosLosClientes.filter((cliente) => {
           return cliente.id !== clienteActual?.id;
         });
-        
-        const emailExiste = otrosClientes.some(cliente => {
+
+        const emailExiste = otrosClientes.some((cliente) => {
           return cliente.correo && cliente.correo.toLowerCase() === email.toLowerCase();
         });
 
@@ -534,12 +559,12 @@ export class ClienteDialogComponent implements OnInit {
 
       try {
         let imageUrl = this.data?.cliente?.imageUrl || this.defaultImageUrl;
-        
+
         console.log('🔄 Procesando imagen...');
         console.log('Imagen actual:', this.data?.cliente?.imageUrl);
         console.log('Archivo seleccionado:', this.selectedFile?.name);
         console.log('Has image changes:', this.hasImageChanges);
-        
+
         // Si hay una nueva imagen seleccionada, subirla
         if (this.selectedFile) {
           console.log('🔄 Subiendo imagen del cliente...');
@@ -548,7 +573,7 @@ export class ClienteDialogComponent implements OnInit {
         } else {
           console.log('ℹ️ No hay nueva imagen, manteniendo la actual:', imageUrl);
         }
-        
+
         // Generar fecha de primera visita automáticamente
         const fechaPrimeraVisita = new Date().toLocaleString('es-ES', {
           year: 'numeric',
@@ -556,9 +581,9 @@ export class ClienteDialogComponent implements OnInit {
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit'
+          second: '2-digit',
         });
-        
+
         const clienteData = {
           id: this.data?.cliente?.id || '', // Solo incluir ID si estamos editando
           nombre: this.clienteForm.value.nombre,
@@ -574,24 +599,26 @@ export class ClienteDialogComponent implements OnInit {
           expediente: this.clienteForm.value.expediente,
           correo: this.clienteForm.get('correo')?.value || this.data?.cliente?.correo || '', // Obtener valor aunque esté deshabilitado
           imageUrl: imageUrl,
-          imageFileName: this.selectedFile ? this.selectedFile.name : (this.data?.cliente?.imageFileName || ''),
+          imageFileName: this.selectedFile ? this.selectedFile.name : this.data?.cliente?.imageFileName || '',
           kilometrosCasa: this.clienteForm.value.kilometrosCasa,
           urlGoogleMaps: this.clienteForm.value.urlGoogleMaps,
           requiereFactura: !!this.clienteForm.value.requiereFactura,
-          rfc: String(this.clienteForm.value.rfc || '').trim().toUpperCase(),
+          rfc: String(this.clienteForm.value.rfc || '')
+            .trim()
+            .toUpperCase(),
           razonSocial: String(this.clienteForm.value.razonSocial || '').trim(),
           usoCfdi: this.clienteForm.value.usoCfdi || '',
           regimenFiscal: this.clienteForm.value.regimenFiscal || '',
           codigoPostalFiscal: this.clienteForm.value.codigoPostalFiscal || '',
-          fecha: fechaPrimeraVisita
+          fecha: fechaPrimeraVisita,
         };
-        
+
         console.log('📝 Datos del cliente a guardar:', {
           id: clienteData.id,
           nombre: clienteData.nombre,
           correo: clienteData.correo,
           imageUrl: clienteData.imageUrl,
-          imageFileName: clienteData.imageFileName
+          imageFileName: clienteData.imageFileName,
         });
         this.dialogRef.close(clienteData);
       } catch (error) {
@@ -609,7 +636,7 @@ export class ClienteDialogComponent implements OnInit {
     if (!field?.errors) return '';
 
     const errors = field.errors;
-    
+
     switch (fieldName) {
       case 'nombre':
         if (errors['required']) return 'El nombre es obligatorio';
@@ -648,7 +675,7 @@ export class ClienteDialogComponent implements OnInit {
         if (errors['pattern']) return 'Ingrese una URL válida de Google Maps';
         break;
     }
-    
+
     return 'Campo inválido';
   }
 
@@ -659,9 +686,9 @@ export class ClienteDialogComponent implements OnInit {
 
   isFormValidForSave(): boolean {
     // Verificar campos requeridos
-    const requiredFields = ['nombre', 'apellidoPaterno', 'genero', 'telefono'];
+    const requiredFields = this.camposObligatorios;
     let isValid = true;
-    
+
     for (const fieldName of requiredFields) {
       const field = this.clienteForm.get(fieldName);
       if (field && field.invalid) {
@@ -670,12 +697,12 @@ export class ClienteDialogComponent implements OnInit {
         isValid = false;
       }
     }
-    
+
     // Si hay cambios de imagen, permitir guardar aunque el formulario no sea válido
     if (this.hasImageChanges && isValid) {
       return true;
     }
-    
+
     // Para nuevos clientes, verificar que el correo sea válido
     const isEditMode = !!this.data?.cliente?.id;
     if (!isEditMode) {
@@ -685,12 +712,12 @@ export class ClienteDialogComponent implements OnInit {
         isValid = false;
       }
     }
-    
+
     return isValid;
   }
 
   soloNumeros(event: KeyboardEvent): boolean {
-    const charCode = (event.which) ? event.which : event.keyCode;
+    const charCode = event.which ? event.which : event.keyCode;
     if (charCode > 31 && (charCode < 48 || charCode > 57)) {
       return false;
     }
@@ -705,16 +732,16 @@ export class ClienteDialogComponent implements OnInit {
         Swal.fire('Error', 'Por favor selecciona solo archivos de imagen', 'error');
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         Swal.fire('Error', 'La imagen no puede ser mayor a 5MB', 'error');
         return;
       }
-      
+
       this.selectedFile = file;
       this.hasImageChanges = true; // Marcar que la imagen ha cambiado
-      
+
       // Crear preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -731,32 +758,32 @@ export class ClienteDialogComponent implements OnInit {
     if (!this.selectedFile) {
       throw new Error('No hay archivo seleccionado');
     }
-    
+
     const fileName = `${Date.now()}_${this.selectedFile.name}`;
     const filePath = `Clientes/${fileName}`;
     const fileRef = this.storage.ref(filePath);
-    
+
     const uploadTask = this.storage.upload(filePath, this.selectedFile);
-    
+
     return new Promise((resolve, reject) => {
-      uploadTask.percentageChanges().subscribe(percentage => {
+      uploadTask.percentageChanges().subscribe((percentage) => {
         this.uploadProgress = percentage || 0;
       });
-      
+
       uploadTask.snapshotChanges().subscribe(
         (snapshot) => {
           if (snapshot.state === 'running') {
             this.isUploading = true;
           } else if (snapshot.state === 'success') {
             this.isUploading = false;
-            fileRef.getDownloadURL().subscribe(url => {
+            fileRef.getDownloadURL().subscribe((url) => {
               // Eliminar imagen anterior si existe
               this.eliminarImagenAnterior();
-              
+
               // Actualizar el preview con la nueva URL
               this.imagePreview = url;
               console.log('✅ Preview actualizado con nueva URL:', url);
-              
+
               resolve(url);
             });
           }
@@ -771,12 +798,13 @@ export class ClienteDialogComponent implements OnInit {
 
   eliminarImagenAnterior() {
     // Solo eliminar si hay una imagen anterior y no es la imagen por defecto
-    if (this.data?.cliente?.imageUrl && 
-        this.data.cliente.imageUrl !== this.defaultImageUrl &&
-        this.data.cliente.imageFileName) {
-      
+    if (
+      this.data?.cliente?.imageUrl &&
+      this.data.cliente.imageUrl !== this.defaultImageUrl &&
+      this.data.cliente.imageFileName
+    ) {
       console.log('🗑️ Eliminando imagen anterior:', this.data.cliente.imageFileName);
-      
+
       const imageRef = this.storage.ref(`Clientes/${this.data.cliente.imageFileName}`);
       imageRef.delete().subscribe({
         next: () => {
@@ -785,19 +813,20 @@ export class ClienteDialogComponent implements OnInit {
         error: (error) => {
           console.warn('⚠️ No se pudo eliminar la imagen anterior:', error);
           // No fallar el proceso si no se puede eliminar la imagen anterior
-        }
+        },
       });
     }
   }
 
   removeImage() {
     // Eliminar imagen del storage si existe
-    if (this.data?.cliente?.imageUrl && 
-        this.data.cliente.imageUrl !== this.defaultImageUrl &&
-        this.data.cliente.imageFileName) {
-      
+    if (
+      this.data?.cliente?.imageUrl &&
+      this.data.cliente.imageUrl !== this.defaultImageUrl &&
+      this.data.cliente.imageFileName
+    ) {
       console.log('🗑️ Eliminando imagen del storage:', this.data.cliente.imageFileName);
-      
+
       const imageRef = this.storage.ref(`Clientes/${this.data.cliente.imageFileName}`);
       imageRef.delete().subscribe({
         next: () => {
@@ -805,15 +834,15 @@ export class ClienteDialogComponent implements OnInit {
         },
         error: (error) => {
           console.warn('⚠️ No se pudo eliminar la imagen del storage:', error);
-        }
+        },
       });
     }
-    
+
     this.selectedFile = null;
     this.imagePreview = null;
     this.uploadProgress = 0;
     this.hasImageChanges = false; // Resetear el indicador de cambios de imagen
-    
+
     // Marcar el formulario como modificado para habilitar el botón guardar
     this.clienteForm.markAsDirty();
     this.clienteForm.markAsTouched();
@@ -841,7 +870,7 @@ export class ClienteDialogComponent implements OnInit {
         icon: 'info',
         title: 'No se pudo abrir el expediente (falta id)',
         timer: 2800,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       return;
     }
@@ -864,14 +893,14 @@ export class ClienteDialogComponent implements OnInit {
         this.todosLosClientes = clientes || [];
         console.log('✅ Clientees cargados para validación:', this.todosLosClientes.length);
         console.log('Cliente actual en edición:', this.data?.cliente);
-        
+
         // Log de todos los clientes para depuración
         this.todosLosClientes.forEach((cliente, index) => {
           console.log(`Cliente ${index}:`, {
             id: cliente.id,
             nombre: cliente.nombre,
             email: cliente.correo,
-            activo: cliente.activo
+            activo: cliente.activo,
           });
         });
 
@@ -885,7 +914,7 @@ export class ClienteDialogComponent implements OnInit {
       error: (error) => {
         console.error('❌ Error al cargar clientes:', error);
         this.todosLosClientes = [];
-      }
+      },
     });
   }
 
@@ -901,10 +930,10 @@ export class ClienteDialogComponent implements OnInit {
     this.pacientesService.getPacientes().subscribe({
       next: (pacientes) => {
         const pacientesData = pacientes || [];
-        this.pacientesRelacionados = pacientesData.filter(paciente => 
+        this.pacientesRelacionados = pacientesData.filter((paciente) =>
           pacientePerteneceACliente(paciente, this.data.cliente.id)
         );
-        
+
         console.log('✅ Pacientes relacionados cargados:', this.pacientesRelacionados.length);
         this.pacientesRelacionados.forEach((paciente, index) => {
           console.log(`Paciente ${index}:`, {
@@ -912,42 +941,42 @@ export class ClienteDialogComponent implements OnInit {
             nombre: paciente.nombre,
             especie: paciente.especie,
             raza: paciente.raza,
-            estado: paciente.estado
+            estado: paciente.estado,
           });
         });
-        
+
         this.cargandoPacientes = false;
       },
       error: (error) => {
         console.error('❌ Error al cargar pacientes relacionados:', error);
         this.pacientesRelacionados = [];
         this.cargandoPacientes = false;
-      }
+      },
     });
   }
 
   calcularEdad(fechaNacimiento: string): string {
     if (!fechaNacimiento) return 'N/P';
-    
+
     try {
       const fecha = new Date(fechaNacimiento);
-      
+
       // Validar que la fecha sea válida
       if (isNaN(fecha.getTime())) {
         return 'N/P';
       }
-      
+
       const hoy = new Date();
       const diferencia = hoy.getTime() - fecha.getTime();
       const edadEnMilisegundos = diferencia / (1000 * 60 * 60 * 24 * 365.25);
       const años = Math.floor(edadEnMilisegundos);
       const meses = Math.floor((edadEnMilisegundos - años) * 12);
-      
+
       // Validar que los cálculos sean válidos
       if (isNaN(años) || isNaN(meses) || años < 0 || meses < 0) {
         return 'N/P';
       }
-      
+
       if (años === 0) {
         return `${meses} mes${meses !== 1 ? 'es' : ''}`;
       } else if (meses === 0) {
