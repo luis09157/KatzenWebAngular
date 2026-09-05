@@ -22,6 +22,9 @@ import * as crypto from 'crypto';
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
 
+/** Spec 067: respaldo semanal RTDB → Storage (solo lectura RTDB). NO desplegada sin autorización Luis. */
+export { backupRtdbSemanal } from './backup-rtdb';
+
 /** Secret Resend — debe existir en Secret Manager antes del deploy con `secrets: [...]`. */
 const resendApiKey = defineSecret('RESEND_API_KEY');
 

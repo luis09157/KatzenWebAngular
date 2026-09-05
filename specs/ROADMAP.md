@@ -77,7 +77,7 @@ Derivado de `specs/memory/domain-context.md` §11–12. Crear spec `specs/NNN-*`
 | **Finanzas / CxC** | **032/036 done.** ~~**045** hub ticket (cuenta del día + pendientes baño + venta desde ticket)~~ **done**. Walk-in petshop → **046 done**. | Alta |
 | **UX admin** | ~~**046** draft: flujos guiados “te falta X”, empty states, walk-in~~ **done** — `specs/046-ux-intuitiva-guiada/` | Alta — **cerrada** |
 | **Ops recepción** | **048/049/050** superseded → **054** (decisiones Luis en `054-cierre-sistema/DECISIONES-PENDIENTES.md`). **054:** wizard ticket. **055:** POS móvil + precios inventario. **056:** catálogo Servicios de clínica + costo/IVA/ganancia (precio al público incluye IVA; sin deploy). | Alta |
-| **Ops clínicas** | **033–037 done**. **052 done** (código olas 1–3). **053 ola 1 hecha** (desparasitación → recordatorio). Deploy functions-fcm scheduler **pendiente autorización Luis**. Cierre: `specs/054-cierre-sistema/CIERRE.md`. | Alta |
+| **Ops clínicas** | **033–037 done**. **052 done** (código olas 1–3). **053 ola 1 hecha** (desparasitación → recordatorio). Scheduler functions-fcm `onVacunaPushSchedule` **desplegado 2026-09-04** (autorizado Luis). Cierre: `specs/054-cierre-sistema/CIERRE.md`. | Alta |
 | **Roles / plataforma** | Rol **super admin / dueño**; ~~RTDB granular~~ **008 en repo** | Media |
 | **Integraciones** | WhatsApp / agendas (FB contacto); ContactosWeb automatización (saludo, seguimiento) | Baja |
 | **Operación / citas** | ~~Cascada baja lógica cliente~~ **MVP 009**; ~~archivo automático recordatorios (mascota Fallecido)~~ **017**; ~~validación agenda~~ hecho 003; ~~deprecar .remove UI~~ **019** | Media |
@@ -114,6 +114,6 @@ El agente debe:
 | Métrica | Estado 2026-09-04 |
 |---------|-------------------|
 | Toda feature nueva tiene carpeta en `specs/` | ✅ (64 specs; índice `specs/INDEX.md`) |
-| Callables usados en frontend con function desplegada | ✅ salvo pendientes autorizados por Luis (scheduler FCM 052, `registerPortalOwner` ola 3 de 047) |
+| Callables usados en frontend con function desplegada | ✅ scheduler FCM 052 `onVacunaPushSchedule` **desplegado 2026-09-04**; pendiente autorizado por Luis: `registerPortalOwner` ola 3 de 047 |
 | UI admin sin regresiones en `npm run cy:admin` | ✅ al cierre 2026-08-26 (`QA-CRUD-MATRIX.md`); re-correr solo al tocar rutas admin (L2 con ruta nueva) |
 | Mensajes de error legibles (`ErrorMessagesService`) | ✅ patrón obligatorio en constitution §3 |

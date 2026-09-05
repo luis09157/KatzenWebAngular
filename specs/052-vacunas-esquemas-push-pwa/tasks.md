@@ -87,9 +87,26 @@
 - [x] Manifest + iconos 192/512 PNG + SW híbrido FCM (SC-022–SC-024)
 - [x] CTA avisos sin re-pedir permiso; iOS «Añadir a inicio»; botón staff (SC-025)
 - [x] Copy portal «Fecha acordada en clínica» / «Refuerzo programado» (SC-026)
-- [ ] Deploy functions/hosting/database **solo** con autorización Luis
+- [x] Deploy scheduler `onVacunaPushSchedule` — **hecho 2026-09-04** (ver registro abajo). Hosting/database siguen requiriendo autorización aparte.
 
-Criterios: SC-019 … SC-026 — cubiertos en código; **scheduler no corre en prod hasta deploy**.
+Criterios: SC-019 … SC-026 — cubiertos en código; **scheduler corre en prod** (deploy 2026-09-04).
+
+### Registro deploy scheduler — 2026-09-04 17:27 (America/Monterrey) · autorizado por Luis («dale»)
+
+Verificación previa (agente): spec `done`, QA ola 2 registrada; código lee `Recordatorios`/`Mascota`/`Cliente`/`AuthPerfiles`/`FcmTokens` y escribe **solo** campos aditivos `push*`/`skipPushOnCreate` en `Recordatorios` + inbox `Notificaciones`/`NotificacionesClinica` (nunca borra); idempotente (`pushKindsSent[kind]` + tope `pushCount < 2`); ventana estricta D-7 / D-0 (vencidos y futuros se ignoran → sin avalancha inicial); cron `0 10 * * *` `America/Mexico_City`; `us-central1`; sin `defineSecret`. `npm ci && npm run build` exit 0; `npm test` 12/12.
+
+Hallazgo: la función **ya existía** en prod (creada 2026-08-29 04:34Z y actualizada 05:01Z por Luis desde CLI, hash `cd8eed8f`, misma sesión que `onRecordatorioWritePush` con gate 052/053); corría diario a las 16:00Z sin errores. El deploy de hoy fue un **update** con el mismo código de HEAD.
+
+```
+firebase deploy --only functions:fcm:onVacunaPushSchedule
+✔ functions[fcm:onVacunaPushSchedule(us-central1)] Successful update operation.
+✔ Deploy complete!   (2026-09-04T23:27Z)
+
+firebase functions:list → onVacunaPushSchedule │ v2 │ scheduled │ us-central1 │ 256 │ nodejs22
+firebase functions:log --only onVacunaPushSchedule → rollout OK, sin errores; próximo tick 2026-09-05 10:00 CDMX.
+```
+
+Re-verificación 2026-09-04 ~17:50 (agente continuación): checks OK (idempotente `pushKindsSent` + tope 2; ventana estricta D-7/D-0; sin `defineSecret`; `functions-fcm` build+test 12/12). `firebase functions:list` confirma `onVacunaPushSchedule` scheduled us-central1. **No se re-desplegó** (ya live; `backupRtdbSemanal` no aparece en la lista).
 
 ---
 
@@ -253,7 +270,7 @@ TOTAL: 29 SUCCESS (ola 1)
 | Build `npm run build` | OK | exit 0; Hash `c959bdc99d3b3f9a` |
 | Unit functions-fcm | OK | 11/11 |
 | Unit Angular test:052 | OK | 45 SUCCESS |
-| Deploy scheduler | Pendiente | Luis debe autorizar `firebase deploy --only functions:fcm:onVacunaPushSchedule` (+ write-push + database + hosting) |
+| Deploy scheduler | OK 2026-09-04 | `firebase deploy --only functions:fcm:onVacunaPushSchedule` (autorizado Luis). Database/hosting: aparte |
 
 ```
 # npm --prefix functions-fcm run test (ola 2)
@@ -324,7 +341,7 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 3
 - [x] Validación pre-entrega de **código** ola 2
 - [x] Validación pre-entrega de **código** ola 3
 - [x] Validación exhaustiva registrada (olas 1, 2 y 3)
-- [x] `spec.md` estado → `done` (olas 1–3 de código; deploy scheduler FCM sigue pendiente de autorización Luis)
-- [ ] Commit / deploy — solo si Luis lo pide
+- [x] `spec.md` estado → `done` (olas 1–3 de código)
+- [x] Deploy scheduler FCM — 2026-09-04 (autorizado Luis). Commit: solo si Luis lo pide
 
-**Estado spec tras ola 3:** `done` (código). El scheduler **no corre en producción** hasta el deploy autorizado.
+**Estado spec tras ola 3:** `done`. Scheduler `onVacunaPushSchedule` **desplegado y corriendo** en producción (2026-09-04).
