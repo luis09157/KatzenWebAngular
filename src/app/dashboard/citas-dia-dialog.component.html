@@ -1,8 +1,14 @@
 <div class="admin-dialog-shell citas-dia-dialog">
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">Citas del {{ data.fecha | date:'EEEE, d \'de\' MMMM \'de\' yyyy':'':'es-ES' }}</h2>
-      <p class="admin-dialog-subtitle">{{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{ data.citas.length !== 1 ? 's' : '' }}</p>
+      <h2 class="admin-dialog-title">
+        Citas del {{ data.fecha | date: "EEEE, d 'de' MMMM 'de' yyyy" : '' : 'es-ES' }}
+      </h2>
+      <p class="admin-dialog-subtitle">
+        {{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{
+          data.citas.length !== 1 ? 's' : ''
+        }}
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -18,7 +24,11 @@
       </div>
 
       <div *ngIf="data.citas.length > 0" class="citas-dia-list">
-        <article *ngFor="let cita of data.citas; trackBy: trackByCita; let i = index" class="citas-dia-item" [class.citas-dia-item--divider]="i > 0">
+        <article
+          *ngFor="let cita of data.citas; trackBy: trackByCita; let i = index"
+          class="citas-dia-item"
+          [class.citas-dia-item--divider]="i > 0"
+        >
           <div class="entity-summary">
             <span class="cita-estado-badge" [ngClass]="getEstadoClass(cita.estado)">
               {{ cita.estado || 'Pendiente' }}
@@ -59,6 +69,20 @@
             <h4 class="detail-section__title">Observaciones</h4>
             <div class="detail-text-block">{{ cita.observaciones }}</div>
           </section>
+
+          <div class="citas-dia-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              [disabled]="!puedeAtender(cita)"
+              [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
+              (click)="atender(cita)"
+            >
+              Atender
+            </button>
+          </div>
         </article>
       </div>
     </div>

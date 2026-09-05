@@ -3,14 +3,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { InventarioService } from '../inventario.service';
 import { Producto } from '../../shared/inventario.models';
-import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { map, startWith, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../../core/loading.service';
-import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
-import { CajaMovimientoDialogComponent } from '../../finanzas/caja-movimiento-dialog.component';
+import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { VisitasService } from '../../visitas/visitas.service';
 import { VisitaDialogComponent } from '../../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../../visitas/visita-atalho.util';
@@ -73,7 +72,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     { valor: 'muestra_medica', etiqueta: 'Muestra Médica' },
     { valor: 'merma', etiqueta: 'Merma / Caducado' },
     { valor: 'robo_perdida', etiqueta: 'Robo / Pérdida' },
-    { valor: 'otro', etiqueta: 'Otro' }
+    { valor: 'otro', etiqueta: 'Otro' },
   ];
 
   constructor(
@@ -104,7 +103,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       destinoCobro: ['visita' as 'caja' | 'visita'],
       cliente_busqueda: [''],
       cliente_id: [d.cliente_id || ''],
-      cliente_nombre: [d.clienteNombre || '']
+      cliente_nombre: [d.clienteNombre || ''],
     });
 
     this.clientesFiltrados = this.salidaForm.get('cliente_busqueda')!.valueChanges.pipe(
@@ -144,7 +143,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       this.salidaForm.patchValue({
         cliente_id: this.clienteIdResuelto,
         cliente_nombre: this.clienteNombreResuelto,
-        cliente_busqueda: this.clienteNombreResuelto
+        cliente_busqueda: this.clienteNombreResuelto,
       });
     }
     const pid = this.data?.pacienteId;
@@ -158,17 +157,16 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
             const cid = (p as any)?.cliente_id || (p as any)?.idCliente || '';
             if (cid && !this.clienteIdResuelto) {
               this.clienteIdResuelto = cid;
-              this.clienteNombreResuelto =
-                (p as any)?.nombreCliente || (p as any)?.cliente || '';
+              this.clienteNombreResuelto = (p as any)?.nombreCliente || (p as any)?.cliente || '';
               this.salidaForm.patchValue({
                 cliente_id: cid,
-                cliente_nombre: this.clienteNombreResuelto
+                cliente_nombre: this.clienteNombreResuelto,
               });
             }
           },
           error: () => {
             this.alergiasPaciente = [];
-          }
+          },
         });
     }
   }
@@ -202,7 +200,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       costo: this.productoSeleccionado.precio_compra,
       aplicaIva: aplica,
       tasaIva: resolverTasaIva(aplica, this.productoSeleccionado.tasa_iva),
-      cantidad: qty > 0 ? qty : 1
+      cantidad: qty > 0 ? qty : 1,
     });
     return d.ivaTrasladado;
   }
@@ -216,7 +214,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       costo: this.productoSeleccionado.precio_compra,
       aplicaIva: aplica,
       tasaIva: resolverTasaIva(aplica, this.productoSeleccionado.tasa_iva),
-      cantidad: qty > 0 ? qty : 1
+      cantidad: qty > 0 ? qty : 1,
     }).ganancia;
   }
 
@@ -255,7 +253,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         next: (clientes) => {
           this.clientes = (clientes || []).filter((c) => c.activo !== false);
         },
-        error: (err) => this.logger.error('Error al cargar clientes:', err)
+        error: (err) => this.logger.error('Error al cargar clientes:', err),
       });
   }
 
@@ -282,7 +280,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     this.clienteNombreResuelto = this.nombreCliente(cliente);
     this.salidaForm.patchValue({
       cliente_id: cliente.id,
-      cliente_nombre: this.clienteNombreResuelto
+      cliente_nombre: this.clienteNombreResuelto,
     });
   }
 
@@ -291,10 +289,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   }
 
   private resolverClienteId(formData: Record<string, unknown>): string {
-    return (
-      this.clienteIdResuelto ||
-      String(formData['cliente_id'] || '').trim()
-    );
+    return this.clienteIdResuelto || String(formData['cliente_id'] || '').trim();
   }
 
   montoVentaFinal(): number {
@@ -306,7 +301,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     this.productoSeleccionado = producto;
     if (!producto) return;
     this.salidaForm.patchValue({
-      producto_id: producto.id
+      producto_id: producto.id,
     });
 
     if (producto.stock_actual <= 0) {
@@ -314,7 +309,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         icon: 'warning',
         title: 'Sin Stock',
         text: `El producto "${producto.nombre}" no tiene stock disponible`,
-        confirmButtonColor: '#f44336'
+        confirmButtonColor: '#f44336',
       });
     }
   }
@@ -330,33 +325,33 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
   getColorMotivo(): string {
     const motivo = this.salidaForm.get('motivo')?.value;
-    const colores: {[key: string]: string} = {
-      'uso_consulta': '#2196f3',
-      'venta_directa': '#4caf50',
-      'muestra_medica': '#ff9800',
-      'merma': '#f44336',
-      'robo_perdida': '#9c27b0',
-      'otro': '#757575'
+    const colores: { [key: string]: string } = {
+      uso_consulta: '#2196f3',
+      venta_directa: '#4caf50',
+      muestra_medica: '#ff9800',
+      merma: '#f44336',
+      robo_perdida: '#9c27b0',
+      otro: '#757575',
     };
     return colores[motivo] || '#757575';
   }
 
   getIconoMotivo(): string {
     const motivo = this.salidaForm.get('motivo')?.value;
-    const iconos: {[key: string]: string} = {
-      'uso_consulta': 'medical_services',
-      'venta_directa': 'shopping_cart',
-      'muestra_medica': 'card_giftcard',
-      'merma': 'report',
-      'robo_perdida': 'warning',
-      'otro': 'info'
+    const iconos: { [key: string]: string } = {
+      uso_consulta: 'medical_services',
+      venta_directa: 'shopping_cart',
+      muestra_medica: 'card_giftcard',
+      merma: 'report',
+      robo_perdida: 'warning',
+      otro: 'info',
     };
     return iconos[motivo] || 'info';
   }
 
   getTextoMotivo(): string {
     const motivo = this.salidaForm.get('motivo')?.value;
-    const motivoObj = this.motivosSalida.find(m => m.valor === motivo);
+    const motivoObj = this.motivosSalida.find((m) => m.valor === motivo);
     return motivoObj?.etiqueta || '';
   }
 
@@ -380,7 +375,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
           Stock disponible: ${this.getStockDisponible()} ${this.productoSeleccionado.unidad_medida}<br>
           Cantidad solicitada: ${this.salidaForm.get('cantidad')?.value}
         `,
-        confirmButtonColor: '#f44336'
+        confirmButtonColor: '#f44336',
       });
       return;
     }
@@ -390,17 +385,13 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         icon: 'warning',
         title: 'Historial clínico requerido',
         text: 'Este producto es controlado o requiere receta. Ábrelo desde un historial (Consumir inventario).',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
       });
       return;
     }
 
     const formData = this.salidaForm.value;
-    if (
-      formData.motivo === 'venta_directa' &&
-      formData.destinoCobro === 'visita' &&
-      !this.hideRegistrarEnCaja
-    ) {
+    if (formData.motivo === 'venta_directa' && formData.destinoCobro === 'visita' && !this.hideRegistrarEnCaja) {
       const clienteId = this.resolverClienteId(formData);
       if (!clienteId) {
         Swal.fire('Cliente requerido', 'Selecciona el cliente dueño del ticket.', 'warning');
@@ -408,11 +399,22 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
       }
     }
 
+    if (
+      formData.motivo === 'venta_directa' &&
+      formData.destinoCobro === 'caja' &&
+      !this.hideRegistrarEnCaja &&
+      this.productoSeleccionado?.id
+    ) {
+      this.abrirPosConProducto(formData.cantidad);
+      this.dialogRef.close({ ok: true, redirigidoPos: true });
+      return;
+    }
+
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
 
     try {
-      const motivoTexto = this.motivosSalida.find(m => m.valor === formData.motivo)?.etiqueta || formData.motivo;
+      const motivoTexto = this.motivosSalida.find((m) => m.valor === formData.motivo)?.etiqueta || formData.motivo;
       const motivoCompleto = `${motivoTexto}. ${formData.observaciones || ''}`.trim();
       const pacienteId = this.data?.pacienteId;
       const historialId = this.data?.historialId;
@@ -445,17 +447,6 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
 
       if (
         formData.motivo === 'venta_directa' &&
-        formData.destinoCobro === 'caja' &&
-        !this.hideRegistrarEnCaja &&
-        movimientoId
-      ) {
-        await this.abrirCajaTrasVenta(movimientoId, formData.cantidad);
-        this.dialogRef.close({ ok: true, movimientoId });
-        return;
-      }
-
-      if (
-        formData.motivo === 'venta_directa' &&
         formData.destinoCobro === 'visita' &&
         !this.hideRegistrarEnCaja &&
         movimientoId
@@ -475,7 +466,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
           ${nuevoStock <= this.productoSeleccionado.stock_minimo ? '<br><span style="color:#f44336;">Stock bajo el mínimo</span>' : ''}
         `,
         timer: 3000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
 
       this.dialogRef.close({ ok: true, movimientoId });
@@ -488,40 +479,18 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async abrirCajaTrasVenta(movimientoInventarioId: string, cantidad: number): Promise<void> {
+  /** Spec 070 — venta desde inventario cobra en POS (mostrador), no en caja suelta. */
+  private abrirPosConProducto(cantidad: number): void {
     const producto = this.productoSeleccionado!;
-    const costo = this.costoVentaSugerido;
-    const ref = this.dialog.open(CajaMovimientoDialogComponent, {
-      ...ADMIN_DIALOG_CONFIG,
-      width: '640px',
-      disableClose: true,
+    this.dialog.open(VisitaDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
       data: {
-        concepto: `Venta · ${producto.nombre} × ${cantidad}`,
-        monto: this.montoVentaSugerido,
-        metodoPago: 'efectivo' as const,
-        categoria: 'venta_producto' as const,
-        costoAsociado: costo > 0 ? costo : undefined,
-        movimientoInventarioIds: [movimientoInventarioId],
-        notas: producto.iva_aplicable ? 'Producto con IVA aplicable' : ''
-      }
+        ventaMostrador: true,
+        esMostrador: true,
+        productoId: producto.id,
+        productoCantidad: Math.max(1, Number(cantidad) || 1),
+      },
     });
-
-    const result = await firstValueFrom(ref.afterClosed());
-    const cajaId = result?.movimientoId as string | undefined;
-    if (cajaId) {
-      try {
-        await this.inventarioService.vincularMovimientoACaja(movimientoInventarioId, cajaId);
-      } catch (err) {
-        this.logger.error('No se pudo vincular salida↔caja:', err);
-      }
-    } else {
-      await Swal.fire({
-        icon: 'info',
-        title: 'Salida guardada sin cobro en caja',
-        text: 'El stock ya se descontó. Puedes registrar el cobro después en Finanzas.',
-        confirmButtonText: 'Entendido'
-      });
-    }
   }
 
   /** Spec 042 — venta directa → línea en ticket de visita del día. */
@@ -532,9 +501,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     const producto = this.productoSeleccionado!;
     const clienteId = this.resolverClienteId(formData);
-    const clienteNombre =
-      this.clienteNombreResuelto ||
-      String(formData['cliente_nombre'] || '').trim();
+    const clienteNombre = this.clienteNombreResuelto || String(formData['cliente_nombre'] || '').trim();
     const pacienteId = this.data?.pacienteId;
     const pacienteNombre = this.data?.pacienteNombre;
 
@@ -550,7 +517,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         icon: 'info',
         title: 'Salida registrada sin ticket',
         text: 'El stock se descontó. Agrega la venta a la cuenta del día manualmente desde Cuenta del día.',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
       });
       return;
     }
@@ -566,7 +533,7 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         monto,
         categoria: 'venta_producto',
         productoId: producto.id,
-        movimientoInventarioId
+        movimientoInventarioId,
       });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
@@ -574,22 +541,18 @@ export class SalidaDialogComponent implements OnInit, OnDestroy {
         data: {
           visita: visita || undefined,
           cliente_id: clienteId,
-          cliente: clienteNombre
-        }
+          cliente: clienteNombre,
+        },
       });
       await Swal.fire({
         icon: 'success',
         title: 'Agregado al ticket',
         timer: 1400,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } catch (err) {
       this.logger.error('No se pudo agregar venta→visita:', err);
-      await Swal.fire(
-        'Error',
-        this.errorMessages.getUserMessage(err, 'agregar venta a visita'),
-        'error'
-      );
+      await Swal.fire('Error', this.errorMessages.getUserMessage(err, 'agregar venta a visita'), 'error');
     } finally {
       this.loadingService.hide();
     }

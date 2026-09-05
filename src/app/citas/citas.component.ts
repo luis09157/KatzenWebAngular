@@ -26,11 +26,14 @@ import { HistorialDialogComponent } from '../historiales/historial-dialog.compon
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
+import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.component';
+import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from './cita-atender.util';
 
 @Component({
   selector: 'app-citas',
   templateUrl: './citas.component.html',
-  styleUrls: ['./citas.component.css']
+  styleUrls: ['./citas.component.css'],
 })
 export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
@@ -45,6 +48,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = false;
   /** doctor | administrador pueden revertir completada → confirmada */
   puedeRevertirCompletada = false;
+  readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
 
   constructor(
     private citasService: CitasService,
@@ -57,15 +61,33 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private sucursalContext: SucursalContextService,
     private authProfile: AuthProfileService,
     private visitasService: VisitasService,
-    private visitaDiaFlujo: VisitaDiaFlujoService
+    private visitaDiaFlujo: VisitaDiaFlujoService,
+    private router: Router
   ) {}
 
+  llegoUnPaciente(): void {
+    abrirAltaRapidaDialog(this.dialog);
+  }
+
+  puedeAtender(cita: { paciente_id?: string; idPaciente?: string } | null): boolean {
+    return puedeAtenderCita(cita);
+  }
+
+  atenderCita(cita: { paciente_id?: string; idPaciente?: string } | null): void {
+    const id = pacienteIdDeCita(cita);
+    if (!id) return;
+    void this.router.navigate(['/admin/paciente'], { queryParams: { id } });
+  }
+
   ngOnInit(): void {
-    this.authProfile.getEffectiveStaffRole().then(role => {
-      this.puedeRevertirCompletada = staffRoleIsVeterinarioOperativo(role);
-    }).catch(() => {
-      this.puedeRevertirCompletada = false;
-    });
+    this.authProfile
+      .getEffectiveStaffRole()
+      .then((role) => {
+        this.puedeRevertirCompletada = staffRoleIsVeterinarioOperativo(role);
+      })
+      .catch(() => {
+        this.puedeRevertirCompletada = false;
+      });
     this.sucursalContext.selectedId$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.cargarCitas();
     });
@@ -74,65 +96,74 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private cargarCitas(): void {
     this.loading = true;
-    this.clientesService.getClientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: clientes => {
-        (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
-          this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
-        });
-        this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
-          next: pacientes => {
-            (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
-              this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
-            });
-            this.citasService.getCitas().pipe(takeUntil(this.destroy$)).subscribe({
-              next: citas => {
-                const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
-                this.dataSource.data = citasFiltradas
-                  .filter(c => c.activo !== false)
-                  .map(cita => ({
-                    ...cita,
-                    cliente: this.clientesMap[cita.cliente_id] || 'N/P',
-                    paciente: this.pacientesMap[cita.paciente_id] || 'N/P'
-                  }))
-                  .sort((a, b) => {
-                    const estadoA = (a.estado || '').toLowerCase();
-                    const estadoB = (b.estado || '').toLowerCase();
-                    const prioridadEstados: Record<string, number> = {
-                      'pendiente': 4,
-                      'confirmada': 3,
-                      'completada': 2,
-                      'cancelada': 1
-                    };
-                    const prioridadA = prioridadEstados[estadoA] || 0;
-                    const prioridadB = prioridadEstados[estadoB] || 0;
-                    if (prioridadA !== prioridadB) {
-                      return prioridadB - prioridadA;
-                    }
-                    const fechaA = new Date(a.fecha || a.fecha_hora || 0);
-                    const fechaB = new Date(b.fecha || b.fecha_hora || 0);
-                    return fechaA.getTime() - fechaB.getTime();
+    this.clientesService
+      .getClientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (clientes) => {
+          (clientes || []).forEach((c: { id: string; nombre?: string; apellidoPaterno?: string }) => {
+            this.clientesMap[c.id] = c.nombre ? c.nombre + (c.apellidoPaterno ? ' ' + c.apellidoPaterno : '') : 'N/P';
+          });
+          this.pacientesService
+            .getPacientes()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (pacientes) => {
+                (pacientes || []).forEach((p: { id: string; nombre?: string }) => {
+                  this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+                });
+                this.citasService
+                  .getCitas()
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (citas) => {
+                      const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
+                      this.dataSource.data = citasFiltradas
+                        .filter((c) => c.activo !== false)
+                        .map((cita) => ({
+                          ...cita,
+                          cliente: this.clientesMap[cita.cliente_id] || 'N/P',
+                          paciente: this.pacientesMap[cita.paciente_id] || 'N/P',
+                        }))
+                        .sort((a, b) => {
+                          const estadoA = (a.estado || '').toLowerCase();
+                          const estadoB = (b.estado || '').toLowerCase();
+                          const prioridadEstados: Record<string, number> = {
+                            pendiente: 4,
+                            confirmada: 3,
+                            completada: 2,
+                            cancelada: 1,
+                          };
+                          const prioridadA = prioridadEstados[estadoA] || 0;
+                          const prioridadB = prioridadEstados[estadoB] || 0;
+                          if (prioridadA !== prioridadB) {
+                            return prioridadB - prioridadA;
+                          }
+                          const fechaA = new Date(a.fecha || a.fecha_hora || 0);
+                          const fechaB = new Date(b.fecha || b.fecha_hora || 0);
+                          return fechaA.getTime() - fechaB.getTime();
+                        });
+                      if (this.sort) {
+                        this.dataSource.sort = this.sort;
+                        this.sort.sort({
+                          id: 'fecha_hora',
+                          start: 'desc',
+                          disableClear: false,
+                        });
+                      }
+                      this.loading = false;
+                      setTimeout(() => {
+                        if (this.paginator) this.dataSource.paginator = this.paginator;
+                      }, 0);
+                    },
+                    error: (error) => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas()),
                   });
-                if (this.sort) {
-                  this.dataSource.sort = this.sort;
-                  this.sort.sort({
-                    id: 'fecha_hora',
-                    start: 'desc',
-                    disableClear: false
-                  });
-                }
-                this.loading = false;
-                setTimeout(() => {
-                  if (this.paginator) this.dataSource.paginator = this.paginator;
-                }, 0);
               },
-              error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
+              error: (error) => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas()),
             });
-          },
-          error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
-        });
-      },
-      error: error => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas())
-    });
+        },
+        error: (error) => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas()),
+      });
   }
 
   private handleLoadError(error: unknown, context: string, retry: () => void): void {
@@ -144,8 +175,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       text: this.errorMessages.getUserMessage(error, context),
       showCancelButton: true,
       confirmButtonText: 'Reintentar',
-      cancelButtonText: 'Cerrar'
-    }).then(result => {
+      cancelButtonText: 'Cerrar',
+    }).then((result) => {
       if (result.isConfirmed) {
         retry();
       }
@@ -169,7 +200,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         this.sort.sort({
           id: 'fecha_hora',
           start: 'desc',
-          disableClear: false
+          disableClear: false,
         });
       }
     }, 0);
@@ -187,23 +218,21 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       const dt = new Date(raw);
       if (isNaN(dt.getTime())) return false;
       return (
-        dt.getFullYear() === hoy.getFullYear() &&
-        dt.getMonth() === hoy.getMonth() &&
-        dt.getDate() === hoy.getDate()
+        dt.getFullYear() === hoy.getFullYear() && dt.getMonth() === hoy.getMonth() && dt.getDate() === hoy.getDate()
       );
     }).length;
   }
 
   getCitasPendientes(): number {
-    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'pendiente').length;
+    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'pendiente').length;
   }
 
   getCitasConfirmadas(): number {
-    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'confirmada').length;
+    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'confirmada').length;
   }
 
   getCitasCompletadas(): number {
-    return this.dataSource.data.filter(cita => cita.estado?.toLowerCase() === 'completada').length;
+    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'completada').length;
   }
 
   /** Fecha + hora en una sola línea (filtros / legacy). */
@@ -224,7 +253,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
           return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
           });
         }
       } catch (error) {
@@ -238,7 +267,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
           return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
           });
         }
       } catch (error) {
@@ -258,7 +287,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!isNaN(fecha.getTime()) && String(cita.fecha).includes('T')) {
           return fecha.toLocaleTimeString('es-ES', {
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           });
         }
       } catch {
@@ -271,7 +300,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!isNaN(fecha.getTime())) {
           return fecha.toLocaleTimeString('es-ES', {
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           });
         }
       } catch {
@@ -306,13 +335,14 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     const citaActualizada: Record<string, unknown> = {
       ...cita,
       estado: estadoNorm,
-      fecha_actualizacion: new Date().toISOString()
+      fecha_actualizacion: new Date().toISOString(),
     };
     if (estadoNorm === 'cancelada' && motivoCancelacion) {
       citaActualizada['motivo_cancelacion'] = motivoCancelacion.trim();
     }
     this.loadingService.show(LOADING_MESSAGES.updating);
-    this.citasService.guardarCita(citaActualizada)
+    this.citasService
+      .guardarCita(citaActualizada)
       .then(() => {
         this.cargarCitas();
         if (estadoNorm === 'completada') {
@@ -325,17 +355,21 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
             text: `Cita marcada como ${estadoNorm.toUpperCase()}`,
             icon: 'success',
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
           });
         }, 0);
       })
-      .catch(error => {
+      .catch((error) => {
         this.logger.error('Error al cambiar estado:', error);
-        setTimeout(() => Swal.fire({
-          title: 'Error',
-          text: this.errorMessages.getUserMessage(error, 'cambiar estado cita'),
-          icon: 'error'
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              title: 'Error',
+              text: this.errorMessages.getUserMessage(error, 'cambiar estado cita'),
+              icon: 'error',
+            }),
+          0
+        );
       })
       .finally(() => this.loadingService.hide());
   }
@@ -354,12 +388,12 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonText: 'Cancelar cita',
       cancelButtonText: 'Volver',
       confirmButtonColor: '#d33',
-      inputValidator: value => {
+      inputValidator: (value) => {
         if (!value || !String(value).trim() || String(value).trim().length < 3) {
           return 'Indica un motivo de al menos 3 caracteres';
         }
         return null;
-      }
+      },
     });
     if (result.isConfirmed && result.value) {
       this.cambiarEstado(cita, 'cancelada', String(result.value).trim());
@@ -374,7 +408,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         title: 'Sin permiso',
         text: 'Solo veterinarias pueden revertir una cita completada.',
-        icon: 'warning'
+        icon: 'warning',
       });
       return;
     }
@@ -385,40 +419,48 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     const eraCompletada = String(cita?.estado || '').toLowerCase() === 'completada';
     const dialogRef = this.dialog.open(CitaDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
-      data: { cita, modoVer }
+      data: { cita, modoVer },
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result && !modoVer) {
-        this.loadingService.show(LOADING_MESSAGES.saving);
-        this.citasService.guardarCita(result)
-          .then(() => {
-            this.cargarCitas();
-            const nuevaCompletada = String(result.estado || '').toLowerCase() === 'completada';
-            if (nuevaCompletada && !eraCompletada) {
-              void this.flujoVisitaDelDia({ ...cita, ...result });
-              return;
-            }
-            setTimeout(() => {
-              Swal.fire({
-                title: '¡Éxito!',
-                text: 'Cita guardada correctamente',
-                icon: 'success',
-                confirmButtonText: 'Entendido'
-              });
-            }, 0);
-          })
-          .catch(error => {
-            this.logger.error('❌ Error al guardar cita:', error);
-            setTimeout(() => Swal.fire({
-              title: 'Error al guardar cita',
-              text: this.errorMessages.getUserMessage(error, 'guardar cita'),
-              icon: 'error',
-              confirmButtonText: 'Entendido'
-            }), 0);
-          })
-          .finally(() => this.loadingService.hide());
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result && !modoVer) {
+          this.loadingService.show(LOADING_MESSAGES.saving);
+          this.citasService
+            .guardarCita(result)
+            .then(() => {
+              this.cargarCitas();
+              const nuevaCompletada = String(result.estado || '').toLowerCase() === 'completada';
+              if (nuevaCompletada && !eraCompletada) {
+                void this.flujoVisitaDelDia({ ...cita, ...result });
+                return;
+              }
+              setTimeout(() => {
+                Swal.fire({
+                  title: '¡Éxito!',
+                  text: 'Cita guardada correctamente',
+                  icon: 'success',
+                  confirmButtonText: 'Entendido',
+                });
+              }, 0);
+            })
+            .catch((error) => {
+              this.logger.error('❌ Error al guardar cita:', error);
+              setTimeout(
+                () =>
+                  Swal.fire({
+                    title: 'Error al guardar cita',
+                    text: this.errorMessages.getUserMessage(error, 'guardar cita'),
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                  }),
+                0
+              );
+            })
+            .finally(() => this.loadingService.hide());
+        }
+      });
   }
 
   editarCita(cita: any) {
@@ -430,13 +472,13 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   bajaLogicaCita(id: string) {
-    const cita = this.dataSource.data.find(c => c.id === id);
+    const cita = this.dataSource.data.find((c) => c.id === id);
     if (!id || id.length === 0) {
       this.logger.error('❌ ERROR: ID de cita inválido:', id);
       Swal.fire({
         title: 'Error',
         text: 'ID de cita inválido. No se puede borrar.',
-        icon: 'error'
+        icon: 'error',
       });
       return;
     }
@@ -445,7 +487,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         title: 'Error',
         text: 'Cita no encontrada. No se puede borrar.',
-        icon: 'error'
+        icon: 'error',
       });
       return;
     }
@@ -457,11 +499,12 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
         this.loadingService.show(LOADING_MESSAGES.deleting);
-        this.citasService.bajaLogicaCita(id)
+        this.citasService
+          .bajaLogicaCita(id)
           .then(() => {
             setTimeout(() => {
               Swal.fire({
@@ -469,18 +512,22 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                 text: 'Cita borrada correctamente',
                 icon: 'success',
                 timer: 2000,
-                showConfirmButton: false
+                showConfirmButton: false,
               });
               this.cargarCitas();
             }, 0);
           })
-          .catch(error => {
+          .catch((error) => {
             this.logger.error('❌ Error al eliminar cita:', error);
-            setTimeout(() => Swal.fire({
-              title: 'Error',
-              text: this.errorMessages.getUserMessage(error, 'eliminar cita'),
-              icon: 'error'
-            }), 0);
+            setTimeout(
+              () =>
+                Swal.fire({
+                  title: 'Error',
+                  text: this.errorMessages.getUserMessage(error, 'eliminar cita'),
+                  icon: 'error',
+                }),
+              0
+            );
           })
           .finally(() => this.loadingService.hide());
       }
@@ -494,7 +541,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya vinculado a caja',
-        text: `Esta cita ya tiene movimiento ${cita.cajaMovimientoId}. Evita doble cobro.`
+        text: `Esta cita ya tiene movimiento ${cita.cajaMovimientoId}. Evita doble cobro.`,
       });
       return;
     }
@@ -502,7 +549,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Cobro en cuenta del día',
-        text: `Esta cita está en el ticket ${cita.visitaId}. Cobra desde Cuenta del día para evitar doble cobro.`
+        text: `Esta cita está en el ticket ${cita.visitaId}. Cobra desde Cuenta del día para evitar doble cobro.`,
       });
       return;
     }
@@ -510,7 +557,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya cobrada',
-        text: 'Esta cita ya fue cobrada vía cuenta del día.'
+        text: 'Esta cita ya fue cobrada vía cuenta del día.',
       });
       return;
     }
@@ -519,7 +566,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Completa la cita primero',
-        text: 'Solo las citas completadas se registran en caja desde este atajo.'
+        text: 'Solo las citas completadas se registran en caja desde este atajo.',
       });
       return;
     }
@@ -537,25 +584,28 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         monto: Number(cita.precio) || Number(cita.monto) || 0,
         metodoPago: 'efectivo',
         notas: cita.observaciones || '',
-        categoria: 'consulta' as const
-      }
+        categoria: 'consulta' as const,
+      },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
-      const id = result?.movimientoId as string | undefined;
-      if (!result || (!result.ok && !id) || !id) return;
-      this.loadingService.show(LOADING_MESSAGES.updating);
-      this.citasService
-        .guardarCita({ ...cita, cajaMovimientoId: id })
-        .then(() => {
-          Swal.fire({ icon: 'success', title: 'Cita vinculada a caja', timer: 1600, showConfirmButton: false });
-          this.cargarCitas();
-        })
-        .catch((error) => {
-          this.logger.error('Error al vincular cita→caja:', error);
-          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular cita a caja'), 'error');
-        })
-        .finally(() => this.loadingService.hide());
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        const id = result?.movimientoId as string | undefined;
+        if (!result || (!result.ok && !id) || !id) return;
+        this.loadingService.show(LOADING_MESSAGES.updating);
+        this.citasService
+          .guardarCita({ ...cita, cajaMovimientoId: id })
+          .then(() => {
+            Swal.fire({ icon: 'success', title: 'Cita vinculada a caja', timer: 1600, showConfirmButton: false });
+            this.cargarCitas();
+          })
+          .catch((error) => {
+            this.logger.error('Error al vincular cita→caja:', error);
+            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular cita a caja'), 'error');
+          })
+          .finally(() => this.loadingService.hide());
+      });
   }
 
   /** Spec 032: agregar cita a ticket de visita (anti doble cobro). */
@@ -565,7 +615,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya cobrada en caja',
-        text: 'Esta cita ya tiene movimiento de caja. No se agrega al ticket.'
+        text: 'Esta cita ya tiene movimiento de caja. No se agrega al ticket.',
       });
       return;
     }
@@ -573,7 +623,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya en una visita',
-        text: `Vinculada al ticket ${cita.visitaId}.`
+        text: `Vinculada al ticket ${cita.visitaId}.`,
       });
       return;
     }
@@ -599,7 +649,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
           const n = Number(value);
           if (!(n > 0)) return 'Ingresa un monto mayor a 0';
           return null;
-        }
+        },
       });
       if (!ask.isConfirmed) return;
       monto = Number(ask.value);
@@ -615,13 +665,13 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         monto,
         categoria: 'consulta',
         citaId: cita.id,
-        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined
+        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
       });
       await this.citasService.guardarCita({ ...cita, visitaId });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente }
+        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente },
       });
       Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
       this.cargarCitas();
@@ -648,7 +698,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       monto: cita.monto,
       visitaId: cita.visitaId,
       cajaMovimientoId: cita.cajaMovimientoId,
-      cobrada: cita.cobrada
+      cobrada: cita.cobrada,
     };
     const accion = await this.visitaDiaFlujo.ofrecerFlujo(ctx);
     if (!accion) {
@@ -656,7 +706,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         icon: 'success',
         title: 'Cita completada',
         timer: 1400,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       return;
     }
@@ -686,8 +736,8 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         paciente: cita.paciente || this.pacientesMap[cita.paciente_id],
         cliente: cita.cliente || this.clientesMap[cita.cliente_id],
         motivo_consulta: cita.motivo,
-        cita_id: cita.id
-      }
+        cita_id: cita.id,
+      },
     });
     const result = await firstValueFrom(ref.afterClosed());
     if (!result || result === true) return undefined;
@@ -699,12 +749,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     const paciente = cita.paciente || this.pacientesMap[cita.paciente_id] || 'paciente';
     const cliente = cita.cliente || this.clientesMap[cita.cliente_id] || '';
     let monto = Number(cita.precio) || Number(cita.monto) || 0;
-    monto =
-      (await promptMontoVisita(
-        'Monto de la consulta',
-        '¿Cuánto se cobrará en el ticket?',
-        monto
-      )) ?? 0;
+    monto = (await promptMontoVisita('Monto de la consulta', '¿Cuánto se cobrará en el ticket?', monto)) ?? 0;
     if (!(monto > 0)) return;
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
@@ -718,13 +763,13 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         categoria: 'consulta',
         citaId: cita.id,
         historialId,
-        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined
+        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
       });
       await this.citasService.guardarCita({ ...cita, visitaId });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente }
+        data: { visita: visita || undefined, cliente_id: cita.cliente_id, cliente },
       });
       Swal.fire({ icon: 'success', title: 'Historial y ticket listos', timer: 1600, showConfirmButton: false });
       this.cargarCitas();

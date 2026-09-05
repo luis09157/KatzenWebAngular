@@ -22,11 +22,10 @@ import { CitaDialogModule } from './cita-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 import { HistorialesModule } from '../historiales/historiales.module';
+import { AltaRapidaDialogModule } from '../alta-rapida/alta-rapida-dialog.module';
 
 @NgModule({
-  declarations: [
-    CitasComponent
-  ],
+  declarations: [CitasComponent],
   imports: [
     CommonModule,
     CitasRoutingModule,
@@ -49,7 +48,8 @@ import { HistorialesModule } from '../historiales/historiales.module';
     CitaDialogModule,
     CajaDialogModule,
     VisitasDialogModule,
-    HistorialesModule
-  ]
+    HistorialesModule,
+    AltaRapidaDialogModule,
+  ],
 })
-export class CitasModule { }
+export class CitasModule {}

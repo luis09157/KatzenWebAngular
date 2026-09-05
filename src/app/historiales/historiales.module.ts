@@ -18,25 +18,21 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { HistorialesRoutingModule } from './historiales-routing.module';
 import { HistorialesComponent } from './historiales.component';
-import { HistorialDialogComponent } from './historial-dialog.component';
-import { HistorialDetalleComponent } from './historial-detalle.component';
 import { SharedModule } from '../shared/shared.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
+import { HistorialDialogModule } from './historial-dialog.module';
 
 @NgModule({
-  declarations: [
-    HistorialesComponent,
-    HistorialDialogComponent,
-    HistorialDetalleComponent
-  ],
+  declarations: [HistorialesComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
     HistorialesRoutingModule,
     SharedModule,
+    HistorialDialogModule,
     SalidaDialogModule,
     CajaDialogModule,
     VisitasDialogModule,
@@ -53,11 +49,8 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     MatNativeDateModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatCheckboxModule
+    MatCheckboxModule,
   ],
-  exports: [
-    HistorialDialogComponent,
-    HistorialDetalleComponent
-  ]
+  exports: [HistorialDialogModule],
 })
-export class HistorialesModule { }
+export class HistorialesModule {}

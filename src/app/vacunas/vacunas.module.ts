@@ -18,29 +18,23 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { VacunasRoutingModule } from './vacunas-routing.module';
 import { VacunasComponent } from './vacunas.component';
-import { VacunaDialogComponent } from './vacuna-dialog.component';
 import { VacunaDetalleComponent } from './vacuna-detalle.component';
 import { ConfirmarEliminacionVacunaDialogComponent } from './confirmar-eliminacion-vacuna-dialog.component';
-import { VacunaEsquemaConfirmDialogComponent } from './vacuna-esquema-confirm-dialog.component';
 import { SharedModule } from '../shared/shared.module';
 import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
 import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { SalidaDialogModule } from '../inventario/movimientos/salida-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
+import { VacunaDialogModule } from './vacuna-dialog.module';
 
 @NgModule({
-  declarations: [
-    VacunasComponent,
-    VacunaDialogComponent,
-    VacunaDetalleComponent,
-    ConfirmarEliminacionVacunaDialogComponent,
-    VacunaEsquemaConfirmDialogComponent,
-  ],
+  declarations: [VacunasComponent, VacunaDetalleComponent, ConfirmarEliminacionVacunaDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
     VacunasRoutingModule,
+    VacunaDialogModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -61,6 +55,6 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     SalidaDialogModule,
     VisitasDialogModule,
   ],
-  exports: [VacunaDialogComponent],
+  exports: [VacunaDialogModule],
 })
 export class VacunasModule {}

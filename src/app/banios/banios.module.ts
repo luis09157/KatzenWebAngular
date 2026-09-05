@@ -25,8 +25,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 // Componentes
 import { BaniosComponent } from './banios.component';
-import { BanioDialogComponent } from './banio-dialog.component';
 import { BanioDetalleComponent } from './banio-detalle.component';
+import { BanioDialogModule } from './banio-dialog.module';
 
 // Servicios
 import { BaniosService } from './banios.service';
@@ -40,12 +40,13 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
-  declarations: [BaniosComponent, BanioDialogComponent, BanioDetalleComponent],
+  declarations: [BaniosComponent, BanioDetalleComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
     RouterModule.forChild(baniosRoutes),
+    BanioDialogModule,
     CajaDialogModule,
     VisitasDialogModule,
     ClientesDialogModule,

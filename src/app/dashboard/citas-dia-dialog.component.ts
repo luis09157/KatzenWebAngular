@@ -1,5 +1,7 @@
-import { Component, Inject, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Router } from '@angular/router';
+import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from '../citas/cita-atender.util';
 
 @Component({
   selector: 'app-citas-dia-dialog',
@@ -8,29 +10,44 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
   encapsulation: ViewEncapsulation.None,
 })
 export class CitasDiaDialogComponent {
+  readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
+
   constructor(
     public dialogRef: MatDialogRef<CitasDiaDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: {
+    private router: Router,
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
       citas: any[];
       fecha: Date;
     }
   ) {}
+
+  puedeAtender(cita: { paciente_id?: string; idPaciente?: string } | null): boolean {
+    return puedeAtenderCita(cita);
+  }
+
+  atender(cita: { paciente_id?: string; idPaciente?: string } | null): void {
+    const id = pacienteIdDeCita(cita);
+    if (!id) return;
+    this.dialogRef.close();
+    void this.router.navigate(['/admin/paciente'], { queryParams: { id } });
+  }
 
   getHoraFormateada(cita: any): string {
     // Usar el campo 'hora' que es la hora correcta de la cita
     if (cita.hora) {
       return cita.hora;
     }
-    
+
     // Fallback a fecha_hora si no hay hora
     if (cita.fecha_hora) {
       const fecha = new Date(cita.fecha_hora);
       return fecha.toLocaleTimeString('es-ES', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       });
     }
-    
+
     return '00:00';
   }
 
@@ -49,4 +66,4 @@ export class CitasDiaDialogComponent {
   cerrar() {
     this.dialogRef.close();
   }
-} 
+}

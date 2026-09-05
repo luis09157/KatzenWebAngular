@@ -1,0 +1,121 @@
+<div class="admin-dialog-shell alta-rapida-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Llegó un paciente</h2>
+      <p class="admin-dialog-subtitle">Dueño, mascota y qué necesita. Sin rodeos.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <ol class="alta-rapida-steps" aria-label="Pasos">
+      <li [class.alta-rapida-steps__on]="paso === 1" [class.alta-rapida-steps__done]="paso > 1">
+        <span>1</span> Dueño
+      </li>
+      <li [class.alta-rapida-steps__on]="paso === 2" [class.alta-rapida-steps__done]="paso > 2">
+        <span>2</span> Mascota
+      </li>
+      <li [class.alta-rapida-steps__on]="paso === 3"><span>3</span> ¿Qué viene a hacer?</li>
+    </ol>
+
+    <section *ngIf="paso === 1" class="alta-rapida-pane">
+      <p class="alta-rapida-lead">Busca por teléfono o nombre. Si no está, regístralo aquí.</p>
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Teléfono o nombre del dueño</mat-label>
+        <input
+          matInput
+          cdkFocusInitial
+          [formControl]="clienteSearch"
+          [matAutocomplete]="autoDueno"
+          placeholder="Ej. 555 o María"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <mat-autocomplete
+        #autoDueno="matAutocomplete"
+        [displayWith]="displayCliente"
+        (optionSelected)="elegirCliente($event.option.value)"
+      >
+        <mat-option *ngFor="let c of filteredClientes | async" [value]="c">
+          {{ displayCliente(c) }}
+        </mat-option>
+      </mat-autocomplete>
+      <button mat-stroked-button type="button" class="alta-rapida-cta" (click)="crearDueno()">
+        <mat-icon>person_add</mat-icon>
+        Dueño nuevo
+      </button>
+    </section>
+
+    <section *ngIf="paso === 2" class="alta-rapida-pane">
+      <p class="alta-rapida-lead">
+        Dueño: <strong>{{ nombreCliente(cliente) }}</strong>
+      </p>
+      <div class="alta-rapida-pets" *ngIf="mascotasDelDueno.length">
+        <button
+          type="button"
+          class="alta-rapida-pet"
+          *ngFor="let p of mascotasDelDueno"
+          [class.alta-rapida-pet--on]="paciente?.id === p.id"
+          (click)="elegirMascota(p)"
+        >
+          <mat-icon>pets</mat-icon>
+          <span>{{ etiquetaMascota(p) }}</span>
+        </button>
+      </div>
+      <p class="alta-rapida-empty" *ngIf="!mascotasDelDueno.length">Este dueño aún no tiene mascotas registradas.</p>
+      <button mat-stroked-button type="button" class="alta-rapida-cta" (click)="crearMascota()">
+        <mat-icon>add</mat-icon>
+        Nueva mascota
+      </button>
+    </section>
+
+    <section *ngIf="paso === 3" class="alta-rapida-pane">
+      <p class="alta-rapida-lead">
+        <strong>{{ paciente?.nombre }}</strong> · {{ nombreCliente(cliente) }}
+      </p>
+      <div class="alta-rapida-acciones">
+        <button
+          type="button"
+          class="alta-rapida-accion"
+          *ngFor="let a of acciones"
+          [disabled]="avanzando"
+          (click)="elegirAccion(a.id)"
+        >
+          <mat-icon>{{ a.icon }}</mat-icon>
+          <strong>{{ a.label }}</strong>
+          <span>{{ a.hint }}</span>
+        </button>
+      </div>
+    </section>
+  </mat-dialog-content>
+
+  <footer class="admin-dialog-footer">
+    <button mat-button type="button" (click)="cancelar()">Cerrar</button>
+    <span class="alta-rapida-spacer"></span>
+    <button mat-stroked-button type="button" *ngIf="paso > 1" (click)="atras()">Atrás</button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      *ngIf="paso === 1"
+      [disabled]="!puedePaso2"
+      (click)="siguiente()"
+    >
+      Siguiente
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      *ngIf="paso === 2"
+      [disabled]="!puedePaso3"
+      (click)="siguiente()"
+    >
+      Siguiente
+    </button>
+  </footer>
+</div>

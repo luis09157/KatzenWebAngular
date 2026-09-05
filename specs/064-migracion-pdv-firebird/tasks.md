@@ -74,7 +74,7 @@
 - [x] Devolución + reintegro stock (utils + `devolverLineas` + botón en ticket)
 - [x] Corte / arqueo de caja (`Caja/Cortes` + diálogo en Finanzas)
 - [x] Pago mixto (efectivo + tarjeta + transferencia en un ticket)
-- [ ] Kits: SKU en ticket + explode BOM
+- [x] Kits: SKU en ticket + explode BOM (POS 070: `pos-kit-bom.util` + N `registrarSalida` de componentes; sin BOM → mensaje claro)
 - [x] Scanner: sheet código/QR ya existía (cámara pendiente)
 - [x] Costo oculto al cajero (sin cambio; se mantiene)
 - [ ] Specs hijas si el alcance se parte (**sin** parar fases 3/5)
