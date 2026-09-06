@@ -6,7 +6,8 @@
         matInput
         [(ngModel)]="searchTerm"
         (input)="onSearchInput($event)"
-        placeholder="Tipo de servicio, peluquero, observaciones…">
+        placeholder="Tipo de servicio, peluquero, observaciones…"
+      />
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
@@ -26,7 +27,8 @@
       *ngFor="let banio of baniosFiltrados"
       class="clinical-list__item"
       [class.clinical-list__item--active]="banio.estado === 'en_proceso'"
-      (dblclick)="verDetalleBanio(banio)">
+      (dblclick)="verDetalleBanio(banio)"
+    >
       <div class="clinical-list__icon clinical-list__icon--purple">
         <mat-icon>{{ getTipoServicioIcon(banio.tipo_servicio) }}</mat-icon>
       </div>
@@ -40,7 +42,7 @@
         <div class="clinical-list__tags">
           <span class="estado-badge" [ngClass]="banio.estado | adminEstadoClass">{{ banio.estado | titlecase }}</span>
           <span class="tag tag-muted" *ngIf="banio.peluquero">{{ banio.peluquero }}</span>
-          <span class="tag tag-muted" *ngIf="banio.precio_total">${{ banio.precio_total | number:'1.0-0' }}</span>
+          <span class="tag tag-muted" *ngIf="banio.precio_total">${{ banio.precio_total | number: '1.0-0' }}</span>
         </div>
         <p class="clinical-list__note" *ngIf="banio.observaciones">{{ banio.observaciones }}</p>
         <p class="clinical-list__note" *ngIf="banio.productos_utilizados?.length">
@@ -48,14 +50,29 @@
         </p>
       </div>
 
-      <div class="row-actions hide-mobile">
-        <button mat-icon-button type="button" matTooltip="Ver detalle" (click)="verDetalleBanio(banio); $event.stopPropagation()">
+      <div class="row-actions hide-mobile" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Ver detalle"
+          (click)="verDetalleBanio(banio); $event.stopPropagation()"
+        >
           <mat-icon>visibility</mat-icon>
         </button>
-        <button mat-icon-button type="button" matTooltip="Editar" (click)="editarBanio(banio); $event.stopPropagation()">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Editar"
+          (click)="editarBanio(banio); $event.stopPropagation()"
+        >
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarBanio(banio); $event.stopPropagation()">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Borrar"
+          (click)="eliminarBanio(banio); $event.stopPropagation()"
+        >
           <mat-icon>delete_outline</mat-icon>
         </button>
         <button
@@ -63,7 +80,8 @@
           mat-icon-button
           type="button"
           matTooltip="Iniciar baño"
-          (click)="cambiarEstadoBanio(banio, 'en_proceso'); $event.stopPropagation()">
+          (click)="cambiarEstadoBanio(banio, 'en_proceso'); $event.stopPropagation()"
+        >
           <mat-icon>play_circle</mat-icon>
         </button>
         <button
@@ -71,7 +89,8 @@
           mat-icon-button
           type="button"
           matTooltip="Completar baño"
-          (click)="cambiarEstadoBanio(banio, 'completado'); $event.stopPropagation()">
+          (click)="cambiarEstadoBanio(banio, 'completado'); $event.stopPropagation()"
+        >
           <mat-icon>check_circle</mat-icon>
         </button>
         <button
@@ -79,7 +98,8 @@
           mat-icon-button
           type="button"
           matTooltip="Marcar como pagado"
-          (click)="marcarComoPagado(banio); $event.stopPropagation()">
+          (click)="marcarComoPagado(banio); $event.stopPropagation()"
+        >
           <mat-icon>payment</mat-icon>
         </button>
         <button
@@ -87,7 +107,8 @@
           mat-icon-button
           type="button"
           matTooltip="Cancelar baño"
-          (click)="cambiarEstadoBanio(banio, 'cancelado'); $event.stopPropagation()">
+          (click)="cambiarEstadoBanio(banio, 'cancelado'); $event.stopPropagation()"
+        >
           <mat-icon>cancel</mat-icon>
         </button>
       </div>
@@ -98,8 +119,13 @@
     *ngIf="!isLoading && baniosFiltrados.length === 0"
     icon="shower"
     [title]="searchTerm ? 'Sin resultados' : 'Sin baños registrados'"
-    [message]="searchTerm ? 'No hay baños que coincidan con la búsqueda.' : 'Aún no hay servicios de peluquería para este paciente.'"
+    [message]="
+      searchTerm
+        ? 'No hay baños que coincidan con la búsqueda.'
+        : 'Aún no hay servicios de peluquería para este paciente.'
+    "
     [actionLabel]="searchTerm ? '' : 'Agregar primer baño'"
-    (action)="agregarBanio()">
+    (action)="agregarBanio()"
+  >
   </app-admin-empty-state>
 </div>

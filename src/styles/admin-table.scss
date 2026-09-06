@@ -67,6 +67,7 @@
 
 .admin-content .data-row--interactive {
   cursor: pointer;
+  user-select: none;
 }
 
 .admin-content .data-row--interactive:focus-visible {

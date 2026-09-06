@@ -22,6 +22,7 @@ Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle d
 
 - Página: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; grid fluido 3→2→1 según ancho útil; desktop usa todo `.admin-content`.
 - Tabla: `.table-scroll` + `mat-table`; acciones `mat-column-acciones` 120px con `mat-icon-button` + `matTooltip` en `.row-actions`; nombres de persona completos en desktop.
+- **MUST (spec 073):** filas de listado `(dblclick)` al mismo handler que Ver detalle; `.row-actions` con `$event.stopPropagation()`.
 - Diálogo: `admin-dialog-shell` + `.admin-dialog-layout`; tabs `dynamicHeight`, `overflow: visible`; `.entity-summary` compacto.
 - Primarias: `.btn-primary-teal` en `mat-raised-button`. Tokens CSS: `--katzen-verde`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-*`.
 - Búsqueda en panel: `.panel-search` alineada al padding de la tabla. Shells auth/portal: `.admin-auth-page` / `.portal-login-wrap`, centrados y responsivos.

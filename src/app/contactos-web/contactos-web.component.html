@@ -7,17 +7,42 @@
   <ng-container *ngIf="!loading">
     <p class="section-eyebrow">Resumen del módulo</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="pink" icon="mail" [value]="contactos.length" label="Total mensajes" hint="Desde la landing"></app-admin-stat-card>
-      <app-admin-stat-card accent="orange" icon="mark_email_unread" [value]="totalPendientes" label="Pendientes" hint="Por revisar"></app-admin-stat-card>
-      <app-admin-stat-card accent="green" icon="mark_email_read" [value]="getTotalLeidos()" label="Leídos" hint="Atendidos"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" icon="pets" [value]="getConMascota()" label="Con mascota" hint="Mencionan paciente"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="pink"
+        icon="mail"
+        [value]="contactos.length"
+        label="Total mensajes"
+        hint="Desde la landing"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        icon="mark_email_unread"
+        [value]="totalPendientes"
+        label="Pendientes"
+        hint="Por revisar"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="green"
+        icon="mark_email_read"
+        [value]="getTotalLeidos()"
+        label="Leídos"
+        hint="Atendidos"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        icon="pets"
+        [value]="getConMascota()"
+        label="Con mascota"
+        hint="Mencionan paciente"
+      ></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
       accent="pink"
       icon="mail"
       title="Administración de Contactos Web"
-      subtitle="Mensajes enviados desde la landing page.">
+      subtitle="Mensajes enviados desde la landing page."
+    >
       <div bannerActions>
         <span class="pendientes-badge" *ngIf="totalPendientes > 0">{{ totalPendientes }} pendientes</span>
         <button mat-stroked-button (click)="cargarContactos()">
@@ -31,13 +56,20 @@
       accent="pink"
       title="Listado de mensajes"
       description="Busca por nombre, email, teléfono o mascota."
-      [meta]="dataSource.data.length ? (dataSource.filteredData.length + ' en pantalla · ' + contactos.length + ' totales') : ''"
-      [showLegend]="dataSource.data.length > 0">
-
+      [meta]="
+        dataSource.data.length ? dataSource.filteredData.length + ' en pantalla · ' + contactos.length + ' totales' : ''
+      "
+      [showLegend]="dataSource.data.length > 0"
+    >
       <div class="filtros-row">
         <mat-form-field appearance="outline" class="buscador panel-search">
           <mat-label>Buscar mensaje</mat-label>
-          <input matInput (keyup)="aplicarFiltro($event)" (input)="aplicarFiltro($event)" placeholder="Nombre, email, teléfono, mascota…" />
+          <input
+            matInput
+            (keyup)="aplicarFiltro($event)"
+            (input)="aplicarFiltro($event)"
+            placeholder="Nombre, email, teléfono, mascota…"
+          />
           <mat-icon matPrefix>search</mat-icon>
         </mat-form-field>
 
@@ -54,7 +86,8 @@
         title="Sin mensajes por ahora"
         message="Cuando alguien escriba desde la landing verás aquí nombre, contacto y motivo. Revisa también el correo de la clínica."
         actionLabel="Actualizar lista"
-        (action)="cargarContactos()">
+        (action)="cargarContactos()"
+      >
       </app-admin-empty-state>
 
       <div class="table-scroll" *ngIf="dataSource.data.length > 0">
@@ -108,27 +141,68 @@
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let row">
-              <div class="row-actions hide-mobile">
-                <button mat-icon-button type="button" color="primary" matTooltip="Ver mensaje" (click)="verDetalle(row)"><mat-icon>visibility</mat-icon></button>
-                <button mat-icon-button type="button" [matTooltip]="row.leido ? 'Marcar pendiente' : 'Marcar leído'" (click)="alternarLeido(row)">
+              <div
+                class="row-actions hide-mobile"
+                (click)="$event.stopPropagation()"
+                (dblclick)="$event.stopPropagation()"
+              >
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="primary"
+                  matTooltip="Ver mensaje"
+                  (click)="verDetalle(row)"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  [matTooltip]="row.leido ? 'Marcar pendiente' : 'Marcar leído'"
+                  (click)="alternarLeido(row)"
+                >
                   <mat-icon>{{ row.leido ? 'mark_email_unread' : 'mark_email_read' }}</mat-icon>
                 </button>
               </div>
-              <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="contactoMenu" (click)="menuContext = row"><mat-icon>more_vert</mat-icon></button>
+              <button
+                mat-icon-button
+                type="button"
+                class="show-mobile-only"
+                matTooltip="Acciones"
+                [matMenuTriggerFor]="contactoMenu"
+                (click)="menuContext = row; $event.stopPropagation()"
+                (dblclick)="$event.stopPropagation()"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row" [class.fila-pendiente]="!row.leido"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="data-row data-row--interactive"
+            [class.fila-pendiente]="!row.leido"
+            title="Doble clic para ver detalle"
+            (dblclick)="verDetalle(row)"
+          ></tr>
         </table>
       </div>
 
-      <mat-paginator *ngIf="dataSource.data.length" [pageSize]="pageSize" [pageSizeOptions]="[25, 50, 100]" showFirstLastButtons></mat-paginator>
+      <mat-paginator
+        *ngIf="dataSource.data.length"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[25, 50, 100]"
+        showFirstLastButtons
+      ></mat-paginator>
     </app-admin-data-panel>
   </ng-container>
 
   <mat-menu #contactoMenu="matMenu">
-    <button mat-menu-item (click)="verDetalle(menuContext)" [disabled]="!menuContext"><mat-icon>visibility</mat-icon> Ver mensaje</button>
+    <button mat-menu-item (click)="verDetalle(menuContext)" [disabled]="!menuContext">
+      <mat-icon>visibility</mat-icon> Ver mensaje
+    </button>
     <button mat-menu-item (click)="alternarLeido(menuContext)" [disabled]="!menuContext">
       <mat-icon>{{ menuContext?.leido ? 'mark_email_unread' : 'mark_email_read' }}</mat-icon>
       {{ menuContext?.leido ? 'Marcar pendiente' : 'Marcar leído' }}

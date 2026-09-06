@@ -1,23 +1,45 @@
 <div class="admin-page movimientos-container">
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="blue" [value]="kpiTotal" label="Total movimientos" hint="Histórico visible"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" [value]="kpiEntradas" label="Entradas" hint="Ingresos a stock"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" [value]="kpiSalidas" label="Salidas" hint="Consumo / venta"></app-admin-stat-card>
-    <app-admin-stat-card accent="pink" [value]="kpiMermas" label="Mermas" hint="Pérdidas registradas"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      [value]="kpiTotal"
+      label="Total movimientos"
+      hint="Histórico visible"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      [value]="kpiEntradas"
+      label="Entradas"
+      hint="Ingresos a stock"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      [value]="kpiSalidas"
+      label="Salidas"
+      hint="Consumo / venta"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="pink"
+      [value]="kpiMermas"
+      label="Mermas"
+      hint="Pérdidas registradas"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
   <app-flow-hint
     icon="inventory_2"
     message="Las salidas por venta directa van al ticket del día (recepción). Usa «Ver ticket» si el movimiento está vinculado a una cuenta."
-    variant="info">
+    variant="info"
+  >
   </app-flow-hint>
 
   <app-admin-page-banner
     accent="blue"
     icon="history"
     title="Historial de movimientos"
-    subtitle="Registro de entradas, salidas, mermas y ajustes de inventario.">
+    subtitle="Registro de entradas, salidas, mermas y ajustes de inventario."
+  >
     <div bannerActions>
       <button mat-stroked-button type="button" (click)="registrarEntrada()">
         <mat-icon>add_circle</mat-icon>
@@ -27,9 +49,14 @@
         <mat-icon>remove_circle</mat-icon>
         Salida
       </button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" type="button"
-              *ngIf="puedeAjustar"
-              (click)="registrarAjuste()">
+      <button
+        mat-raised-button
+        color="primary"
+        class="btn-primary-teal"
+        type="button"
+        *ngIf="puedeAjustar"
+        (click)="registrarAjuste()"
+      >
         <mat-icon>tune</mat-icon>
         Ajuste
       </button>
@@ -40,14 +67,18 @@
     accent="blue"
     title="Movimientos registrados"
     description="Filtra por tipo, fechas o texto libre."
-    [showLegend]="false">
-
+    [showLegend]="false"
+  >
     <div class="panel-filters filtros-grid">
       <mat-form-field appearance="outline" class="filtro-texto panel-search">
         <mat-label>Buscar</mat-label>
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [(ngModel)]="filtroTexto" (ngModelChange)="aplicarFiltros()"
-               placeholder="Producto, motivo, usuario…" />
+        <input
+          matInput
+          [(ngModel)]="filtroTexto"
+          (ngModelChange)="aplicarFiltros()"
+          placeholder="Producto, motivo, usuario…"
+        />
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filtro-tipo">
@@ -61,16 +92,19 @@
 
       <mat-form-field appearance="outline" class="filtro-fecha">
         <mat-label>Desde</mat-label>
-        <input matInput [matDatepicker]="pickerInicio" [(ngModel)]="filtroFechaInicio"
-               (ngModelChange)="aplicarFiltros()" />
+        <input
+          matInput
+          [matDatepicker]="pickerInicio"
+          [(ngModel)]="filtroFechaInicio"
+          (ngModelChange)="aplicarFiltros()"
+        />
         <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
         <mat-datepicker #pickerInicio></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filtro-fecha">
         <mat-label>Hasta</mat-label>
-        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="filtroFechaFin"
-               (ngModelChange)="aplicarFiltros()" />
+        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="filtroFechaFin" (ngModelChange)="aplicarFiltros()" />
         <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
         <mat-datepicker #pickerFin></mat-datepicker>
       </mat-form-field>
@@ -134,7 +168,9 @@
 
         <ng-container matColumnDef="stock_nuevo">
           <th mat-header-cell *matHeaderCellDef>Stock nuevo</th>
-          <td mat-cell *matCellDef="let movimiento"><strong>{{ movimiento.cantidad_nueva }}</strong></td>
+          <td mat-cell *matCellDef="let movimiento">
+            <strong>{{ movimiento.cantidad_nueva }}</strong>
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="motivo">
@@ -156,7 +192,9 @@
               color="primary"
               class="ticket-link-btn"
               *ngIf="movimiento.visitaId"
-              (click)="verTicket(movimiento.visitaId!)">
+              (click)="verTicket(movimiento.visitaId!); $event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
               Ver ticket
             </button>
             <span *ngIf="!movimiento.visitaId">—</span>
@@ -166,20 +204,43 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let movimiento">
-            <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verDetalle(movimiento)">
+            <div
+              class="row-actions hide-mobile"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Ver detalle"
+                (click)="verDetalle(movimiento)"
+              >
                 <mat-icon>visibility</mat-icon>
               </button>
             </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones"
-                    [matMenuTriggerFor]="movimientoMenu" (click)="menuContext = movimiento">
+            <button
+              mat-icon-button
+              type="button"
+              class="show-mobile-only"
+              matTooltip="Acciones"
+              [matMenuTriggerFor]="movimientoMenu"
+              (click)="menuContext = movimiento; $event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
               <mat-icon>more_vert</mat-icon>
             </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="data-row data-row--interactive"
+          title="Doble clic para ver detalle"
+          (dblclick)="verDetalle(row)"
+        ></tr>
 
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
@@ -188,7 +249,8 @@
               title="No hay movimientos registrados"
               message="Registra una entrada, salida o ajuste para ver el historial."
               actionLabel="Registrar salida"
-              (action)="registrarSalida()">
+              (action)="registrarSalida()"
+            >
             </app-admin-empty-state>
           </td>
         </tr>
@@ -200,7 +262,8 @@
       #paginator
       [pageSize]="pageSize"
       [pageSizeOptions]="[10, 25, 50, 100]"
-      showFirstLastButtons>
+      showFirstLastButtons
+    >
     </mat-paginator>
   </app-admin-data-panel>
 

@@ -23,8 +23,7 @@ export interface AdminModulePageCopy {
 const agregarPrimero = (singular: string, gender: 'm' | 'f') =>
   gender === 'f' ? `Agregar primera ${singular}` : `Agregar primer ${singular}`;
 
-const nuevo = (singular: string, gender: 'm' | 'f') =>
-  gender === 'f' ? `Nueva ${singular}` : `Nuevo ${singular}`;
+const nuevo = (singular: string, gender: 'm' | 'f') => (gender === 'f' ? `Nueva ${singular}` : `Nuevo ${singular}`);
 
 export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
   pacientes: {
@@ -34,16 +33,19 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     entitySingular: 'paciente',
     entityGender: 'm',
     bannerTitle: 'Directorio de pacientes',
-    bannerSubtitle: 'Alta y ficha de mascotas. Doble clic abre la ficha; el icono de carpeta abre el expediente completo.',
+    bannerSubtitle:
+      'Alta y ficha de mascotas. Doble clic abre la ficha; el icono de carpeta abre el expediente completo.',
     listTitle: 'Directorio',
-    listDescription: 'Busca por nombre, especie, raza o dueño. Doble clic o Enter abre la ficha. El icono de carpeta abre el expediente clínico.',
+    listDescription:
+      'Busca por nombre, especie, raza o dueño. Doble clic o Enter abre la ficha. El icono de carpeta abre el expediente clínico.',
     emptyTitle: 'No hay mascotas en el directorio',
-    emptyMessage: 'Registra la primera mascota aquí. El expediente (historial, vacunas, desparasitación) está en Buscar paciente.',
+    emptyMessage:
+      'Registra la primera mascota aquí. El expediente (historial, vacunas, desparasitación) está en Buscar paciente.',
     searchLabel: 'Buscar paciente',
     searchPlaceholder: 'Nombre, especie, raza, dueño…',
     newButtonLabel: nuevo('paciente', 'm'),
     loadingMessage: 'Cargando pacientes…',
-    emptyActionLabel: agregarPrimero('paciente', 'm')
+    emptyActionLabel: agregarPrimero('paciente', 'm'),
   },
   clientes: {
     accent: 'blue',
@@ -61,7 +63,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando clientes…',
     emptyTitle: 'No hay clientes',
     emptyMessage: 'No se han encontrado clientes registrados.',
-    emptyActionLabel: agregarPrimero('cliente', 'm')
+    emptyActionLabel: agregarPrimero('cliente', 'm'),
   },
   citas: {
     accent: 'purple',
@@ -72,14 +74,14 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     bannerTitle: 'Administración de Citas',
     bannerSubtitle: 'Programa, confirma y da seguimiento a las citas de consulta.',
     listTitle: 'Listado de citas',
-    listDescription: 'Busca por cliente, paciente, motivo o veterinario.',
+    listDescription: 'Busca por cliente, paciente, motivo o veterinario. Doble clic para ver detalle.',
     searchLabel: 'Buscar cita',
     searchPlaceholder: 'Cliente, paciente, motivo…',
     newButtonLabel: nuevo('cita', 'f'),
     loadingMessage: 'Cargando citas…',
     emptyTitle: 'No hay citas',
     emptyMessage: 'No se han encontrado citas registradas.',
-    emptyActionLabel: agregarPrimero('cita', 'f')
+    emptyActionLabel: agregarPrimero('cita', 'f'),
   },
   vacunas: {
     accent: 'green',
@@ -97,7 +99,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando vacunas…',
     emptyTitle: 'No hay vacunas',
     emptyMessage: 'No se han encontrado vacunas registradas.',
-    emptyActionLabel: agregarPrimero('vacuna', 'f')
+    emptyActionLabel: agregarPrimero('vacuna', 'f'),
   },
   historiales: {
     accent: 'pink',
@@ -115,7 +117,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando historiales…',
     emptyTitle: 'No hay historiales',
     emptyMessage: 'No se han encontrado historiales registrados.',
-    emptyActionLabel: agregarPrimero('historial', 'm')
+    emptyActionLabel: agregarPrimero('historial', 'm'),
   },
   banios: {
     accent: 'teal',
@@ -133,7 +135,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando baños…',
     emptyTitle: 'No hay baños',
     emptyMessage: 'No se han encontrado baños registrados.',
-    emptyActionLabel: agregarPrimero('baño', 'm')
+    emptyActionLabel: agregarPrimero('baño', 'm'),
   },
   recordatorios: {
     accent: 'blue',
@@ -151,7 +153,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando recordatorios…',
     emptyTitle: 'No hay recordatorios',
     emptyMessage: 'No se han encontrado recordatorios registrados.',
-    emptyActionLabel: agregarPrimero('recordatorio', 'm')
+    emptyActionLabel: agregarPrimero('recordatorio', 'm'),
   },
   usuarios: {
     accent: 'purple',
@@ -169,7 +171,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando usuarios…',
     emptyTitle: 'No hay usuarios',
     emptyMessage: 'No se han encontrado usuarios registrados.',
-    emptyActionLabel: agregarPrimero('usuario', 'm')
+    emptyActionLabel: agregarPrimero('usuario', 'm'),
   },
   'servicios-clinica': {
     accent: 'teal',
@@ -187,7 +189,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando servicios…',
     emptyTitle: 'No hay servicios',
     emptyMessage: 'Da de alta consulta, diagnóstico, domicilio u honorarios.',
-    emptyActionLabel: agregarPrimero('servicio', 'm')
+    emptyActionLabel: agregarPrimero('servicio', 'm'),
   },
   contactos: {
     accent: 'pink',
@@ -205,6 +207,6 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
     loadingMessage: 'Cargando mensajes…',
     emptyTitle: 'No hay mensajes',
     emptyMessage: 'No se han encontrado mensajes registrados.',
-    emptyActionLabel: 'Actualizar'
-  }
+    emptyActionLabel: 'Actualizar',
+  },
 };

@@ -75,13 +75,34 @@ When asked to refactor or build a CRUD or Dialog view:
 
 ```html
 <td mat-cell *matCellDef="let row">
-  <div class="row-actions hide-mobile">
-    <button mat-icon-button color="primary" matTooltip="Ver">
+  <div class="row-actions hide-mobile" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+    <button mat-icon-button color="primary" matTooltip="Ver detalle" (click)="verDetalle(row)">
       <mat-icon>visibility</mat-icon>
     </button>
   </div>
 </td>
 ```
+
+### Table row double-click = Ver detalle (spec 073 — MUST)
+
+En listados admin (`mat-table` / `.table-scroll`) el **doble clic en la fila** abre el **mismo** detalle que el ojo / `verDetalle`. No es un atajo solo de Citas: es regla de todo el sistema.
+
+```html
+<tr
+  mat-row
+  *matRowDef="let row; columns: displayedColumns"
+  class="data-row data-row--interactive"
+  title="Doble clic para ver detalle"
+  (dblclick)="verDetalle(row)">
+</tr>
+```
+
+- Handler: el mismo método que el botón «Ver detalle» (citas → `verCita`, clientes → `abrirFichaCliente` / `verCliente`, etc.).
+- `.row-actions` (y el menú ⋮ móvil) **siempre** `$event.stopPropagation()` en `click` y `dblclick`: un clic en el ojo, editar o WhatsApp no abre el detalle por burbujeo.
+- Filas con detalle: clase `data-row--interactive` (cursor pointer + `user-select: none` en `admin-table.scss`). Leyenda del panel: **«Doble clic para ver detalle»**.
+- Productos: desktop doble clic = detalle; el ojo permanece; en móvil un clic puede abrir (el doble clic no es fiable).
+- Tablas **sin** ficha/detalle (reportes, caja solo-borrar, KPIs): no inventar un `verDetalle`.
+- Directorio (**058**): doble clic = ficha rápida; el icono de carpeta sigue siendo el expediente.
 
 ### Copy de acción destructiva (Borrar — no jerga técnica)
 

@@ -294,7 +294,11 @@
                       </p>
                       <p class="clinical-list__note" *ngIf="historial.receta">{{ historial.receta }}</p>
                     </div>
-                    <div class="row-actions hide-mobile">
+                    <div
+                      class="row-actions hide-mobile"
+                      (click)="$event.stopPropagation()"
+                      (dblclick)="$event.stopPropagation()"
+                    >
                       <button
                         mat-icon-button
                         type="button"
@@ -363,7 +367,11 @@
                         <span class="tag tag-muted">{{ recordatorio.prioridad | titlecase }}</span>
                       </div>
                     </div>
-                    <div class="row-actions hide-mobile">
+                    <div
+                      class="row-actions hide-mobile"
+                      (click)="$event.stopPropagation()"
+                      (dblclick)="$event.stopPropagation()"
+                    >
                       <button
                         mat-icon-button
                         type="button"
@@ -451,7 +459,11 @@
                       </div>
                       <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
                     </div>
-                    <div class="row-actions hide-mobile">
+                    <div
+                      class="row-actions hide-mobile"
+                      (click)="$event.stopPropagation()"
+                      (dblclick)="$event.stopPropagation()"
+                    >
                       <button
                         mat-icon-button
                         type="button"

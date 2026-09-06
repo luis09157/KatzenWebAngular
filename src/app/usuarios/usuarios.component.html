@@ -133,7 +133,12 @@
             </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let usuario">
+              <td
+                mat-cell
+                *matCellDef="let usuario"
+                (click)="$event.stopPropagation()"
+                (dblclick)="$event.stopPropagation()"
+              >
                 <div class="row-actions">
                   <button
                     mat-icon-button
@@ -186,7 +191,13 @@
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              class="data-row data-row--interactive"
+              title="Doble clic para ver detalle"
+              (dblclick)="verUsuario(row)"
+            ></tr>
           </table>
         </div>
         <mat-paginator
@@ -254,7 +265,7 @@
             </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let c">
+              <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
                 <div class="portal-acciones-inner">
                   <button
                     mat-icon-button
@@ -285,7 +296,13 @@
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: portalColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: portalColumns"
+              class="data-row data-row--interactive"
+              title="Doble clic para ver detalle"
+              (dblclick)="verDetalleCliente(row)"
+            ></tr>
           </table>
         </div>
         <mat-paginator
@@ -356,7 +373,12 @@
               </ng-container>
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                <td mat-cell *matCellDef="let c">
+                <td
+                  mat-cell
+                  *matCellDef="let c"
+                  (click)="$event.stopPropagation()"
+                  (dblclick)="$event.stopPropagation()"
+                >
                   <div class="portal-acciones-inner portal-acciones-inner--pendientes">
                     <button
                       mat-icon-button
@@ -382,7 +404,13 @@
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: portalColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: portalColumns"
+                class="data-row data-row--interactive"
+                title="Doble clic para ver detalle"
+                (dblclick)="verDetalleCliente(row)"
+              ></tr>
             </table>
           </div>
           <mat-paginator
@@ -450,7 +478,7 @@
             </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let c">
+              <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
                 <div class="portal-acciones-inner">
                   <button
                     mat-icon-button
@@ -466,7 +494,13 @@
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="portalSinCorreoColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: portalSinCorreoColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: portalSinCorreoColumns"
+              class="data-row data-row--interactive"
+              title="Doble clic para ver detalle"
+              (dblclick)="verDetalleCliente(row)"
+            ></tr>
           </table>
         </div>
         <mat-paginator
