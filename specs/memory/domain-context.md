@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-09-04 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` · **069** Fase 1 UX · **070** Fase 2: asistente «Llegó un paciente»; kits POS explotan `kitComponentes` (N salidas); sin BOM no se inventan componentes · **071** Fase 3: turno `Caja/Turnos/{fecha}`, ticket 80 mm + `Visitas.folio?` · **072** Fase 4: menú 6 grupos; `STAFF_MODULE_ACCESS` por rol; `Katzen/Config/clinica`.
+**Última revisión:** 2026-09-04 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` · **069** Fase 1 UX · **070** Fase 2: asistente «Llegó un paciente»; kits POS explotan `kitComponentes` (N salidas); sin BOM no se inventan componentes · **071** Fase 3: turno `Caja/Turnos/{fecha}`, ticket 80 mm + `Visitas.folio?` · **072** Fase 4: menú 6 grupos; `STAFF_MODULE_ACCESS` por rol; `Katzen/Config/clinica` · **074** portal dueño: cartilla + baños + avisos UX; citas read-only (solicitud futura `CitasSolicitud` solo en spec).
 
 ---
 
@@ -340,6 +340,7 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 - **Validación en código:** implementada en `CitasService` + `cita-agenda.util` (spec 003).
 - Revertir **completada → confirmada:** permitido para veterinarias / perfil veterinario (admins operativos).
 - **Portal:** citas canceladas **visibles** con motivo de cancelación obligatorio; filtro opcional "solo activas" para quien prefiera ocultar canceladas.
+- **Portal 074:** el dueño **no agenda**. Ve citas existentes. Futuro: solicitud → `pendiente_validacion` → vet confirma (`CitasSolicitud`, no implementado).
 - KPIs priorizan: pendiente > confirmada > completada > cancelada.
 
 ### 4.4 Historiales

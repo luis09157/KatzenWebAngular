@@ -27,7 +27,12 @@
 
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Viewport fijo: el scroll vive en .portal-main (html/body height:100% no debe clipar). */
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   background: var(--portal-bg);
   color: var(--portal-text);
   font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
@@ -47,8 +52,7 @@
 
 /* ----- Header web ----- */
 .portal-header {
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 100;
   background: var(--portal-surface);
   border-bottom: 1px solid var(--portal-border);
@@ -110,7 +114,9 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--portal-muted);
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .portal-nav-link mat-icon {
@@ -177,6 +183,7 @@
 
 /* ----- Page bar ----- */
 .portal-page-bar {
+  flex-shrink: 0;
   background: var(--portal-surface);
   border-bottom: 1px solid var(--portal-border);
 }
@@ -210,11 +217,17 @@
 
 /* ----- Main & footer ----- */
 .portal-main {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding: 32px 0 48px;
 }
 
 .portal-footer {
+  flex-shrink: 0;
   background: var(--portal-surface);
   border-top: 1px solid var(--portal-border);
   padding: 20px 0;
@@ -354,7 +367,10 @@
   box-shadow: var(--portal-shadow);
   text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .portal-pet-card:hover {
@@ -408,11 +424,43 @@
   color: var(--portal-muted);
 }
 
+.portal-pet-copy {
+  width: 100%;
+}
+
+.portal-pet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.portal-activity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(var(--brand-teal-rgb), 0.1);
+  color: #0f5c5e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.portal-activity-chip mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
 .portal-pet-action {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   margin-top: auto;
+  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--brand-teal);
@@ -465,13 +513,13 @@
 
 .portal-expediente-profile {
   padding: 0;
-  overflow: hidden;
+  overflow: hidden; /* solo redondeo del card; el scroll es .portal-main */
   background: var(--portal-surface);
   border: 1px solid var(--portal-border);
   border-radius: var(--portal-radius-lg);
   box-shadow: var(--portal-shadow);
   position: sticky;
-  top: 96px;
+  top: 16px; /* scrollport = .portal-main (header fuera) */
 }
 
 .portal-expediente-band {
@@ -549,10 +597,18 @@
   color: var(--portal-muted);
 }
 
-.portal-stat--vacunas strong { color: var(--katzen-vacunas); }
-.portal-stat--citas strong { color: var(--katzen-citas); }
-.portal-stat--historial strong { color: var(--katzen-historial); }
-.portal-stat--banos strong { color: #c27803; }
+.portal-stat--vacunas strong {
+  color: var(--katzen-vacunas);
+}
+.portal-stat--citas strong {
+  color: var(--katzen-citas);
+}
+.portal-stat--historial strong {
+  color: var(--katzen-historial);
+}
+.portal-stat--banos strong {
+  color: #c27803;
+}
 
 .portal-section-grid {
   display: grid;
@@ -571,7 +627,9 @@
   box-shadow: var(--portal-shadow);
   text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .portal-section-card:hover {
@@ -640,11 +698,26 @@
   font-weight: 800;
 }
 
-.badge-vacunas { background: rgba(var(--brand-teal-rgb), 0.12); color: var(--katzen-vacunas); }
-.badge-citas { background: rgba(69, 97, 121, 0.12); color: var(--katzen-citas); }
-.badge-historial { background: rgba(var(--brand-plum-rgb), 0.12); color: var(--katzen-historial); }
-.badge-banos { background: rgba(194, 120, 3, 0.12); color: #c27803; }
-.badge-consentimientos { background: rgba(46, 125, 110, 0.12); color: #2e7d6e; }
+.badge-vacunas {
+  background: rgba(var(--brand-teal-rgb), 0.12);
+  color: var(--katzen-vacunas);
+}
+.badge-citas {
+  background: rgba(69, 97, 121, 0.12);
+  color: var(--katzen-citas);
+}
+.badge-historial {
+  background: rgba(var(--brand-plum-rgb), 0.12);
+  color: var(--katzen-historial);
+}
+.badge-banos {
+  background: rgba(194, 120, 3, 0.12);
+  color: #c27803;
+}
+.badge-consentimientos {
+  background: rgba(46, 125, 110, 0.12);
+  color: #2e7d6e;
+}
 
 /* ----- Datos (vacunas, citas, historial, baños) ----- */
 .portal-data-panel {
@@ -668,9 +741,15 @@
   color: var(--brand-teal);
 }
 
-.section-vacunas .portal-data-panel-head mat-icon { color: var(--katzen-vacunas); }
-.section-citas .portal-data-panel-head mat-icon { color: var(--katzen-citas); }
-.section-historial .portal-data-panel-head mat-icon { color: var(--katzen-historial); }
+.section-vacunas .portal-data-panel-head mat-icon {
+  color: var(--katzen-vacunas);
+}
+.section-citas .portal-data-panel-head mat-icon {
+  color: var(--katzen-citas);
+}
+.section-historial .portal-data-panel-head mat-icon {
+  color: var(--katzen-historial);
+}
 
 .portal-data-panel-head h2 {
   margin: 0;
@@ -750,9 +829,18 @@
   text-transform: uppercase;
 }
 
-.chip-ok { background: rgba(var(--brand-teal-rgb), 0.12); color: var(--brand-teal); }
-.chip-pending { background: rgba(234, 179, 8, 0.15); color: #a16207; }
-.chip-warn { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.chip-ok {
+  background: rgba(var(--brand-teal-rgb), 0.12);
+  color: var(--brand-teal);
+}
+.chip-pending {
+  background: rgba(234, 179, 8, 0.15);
+  color: #a16207;
+}
+.chip-warn {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
 
 /* ----- Notificaciones ----- */
 .portal-notif-table {
@@ -961,13 +1049,16 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
+  min-height: 44px;
   border-radius: 999px;
   border: none;
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .portal-btn:hover:not(:disabled) {
@@ -1084,6 +1175,34 @@
   object-fit: contain;
   border-radius: 14px;
   margin-bottom: 16px;
+}
+
+.portal-login-eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-teal);
+}
+
+.portal-login-session {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f4f7f9;
+  border-radius: 16px;
+}
+
+.portal-login-staff {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--portal-muted);
+}
+
+.portal-login-staff a {
+  color: var(--brand-teal);
+  font-weight: 600;
 }
 
 .portal-login-brand h1 {
@@ -1213,7 +1332,9 @@
   height: auto !important;
   min-height: 44px;
   align-items: center;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .admin-sidenav .mat-mdc-list-item .mdc-list-item__primary-text,
@@ -1383,7 +1504,9 @@
   display: none;
 }
 
-.hide-mobile { display: inline; }
+.hide-mobile {
+  display: inline;
+}
 
 @media (max-width: 900px) {
   .portal-expediente-layout,

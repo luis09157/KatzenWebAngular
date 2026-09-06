@@ -34,6 +34,11 @@ export class PortalAuthService {
 
     await this.firebaseFunctions.syncMyClaims();
 
+    if (this.authSession.hasPendingContextChoice() && (await this.authProfileService.isDual())) {
+      await this.router.navigateByUrl('/auth/contexto');
+      return true;
+    }
+
     if (await this.tryEnterPortalAsClient()) {
       return true;
     }
@@ -53,13 +58,18 @@ export class PortalAuthService {
       const clienteId = await this.authProfileService.getClienteId();
       if (clienteId) {
         const cliente = await this.portalData.getCliente(clienteId);
-        if (!isPortalClienteActive(cliente)) {
+        if (cliente && !isPortalClienteActive(cliente)) {
           await this.authService.signOutOnly();
           return 'inactive';
         }
       }
+      if (hasStaff) {
+        this.authSession.setPortalEntryLock(false);
+        this.authSession.setPendingContextChoice(true);
+        return 'dual';
+      }
       this.authSession.setPortalEntryLock(true);
-      return hasStaff ? 'dual' : 'client';
+      return 'client';
     }
 
     if (hasStaff) {
@@ -77,7 +87,14 @@ export class PortalAuthService {
   }
 
   async navigateAfterLogin(result: PortalLoginResult): Promise<void> {
-    if (result === 'dual' || result === 'client') {
+    if (result === 'dual') {
+      this.authSession.setStaffEntryIntent(false);
+      this.authSession.setPortalEntryLock(false);
+      this.authSession.setPendingContextChoice(true);
+      await this.router.navigateByUrl('/auth/contexto');
+      return;
+    }
+    if (result === 'client') {
       this.authSession.setStaffEntryIntent(false);
       this.authSession.setPortalEntryLock(true);
       await this.router.navigateByUrl('/portal/mascotas');

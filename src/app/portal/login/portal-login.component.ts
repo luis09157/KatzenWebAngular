@@ -4,12 +4,12 @@ import { AppCheckService } from '../../core/app-check.service';
 import { PortalAuthService } from '../services/portal-auth.service';
 import { PortalSessionService, PortalSession } from '../services/portal-session.service';
 import { AuthSessionService } from '../../core/services/auth-session.service';
-import Swal from 'sweetalert2';
+import { mensajeErrorLoginPortal, mensajeEstadoLoginPortal } from '../utils/portal-login-error.util';
 
 @Component({
   selector: 'app-portal-login',
   templateUrl: './portal-login.component.html',
-  styleUrls: ['./portal-login.component.css']
+  styleUrls: ['./portal-login.component.css'],
 })
 export class PortalLoginComponent implements OnInit {
   email = '';
@@ -20,6 +20,7 @@ export class PortalLoginComponent implements OnInit {
   checkingSession = true;
   activeSession: PortalSession | null = null;
   showSessionPrompt = false;
+  loginError = '';
 
   constructor(
     private portalAuth: PortalAuthService,
@@ -51,42 +52,22 @@ export class PortalLoginComponent implements OnInit {
       return;
     }
     const email = this.email.trim();
+    this.loginError = '';
     if (!email || !this.password) {
-      Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña.' });
+      this.loginError = 'Escribe el correo y la contraseña que te dimos en la clínica o por correo.';
       return;
     }
 
     this.loading = true;
     try {
       const result = await this.portalAuth.login(email, this.password, this.keepSessionActive);
-      if (result === 'inactive') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Portal no activo',
-          text: 'Tu acceso al portal no está activo. Comunícate con la clínica para activarlo.'
-        });
+      if (result === 'inactive' || result === 'none' || result === 'staff') {
+        this.loginError = mensajeEstadoLoginPortal(result);
         return;
       }
-      if (result === 'none') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Sin acceso al portal',
-          text: 'No encontramos una cuenta de cliente con esas credenciales. Si eres personal, usa el acceso staff.'
-        });
-        return;
-      }
-      if (result === 'staff') {
-        Swal.fire({
-          icon: 'info',
-          title: 'Cuenta de personal',
-          text: 'Este acceso es solo para dueños. El personal debe entrar por Acceso staff (/admin/login).'
-        });
-        return;
-      }
-      // dual y client → siempre portal (sin /auth/contexto ni admin).
       await this.portalAuth.navigateAfterLogin(result);
-    } catch {
-      Swal.fire({ icon: 'error', title: 'No pudimos iniciar sesión', text: 'Revisa tu correo y contraseña.' });
+    } catch (error) {
+      this.loginError = mensajeErrorLoginPortal(error);
     } finally {
       this.loading = false;
     }
@@ -104,5 +85,9 @@ export class PortalLoginComponent implements OnInit {
 
   irALanding(): void {
     this.router.navigate(['/']);
+  }
+
+  irALandingRegistro(): void {
+    this.router.navigate(['/'], { queryParams: { abrirRegistro: '1' } });
   }
 }

@@ -65,7 +65,9 @@
   border: none;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-premium);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .premium-card:hover {
@@ -315,7 +317,9 @@
   border: none !important;
   min-height: 72px;
   padding: 0 16px;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
   animation: slideDown 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -376,7 +380,15 @@
 }
 
 .nav-portal-btn {
-  color: var(--text-muted) !important;
+  min-height: 44px;
+}
+
+.landing-menu-item {
+  min-height: 44px;
+}
+
+.landing-menu-item--owner {
+  font-weight: 700;
 }
 
 .mobile-menu-button {
@@ -400,8 +412,7 @@
   background:
     radial-gradient(ellipse 70% 55% at 90% 0%, rgba(var(--brand-cyan-rgb), 0.1), transparent 60%),
     radial-gradient(ellipse 50% 45% at 0% 100%, rgba(var(--brand-plum-rgb), 0.06), transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(var(--brand-teal-rgb), 0.05), transparent 50%),
-    var(--soft-bg);
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(var(--brand-teal-rgb), 0.05), transparent 50%), var(--soft-bg);
   overflow: visible;
 }
 
@@ -483,7 +494,9 @@
   min-width: 150px;
   flex: 1 1 150px;
   max-width: 210px;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .trust-badge:hover {
@@ -583,13 +596,24 @@
 }
 
 @keyframes floatSoft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-copy {
@@ -616,8 +640,12 @@
 }
 
 @keyframes modalBackdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalCardIn {
@@ -632,7 +660,8 @@
 }
 
 @keyframes fabPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: var(--shadow-teal-btn);
   }
   50% {
@@ -643,9 +672,15 @@
 }
 
 @keyframes shimmerBand {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Scroll reveal — activado por IntersectionObserver (.is-visible) */
@@ -677,13 +712,27 @@
   transform: translateY(0);
 }
 
-.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
-.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 70ms; }
-.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 140ms; }
-.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 210ms; }
-.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 280ms; }
-.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 350ms; }
-.reveal-stagger.is-visible > *:nth-child(n+7) { transition-delay: 420ms; }
+.reveal-stagger.is-visible > *:nth-child(1) {
+  transition-delay: 0ms;
+}
+.reveal-stagger.is-visible > *:nth-child(2) {
+  transition-delay: 70ms;
+}
+.reveal-stagger.is-visible > *:nth-child(3) {
+  transition-delay: 140ms;
+}
+.reveal-stagger.is-visible > *:nth-child(4) {
+  transition-delay: 210ms;
+}
+.reveal-stagger.is-visible > *:nth-child(5) {
+  transition-delay: 280ms;
+}
+.reveal-stagger.is-visible > *:nth-child(6) {
+  transition-delay: 350ms;
+}
+.reveal-stagger.is-visible > *:nth-child(n + 7) {
+  transition-delay: 420ms;
+}
 
 /* Hover lift en tarjetas premium (complementa reveal) */
 .premium-card,
@@ -994,7 +1043,9 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 .service-card:hover {
@@ -1094,7 +1145,9 @@
 
 .testimonial-card {
   padding: 24px !important;
-  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease !important;
 }
 
 .testimonial-card:hover {
@@ -1309,7 +1362,9 @@
 .doctor-card {
   overflow: hidden;
   padding: 0 !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 .doctor-card:hover {
@@ -1657,22 +1712,27 @@
 .portal-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 4000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* Fondo sólido: sin blur (evita manchas / contenido que se filtra abajo). */
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .portal-modal {
+  position: relative;
+  z-index: 4001;
+  isolation: isolate;
   width: 100%;
   max-width: 420px;
   border-radius: var(--radius-xl) !important;
   overflow: hidden;
-  box-shadow: var(--shadow-hover) !important;
+  background: #fff !important;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.35) !important;
   border: none !important;
 }
 
@@ -1803,7 +1863,9 @@
   z-index: 1050;
   background: var(--primary-teal) !important;
   box-shadow: var(--shadow-teal-btn) !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease !important;
 }
 
 .float-whatsapp-fab:hover {

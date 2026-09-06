@@ -29,35 +29,45 @@
       </div>
     </div>
 
-    <div class="portal-info-panel">
-      <div class="portal-info-row">
-        <div class="portal-info-icon"><mat-icon>notifications</mat-icon></div>
-        <div class="portal-info-push">
-          <span class="portal-info-label">Avisos en el dispositivo</span>
-          <span class="portal-info-value">Te avisamos cerca de la fecha acordada en clínica (no el día de la vacuna a largo plazo).</span>
-          <p class="portal-push-hint" *ngIf="showIosInstallHint">
-            En iPhone: toca Compartir y luego «Añadir a pantalla de inicio». Así el portal queda como app y puedes activar avisos.
-          </p>
+    <section class="portal-avisos-hero" aria-label="Activar avisos">
+      <div class="portal-avisos-hero__icon">
+        <mat-icon>notifications_active</mat-icon>
+      </div>
+      <div>
+        <h3>Activar avisos</h3>
+        <p>
+          Te avisamos cerca de la fecha acordada en clínica (refuerzos, citas). No el día en que se vacunó a largo
+          plazo.
+        </p>
+        <p class="portal-push-hint" *ngIf="showIosInstallHint">
+          En iPhone: Compartir → Añadir a inicio, luego Activar avisos.
+        </p>
+        <div class="portal-avisos-hero__actions">
+          <button
+            type="button"
+            class="portal-btn portal-btn-primary portal-btn-push"
+            (click)="activarNotificacionesPush()"
+            [disabled]="registeringPush || mustChangePassword"
+          >
+            <mat-icon>notifications_active</mat-icon>
+            {{ etiquetaBotonPush() }}
+          </button>
           <button
             type="button"
             class="portal-btn portal-btn-outline portal-btn-push"
             *ngIf="installAvailable && !mustChangePassword"
             (click)="instalarPortal()"
-            [disabled]="installingPwa">
+            [disabled]="installingPwa"
+          >
             <mat-icon>install_mobile</mat-icon>
-            {{ installingPwa ? 'Instalando…' : 'Instalar portal en este dispositivo' }}
+            {{ installingPwa ? 'Instalando…' : 'Instalar en este teléfono' }}
           </button>
-          <button
-            type="button"
-            class="portal-btn portal-btn-outline portal-btn-push"
-            (click)="activarNotificacionesPush()"
-            [disabled]="registeringPush || mustChangePassword">
-            <mat-icon>notifications_active</mat-icon>
-            {{ etiquetaBotonPush() }}
-          </button>
-          <p class="portal-push-hint" *ngIf="pushDetail">{{ pushDetail }}</p>
         </div>
+        <p class="portal-push-hint" *ngIf="pushDetail">{{ pushDetail }}</p>
       </div>
+    </section>
+
+    <div class="portal-info-panel">
       <div class="portal-info-row">
         <div class="portal-info-icon"><mat-icon>phone</mat-icon></div>
         <div>
@@ -106,7 +116,8 @@
         type="button"
         class="portal-btn portal-btn-primary portal-btn-primary-action"
         (click)="changePassword()"
-        [disabled]="changingPassword">
+        [disabled]="changingPassword"
+      >
         <mat-icon *ngIf="!changingPassword">check_circle</mat-icon>
         {{ changingPassword ? 'Guardando…' : 'Guardar nueva contraseña' }}
       </button>
@@ -117,7 +128,8 @@
         type="button"
         class="portal-btn portal-btn-outline"
         *ngIf="!mustChangePassword"
-        (click)="togglePasswordForm()">
+        (click)="togglePasswordForm()"
+      >
         <mat-icon>{{ showPasswordForm ? 'expand_less' : 'lock' }}</mat-icon>
         {{ showPasswordForm ? 'Ocultar cambio de contraseña' : 'Cambiar contraseña' }}
       </button>

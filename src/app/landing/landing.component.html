@@ -2,7 +2,7 @@
 <mat-toolbar class="landing-toolbar" [class.scrolled]="isScrolled">
   <div class="toolbar-inner">
     <a class="brand-block" (click)="scrollToSection('inicio')" role="button" tabindex="0">
-      <img src="assets/katzen-logo.png" alt="KatzenVet" class="brand-logo" width="40" height="40">
+      <img src="assets/katzen-logo.png" alt="KatzenVet" class="brand-logo" width="40" height="40" />
       <span class="brand-name">KatzenVet</span>
     </a>
 
@@ -14,23 +14,40 @@
     </nav>
 
     <div class="nav-actions">
-      <button mat-button class="hide-mobile nav-portal-btn" (click)="openPortalLogin()">
-        Portal Clientes
+      <button
+        type="button"
+        class="btn-premium btn-premium-secondary btn-premium-sm hide-mobile nav-portal-btn"
+        (click)="openPortalLogin()"
+      >
+        Soy cliente
       </button>
-      <button type="button" class="btn-premium btn-premium-primary btn-premium-sm hide-mobile" (click)="agendarCita('navbar')">
-        Contactar para cita
+      <button
+        type="button"
+        class="btn-premium btn-premium-primary btn-premium-sm hide-mobile"
+        (click)="agendarCita('navbar')"
+      >
+        Contactar a la clínica
       </button>
-      <button mat-icon-button class="mobile-menu-button mobile-visible" [matMenuTriggerFor]="mobileMenu" aria-label="Menú">
+      <button
+        mat-icon-button
+        class="mobile-menu-button mobile-visible"
+        [matMenuTriggerFor]="mobileMenu"
+        aria-label="Menú"
+      >
         <mat-icon>menu</mat-icon>
       </button>
-      <mat-menu #mobileMenu="matMenu">
-        <button mat-menu-item (click)="scrollToSection('inicio')">Inicio</button>
-        <button mat-menu-item (click)="scrollToSection('servicios')">Servicios</button>
-        <button mat-menu-item (click)="scrollToSection('nosotros')">Nosotros</button>
-        <button mat-menu-item (click)="scrollToSection('contacto')">Contacto</button>
+      <mat-menu #mobileMenu="matMenu" class="landing-mobile-menu">
+        <button mat-menu-item class="landing-menu-item" (click)="scrollToSection('inicio')">Inicio</button>
+        <button mat-menu-item class="landing-menu-item" (click)="scrollToSection('servicios')">Servicios</button>
+        <button mat-menu-item class="landing-menu-item" (click)="scrollToSection('nosotros')">Nosotros</button>
+        <button mat-menu-item class="landing-menu-item" (click)="scrollToSection('contacto')">Contacto</button>
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="openPortalLogin()">Portal Clientes</button>
-        <button mat-menu-item (click)="agendarCita('navbar_mobile')">Contactar para cita</button>
+        <button mat-menu-item class="landing-menu-item landing-menu-item--owner" (click)="openPortalLogin()">
+          Soy cliente · Entrar al portal
+        </button>
+        <button mat-menu-item class="landing-menu-item" (click)="agendarCita('navbar_mobile')">
+          Contactar a la clínica
+        </button>
       </mat-menu>
     </div>
   </div>
@@ -49,15 +66,21 @@
       </div>
       <h1 class="hero-title">El cuidado médico que tu mascota merece, <span class="hero-accent">24/7</span></h1>
       <p class="hero-lead">
-        Más de <strong>10 años</strong> cuidando perros y gatos en Guadalupe. Consultas, vacunas, cirugías,
-        laboratorio y emergencias con un equipo que trata a tu mascota como familia.
+        Más de <strong>10 años</strong> cuidando perros y gatos en Guadalupe. Consultas, vacunas, cirugías, laboratorio
+        y emergencias con un equipo que trata a tu mascota como familia.
       </p>
       <div class="hero-cta-row">
         <button type="button" class="btn-premium btn-premium-primary" (click)="agendarCita('hero')">
-          <mat-icon>event_available</mat-icon>
-          Contactar para cita en línea
+          <mat-icon>call</mat-icon>
+          Contactar a la clínica
         </button>
-        <a class="btn-premium btn-premium-secondary" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('hero')">
+        <a
+          class="btn-premium btn-premium-secondary"
+          [href]="whatsappFullUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="trackWhatsApp('hero')"
+        >
           <mat-icon>chat</mat-icon>
           Hablar por WhatsApp
         </a>
@@ -78,7 +101,13 @@
     <div class="hero-visual">
       <div class="hero-visual-glow" aria-hidden="true"></div>
       <div class="hero-visual-float">
-        <img src="assets/pets-hero.svg" alt="Veterinaria cuidando mascotas con cariño" class="hero-visual-img" width="420" height="420">
+        <img
+          src="assets/pets-hero.svg"
+          alt="Veterinaria cuidando mascotas con cariño"
+          class="hero-visual-img"
+          width="420"
+          height="420"
+        />
         <div class="hero-visual-badge">
           <mat-icon>favorite</mat-icon>
           <span>Mascotas felices</span>
@@ -96,7 +125,12 @@
       <p class="quick-services-lead">Todo lo que tu mascota necesita, en un solo lugar</p>
     </div>
     <div class="quick-services-grid reveal-stagger">
-      <button type="button" class="premium-card quick-service-item" *ngFor="let s of servicios | slice:0:6" (click)="scrollToSection('servicios')">
+      <button
+        type="button"
+        class="premium-card quick-service-item"
+        *ngFor="let s of servicios | slice: 0 : 6"
+        (click)="scrollToSection('servicios')"
+      >
         <span class="premium-icon-wrap premium-icon-wrap-sm quick-service-icon">
           <mat-icon>{{ s.materialIcon }}</mat-icon>
         </span>
@@ -110,11 +144,10 @@
 <section id="portal-duenos" class="landing-portal reveal" aria-labelledby="portal-duenos-title">
   <div class="container">
     <div class="portal-header reveal">
-      <span class="section-eyebrow">Portal clínico</span>
-      <h2 id="portal-duenos-title">Tu expediente veterinario digital</h2>
+      <span class="section-eyebrow">Soy cliente</span>
+      <h2 id="portal-duenos-title">Entra al portal de dueños</h2>
       <p class="section-lead">
-        Vacunas, citas, historial clínico y avisos de la clínica — la misma información que en la app Katzen,
-        disponible cuando la necesites.
+        Vacunas, cuándo bañaron a tus perros, historial y avisos — solo consulta, desde el celular.
       </p>
     </div>
 
@@ -135,13 +168,13 @@
         </div>
         <div>
           <strong>¿Ya eres cliente?</strong>
-          <span>Consulta vacunas, citas e historial de tu mascota</span>
+          <span>Entra al portal: cartilla, baños, vacunas y avisos</span>
         </div>
       </div>
       <div class="portal-access-actions">
         <button type="button" class="btn-premium btn-premium-secondary btn-premium-sm" (click)="openPortalLogin()">
           <mat-icon>login</mat-icon>
-          Acceder al portal
+          Entrar al portal
         </button>
         <button type="button" class="btn-premium btn-premium-primary btn-premium-sm" (click)="openPortalRegister()">
           <mat-icon>person_add</mat-icon>
@@ -164,7 +197,7 @@
     </div>
 
     <div class="why-grid reveal-stagger">
-      <article class="premium-card why-card" *ngFor="let item of porQueElegirnos | slice:0:6">
+      <article class="premium-card why-card" *ngFor="let item of porQueElegirnos | slice: 0 : 6">
         <div class="premium-icon-wrap why-icon-container">
           <mat-icon class="why-icon">{{ item.icon }}</mat-icon>
         </div>
@@ -185,51 +218,64 @@
     <div class="section-header reveal">
       <span class="section-eyebrow">Nuestros servicios</span>
       <h2 id="servicios-title" class="section-title">Cuidado veterinario completo en Guadalupe</h2>
-      <p class="section-subtitle">Consultas, vacunas, cirugías, laboratorio y emergencias 24 horas para perros y gatos.</p>
+      <p class="section-subtitle">
+        Consultas, vacunas, cirugías, laboratorio y emergencias 24 horas para perros y gatos.
+      </p>
     </div>
-    
+
     <div class="services-grid reveal-stagger">
       <mat-card appearance="elevated" class="service-card" *ngFor="let servicio of servicios; let i = index">
         <div class="service-card-header">
           <div class="premium-icon-wrap premium-icon-wrap-sm service-icon">
-            <mat-icon>{{servicio.materialIcon}}</mat-icon>
+            <mat-icon>{{ servicio.materialIcon }}</mat-icon>
           </div>
-          <h3 class="service-title">{{servicio.titulo}}</h3>
+          <h3 class="service-title">{{ servicio.titulo }}</h3>
         </div>
-        
-        <p class="service-description">{{servicio.descripcion}}</p>
-        
+
+        <p class="service-description">{{ servicio.descripcion }}</p>
+
         <div class="service-details">
           <div class="service-price">
-            <span class="price-amount">${{servicio.precio}}</span>
-            <span class="price-duration">{{servicio.duracion}}</span>
+            <span class="price-amount">${{ servicio.precio }}</span>
+            <span class="price-duration">{{ servicio.duracion }}</span>
           </div>
-          
+
           <div class="service-features">
             <div class="feature-item" *ngFor="let feature of servicio.features">
               <mat-icon class="feature-icon">check_circle</mat-icon>
-              <span>{{feature}}</span>
+              <span>{{ feature }}</span>
             </div>
           </div>
         </div>
-        
-        <button mat-stroked-button color="primary" class="service-cta" (click)="agendarCita('servicio_' + i)">
+
+        <!-- spec 074: no hay alta de cita en línea. Conservar markup. -->
+        <button
+          *ngIf="false"
+          mat-stroked-button
+          color="primary"
+          class="service-cta"
+          (click)="agendarCita('servicio_' + i)"
+        >
           <mat-icon>event</mat-icon>
           Agendar
         </button>
-        
+        <button mat-stroked-button color="primary" class="service-cta" (click)="agendarCita('servicio_' + i)">
+          <mat-icon>call</mat-icon>
+          Contactar
+        </button>
+
         <button mat-button class="service-toggle" (click)="toggleService(i)">
           <span *ngIf="!servicio.expanded">Ver más detalles</span>
           <span *ngIf="servicio.expanded">Ocultar detalles</span>
-          <mat-icon>{{servicio.expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+          <mat-icon>{{ servicio.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
         </button>
-        
+
         <div class="service-expanded" *ngIf="servicio.expanded">
           <mat-divider></mat-divider>
           <div class="expanded-content">
             <h4>Incluye:</h4>
             <ul class="includes-list">
-              <li *ngFor="let item of servicio.incluye">{{item}}</li>
+              <li *ngFor="let item of servicio.incluye">{{ item }}</li>
             </ul>
           </div>
         </div>
@@ -251,40 +297,48 @@
       <h2 id="testimonios-title" class="section-title">Lo que dicen nuestros clientes</h2>
       <p class="section-subtitle">Familias de Guadalupe que confían en nosotros para el cuidado de sus mascotas</p>
     </div>
-    
+
     <div class="testimonials-grid reveal-stagger">
       <mat-card class="testimonial-card" *ngFor="let testimonio of testimonios">
         <div class="testimonial-header">
-          <img [src]="testimonio.avatar" [alt]="testimonio.nombre" class="testimonial-avatar" loading="lazy" decoding="async">
+          <img
+            [src]="testimonio.avatar"
+            [alt]="testimonio.nombre"
+            class="testimonial-avatar"
+            loading="lazy"
+            decoding="async"
+          />
           <div class="testimonial-info">
-            <h3 class="testimonial-name">{{testimonio.nombre}}</h3>
+            <h3 class="testimonial-name">{{ testimonio.nombre }}</h3>
             <div class="testimonial-location">
               <mat-icon class="location-icon">location_on</mat-icon>
-              <span>{{testimonio.ubicacion}}</span>
+              <span>{{ testimonio.ubicacion }}</span>
             </div>
           </div>
         </div>
-        
+
         <div class="testimonial-rating">
-          <mat-icon *ngFor="let star of [1,2,3,4,5]" class="rating-star">star</mat-icon>
-          <span class="testimonial-date">{{testimonio.fecha}}</span>
+          <mat-icon *ngFor="let star of [1, 2, 3, 4, 5]" class="rating-star">star</mat-icon>
+          <span class="testimonial-date">{{ testimonio.fecha }}</span>
         </div>
-        
-        <p class="testimonial-text">"{{testimonio.testimonio}}"</p>
-        
+
+        <p class="testimonial-text">"{{ testimonio.testimonio }}"</p>
+
         <div class="testimonial-footer">
           <mat-icon class="google-verified">verified</mat-icon>
           <span>Verificado en Google</span>
         </div>
       </mat-card>
     </div>
-    
+
     <div class="testimonials-cta">
-      <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
-         target="_blank" 
-         rel="noopener noreferrer"
-         mat-flat-button
-         color="primary">
+      <a
+        href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA"
+        target="_blank"
+        rel="noopener noreferrer"
+        mat-flat-button
+        color="primary"
+      >
         <mat-icon>rate_review</mat-icon>
         Ver reseñas en Google
       </a>
@@ -300,33 +354,32 @@
       <h2 id="faq-title" class="section-title">Preguntas frecuentes</h2>
       <p class="section-subtitle">Resolvemos las dudas más comunes sobre nuestros servicios veterinarios</p>
     </div>
-    
+
     <div class="faq-container reveal-stagger">
-      <mat-card class="faq-item" *ngFor="let faq of faqs; let i = index" 
-                [class.expanded]="faq.expanded">
+      <mat-card class="faq-item" *ngFor="let faq of faqs; let i = index" [class.expanded]="faq.expanded">
         <div class="faq-question" (click)="toggleFaq(i)">
           <div class="faq-question-content">
-            <mat-icon class="faq-icon">{{faq.icon}}</mat-icon>
-            <h3>{{faq.pregunta}}</h3>
+            <mat-icon class="faq-icon">{{ faq.icon }}</mat-icon>
+            <h3>{{ faq.pregunta }}</h3>
           </div>
-          <mat-icon class="faq-toggle-icon" [class.rotated]="faq.expanded">
-            expand_more
-          </mat-icon>
+          <mat-icon class="faq-toggle-icon" [class.rotated]="faq.expanded"> expand_more </mat-icon>
         </div>
         <div class="faq-answer" [@expandCollapse]="faq.expanded ? 'expanded' : 'collapsed'">
-          <p>{{faq.respuesta}}</p>
+          <p>{{ faq.respuesta }}</p>
         </div>
       </mat-card>
     </div>
-    
+
     <div class="faq-footer">
       <p class="faq-footer-text">¿No encuentras tu respuesta?</p>
-      <a [href]="whatsappFullUrl"
-         target="_blank"
-         rel="noopener noreferrer"
-         mat-flat-button
-         color="primary"
-         (click)="trackWhatsApp('faq')">
+      <a
+        [href]="whatsappFullUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        mat-flat-button
+        color="primary"
+        (click)="trackWhatsApp('faq')"
+      >
         <mat-icon>chat</mat-icon>
         Contáctanos por WhatsApp
       </a>
@@ -340,28 +393,37 @@
     <div class="section-header reveal">
       <span class="section-eyebrow">Nuestro equipo</span>
       <h2 id="equipo-title" class="section-title">Veterinarios certificados en Guadalupe</h2>
-      <p class="section-subtitle">Médicos con más de 10 años de experiencia en medicina general, cirugía y emergencias</p>
+      <p class="section-subtitle">
+        Médicos con más de 10 años de experiencia en medicina general, cirugía y emergencias
+      </p>
     </div>
-    
+
     <div class="team-grid reveal-stagger">
       <mat-card class="doctor-card" *ngFor="let doctor of equipoMedico" itemscope itemtype="https://schema.org/Person">
         <div class="doctor-image-container">
-          <img [src]="doctor.imagen" [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'" class="doctor-image" loading="lazy" decoding="async" itemprop="image">
+          <img
+            [src]="doctor.imagen"
+            [alt]="'Veterinaria ' + doctor.nombre + ' - ' + doctor.especialidad + ' en Guadalupe, N.L.'"
+            class="doctor-image"
+            loading="lazy"
+            decoding="async"
+            itemprop="image"
+          />
         </div>
-        
+
         <div class="doctor-info">
-          <h3 class="doctor-name">{{doctor.nombre}}</h3>
-          <p class="doctor-specialty">{{doctor.especialidad}}</p>
-          <p class="doctor-description">{{doctor.descripcion}}</p>
-          
+          <h3 class="doctor-name">{{ doctor.nombre }}</h3>
+          <p class="doctor-specialty">{{ doctor.especialidad }}</p>
+          <p class="doctor-description">{{ doctor.descripcion }}</p>
+
           <div class="doctor-credentials">
             <div class="credential-item">
               <mat-icon class="credential-icon">schedule</mat-icon>
-              <span>{{doctor.experiencia}}</span>
+              <span>{{ doctor.experiencia }}</span>
             </div>
             <div class="credential-item" *ngFor="let cert of doctor.certificaciones">
               <mat-icon class="credential-icon">school</mat-icon>
-              <span>{{cert}}</span>
+              <span>{{ cert }}</span>
             </div>
           </div>
         </div>
@@ -378,7 +440,7 @@
       <h2 id="ubicacion-title" class="section-title">Nuestra ubicación</h2>
       <p class="section-subtitle">C. Zinc 318, Los Cristales — Guadalupe, N.L. · Estacionamiento gratuito</p>
     </div>
-    
+
     <div class="location-content reveal-stagger">
       <div class="location-info-card">
         <mat-card>
@@ -387,27 +449,27 @@
               <mat-icon class="detail-icon">place</mat-icon>
               <div class="detail-content">
                 <h3>Dirección</h3>
-                <p>C. Zinc 318, Los Cristales 1er Sector<br>Guadalupe, Nuevo León, 67117</p>
+                <p>C. Zinc 318, Los Cristales 1er Sector<br />Guadalupe, Nuevo León, 67117</p>
               </div>
             </div>
-            
+
             <mat-divider></mat-divider>
-            
+
             <div class="location-detail-item">
               <mat-icon class="detail-icon">schedule</mat-icon>
               <div class="detail-content">
                 <h3>Horarios de Atención</h3>
                 <div class="horarios-list">
                   <div class="horario-item" *ngFor="let horario of horarios">
-                    <span class="dia">{{horario.dia}}</span>
-                    <span class="hora">{{horario.horario}}</span>
+                    <span class="dia">{{ horario.dia }}</span>
+                    <span class="hora">{{ horario.horario }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <mat-divider></mat-divider>
-            
+
             <div class="location-detail-item">
               <mat-icon class="detail-icon">phone</mat-icon>
               <div class="detail-content">
@@ -419,9 +481,9 @@
                 </a>
               </div>
             </div>
-            
+
             <mat-divider></mat-divider>
-            
+
             <div class="location-detail-item">
               <mat-icon class="detail-icon">directions_car</mat-icon>
               <div class="detail-content">
@@ -430,38 +492,54 @@
               </div>
             </div>
           </div>
-          
+
           <div class="location-actions">
-            <a href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               mat-flat-button 
-               color="primary">
+            <a
+              href="https://maps.app.goo.gl/iT4227wUtcfGk1rTA"
+              target="_blank"
+              rel="noopener noreferrer"
+              mat-flat-button
+              color="primary"
+            >
               <mat-icon>directions</mat-icon>
               Cómo llegar
             </a>
-            
-            <a href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita"
-               target="_blank"
-               rel="noopener noreferrer"
-               mat-stroked-button>
+
+            <!-- spec 074: oculto «Agendar cita». WhatsApp sigue siendo contacto. -->
+            <a
+              *ngIf="false"
+              href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20agendar%20una%20cita"
+              target="_blank"
+              rel="noopener noreferrer"
+              mat-stroked-button
+            >
               <mat-icon>event</mat-icon>
               Agendar cita
+            </a>
+            <a
+              href="https://wa.me/528136024090?text=Hola%2C%20quisiera%20información%20para%20mi%20mascota"
+              target="_blank"
+              rel="noopener noreferrer"
+              mat-stroked-button
+            >
+              <mat-icon>chat</mat-icon>
+              WhatsApp
             </a>
           </div>
         </mat-card>
       </div>
-      
+
       <div class="map-container">
-        <iframe 
+        <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3595.8234567890123!2d-100.258923!3d25.682458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8662954321fedcba%3A0x1234567890abcdef!2sC.%20Zinc%20318%2C%20Los%20Cristales%201er%20Sector%2C%2067117%20Guadalupe%2C%20N.L.!5e0!3m2!1ses!2smx!4v1234567890123!5m2!1ses!2smx"
-          width="100%" 
-          height="100%" 
-          style="border:0;" 
-          allowfullscreen="" 
-          loading="lazy" 
+          width="100%"
+          height="100%"
+          style="border: 0"
+          allowfullscreen=""
+          loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
-          title="Ubicación de KatzenVet - Clínica Veterinaria en Guadalupe">
+          title="Ubicación de KatzenVet - Clínica Veterinaria en Guadalupe"
+        >
         </iframe>
       </div>
     </div>
@@ -471,7 +549,8 @@
 <!-- ===== CONTACTO SECTION ===== -->
 <section id="contacto" class="contact reveal" aria-labelledby="contacto-title">
   <div class="container">
-    <mat-card appearance="filled" class="urgency-inline" *ngIf="showUrgencyBanner">
+    <!-- spec 074: banner de escasez de citas oculto (implicaba agendar en línea). -->
+    <mat-card appearance="filled" class="urgency-inline" *ngIf="false && showUrgencyBanner">
       <div class="urgency-content">
         <mat-icon class="urgency-icon">schedule</mat-icon>
         <div class="urgency-text">
@@ -485,7 +564,7 @@
     </mat-card>
 
     <div class="section-header reveal">
-      <span class="section-eyebrow">Agenda tu cita</span>
+      <span class="section-eyebrow">Habla con la clínica</span>
       <h2 id="contacto-title" class="section-title">Contáctanos hoy</h2>
       <p class="section-subtitle">C. Zinc 318, Guadalupe · 81 3602 4090 · WhatsApp 24/7 · Lunes a sábado</p>
     </div>
@@ -494,79 +573,84 @@
     <div class="contact-redes-destacadas">
       <p class="contact-redes-titulo">Respuesta rápida por WhatsApp o Facebook</p>
       <div class="contact-redes-buttons">
-        <a mat-flat-button color="primary" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('contacto')">
+        <a
+          mat-flat-button
+          color="primary"
+          [href]="whatsappFullUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="trackWhatsApp('contacto')"
+        >
           <mat-icon>chat</mat-icon>
           Escribir por WhatsApp
         </a>
-        <a mat-stroked-button [href]="facebookUrl" target="_blank" rel="noopener noreferrer" (click)="trackFacebook('contacto')">
+        <a
+          mat-stroked-button
+          [href]="facebookUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="trackFacebook('contacto')"
+        >
           <mat-icon>facebook</mat-icon>
           Visitar Facebook
         </a>
       </div>
     </div>
-    
+
     <div class="contact-content reveal-stagger">
       <div class="contact-info">
         <h3 class="contact-info-title">Información de Contacto</h3>
-        
+
         <div class="contact-items">
           <div class="contact-item" *ngFor="let info of contactInfo">
             <div class="contact-icon">
-              <mat-icon>{{info.icon}}</mat-icon>
+              <mat-icon>{{ info.icon }}</mat-icon>
             </div>
-            
+
             <div class="contact-details">
-              <h4 class="contact-item-title">{{info.title}}</h4>
-              <p class="contact-item-content">{{info.content}}</p>
-              
+              <h4 class="contact-item-title">{{ info.title }}</h4>
+              <p class="contact-item-content">{{ info.content }}</p>
+
               <a *ngIf="info.link" [href]="info.link" class="contact-link" target="_blank">
-                {{info.linkText}}
+                {{ info.linkText }}
               </a>
             </div>
           </div>
         </div>
-        
+
         <div class="schedule-info">
           <h4>Horarios de Atención</h4>
           <div class="schedule-list">
             <div class="schedule-item" *ngFor="let horario of horarios">
-              <span class="schedule-day">{{horario.dia}}</span>
-              <span class="schedule-time">{{horario.horario}}</span>
+              <span class="schedule-day">{{ horario.dia }}</span>
+              <span class="schedule-time">{{ horario.horario }}</span>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="contact-form-container">
         <mat-card class="contact-form-card">
           <h3 class="form-title">Envíanos un Mensaje</h3>
-          
+
           <form [formGroup]="contactForm" (ngSubmit)="onSubmitContacto()" class="contact-form">
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Nombre completo</mat-label>
-              <input matInput formControlName="nombre" placeholder="Tu nombre">
-              <mat-error *ngIf="contactForm.get('nombre')?.hasError('required')">
-                El nombre es requerido
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('nombre')?.hasError('minlength')">
-                Mínimo 2 caracteres
-              </mat-error>
+              <input matInput formControlName="nombre" placeholder="Tu nombre" />
+              <mat-error *ngIf="contactForm.get('nombre')?.hasError('required')"> El nombre es requerido </mat-error>
+              <mat-error *ngIf="contactForm.get('nombre')?.hasError('minlength')"> Mínimo 2 caracteres </mat-error>
             </mat-form-field>
-            
+
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" placeholder="tu@email.com">
-              <mat-error *ngIf="contactForm.get('email')?.hasError('required')">
-                El email es requerido
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('email')?.hasError('email')">
-                Ingresa un email válido
-              </mat-error>
+              <input matInput formControlName="email" type="email" placeholder="tu@email.com" />
+              <mat-error *ngIf="contactForm.get('email')?.hasError('required')"> El email es requerido </mat-error>
+              <mat-error *ngIf="contactForm.get('email')?.hasError('email')"> Ingresa un email válido </mat-error>
             </mat-form-field>
-            
+
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Teléfono</mat-label>
-              <input matInput formControlName="telefono" placeholder="+52 81 1234 5678">
+              <input matInput formControlName="telefono" placeholder="+52 81 1234 5678" />
               <mat-error *ngIf="contactForm.get('telefono')?.hasError('required')">
                 El teléfono es requerido
               </mat-error>
@@ -574,30 +658,31 @@
                 Formato de teléfono inválido
               </mat-error>
             </mat-form-field>
-            
+
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Nombre de tu mascota</mat-label>
-              <input matInput formControlName="mascota" placeholder="Nombre de tu mascota">
+              <input matInput formControlName="mascota" placeholder="Nombre de tu mascota" />
               <mat-error *ngIf="contactForm.get('mascota')?.hasError('required')">
                 El nombre de la mascota es requerido
               </mat-error>
             </mat-form-field>
-            
+
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Mensaje</mat-label>
-              <textarea matInput formControlName="mensaje" rows="4" placeholder="Cuéntanos sobre tu mascota y cómo podemos ayudarte..."></textarea>
-              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('required')">
-                El mensaje es requerido
-              </mat-error>
-              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('minlength')">
-                Mínimo 10 caracteres
-              </mat-error>
+              <textarea
+                matInput
+                formControlName="mensaje"
+                rows="4"
+                placeholder="Cuéntanos sobre tu mascota y cómo podemos ayudarte..."
+              ></textarea>
+              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('required')"> El mensaje es requerido </mat-error>
+              <mat-error *ngIf="contactForm.get('mensaje')?.hasError('minlength')"> Mínimo 10 caracteres </mat-error>
             </mat-form-field>
-            
+
             <button mat-flat-button color="primary" type="submit" class="full-width" [disabled]="isSubmitting">
               <mat-icon *ngIf="!isSubmitting">send</mat-icon>
               <mat-icon *ngIf="isSubmitting" class="loading-icon">hourglass_empty</mat-icon>
-              <span>{{isSubmitting ? 'Enviando…' : 'Enviar mensaje'}}</span>
+              <span>{{ isSubmitting ? 'Enviando…' : 'Enviar mensaje' }}</span>
             </button>
           </form>
         </mat-card>
@@ -607,19 +692,38 @@
 </section>
 
 <!-- FAB WhatsApp (único, sin solapamiento) -->
-<a mat-fab color="primary" class="float-whatsapp-fab fab-pulse"
-   [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer"
-   (click)="trackWhatsApp('floating')" aria-label="Contactar por WhatsApp">
+<a
+  mat-fab
+  color="primary"
+  class="float-whatsapp-fab fab-pulse"
+  [href]="whatsappFullUrl"
+  target="_blank"
+  rel="noopener noreferrer"
+  (click)="trackWhatsApp('floating')"
+  aria-label="Contactar por WhatsApp"
+>
   <mat-icon>chat</mat-icon>
 </a>
 
 <!-- Modal login portal -->
-<div class="portal-modal-backdrop modal-enter" *ngIf="showPortalLoginModal" (click)="closePortalLogin()" role="presentation">
-  <mat-card appearance="elevated" class="portal-modal modal-enter-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="portal-modal-title" aria-modal="true">
+<div
+  class="portal-modal-backdrop modal-enter"
+  *ngIf="showPortalLoginModal"
+  (click)="closePortalLogin()"
+  role="presentation"
+>
+  <mat-card
+    appearance="elevated"
+    class="portal-modal modal-enter-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-labelledby="portal-modal-title"
+    aria-modal="true"
+  >
     <div class="portal-modal-header">
       <div>
-        <h2 id="portal-modal-title">Portal de clientes</h2>
-        <p>Ingresa con el correo registrado en la clínica</p>
+        <h2 id="portal-modal-title">Soy cliente</h2>
+        <p>Entra al portal con el correo que tienes en la clínica</p>
       </div>
       <button mat-icon-button (click)="closePortalLogin()" aria-label="Cerrar">
         <mat-icon>close</mat-icon>
@@ -627,26 +731,49 @@
     </div>
     <mat-divider></mat-divider>
     <div class="portal-modal-body" [class.portal-modal-body--loading]="portalLoading">
-      <div class="auth-loading-state auth-loading-state--modal" *ngIf="portalLoading" aria-live="polite" aria-busy="true">
+      <div
+        class="auth-loading-state auth-loading-state--modal"
+        *ngIf="portalLoading"
+        aria-live="polite"
+        aria-busy="true"
+      >
         <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
-        <p class="auth-loading-state__title">Verificando credenciales</p>
-        <p class="auth-loading-state__hint">Conectando con el servidor…</p>
+        <p class="auth-loading-state__title">Entrando al portal…</p>
+        <p class="auth-loading-state__hint">Un momento, por favor</p>
       </div>
       <form (ngSubmit)="loginPortal()">
+        <div class="auth-inline-error" *ngIf="portalLoginError" role="alert">{{ portalLoginError }}</div>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
-          <input matInput type="email" [(ngModel)]="portalEmail" name="portalEmail" required autocomplete="email" [disabled]="portalLoading">
+          <input
+            matInput
+            type="email"
+            [(ngModel)]="portalEmail"
+            name="portalEmail"
+            required
+            autocomplete="email"
+            [disabled]="portalLoading"
+          />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Contraseña</mat-label>
-          <input matInput [type]="portalHidePassword ? 'password' : 'text'" [(ngModel)]="portalPassword" name="portalPassword" required autocomplete="current-password" [disabled]="portalLoading">
+          <input
+            matInput
+            [type]="portalHidePassword ? 'password' : 'text'"
+            [(ngModel)]="portalPassword"
+            name="portalPassword"
+            required
+            autocomplete="current-password"
+            [disabled]="portalLoading"
+          />
           <button
             mat-icon-button
             matSuffix
             type="button"
             (click)="portalHidePassword = !portalHidePassword"
             [attr.aria-label]="portalHidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
-            [disabled]="portalLoading">
+            [disabled]="portalLoading"
+          >
             <mat-icon>{{ portalHidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
@@ -654,10 +781,17 @@
           class="portal-modal-remember"
           [(ngModel)]="portalKeepSessionActive"
           name="portalKeepSessionActive"
-          [disabled]="portalLoading">
+          [disabled]="portalLoading"
+        >
           Mantener sesión activa
         </mat-checkbox>
-        <button mat-flat-button color="primary" type="submit" class="full-width portal-modal-submit" [disabled]="portalLoading">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width portal-modal-submit"
+          [disabled]="portalLoading"
+        >
           Entrar al portal
         </button>
       </form>
@@ -671,8 +805,20 @@
 </div>
 
 <!-- Modal registro portal -->
-<div class="portal-modal-backdrop modal-enter" *ngIf="showPortalRegisterModal" (click)="closePortalRegister()" role="presentation">
-  <mat-card appearance="elevated" class="portal-modal portal-modal--register modal-enter-card" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="portal-register-title" aria-modal="true">
+<div
+  class="portal-modal-backdrop modal-enter"
+  *ngIf="showPortalRegisterModal"
+  (click)="closePortalRegister()"
+  role="presentation"
+>
+  <mat-card
+    appearance="elevated"
+    class="portal-modal portal-modal--register modal-enter-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-labelledby="portal-register-title"
+    aria-modal="true"
+  >
     <div class="portal-modal-header">
       <div>
         <h2 id="portal-register-title">Crear cuenta de dueño</h2>
@@ -684,7 +830,12 @@
     </div>
     <mat-divider></mat-divider>
     <div class="portal-modal-body" [class.portal-modal-body--loading]="isRegistering">
-      <div class="auth-loading-state auth-loading-state--modal" *ngIf="isRegistering" aria-live="polite" aria-busy="true">
+      <div
+        class="auth-loading-state auth-loading-state--modal"
+        *ngIf="isRegistering"
+        aria-live="polite"
+        aria-busy="true"
+      >
         <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
         <p class="auth-loading-state__title">{{ registerLoadingTitle }}</p>
         <p class="auth-loading-state__hint">{{ registerLoadingHint }}</p>
@@ -692,39 +843,57 @@
       <form [formGroup]="registerForm" (ngSubmit)="onSubmitRegister()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" autocomplete="given-name" [disabled]="isRegistering">
+          <input matInput formControlName="nombre" autocomplete="given-name" [disabled]="isRegistering" />
           <mat-error *ngIf="getRegisterError('nombre')">{{ getRegisterError('nombre') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Apellido (opcional)</mat-label>
-          <input matInput formControlName="apellidoPaterno" autocomplete="family-name" [disabled]="isRegistering">
+          <input matInput formControlName="apellidoPaterno" autocomplete="family-name" [disabled]="isRegistering" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
-          <input matInput type="email" formControlName="correo" autocomplete="email" [disabled]="isRegistering">
+          <input matInput type="email" formControlName="correo" autocomplete="email" [disabled]="isRegistering" />
           <mat-error *ngIf="getRegisterError('correo')">{{ getRegisterError('correo') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Teléfono (opcional)</mat-label>
-          <input matInput type="tel" formControlName="telefono" autocomplete="tel" [disabled]="isRegistering">
+          <input matInput type="tel" formControlName="telefono" autocomplete="tel" [disabled]="isRegistering" />
           <mat-error *ngIf="getRegisterError('telefono')">{{ getRegisterError('telefono') }}</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nombre de tu mascota (opcional)</mat-label>
-          <input matInput formControlName="nombreMascota" maxlength="80" autocomplete="off" [disabled]="isRegistering">
+          <input
+            matInput
+            formControlName="nombreMascota"
+            maxlength="80"
+            autocomplete="off"
+            [disabled]="isRegistering"
+          />
           <mat-error *ngIf="getRegisterError('nombreMascota')">{{ getRegisterError('nombreMascota') }}</mat-error>
         </mat-form-field>
         <p class="portal-register-help">
-          Si ya te atienden en Katzen, usa el teléfono de tu ficha. Si hay coincidencia te pediremos confirmar; no unimos expedientes a ciegas.
+          Si ya te atienden en Katzen, usa el teléfono de tu ficha. Si hay coincidencia te pediremos confirmar; no
+          unimos expedientes a ciegas.
         </p>
         <mat-checkbox class="portal-modal-remember" formControlName="acceptPrivacy" [disabled]="isRegistering">
           Acepto el
-          <a routerLink="/privacidad" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">aviso de privacidad</a>
+          <a routerLink="/privacidad" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()"
+            >aviso de privacidad</a
+          >
         </mat-checkbox>
-        <p class="portal-register-hint" *ngIf="registerForm.get('acceptPrivacy')?.touched && registerForm.get('acceptPrivacy')?.invalid">
+        <p
+          class="portal-register-hint"
+          *ngIf="registerForm.get('acceptPrivacy')?.touched && registerForm.get('acceptPrivacy')?.invalid"
+        >
           Debes aceptar el aviso de privacidad
         </p>
-        <button mat-flat-button color="primary" type="submit" class="full-width portal-modal-submit" [disabled]="isRegistering || registerForm.invalid">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width portal-modal-submit"
+          [disabled]="isRegistering || registerForm.invalid"
+        >
           Registrarme
         </button>
       </form>
@@ -737,18 +906,30 @@
 </div>
 
 <!-- ===== CTA CONVERSIÓN ===== -->
-<section class="conversion-band reveal" aria-label="Agendar cita">
+<section class="conversion-band reveal" aria-label="Contactar a la clínica">
   <div class="container conversion-band-inner">
     <div class="conversion-band-copy">
       <h2>¿Tu mascota necesita atención?</h2>
-      <p>Agenda hoy. Te respondemos en minutos por WhatsApp o en nuestro formulario.</p>
+      <p>Escríbenos por WhatsApp o llama. Hoy no se agenda en línea.</p>
     </div>
     <div class="conversion-band-actions">
-      <button mat-flat-button class="conversion-btn-light" (click)="agendarCita('band')">
+      <!-- spec 074: botón «Agendar cita» oculto. -->
+      <button *ngIf="false" mat-flat-button class="conversion-btn-light" (click)="agendarCita('band')">
         <mat-icon>event_available</mat-icon>
         Agendar cita
       </button>
-      <a mat-stroked-button class="conversion-btn-outline" [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('band')">
+      <button mat-flat-button class="conversion-btn-light" (click)="agendarCita('band')">
+        <mat-icon>call</mat-icon>
+        Contactar a la clínica
+      </button>
+      <a
+        mat-stroked-button
+        class="conversion-btn-outline"
+        [href]="whatsappFullUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        (click)="trackWhatsApp('band')"
+      >
         <mat-icon>chat</mat-icon>
         WhatsApp
       </a>
@@ -762,14 +943,14 @@
     <div class="footer-content">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="assets/katzen-logo.png" alt="KatzenVet" class="footer-logo-img" width="36" height="36">
+          <img src="assets/katzen-logo.png" alt="KatzenVet" class="footer-logo-img" width="36" height="36" />
           <span>Katzen</span>
         </div>
         <p class="footer-description">
           Clínica veterinaria comprometida con la excelencia en el cuidado de mascotas desde 2015.
         </p>
       </div>
-      
+
       <div class="footer-links">
         <div class="footer-section">
           <h4>Servicios</h4>
@@ -780,7 +961,7 @@
             <li><a (click)="scrollToSection('servicios')">Emergencias</a></li>
           </ul>
         </div>
-        
+
         <div class="footer-section">
           <h4>Equipo</h4>
           <ul>
@@ -789,7 +970,7 @@
             <li><a (click)="scrollToSection('nosotros')">Dra. Laura Patricia</a></li>
           </ul>
         </div>
-        
+
         <div class="footer-section">
           <h4>Contacto</h4>
           <ul>
@@ -799,7 +980,7 @@
             <li><a href="mailto:info&#64;katzenvet.com">info&#64;katzenvet.com</a></li>
           </ul>
         </div>
-        
+
         <div class="footer-section">
           <h4>Legal</h4>
           <ul>
@@ -810,18 +991,30 @@
         </div>
       </div>
     </div>
-    
+
     <mat-divider class="footer-divider"></mat-divider>
-    
+
     <!-- Redes de contacto destacadas -->
     <div class="footer-contact-cta">
       <p class="footer-contact-title">Comunícate con nosotros</p>
       <div class="footer-contact-buttons">
-        <a mat-stroked-button [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" (click)="trackWhatsApp('footer')">
+        <a
+          mat-stroked-button
+          [href]="whatsappFullUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="trackWhatsApp('footer')"
+        >
           <mat-icon>chat</mat-icon>
           WhatsApp
         </a>
-        <a mat-stroked-button [href]="facebookUrl" target="_blank" rel="noopener noreferrer" (click)="trackFacebook('footer')">
+        <a
+          mat-stroked-button
+          [href]="facebookUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="trackFacebook('footer')"
+        >
           <mat-icon>facebook</mat-icon>
           Facebook
         </a>
@@ -831,10 +1024,24 @@
     <div class="footer-bottom">
       <p>&copy; 2025 KatzenVet. Todos los derechos reservados.</p>
       <div class="footer-social">
-        <a [href]="facebookUrl" target="_blank" rel="noopener noreferrer" class="social-link" (click)="trackFacebook('footer_social')" aria-label="Facebook">
+        <a
+          [href]="facebookUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="social-link"
+          (click)="trackFacebook('footer_social')"
+          aria-label="Facebook"
+        >
           <mat-icon>facebook</mat-icon>
         </a>
-        <a [href]="whatsappFullUrl" target="_blank" rel="noopener noreferrer" class="social-link" (click)="trackWhatsApp('footer_social')" aria-label="WhatsApp">
+        <a
+          [href]="whatsappFullUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="social-link"
+          (click)="trackWhatsApp('footer_social')"
+          aria-label="WhatsApp"
+        >
           <mat-icon>chat</mat-icon>
         </a>
       </div>

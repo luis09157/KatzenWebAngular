@@ -1,5 +1,6 @@
 import { Component, OnInit, HostListener, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { AnalyticsService } from '../shared/services/analytics.service';
 import { PortalAuthService } from '../portal/services/portal-auth.service';
@@ -7,6 +8,7 @@ import { AppCheckService } from '../core/app-check.service';
 import { ContactoWebService } from './services/contacto-web.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
+import { mensajeErrorLoginPortal, mensajeEstadoLoginPortal } from '../portal/utils/portal-login-error.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -15,58 +17,67 @@ import Swal from 'sweetalert2';
   styleUrls: ['./landing.component.css'],
   animations: [
     trigger('expandCollapse', [
-      state('collapsed', style({
-        height: '0',
-        opacity: '0',
-        overflow: 'hidden',
-        padding: '0 24px'
-      })),
-      state('expanded', style({
-        height: '*',
-        opacity: '1',
-        overflow: 'visible',
-        padding: '20px 24px'
-      })),
-      transition('collapsed <=> expanded', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
-    ])
-  ]
+      state(
+        'collapsed',
+        style({
+          height: '0',
+          opacity: '0',
+          overflow: 'hidden',
+          padding: '0 24px',
+        })
+      ),
+      state(
+        'expanded',
+        style({
+          height: '*',
+          opacity: '1',
+          overflow: 'visible',
+          padding: '20px 24px',
+        })
+      ),
+      transition('collapsed <=> expanded', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
 })
 export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   // URLs de redes de comunicación (configurables)
   readonly whatsappUrl = 'https://wa.me/528136024090';
   readonly whatsappMessage = 'Hola, quisiera información sobre sus servicios para mi mascota';
-  readonly whatsappFullUrl = 'https://wa.me/528136024090?text=' + encodeURIComponent('Hola, quisiera información sobre sus servicios para mi mascota');
+  readonly whatsappFullUrl =
+    'https://wa.me/528136024090?text=' +
+    encodeURIComponent('Hola, quisiera información sobre sus servicios para mi mascota');
   readonly facebookUrl = 'https://www.facebook.com/katzenvet'; // Actualiza con tu página de FB real
 
   portalFeatures = [
-    { icon: 'vaccines', title: 'Vacunas', description: 'Esquemas completos y fechas de próxima dosis' },
-    { icon: 'event', title: 'Citas', description: 'Próximas citas y historial de consultas' },
-    { icon: 'medical_information', title: 'Historial', description: 'Expediente clínico de cada mascota' },
-    { icon: 'notifications', title: 'Avisos', description: 'Alertas y recordatorios de la clínica' }
+    { icon: 'vaccines', title: 'Vacunas', description: 'Fechas aplicadas y el próximo refuerzo acordado' },
+    { icon: 'content_cut', title: 'Baños', description: 'Cuándo bañaron a tus perros y el tipo de servicio' },
+    { icon: 'medical_information', title: 'Historial', description: 'Consultas visibles de cada mascota' },
+    { icon: 'notifications', title: 'Avisos', description: 'Recordatorios de la clínica en tu teléfono' },
   ];
 
   // Tracking de tiempo en página
   private startTime: number = Date.now();
   private scrollDepthTracked: { [key: number]: boolean } = {};
   private revealObserver?: IntersectionObserver;
-  
+
   // Propiedad para detectar si es móvil
   isMobile = false;
-  
+
   // Banner de urgencia (solo en sección contacto, no flotante)
   showUrgencyBanner = true;
   citasDisponibles = 3;
 
   showPortalLoginModal = false;
   showPortalRegisterModal = false;
-  
+  portalLoginError = '';
+
   // Formulario de contacto
   contactForm: FormGroup;
   registerForm: FormGroup;
   isRegistering = false;
   registerLoadingTitle = 'Creando tu cuenta…';
   registerLoadingHint = 'Enviando acceso por correo';
-  
+
   // Equipo Médico
   equipoMedico = [
     {
@@ -76,7 +87,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       imagen: 'assets/doctor-1.svg',
       altText: 'Doctora Ana María González',
       experiencia: '8+ años',
-      certificaciones: ['Medicina Veterinaria UANL', 'Especialista en Pequeñas Especies']
+      certificaciones: ['Medicina Veterinaria UANL', 'Especialista en Pequeñas Especies'],
     },
     {
       nombre: 'Dra. Carmen Elena Rodríguez',
@@ -85,7 +96,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       imagen: 'assets/doctor-2.svg',
       altText: 'Doctora Carmen Elena Rodríguez',
       experiencia: '12+ años',
-      certificaciones: ['Cirugía Veterinaria UNAM', 'Especialista en Traumatología']
+      certificaciones: ['Cirugía Veterinaria UNAM', 'Especialista en Traumatología'],
     },
     {
       nombre: 'Dra. Laura Patricia Martínez',
@@ -94,8 +105,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       imagen: 'assets/doctor-3.svg',
       altText: 'Doctora Laura Patricia Martínez',
       experiencia: '10+ años',
-      certificaciones: ['Medicina Interna UANL', 'Especialista en Emergencias']
-    }
+      certificaciones: ['Medicina Interna UANL', 'Especialista en Emergencias'],
+    },
   ];
 
   // Servicios completos con propiedades expandibles
@@ -108,8 +119,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       precio: '250',
       duracion: '45 min',
       features: ['Examen físico completo', 'Diagnóstico personalizado', 'Seguimiento continuo'],
-      incluye: ['Consulta personalizada', 'Examen físico completo', 'Recomendaciones médicas', 'Receta si es necesaria'],
-      expanded: false
+      incluye: [
+        'Consulta personalizada',
+        'Examen físico completo',
+        'Recomendaciones médicas',
+        'Receta si es necesaria',
+      ],
+      expanded: false,
     },
     {
       materialIcon: 'vaccines',
@@ -119,8 +135,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       precio: '350',
       duracion: '30 min',
       features: ['Calendario personalizado', 'Vacunas de calidad', 'Recordatorios automáticos'],
-      incluye: ['Vacuna seleccionada', 'Certificado de vacunación', 'Calendario personalizado', 'Recordatorio de próxima dosis'],
-      expanded: false
+      incluye: [
+        'Vacuna seleccionada',
+        'Certificado de vacunación',
+        'Calendario personalizado',
+        'Recordatorio de próxima dosis',
+      ],
+      expanded: false,
     },
     {
       materialIcon: 'surgery',
@@ -130,8 +151,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       precio: '1500',
       duracion: '2-4 horas',
       features: ['Equipo moderno', 'Anestesia segura', 'Recuperación guiada'],
-      incluye: ['Procedimiento quirúrgico', 'Anestesia y monitoreo', 'Hospitalización post-operatoria', 'Seguimiento de recuperación'],
-      expanded: false
+      incluye: [
+        'Procedimiento quirúrgico',
+        'Anestesia y monitoreo',
+        'Hospitalización post-operatoria',
+        'Seguimiento de recuperación',
+      ],
+      expanded: false,
     },
     {
       materialIcon: 'science',
@@ -142,7 +168,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       duracion: '15 min',
       features: ['Resultados rápidos', 'Tecnología avanzada', 'Interpretación experta'],
       incluye: ['Toma de muestra', 'Análisis completo', 'Resultados en 24h', 'Interpretación médica'],
-      expanded: false
+      expanded: false,
     },
     {
       materialIcon: 'medication',
@@ -152,8 +178,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       precio: '200',
       duracion: '20 min',
       features: ['Productos de calidad', 'Aplicación profesional', 'Seguimiento preventivo'],
-      incluye: ['Producto desparasitante', 'Aplicación profesional', 'Recomendaciones de prevención', 'Seguimiento de próximas dosis'],
-      expanded: false
+      incluye: [
+        'Producto desparasitante',
+        'Aplicación profesional',
+        'Recomendaciones de prevención',
+        'Seguimiento de próximas dosis',
+      ],
+      expanded: false,
     },
     {
       materialIcon: 'emergency',
@@ -163,9 +194,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       precio: '800',
       duracion: 'Variable',
       features: ['Atención inmediata', 'Equipo de emergencias', 'Hospitalización si es necesaria'],
-      incluye: ['Atención de emergencia', 'Estabilización del paciente', 'Tratamiento inicial', 'Recomendaciones de seguimiento'],
-      expanded: false
-    }
+      incluye: [
+        'Atención de emergencia',
+        'Estabilización del paciente',
+        'Tratamiento inicial',
+        'Recomendaciones de seguimiento',
+      ],
+      expanded: false,
+    },
   ];
 
   // Características premium de la clínica
@@ -175,36 +211,36 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       title: 'Experiencia Comprobada',
       description: 'Más de una década cuidando mascotas con excelencia y profesionalismo.',
       color: '#0284c7',
-      highlights: ['10+ años de experiencia', 'Profesionales certificados', 'Miles de pacientes atendidos']
+      highlights: ['10+ años de experiencia', 'Profesionales certificados', 'Miles de pacientes atendidos'],
     },
     {
       materialIcon: 'medical_services',
       title: 'Tecnología Avanzada',
       description: 'Equipos modernos y diagnósticos precisos para el mejor cuidado de tu mascota.',
       color: '#16a34a',
-      highlights: ['Equipos de última generación', 'Diagnósticos precisos', 'Resultados rápidos']
+      highlights: ['Equipos de última generación', 'Diagnósticos precisos', 'Resultados rápidos'],
     },
     {
       materialIcon: 'favorite',
       title: 'Trato Personalizado',
       description: 'Cada mascota es única y recibe atención personalizada y amorosa.',
       color: '#dc2626',
-      highlights: ['Atención individualizada', 'Seguimiento continuo', 'Relación de confianza']
+      highlights: ['Atención individualizada', 'Seguimiento continuo', 'Relación de confianza'],
     },
     {
       materialIcon: 'schedule',
       title: 'Horarios Flexibles',
       description: 'Atención cuando más lo necesitas, con horarios extendidos y emergencias 24/7.',
       color: '#7c3aed',
-      highlights: ['Horarios extendidos', 'Emergencias 24/7', 'Citas programadas']
-    }
+      highlights: ['Horarios extendidos', 'Emergencias 24/7', 'Citas programadas'],
+    },
   ];
 
   // Estadísticas del hero (datos reales)
   stats = [
     { numero: '10+', label: 'Años de Experiencia', materialIcon: 'star', color: '#fbbf24' },
     { numero: '4.9', label: 'Rating en Google', materialIcon: 'grade', color: '#f59e0b' },
-    { numero: '24+', label: 'Reseñas Verificadas', materialIcon: 'verified', color: '#10b981' }
+    { numero: '24+', label: 'Reseñas Verificadas', materialIcon: 'verified', color: '#10b981' },
   ];
 
   // Información de contacto
@@ -213,13 +249,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: 'location_on',
       title: 'Dirección',
       content: 'C. Zinc 318, Los Cristales 1er Sector, 67117 Guadalupe, N.L., México',
-      color: '#dc2626'
+      color: '#dc2626',
     },
     {
       icon: 'phone',
       title: 'Teléfono',
       content: '+52 81 3602 4090',
-      color: '#0284c7'
+      color: '#0284c7',
     },
     {
       icon: 'whatsapp',
@@ -227,7 +263,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       content: '+52 81 3602 4090',
       link: 'https://wa.me/528136024090',
       linkText: 'Enviar mensaje',
-      color: '#25d366'
+      color: '#25d366',
     },
     {
       icon: 'email',
@@ -235,27 +271,27 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       content: 'info&#64;katzenvet.com',
       link: 'mailto:info&#64;katzenvet.com',
       linkText: 'Enviar email',
-      color: '#16a34a'
+      color: '#16a34a',
     },
     {
       icon: 'schedule',
       title: 'Horarios',
       content: 'Lunes a Viernes: 10:00 AM - 7:00 PM | Sábado: 10:00 AM - 4:00 PM',
-      color: '#7c3aed'
+      color: '#7c3aed',
     },
     {
       icon: 'emergency',
       title: 'Emergencias',
       content: '24 horas, 7 días a la semana',
-      color: '#ea580c'
-    }
+      color: '#ea580c',
+    },
   ];
 
   // Horarios de atención (reales)
   horarios = [
     { dia: 'Lunes - Viernes', horario: '10:00 AM - 7:00 PM' },
     { dia: 'Sábado', horario: '10:00 AM - 4:00 PM' },
-    { dia: 'Domingo', horario: 'Cerrado (Emergencias por WhatsApp)' }
+    { dia: 'Domingo', horario: 'Cerrado (Emergencias por WhatsApp)' },
   ];
 
   // Testimonios reales de Google My Business
@@ -265,48 +301,54 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       ubicacion: 'Guadalupe, N.L.',
       rating: 5,
       fecha: 'Agosto 2023',
-      testimonio: 'Las doctoras muy amables ❤️ mi perrito es muy difícil de tratar porque se pone algo nervioso y agresivo con gente que no conoce, pero ellas súper pacientes y buenas. Además de que cuentan con servicio a domicilio. Definitivamente van a ser mis veterinarias de cabecera :)',
-      avatar: 'https://ui-avatars.com/api/?name=Andrea+Martinez&background=0284c7&color=fff&size=128'
+      testimonio:
+        'Las doctoras muy amables ❤️ mi perrito es muy difícil de tratar porque se pone algo nervioso y agresivo con gente que no conoce, pero ellas súper pacientes y buenas. Además de que cuentan con servicio a domicilio. Definitivamente van a ser mis veterinarias de cabecera :)',
+      avatar: 'https://ui-avatars.com/api/?name=Andrea+Martinez&background=0284c7&color=fff&size=128',
     },
     {
       nombre: 'Salma Gamez',
       ubicacion: 'Monterrey, N.L.',
       rating: 5,
       fecha: 'Septiembre 2024',
-      testimonio: 'Excelente servicio, lo recomiendo mucho. Las doctoras muy capacitadas, se nota su interés por sus pacientes. Aquí llevé a mi mascota y quedamos muy satisfechos con la atención.',
-      avatar: 'https://ui-avatars.com/api/?name=Salma+Gamez&background=16a34a&color=fff&size=128'
+      testimonio:
+        'Excelente servicio, lo recomiendo mucho. Las doctoras muy capacitadas, se nota su interés por sus pacientes. Aquí llevé a mi mascota y quedamos muy satisfechos con la atención.',
+      avatar: 'https://ui-avatars.com/api/?name=Salma+Gamez&background=16a34a&color=fff&size=128',
     },
     {
       nombre: 'Gisel Olvera',
       ubicacion: 'Guadalupe, N.L.',
       rating: 5,
       fecha: 'Octubre 2023',
-      testimonio: 'Aquí esterilicé a mi perrita Pug y todo salió perfecto. Aunque la cirugía de mi perrita se complicó, la atendieron súper bien y con mucho profesionalismo. ¡Muy recomendado!',
-      avatar: 'https://ui-avatars.com/api/?name=Gisel+Olvera&background=7c3aed&color=fff&size=128'
+      testimonio:
+        'Aquí esterilicé a mi perrita Pug y todo salió perfecto. Aunque la cirugía de mi perrita se complicó, la atendieron súper bien y con mucho profesionalismo. ¡Muy recomendado!',
+      avatar: 'https://ui-avatars.com/api/?name=Gisel+Olvera&background=7c3aed&color=fff&size=128',
     },
     {
       nombre: 'Nhilze Cantú',
       ubicacion: 'Guadalupe, N.L.',
       rating: 5,
       fecha: 'Agosto 2023',
-      testimonio: 'Amé, precios accesibles, atención buenísima y servicio súper completo 👏. Las doctoras son muy profesionales y se nota que aman a los animales.',
-      avatar: 'https://ui-avatars.com/api/?name=Nhilze+Cantu&background=dc2626&color=fff&size=128'
+      testimonio:
+        'Amé, precios accesibles, atención buenísima y servicio súper completo 👏. Las doctoras son muy profesionales y se nota que aman a los animales.',
+      avatar: 'https://ui-avatars.com/api/?name=Nhilze+Cantu&background=dc2626&color=fff&size=128',
     },
     {
       nombre: 'Kenya Mora',
       ubicacion: 'Monterrey, N.L.',
       rating: 5,
       fecha: 'Agosto 2023',
-      testimonio: 'Súper amables y atentos, excelente servicio. Llevé a mi gatita y la atendieron con mucho cariño. Definitivamente regresaré.',
-      avatar: 'https://ui-avatars.com/api/?name=Kenya+Mora&background=ea580c&color=fff&size=128'
+      testimonio:
+        'Súper amables y atentos, excelente servicio. Llevé a mi gatita y la atendieron con mucho cariño. Definitivamente regresaré.',
+      avatar: 'https://ui-avatars.com/api/?name=Kenya+Mora&background=ea580c&color=fff&size=128',
     },
     {
       nombre: 'Gerardo Garza',
       ubicacion: 'Guadalupe, N.L.',
       rating: 5,
       fecha: 'Septiembre 2024',
-      testimonio: 'Llevamos a nuestra gatita a cirugía y salió todo bien. Las doctoras son muy profesionales y nos explicaron todo el procedimiento.',
-      avatar: 'https://ui-avatars.com/api/?name=Gerardo+Garza&background=0284c7&color=fff&size=128'
+      testimonio:
+        'Llevamos a nuestra gatita a cirugía y salió todo bien. Las doctoras son muy profesionales y nos explicaron todo el procedimiento.',
+      avatar: 'https://ui-avatars.com/api/?name=Gerardo+Garza&background=0284c7&color=fff&size=128',
     },
     {
       nombre: 'Nikky Ripol',
@@ -314,80 +356,91 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       rating: 5,
       fecha: 'Septiembre 2024',
       testimonio: 'Excelente atención y servicio. Muy recomendado, las doctoras son muy amables y profesionales.',
-      avatar: 'https://ui-avatars.com/api/?name=Nikky+Ripol&background=16a34a&color=fff&size=128'
+      avatar: 'https://ui-avatars.com/api/?name=Nikky+Ripol&background=16a34a&color=fff&size=128',
     },
     {
       nombre: 'Alondra Zamudio Castro',
       ubicacion: 'Guadalupe, N.L.',
       rating: 5,
       fecha: 'Septiembre 2024',
-      testimonio: 'Excelente veterinaria, la doctora que atiende es un amor de persona, súper cariñosa con los animalitos y les brinda un trato excepcional.',
-      avatar: 'https://ui-avatars.com/api/?name=Alondra+Zamudio&background=7c3aed&color=fff&size=128'
-    }
+      testimonio:
+        'Excelente veterinaria, la doctora que atiende es un amor de persona, súper cariñosa con los animalitos y les brinda un trato excepcional.',
+      avatar: 'https://ui-avatars.com/api/?name=Alondra+Zamudio&background=7c3aed&color=fff&size=128',
+    },
   ];
 
   // FAQ - Preguntas Frecuentes
   faqs = [
     {
       pregunta: '¿Necesito cita previa o puedo llegar sin cita?',
-      respuesta: 'Recomendamos agendar cita para garantizar atención inmediata, pero también atendemos sin cita según disponibilidad. Para emergencias, estamos disponibles 24/7 por WhatsApp.',
+      respuesta:
+        'Recomendamos agendar cita para garantizar atención inmediata, pero también atendemos sin cita según disponibilidad. Para emergencias, estamos disponibles 24/7 por WhatsApp.',
       icon: 'schedule',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Qué formas de pago aceptan?',
-      respuesta: 'Aceptamos efectivo, tarjetas de crédito, tarjetas de débito y transferencias bancarias. Pregunta por nuestros planes de pago para cirugías.',
+      respuesta:
+        'Aceptamos efectivo, tarjetas de crédito, tarjetas de débito y transferencias bancarias. Pregunta por nuestros planes de pago para cirugías.',
       icon: 'payment',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Cuánto cuesta una consulta general?',
-      respuesta: 'La consulta general tiene un costo de $250 MXN e incluye examen físico completo, diagnóstico personalizado y receta. Primera consulta con 10% de descuento.',
+      respuesta:
+        'La consulta general tiene un costo de $250 MXN e incluye examen físico completo, diagnóstico personalizado y receta. Primera consulta con 10% de descuento.',
       icon: 'local_hospital',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Atienden emergencias 24/7?',
-      respuesta: 'Sí, atendemos emergencias las 24 horas del día, los 7 días de la semana. Contáctanos por WhatsApp al 81 3602 4090 para atención inmediata.',
+      respuesta:
+        'Sí, atendemos emergencias las 24 horas del día, los 7 días de la semana. Contáctanos por WhatsApp al 81 3602 4090 para atención inmediata.',
       icon: 'emergency',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Atienden gatos además de perros?',
-      respuesta: 'Sí, atendemos tanto perros como gatos. Nuestro equipo está especializado en medicina para pequeñas especies y brindamos atención especializada para ambos.',
+      respuesta:
+        'Sí, atendemos tanto perros como gatos. Nuestro equipo está especializado en medicina para pequeñas especies y brindamos atención especializada para ambos.',
       icon: 'pets',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Tienen estacionamiento disponible?',
-      respuesta: 'Sí, contamos con estacionamiento gratuito disponible para nuestros clientes. El acceso es fácil y seguro.',
+      respuesta:
+        'Sí, contamos con estacionamiento gratuito disponible para nuestros clientes. El acceso es fácil y seguro.',
       icon: 'local_parking',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Hacen cirugías en el mismo lugar?',
-      respuesta: 'Sí, contamos con quirófano equipado con tecnología moderna. Realizamos cirugías menores y mayores: esterilizaciones, castraciones, cirugías ortopédicas y más.',
+      respuesta:
+        'Sí, contamos con quirófano equipado con tecnología moderna. Realizamos cirugías menores y mayores: esterilizaciones, castraciones, cirugías ortopédicas y más.',
       icon: 'medical_services',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Cuánto tarda una consulta general?',
-      respuesta: 'Una consulta general suele durar entre 20 y 30 minutos, dependiendo de las necesidades de tu mascota. Nos tomamos el tiempo necesario para un diagnóstico preciso.',
+      respuesta:
+        'Una consulta general suele durar entre 20 y 30 minutos, dependiendo de las necesidades de tu mascota. Nos tomamos el tiempo necesario para un diagnóstico preciso.',
       icon: 'access_time',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Hacen visitas a domicilio?',
-      respuesta: 'Sí, ofrecemos servicio a domicilio para consultas, vacunación y algunos tratamientos. Contáctanos para verificar disponibilidad en tu zona.',
+      respuesta:
+        'Sí, ofrecemos servicio a domicilio para consultas, vacunación y algunos tratamientos. Contáctanos para verificar disponibilidad en tu zona.',
       icon: 'home',
-      expanded: false
+      expanded: false,
     },
     {
       pregunta: '¿Tienen servicio de hospitalización?',
-      respuesta: 'Sí, contamos con área de hospitalización con monitoreo constante para pacientes que requieren cuidados especiales post-cirugía o tratamientos intensivos.',
+      respuesta:
+        'Sí, contamos con área de hospitalización con monitoreo constante para pacientes que requieren cuidados especiales post-cirugía o tratamientos intensivos.',
       icon: 'hotel',
-      expanded: false
-    }
+      expanded: false,
+    },
   ];
 
   // Por Qué Elegirnos - Diferenciadores
@@ -397,57 +450,57 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       descripcion: 'Más de una década cuidando mascotas en Guadalupe, N.L.',
       icon: 'star',
       color: '#f59e0b',
-      stats: '10+ años'
+      stats: '10+ años',
     },
     {
       titulo: 'Tecnología de Punta',
       descripcion: 'Equipos médicos modernos para diagnósticos precisos y tratamientos efectivos',
       icon: 'biotech',
       color: '#0284c7',
-      stats: 'Equipos modernos'
+      stats: 'Equipos modernos',
     },
     {
       titulo: 'Atención Personalizada',
       descripcion: 'Cada mascota recibe un plan de cuidado único adaptado a sus necesidades',
       icon: 'favorite',
       color: '#dc2626',
-      stats: 'Trato único'
+      stats: 'Trato único',
     },
     {
       titulo: 'Emergencias 24/7',
       descripcion: 'Disponibles por WhatsApp cualquier día, cualquier hora del año',
       icon: 'emergency',
       color: '#ea580c',
-      stats: '24/7/365'
+      stats: '24/7/365',
     },
     {
       titulo: 'Precios Justos',
       descripcion: 'Calidad profesional a precios accesibles para todas las familias',
       icon: 'savings',
       color: '#16a34a',
-      stats: 'Desde $250'
+      stats: 'Desde $250',
     },
     {
       titulo: '4.9 ⭐ en Google',
       descripcion: '24+ clientes satisfechos nos respaldan con reseñas reales verificadas',
       icon: 'verified',
       color: '#7c3aed',
-      stats: '4.9/5 rating'
+      stats: '4.9/5 rating',
     },
     {
       titulo: 'Servicio a Domicilio',
       descripcion: 'Atención veterinaria en la comodidad de tu hogar cuando lo necesites',
       icon: 'home',
       color: '#0891b2',
-      stats: 'A domicilio'
+      stats: 'A domicilio',
     },
     {
       titulo: 'Instalaciones Certificadas',
       descripcion: 'Clínica con todos los permisos, certificaciones y estándares de calidad',
       icon: 'verified_user',
       color: '#059669',
-      stats: 'Certificada'
-    }
+      stats: 'Certificada',
+    },
   ];
 
   scrollPosition = 0;
@@ -469,14 +522,15 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     private appCheck: AppCheckService,
     private firebaseFunctions: FirebaseFunctionsService,
     private errorMessages: ErrorMessagesService,
-    private el: ElementRef<HTMLElement>
+    private el: ElementRef<HTMLElement>,
+    private route: ActivatedRoute
   ) {
     this.contactForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       telefono: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
       mascota: ['', [Validators.required, Validators.maxLength(80)]],
-      mensaje: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
+      mensaje: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
     });
     this.registerForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
@@ -484,13 +538,18 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       correo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       telefono: ['', [Validators.pattern(/^\+?[0-9\s\-\(\)]{7,20}$/), Validators.maxLength(20)]],
       nombreMascota: ['', [Validators.maxLength(80)]],
-      acceptPrivacy: [false, [Validators.requiredTrue]]
+      acceptPrivacy: [false, [Validators.requiredTrue]],
     });
   }
 
   ngOnInit() {
     this.checkScroll();
     this.checkScreenSize();
+    if (this.route.snapshot.queryParamMap.get('abrirRegistro') === '1') {
+      this.openPortalRegister();
+    } else if (this.route.snapshot.queryParamMap.get('abrirPortal') === '1') {
+      this.openPortalLogin();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -502,13 +561,13 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     const targets = host.querySelectorAll<HTMLElement>('.reveal, .reveal-stagger');
 
     if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      targets.forEach(el => el.classList.add('is-visible'));
+      targets.forEach((el) => el.classList.add('is-visible'));
       return;
     }
 
     this.revealObserver = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
+      (entries) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
             this.revealObserver?.unobserve(entry.target);
@@ -518,7 +577,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.1 }
     );
 
-    targets.forEach(el => this.revealObserver!.observe(el));
+    targets.forEach((el) => this.revealObserver!.observe(el));
   }
 
   @HostListener('window:scroll')
@@ -534,14 +593,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   checkScroll() {
     this.scrollPosition = window.pageYOffset;
     this.isScrolled = this.scrollPosition > 100;
-    
+
     // Track scroll depth
     const windowHeight = window.innerHeight;
     const documentHeight = document.documentElement.scrollHeight;
-    const scrollPercent = Math.round((this.scrollPosition + windowHeight) / documentHeight * 100);
-    
+    const scrollPercent = Math.round(((this.scrollPosition + windowHeight) / documentHeight) * 100);
+
     // Track milestones: 25%, 50%, 75%, 90%
-    [25, 50, 75, 90].forEach(milestone => {
+    [25, 50, 75, 90].forEach((milestone) => {
       if (scrollPercent >= milestone && !this.scrollDepthTracked[milestone]) {
         this.scrollDepthTracked[milestone] = true;
         this.analytics.trackScrollDepth(milestone);
@@ -556,9 +615,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   scrollToSection(sectionId: string) {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ 
+      element.scrollIntoView({
         behavior: 'smooth',
-        block: 'start'
+        block: 'start',
       });
     }
   }
@@ -576,7 +635,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     // Toggle la FAQ seleccionada
     this.faqs[index].expanded = !this.faqs[index].expanded;
-    
+
     // Track analytics si se expandió
     if (this.faqs[index].expanded) {
       this.analytics.trackFaqExpansion(this.faqs[index].pregunta, index);
@@ -595,7 +654,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'warning',
         title: 'Revisa el formulario',
         text: 'Completa todos los campos correctamente antes de enviar.',
-        confirmButtonColor: '#3b9a9c'
+        confirmButtonColor: '#3b9a9c',
       });
       return;
     }
@@ -609,7 +668,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'success',
         title: '¡Mensaje enviado!',
         text: 'Gracias por contactarnos. Te responderemos pronto por correo o teléfono.',
-        confirmButtonColor: '#3b9a9c'
+        confirmButtonColor: '#3b9a9c',
       });
       this.contactForm.reset();
     } catch {
@@ -618,7 +677,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'error',
         title: 'No se pudo enviar',
         text: 'Intenta de nuevo en unos minutos o escríbenos por WhatsApp.',
-        confirmButtonColor: '#3b9a9c'
+        confirmButtonColor: '#3b9a9c',
       });
     } finally {
       this.isSubmitting = false;
@@ -626,7 +685,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   markFormGroupTouched() {
-    Object.keys(this.contactForm.controls).forEach(key => {
+    Object.keys(this.contactForm.controls).forEach((key) => {
       const control = this.contactForm.get(key);
       control?.markAsTouched();
     });
@@ -662,7 +721,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.analytics.trackEvent('facebook_click', {
       event_category: 'engagement',
       event_label: ubicacion,
-      value: 1
+      value: 1,
     });
   }
 
@@ -692,7 +751,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showUrgencyBanner = false;
     this.analytics.trackEvent('urgency_banner_closed', {
       event_category: 'user_interaction',
-      event_label: 'banner_dismissed'
+      event_label: 'banner_dismissed',
     });
   }
 
@@ -700,48 +759,29 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.portalLoading) {
       return;
     }
+    this.portalLoginError = '';
     if (!this.portalEmail || !this.portalPassword) {
-      Swal.fire({ icon: 'warning', title: 'Inicia sesión', text: 'Ingresa tu correo y contraseña de cliente.' });
+      this.portalLoginError = 'Escribe el correo y la contraseña que te dimos en la clínica o por correo.';
       return;
     }
     this.appCheck.ensureInitialized();
     this.portalLoading = true;
     try {
       const result = await this.portalAuth.login(this.portalEmail, this.portalPassword, this.portalKeepSessionActive);
-      if (result === 'inactive') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Portal no activo',
-          text: 'Tu acceso al portal no está activo. Comunícate con la clínica para activarlo.'
-        });
+      if (result === 'inactive' || result === 'none' || result === 'staff') {
+        this.portalLoginError = mensajeEstadoLoginPortal(result);
         return;
       }
-      if (result === 'none') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Sin acceso al portal',
-          text: 'No encontramos una cuenta de cliente con esas credenciales.'
-        });
-        return;
-      }
-      if (result === 'staff') {
-        Swal.fire({
-          icon: 'info',
-          title: 'Cuenta de personal',
-          text: 'Este acceso es solo para dueños. Usa «Acceso staff» para el panel de la clínica.'
-        });
-        return;
-      }
-      // dual/client → portal directo (nunca /auth/contexto ni admin).
       await this.portalAuth.navigateAfterLogin(result);
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Correo o contraseña incorrectos.' });
+    } catch (error) {
+      this.portalLoginError = mensajeErrorLoginPortal(error);
     } finally {
       this.portalLoading = false;
     }
   }
 
   openPortalLogin(): void {
+    this.portalLoginError = '';
     this.showPortalLoginModal = true;
     document.body.style.overflow = 'hidden';
     void this.tryEnterRememberedPortalSession();
@@ -775,7 +815,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     document.body.style.overflow = 'hidden';
     this.analytics.trackEvent('portal_register_open', {
       event_category: 'portal',
-      event_label: 'landing'
+      event_label: 'landing',
     });
   }
 
@@ -791,14 +831,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (!this.registerForm.valid) {
-      Object.keys(this.registerForm.controls).forEach(key => {
+      Object.keys(this.registerForm.controls).forEach((key) => {
         this.registerForm.get(key)?.markAsTouched();
       });
       Swal.fire({
         icon: 'warning',
         title: 'Revisa el formulario',
         text: 'Completa los campos obligatorios y acepta el aviso de privacidad.',
-        confirmButtonColor: '#3b9a9c'
+        confirmButtonColor: '#3b9a9c',
       });
       return;
     }
@@ -838,8 +878,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
           if (choice === 'yes') {
             extra = {
               confirmClienteId: result.suggestedClienteId,
-              nombreMascota:
-                String(this.registerForm.get('nombreMascota')?.value || '').trim() || undefined
+              nombreMascota: String(this.registerForm.get('nombreMascota')?.value || '').trim() || undefined,
             };
             this.isRegistering = true;
             this.registerLoadingTitle = 'Vinculando tu expediente…';
@@ -879,8 +918,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
                 ? 'Vinculamos tu ficha clínica a tu cuenta. Revisa tu correo para la contraseña temporal.'
                 : 'Revisa tu correo para la contraseña temporal e inicia sesión en el portal.'),
           confirmButtonText: 'Ir al portal',
-          confirmButtonColor: '#3b9a9c'
-        }).then(res => {
+          confirmButtonColor: '#3b9a9c',
+        }).then((res) => {
           if (res.isConfirmed) {
             void this.openPortalLogin();
           }
@@ -893,7 +932,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'error',
         title: 'No se pudo registrar',
         text: msg,
-        confirmButtonColor: '#3b9a9c'
+        confirmButtonColor: '#3b9a9c',
       });
     } finally {
       this.isRegistering = false;
@@ -915,7 +954,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       nombreMascota: extra?.nombreMascota || mascotaForm || undefined,
       acceptPrivacy: raw.acceptPrivacy === true,
       confirmClienteId: extra?.confirmClienteId,
-      skipPhoneMatch: extra?.skipPhoneMatch
+      skipPhoneMatch: extra?.skipPhoneMatch,
     };
   }
 
@@ -923,9 +962,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     const { isConfirmed, value } = await Swal.fire({
       icon: 'info',
       title: 'Varias fichas con este teléfono',
-      text:
-        message ||
-        'Escribe el nombre de tu mascota para continuar. No mostramos el padrón completo.',
+      text: message || 'Escribe el nombre de tu mascota para continuar. No mostramos el padrón completo.',
       input: 'text',
       inputPlaceholder: 'Ej. Luna',
       inputAttributes: { maxlength: '80', autocomplete: 'off' },
@@ -933,7 +970,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       confirmButtonText: 'Continuar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#3b9a9c',
-      inputValidator: v => (String(v || '').trim() ? undefined : 'Ingresa el nombre de tu mascota')
+      inputValidator: (v) => (String(v || '').trim() ? undefined : 'Ingresa el nombre de tu mascota'),
     });
     if (!isConfirmed) {
       return null;
@@ -941,11 +978,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     return String(value || '').trim() || null;
   }
 
-  private async askRegisterPhoneConfirm(
-    message?: string,
-    petNames?: string[]
-  ): Promise<'yes' | 'no' | 'cancel'> {
-    const pets = (petNames || []).map(n => String(n || '').trim()).filter(Boolean);
+  private async askRegisterPhoneConfirm(message?: string, petNames?: string[]): Promise<'yes' | 'no' | 'cancel'> {
+    const pets = (petNames || []).map((n) => String(n || '').trim()).filter(Boolean);
     const petLine =
       pets.length === 1
         ? `¿Eres el dueño de ${pets[0]}?`
@@ -964,7 +998,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       denyButtonText: 'No, crear ficha nueva',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#3b9a9c',
-      denyButtonColor: '#64748b'
+      denyButtonColor: '#64748b',
     });
     if (isConfirmed) {
       return 'yes';
@@ -981,9 +1015,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       return '';
     }
     if (control.hasError('required') || control.hasError('requiredTrue')) {
-      return controlName === 'acceptPrivacy'
-        ? 'Debes aceptar el aviso de privacidad'
-        : 'Este campo es requerido';
+      return controlName === 'acceptPrivacy' ? 'Debes aceptar el aviso de privacidad' : 'Este campo es requerido';
     }
     if (control.hasError('email')) {
       return 'Ingresa un email válido';

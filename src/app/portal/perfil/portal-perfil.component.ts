@@ -14,11 +14,12 @@ import { FirebaseFunctionsService } from '../../core/services/firebase-functions
 import { PortalFcmService, PortalFcmStatus } from '../../core/services/portal-fcm.service';
 import { PortalPwaService } from '../services/portal-pwa.service';
 import { isPortalClienteActive, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
+import { mensajeFcmHumano } from '../utils/portal-fcm-copy.util';
 
 @Component({
   selector: 'app-portal-perfil',
   templateUrl: './portal-perfil.component.html',
-  styleUrls: ['./portal-perfil.component.css']
+  styleUrls: ['./portal-perfil.component.css'],
 })
 export class PortalPerfilComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -100,7 +101,7 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
     const parts = [
       [this.cliente['calle'], this.cliente['numero']].filter(Boolean).join(' '),
       this.cliente['colonia'],
-      this.cliente['municipio']
+      this.cliente['municipio'],
     ].filter(Boolean);
     return parts.join(', ') || '—';
   }
@@ -113,7 +114,12 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
     const nombre = this.nombreCompleto();
     if (!nombre || nombre === '—') return '?';
     const parts = nombre.trim().split(/\s+/);
-    return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?';
+    return (
+      parts
+        .slice(0, 2)
+        .map((p) => p.charAt(0).toUpperCase())
+        .join('') || '?'
+    );
   }
 
   togglePasswordForm(): void {
@@ -161,13 +167,13 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
       Swal.fire({
         icon: 'success',
         title: 'Contraseña actualizada',
-        text: 'Tu acceso al portal quedó configurado correctamente.'
+        text: 'Tu acceso al portal quedó configurado correctamente.',
       });
     } catch (error) {
       Swal.fire({
         icon: 'error',
         title: 'No se pudo cambiar la contraseña',
-        text: this.errorMessages.getUserMessage(error, 'cambiar contraseña portal')
+        text: this.errorMessages.getUserMessage(error, 'cambiar contraseña portal'),
       });
     } finally {
       this.changingPassword = false;
@@ -178,14 +184,26 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
     const user = await this.afAuth.currentUser;
     const email = user?.email || this.email;
     if (!email) {
-      Swal.fire({ icon: 'warning', title: 'Correo no disponible', text: 'No encontramos un correo asociado a tu cuenta.' });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Correo no disponible',
+        text: 'No encontramos un correo asociado a tu cuenta.',
+      });
       return;
     }
     try {
       await this.afAuth.sendPasswordResetEmail(email);
-      Swal.fire({ icon: 'success', title: 'Correo enviado', text: 'Revisa tu bandeja para restablecer la contraseña.' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Correo enviado',
+        text: 'Revisa tu bandeja para restablecer la contraseña.',
+      });
     } catch {
-      Swal.fire({ icon: 'error', title: 'No se pudo enviar', text: 'Intenta de nuevo más tarde o contacta a la clínica.' });
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo enviar',
+        text: 'Intenta de nuevo más tarde o contacta a la clínica.',
+      });
     }
   }
 
@@ -198,8 +216,8 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
     if (this.pushPermission === 'granted' || this.pushStatus === 'registered') {
       return 'Avisos activados';
     }
-    if (this.pushPermission === 'denied') return 'Permiso denegado en el navegador';
-    return 'Activar avisos push';
+    if (this.pushPermission === 'denied') return 'Permitir avisos en el navegador';
+    return 'Activar avisos';
   }
 
   async instalarPortal(): Promise<void> {
@@ -210,13 +228,13 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
         Swal.fire({
           icon: 'success',
           title: 'Portal instalado',
-          text: 'Ya puedes abrir KatzenVet desde el icono de inicio.'
+          text: 'Ya puedes abrir KatzenVet desde el icono de inicio.',
         });
       } else if (outcome === 'unavailable') {
         Swal.fire({
           icon: 'info',
           title: 'Instalar desde el navegador',
-          text: 'Usa el menú del navegador → Instalar aplicación. En iPhone: Compartir → Añadir a pantalla de inicio.'
+          text: 'Usa el menú del navegador → Instalar aplicación. En iPhone: Compartir → Añadir a pantalla de inicio.',
         });
       }
     } finally {
@@ -230,32 +248,32 @@ export class PortalPerfilComponent implements OnInit, OnDestroy {
     try {
       const result = await this.portalFcm.registerPortalToken();
       this.pushStatus = result.status;
-      this.pushDetail = result.detail || '';
+      const opts = {
+        iosSafari: this.portalPwa.isIosSafari(),
+        standalone: this.portalPwa.isStandalone(),
+      };
+      this.pushDetail = result.detail || mensajeFcmHumano(result.status, opts);
       this.pushPermission = this.portalFcm.currentPermission();
       if (result.status === 'registered') {
         Swal.fire({
           icon: 'success',
           title: 'Avisos activados',
-          text: 'Te avisaremos cerca de la fecha acordada en clínica, no el día en que se vacunó a largo plazo.'
-        });
-      } else if (result.status === 'no_vapid') {
-        Swal.fire({
-          icon: 'info',
-          title: 'Push pendiente de configuración',
-          text: this.pushDetail
+          text: mensajeFcmHumano('registered'),
         });
       } else if (result.status === 'denied') {
         Swal.fire({
           icon: 'warning',
-          title: 'Permiso denegado',
-          text: 'Habilita notificaciones en la configuración del navegador.'
+          title: 'No pudimos activar avisos',
+          text: this.pushDetail,
         });
       } else if (result.status !== 'unsupported') {
         Swal.fire({
           icon: 'warning',
           title: 'No se pudo activar',
-          text: this.pushDetail || 'Intenta de nuevo más tarde.'
+          text: this.pushDetail || mensajeFcmHumano('error', opts),
         });
+      } else {
+        this.pushDetail = this.pushDetail || mensajeFcmHumano('unsupported', opts);
       }
     } finally {
       this.registeringPush = false;

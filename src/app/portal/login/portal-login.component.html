@@ -1,9 +1,10 @@
 <div class="portal-login-wrap">
   <div class="portal-login-card">
     <div class="portal-login-brand">
-      <img src="assets/katzen-logo.png" alt="KatzenVet" class="portal-login-logo" width="72" height="72">
-      <h1>Portal del dueño</h1>
-      <p>Consulta el expediente de tus mascotas en línea</p>
+      <img src="assets/katzen-logo.png" alt="KatzenVet" class="portal-login-logo" width="72" height="72" />
+      <p class="portal-login-eyebrow">Soy cliente</p>
+      <h1>Entrar al portal</h1>
+      <p>Consulta vacunas, baños y el expediente de tus mascotas</p>
     </div>
 
     <div *ngIf="checkingSession" class="center-loading">
@@ -11,38 +12,58 @@
     </div>
 
     <ng-container *ngIf="!checkingSession">
-      <div *ngIf="showSessionPrompt" style="margin-bottom:20px;padding:20px;background:#f4f7f9;border-radius:16px">
-        <p class="m3-body" style="margin:0 0 16px">
-          <strong>Sesión activa</strong><br>{{ activeSession.email }}
-        </p>
-        <button type="button" class="portal-btn portal-btn-primary full-width section-gap" (click)="continuarSesion()">Continuar</button>
-        <button type="button" class="portal-btn portal-btn-outline full-width section-gap" (click)="cerrarSesion()">Cerrar sesión</button>
+      <div *ngIf="showSessionPrompt" class="portal-login-session">
+        <p class="m3-body"><strong>Ya tienes una sesión</strong><br />{{ activeSession.email }}</p>
+        <button type="button" class="portal-btn portal-btn-primary full-width section-gap" (click)="continuarSesion()">
+          Continuar al portal
+        </button>
+        <button type="button" class="portal-btn portal-btn-outline full-width section-gap" (click)="cerrarSesion()">
+          Usar otra cuenta
+        </button>
       </div>
 
       <div class="portal-login-form-wrap" [class.portal-login-form-wrap--loading]="loading" *ngIf="!showSessionPrompt">
         <div class="auth-loading-state" *ngIf="loading" aria-live="polite" aria-busy="true">
           <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
-          <p class="auth-loading-state__title">Verificando credenciales</p>
-          <p class="auth-loading-state__hint">Conectando con el servidor…</p>
+          <p class="auth-loading-state__title">Entrando al portal…</p>
+          <p class="auth-loading-state__hint">Un momento, por favor</p>
         </div>
 
         <form (ngSubmit)="login()">
+          <div class="auth-inline-error" *ngIf="loginError" role="alert">{{ loginError }}</div>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Correo electrónico</mat-label>
             <mat-icon matPrefix>mail</mat-icon>
-            <input matInput type="email" [(ngModel)]="email" name="email" required [disabled]="loading">
+            <input
+              matInput
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              required
+              [disabled]="loading"
+              autocomplete="username"
+            />
           </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Contraseña</mat-label>
             <mat-icon matPrefix>lock</mat-icon>
-            <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password" name="password" required [disabled]="loading">
+            <input
+              matInput
+              [type]="hidePassword ? 'password' : 'text'"
+              [(ngModel)]="password"
+              name="password"
+              required
+              [disabled]="loading"
+              autocomplete="current-password"
+            />
             <button
               mat-icon-button
               matSuffix
               type="button"
               (click)="hidePassword = !hidePassword"
               [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
-              [disabled]="loading">
+              [disabled]="loading"
+            >
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
           </mat-form-field>
@@ -50,19 +71,27 @@
             class="portal-login-remember"
             [(ngModel)]="keepSessionActive"
             name="keepSessionActive"
-            [disabled]="loading">
+            [disabled]="loading"
+          >
             Mantener sesión activa
           </mat-checkbox>
           <button type="submit" class="portal-btn portal-btn-primary full-width" [disabled]="loading">
-            Iniciar sesión
+            Entrar al portal
           </button>
         </form>
       </div>
 
       <div class="portal-login-footer" *ngIf="!showSessionPrompt">
-        <button mat-button type="button" (click)="irALanding()" [disabled]="loading">Ir al sitio web</button>
-        <button mat-button type="button" routerLink="/admin/login" [disabled]="loading">Acceso staff</button>
+        <button mat-button type="button" (click)="irALandingRegistro()" [disabled]="loading">
+          Crear cuenta de dueño
+        </button>
+        <button mat-button type="button" (click)="irALanding()" [disabled]="loading">Volver al sitio</button>
       </div>
+
+      <p class="portal-login-staff" *ngIf="!showSessionPrompt">
+        ¿Trabajas en la clínica?
+        <a routerLink="/admin/login">Acceso del personal</a>
+      </p>
     </ng-container>
   </div>
 </div>

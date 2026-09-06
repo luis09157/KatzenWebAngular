@@ -2,7 +2,7 @@
 
 > **Autogenerado** por `node scripts/specs-index.mjs` a partir de `specs/NNN-*/spec.md`. **No editar a mano**: cambia el `Estado:` en la spec y regenera.
 
-Total: **72** specs · `done`: 60 · `in_progress`: 9 · `superseded`: 3
+Total: **74** specs · `done`: 61 · `in_progress`: 10 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -78,3 +78,5 @@ Total: **72** specs · `done`: 60 · `in_progress`: 9 · `superseded`: 3
 | 070 | [fase2-flujos-guiados](070-fase2-flujos-guiados/spec.md) | Fase 2 — Flujos guiados | done |
 | 071 | [fase3-caja-automatica](071-fase3-caja-automatica/spec.md) | Fase 3 — Caja y finanzas automáticas | done |
 | 072 | [fase4-hoy-roles-onboarding](072-fase4-hoy-roles-onboarding/spec.md) | Fase 4 — Hoy, roles y onboarding | in_progress |
+| 073 | [doble-clic-fila-detalle](073-doble-clic-fila-detalle/spec.md) | Doble clic en fila = Ver detalle (tablas admin) | done |
+| 074 | [portal-experiencia-cliente](074-portal-experiencia-cliente/spec.md) | Portal — experiencia de dueño | in_progress |

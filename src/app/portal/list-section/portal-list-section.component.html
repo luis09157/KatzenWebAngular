@@ -18,13 +18,79 @@
       <span class="portal-data-count">{{ items.length }}</span>
     </div>
 
-    <div class="portal-empty" *ngIf="items.length === 0" style="border:none;box-shadow:none">
+    <aside class="portal-citas-banner" *ngIf="seccion === 'citas'" role="note">
+      <mat-icon>call</mat-icon>
+      <div>
+        <strong>Para agendar, llama a la clínica</strong>
+        <p>
+          Hoy no se piden citas desde el portal.
+          <a [href]="clinicaTel.telHref">{{ clinicaTel.display }}</a>
+        </p>
+      </div>
+    </aside>
+    <!-- spec 074: solicitud de cita desactivada. No borrar. -->
+    <button *ngIf="citaSolicitudEnabled" type="button" class="portal-btn portal-btn-primary" disabled>
+      Pedir cita
+    </button>
+
+    <div class="portal-empty" *ngIf="items.length === 0" style="border: none; box-shadow: none">
       <div class="portal-empty-icon"><mat-icon>inbox</mat-icon></div>
       <h3>{{ emptyMessage }}</h3>
       <p>Cuando haya registros aparecerán aquí en orden cronológico.</p>
     </div>
 
-    <div class="portal-data-table" *ngIf="items.length > 0">
+    <div class="portal-data-table" *ngIf="seccion === 'citas' && items.length > 0">
+      <h3 class="portal-citas-group" *ngIf="citasProximas.length">Próximas</h3>
+      <article class="portal-data-row" *ngFor="let item of citasProximas">
+        <time class="portal-data-date">{{ itemDate(item) }}</time>
+        <div class="portal-data-main">
+          <h3>{{ itemTitle(item) }}</h3>
+          <span *ngIf="itemEstado(item)" class="portal-data-chip" [ngClass]="chipClass(itemEstado(item)!)">
+            {{ itemEstado(item) }}
+          </span>
+          <div class="portal-data-fields">
+            <div class="portal-data-field" *ngIf="item.veterinario">
+              <strong>Veterinario</strong>
+              {{ item.veterinario }}
+            </div>
+            <div class="portal-data-field" *ngIf="item.motivo_cancelacion">
+              <strong>Motivo de cancelación</strong>
+              {{ item.motivo_cancelacion }}
+            </div>
+            <div class="portal-data-field" *ngIf="item.observaciones">
+              <strong>Notas</strong>
+              {{ item.observaciones }}
+            </div>
+          </div>
+        </div>
+      </article>
+      <h3 class="portal-citas-group" *ngIf="citasPasadas.length">Pasadas</h3>
+      <article class="portal-data-row" *ngFor="let item of citasPasadas">
+        <time class="portal-data-date">{{ itemDate(item) }}</time>
+        <div class="portal-data-main">
+          <h3>{{ itemTitle(item) }}</h3>
+          <span *ngIf="itemEstado(item)" class="portal-data-chip" [ngClass]="chipClass(itemEstado(item)!)">
+            {{ itemEstado(item) }}
+          </span>
+          <div class="portal-data-fields">
+            <div class="portal-data-field" *ngIf="item.veterinario">
+              <strong>Veterinario</strong>
+              {{ item.veterinario }}
+            </div>
+            <div class="portal-data-field" *ngIf="item.motivo_cancelacion">
+              <strong>Motivo de cancelación</strong>
+              {{ item.motivo_cancelacion }}
+            </div>
+            <div class="portal-data-field" *ngIf="item.observaciones">
+              <strong>Notas</strong>
+              {{ item.observaciones }}
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="portal-data-table" *ngIf="seccion !== 'citas' && items.length > 0">
       <article class="portal-data-row" *ngFor="let item of items">
         <time class="portal-data-date">{{ itemDate(item) }}</time>
         <div class="portal-data-main">

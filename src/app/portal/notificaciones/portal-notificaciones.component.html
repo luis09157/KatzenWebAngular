@@ -8,10 +8,41 @@
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
+  <div class="portal-avisos-card" *ngIf="!loading && !avisosActivados">
+    <div class="portal-avisos-card__icon">
+      <mat-icon>notifications_active</mat-icon>
+    </div>
+    <div>
+      <h3>Activa los avisos</h3>
+      <p>
+        Te avisamos de refuerzos (fecha acordada en clínica) y novedades.
+        <span *ngIf="iosHint"> {{ iosHint }}</span>
+      </p>
+      <button
+        type="button"
+        class="portal-btn portal-btn-primary"
+        (click)="activarAvisos()"
+        [disabled]="registeringPush"
+      >
+        {{ registeringPush ? 'Activando…' : 'Activar avisos' }}
+      </button>
+      <p class="portal-push-hint" *ngIf="pushDetail">{{ pushDetail }}</p>
+    </div>
+  </div>
+
   <div class="portal-empty" *ngIf="!loading && notificaciones.length === 0">
     <div class="portal-empty-icon"><mat-icon>notifications_none</mat-icon></div>
-    <h3>No tienes notificaciones</h3>
-    <p>Te avisaremos aquí sobre refuerzos (fecha acordada en clínica), citas y novedades de tus mascotas.</p>
+    <h3>No tienes avisos todavía</h3>
+    <p>Cuando la clínica te escriba o se acerque un refuerzo, aparecerá aquí.</p>
+    <button
+      type="button"
+      class="portal-btn portal-btn-outline"
+      *ngIf="!avisosActivados"
+      (click)="activarAvisos()"
+      [disabled]="registeringPush"
+    >
+      Activar avisos
+    </button>
   </div>
 
   <div class="portal-notif-table" *ngIf="!loading && notificaciones.length > 0">
@@ -20,7 +51,8 @@
       class="portal-notif-row"
       [class.unread]="!n.leida"
       *ngFor="let n of notificaciones"
-      (click)="abrir(n)">
+      (click)="abrir(n)"
+    >
       <div class="portal-notif-icon">
         <mat-icon>{{ icono(categoria(n.tipo, n.titulo)) }}</mat-icon>
       </div>

@@ -55,3 +55,85 @@
   white-space: normal;
   word-break: break-word;
 }
+
+.portal-cartilla {
+  margin-bottom: 28px;
+}
+
+.portal-cartilla-title,
+.portal-secciones-title {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.portal-cartilla-lead,
+.portal-secciones-lead {
+  margin: 0 0 16px;
+  color: var(--portal-muted, #64748b);
+  font-size: 0.9375rem;
+}
+
+.portal-cartilla-empty {
+  border: none;
+  box-shadow: none;
+  padding: 32px 16px;
+}
+
+.portal-cartilla-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portal-cartilla-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.portal-cartilla-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 154, 156, 0.12);
+  color: #0f5c5e;
+  flex-shrink: 0;
+}
+
+.portal-cartilla-icon[data-kind='banio'] {
+  background: rgba(134, 45, 99, 0.1);
+  color: #862d63;
+}
+
+.portal-cartilla-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portal-cartilla-body time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.portal-cartilla-detalle {
+  font-size: 0.8125rem;
+  color: #64748b;
+}

@@ -2,13 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
+import { PortalFcmService } from '../../core/services/portal-fcm.service';
+import { PortalPwaService } from '../services/portal-pwa.service';
 import { formatNotificationTime, notificacionCategoria } from '../utils/portal-display.util';
 import { PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
+import { hintFcmIos, mensajeFcmHumano } from '../utils/portal-fcm-copy.util';
 
 @Component({
   selector: 'app-portal-notificaciones',
   templateUrl: './portal-notificaciones.component.html',
-  styleUrls: ['./portal-notificaciones.component.css']
+  styleUrls: ['./portal-notificaciones.component.css'],
 })
 export class PortalNotificacionesComponent implements OnInit {
   loading = true;
@@ -16,6 +19,10 @@ export class PortalNotificacionesComponent implements OnInit {
   notificaciones: any[] = [];
   sinLeer = 0;
   clienteId = '';
+  registeringPush = false;
+  pushDetail = '';
+  avisosActivados = false;
+  iosHint = '';
 
   formatTime = formatNotificationTime;
   categoria = notificacionCategoria;
@@ -23,6 +30,8 @@ export class PortalNotificacionesComponent implements OnInit {
   constructor(
     private portalData: PortalDataService,
     private portalSession: PortalSessionService,
+    private portalFcm: PortalFcmService,
+    private portalPwa: PortalPwaService,
     private router: Router
   ) {}
 
@@ -33,6 +42,11 @@ export class PortalNotificacionesComponent implements OnInit {
       return;
     }
     this.clienteId = session.clienteId;
+    this.avisosActivados = this.portalFcm.currentPermission() === 'granted';
+    this.iosHint = hintFcmIos({
+      iosSafari: this.portalPwa.isIosSafari(),
+      standalone: this.portalPwa.isStandalone(),
+    });
     await this.cargar();
   }
 
@@ -42,13 +56,30 @@ export class PortalNotificacionesComponent implements OnInit {
 
     try {
       this.notificaciones = await this.portalData.getNotificaciones(this.clienteId);
-      this.sinLeer = this.notificaciones.filter(n => !n.leida).length;
+      this.sinLeer = this.notificaciones.filter((n) => !n.leida).length;
     } catch {
       this.errorMessage = PORTAL_LOAD_ERROR;
       this.notificaciones = [];
       this.sinLeer = 0;
     } finally {
       this.loading = false;
+    }
+  }
+
+  async activarAvisos(): Promise<void> {
+    this.registeringPush = true;
+    this.pushDetail = '';
+    try {
+      const result = await this.portalFcm.registerPortalToken();
+      const opts = {
+        iosSafari: this.portalPwa.isIosSafari(),
+        standalone: this.portalPwa.isStandalone(),
+      };
+      this.pushDetail = result.detail || mensajeFcmHumano(result.status, opts);
+      this.avisosActivados = result.status === 'registered';
+      this.iosHint = hintFcmIos(opts);
+    } finally {
+      this.registeringPush = false;
     }
   }
 
@@ -73,6 +104,8 @@ export class PortalNotificacionesComponent implements OnInit {
         await this.router.navigate(['/portal/mascotas', mascotaId, 'citas']);
       } else if (tipo.includes('historial') || tipo.includes('consulta')) {
         await this.router.navigate(['/portal/mascotas', mascotaId, 'historial']);
+      } else if (tipo.includes('baño') || tipo.includes('banio')) {
+        await this.router.navigate(['/portal/mascotas', mascotaId, 'banos']);
       } else {
         await this.router.navigate(['/portal/mascotas', mascotaId]);
       }
@@ -86,7 +119,7 @@ export class PortalNotificacionesComponent implements OnInit {
       vacuna: 'vaccines',
       cita: 'event',
       historial: 'medical_services',
-      general: 'notifications'
+      general: 'notifications',
     };
     return map[cat] || 'notifications';
   }

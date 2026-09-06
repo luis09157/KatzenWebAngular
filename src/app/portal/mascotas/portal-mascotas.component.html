@@ -15,32 +15,42 @@
     </div>
     <div class="portal-banner-body">
       <h2>{{ saludo }}</h2>
-      <p>Selecciona una mascota para consultar vacunas, citas e historial clínico.</p>
+      <p>Tus mascotas: entra para ver baños, vacunas y el resto del expediente.</p>
       <span class="portal-badge" *ngIf="mascotas.length > 0">
-        {{ mascotas.length }} mascota{{ mascotas.length === 1 ? '' : 's' }} activa{{ mascotas.length === 1 ? '' : 's' }}
+        {{ mascotas.length }} mascota{{ mascotas.length === 1 ? '' : 's' }}
       </span>
     </div>
   </div>
 
   <div class="portal-empty" *ngIf="mascotas.length === 0">
     <div class="portal-empty-icon"><mat-icon>pets</mat-icon></div>
-    <h3>No hay mascotas registradas</h3>
-    <p>Comunícate con la clínica si falta alguna en tu cuenta.</p>
+    <h3>Aún no hay mascotas en tu cuenta</h3>
+    <p>Si ya te atienden en Katzen, llama a la clínica para que las vinculen a tu portal.</p>
   </div>
 
   <div class="portal-pet-grid" *ngIf="mascotas.length > 0">
-    <button
-      type="button"
-      class="portal-pet-card"
-      *ngFor="let m of mascotas"
-      (click)="verMascota(m.id)">
+    <button type="button" class="portal-pet-card" *ngFor="let m of mascotas" (click)="verMascota(m.id)">
       <div class="portal-pet-avatar" [ngClass]="avatarClass(m.especie)">
         <span *ngIf="iniciales(m.nombre)">{{ iniciales(m.nombre) }}</span>
         <mat-icon *ngIf="!iniciales(m.nombre)">pets</mat-icon>
       </div>
-      <div>
+      <div class="portal-pet-copy">
         <div class="portal-pet-name">{{ m.nombre }}</div>
         <div class="portal-pet-meta">{{ metaMascota(m) }}</div>
+        <div class="portal-pet-chips" *ngIf="chipsDe(m.id) as chips">
+          <span class="portal-activity-chip" *ngIf="chips.ultimoBanio">
+            <mat-icon>content_cut</mat-icon>
+            {{ chips.ultimoBanio }}
+          </span>
+          <span class="portal-activity-chip" *ngIf="chips.proximaVacuna">
+            <mat-icon>vaccines</mat-icon>
+            {{ chips.proximaVacuna }}
+          </span>
+          <span class="portal-activity-chip" *ngIf="chips.recordatorio">
+            <mat-icon>notifications</mat-icon>
+            {{ chips.recordatorio }}
+          </span>
+        </div>
       </div>
       <span class="portal-pet-action">
         Ver expediente

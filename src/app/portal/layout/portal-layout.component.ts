@@ -12,12 +12,12 @@ import { PortalPwaService } from '../services/portal-pwa.service';
 @Component({
   selector: 'app-portal-layout',
   templateUrl: './portal-layout.component.html',
-  styleUrls: ['./portal-layout.component.css']
+  styleUrls: ['./portal-layout.component.css'],
 })
 export class PortalLayoutComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   showBack = false;
-  pageTitle = 'Mis mascotas';
+  pageTitle = 'Tus mascotas';
   userDisplayName = '';
   userInitial = '?';
   sinLeer = 0;
@@ -39,10 +39,12 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
     this.portalPwa.init();
     void this.loadUserHeader();
     this.updateFromUrl(this.router.url);
-    this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd),
-      takeUntil(this.destroy$)
-    ).subscribe((e: NavigationEnd) => this.updateFromUrl(e.urlAfterRedirects));
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((e: NavigationEnd) => this.updateFromUrl(e.urlAfterRedirects));
   }
 
   ngOnDestroy(): void {
@@ -53,8 +55,7 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
   private async loadUserHeader(): Promise<void> {
     try {
       // Atajo admin solo si la sesión NO nació en portal/landing (lock de entrada).
-      this.canGoAdmin =
-        (await this.authProfileService.hasStaffAccess()) && !this.authSession.isPortalEntryLocked();
+      this.canGoAdmin = (await this.authProfileService.hasStaffAccess()) && !this.authSession.isPortalEntryLocked();
 
       const session = await this.portalSession.resolveSession();
       if (!session) return;
@@ -71,7 +72,7 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
       this.userInitial = firstName.charAt(0).toUpperCase() || '?';
 
       const notifs = await this.portalData.getNotificaciones(session.clienteId);
-      this.sinLeer = notifs.filter(n => !n.leida).length;
+      this.sinLeer = notifs.filter((n) => !n.leida).length;
     } catch {
       this.sinLeer = 0;
     }
@@ -92,24 +93,49 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
       this.pageSubtitle = 'Historial y fechas acordadas en clínica';
     } else if (/\/citas/.test(url)) {
       this.pageTitle = 'Citas';
-      this.pageSubtitle = 'Consultas y citas programadas';
+      this.pageSubtitle = 'Solo consulta · para agendar, llama a la clínica';
     } else if (/\/historial/.test(url)) {
       this.pageTitle = 'Historial clínico';
       this.pageSubtitle = 'Consultas y tratamientos registrados';
     } else if (/\/banos/.test(url)) {
       this.pageTitle = 'Baños y peluquería';
       this.pageSubtitle = 'Servicios de estética registrados';
-    } else if (/\/mascotas\/.+/.test(url) && !/\/vacunas|citas|historial|banos/.test(url)) {
+    } else if (
+      /\/mascotas\/.+/.test(url) &&
+      !/\/vacunas|citas|historial|banos|pension|recordatorios|visitas|consentimientos/.test(url)
+    ) {
       this.pageTitle = 'Expediente';
-      this.pageSubtitle = 'Resumen del expediente médico';
+      this.pageSubtitle = 'Baños, vacunas y consultas en orden de fecha';
+      void this.loadExpedienteTitle(url);
     } else {
-      this.pageTitle = 'Mis mascotas';
-      this.pageSubtitle = 'Selecciona una mascota para consultar su expediente';
+      this.pageTitle = 'Tus mascotas';
+      this.pageSubtitle = 'Entra a una mascota para ver su expediente';
+    }
+  }
+
+  /** H1 «Expediente de {nombre}» cuando hay mascota en la URL. */
+  private async loadExpedienteTitle(url: string): Promise<void> {
+    const match = url.match(/\/portal\/mascotas\/([^/?#]+)/);
+    const mascotaId = match?.[1];
+    if (!mascotaId) return;
+    try {
+      const session = await this.portalSession.resolveSession();
+      if (!session) return;
+      const mascota = await this.portalData.getMascotaForCliente(mascotaId, session.clienteId);
+      const nombre = String(mascota?.['nombre'] || '').trim();
+      if (nombre) {
+        const path = this.router.url.split('?')[0].replace(/\/$/, '');
+        if (/\/portal\/mascotas\/[^/]+$/.test(path)) {
+          this.pageTitle = `Expediente de ${nombre}`;
+        }
+      }
+    } catch {
+      /* título genérico «Expediente» ya aplicado */
     }
   }
 
   goBack(): void {
-    if (/\/vacunas|citas|historial|banos/.test(this.router.url)) {
+    if (/\/vacunas|citas|historial|banos|pension|recordatorios|visitas|consentimientos/.test(this.router.url)) {
       const parts = this.router.url.split('/');
       const mascotaId = parts[parts.indexOf('mascotas') + 1];
       this.router.navigate(['/portal/mascotas', mascotaId]);

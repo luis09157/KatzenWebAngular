@@ -2,17 +2,22 @@
   <header class="portal-header">
     <div class="portal-container portal-header-inner">
       <a class="portal-brand" routerLink="/portal/mascotas">
-        <img src="assets/katzen-logo.png" alt="KatzenVet" class="portal-brand-logo" width="40" height="40">
+        <img src="assets/katzen-logo.png" alt="KatzenVet" class="portal-brand-logo" width="40" height="40" />
         <span class="portal-brand-text">
           KatzenVet
-          <small>Portal de clientes</small>
+          <small>Portal del dueño</small>
         </span>
       </a>
 
       <nav class="portal-nav" aria-label="Navegación principal">
-        <a class="portal-nav-link" routerLink="/portal/mascotas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+        <a
+          class="portal-nav-link"
+          routerLink="/portal/mascotas"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
           <mat-icon>pets</mat-icon>
-          Mis mascotas
+          Tus mascotas
         </a>
         <a class="portal-nav-link" routerLink="/portal/notificaciones" routerLinkActive="active">
           <mat-icon>notifications</mat-icon>

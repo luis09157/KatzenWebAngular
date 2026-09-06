@@ -6,13 +6,9 @@ import 'firebase/compat/messaging';
 import { environment } from '../../../environments/environment';
 import { LoggerService } from '../logger.service';
 import { registerFirebaseMessagingSw } from '../utils/firebase-messaging-sw-register';
+import { mensajeFcmHumano } from '../../portal/utils/portal-fcm-copy.util';
 
-export type PortalFcmStatus =
-  | 'unsupported'
-  | 'no_vapid'
-  | 'denied'
-  | 'registered'
-  | 'error';
+export type PortalFcmStatus = 'unsupported' | 'no_vapid' | 'denied' | 'registered' | 'error';
 
 export type FcmPlatform = 'portal_web' | 'admin_web';
 
@@ -44,16 +40,14 @@ export class PortalFcmService {
     return this.registerToken('admin_web');
   }
 
-  async registerToken(
-    platform: FcmPlatform
-  ): Promise<{ status: PortalFcmStatus; detail?: string }> {
+  async registerToken(platform: FcmPlatform): Promise<{ status: PortalFcmStatus; detail?: string }> {
+    const iosSafari = this.isIosSafari();
+    const standalone = this.isStandalone();
+
     if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
       return {
         status: 'unsupported',
-        detail:
-          platform === 'admin_web'
-            ? 'Este navegador no soporta avisos push. En iPhone, añade el portal a inicio si usas el dueño.'
-            : 'Este navegador no soporta notificaciones push. En iPhone: Compartir → Añadir a pantalla de inicio.'
+        detail: mensajeFcmHumano('unsupported', { iosSafari, standalone }),
       };
     }
 
@@ -61,8 +55,7 @@ export class PortalFcmService {
     if (!vapidKey) {
       return {
         status: 'no_vapid',
-        detail:
-          'Falta configurar fcmVapidKey en environment (Firebase Console → Cloud Messaging → Web Push certificates).'
+        detail: mensajeFcmHumano('no_vapid', { iosSafari, standalone }),
       };
     }
 
@@ -72,8 +65,8 @@ export class PortalFcmService {
         status: 'error',
         detail:
           platform === 'admin_web'
-            ? 'Inicia sesión en admin para activar avisos de la clínica.'
-            : 'Inicia sesión en el portal para activar avisos.'
+            ? 'Inicia sesión en el panel para activar avisos de la clínica.'
+            : 'Inicia sesión en el portal para activar avisos.',
       };
     }
 
@@ -83,7 +76,10 @@ export class PortalFcmService {
         permission = await Notification.requestPermission();
       }
       if (permission !== 'granted') {
-        return { status: 'denied', detail: 'Permiso de notificaciones denegado.' };
+        return {
+          status: 'denied',
+          detail: mensajeFcmHumano('denied', { iosSafari, standalone }),
+        };
       }
 
       const registration = await registerFirebaseMessagingSw();
@@ -92,10 +88,13 @@ export class PortalFcmService {
       this.messaging = this.messaging ?? firebase.messaging();
       const token = await this.messaging.getToken({
         vapidKey,
-        serviceWorkerRegistration: registration
+        serviceWorkerRegistration: registration,
       });
       if (!token) {
-        return { status: 'error', detail: 'No se pudo obtener el token FCM.' };
+        return {
+          status: 'error',
+          detail: mensajeFcmHumano('error', { iosSafari, standalone }),
+        };
       }
 
       const tokenKey = this.tokenKey(token);
@@ -103,17 +102,31 @@ export class PortalFcmService {
         token,
         platform,
         updatedAt: new Date().toISOString(),
-        activo: true
+        activo: true,
       });
 
-      return { status: 'registered' };
+      return { status: 'registered', detail: mensajeFcmHumano('registered') };
     } catch (error) {
-      this.logger.error('Error registrando FCM:', error);
+      this.logger.error('Error registrando avisos:', error);
       return {
         status: 'error',
-        detail: error instanceof Error ? error.message : 'Error al registrar push.'
+        detail: mensajeFcmHumano('error', { iosSafari, standalone }),
       };
     }
+  }
+
+  private isStandalone(): boolean {
+    if (typeof window === 'undefined') return false;
+    const nav = window.navigator as Navigator & { standalone?: boolean };
+    return window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true;
+  }
+
+  private isIosSafari(): boolean {
+    if (typeof window === 'undefined') return false;
+    const ua = window.navigator.userAgent;
+    const iOS =
+      /iPad|iPhone|iPod/.test(ua) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+    return iOS && /WebKit/.test(ua) && !/CriOS|FxiOS/.test(ua);
   }
 
   private tokenKey(token: string): string {

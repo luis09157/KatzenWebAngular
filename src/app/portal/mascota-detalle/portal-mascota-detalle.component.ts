@@ -3,11 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { PORTAL_ACCESS_ERROR, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
+import { buildCartillaEventos, CartillaEvento } from '../utils/portal-cartilla.util';
+import { chipClassForEstado, formatDisplayDate } from '../utils/portal-display.util';
 
 @Component({
   selector: 'app-portal-mascota-detalle',
   templateUrl: './portal-mascota-detalle.component.html',
-  styleUrls: ['./portal-mascota-detalle.component.css']
+  styleUrls: ['./portal-mascota-detalle.component.css'],
 })
 export class PortalMascotaDetalleComponent implements OnInit {
   loading = true;
@@ -24,9 +26,12 @@ export class PortalMascotaDetalleComponent implements OnInit {
     recordatorios: 0,
     visitas: 0,
     consentimientos: 0,
-    saldoPendiente: 0
+    saldoPendiente: 0,
   };
   metaLine = '';
+  cartilla: CartillaEvento[] = [];
+  formatDate = formatDisplayDate;
+  chipClass = chipClassForEstado;
 
   constructor(
     private route: ActivatedRoute,
@@ -57,7 +62,18 @@ export class PortalMascotaDetalleComponent implements OnInit {
       this.alergiasLista = Array.isArray(this.mascota.alergias)
         ? this.mascota.alergias.map((a: unknown) => String(a).trim()).filter(Boolean)
         : [];
-      this.counts = await this.portalData.getCounts(this.mascotaId);
+      const exp = await this.portalData.getExpedientePortal(this.mascotaId, session.clienteId);
+      this.counts = exp.counts;
+      this.cartilla = buildCartillaEventos({
+        banos: exp.banos as unknown as Record<string, unknown>[],
+        vacunas: exp.vacunas as unknown as Record<string, unknown>[],
+        citas: exp.citas as unknown as Record<string, unknown>[],
+        historiales: exp.historiales as unknown as Record<string, unknown>[],
+        recordatorios: exp.recordatorios as unknown as Record<string, unknown>[],
+        pensiones: exp.pension as unknown as Record<string, unknown>[],
+        visitas: exp.visitas as unknown as Record<string, unknown>[],
+        consentimientos: exp.consentimientos as unknown as Record<string, unknown>[],
+      });
     } catch {
       this.errorMessage = PORTAL_LOAD_ERROR;
     } finally {
@@ -66,15 +82,7 @@ export class PortalMascotaDetalleComponent implements OnInit {
   }
 
   ir(
-    seccion:
-      | 'vacunas'
-      | 'citas'
-      | 'historial'
-      | 'banos'
-      | 'pension'
-      | 'recordatorios'
-      | 'visitas'
-      | 'consentimientos'
+    seccion: 'vacunas' | 'citas' | 'historial' | 'banos' | 'pension' | 'recordatorios' | 'visitas' | 'consentimientos'
   ): void {
     this.router.navigate(['/portal/mascotas', this.mascotaId, seccion]);
   }
@@ -83,10 +91,27 @@ export class PortalMascotaDetalleComponent implements OnInit {
     return count > 0 ? `${count} registro${count === 1 ? '' : 's'}` : `Sin ${label}`;
   }
 
+  iconoCartilla(kind: CartillaEvento['kind']): string {
+    const map: Record<CartillaEvento['kind'], string> = {
+      banio: 'content_cut',
+      vacuna: 'vaccines',
+      cita: 'event',
+      historial: 'medical_services',
+      recordatorio: 'notifications',
+      pension: 'home',
+      visita: 'receipt_long',
+      consentimiento: 'assignment_turned_in',
+    };
+    return map[kind];
+  }
+
+  irCartilla(ev: CartillaEvento): void {
+    const seccion = ev.kind === 'banio' ? 'banos' : ev.kind === 'historial' ? 'historial' : ev.kind;
+    this.ir(seccion as Parameters<PortalMascotaDetalleComponent['ir']>[0]);
+  }
+
   private buildMetaLine(m: Record<string, unknown>): string {
-    const parts = [m['especie'], m['raza'], m['sexo']]
-      .filter(Boolean)
-      .map(v => String(v).trim().toUpperCase());
+    const parts = [m['especie'], m['raza'], m['sexo']].filter(Boolean).map((v) => String(v).trim().toUpperCase());
     return parts.join(' • ');
   }
 }

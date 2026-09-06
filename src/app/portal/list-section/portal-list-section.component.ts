@@ -4,21 +4,18 @@ import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { chipClassForEstado, formatDisplayDate } from '../utils/portal-display.util';
 import { PORTAL_ACCESS_ERROR, PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
+import { isCitaSolicitudUiVisible } from '../utils/portal-cita-solicitud.util';
+import { resolveClinicaTelefono } from '../utils/portal-clinica-contacto.util';
+import { splitCitasProximasPasadas } from '../utils/portal-cartilla.util';
+import { environment } from '../../../environments/environment';
 
 export type PortalListSection =
-  | 'vacunas'
-  | 'citas'
-  | 'historial'
-  | 'banos'
-  | 'pension'
-  | 'recordatorios'
-  | 'visitas'
-  | 'consentimientos';
+  'vacunas' | 'citas' | 'historial' | 'banos' | 'pension' | 'recordatorios' | 'visitas' | 'consentimientos';
 
 @Component({
   selector: 'app-portal-list-section',
   templateUrl: './portal-list-section.component.html',
-  styleUrls: ['./portal-list-section.component.css']
+  styleUrls: ['./portal-list-section.component.css'],
 })
 export class PortalListSectionComponent implements OnInit {
   loading = true;
@@ -30,6 +27,11 @@ export class PortalListSectionComponent implements OnInit {
 
   formatDate = formatDisplayDate;
   chipClass = chipClassForEstado;
+  /** spec 074: no hay alta de cita por dueño. */
+  citaSolicitudEnabled = isCitaSolicitudUiVisible();
+  clinicaTel = resolveClinicaTelefono((environment as { clinicaTelefonoDisplay?: string }).clinicaTelefonoDisplay);
+  citasProximas: any[] = [];
+  citasPasadas: any[] = [];
 
   get iconoSeccion(): string {
     const icons: Record<PortalListSection, string> = {
@@ -40,7 +42,7 @@ export class PortalListSectionComponent implements OnInit {
       pension: 'home',
       recordatorios: 'notifications',
       visitas: 'receipt_long',
-      consentimientos: 'assignment_turned_in'
+      consentimientos: 'assignment_turned_in',
     };
     return icons[this.seccion];
   }
@@ -54,7 +56,7 @@ export class PortalListSectionComponent implements OnInit {
       pension: 'No hay estancias de pensión',
       recordatorios: 'No hay recordatorios',
       visitas: 'No hay visitas ni tickets',
-      consentimientos: 'No hay consentimientos registrados'
+      consentimientos: 'No hay consentimientos registrados',
     };
     return msgs[this.seccion];
   }
@@ -81,7 +83,7 @@ export class PortalListSectionComponent implements OnInit {
       pension: 'Pensión',
       recordatorios: 'Recordatorios',
       visitas: 'Visitas / cuenta',
-      consentimientos: 'Consentimientos'
+      consentimientos: 'Consentimientos',
     };
     this.titulo = titulos[this.seccion] || 'Expediente';
 
@@ -102,8 +104,11 @@ export class PortalListSectionComponent implements OnInit {
         this.items = await this.portalData.getVacunasPorMascota(this.mascotaId);
       } else if (this.seccion === 'citas') {
         this.items = await this.portalData.getCitasPorMascota(this.mascotaId);
+        const split = splitCitasProximasPasadas(this.items);
+        this.citasProximas = split.proximas;
+        this.citasPasadas = split.pasadas;
       } else if (this.seccion === 'banos') {
-        this.items = await this.portalData.getBaniosPorMascota(this.mascotaId);
+        this.items = await this.portalData.getBaniosPorMascota(this.mascotaId, session.clienteId);
       } else if (this.seccion === 'pension') {
         this.items = await this.portalData.getPensionPorMascota(this.mascotaId);
       } else if (this.seccion === 'recordatorios') {
@@ -150,9 +155,7 @@ export class PortalListSectionComponent implements OnInit {
     }
     if (this.seccion === 'pension') {
       const ingreso = this.formatDate(String(item['fecha_ingreso'] || ''));
-      const salida = this.formatDate(
-        String(item['fecha_salida_real'] || item['fecha_salida_prevista'] || '')
-      );
+      const salida = this.formatDate(String(item['fecha_salida_real'] || item['fecha_salida_prevista'] || ''));
       return salida ? `${ingreso} → ${salida}` : ingreso;
     }
     if (this.seccion === 'recordatorios') return this.formatDate(String(item['fecha'] || ''));

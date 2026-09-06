@@ -3,17 +3,19 @@ import { Router } from '@angular/router';
 import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
+import { buildMascotaActivityChips, MascotaActivityChips } from '../utils/portal-cartilla.util';
 
 @Component({
   selector: 'app-portal-mascotas',
   templateUrl: './portal-mascotas.component.html',
-  styleUrls: ['./portal-mascotas.component.css']
+  styleUrls: ['./portal-mascotas.component.css'],
 })
 export class PortalMascotasComponent implements OnInit {
   loading = true;
   errorMessage = '';
   saludo = 'Hola';
-  mascotas: any[] = [];
+  mascotas: Array<Record<string, unknown> & { id: string }> = [];
+  chips: Record<string, MascotaActivityChips> = {};
 
   constructor(
     private portalData: PortalDataService,
@@ -39,6 +41,16 @@ export class PortalMascotasComponent implements OnInit {
       }
 
       this.mascotas = await this.portalData.getMascotasActivas(session.clienteId);
+      await Promise.all(
+        this.mascotas.map(async (m) => {
+          const act = await this.portalData.getActividadMascota(m.id, session.clienteId);
+          this.chips[m.id] = buildMascotaActivityChips({
+            banos: act.banos as unknown as Record<string, unknown>[],
+            vacunas: act.vacunas as unknown as Record<string, unknown>[],
+            recordatorios: act.recordatorios as unknown as Record<string, unknown>[],
+          });
+        })
+      );
     } catch {
       this.errorMessage = PORTAL_LOAD_ERROR;
     } finally {
@@ -46,15 +58,21 @@ export class PortalMascotasComponent implements OnInit {
     }
   }
 
+  chipsDe(id: string): MascotaActivityChips | null {
+    return this.chips[id] || null;
+  }
+
   verMascota(id: string): void {
     this.router.navigate(['/portal/mascotas', id]);
   }
 
   metaMascota(m: Record<string, unknown>): string {
-    return [m['especie'], m['raza']]
-      .filter(Boolean)
-      .map(v => String(v).trim().toUpperCase())
-      .join(' · ') || 'MASCOTA';
+    return (
+      [m['especie'], m['raza']]
+        .filter(Boolean)
+        .map((v) => String(v).trim().toUpperCase())
+        .join(' · ') || 'MASCOTA'
+    );
   }
 
   avatarClass(especie: unknown): string {

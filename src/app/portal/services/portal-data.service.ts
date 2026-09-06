@@ -14,7 +14,7 @@ import {
   mapRecordatorio,
   mapVisita,
   mapConsentimiento,
-  mapVacuna
+  mapVacuna,
 } from '../utils/portal-mapper.util';
 import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
 
@@ -23,24 +23,24 @@ export class PortalDataService {
   constructor(private db: AngularFireDatabase) {}
 
   async getCliente(clienteId: string): Promise<Record<string, unknown> | null> {
-    const val = await firstValueFrom(
-      this.db.object(`Katzen/Cliente/${clienteId}`).valueChanges().pipe(take(1))
-    );
+    const val = await firstValueFrom(this.db.object(`Katzen/Cliente/${clienteId}`).valueChanges().pipe(take(1)));
     return val && typeof val === 'object' ? (val as Record<string, unknown>) : null;
   }
 
   async getMascotasActivas(clienteId: string) {
     const [byIdCliente, byClienteId] = await Promise.all([
       firstValueFrom(
-        this.db.list('Katzen/Mascota', ref =>
-          ref.orderByChild('idCliente').equalTo(clienteId)
-        ).snapshotChanges().pipe(take(1))
+        this.db
+          .list('Katzen/Mascota', (ref) => ref.orderByChild('idCliente').equalTo(clienteId))
+          .snapshotChanges()
+          .pipe(take(1))
       ),
       firstValueFrom(
-        this.db.list('Katzen/Mascota', ref =>
-          ref.orderByChild('cliente_id').equalTo(clienteId)
-        ).snapshotChanges().pipe(take(1))
-      )
+        this.db
+          .list('Katzen/Mascota', (ref) => ref.orderByChild('cliente_id').equalTo(clienteId))
+          .snapshotChanges()
+          .pipe(take(1))
+      ),
     ]);
 
     const seen = new Set<string>();
@@ -61,9 +61,7 @@ export class PortalDataService {
   }
 
   async getMascota(mascotaId: string) {
-    const val = await firstValueFrom(
-      this.db.object(`Katzen/Mascota/${mascotaId}`).valueChanges().pipe(take(1))
-    );
+    const val = await firstValueFrom(this.db.object(`Katzen/Mascota/${mascotaId}`).valueChanges().pipe(take(1)));
     if (!val || typeof val !== 'object') return null;
     const mapped = mapMascota(mascotaId, val as Record<string, unknown>);
     return mapped.activo ? mapped : null;
@@ -79,109 +77,159 @@ export class PortalDataService {
 
   async getVacunasPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Vacunas', ref =>
-        ref.orderByChild('idPaciente').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Vacunas', (ref) => ref.orderByChild('idPaciente').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapVacuna(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapVacuna(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
   async getCitasPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Citas', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Citas', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapCita(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapCita(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha_hora).localeCompare(String(a.fecha_hora)));
   }
 
-  async getBaniosPorMascota(mascotaId: string) {
-    const snap = await firstValueFrom(
-      this.db.list('Katzen/Banios', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+  async getBaniosPorMascota(mascotaId: string, clienteId?: string) {
+    const byPaciente = await firstValueFrom(
+      this.db
+        .list('Katzen/Banios', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
-    return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapBanio(a.key!, a.payload.val() as Record<string, unknown>))
-      .sort((a, b) => {
-        const fa = `${String(b.fecha_banio)} ${String(b.hora_banio)}`;
-        const fb = `${String(a.fecha_banio)} ${String(a.hora_banio)}`;
-        return fa.localeCompare(fb);
-      });
+    let byCliente: typeof byPaciente = [];
+    if (clienteId) {
+      try {
+        byCliente = await firstValueFrom(
+          this.db
+            .list('Katzen/Banios', (ref) => ref.orderByChild('cliente_id').equalTo(clienteId))
+            .snapshotChanges()
+            .pipe(take(1))
+        );
+      } catch {
+        byCliente = [];
+      }
+    }
+
+    const seen = new Set<string>();
+    const banos = [];
+    for (const snap of [...byPaciente, ...byCliente]) {
+      if (!snap.key || seen.has(snap.key)) continue;
+      const raw = snap.payload.val() as Record<string, unknown>;
+      if (!isActiveRecord(raw) || !isVisibleInClientPortal(raw)) continue;
+      const mapped = mapBanio(snap.key, raw);
+      const pid = String(mapped.paciente_id || raw['idPaciente'] || '');
+      if (pid !== mascotaId) continue;
+      seen.add(snap.key);
+      banos.push(mapped);
+    }
+
+    return banos.sort((a, b) => {
+      const fa = `${String(b.fecha_banio)} ${String(b.hora_banio)}`;
+      const fb = `${String(a.fecha_banio)} ${String(a.hora_banio)}`;
+      return fa.localeCompare(fb);
+    });
   }
 
   async getPensionPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Pension/Estancias', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Pension/Estancias', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapPension(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapPension(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha_ingreso).localeCompare(String(a.fecha_ingreso)));
   }
 
   async getRecordatoriosPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Recordatorios', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Recordatorios', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapRecordatorio(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapRecordatorio(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
   async getVisitasPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Visitas', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Visitas', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapVisita(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapVisita(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
   async getConsentimientosPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Consentimientos', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Consentimientos', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isActiveRecord(a.payload.val() as Record<string, unknown>))
-      .map(a => mapConsentimiento(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => {
+        const raw = a.payload.val() as Record<string, unknown>;
+        return isActiveRecord(raw) && isVisibleInClientPortal(raw);
+      })
+      .map((a) => mapConsentimiento(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
   async getHistorialesPorMascota(mascotaId: string) {
     const snap = await firstValueFrom(
-      this.db.list('Katzen/Historiales_Clinicos', ref =>
-        ref.orderByChild('paciente_id').equalTo(mascotaId)
-      ).snapshotChanges().pipe(take(1))
+      this.db
+        .list('Katzen/Historiales_Clinicos', (ref) => ref.orderByChild('paciente_id').equalTo(mascotaId))
+        .snapshotChanges()
+        .pipe(take(1))
     );
 
     return snap
-      .filter(a => isVisibleInClientPortal(a.payload.val() as Record<string, unknown>))
-      .map(a => mapHistorial(a.key!, a.payload.val() as Record<string, unknown>))
+      .filter((a) => isVisibleInClientPortal(a.payload.val() as Record<string, unknown>))
+      .map((a) => mapHistorial(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha_registro).localeCompare(String(a.fecha_registro)));
   }
 
@@ -191,7 +239,7 @@ export class PortalDataService {
     );
 
     return snap
-      .map(a => mapNotificacion(a.key!, a.payload.val() as Record<string, unknown>))
+      .map((a) => mapNotificacion(a.key!, a.payload.val() as Record<string, unknown>))
       .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   }
 
@@ -199,28 +247,51 @@ export class PortalDataService {
     await this.db.object(`Katzen/Notificaciones/${clienteId}/${notifId}`).update({ leida: true });
   }
 
-  async getCounts(mascotaId: string) {
-    const [vacunas, citas, historiales, banos, pension, recordatorios, visitas, consentimientos] =
-      await Promise.all([
-        this.getVacunasPorMascota(mascotaId),
-        this.getCitasPorMascota(mascotaId),
-        this.getHistorialesPorMascota(mascotaId),
-        this.getBaniosPorMascota(mascotaId),
-        this.getPensionPorMascota(mascotaId),
-        this.getRecordatoriosPorMascota(mascotaId),
-        this.getVisitasPorMascota(mascotaId),
-        this.getConsentimientosPorMascota(mascotaId)
-      ]);
+  async getExpedientePortal(mascotaId: string, clienteId?: string) {
+    const [vacunas, citas, historiales, banos, pension, recordatorios, visitas, consentimientos] = await Promise.all([
+      this.getVacunasPorMascota(mascotaId),
+      this.getCitasPorMascota(mascotaId),
+      this.getHistorialesPorMascota(mascotaId),
+      this.getBaniosPorMascota(mascotaId, clienteId),
+      this.getPensionPorMascota(mascotaId),
+      this.getRecordatoriosPorMascota(mascotaId),
+      this.getVisitasPorMascota(mascotaId),
+      this.getConsentimientosPorMascota(mascotaId),
+    ]);
     return {
-      vacunas: vacunas.length,
-      citas: citas.length,
-      historiales: historiales.length,
-      banos: banos.length,
-      pension: pension.length,
-      recordatorios: recordatorios.length,
-      visitas: visitas.length,
-      consentimientos: consentimientos.length,
-      saldoPendiente: visitas.reduce((s, v) => s + Math.max(0, Number(v.saldo) || 0), 0)
+      vacunas,
+      citas,
+      historiales,
+      banos,
+      pension,
+      recordatorios,
+      visitas,
+      consentimientos,
+      counts: {
+        vacunas: vacunas.length,
+        citas: citas.length,
+        historiales: historiales.length,
+        banos: banos.length,
+        pension: pension.length,
+        recordatorios: recordatorios.length,
+        visitas: visitas.length,
+        consentimientos: consentimientos.length,
+        saldoPendiente: visitas.reduce((s, v) => s + Math.max(0, Number(v.saldo) || 0), 0),
+      },
     };
+  }
+
+  async getCounts(mascotaId: string, clienteId?: string) {
+    const exp = await this.getExpedientePortal(mascotaId, clienteId);
+    return exp.counts;
+  }
+
+  async getActividadMascota(mascotaId: string, clienteId?: string) {
+    const [vacunas, banos, recordatorios] = await Promise.all([
+      this.getVacunasPorMascota(mascotaId),
+      this.getBaniosPorMascota(mascotaId, clienteId),
+      this.getRecordatoriosPorMascota(mascotaId),
+    ]);
+    return { vacunas, banos, recordatorios };
   }
 }
