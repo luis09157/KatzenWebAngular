@@ -18,7 +18,10 @@ function safeConnect(label: string, connect: () => void): void {
       return;
     }
     // Cualquier otro fallo significa que la app seguiría apuntando a PRODUCCIÓN: hacerlo visible.
-    console.error(`[KatzenVet] No se pudo conectar ${label} al emulador. La app puede estar apuntando a producción.`, msg);
+    console.error(
+      `[KatzenVet] No se pudo conectar ${label} al emulador. La app puede estar apuntando a producción.`,
+      msg
+    );
   }
 }
 
@@ -34,9 +37,9 @@ function ensureDefaultApp(): void {
 }
 
 /**
- * Spec 064: el `ng serve` local puede apuntar a los emuladores Firebase (nunca en prod).
- * Bajo `environment.useRtdbEmulator` conecta RTDB, Auth y Functions al emulador local
- * para no tocar `katzen-a0e3e`. Seed de usuarios de prueba: `npm run emulators:seed`.
+ * Spec 064 / 074: solo si `useRtdbEmulator: true` en environment.ts.
+ * Con flag false (default actual), localhost usa Auth + RTDB + Functions de prod.
+ * Auth emu aparte (`useAuthEmulator`): encender solo con seed local.
  */
 export function connectRtdbEmulatorIfEnabled(): void {
   if (environment.production || !environment.useRtdbEmulator) {
@@ -44,7 +47,9 @@ export function connectRtdbEmulatorIfEnabled(): void {
   }
   ensureDefaultApp();
   safeConnect('RTDB', () => firebase.database().useEmulator(EMULATOR_HOST, EMULATOR_PORTS.database));
-  safeConnect('Auth', () => firebase.auth().useEmulator(`http://${EMULATOR_HOST}:${EMULATOR_PORTS.auth}`));
+  if (environment.useAuthEmulator === true) {
+    safeConnect('Auth', () => firebase.auth().useEmulator(`http://${EMULATOR_HOST}:${EMULATOR_PORTS.auth}`));
+  }
   // Sin región explícita: misma instancia por defecto que usa AngularFireFunctions (REGION no provista).
   safeConnect('Functions', () => firebase.app().functions().useEmulator(EMULATOR_HOST, EMULATOR_PORTS.functions));
 }

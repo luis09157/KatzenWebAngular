@@ -10,7 +10,7 @@ import { AppCheckService } from '../core/app-check.service';
   selector: 'app-contexto-selector',
   templateUrl: './contexto-selector.component.html',
   // Reutiliza el shell centrado del login admin (admin-auth-page / admin-auth-card).
-  styleUrls: ['./auth.component.css', './contexto-selector.component.css']
+  styleUrls: ['./auth.component.css', './contexto-selector.component.css'],
 })
 export class ContextoSelectorComponent implements OnInit {
   loading = true;
@@ -38,10 +38,9 @@ export class ContextoSelectorComponent implements OnInit {
       await this.firebaseFunctions.syncMyClaims();
       const access = await this.authProfileService.resolveAccess();
 
-      // Candado duro: el selector SOLO existe tras login staff.
-      // Cualquier visita a /auth/contexto desde portal/landing/bookmark → portal.
       const allowSelector =
-        this.authSession.hasStaffEntryIntent() && !this.authSession.isPortalEntryLocked();
+        this.authSession.hasPendingContextChoice() ||
+        (this.authSession.hasStaffEntryIntent() && !this.authSession.isPortalEntryLocked());
 
       if (!allowSelector) {
         if (access.clientAccess) {
@@ -84,6 +83,7 @@ export class ContextoSelectorComponent implements OnInit {
     if (this.choosing) return;
     this.choosing = true;
     try {
+      this.authSession.clearPendingContextChoice();
       this.authSession.setPortalEntryLock(false);
       this.authSession.setStaffEntryIntent(true);
       await this.router.navigate(['/admin/inicio']);
@@ -96,9 +96,9 @@ export class ContextoSelectorComponent implements OnInit {
     if (this.choosing) return;
     this.choosing = true;
     try {
-      // Vino de login staff: puede volver al admin con el atajo del portal.
-      this.authSession.setPortalEntryLock(false);
-      this.authSession.setStaffEntryIntent(true);
+      this.authSession.clearPendingContextChoice();
+      this.authSession.setPortalEntryLock(true);
+      this.authSession.setStaffEntryIntent(false);
       await this.router.navigate(['/portal/mascotas']);
     } finally {
       this.choosing = false;

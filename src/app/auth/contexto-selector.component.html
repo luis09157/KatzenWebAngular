@@ -3,9 +3,9 @@
 
   <mat-card class="admin-auth-card contexto-card" appearance="outlined">
     <div class="admin-auth-brand">
-      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo">
+      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo" />
       <h1>¿A dónde quieres entrar?</h1>
-      <p>Tu cuenta tiene acceso al panel de la clínica y al portal de tus mascotas.</p>
+      <p>Tu cuenta sirve para el portal de dueños y para el panel de la clínica.</p>
     </div>
 
     <div *ngIf="loading" class="admin-auth-checking">
@@ -21,25 +21,21 @@
           mat-flat-button
           color="primary"
           class="contexto-option"
-          (click)="irAdmin()"
-          [disabled]="choosing">
-          <mat-icon>dashboard</mat-icon>
+          (click)="irPortal()"
+          [disabled]="choosing"
+        >
+          <mat-icon>pets</mat-icon>
           <span class="contexto-option__text">
-            <strong>Panel admin</strong>
-            <small>Operación de la clínica</small>
+            <strong>Portal dueños</strong>
+            <small>Mascotas, vacunas, baños y avisos</small>
           </span>
         </button>
 
-        <button
-          type="button"
-          mat-stroked-button
-          class="contexto-option"
-          (click)="irPortal()"
-          [disabled]="choosing">
-          <mat-icon>pets</mat-icon>
+        <button type="button" mat-stroked-button class="contexto-option" (click)="irAdmin()" [disabled]="choosing">
+          <mat-icon>dashboard</mat-icon>
           <span class="contexto-option__text">
-            <strong>Portal mis mascotas</strong>
-            <small>Como dueño / cliente</small>
+            <strong>Panel de la clínica</strong>
+            <small>Operación del equipo</small>
           </span>
         </button>
       </div>

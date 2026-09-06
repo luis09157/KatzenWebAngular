@@ -13,6 +13,22 @@ body {
   margin: 0;
 }
 
+/* Login/landing: el banner del Auth emulator no debe parecer error de la clínica. */
+#firebase-emulator-warning {
+  display: none !important;
+}
+
+.auth-inline-error {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

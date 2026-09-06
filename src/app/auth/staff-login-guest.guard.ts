@@ -31,6 +31,11 @@ export class StaffLoginGuestGuard implements CanActivate {
       // Perfil RTDB / claims locales siguen siendo suficientes para decidir.
     }
 
+    if (this.authSession.hasPendingContextChoice() && (await this.authProfile.isDual())) {
+      await this.router.navigate(['/auth/contexto']);
+      return false;
+    }
+
     if (this.authSession.isPortalEntryLocked()) {
       if (await this.authProfile.hasClientAccess()) {
         await this.router.navigate(['/portal/mascotas']);

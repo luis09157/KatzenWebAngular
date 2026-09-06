@@ -8,8 +8,9 @@ import {
   modulesForStaffRole,
   normalizeStaffRole,
   staffRoleCanAccessModule,
-  StaffModule
+  StaffModule,
 } from '../config/staff-role.config';
+import { accessFromAuthClaims, ClaimsAccess } from '../utils/auth-claims-access.util';
 
 export interface AuthPerfil {
   authUid?: string;
@@ -34,7 +35,7 @@ export interface AuthAccess {
 function normalizedRoles(perfil: AuthPerfil | null): Set<string> {
   const list = Array.isArray(perfil?.roles) ? perfil!.roles! : [];
   const legacy = perfil?.role ? [perfil.role] : [];
-  return new Set([...list, ...legacy].map(r => String(r).toLowerCase()));
+  return new Set([...list, ...legacy].map((r) => String(r).toLowerCase()));
 }
 
 export function hasStaffAccess(perfil: AuthPerfil | null): boolean {
@@ -78,45 +79,37 @@ export class AuthProfileService {
     }
 
     const token = await user.getIdTokenResult();
-    const roleClaim = token.claims['role'] as string | undefined;
-    const clienteId = token.claims['clienteId'] as string | undefined;
-    const staffRole = token.claims['staffRole'] as string | undefined;
-    const dualAccess = token.claims['dualAccess'] === true;
-    const mustChangePassword = token.claims['mustChangePassword'] === true;
-
-    const staffAccess = roleClaim === 'staff' || dualAccess;
-    const clientAccess =
-      roleClaim === 'client' ||
-      (dualAccess && !!clienteId);
-
-    return { staffAccess, clientAccess, clienteId, staffRole, mustChangePassword };
+    return accessFromAuthClaims(token.claims as Record<string, unknown>);
   }
 
-  /** Perfil RTDB primero; claims solo si no hay perfil en RTDB. */
+  /**
+   * Une perfil RTDB + custom claims. En local (Auth real + RTDB emu)
+   * el UID de clínica no está en el emulador; los claims del token
+   * siguen mostrando staff + dueño.
+   */
   async resolveAccess(): Promise<AuthAccess> {
     const perfil = await this.getMyProfile();
-
-    if (perfil) {
-      if (perfil.activo === false) {
-        return { staffAccess: false, clientAccess: false, perfil };
-      }
-
-      const staffAccess = hasStaffAccess(perfil);
-      const clientAccess = hasClientAccess(perfil);
-      return {
-        staffAccess,
-        clientAccess,
-        perfil,
-        clienteId: perfil.clienteId,
-        staffRole: perfil.staffRole,
-        mustChangePassword: perfil.mustChangePassword === true
-      };
+    let claims: ClaimsAccess = { staffAccess: false, clientAccess: false };
+    try {
+      claims = await this.getAccessFromClaims();
+    } catch {
+      // Token claims no disponibles (red / Auth); se usa solo el perfil RTDB.
     }
 
-    const claims = await this.getAccessFromClaims();
+    if (perfil?.activo === false) {
+      return { staffAccess: false, clientAccess: false, perfil };
+    }
+
+    const staffAccess = hasStaffAccess(perfil) || claims.staffAccess;
+    const clientAccess = hasClientAccess(perfil) || claims.clientAccess;
+
     return {
-      ...claims,
-      perfil: null
+      staffAccess,
+      clientAccess,
+      perfil,
+      clienteId: perfil?.clienteId || claims.clienteId,
+      staffRole: perfil?.staffRole || claims.staffRole,
+      mustChangePassword: perfil?.mustChangePassword === true || claims.mustChangePassword === true,
     };
   }
 

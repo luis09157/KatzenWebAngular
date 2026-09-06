@@ -3,9 +3,9 @@
 
   <mat-card class="admin-auth-card" appearance="outlined">
     <div class="admin-auth-brand">
-      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo">
+      <img ngSrc="assets/katzen-logo.jpg" alt="KatzenVet" width="72" height="72" class="admin-auth-logo" />
       <h1>KatzenVet Admin</h1>
-      <p>Panel de gestión para personal autorizado</p>
+      <p>Solo personal de la clínica</p>
     </div>
 
     <div *ngIf="checkingSession" class="admin-auth-checking">
@@ -13,64 +13,83 @@
     </div>
 
     <ng-container *ngIf="!checkingSession">
-    <div class="admin-auth-form-wrap" [class.admin-auth-form-wrap--loading]="loading">
-      <div class="auth-loading-state" *ngIf="loading" aria-live="polite" aria-busy="true">
-        <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
-        <p class="auth-loading-state__title">Verificando credenciales</p>
-        <p class="auth-loading-state__hint">Conectando con el servidor…</p>
+      <div class="admin-auth-form-wrap" [class.admin-auth-form-wrap--loading]="loading">
+        <div class="auth-loading-state" *ngIf="loading" aria-live="polite" aria-busy="true">
+          <mat-spinner diameter="44" strokeWidth="4"></mat-spinner>
+          <p class="auth-loading-state__title">Verificando credenciales</p>
+          <p class="auth-loading-state__hint">Conectando con el servidor…</p>
+        </div>
+
+        <form class="admin-auth-form" (ngSubmit)="login()">
+          <div class="auth-inline-error" *ngIf="loginError" role="alert">{{ loginError }}</div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Correo electrónico</mat-label>
+            <mat-icon matPrefix>mail_outline</mat-icon>
+            <input
+              matInput
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              autocomplete="username"
+              required
+              [disabled]="loading"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Contraseña</mat-label>
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <input
+              matInput
+              [type]="hidePassword ? 'password' : 'text'"
+              [(ngModel)]="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              [disabled]="loading"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="hidePassword = !hidePassword"
+              [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+              [disabled]="loading"
+            >
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-checkbox
+            class="admin-auth-remember"
+            [(ngModel)]="keepSessionActive"
+            name="keepSessionActive"
+            [disabled]="loading"
+          >
+            Mantener sesión activa
+          </mat-checkbox>
+
+          <button mat-flat-button color="primary" type="submit" class="admin-auth-submit" [disabled]="loading">
+            <span class="admin-auth-submit__content">
+              <mat-icon>login</mat-icon>
+              <span>Iniciar sesión</span>
+            </span>
+          </button>
+        </form>
       </div>
 
-      <form class="admin-auth-form" (ngSubmit)="login()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Correo electrónico</mat-label>
-          <mat-icon matPrefix>mail_outline</mat-icon>
-          <input matInput type="email" [(ngModel)]="email" name="email" autocomplete="username" required [disabled]="loading">
-        </mat-form-field>
+      <mat-divider></mat-divider>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contraseña</mat-label>
-          <mat-icon matPrefix>lock_outline</mat-icon>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password" name="password" autocomplete="current-password" required [disabled]="loading">
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="hidePassword = !hidePassword"
-            [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
-            [disabled]="loading">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-        </mat-form-field>
-
-        <mat-checkbox
-          class="admin-auth-remember"
-          [(ngModel)]="keepSessionActive"
-          name="keepSessionActive"
-          [disabled]="loading">
-          Mantener sesión activa
-        </mat-checkbox>
-
-        <button mat-flat-button color="primary" type="submit" class="admin-auth-submit" [disabled]="loading">
-          <span class="admin-auth-submit__content">
-            <mat-icon>login</mat-icon>
-            <span>Iniciar sesión</span>
-          </span>
+      <div class="admin-auth-links">
+        <button mat-button type="button" (click)="irAlInicio()" [disabled]="loading">
+          <mat-icon>home</mat-icon>
+          Ir al inicio
         </button>
-      </form>
-    </div>
-
-    <mat-divider></mat-divider>
-
-    <div class="admin-auth-links">
-      <button mat-button type="button" (click)="irAlInicio()" [disabled]="loading">
-        <mat-icon>home</mat-icon>
-        Ir al inicio
-      </button>
-      <button mat-button type="button" routerLink="/portal/login" [disabled]="loading">
-        <mat-icon>smartphone</mat-icon>
-        Portal del dueño
-      </button>
-    </div>
+        <button mat-button type="button" routerLink="/portal/login" [disabled]="loading">
+          <mat-icon>smartphone</mat-icon>
+          Soy cliente: entrar al portal
+        </button>
+      </div>
     </ng-container>
   </mat-card>
 </div>

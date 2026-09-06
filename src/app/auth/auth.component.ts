@@ -5,12 +5,12 @@ import { AuthSessionService } from '../core/services/auth-session.service';
 import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
+import { mensajeErrorLoginStaff } from '../portal/utils/portal-login-error.util';
 
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
-  styleUrls: ['./auth.component.css']
+  styleUrls: ['./auth.component.css'],
 })
 export class AuthComponent implements OnInit {
   email = '';
@@ -19,6 +19,7 @@ export class AuthComponent implements OnInit {
   keepSessionActive = false;
   loading = false;
   checkingSession = true;
+  loginError = '';
 
   constructor(
     private authService: AuthService,
@@ -56,6 +57,11 @@ export class AuthComponent implements OnInit {
       // Continuar con perfil RTDB / claims ya emitidos.
     }
 
+    if (this.authSession.hasPendingContextChoice() && (await this.authProfileService.isDual())) {
+      await this.router.navigate(['/auth/contexto']);
+      return true;
+    }
+
     // Sesión abierta por portal: no saltar a admin desde /admin/login.
     if (this.authSession.isPortalEntryLocked()) {
       if (await this.authProfileService.hasClientAccess()) {
@@ -83,12 +89,9 @@ export class AuthComponent implements OnInit {
     if (this.loading) {
       return;
     }
+    this.loginError = '';
     if (!this.email || !this.password) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos requeridos',
-        text: 'Por favor ingresa tu correo y contraseña.'
-      });
+      this.loginError = 'Escribe tu correo y contraseña.';
       return;
     }
     this.loading = true;
@@ -99,21 +102,13 @@ export class AuthComponent implements OnInit {
       await this.firebaseFunctions.syncMyClaims();
       const hasStaff = await this.authProfileService.hasStaffAccess();
       if (!hasStaff) {
-        await this.authService.logout();
-        Swal.fire({
-          icon: 'warning',
-          title: 'Sin acceso admin',
-          text: 'Tu cuenta no tiene perfil de personal staff. Si eres dueño de mascota, inicia sesión en el portal del dueño.'
-        });
+        await this.authService.signOutOnly();
+        this.loginError = 'No encontramos tu perfil de personal. Si eres dueño, entra por «Soy cliente».';
         return;
       }
       await this.navigateAfterStaffLogin();
-    } catch {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Correo o contraseña incorrectos.'
-      });
+    } catch (error) {
+      this.loginError = mensajeErrorLoginStaff(error);
     } finally {
       this.loading = false;
     }
@@ -122,6 +117,7 @@ export class AuthComponent implements OnInit {
   /** Dual → selector de contexto; solo staff → admin. */
   private async navigateAfterStaffLogin(): Promise<void> {
     if (await this.authProfileService.isDual()) {
+      this.authSession.setPendingContextChoice(true);
       await this.router.navigate(['/auth/contexto']);
       return;
     }

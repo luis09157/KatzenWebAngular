@@ -7,6 +7,8 @@ export const AUTH_PORTAL_LOCK_LOCAL_KEY = 'katzen.auth.portalLock.v1';
 export const AUTH_PORTAL_LOCK_TAB_KEY = 'katzen.auth.portalLock.tab.v1';
 /** Login staff: permite mostrar /auth/contexto. Sin este flag, contexto → portal. */
 export const AUTH_STAFF_INTENT_KEY = 'katzen.auth.staffIntent.v1';
+/** Login fresco con staff + dueño: mostrar «¿A dónde quieres entrar?». */
+export const AUTH_CONTEXT_CHOICE_KEY = 'katzen.auth.contextChoice.v1';
 export const AUTH_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface StoredAuthSession {
@@ -32,7 +34,7 @@ export class AuthSessionService {
       uid,
       issuedAt,
       remember,
-      expiresAt: remember ? issuedAt + AUTH_SESSION_TTL_MS : undefined
+      expiresAt: remember ? issuedAt + AUTH_SESSION_TTL_MS : undefined,
     };
 
     const storage = remember ? localStorage : sessionStorage;
@@ -53,6 +55,7 @@ export class AuthSessionService {
     sessionStorage.removeItem(AUTH_SESSION_TAB_KEY);
     this.clearPortalLock();
     this.clearStaffEntryIntent();
+    this.clearPendingContextChoice();
   }
 
   /**
@@ -104,10 +107,25 @@ export class AuthSessionService {
     sessionStorage.removeItem(AUTH_STAFF_INTENT_KEY);
   }
 
+  setPendingContextChoice(pending: boolean): void {
+    if (!pending) {
+      this.clearPendingContextChoice();
+      return;
+    }
+    sessionStorage.setItem(AUTH_CONTEXT_CHOICE_KEY, '1');
+  }
+
+  hasPendingContextChoice(): boolean {
+    return sessionStorage.getItem(AUTH_CONTEXT_CHOICE_KEY) === '1';
+  }
+
+  clearPendingContextChoice(): void {
+    sessionStorage.removeItem(AUTH_CONTEXT_CHOICE_KEY);
+  }
+
   getSession(): StoredAuthSession | null {
     return (
-      this.readSession(localStorage, AUTH_SESSION_LOCAL_KEY) ??
-      this.readSession(sessionStorage, AUTH_SESSION_TAB_KEY)
+      this.readSession(localStorage, AUTH_SESSION_LOCAL_KEY) ?? this.readSession(sessionStorage, AUTH_SESSION_TAB_KEY)
     );
   }
 

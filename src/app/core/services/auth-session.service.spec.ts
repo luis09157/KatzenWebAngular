@@ -1,8 +1,4 @@
-import {
-  AuthSessionService,
-  AUTH_PORTAL_LOCK_LOCAL_KEY,
-  AUTH_PORTAL_LOCK_TAB_KEY
-} from './auth-session.service';
+import { AuthSessionService, AUTH_PORTAL_LOCK_LOCAL_KEY, AUTH_PORTAL_LOCK_TAB_KEY } from './auth-session.service';
 
 describe('AuthSessionService portal entry lock', () => {
   let service: AuthSessionService;
@@ -39,5 +35,12 @@ describe('AuthSessionService portal entry lock', () => {
     expect(service.isPortalEntryLocked()).toBe(true);
     service.startSession('uid-1', false);
     expect(service.isPortalEntryLocked()).toBe(true);
+  });
+
+  it('pending context choice se limpia al cerrar sesión', () => {
+    service.setPendingContextChoice(true);
+    expect(service.hasPendingContextChoice()).toBe(true);
+    service.clearSession();
+    expect(service.hasPendingContextChoice()).toBe(false);
   });
 });

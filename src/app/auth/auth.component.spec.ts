@@ -15,24 +15,27 @@ describe('AuthComponent', () => {
   const authService = {
     getActiveAuthUser: jasmine.createSpy('getActiveAuthUser').and.resolveTo(null),
     login: jasmine.createSpy('login'),
-    logout: jasmine.createSpy('logout')
+    logout: jasmine.createSpy('logout'),
+    signOutOnly: jasmine.createSpy('signOutOnly').and.resolveTo(undefined),
   };
   const authProfileService = {
     hasStaffAccess: jasmine.createSpy('hasStaffAccess').and.resolveTo(false),
     hasClientAccess: jasmine.createSpy('hasClientAccess').and.resolveTo(false),
-    isDual: jasmine.createSpy('isDual').and.resolveTo(false)
+    isDual: jasmine.createSpy('isDual').and.resolveTo(false),
   };
   const authSession = {
     isPortalEntryLocked: jasmine.createSpy('isPortalEntryLocked').and.returnValue(false),
     setStaffEntryIntent: jasmine.createSpy('setStaffEntryIntent'),
-    setPortalEntryLock: jasmine.createSpy('setPortalEntryLock')
+    setPortalEntryLock: jasmine.createSpy('setPortalEntryLock'),
+    setPendingContextChoice: jasmine.createSpy('setPendingContextChoice'),
+    hasPendingContextChoice: jasmine.createSpy('hasPendingContextChoice').and.returnValue(false),
   };
   const appCheck = { ensureInitialized: jasmine.createSpy('ensureInitialized') };
   const firebaseFunctions = {
-    syncMyClaims: jasmine.createSpy('syncMyClaims').and.resolveTo(undefined)
+    syncMyClaims: jasmine.createSpy('syncMyClaims').and.resolveTo(undefined),
   };
   const router = {
-    navigate: jasmine.createSpy('navigate').and.resolveTo(true)
+    navigate: jasmine.createSpy('navigate').and.resolveTo(true),
   };
 
   beforeEach(async () => {
@@ -41,6 +44,7 @@ describe('AuthComponent', () => {
     authProfileService.hasClientAccess.and.resolveTo(false);
     authProfileService.isDual.and.resolveTo(false);
     authSession.isPortalEntryLocked.and.returnValue(false);
+    authSession.hasPendingContextChoice.and.returnValue(false);
 
     await TestBed.configureTestingModule({
       declarations: [AuthComponent],
@@ -50,9 +54,9 @@ describe('AuthComponent', () => {
         { provide: AuthSessionService, useValue: authSession },
         { provide: AppCheckService, useValue: appCheck },
         { provide: FirebaseFunctionsService, useValue: firebaseFunctions },
-        { provide: Router, useValue: router }
+        { provide: Router, useValue: router },
       ],
-      schemas: [NO_ERRORS_SCHEMA]
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthComponent);
@@ -123,7 +127,7 @@ describe('AuthComponent', () => {
   it('mantiene spinner mientras getActiveAuthUser está pendiente', async () => {
     let resolveUser!: (user: { uid: string } | null) => void;
     authService.getActiveAuthUser.and.returnValue(
-      new Promise(resolve => {
+      new Promise((resolve) => {
         resolveUser = resolve;
       })
     );
@@ -135,7 +139,7 @@ describe('AuthComponent', () => {
     authProfileService.isDual.and.resolveTo(false);
     resolveUser({ uid: 'staff-tab' });
     await fixture.whenStable();
-    await new Promise(r => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
     fixture.detectChanges();
 
     expect(component.checkingSession).toBeFalse();

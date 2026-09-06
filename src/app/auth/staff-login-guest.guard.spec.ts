@@ -10,28 +10,32 @@ describe('StaffLoginGuestGuard', () => {
   let guard: StaffLoginGuestGuard;
 
   const authService = {
-    getActiveAuthUser: jasmine.createSpy('getActiveAuthUser').and.resolveTo(null)
+    getActiveAuthUser: jasmine.createSpy('getActiveAuthUser').and.resolveTo(null),
   };
   const authProfile = {
     hasStaffAccess: jasmine.createSpy('hasStaffAccess').and.resolveTo(false),
-    hasClientAccess: jasmine.createSpy('hasClientAccess').and.resolveTo(false)
+    hasClientAccess: jasmine.createSpy('hasClientAccess').and.resolveTo(false),
+    isDual: jasmine.createSpy('isDual').and.resolveTo(false),
   };
   const authSession = {
     isPortalEntryLocked: jasmine.createSpy('isPortalEntryLocked').and.returnValue(false),
-    setStaffEntryIntent: jasmine.createSpy('setStaffEntryIntent')
+    hasPendingContextChoice: jasmine.createSpy('hasPendingContextChoice').and.returnValue(false),
+    setStaffEntryIntent: jasmine.createSpy('setStaffEntryIntent'),
   };
   const firebaseFunctions = {
-    syncMyClaims: jasmine.createSpy('syncMyClaims').and.resolveTo(undefined)
+    syncMyClaims: jasmine.createSpy('syncMyClaims').and.resolveTo(undefined),
   };
   const router = {
-    navigate: jasmine.createSpy('navigate').and.resolveTo(true)
+    navigate: jasmine.createSpy('navigate').and.resolveTo(true),
   };
 
   beforeEach(() => {
     authService.getActiveAuthUser.and.resolveTo(null);
     authProfile.hasStaffAccess.and.resolveTo(false);
     authProfile.hasClientAccess.and.resolveTo(false);
+    authProfile.isDual.and.resolveTo(false);
     authSession.isPortalEntryLocked.and.returnValue(false);
+    authSession.hasPendingContextChoice.and.returnValue(false);
     router.navigate.calls.reset();
     authSession.setStaffEntryIntent.calls.reset();
 
@@ -42,8 +46,8 @@ describe('StaffLoginGuestGuard', () => {
         { provide: AuthProfileService, useValue: authProfile },
         { provide: AuthSessionService, useValue: authSession },
         { provide: FirebaseFunctionsService, useValue: firebaseFunctions },
-        { provide: Router, useValue: router }
-      ]
+        { provide: Router, useValue: router },
+      ],
     });
 
     guard = TestBed.inject(StaffLoginGuestGuard);
@@ -64,7 +68,7 @@ describe('StaffLoginGuestGuard', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
   });
 
-  it('con sesión dual desde login staff redirige a /admin/inicio', async () => {
+  it('con sesión dual recordada (sin chooser pendiente) redirige a /admin/inicio', async () => {
     authService.getActiveAuthUser.and.resolveTo({ uid: 'dual-1' });
     authProfile.hasStaffAccess.and.resolveTo(true);
     authProfile.hasClientAccess.and.resolveTo(true);
@@ -72,5 +76,14 @@ describe('StaffLoginGuestGuard', () => {
     await expectAsync(guard.canActivate()).toBeResolvedTo(false);
     expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
     expect(router.navigate).not.toHaveBeenCalledWith(['/auth/contexto']);
+  });
+
+  it('con chooser pendiente redirige a /auth/contexto', async () => {
+    authService.getActiveAuthUser.and.resolveTo({ uid: 'dual-1' });
+    authProfile.isDual.and.resolveTo(true);
+    authSession.hasPendingContextChoice.and.returnValue(true);
+
+    await expectAsync(guard.canActivate()).toBeResolvedTo(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth/contexto']);
   });
 });

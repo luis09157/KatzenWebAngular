@@ -19,14 +19,21 @@ export const environment = {
   /** Spec 052: push programado (D-7 / D-0). Si false, 023 al write sin gate de vacuna. */
   pushProgramadoEnabled: true,
   /**
-   * POS 055/069: catálogo de muestra. OFF — el emulador ya tiene catálogo eleventa.
-   * Encender solo si necesitas preview UI sin SKU reales.
+   * POS 055/069: catálogo de muestra. OFF en localhost→prod.
+   * Encender solo con emulador RTDB si necesitas preview UI sin SKU reales.
    */
   usarCatalogoDemoPos: false,
   /**
-   * Spec 064: `ng serve` lee el emulador RTDB (685 SKU eleventa), no katzen-a0e3e.
-   * Auth sigue en Firebase real. Apagar (`false`) para volver a ver la clínica de prod.
-   * `environment.prod.ts` siempre false.
+   * Spec 064/074: `false` = Auth + RTDB + Functions de katzen-a0e3e (misma clínica que prod).
+   * Encender (`true`) solo para PDV/seed local. `environment.prod.ts` siempre false.
    */
-  useRtdbEmulator: true,
+  useRtdbEmulator: false,
+  /**
+   * Auth emu OFF: cuentas reales de la clínica no existen en el emulador.
+   * Encender solo para seed (`cliente@katzen.test` / `npm run emulators:seed`) con RTDB emu.
+   */
+  useAuthEmulator: false,
+  /** Teléfono público landing/portal (spec 074). Config/clinica no es legible por dueño. */
+  clinicaTelefono: '8136024090',
+  clinicaTelefonoDisplay: '81 3602 4090',
 };
