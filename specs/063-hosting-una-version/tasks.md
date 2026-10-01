@@ -105,3 +105,5 @@ Hosting: 298 → se borraron 297 versiones; queda 1 FINALIZED. retainedReleaseCo
 ### Nota ops post-deploy (2026-10-01)
 
 Tras deploy 079–082 (`d2149be`): PATCH `retainedReleaseCount=1` OK; DELETE 7 versiones no live; queda 1 FINALIZED `5a965cc69cf76f10`; sitio HTTP 200.
+
+Tras deploy 084 (`92d396e`): PATCH `retainedReleaseCount=1` OK; queda 1 FINALIZED `3ee13255ab4952f7`; sitio HTTP 200.
