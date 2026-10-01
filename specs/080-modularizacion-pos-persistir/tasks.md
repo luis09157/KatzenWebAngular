@@ -69,4 +69,4 @@ npm run build → exit 0
 
 ### Qué queda (opcional)
 
-- Sheets POS como componentes Angular hijos (UI) — solo si Luis pide.
+- ~~Sheets POS como componentes Angular hijos (UI).~~ → **081** (panel/cantidad/scanner; carrito diferido).

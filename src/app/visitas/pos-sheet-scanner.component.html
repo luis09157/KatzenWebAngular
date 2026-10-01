@@ -1,0 +1,14 @@
+<h3 class="section-title">Escanear o pegar código</h3>
+<p class="hint-empty">Pega el código de barras o QR del producto. La cámara llega en otra ola.</p>
+<input
+  class="pos-scanner-input"
+  type="text"
+  [ngModel]="codigo"
+  (ngModelChange)="onCodigo($event)"
+  placeholder="Código o QR"
+  autocomplete="off"
+  (keyup.enter)="buscar.emit()"
+/>
+<button mat-raised-button color="primary" class="btn-primary-teal pos-btn-full" type="button" (click)="buscar.emit()">
+  Buscar y agregar
+</button>

@@ -50,4 +50,4 @@ N/A — sin cambios RTDB. Mismos nodos/campos vía servicios existentes (`Visita
 
 - Continúa: **075**, **076**, **077**, **078**, **079**
 - Reutilizar (no reinventar): `pos-kit-bom`, `pos-catalogo-demo`, `visita-mostrador`, `pos-orquestacion`
-- Siguiente opcional: sheets POS como componentes Angular si Luis pide
+- Oleada 6: **081** sheets panel/cantidad/scanner (carrito diferido)

@@ -888,31 +888,14 @@
     </button>
   </div>
 
-  <!-- Sheet cantidad / carrito / scanner -->
-  <div class="pos-sheet-backdrop no-print" *ngIf="sheetAbierta" (click)="cerrarSheet()"></div>
-  <aside class="pos-sheet no-print" *ngIf="sheetAbierta" role="dialog" aria-label="Detalle de línea">
-    <div class="pos-sheet__handle"></div>
-    <ng-container *ngIf="sheetModo === 'scanner'">
-      <h3 class="section-title">Escanear o pegar código</h3>
-      <p class="hint-empty">Pega el código de barras o QR del producto. La cámara llega en otra ola.</p>
-      <input
-        class="pos-scanner-input"
-        type="text"
-        [(ngModel)]="scannerCodigo"
-        placeholder="Código o QR"
-        autocomplete="off"
-        (keyup.enter)="aplicarCodigoEscaneado()"
-      />
-      <button
-        mat-raised-button
-        color="primary"
-        class="btn-primary-teal pos-btn-full"
-        type="button"
-        (click)="aplicarCodigoEscaneado()"
-      >
-        Buscar y agregar
-      </button>
-    </ng-container>
+  <!-- Sheets POS (081): panel + cantidad/scanner; carrito aún inline -->
+  <app-pos-sheet-panel *ngIf="sheetAbierta" (cerrar)="cerrarSheet()">
+    <app-pos-sheet-scanner
+      *ngIf="sheetModo === 'scanner'"
+      [codigo]="scannerCodigo"
+      (codigoChange)="scannerCodigo = $event"
+      (buscar)="aplicarCodigoEscaneado()"
+    ></app-pos-sheet-scanner>
     <ng-container *ngIf="sheetModo === 'carrito'">
       <h3 class="section-title">Ticket</h3>
       <p class="hint-empty" *ngIf="!lineas.length">Sin artículos.</p>
@@ -961,46 +944,21 @@
         </div>
       </div>
     </ng-container>
-    <ng-container *ngIf="sheetModo !== 'carrito' && sheetModo !== 'scanner'">
-      <div class="pos-sheet__media">
-        <img
-          *ngIf="sheetProducto && fotoDeProducto(sheetProducto)"
-          [src]="fotoDeProducto(sheetProducto)"
-          [alt]="sheetTitulo"
-        />
-        <mat-icon *ngIf="!(sheetProducto && fotoDeProducto(sheetProducto))">{{
-          sheetLinea ? iconoLinea(sheetLinea) : 'inventory_2'
-        }}</mat-icon>
-      </div>
-      <h3 class="section-title">{{ sheetTitulo }}</h3>
-      <p class="pos-sheet__precio">{{ formatMoney(sheetMontoPreview) }}</p>
-      <div class="pos-qty">
-        <button type="button" class="pos-hit" (click)="sheetMenos()" aria-label="Menos">−</button>
-        <span class="pos-qty__val">{{ sheetQty }}</span>
-        <button type="button" class="pos-hit" (click)="sheetMas()" aria-label="Más">+</button>
-      </div>
-      <button
-        mat-raised-button
-        color="primary"
-        class="btn-primary-teal pos-btn-full"
-        type="button"
-        (click)="confirmarSheet()"
-      >
-        {{ sheetModo === 'linea' ? 'Actualizar' : 'Agregar al ticket' }}
-      </button>
-      <button
-        mat-button
-        color="warn"
-        type="button"
-        class="pos-btn-full"
-        *ngIf="sheetModo === 'linea' && puedeQuitarSheet"
-        (click)="borrarSheet()"
-      >
-        Quitar del ticket
-      </button>
-    </ng-container>
-    <button mat-button type="button" class="pos-btn-full" (click)="cerrarSheet()">Cerrar</button>
-  </aside>
+    <app-pos-sheet-cantidad
+      *ngIf="sheetModo !== 'carrito' && sheetModo !== 'scanner'"
+      [modo]="sheetModo"
+      [titulo]="sheetTitulo"
+      [fotoUrl]="sheetProducto ? fotoDeProducto(sheetProducto) : ''"
+      [iconoFallback]="sheetLinea ? iconoLinea(sheetLinea) : 'inventory_2'"
+      [montoLabel]="formatMoney(sheetMontoPreview)"
+      [qty]="sheetQty"
+      [puedeQuitar]="puedeQuitarSheet"
+      (mas)="sheetMas()"
+      (menos)="sheetMenos()"
+      (confirmar)="confirmarSheet()"
+      (quitar)="borrarSheet()"
+    ></app-pos-sheet-cantidad>
+  </app-pos-sheet-panel>
 
   <mat-dialog-actions class="admin-dialog-actions no-print pos-footer" *ngIf="pasoWizard !== 2 || soloLectura">
     <div class="pos-footer__group pos-footer__group--nav">

@@ -1,0 +1,14 @@
+<div
+  class="pos-sheet-backdrop no-print"
+  role="button"
+  tabindex="0"
+  aria-label="Cerrar detalle"
+  (click)="cerrar.emit()"
+  (keydown.enter)="cerrar.emit()"
+  (keydown.space)="$event.preventDefault(); cerrar.emit()"
+></div>
+<aside class="pos-sheet no-print" role="dialog" aria-label="Detalle de línea">
+  <div class="pos-sheet__handle"></div>
+  <ng-content></ng-content>
+  <button mat-button type="button" class="pos-btn-full" (click)="cerrar.emit()">Cerrar</button>
+</aside>

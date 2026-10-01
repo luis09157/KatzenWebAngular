@@ -16,10 +16,20 @@ import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dia
 import { VisitaDialogComponent } from './visita-dialog.component';
 import { ClienteCuentaDialogComponent } from './cliente-cuenta-dialog.component';
 import { VisitaDiaFlujoDialogComponent } from './visita-dia-flujo-dialog.component';
+import { PosSheetPanelComponent } from './pos-sheet-panel.component';
+import { PosSheetCantidadComponent } from './pos-sheet-cantidad.component';
+import { PosSheetScannerComponent } from './pos-sheet-scanner.component';
 
 /** Diálogos de visitas — usable desde clientes, citas, baños, expediente. */
 @NgModule({
-  declarations: [VisitaDialogComponent, ClienteCuentaDialogComponent, VisitaDiaFlujoDialogComponent],
+  declarations: [
+    VisitaDialogComponent,
+    ClienteCuentaDialogComponent,
+    VisitaDiaFlujoDialogComponent,
+    PosSheetPanelComponent,
+    PosSheetCantidadComponent,
+    PosSheetScannerComponent,
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,

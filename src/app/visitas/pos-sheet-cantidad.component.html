@@ -1,0 +1,30 @@
+<div class="pos-sheet__media">
+  <img *ngIf="fotoUrl" [src]="fotoUrl" [alt]="titulo" />
+  <mat-icon *ngIf="!fotoUrl">{{ iconoFallback }}</mat-icon>
+</div>
+<h3 class="section-title">{{ titulo }}</h3>
+<p class="pos-sheet__precio">{{ montoLabel }}</p>
+<div class="pos-qty">
+  <button type="button" class="pos-hit" (click)="menos.emit()" aria-label="Menos">−</button>
+  <span class="pos-qty__val">{{ qty }}</span>
+  <button type="button" class="pos-hit" (click)="mas.emit()" aria-label="Más">+</button>
+</div>
+<button
+  mat-raised-button
+  color="primary"
+  class="btn-primary-teal pos-btn-full"
+  type="button"
+  (click)="confirmar.emit()"
+>
+  {{ labelConfirmar }}
+</button>
+<button
+  mat-button
+  color="warn"
+  type="button"
+  class="pos-btn-full"
+  *ngIf="esLinea && puedeQuitar"
+  (click)="quitar.emit()"
+>
+  Quitar del ticket
+</button>
