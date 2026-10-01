@@ -42,7 +42,7 @@ import {
   normalizarTelefonoMx,
 } from '../recordatorios/recordatorio-whatsapp.util';
 import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
-import Swal from 'sweetalert2';
+import KatzenSwal from '../core/ui/katzen-swal';
 
 @Component({
   selector: 'app-dashboard',
@@ -379,7 +379,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       await this.recordatoriosService.marcarCompletado(id);
       this.recordatoriosHoy = this.recordatoriosHoy.filter((r) => r.id !== id);
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar recordatorio'), 'error');
+      KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar recordatorio'), 'error');
     } finally {
       this.loadingService.hide();
     }
@@ -493,10 +493,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         ...ADMIN_DIALOG_FORM,
         data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente },
       });
-      Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      KatzenSwal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
       this.cargarPorCobrarHoy();
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+      KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
     } finally {
       this.loadingService.hide();
     }

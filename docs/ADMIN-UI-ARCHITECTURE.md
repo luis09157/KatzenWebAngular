@@ -16,7 +16,7 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 10. **Auth / portal / landing shells must stay centered and balanced:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, **centrada y equilibrada en desktop**, y **responsiva** en móvil. Prohibido layouts aplastados a un lado con huecos vacíos grandes. Páginas de auth reutilizan el shell existente (`.admin-auth-page` / `.admin-auth-card` o `.portal-login-wrap` / `.portal-login-card`) — incluir esos CSS en el componente (no solo copiar nombres de clase: la encapsulación de Angular no hereda estilos de otro componente).
 11. **Panel search / filtros must align with table content:** Dentro de `app-admin-data-panel`, el campo de búsqueda/filtro debe usar `.panel-search` (o `.buscador.panel-search`) para heredar el margen lateral canónico (`8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`). Debe alinearse visualmente con el padding del contenido de la tabla; **sin overflow** ni desfase a la izquierda del card. No usar clases locales (p. ej. `.filter-field`) que anulen ese alineamiento.
 12. **Dialog layout must not clip or collapse content (spec 059):** Nunca usar `:has(.entity-summary)` para quitar padding del body. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`). Tabs (`mat-tab-group`) en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie con `overflow: hidden` solo si el body puede scrollear. `.entity-summary` compacto (≤16px / 12px). Fichas con tabs deben mostrar el expediente, no solo el hero. Ficha paciente: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers: `--picker`; CRUD grandes: shell estándar.
-13. **Admin pages must reflow (spec 061):** Toda pantalla admin (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell) **no** fuerza N columnas cuando el **ancho útil** de `.admin-content` (viewport menos sidenav y padding) no las cabe. Usar container `admin-page` en `.admin-content`. Guía: ≥ ~1100px útil → 3 columnas si el layout las pide; ~720–1099 → 2; &lt;720 → 1. Toolbars/filas de botones: `flex-wrap` + gap; lo que baja de línea se alinea al **inicio** (no huérfanos a la derecha). `matTooltip` `position="below"` + aire bajo la toolbar para no tapar la card. Buscadores: label/placeholder no recortados; en estrecho el botón «Nuevo» apila o va a full width (`.panel-search` / `.admin-split-toolbar`). Cards: padding interno ≥16px (bloques acento tipo DUEÑO ≥20px); gap entre cards ≥16px (20–24px desktop). Timelines: gap vertical ~8–12px. Desktop ≥1200px viewport **y** útil suficiente: regla 9 (aprovechar ancho; no max-width interno que aplaste texto). **059 = diálogos; 061 = páginas.** Canonical: `src/styles/admin-page-layout.scss`, `admin-crud.scss`.
+13. **Admin pages must reflow (spec 061 + 084 US-7):** Toda pantalla admin (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell) **no** fuerza N columnas cuando el **ancho útil** de `.admin-content` (viewport menos sidenav y padding) no las cabe. Usar container `admin-page` en `.admin-content`. Guía: ≥ ~1100px útil → 3 columnas si el layout las pide; ~720–1099 → 2; &lt;720 → 1. Toolbars/filas de botones: `flex-wrap` + gap; lo que baja de línea se alinea al **inicio** (no huérfanos a la derecha). `matTooltip` `position="below"` + aire bajo la toolbar para no tapar la card. Buscadores: label/placeholder no recortados; en estrecho el botón «Nuevo» apila o va a full width (`.panel-search` / `.admin-split-toolbar`). Cards: padding interno ≥16px (bloques acento tipo DUEÑO ≥20px); gap entre cards ≥16px (20–24px desktop). Timelines: gap vertical ~8–12px. Desktop ≥1200px viewport **y** útil suficiente: regla 9 (aprovechar ancho; no max-width interno que aplaste texto). **Diálogos densos / catálogos (POS `.pos-grid`, tiles):** mismo criterio por ancho del grid (no solo viewport): `auto-fill` + `minmax` legible; prohibido `repeat(4+, 1fr)` que trunque nombres. Ver sección «Diálogos densos…» abajo. **059 = diálogos shell; 061 = páginas; 084 US-7 = legibilidad grids densos.** Canonical: `src/styles/admin-page-layout.scss`, `admin-crud.scss`, `visita-dialog.component.scss`.
 
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
@@ -255,6 +255,18 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 - Desktop ancho: regla 9 — si cabe, usar el ancho; no “todo chiquito”.
 - Canonical: `src/styles/admin-page-layout.scss`. Encapsulación del componente solo si pisa el global.
 
+### Diálogos densos y grids de catálogo (POS / tiles) — spec 084 US-7
+
+**059** define shell de diálogo; **084 SC-012…017** exigen legibilidad + click en contenido interno (web + tablet).
+
+- Grids de productos / tiles densos: columnas explícitas por breakpoint (**1 → 2 → 3**, nunca 4 fijas). Preferir `repeat(N, minmax(0, 1fr))` estable.
+- Estilos críticos del catálogo POS viven en **`admin-dialog.scss`** (`.admin-dialog-panel--pos`) porque el diálogo está en overlay CDK; host `app-visita-dialog { display: block; height: 100% }`.
+- Fotos: altura fija compacta (~72–88px). **Prohibido** `aspect-ratio`+`max-height` (colapsa a rayitas) y **prohibido** `-webkit-line-clamp` si se fuerza `display: block` (el nombre desaparece).
+- **Sin imagen:** nombre + precio obligatorios y con contraste pleno (#0f172a / #0f766e), no estado disabled.
+- Tarifas baño/`BACO*` / EXAM: `productoDescuentaInventarioPos` — seleccionables con `stock_actual=0`; no `registrarSalida`.
+- Canal: web desktop + tablet táctil (targets ≥44px; sin hover-only).
+- Canonical: `admin-dialog.scss` + `visita-dialog.component.scss` + `producto-search.util.ts`.
+
 ### Sidenav y toolbar (menú 3 mundos)
 
 - El sidenav (`admin-main-layout`) usa `.admin-sidenav__scroll` con `overflow-y: auto` y `min-height: 0` para que **Pensión, Alertas, logout** no se corten contra el dock.
@@ -360,7 +372,10 @@ Toda operación async del admin que bloquee la UI debe usar `LoadingService` (`s
 | Operación | Mensaje (`LOADING_MESSAGES`) |
 |-----------|------------------------------|
 | Lectura / listas | `Cargando…` (default) |
+| Catálogo POS / inventario | `Cargando productos…` (`loadingCatalog`) |
+| Panel Hoy / dashboard | `Cargando panel…` (`loadingPanel`) o loading local |
 | Create / update persistente | `Guardando…` |
+| Cobro POS / caja | `Cobrando…` (`charging`) |
 | Baja / delete lógico | `Eliminando…` |
 | Cambio de estado / patch | `Actualizando…` |
 
@@ -370,11 +385,13 @@ Toda operación async del admin que bloquee la UI debe usar `LoadingService` (`s
 2. **Un solo `show` por operación:** no llamar `show()` en el diálogo **y** otra vez en el padre al `afterClosed` — el contador interno queda en `1` y el overlay no cierra.
 3. **API:** `show(message?: string)` — callers sin argumento siguen con «Cargando…».
 4. Preferir el servicio centralizado; el texto se renderiza en `app.component` (`.global-loading-text`).
+5. **Toda oleada de rendimiento o UX “prisa”** debe incluir loading en operaciones que tarden (red/RTDB): el usuario siempre ve que el sistema trabaja. Spec **005** + checklist QA.
 
 ### Checklist QA
 
-- Tras guardar: el overlay **desaparece**.
-- Durante guardar: se lee «Guardando…» (o el mensaje acordado).
+- Tras guardar/cobrar: el overlay **desaparece**.
+- Durante guardar: se lee «Guardando…»; durante cobro: «Cobrando…».
+- Al abrir POS: «Cargando productos…» (overlay o hint inline) hasta el primer catálogo.
 - En error de red/persistencia: overlay cierra + mensaje de error claro.
 
 Spec: `specs/005-loading-feedback-ux/`.

@@ -1,6 +1,6 @@
 # Mapa de módulos — KatzenVet Web
 
-Base documental de modularidad (specs **075** / **076** / **077** / **079** / **080** / **081**; proceso specs vivas **078**).  
+Base documental de modularidad (specs **075**–**084**; proceso specs vivas **078**).  
 **Última revisión:** 2026-10-01 · No es código; describe límites y dependencias.
 
 ---
@@ -29,6 +29,7 @@ Base documental de modularidad (specs **075** / **076** / **077** / **079** / **
 | `config/` | `staff-role.config.ts` | Matriz módulos / nav (**072**) |
 | `services/` | Auth profile, session, FCM portal, Functions, sucursal | Un solo camino a callables |
 | `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run… | Barrel: `core/utils/index.ts` |
+| `ui/` | `katzen-swal.ts` — SweetAlert2 mixin marca (**084**) | Preferir `KatzenSwal` vs `Swal` suelto en pantallas nuevas |
 | `models/` + `models.ts` | Tipos compartidos | RTDB aditivo |
 | `testing/` | `mock-data.ts` | Obligatorio para demos agente |
 | Loading / errores | `loading.service`, `error-messages.service` | Constitution §3 |

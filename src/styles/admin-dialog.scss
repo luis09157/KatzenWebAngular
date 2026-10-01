@@ -703,6 +703,43 @@
   border-radius: 10px !important;
   font-weight: 600 !important;
   min-height: 40px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  line-height: 1.25 !important;
+}
+
+.admin-dialog-panel .mat-mdc-raised-button,
+.admin-dialog-panel .mat-mdc-unelevated-button,
+.admin-dialog-panel .mat-mdc-outlined-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  line-height: 1.25 !important;
+}
+
+.admin-dialog-panel .mat-mdc-raised-button > .mat-icon,
+.admin-dialog-panel .mat-mdc-unelevated-button > .mat-icon,
+.admin-dialog-panel .mat-mdc-outlined-button > .mat-icon,
+.admin-dialog-panel .mat-mdc-raised-button > mat-icon,
+.admin-dialog-panel .mat-mdc-unelevated-button > mat-icon,
+.admin-dialog-panel .mat-mdc-outlined-button > mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.admin-dialog-panel .mat-mdc-raised-button .mdc-button__label,
+.admin-dialog-panel .mat-mdc-unelevated-button .mdc-button__label,
+.admin-dialog-panel .mat-mdc-outlined-button .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
 }
 
 /* Primaria de diálogo: `.btn-primary-teal` explícito o cualquier raised `color="primary"`
@@ -1332,7 +1369,9 @@
   margin-bottom: 8px;
   cursor: pointer;
   background: #fff;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .admin-dialog-panel .seleccionar-cliente-dialog .cliente-item:hover,
@@ -1542,9 +1581,9 @@
 
 @media (min-width: 721px) {
   .cdk-overlay-pane.admin-dialog-panel--pos {
-    width: min(1120px, 98vw) !important;
+    width: min(1280px, 98vw) !important;
     max-width: 98vw !important;
-    height: min(92vh, 900px) !important;
+    height: min(92vh, 920px) !important;
     max-height: 94vh !important;
   }
 
@@ -1565,6 +1604,250 @@
 @media (max-width: 430px) {
   .admin-dialog-panel--pos .admin-dialog-header {
     padding: 12px 14px 10px !important;
+  }
+}
+
+/* Host del diálogo POS: sin esto el custom element queda inline y el catálogo colapsa. */
+app-visita-dialog {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+/*
+ * Catálogo POS — estilos globales con !important (overlay CDK).
+ * Evita tarjetas colapsadas a “rayitas” verdes (foto span + height ignorada).
+ */
+.admin-dialog-panel--pos .pos-grid {
+  display: grid !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  align-content: start !important;
+  padding: 0 12px 16px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.admin-dialog-panel--pos .pos-card {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  min-height: 152px !important;
+  height: auto !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.admin-dialog-panel--pos .pos-card.is-disabled {
+  opacity: 0.5 !important;
+}
+
+.admin-dialog-panel--pos .pos-card.is-in-cart {
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 2px #99f6e4 !important;
+}
+
+.admin-dialog-panel--pos .pos-card__hit {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  position: relative !important;
+  width: 100% !important;
+  min-height: 152px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 0 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  color: #0f172a !important;
+  font: inherit !important;
+  line-height: normal !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: rgba(13, 148, 136, 0.2);
+}
+
+.admin-dialog-panel--pos .pos-card__hit:not(:disabled):active {
+  background: #f0fdfa !important;
+}
+
+.admin-dialog-panel--pos .pos-card__hit:disabled {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.admin-dialog-panel--pos .pos-card__foto,
+.admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+  display: block !important;
+  position: relative !important;
+  order: 0 !important;
+  width: 100% !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  max-height: 72px !important;
+  flex: 0 0 72px !important;
+  background: #f1f5f9 !important;
+  overflow: hidden !important;
+}
+
+.admin-dialog-panel--pos .pos-card__foto--ph {
+  background: linear-gradient(160deg, #f0fdfa 0%, #ccfbf1 100%) !important;
+}
+
+.admin-dialog-panel--pos .pos-card__foto img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.admin-dialog-panel--pos .pos-card__foto mat-icon,
+.admin-dialog-panel--pos .pos-card__foto .mat-icon {
+  position: absolute !important;
+  inset: 0 !important;
+  margin: auto !important;
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 32px !important;
+  color: #0f766e !important;
+}
+
+.admin-dialog-panel--pos .pos-card__qty {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 2 !important;
+}
+
+.admin-dialog-panel--pos .pos-card__demo {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  z-index: 2 !important;
+}
+
+/* Nombre siempre visible (sin foto es crítico en mostrador/tablet). */
+.admin-dialog-panel--pos .pos-card__name {
+  display: block !important;
+  order: 1 !important;
+  margin: 10px 12px 4px !important;
+  padding: 0 !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  /* Anula -webkit-line-clamp del SCSS del componente (ocultaba el texto). */
+  -webkit-line-clamp: unset !important;
+  line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  word-break: break-word !important;
+  max-height: 2.7em !important; /* ~2 líneas */
+  min-height: 1.35em !important;
+}
+
+.admin-dialog-panel--pos .pos-card__price {
+  display: block !important;
+  order: 2 !important;
+  margin: 0 12px !important;
+  font-size: 1.125rem !important;
+  font-weight: 800 !important;
+  color: #0f766e !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.admin-dialog-panel--pos .pos-card__meta {
+  display: block !important;
+  order: 3 !important;
+  margin: 2px 12px 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  opacity: 1 !important;
+}
+
+@media (min-width: 480px) {
+  .admin-dialog-panel--pos .pos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 721px) {
+  .admin-dialog-panel--pos .pos-stage--caja {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important;
+    width: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-catalog,
+  .admin-dialog-panel--pos .pos-grid {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .admin-dialog-panel--pos .pos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    padding: 0 16px 20px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__hit {
+    min-height: 160px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__foto,
+  .admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    flex-basis: 80px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__name {
+    font-size: 1rem !important;
+    max-height: 2.7em !important;
+  }
+
+  .admin-dialog-panel--pos .pos-cart-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-cart-bar {
+    display: none !important;
+  }
+}
+
+@media (min-width: 960px) {
+  .admin-dialog-panel--pos .pos-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__foto,
+  .admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+    height: 88px !important;
+    min-height: 88px !important;
+    max-height: 88px !important;
+    flex-basis: 88px !important;
   }
 }
 

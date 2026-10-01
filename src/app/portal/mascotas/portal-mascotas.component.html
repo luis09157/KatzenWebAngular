@@ -25,7 +25,11 @@
   <div class="portal-empty" *ngIf="mascotas.length === 0">
     <div class="portal-empty-icon"><mat-icon>pets</mat-icon></div>
     <h3>Aún no hay mascotas en tu cuenta</h3>
-    <p>Si ya te atienden en Katzen, llama a la clínica para que las vinculen a tu portal.</p>
+    <p>Si ya te atienden en Katzen, llama a la clínica para que vinculen a tus mascotas con este correo.</p>
+    <a class="portal-empty-cta" [href]="clinicaTel.telHref">
+      <mat-icon>call</mat-icon>
+      Llamar {{ clinicaTel.display }}
+    </a>
   </div>
 
   <div class="portal-pet-grid" *ngIf="mascotas.length > 0">

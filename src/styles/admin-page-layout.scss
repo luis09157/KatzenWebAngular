@@ -189,7 +189,8 @@
   color: #6b7280;
 }
 
-.admin-content .empty-state mat-icon {
+/* Solo icono decorativo; no heredar tamaño al CTA */
+.admin-content .empty-state > mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;

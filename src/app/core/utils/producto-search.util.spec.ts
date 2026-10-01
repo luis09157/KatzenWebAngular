@@ -2,8 +2,9 @@ import { MOCK_PRODUCTO_INVENTARIO } from '../testing/mock-data';
 import {
   filtrarProductos,
   getProductoDisplayLabel,
+  productoDescuentaInventarioPos,
   productoSinStock,
-  productoStockBajo
+  productoStockBajo,
 } from './producto-search.util';
 
 const croquetas = {
@@ -16,7 +17,7 @@ const croquetas = {
   presentacion: 'Bolsa 2 kg',
   stock_actual: 0,
   stock_minimo: 2,
-  requiere_receta: false
+  requiere_receta: false,
 };
 
 describe('producto-search.util', () => {
@@ -44,12 +45,40 @@ describe('producto-search.util', () => {
 
   it('acepta objeto Producto como query (autocomplete)', () => {
     const r = filtrarProductos(lista, MOCK_PRODUCTO_INVENTARIO);
-    expect(r.some(p => p.id === 'mock-producto-001')).toBe(true);
+    expect(r.some((p) => p.id === 'mock-producto-001')).toBe(true);
   });
 
   it('stock bajo / sin stock', () => {
     expect(productoStockBajo(MOCK_PRODUCTO_INVENTARIO)).toBe(false);
     expect(productoSinStock(croquetas)).toBe(true);
     expect(productoStockBajo(croquetas)).toBe(true);
+  });
+
+  it('baños BACO / tarifas peluquería no bloquean por stock 0', () => {
+    const baco = {
+      ...croquetas,
+      id: 'baco-1',
+      codigo_barras: 'BACO001',
+      pdvCodigo: 'BACO001',
+      nombre: 'Baño Grande Pelo Corto',
+      categoria: 'peluqueria' as const,
+      stock_actual: 0,
+    };
+    expect(productoDescuentaInventarioPos(baco)).toBe(false);
+    expect(productoSinStock(baco)).toBe(false);
+    expect(productoStockBajo(baco)).toBe(false);
+  });
+
+  it('shampoo peluquería sí controla stock', () => {
+    const shampoo = {
+      ...croquetas,
+      id: 'sh-1',
+      codigo_barras: '750111',
+      nombre: 'Shampoo Hipoalergenico',
+      categoria: 'peluqueria' as const,
+      stock_actual: 0,
+    };
+    expect(productoDescuentaInventarioPos(shampoo)).toBe(true);
+    expect(productoSinStock(shampoo)).toBe(true);
   });
 });

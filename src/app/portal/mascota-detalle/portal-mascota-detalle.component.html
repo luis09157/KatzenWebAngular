@@ -67,8 +67,11 @@
 
       <div class="portal-empty portal-cartilla-empty" *ngIf="cartilla.length === 0">
         <div class="portal-empty-icon"><mat-icon>history</mat-icon></div>
-        <h3>Aún no hay movimientos</h3>
-        <p>Cuando la clínica registre un baño, vacuna o consulta, aparecerá aquí.</p>
+        <h3>Todavía no hay actividad aquí</h3>
+        <p>
+          Cuando la clínica registre un baño, una vacuna o una consulta, lo verás en esta línea de tiempo. Si crees que
+          falta algo, avísales en tu próxima visita.
+        </p>
       </div>
 
       <ol class="portal-cartilla-list" *ngIf="cartilla.length > 0">

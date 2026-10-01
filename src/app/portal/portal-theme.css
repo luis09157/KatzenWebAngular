@@ -5,8 +5,14 @@
 }
 
 @keyframes portalFadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .portal-loading,
@@ -21,7 +27,7 @@
   color: var(--text-secondary);
 }
 
-.portal-empty-state mat-icon {
+.portal-empty-state > mat-icon {
   font-size: 3.5rem;
   width: 3.5rem;
   height: 3.5rem;

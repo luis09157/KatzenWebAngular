@@ -62,7 +62,11 @@
 .admin-content .table-scroll .mat-mdc-row:hover,
 .admin-content .table-shell .mat-mdc-row:hover,
 .admin-content .data-row:hover {
-  background: #f9fafb !important;
+  background: #f3fafb !important;
+}
+
+.admin-content .data-row--interactive:hover {
+  background: rgba(10, 150, 155, 0.08) !important;
 }
 
 .admin-content .data-row--interactive {

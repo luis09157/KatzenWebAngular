@@ -254,12 +254,12 @@
                 [disabled]="productoSinStockFn(p)"
                 [attr.aria-label]="'Agregar ' + p.nombre"
               >
-                <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
+                <div class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                   <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
-                </span>
-                <span class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
+                </div>
+                <div class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
                   <mat-icon>{{ iconoProducto(p) }}</mat-icon>
-                </span>
+                </div>
                 <span class="pos-card__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
                 <span class="pos-card__demo" *ngIf="esProductoDemo(p)">Muestra</span>
                 <span class="pos-card__name">{{ p.nombre }}</span>
@@ -312,9 +312,9 @@
                   (click)="tapServicioClinica(s, $event)"
                   [attr.aria-label]="'Agregar ' + s.nombre"
                 >
-                  <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>{{ iconoServicioClinica(s) }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__qty" *ngIf="qtyServicioEnCarrito(s.id)">{{ qtyServicioEnCarrito(s.id) }}</span>
                   <span class="pos-card__name">{{ s.nombre }}</span>
                   <span class="pos-card__price" *ngIf="s.precio_venta > 0">{{ formatMoney(s.precio_venta) }}</span>
@@ -361,9 +361,9 @@
                   (click)="agregarConsultaAtajo()"
                   aria-label="Agregar consulta"
                 >
-                  <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>{{ iconoConsultaAtajo() }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__name">Consulta</span>
                   <span class="pos-card__price" *ngIf="atajoConsultaPrecio != null">{{
                     formatMoney(atajoConsultaPrecio)
@@ -385,12 +385,12 @@
                   [disabled]="productoSinStockFn(p)"
                   [attr.aria-label]="'Agregar ' + p.nombre"
                 >
-                  <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
+                  <div class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
-                  </span>
-                  <span class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
+                  </div>
+                  <div class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
                     <mat-icon>{{ iconoProducto(p) }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
                   <span class="pos-card__demo" *ngIf="esProductoDemo(p)">Muestra</span>
                   <span class="pos-card__name">{{ p.nombre }}</span>
@@ -441,12 +441,12 @@
                   [disabled]="productoSinStockFn(p)"
                   [attr.aria-label]="'Agregar ' + p.nombre"
                 >
-                  <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
+                  <div class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
-                  </span>
-                  <span class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
+                  </div>
+                  <div class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
                     <mat-icon>{{ iconoProducto(p) }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
                   <span class="pos-card__demo" *ngIf="esProductoDemo(p)">Muestra</span>
                   <span class="pos-card__name">{{ p.nombre }}</span>
@@ -497,12 +497,12 @@
                   [disabled]="productoSinStockFn(p)"
                   [attr.aria-label]="'Agregar ' + p.nombre"
                 >
-                  <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
+                  <div class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
-                  </span>
-                  <span class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
+                  </div>
+                  <div class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
                     <mat-icon>{{ iconoProducto(p) }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
                   <span class="pos-card__demo" *ngIf="esProductoDemo(p)">Muestra</span>
                   <span class="pos-card__name">{{ p.nombre }}</span>
@@ -548,9 +548,9 @@
               <app-flow-hint icon="spa" [message]="copyBanioEnFinanzas"></app-flow-hint>
               <article class="pos-card pos-card--svc">
                 <button type="button" class="pos-card__hit" (click)="nuevoBanioEnTicket()" aria-label="Nuevo baño">
-                  <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>spa</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__name">Nuevo baño</span>
                   <span class="pos-card__price" *ngIf="precioBanioDefault != null">{{
                     formatMoney(precioBanioDefault)
@@ -572,12 +572,12 @@
                   [disabled]="productoSinStockFn(p)"
                   [attr.aria-label]="'Agregar ' + p.nombre"
                 >
-                  <span class="pos-card__foto" *ngIf="fotoDeProducto(p)">
+                  <div class="pos-card__foto" *ngIf="fotoDeProducto(p)">
                     <img [src]="fotoDeProducto(p)" [alt]="p.nombre" decoding="async" />
-                  </span>
-                  <span class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
+                  </div>
+                  <div class="pos-card__foto pos-card__foto--ph" *ngIf="!fotoDeProducto(p)" aria-hidden="true">
                     <mat-icon>{{ iconoProducto(p) }}</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__qty" *ngIf="qtyEnCarrito(p.id)">{{ qtyEnCarrito(p.id) }}</span>
                   <span class="pos-card__demo" *ngIf="esProductoDemo(p)">Muestra</span>
                   <span class="pos-card__name">{{ p.nombre }}</span>
@@ -622,9 +622,9 @@
                   (click)="incluirBanioPendiente(p)"
                   [attr.aria-label]="'Incluir baño de ' + (p.paciente || 'mascota')"
                 >
-                  <span class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>pets</mat-icon>
-                  </span>
+                  </div>
                   <span class="pos-card__name">{{ p.paciente || 'Mascota' }}</span>
                   <span class="pos-card__price">{{ formatMoney(p.precio_total) }}</span>
                 </button>
@@ -701,7 +701,7 @@
             </div>
           </div>
           <ng-template #sinLineasPanel>
-            <p class="hint-empty">Vacío. Toca una foto para agregar.</p>
+            <p class="hint-empty">Vacío. Toca un producto para agregar.</p>
           </ng-template>
           <div class="pos-cart-totales">
             <div>

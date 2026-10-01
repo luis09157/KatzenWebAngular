@@ -6,7 +6,12 @@ export const LOADING_MESSAGES = {
   loading: 'Cargando…',
   saving: 'Guardando…',
   deleting: 'Eliminando…',
-  updating: 'Actualizando…'
+  updating: 'Actualizando…',
+  /** Cobro POS / caja */
+  charging: 'Cobrando…',
+  /** Catálogos / listas grandes */
+  loadingCatalog: 'Cargando productos…',
+  loadingPanel: 'Cargando panel…',
 } as const;
 
 export type LoadingMessage = (typeof LOADING_MESSAGES)[keyof typeof LOADING_MESSAGES] | string;
@@ -60,11 +65,11 @@ export class LoadingService {
   wrap<T>(fn: () => Promise<T>, message: LoadingMessage = LOADING_MESSAGES.loading): Promise<T> {
     this.show(message);
     return fn()
-      .then(result => {
+      .then((result) => {
         this.hide();
         return result;
       })
-      .catch(err => {
+      .catch((err) => {
         this.hide();
         throw err;
       });

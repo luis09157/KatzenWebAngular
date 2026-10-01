@@ -3,6 +3,7 @@
  * Casi puro: I/O vía deps. Sin cambiar negocio (mostrador, BOM, stock, demo).
  */
 import { Producto } from '../shared/inventario.models';
+import { productoDescuentaInventarioPos } from '../core/utils/producto-search.util';
 import { esIdProductoDemoPos, esProductoDemoPos, lineasSinProductosDemo } from './pos-catalogo-demo.util';
 import { MENSAJE_KIT_SIN_BOM, productoEsKit, resolverVentaKit } from './pos-kit-bom.util';
 import { CLIENTE_MOSTRADOR_ID, CLIENTE_MOSTRADOR_NOMBRE, esClienteMostrador } from './visita-mostrador.util';
@@ -112,6 +113,10 @@ export async function asegurarSalidasProducto(
       }
       const qty = Math.max(1, Number(linea.cantidad) || 1);
       const prod = opts.productosCatalogo.find((p) => p.id === linea.productoId);
+      if (!productoDescuentaInventarioPos(prod)) {
+        out.push({ ...linea, cantidad: qty });
+        continue;
+      }
       if (productoEsKit(prod)) {
         const kit = resolverVentaKit(prod!, qty, opts.productosCatalogo, {});
         if (!kit.ok) {

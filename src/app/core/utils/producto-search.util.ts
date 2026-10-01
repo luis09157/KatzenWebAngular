@@ -17,9 +17,9 @@ function textoProducto(producto: Producto): string {
     producto.marca,
     producto.presentacion,
     producto.categoria,
-    producto.subcategoria
+    producto.subcategoria,
   ]
-    .map(v => String(v || '').toLowerCase())
+    .map((v) => String(v || '').toLowerCase())
     .join(' ');
 }
 
@@ -28,7 +28,9 @@ function queryDesdeValor(query: unknown): string {
   if (typeof query === 'string') return query.trim().toLowerCase();
   if (typeof query === 'object') {
     const p = query as Producto;
-    return String(p.nombre || p.codigo_barras || '').trim().toLowerCase();
+    return String(p.nombre || p.codigo_barras || '')
+      .trim()
+      .toLowerCase();
   }
   return '';
 }
@@ -38,12 +40,17 @@ function queryDesdeValor(query: unknown): string {
  * Coincidencia exacta de código primero (pegado desde escáner).
  */
 export function filtrarProductos(productos: Producto[] | null | undefined, query: unknown): Producto[] {
-  const activos = (productos || []).filter(p => p && p.activo !== false);
+  const activos = (productos || []).filter((p) => p && p.activo !== false);
   const filtro = queryDesdeValor(query);
   if (!filtro) return activos.slice(0, LIMITE_RESULTADOS);
 
-  const exactos = activos.filter(p => String(p.codigo_barras || '').trim().toLowerCase() === filtro);
-  const resto = activos.filter(p => {
+  const exactos = activos.filter(
+    (p) =>
+      String(p.codigo_barras || '')
+        .trim()
+        .toLowerCase() === filtro
+  );
+  const resto = activos.filter((p) => {
     if (exactos.includes(p)) return false;
     return textoProducto(p).includes(filtro);
   });
@@ -52,11 +59,43 @@ export function filtrarProductos(productos: Producto[] | null | undefined, query
 
 export function productoStockBajo(producto: Producto | null | undefined): boolean {
   if (!producto) return false;
+  if (!productoDescuentaInventarioPos(producto)) return false;
   const stock = Number(producto.stock_actual) || 0;
   const min = Number(producto.stock_minimo) || 0;
   return min > 0 && stock <= min;
 }
 
+/**
+ * Tarifas cobradas como SKU (baños BACO, exámenes EXAM, diagnóstico) no bajan anaquel.
+ * Spec 064: stock_actual=0 en baño/servicio/examen a propósito — no deben bloquear el POS.
+ */
+export function productoDescuentaInventarioPos(
+  producto:
+    | (Pick<Producto, 'categoria' | 'codigo_barras' | 'nombre' | 'soloDemo'> & {
+        pdvCodigo?: string;
+      })
+    | null
+    | undefined
+): boolean {
+  if (!producto) return false;
+  if (producto.soloDemo) return false;
+  const codigo = String(producto.pdvCodigo || producto.codigo_barras || '')
+    .trim()
+    .toUpperCase();
+  if (/^BACO\d*/.test(codigo)) return false;
+  if (/^EXAM/i.test(codigo)) return false;
+  if (producto.categoria === 'diagnostico') return false;
+  if (producto.categoria === 'peluqueria') {
+    const nom = String(producto.nombre || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    if (/\bbano\b/.test(nom) || /\bcorte\b/.test(nom)) return false;
+  }
+  return true;
+}
+
 export function productoSinStock(producto: Producto | null | undefined): boolean {
+  if (!productoDescuentaInventarioPos(producto)) return false;
   return (Number(producto?.stock_actual) || 0) <= 0;
 }

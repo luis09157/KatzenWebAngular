@@ -4,6 +4,7 @@ import { PortalDataService } from '../services/portal-data.service';
 import { PortalSessionService } from '../services/portal-session.service';
 import { PORTAL_LOAD_ERROR } from '../utils/portal-client-access.util';
 import { buildMascotaActivityChips, MascotaActivityChips } from '../utils/portal-cartilla.util';
+import { ClinicaTelefonoVista, resolveClinicaTelefono } from '../utils/portal-clinica-contacto.util';
 
 @Component({
   selector: 'app-portal-mascotas',
@@ -16,6 +17,7 @@ export class PortalMascotasComponent implements OnInit {
   saludo = 'Hola';
   mascotas: Array<Record<string, unknown> & { id: string }> = [];
   chips: Record<string, MascotaActivityChips> = {};
+  readonly clinicaTel: ClinicaTelefonoVista = resolveClinicaTelefono();
 
   constructor(
     private portalData: PortalDataService,

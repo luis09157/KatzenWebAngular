@@ -1,5 +1,17 @@
 <h3 class="section-title">Ticket</h3>
-<p class="hint-empty" *ngIf="vacio">Sin artículos.</p>
+<div class="pos-cart-empty" *ngIf="vacio">
+  <p class="hint-empty pos-cart-empty__text">El ticket está vacío. Agrega un producto o servicio para cobrar.</p>
+  <button
+    type="button"
+    class="btn-primary-teal pos-cart-empty__cta"
+    mat-stroked-button
+    color="primary"
+    (click)="agregarProducto.emit()"
+  >
+    <mat-icon>add_shopping_cart</mat-icon>
+    Agregar producto
+  </button>
+</div>
 <div class="linea-row linea-row--cart" *ngFor="let f of filas">
   <button type="button" class="linea-row__hit" (click)="abrirLinea.emit(f.linea)">
     <span class="linea-foto" *ngIf="f.fotoUrl">

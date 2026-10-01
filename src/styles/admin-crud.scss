@@ -40,8 +40,14 @@
 }
 
 @keyframes adminPageIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Stats grid — fluido 4→2→1 según ancho útil (spec 061) */
@@ -74,14 +80,28 @@
 }
 
 @keyframes adminStatIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.admin-content .admin-stats app-admin-stat-card:nth-child(1) { animation-delay: 0.04s; }
-.admin-content .admin-stats app-admin-stat-card:nth-child(2) { animation-delay: 0.08s; }
-.admin-content .admin-stats app-admin-stat-card:nth-child(3) { animation-delay: 0.12s; }
-.admin-content .admin-stats app-admin-stat-card:nth-child(4) { animation-delay: 0.16s; }
+.admin-content .admin-stats app-admin-stat-card:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.admin-content .admin-stats app-admin-stat-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.admin-content .admin-stats app-admin-stat-card:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.admin-content .admin-stats app-admin-stat-card:nth-child(4) {
+  animation-delay: 0.16s;
+}
 
 .admin-content app-admin-page-banner {
   display: block;
@@ -216,6 +236,39 @@
 
 .admin-content .btn-primary-teal:hover:not([disabled]) {
   --mdc-protected-button-container-color: var(--katzen-verde-fuerte, #065d60);
+}
+
+/* Icono + texto centrados en botones MDC (evita label “chueco”) */
+.admin-content .mat-mdc-raised-button,
+.admin-content .mat-mdc-unelevated-button,
+.admin-content .mat-mdc-outlined-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  line-height: 1.25 !important;
+}
+
+.admin-content .mat-mdc-raised-button > .mat-icon,
+.admin-content .mat-mdc-unelevated-button > .mat-icon,
+.admin-content .mat-mdc-outlined-button > .mat-icon,
+.admin-content .mat-mdc-raised-button > mat-icon,
+.admin-content .mat-mdc-unelevated-button > mat-icon,
+.admin-content .mat-mdc-outlined-button > mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.admin-content .mat-mdc-raised-button .mdc-button__label,
+.admin-content .mat-mdc-unelevated-button .mdc-button__label,
+.admin-content .mat-mdc-outlined-button .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
 }
 
 .admin-content .table-shell {

@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
-import Swal from 'sweetalert2';
+import KatzenSwal, { KATZEN_SWAL_DANGER } from '../core/ui/katzen-swal';
 import { ADMIN_DIALOG_POS } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
@@ -158,7 +158,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (error) => {
           this.logger.error('Error al cargar visitas:', error);
           this.loading = false;
-          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar visitas'), 'error');
+          KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar visitas'), 'error');
         },
       });
   }
@@ -319,11 +319,11 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         ...ADMIN_DIALOG_POS,
         data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente },
       });
-      Swal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      KatzenSwal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
       this.cargar();
       this.cargarPorCobrarHoy();
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+      KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
     } finally {
       this.loadingService.hide();
     }
@@ -406,11 +406,12 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async borrar(row: Visita): Promise<void> {
     if (!row.id) return;
-    const conf = await Swal.fire({
+    const conf = await KatzenSwal.fire({
       icon: 'warning',
       title: '¿Borrar visita?',
       text: 'Se cancela el ticket. El historial de caja no se elimina.',
       showCancelButton: true,
+      confirmButtonColor: KATZEN_SWAL_DANGER,
       confirmButtonText: 'Borrar',
       cancelButtonText: 'Cancelar',
     });
@@ -418,9 +419,9 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadingService.show(LOADING_MESSAGES.deleting);
     try {
       await this.visitasService.bajaLogicaVisita(row.id);
-      Swal.fire({ icon: 'success', title: 'Visita borrada', timer: 1400, showConfirmButton: false });
+      KatzenSwal.fire({ icon: 'success', title: 'Visita borrada', timer: 1400, showConfirmButton: false });
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar visita'), 'error');
+      KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar visita'), 'error');
     } finally {
       this.loadingService.hide();
     }

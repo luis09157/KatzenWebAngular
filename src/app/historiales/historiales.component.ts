@@ -9,7 +9,7 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import KatzenSwal from '../core/ui/katzen-swal';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
@@ -115,12 +115,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ejecutarMigracion() {
-    const result = await Swal.fire({
+    const result = await KatzenSwal.fire({
       icon: 'warning',
       title: '¿Ejecutar Migración?',
       text: 'Esta acción actualizará todos los historiales existentes para eliminar campos duplicados. ¿Estás seguro?',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
+      confirmButtonColor: '#0A969B',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sí, ejecutar migración',
       cancelButtonText: 'Cancelar',
@@ -135,14 +135,14 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cargarDatos();
         this.verificarMigracion();
 
-        Swal.fire({
+        KatzenSwal.fire({
           icon: 'success',
           title: 'Migración Completada',
           text: 'La base de datos ha sido migrada exitosamente. Todos los historiales ahora usan la nueva estructura.',
         });
       } catch (error) {
         this.logger.error('Error en migración:', error);
-        Swal.fire({
+        KatzenSwal.fire({
           icon: 'error',
           title: 'Error en Migración',
           text: 'Ocurrió un error durante la migración. Por favor, inténtalo de nuevo.',
@@ -168,7 +168,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (error) => {
           this.logger.error('Error al cargar pacientes:', error);
           this.loading = false;
-          Swal.fire({
+          KatzenSwal.fire({
             icon: 'error',
             title: 'Error',
             text: 'No se pudieron cargar los pacientes',
@@ -198,7 +198,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (error) => {
           this.logger.error('Error al cargar historiales:', error);
           this.loading = false;
-          Swal.fire({
+          KatzenSwal.fire({
             icon: 'error',
             title: 'Error',
             text: 'No se pudieron cargar los historiales',
@@ -219,7 +219,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           this.logger.error('Error al cargar estadísticas:', error);
-          Swal.fire({
+          KatzenSwal.fire({
             icon: 'error',
             title: 'Error',
             text: this.errorMessages.getUserMessage(error, 'cargar estadisticas historiales'),
@@ -380,13 +380,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
-          const result = await Swal.fire({
+          const result = await KatzenSwal.fire({
             icon: 'warning',
             title: '¿Borrar este historial?',
             text: 'Se ocultará solo en el panel admin. El dueño seguirá viéndolo en la app a menos que marques "Ocultar del portal" al editar.',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            cancelButtonColor: '#64748b',
             confirmButtonText: 'Sí, borrar',
             cancelButtonText: 'Cancelar',
           });
@@ -402,12 +402,15 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cargarEstadisticas();
               this.loadingService.hide();
               setTimeout(
-                () => Swal.fire({ icon: 'success', title: 'Borrado', text: 'El historial ha sido borrado' }),
+                () => KatzenSwal.fire({ icon: 'success', title: 'Borrado', text: 'El historial ha sido borrado' }),
                 0
               );
             } catch (error) {
               this.loadingService.hide();
-              setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo borrar el historial' }), 0);
+              setTimeout(
+                () => KatzenSwal.fire({ icon: 'error', title: 'Error', text: 'No se pudo borrar el historial' }),
+                0
+              );
             }
           }
         }
@@ -421,13 +424,13 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
-          const result = await Swal.fire({
+          const result = await KatzenSwal.fire({
             title: '¿Borrar este historial?',
             text: 'Se ocultará en admin y en el portal del dueño. Los datos se conservan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            cancelButtonColor: '#64748b',
             confirmButtonText: 'Sí, borrar',
             cancelButtonText: 'Cancelar',
           });
@@ -443,14 +446,14 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cargarEstadisticas();
               this.loadingService.hide();
               setTimeout(
-                () => Swal.fire({ icon: 'success', title: 'Borrado', text: 'Historial borrado correctamente.' }),
+                () => KatzenSwal.fire({ icon: 'success', title: 'Borrado', text: 'Historial borrado correctamente.' }),
                 0
               );
             } catch (error) {
               this.loadingService.hide();
               setTimeout(
                 () =>
-                  Swal.fire({
+                  KatzenSwal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'No se pudo borrar el historial',
@@ -470,7 +473,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (historial) => {
         if (historial) {
-          const result = await Swal.fire({
+          const result = await KatzenSwal.fire({
             title: '¿Restaurar historial?',
             text: 'El historial será marcado como activo nuevamente.',
             icon: 'question',
@@ -491,7 +494,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
               this.loadingService.hide();
               setTimeout(
                 () =>
-                  Swal.fire({
+                  KatzenSwal.fire({
                     icon: 'success',
                     title: 'Restaurado',
                     text: 'El historial fue restaurado correctamente.',
@@ -501,7 +504,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
             } catch (error) {
               this.loadingService.hide();
               setTimeout(
-                () => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' }),
+                () => KatzenSwal.fire({ icon: 'error', title: 'Error', text: 'No se pudo restaurar el historial' }),
                 0
               );
             }
@@ -529,7 +532,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           this.logger.error('Error en búsqueda:', error);
-          Swal.fire({
+          KatzenSwal.fire({
             icon: 'error',
             title: 'Error en Búsqueda',
             text: 'No se pudo realizar la búsqueda',
@@ -561,7 +564,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   async registrarEnCaja(historial: any): Promise<void> {
     if (!historial?.id) return;
     if (bloquearCobroDirectoEnCaja(historial) || historial.visitaId) {
-      Swal.fire({
+      KatzenSwal.fire({
         icon: 'info',
         title: 'Cobro en cuenta del día',
         text: historial.visitaId
@@ -621,7 +624,7 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           await Promise.all(movimientoIds.map((mid) => this.inventarioService.vincularMovimientoACaja(mid, cajaId)));
         } catch (error) {
           this.logger.error('Error al vincular consumos↔caja:', error);
-          Swal.fire('Aviso', this.errorMessages.getUserMessage(error, 'vincular inventario a caja'), 'warning');
+          KatzenSwal.fire('Aviso', this.errorMessages.getUserMessage(error, 'vincular inventario a caja'), 'warning');
         } finally {
           this.loadingService.hide();
         }
@@ -632,12 +635,12 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   async agregarAVisita(historial: any): Promise<void> {
     if (!historial?.id) return;
     if (historial.visitaId || historial.cobradaEnVisitaId || historial.cajaMovimientoId) {
-      Swal.fire('info', 'Este historial ya está en un ticket o fue cobrado.', 'info');
+      KatzenSwal.fire('info', 'Este historial ya está en un ticket o fue cobrado.', 'info');
       return;
     }
     const clienteId = historial.cliente_id || this.pacientesClienteMap[historial.paciente_id] || '';
     if (!clienteId) {
-      Swal.fire('Falta cliente', 'No se pudo resolver el dueño del paciente.', 'warning');
+      KatzenSwal.fire('Falta cliente', 'No se pudo resolver el dueño del paciente.', 'warning');
       return;
     }
     const pacienteNombre = historial.paciente || this.pacientesMap[historial.paciente_id] || 'paciente';
@@ -665,10 +668,10 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
         ...ADMIN_DIALOG_FORM,
         data: { visita: visita || undefined, cliente_id: clienteId },
       });
-      Swal.fire({ icon: 'success', title: 'Agregado a visita', timer: 1400, showConfirmButton: false });
+      KatzenSwal.fire({ icon: 'success', title: 'Agregado a visita', timer: 1400, showConfirmButton: false });
       this.cargarHistoriales();
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
+      KatzenSwal.fire('Error', this.errorMessages.getUserMessage(error, 'agregar a visita'), 'error');
     } finally {
       this.loadingService.hide();
     }

@@ -7,7 +7,12 @@ import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
-import { filtrarProductos, productoSinStock, productoStockBajo } from '../core/utils/producto-search.util';
+import {
+  filtrarProductos,
+  productoSinStock,
+  productoStockBajo,
+  productoDescuentaInventarioPos,
+} from '../core/utils/producto-search.util';
 import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { Cliente, Paciente } from '../core/models';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
@@ -179,6 +184,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   productosCatalogo: Producto[] = [];
   serviciosCatalogo: ServicioClinica[] = [];
   cargandoCatalogo = true;
+  private catalogoLoadingActivo = false;
   muestraCatalogoDemo = false;
   readonly bannerCatalogoDemo = BANNER_CATALOGO_DEMO_POS;
   sheetModo: PosSheetModo = 'producto';
@@ -654,6 +660,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.catalogoLoadingActivo) {
+      this.catalogoLoadingActivo = false;
+      this.loadingService.hide();
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -1048,7 +1058,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   esLineaProducto(linea: VisitaLinea): boolean {
     if (esIdProductoDemoPos(linea.productoId)) return false;
-    return linea.categoria === 'venta_producto';
+    if (linea.categoria !== 'venta_producto' || !linea.productoId) return false;
+    const p = this.productosCatalogo.find((x) => x.id === linea.productoId);
+    return productoDescuentaInventarioPos(p);
   }
 
   esProductoDemo(producto: Producto | null | undefined): boolean {
@@ -1087,6 +1099,12 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   abrirSheetCarrito(): void {
     this.aplicarSheetSnapshot(buildAbrirSheetCarrito());
+  }
+
+  /** Spec 084 — desde carrito vacío: cierra sheet y vuelve al catálogo petshop. */
+  irAAgregarProductoDesdeCarrito(): void {
+    this.cerrarSheet();
+    this.posTab = 'petshop';
   }
 
   abrirScanner(): void {
@@ -1367,7 +1385,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    this.loadingService.show(LOADING_MESSAGES.saving);
+    this.loadingService.show(LOADING_MESSAGES.charging);
     try {
       const raw = this.form.getRawValue();
       const flujo = await ejecutarFlujoCobro(
@@ -1566,6 +1584,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   /** Lectura de catálogo. El POS no crea/edita/borra productos. Demo solo con flag. */
   private cargarCatalogo(): void {
     this.muestraCatalogoDemo = debeMostrarCatalogoDemoPos(environment);
+    this.cargandoCatalogo = true;
+    this.catalogoLoadingActivo = true;
+    this.loadingService.show(LOADING_MESSAGES.loadingCatalog);
+    const cerrarOverlay = (): void => {
+      if (!this.catalogoLoadingActivo) return;
+      this.catalogoLoadingActivo = false;
+      this.loadingService.hide();
+    };
     this.inventarioService
       .getProductos()
       .pipe(takeUntil(this.destroy$))
@@ -1575,12 +1601,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           this.productosCatalogo = mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
+          cerrarOverlay();
           this.aplicarProductoPrecargado();
         },
         error: () => {
           this.productosCatalogo = mezclarCatalogoPos([], MOCK_PRODUCTOS_POS, this.muestraCatalogoDemo);
           this.recalcularPrecioBanioDefault();
           this.cargandoCatalogo = false;
+          cerrarOverlay();
           this.aplicarProductoPrecargado();
         },
       });
@@ -1608,7 +1636,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         Swal.fire(titulo, kit.mensaje, 'warning');
         return;
       }
-    } else {
+    } else if (productoDescuentaInventarioPos(p)) {
       const stock = Number(p.stock_actual) || 0;
       if (stock < ya + cantidad) {
         Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${stock} ${p.unidad_medida}.`, 'warning');
@@ -1678,7 +1706,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
             );
             return;
           }
-        } else if ((Number(p.stock_actual) || 0) < nextQty) {
+        } else if (productoDescuentaInventarioPos(p) && (Number(p.stock_actual) || 0) < nextQty) {
           Swal.fire('Sin stock suficiente', `"${p.nombre}" tiene ${p.stock_actual} ${p.unidad_medida}.`, 'warning');
           return;
         }

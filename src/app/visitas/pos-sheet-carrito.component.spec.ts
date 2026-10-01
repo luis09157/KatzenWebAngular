@@ -26,17 +26,14 @@ describe('PosSheetCarritoComponent (spec 082)', () => {
     expect(c.vacio).toBe(false);
   });
 
-  it('onAjustar / onQuitar emiten con la línea', () => {
+  it('emite agregarProducto desde empty CTA (084)', () => {
     const c = new PosSheetCarritoComponent();
-    const f = fila('x');
-    const ev = new Event('click');
-    const ajustes: Array<{ id: string; delta: number }> = [];
-    const quites: string[] = [];
-    c.ajustar.subscribe((p) => ajustes.push({ id: p.linea.id, delta: p.delta }));
-    c.quitar.subscribe((p) => quites.push(p.linea.id));
-    c.onAjustar(f, 1, ev);
-    c.onQuitar(f, ev);
-    expect(ajustes).toEqual([{ id: 'x', delta: 1 }]);
-    expect(quites).toEqual(['x']);
+    let fired = false;
+    c.agregarProducto.subscribe(() => {
+      fired = true;
+    });
+    c.agregarProducto.emit();
+    expect(fired).toBe(true);
+    expect(c.vacio).toBe(true);
   });
 });

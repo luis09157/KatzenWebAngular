@@ -696,11 +696,14 @@
   mat-fab
   color="primary"
   class="float-whatsapp-fab fab-pulse"
+  [class.float-whatsapp-fab--hidden]="showPortalLoginModal || showPortalRegisterModal"
   [href]="whatsappFullUrl"
   target="_blank"
   rel="noopener noreferrer"
   (click)="trackWhatsApp('floating')"
   aria-label="Contactar por WhatsApp"
+  [attr.aria-hidden]="showPortalLoginModal || showPortalRegisterModal ? true : null"
+  [attr.tabindex]="showPortalLoginModal || showPortalRegisterModal ? -1 : null"
 >
   <mat-icon>chat</mat-icon>
 </a>

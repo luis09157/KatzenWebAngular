@@ -28,6 +28,8 @@ export class PosSheetCarritoComponent {
   @Output() abrirLinea = new EventEmitter<VisitaLinea>();
   @Output() ajustar = new EventEmitter<{ linea: VisitaLinea; delta: number; event?: Event }>();
   @Output() quitar = new EventEmitter<{ linea: VisitaLinea; event?: Event }>();
+  /** Spec 084 — CTA cuando el ticket está vacío. */
+  @Output() agregarProducto = new EventEmitter<void>();
 
   get vacio(): boolean {
     return !this.filas.length;

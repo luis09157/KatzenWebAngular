@@ -590,6 +590,18 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.checkScreenSize();
   }
 
+  /** Spec 084 — Escape cierra modal portal. */
+  @HostListener('document:keydown.escape')
+  onEscapeModal(): void {
+    if (this.showPortalLoginModal) {
+      this.closePortalLogin();
+      return;
+    }
+    if (this.showPortalRegisterModal) {
+      this.closePortalRegister();
+    }
+  }
+
   checkScroll() {
     this.scrollPosition = window.pageYOffset;
     this.isScrolled = this.scrollPosition > 100;
@@ -784,7 +796,15 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.portalLoginError = '';
     this.showPortalLoginModal = true;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('portal-modal-open');
     void this.tryEnterRememberedPortalSession();
+    // Autofocus correo tras pintar el overlay (084).
+    setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>(
+        '.portal-modal input[name="portalEmail"], .portal-modal input[type="email"]'
+      );
+      el?.focus();
+    }, 80);
   }
 
   /**
@@ -806,6 +826,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showPortalLoginModal = false;
     if (!this.showPortalRegisterModal) {
       document.body.style.overflow = '';
+      document.body.classList.remove('portal-modal-open');
     }
   }
 
@@ -813,16 +834,22 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showPortalLoginModal = false;
     this.showPortalRegisterModal = true;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('portal-modal-open');
     this.analytics.trackEvent('portal_register_open', {
       event_category: 'portal',
       event_label: 'landing',
     });
+    setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>('.portal-modal--register input[type="email"]');
+      el?.focus();
+    }, 80);
   }
 
   closePortalRegister(): void {
     this.showPortalRegisterModal = false;
     if (!this.showPortalLoginModal) {
       document.body.style.overflow = '';
+      document.body.classList.remove('portal-modal-open');
     }
   }
 

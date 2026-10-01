@@ -12,7 +12,8 @@
   color: #6b7280;
 }
 
-.admin-empty mat-icon {
+/* Solo el icono decorativo del empty — no el + del CTA */
+.admin-empty > mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
@@ -38,8 +39,33 @@
 }
 
 .admin-empty button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
   border-radius: 10px !important;
   font-weight: 600;
+  line-height: 1.25 !important;
+  min-height: 42px;
+  padding: 0 20px !important;
   --mdc-protected-button-container-color: #0a969b;
   --mdc-protected-button-label-text-color: #fff;
+}
+
+.admin-empty button mat-icon,
+.admin-empty button .mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  margin: 0 !important;
+  color: inherit !important;
+  opacity: 1 !important;
+  flex-shrink: 0;
+}
+
+.admin-empty button .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
 }

@@ -408,19 +408,31 @@
 
 .operacion-hub__title {
   margin: 0 0 8px;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #032d60;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.375rem, 2.5vw, 1.85rem);
+  font-weight: 800;
+  color: var(--text-primary, #1a2e2e);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
 .operacion-hub__subtitle {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-secondary, #5a6e6e);
   font-size: 0.9375rem;
+  max-width: 36rem;
+  line-height: 1.45;
 }
 
 .operacion-hub__quick {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: stretch;
+  min-width: min(100%, 320px);
+}
+
+.operacion-hub__quick-sec {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -455,10 +467,18 @@
 }
 
 .operacion-hub__cta {
-  min-height: 56px;
-  font-weight: 700;
+  width: 100%;
+  min-height: 52px;
+  font-weight: 800;
   padding: 0 24px;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+.hoy-atender-btn {
+  min-height: 44px !important;
+  min-width: 112px;
+  font-weight: 700 !important;
 }
 
 .citas-hoy-list {
@@ -486,7 +506,7 @@
 
 .citas-hoy-list button,
 .citas-hoy-list a {
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .hoy-rec-actions {
@@ -543,16 +563,42 @@
     grid-column: auto;
   }
 
-  .operacion-hub__title {
-    font-size: 1.375rem;
+  .operacion-hub__header {
+    gap: 16px;
+    margin-bottom: 20px;
   }
 
   .operacion-hub__quick {
     width: 100%;
+    min-width: 0;
   }
 
-  .operacion-hub__quick button {
+  .operacion-hub__cta {
+    min-height: 56px;
+    font-size: 1.125rem;
+  }
+
+  .operacion-hub__quick-sec button {
     flex: 1 1 calc(50% - 8px);
     min-width: 140px;
+  }
+
+  .hoy-atender-btn {
+    width: 100%;
+  }
+
+  .citas-hoy-list li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@container admin-page (min-width: 900px) {
+  .operacion-hub__header {
+    flex-wrap: nowrap;
+  }
+
+  .operacion-hub__quick {
+    min-width: 340px;
   }
 }

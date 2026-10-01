@@ -163,6 +163,30 @@
   font-weight: 600;
   padding: 0 20px !important;
   min-height: 42px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  line-height: 1.25 !important;
+}
+
+.banner-actions .mat-mdc-raised-button > .mat-icon,
+.banner-actions .mat-mdc-unelevated-button > .mat-icon,
+.banner-actions .mat-mdc-raised-button > mat-icon,
+.banner-actions .mat-mdc-unelevated-button > mat-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.banner-actions .mat-mdc-raised-button .mdc-button__label,
+.banner-actions .mat-mdc-unelevated-button .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
 }
 
 .banner-actions .btn-primary-teal,

@@ -105,13 +105,32 @@ Proceso obligatorio: al cerrar una feature, actualizar `tasks.md` + memoria (`mo
 | **Modular 075–077** | Utils + docs en working tree; QA local/smoke registrada | **Solo local** hasta commit + deploy autorizados (tasks: commit/deploy = no) |
 | **Proceso 078** | Docs / ganchos / plantillas | N/A (sin TS de app) |
 
+### Oleada UI **084** (2026-10-01) — post Fases 1–4
+
+Spec `084-ui-ux-oleada-impacto`: oleada L2 + **US-7** (web+tablet táctil): catálogo POS 1/2/3 cols, nombre siempre visible sin foto, CSS global overlay, baños `BACO*` seleccionables con stock 0 (`productoDescuentaInventarioPos`), lecciones anti-regresión en `spec.md`. Follow-up SC-014 otros mosaicos. **Commit/deploy = no** hasta OK de Luis. Oleada 2 UI: resto de Swal, empty states secundarios.
+
+### Oleada rendimiento + UX “prisa” + loading (backlog)
+
+Objetivo: que con prisa (recepción/tablet) el sistema **responda rápido** y, cuando algo tarde, **siempre diga que está trabajando** (spec **005** + `LoadingService`).
+
+| # | Ítem | Loading obligatorio |
+|---|------|---------------------|
+| R1 | Caché / menos lecturas RTDB en Hoy y catálogo POS | Al abrir panel: «Cargando panel…» / «Cargando productos…»; hide en success y error |
+| R2 | `OnPush` + `trackBy` en grids densos (POS, inventario, clientes) | N/A (render); operaciones async siguen con overlay |
+| R3 | Favoritos / «Cobrar $X» siempre visible en ticket | Al cobrar: «Cobrando…» (ya en POS) |
+| R4 | Cliente desde POS siempre en modo rápido (pocos campos) | Al guardar dueño/mascota: «Guardando…» (ya) |
+| R5 | Bundle / virtual scroll si el catálogo duele | Primera carga: feedback visible |
+
+**Regla transversal:** ninguna feature de esta oleada se entrega sin verificar overlay no trabado (`show`+`hide`/`wrap`) y mensaje contextual. Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading.
+
 Infra continuo (sin confundir con “modular local”): dominio Resend (**038** Fase B), freeze/cutover PDV (**064**), FCM/scheduler según ROADMAP.
 
 ## Extras que recomiendo (no pedidos)
 
 1. **Sesión de observación real:** 1 hora viendo a una veterinaria usar el sistema con 3 tareas ("llegó cliente nuevo con perro", "cobra vacuna a cliente existente", "haz el corte"). Vale más que cualquier auditoría; hacerla antes de Fase 2 y repetirla después.
 2. **Búsqueda por teléfono** como primer campo en todos los pickers de cliente (es lo que la recepcionista tiene a la mano).
-3. **POS táctil:** botones ≥44 px, teclado numérico en montos, sin hover-only; muchas clínicas cobran en tablet.
+3. **POS táctil:** botones ≥44 px, teclado numérico en montos, sin hover-only; muchas clínicas cobran en tablet. **Loading:** cobro = «Cobrando…»; catálogo al abrir = «Cargando productos…».
+8. **Rendimiento + prisa (backlog):** ver § «Oleada rendimiento + UX prisa + loading» arriba — toda tarea lenta debe mostrar feedback (005).
 4. **WhatsApp** como canal de ticket y recordatorio (`wa.me/` con texto prellenado): cero infraestructura, funciona hoy; el push FCM/Resend queda como complemento.
 5. **Impresora térmica:** validar el ticket 80 mm con la impresora real de la clínica antes de dar por cerrada 3.3.
 6. **Respaldo automático:** export semanal de RTDB a Storage (function programada). Hoy no hay respaldo fuera de Firebase.

@@ -44,7 +44,7 @@
     accent="teal"
     title="Listado de proveedores"
     description="Sin proveedor no puedes armar una orden de compra clara."
-    [showLegend]="false"
+    [showLegend]="!loading && !!dataSource?.data?.length"
   >
     <mat-form-field appearance="outline" class="buscador panel-search">
       <mat-label>Buscar proveedor</mat-label>

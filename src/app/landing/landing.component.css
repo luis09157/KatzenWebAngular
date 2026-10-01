@@ -1712,7 +1712,7 @@
 .portal-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 4000;
+  z-index: 5000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1725,7 +1725,7 @@
 
 .portal-modal {
   position: relative;
-  z-index: 4001;
+  z-index: 5001;
   isolation: isolate;
   width: 100%;
   max-width: 420px;
@@ -1866,6 +1866,11 @@
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease !important;
+}
+
+.float-whatsapp-fab--hidden {
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .float-whatsapp-fab:hover {

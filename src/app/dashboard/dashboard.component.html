@@ -26,22 +26,24 @@
             <mat-icon>pets</mat-icon>
             Llegó un paciente
           </button>
-          <button mat-stroked-button type="button" routerLink="/admin/visitas">
-            <mat-icon>receipt_long</mat-icon>
-            Punto de venta
-          </button>
-          <button mat-stroked-button type="button" (click)="nuevaVentaMostrador()">
-            <mat-icon>storefront</mat-icon>
-            Venta mostrador
-          </button>
-          <button mat-stroked-button type="button" routerLink="/admin/paciente">
-            <mat-icon>search</mat-icon>
-            Pacientes
-          </button>
-          <button mat-stroked-button type="button" routerLink="/admin/citas">
-            <mat-icon>event</mat-icon>
-            Citas hoy ({{ citasHoyCount }})
-          </button>
+          <div class="operacion-hub__quick-sec">
+            <button mat-stroked-button type="button" routerLink="/admin/visitas">
+              <mat-icon>receipt_long</mat-icon>
+              Punto de venta
+            </button>
+            <button mat-stroked-button type="button" (click)="nuevaVentaMostrador()">
+              <mat-icon>storefront</mat-icon>
+              Venta mostrador
+            </button>
+            <button mat-stroked-button type="button" routerLink="/admin/paciente">
+              <mat-icon>search</mat-icon>
+              Pacientes
+            </button>
+            <button mat-stroked-button type="button" routerLink="/admin/citas">
+              <mat-icon>event</mat-icon>
+              Citas hoy ({{ citasHoyCount }})
+            </button>
+          </div>
         </div>
       </header>
 
@@ -91,8 +93,9 @@
               >
             </div>
             <button
-              mat-stroked-button
+              mat-raised-button
               color="primary"
+              class="btn-primary-teal hoy-atender-btn"
               type="button"
               [disabled]="!puedeAtender(cita)"
               [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
@@ -102,6 +105,23 @@
             </button>
           </li>
         </ul>
+      </app-admin-data-panel>
+
+      <app-admin-data-panel
+        *ngIf="!loading && !citasHoy.length"
+        accent="teal"
+        title="Citas de hoy"
+        description="Nadie en agenda todavía"
+        [showLegend]="false"
+      >
+        <app-admin-empty-state
+          icon="event_available"
+          title="Sin citas para hoy"
+          message="Si acaba de llegar alguien, regístralo aquí. También puedes abrir el calendario de citas."
+          actionLabel="Llegó un paciente"
+          (action)="llegoUnPaciente()"
+        >
+        </app-admin-empty-state>
       </app-admin-data-panel>
 
       <app-admin-data-panel

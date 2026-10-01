@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-01 · Specs **075**–**082** (specs vivas + anti-duplicación + sheets UI POS)
+**Última revisión:** 2026-10-01 · Specs **075**–**084** (oleada UI + US-7 responsive grids densos)
 
 ---
 
@@ -102,6 +102,9 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper`) | **070** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
+| SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
+| Loading global | `LoadingService` + `LOADING_MESSAGES` (incl. `charging`, `loadingCatalog`); hide en success **y** error; spec **005** | **005** |
+| Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |

@@ -67,7 +67,7 @@
     accent="blue"
     title="Movimientos registrados"
     description="Filtra por tipo, fechas o texto libre."
-    [showLegend]="false"
+    [showLegend]="!loading && !!dataSource?.data?.length"
   >
     <div class="panel-filters filtros-grid">
       <mat-form-field appearance="outline" class="filtro-texto panel-search">
