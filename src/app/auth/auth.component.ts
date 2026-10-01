@@ -5,7 +5,7 @@ import { AuthSessionService } from '../core/services/auth-session.service';
 import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { Router } from '@angular/router';
-import { mensajeErrorLoginStaff } from '../portal/utils/portal-login-error.util';
+import { mensajeErrorLoginStaff } from '../core/utils/login-error-copy.util';
 
 @Component({
   selector: 'app-auth',

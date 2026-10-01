@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import { formatMoneyMx } from '../core/utils/periodo-filtro.util';
 import { CajaMovimiento } from './caja.models';
 import { CajaService } from './caja.service';
 import { calcularCorteCaja, efectivoNetoDelDia } from './caja-corte.util';
@@ -93,7 +94,7 @@ export class CajaCorteDialogComponent implements OnInit {
   }
 
   formatMoney(n: number): string {
-    return `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return formatMoneyMx(n, 2);
   }
 
   cancelar(): void {

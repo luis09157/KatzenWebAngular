@@ -34,6 +34,14 @@ import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { filtrarPacientesPorTexto, getPacienteNombre } from '../core/utils/paciente-search.util';
 import { collectRelatedIds } from '../core/utils/rtdb-row.util';
 import { etiquetaExpedientePaciente } from '../core/utils/folio-expediente-paciente.util';
+import {
+  calcularEdadPaciente,
+  formatearFechaExpediente,
+  formatearFechaLogActividad,
+  getPacienteInfoResumen,
+  getTiempoTranscurrido as tiempoTranscurridoExpediente,
+} from './paciente-fecha.util';
+import { getColorActividadExpediente, getIconoActividadExpediente } from './paciente-timeline.util';
 
 @Component({
   selector: 'app-pacientes',
@@ -328,63 +336,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   getTiempoTranscurrido(fecha: any): string {
-    if (!fecha) return '';
-
-    try {
-      const fechaHistorial = new Date(fecha);
-      const ahora = new Date();
-      const diferencia = ahora.getTime() - fechaHistorial.getTime();
-      const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-
-      if (dias === 0) {
-        return 'Hoy';
-      } else if (dias === 1) {
-        return 'Ayer';
-      } else if (dias < 7) {
-        return `Hace ${dias} días`;
-      } else if (dias < 30) {
-        const semanas = Math.floor(dias / 7);
-        return `Hace ${semanas} semana${semanas > 1 ? 's' : ''}`;
-      } else {
-        const meses = Math.floor(dias / 30);
-        return `Hace ${meses} mes${meses > 1 ? 'es' : ''}`;
-      }
-    } catch (error) {
-      return '';
-    }
+    return tiempoTranscurridoExpediente(fecha);
   }
 
   formatearFecha(fecha: any): string {
-    if (!fecha) return 'N/P';
-
-    try {
-      if (fecha instanceof Date) {
-        return fecha.toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-
-      if (typeof fecha === 'string') {
-        const date = new Date(fecha);
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-        }
-      }
-
-      return 'N/P';
-    } catch (error) {
-      return 'N/P';
-    }
+    return formatearFechaExpediente(fecha);
   }
 
   // Métodos para recordatorios
@@ -818,49 +774,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   calcularEdad(fechaNacimiento: string): string {
-    if (!fechaNacimiento) return 'Edad no registrada';
-
-    try {
-      // Formato esperado: "18/4/2015" o "12/9/2015"
-      const partes = fechaNacimiento.split('/');
-      if (partes.length !== 3) {
-        return 'Edad no registrada';
-      }
-
-      const dia = parseInt(partes[0]);
-      const mes = parseInt(partes[1]) - 1; // Meses en JS van de 0-11
-      const año = parseInt(partes[2]);
-
-      const fechaNac = new Date(año, mes, dia);
-      const hoy = new Date();
-
-      // Verificar que la fecha sea válida
-      if (isNaN(fechaNac.getTime())) {
-        return 'Edad no registrada';
-      }
-
-      const diferencia = hoy.getTime() - fechaNac.getTime();
-      const años = Math.floor(diferencia / (1000 * 60 * 60 * 24 * 365));
-      const meses = Math.floor((diferencia % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
-
-      if (años > 0) {
-        return `${años} año${años > 1 ? 's' : ''} y ${meses} mes${meses > 1 ? 'es' : ''}`;
-      } else {
-        return `${meses} mes${meses > 1 ? 'es' : ''}`;
-      }
-    } catch (error) {
-      return 'Edad no registrada';
-    }
+    return calcularEdadPaciente(fechaNacimiento);
   }
 
   getPacienteInfo(paciente: any): string {
-    const info = [];
-
-    if (paciente.especie) info.push(paciente.especie);
-    if (paciente.raza) info.push(paciente.raza);
-    if (paciente.color) info.push(paciente.color);
-
-    return info.length > 0 ? info.join(', ') : 'Información no disponible';
+    return getPacienteInfoResumen(paciente);
   }
 
   // Métodos para vacunas
@@ -1208,76 +1126,15 @@ export class PacientesComponent implements OnInit, OnDestroy {
   }
 
   getIconoActividad(tipo: string): string {
-    switch (tipo) {
-      case 'historial_clinico':
-        return 'medical_services';
-      case 'historial_clinico_editado':
-        return 'edit';
-      case 'historial_clinico_eliminado':
-        return 'delete';
-      case 'vacuna':
-        return 'vaccines';
-      case 'vacuna_editada':
-        return 'edit';
-      case 'vacuna_eliminada':
-        return 'delete';
-      case 'recordatorio':
-        return 'notifications';
-      case 'recordatorio_editado':
-        return 'edit';
-      case 'recordatorio_eliminado':
-        return 'delete';
-      case 'cita':
-        return 'event';
-      default:
-        return 'info';
-    }
+    return getIconoActividadExpediente(tipo);
   }
 
   getColorActividad(tipo: string): string {
-    switch (tipo) {
-      case 'historial_clinico':
-        return '#7b2c5c';
-      case 'historial_clinico_editado':
-        return '#ff9800';
-      case 'historial_clinico_eliminado':
-        return '#f44336';
-      case 'vacuna':
-        return '#4caf50';
-      case 'vacuna_editada':
-        return '#ff9800';
-      case 'vacuna_eliminada':
-        return '#f44336';
-      case 'recordatorio':
-        return '#ff9800';
-      case 'recordatorio_editado':
-        return '#ff9800';
-      case 'recordatorio_eliminado':
-        return '#f44336';
-      case 'cita':
-        return '#2196f3';
-      default:
-        return '#888';
-    }
+    return getColorActividadExpediente(tipo);
   }
 
   formatearFechaLog(fecha: string): string {
-    if (!fecha) return 'Fecha no disponible';
-    try {
-      const date = new Date(fecha);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-      return 'Fecha no disponible';
-    } catch {
-      return 'Fecha no disponible';
-    }
+    return formatearFechaLogActividad(fecha);
   }
 
   onBanioCreado(_banio: any) {

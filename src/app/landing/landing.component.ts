@@ -8,7 +8,7 @@ import { AppCheckService } from '../core/app-check.service';
 import { ContactoWebService } from './services/contacto-web.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
-import { mensajeErrorLoginPortal, mensajeEstadoLoginPortal } from '../portal/utils/portal-login-error.util';
+import { mensajeErrorLoginPortal, mensajeEstadoLoginPortal } from '../core/utils/login-error-copy.util';
 import Swal from 'sweetalert2';
 
 @Component({

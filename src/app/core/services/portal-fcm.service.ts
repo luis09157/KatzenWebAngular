@@ -6,7 +6,7 @@ import 'firebase/compat/messaging';
 import { environment } from '../../../environments/environment';
 import { LoggerService } from '../logger.service';
 import { registerFirebaseMessagingSw } from '../utils/firebase-messaging-sw-register';
-import { mensajeFcmHumano } from '../../portal/utils/portal-fcm-copy.util';
+import { mensajeFcmHumano } from '../utils/fcm-copy.util';
 
 export type PortalFcmStatus = 'unsupported' | 'no_vapid' | 'denied' | 'registered' | 'error';
 

@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { formatMoneyMx } from '../core/utils/periodo-filtro.util';
 import { Visita, VISITA_ESTADO_LABELS } from './visitas.models';
 import { VisitasService } from './visitas.service';
 import { agregarSaldoCliente } from './visitas.util';
@@ -12,7 +13,7 @@ import { VisitaDialogComponent } from './visita-dialog.component';
   selector: 'app-cliente-cuenta-dialog',
   templateUrl: './cliente-cuenta-dialog.component.html',
   styleUrls: ['./cliente-cuenta-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ClienteCuentaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -53,7 +54,7 @@ export class ClienteCuentaDialogComponent implements OnInit, OnDestroy {
           this.visitas = [];
           this.saldoTotal = 0;
           this.loading = false;
-        }
+        },
       });
   }
 
@@ -62,17 +63,20 @@ export class ClienteCuentaDialogComponent implements OnInit, OnDestroy {
   }
 
   formatMoney(n: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n) || 0);
+    return formatMoneyMx(n, 2);
   }
 
   abrirVisita(v: Visita): void {
     const ref = this.dialog.open(VisitaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { visita: v }
+      data: { visita: v },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
-      if (r) this.cargar();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) this.cargar();
+      });
   }
 
   nuevaVisita(): void {
@@ -80,12 +84,15 @@ export class ClienteCuentaDialogComponent implements OnInit, OnDestroy {
       ...ADMIN_DIALOG_FORM,
       data: {
         cliente_id: this.data.clienteId,
-        cliente: this.data.clienteNombre
-      }
+        cliente: this.data.clienteNombre,
+      },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((r) => {
-      if (r) this.cargar();
-    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) this.cargar();
+      });
   }
 
   cerrar(): void {

@@ -72,7 +72,6 @@ import {
   contarArticulos,
   hoyLocalIsoDate,
   nuevaLineaId,
-  precioUnitarioLinea,
   recalcularVisita,
   roundMoney,
 } from './visitas.util';
@@ -111,8 +110,41 @@ import {
   mezclarCatalogoPos,
 } from './pos-catalogo-demo.util';
 import { iconoPlaceholderPos, kindPlaceholderLinea, kindPlaceholderProducto, urlFotoProducto } from './pos-foto.util';
-
-type SheetModo = 'producto' | 'linea' | 'carrito' | 'scanner';
+import {
+  mensajeRequiereClientePara as buildMensajeRequiereCliente,
+  origenLineaHint as buildOrigenLineaHint,
+} from './pos-copy.util';
+import { resolverDestinoPaso, resolverPasoInicial } from './pos-wizard.util';
+import {
+  accionBloqueoHint as buildAccionBloqueoHint,
+  chipClienteLabel as buildChipClienteLabel,
+  cobrarBloqueoHint as buildCobrarBloqueoHint,
+  cobrarLabel as buildCobrarLabel,
+  guardarBloqueoHint as buildGuardarBloqueoHint,
+  hintBloqueCliente as buildHintBloqueCliente,
+  inventarioHint as buildInventarioHint,
+  puedeCobrarPos,
+  puedeGuardarPos,
+  subtituloPos as buildSubtituloPos,
+  whatsappHint as buildWhatsappHint,
+  PosBloqueoCtx,
+} from './pos-bloqueo.util';
+import { formatMoneyMx } from '../core/utils/periodo-filtro.util';
+import {
+  PosSheetModo,
+  abrirSheetCarrito as buildAbrirSheetCarrito,
+  abrirSheetLinea as buildAbrirSheetLinea,
+  abrirSheetProducto as buildAbrirSheetProducto,
+  abrirSheetScanner as buildAbrirSheetScanner,
+  cerrarPosSheet,
+  deltaCantidadConfirmSheet,
+  montoPreviewPosSheet,
+  puedeQuitarLineaSheet,
+  resolverProductoEscaneado,
+  sheetQtyMas,
+  sheetQtyMenos,
+  tituloPosSheet,
+} from './pos-sheet.util';
 
 @Component({
   selector: 'app-visita-dialog',
@@ -148,7 +180,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   cargandoCatalogo = true;
   muestraCatalogoDemo = false;
   readonly bannerCatalogoDemo = BANNER_CATALOGO_DEMO_POS;
-  sheetModo: SheetModo = 'producto';
+  sheetModo: PosSheetModo = 'producto';
   sheetAbierta = false;
   sheetProducto: Producto | null = null;
   sheetLinea: VisitaLinea | null = null;
@@ -276,28 +308,25 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   get subtituloPos(): string {
-    const cliente = String(this.form.get('cliente')?.value || '').trim();
-    const paciente = String(this.form.get('paciente')?.value || '').trim();
-    if (this.resultadoCobro) {
-      return this.resultadoCobro.parcial ? 'Pago parcial registrado' : 'Venta cobrada · ticket en $0';
-    }
-    if (this.modoMostrador) return 'Venta rápida · sin cliente (opcional)';
-    if (cliente) return paciente ? `${cliente} · ${paciente}` : cliente;
-    return 'Elige al dueño o sigue sin cliente';
+    return buildSubtituloPos({
+      resultadoCobro: this.resultadoCobro,
+      modoMostrador: this.modoMostrador,
+      cliente: String(this.form.get('cliente')?.value || ''),
+      paciente: String(this.form.get('paciente')?.value || ''),
+    });
   }
 
   get chipClienteLabel(): string {
-    if (this.modoMostrador) return 'Sin cliente · ¿Es cliente?';
-    const nombre = String(this.form.get('cliente')?.value || '').trim();
-    const paciente = String(this.form.get('paciente')?.value || '').trim();
-    if (!nombre) return 'Elegir dueño';
-    return paciente ? `${nombre} · ${paciente}` : nombre;
+    return buildChipClienteLabel({
+      modoMostrador: this.modoMostrador,
+      cliente: String(this.form.get('cliente')?.value || ''),
+      paciente: String(this.form.get('paciente')?.value || ''),
+    });
   }
 
   /** Spec 065 — copy del bloque «¿Es cliente / trae mascota?». */
   get hintBloqueCliente(): string {
-    if (this.mensajeRequiereCliente) return this.mensajeRequiereCliente;
-    return 'Opcional para productos: liga el ticket a un dueño para guardar su historial y saldo. Para consulta, vacuna, baño o pensión sí hace falta dueño y mascota.';
+    return buildHintBloqueCliente(this.mensajeRequiereCliente);
   }
 
   get tieneClienteReal(): boolean {
@@ -349,20 +378,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   get whatsappHint(): string {
-    if (this.modoMostrador)
-      return 'Venta de mostrador: escribe el teléfono del comprador si quiere su ticket (opcional).';
-    if (!this.telefonoCliente)
-      return 'Este dueño no tiene teléfono registrado. Escríbelo aquí para enviarle el ticket.';
-    return 'Se abre WhatsApp con el ticket ya escrito; solo toca enviar.';
+    return buildWhatsappHint({
+      modoMostrador: this.modoMostrador,
+      telefonoCliente: this.telefonoCliente,
+    });
   }
 
   get cobrarLabel(): string {
     const t = this.totales;
-    if (t.saldo <= 0) return 'Cobrar';
-    if (t.pagado > 0) {
-      return `Cobrar resto ${this.formatMoney(t.saldo)}`;
-    }
-    return `Cobrar ${this.formatMoney(t.saldo)}`;
+    return buildCobrarLabel(t.saldo, t.pagado, (n) => this.formatMoney(n));
   }
 
   get incluyeEfectivo(): boolean {
@@ -389,71 +413,53 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     return calcularCambioEfectivo(rec, this.montoEfectivoCobro);
   }
 
+  private posBloqueoCtx(): PosBloqueoCtx {
+    const t = this.totales;
+    return {
+      soloLectura: this.soloLectura,
+      modoMostrador: this.modoMostrador,
+      mensajeRequiereCliente: this.mensajeRequiereCliente,
+      tieneClienteId: !!String(this.form.get('cliente_id')?.value || '').trim(),
+      formInvalid: this.form.invalid,
+      tieneFecha: !!String(this.form.get('fecha')?.value || '').trim(),
+      lineasCount: this.lineas.length,
+      saldo: t.saldo,
+      pagado: t.pagado,
+    };
+  }
+
   get accionBloqueoHint(): string {
-    if (this.soloLectura) return '';
-    if (this.mensajeRequiereCliente) return this.mensajeRequiereCliente;
-    if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige al dueño, o sigue sin cliente para vender solo productos.';
-    }
-    if (this.form.invalid && !this.modoMostrador) {
-      return 'Completa la fecha y el dueño para continuar.';
-    }
-    if (!String(this.form.get('fecha')?.value || '').trim()) {
-      return 'Indica la fecha de la cuenta.';
-    }
-    if (!this.lineas.length) {
-      return 'Agrega un producto o servicio antes de cobrar.';
-    }
-    if (this.totales.saldo <= 0) {
-      return 'No hay saldo pendiente. Puedes guardar o cerrar.';
-    }
-    return '';
+    return buildAccionBloqueoHint(this.posBloqueoCtx());
   }
 
   get guardarBloqueoHint(): string {
-    if (this.soloLectura) return 'Ticket cerrado o cancelado';
-    if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige al dueño o sigue sin cliente';
-    }
-    if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
-    if (!String(this.form.get('fecha')?.value || '').trim()) return 'Indica la fecha';
-    return 'Guardar sin cobrar';
+    return buildGuardarBloqueoHint(this.posBloqueoCtx());
   }
 
   get cobrarBloqueoHint(): string {
-    if (this.soloLectura) return 'Ticket cerrado o cancelado';
-    if (!this.modoMostrador && !String(this.form.get('cliente_id')?.value || '').trim()) {
-      return 'Elige al dueño o sigue sin cliente';
-    }
-    if (!this.modoMostrador && this.form.invalid) return 'Completa los datos requeridos';
-    if (!this.lineas.length) return 'Agrega líneas al ticket';
-    if (this.totales.saldo <= 0) return 'No hay saldo por cobrar';
-    return 'Confirmar cobro';
+    return buildCobrarBloqueoHint(this.posBloqueoCtx());
   }
 
   get inventarioHint(): string {
-    if (this.soloLectura) return '';
-    if (this.mostrandoProducto) {
-      return 'Al guardar o cobrar se registrará la salida de inventario por la cantidad vendida.';
-    }
-    const productos = this.lineas.filter((l) => l.categoria === 'venta_producto');
-    if (!productos.length) return '';
-    const pendientes = productos.filter((l) => !l.movimientoInventarioId);
-    if (pendientes.length) {
-      return `${pendientes.length} producto(s) en el ticket: al guardar o cobrar se descontará del stock en Inventario.`;
-    }
-    return 'Los productos de este ticket ya tienen salida registrada en inventario.';
+    return buildInventarioHint({
+      soloLectura: this.soloLectura,
+      mostrandoProducto: this.mostrandoProducto,
+      lineas: this.lineas,
+    });
   }
 
   get puedeGuardar(): boolean {
-    if (this.loading || this.soloLectura) return false;
-    if (!String(this.form.get('fecha')?.value || '').trim()) return false;
-    if (this.modoMostrador) return true;
-    return this.form.valid;
+    return puedeGuardarPos({
+      loading: this.loading,
+      soloLectura: this.soloLectura,
+      tieneFecha: !!String(this.form.get('fecha')?.value || '').trim(),
+      modoMostrador: this.modoMostrador,
+      formValid: this.form.valid,
+    });
   }
 
   get puedeCobrar(): boolean {
-    return this.puedeGuardar && this.totales.saldo > 0;
+    return puedeCobrarPos(this.puedeGuardar, this.totales.saldo);
   }
 
   get puedeIrACobrar(): boolean {
@@ -466,23 +472,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   get sheetTitulo(): string {
-    if (this.sheetModo === 'scanner') return 'Código o QR';
-    if (this.sheetModo === 'linea') return this.sheetLinea?.descripcion || 'Línea';
-    return this.sheetProducto?.nombre || 'Producto';
+    return tituloPosSheet(this.sheetModo, this.sheetProducto, this.sheetLinea);
   }
 
   get sheetMontoPreview(): number {
-    if (this.sheetModo === 'linea' && this.sheetLinea) {
-      return roundMoney(precioUnitarioLinea(this.sheetLinea) * this.sheetQty);
-    }
-    if (this.sheetProducto) {
-      return roundMoney((Number(this.sheetProducto.precio_venta) || 0) * this.sheetQty);
-    }
-    return 0;
+    return montoPreviewPosSheet(this.sheetModo, this.sheetQty, this.sheetProducto, this.sheetLinea);
   }
 
   get puedeQuitarSheet(): boolean {
-    return this.pagado <= 0 && !this.sheetLinea?.movimientoInventarioId;
+    return puedeQuitarLineaSheet(this.pagado, this.sheetLinea);
   }
 
   constructor(
@@ -619,9 +617,9 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
 
     if (this.esEdicion) {
-      this.pasoWizard = this.soloLectura ? 3 : 2;
+      this.pasoWizard = resolverPasoInicial({ esEdicion: true, soloLectura: this.soloLectura });
     } else {
-      this.pasoWizard = 2;
+      this.pasoWizard = resolverPasoInicial({ esEdicion: false, soloLectura: false });
     }
 
     this.form
@@ -648,15 +646,14 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   irPaso(paso: number): void {
-    if (paso < 1 || paso > 3) return;
-    if (paso > 1 && !this.tieneDuenoOMostrador) {
+    const dest = resolverDestinoPaso(paso, this.tieneDuenoOMostrador);
+    if (!dest) return;
+    if (dest.marcarTouched) {
       this.form.markAllAsTouched();
-      this.pasoWizard = 1;
-      return;
     }
-    this.pasoWizard = paso;
+    this.pasoWizard = dest.paso;
     this.cerrarSheet();
-    if (paso === 3) {
+    if (dest.paso === 3) {
       this.cobroForm.patchValue({ monto: this.totales.saldo });
     }
   }
@@ -701,16 +698,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   /** Copy «te falta X» según el servicio que se quiso agregar. */
   mensajeRequiereClientePara(riel: PosRiel): string {
-    const faltaMascota = this.tieneClienteReal && !this.tienePaciente;
-    const dueno = String(this.form.get('cliente')?.value || '').trim();
-    if (riel === 'peluqueria') {
-      return faltaMascota
-        ? `Elige o agrega la mascota de ${dueno} para registrar el baño.`
-        : 'Para registrar un baño necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
-    }
-    return faltaMascota
-      ? `Elige o agrega la mascota de ${dueno} para registrar la consulta.`
-      : 'Para registrar una consulta necesito saber de qué paciente es. Elige al dueño y la mascota, o créalos aquí.';
+    return buildMensajeRequiereCliente(riel, {
+      tieneClienteReal: this.tieneClienteReal,
+      tienePaciente: this.tienePaciente,
+      nombreDueno: this.form.get('cliente')?.value,
+    });
   }
 
   /** Abre el bloque «¿Es cliente / trae mascota?» con la acción pendiente para reanudar el cobro. */
@@ -1051,53 +1043,43 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   origenLineaHint(linea: VisitaLinea): string {
-    if (linea.movimientoInventarioId) {
-      return 'Origen: salida de inventario (stock ya vinculado).';
-    }
-    if (linea.banioId) return 'Origen: servicio de baño / peluquería.';
-    if (linea.citaId) return 'Origen: cita de consulta.';
-    if (linea.vacunaId) return 'Origen: registro de vacuna.';
-    if (linea.pensionId) return 'Origen: estancia de pensión.';
-    if (linea.historialId) return 'Origen: historial clínico.';
-    if (linea.productoId && !linea.movimientoInventarioId) {
-      return 'Producto agregado manualmente — al guardar/cobrar se descontará stock.';
-    }
-    return '';
+    return buildOrigenLineaHint(linea);
+  }
+
+  private aplicarSheetSnapshot(s: {
+    abierta: boolean;
+    modo: PosSheetModo;
+    producto: Producto | null;
+    linea: VisitaLinea | null;
+    qty: number;
+    scannerCodigo: string;
+  }): void {
+    this.sheetAbierta = s.abierta;
+    this.sheetModo = s.modo;
+    this.sheetProducto = s.producto;
+    this.sheetLinea = s.linea;
+    this.sheetQty = s.qty;
+    this.scannerCodigo = s.scannerCodigo;
   }
 
   abrirSheetProducto(p: Producto): void {
     if (this.soloLectura || productoSinStock(p)) return;
-    this.sheetModo = 'producto';
-    this.sheetProducto = p;
-    this.sheetLinea = null;
-    this.sheetQty = 1;
-    this.sheetAbierta = true;
+    this.aplicarSheetSnapshot(buildAbrirSheetProducto(p));
   }
 
   abrirSheetLinea(l: VisitaLinea): void {
     if (this.soloLectura) return;
-    this.sheetModo = 'linea';
-    this.sheetLinea = l;
-    this.sheetProducto = null;
-    this.sheetQty = cantidadLinea(l);
-    this.sheetAbierta = true;
+    this.aplicarSheetSnapshot(buildAbrirSheetLinea(l));
   }
 
   abrirSheetCarrito(): void {
-    this.sheetModo = 'carrito';
-    this.sheetProducto = null;
-    this.sheetLinea = null;
-    this.sheetAbierta = true;
+    this.aplicarSheetSnapshot(buildAbrirSheetCarrito());
   }
 
   abrirScanner(): void {
     if (this.soloLectura) return;
     this.posTab = 'petshop';
-    this.sheetModo = 'scanner';
-    this.sheetProducto = null;
-    this.sheetLinea = null;
-    this.scannerCodigo = String(this.catalogSearch.value || '').trim();
-    this.sheetAbierta = true;
+    this.aplicarSheetSnapshot(buildAbrirSheetScanner(String(this.catalogSearch.value || '')));
   }
 
   aplicarCodigoEscaneado(): void {
@@ -1105,17 +1087,13 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (!q) return;
     this.catalogSearch.setValue(q);
     this.posTab = 'petshop';
-    const hits = filtrarProductos(this.productosCatalogo, q);
-    const exact =
-      hits.find((p) => String(p.codigo_barras || '').toLowerCase() === q.toLowerCase()) ||
-      (hits.length === 1 ? hits[0] : null);
+    const exact = resolverProductoEscaneado(this.productosCatalogo, q);
     if (!exact) {
       this.cerrarSheet();
       return;
     }
     this.agregarProductoRapido(exact);
     this.catalogSearch.setValue('');
-    this.scannerCodigo = '';
     this.cerrarSheet();
   }
 
@@ -1207,17 +1185,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   cerrarSheet(): void {
-    this.sheetAbierta = false;
-    this.sheetProducto = null;
-    this.sheetLinea = null;
+    this.aplicarSheetSnapshot(cerrarPosSheet({ modo: this.sheetModo }));
   }
 
   sheetMas(): void {
-    this.sheetQty += 1;
+    this.sheetQty = sheetQtyMas(this.sheetQty);
   }
 
   sheetMenos(): void {
-    if (this.sheetQty > 1) this.sheetQty -= 1;
+    this.sheetQty = sheetQtyMenos(this.sheetQty);
   }
 
   confirmarSheet(): void {
@@ -1227,8 +1203,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.sheetModo === 'linea' && this.sheetLinea) {
-      const actual = cantidadLinea(this.sheetLinea);
-      const delta = this.sheetQty - actual;
+      const delta = deltaCantidadConfirmSheet(this.sheetLinea, this.sheetQty);
       if (delta === 0) {
         this.cerrarSheet();
         return;
@@ -1311,7 +1286,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   formatMoney(n: number): string {
-    return `$${(Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return formatMoneyMx(n, 2);
   }
 
   cancelar(): void {
