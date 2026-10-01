@@ -13,6 +13,8 @@ specs/
 ├── QA-CRUD-MATRIX.md          # Cierre QA 2026-08-26 (histórico)
 ├── memory/
 │   ├── constitution.md        # Principios del proyecto
+│   ├── agent-guardrails.md    # Checklist ANTES DE CODEAR (obligatorio; spec 075)
+│   ├── module-map.md          # Mapa módulos Angular ↔ RTDB ↔ specs
 │   └── domain-context.md      # Entidades, reglas de negocio, RTDB
 ├── templates/
 │   ├── module-spec.template.md
@@ -49,7 +51,7 @@ Prompt sugerido:
 
 ```
 Implementa specs/003-mi-modulo/ siguiendo spec.md y plan.md.
-Respeta specs/memory/constitution.md, specs/memory/domain-context.md y AGENTS.md.
+Antes: specs/memory/constitution.md + agent-guardrails.md (+ domain-context / module-map si aplica) y AGENTS.md.
 Marca tasks.md al avanzar.
 ```
 

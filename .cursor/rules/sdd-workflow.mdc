@@ -12,11 +12,14 @@ alwaysApply: true
 - RTDB: cambios **aditivos** (nodos/campos opcionales); no romper contratos con la app móvil.
 - Solo cambios dentro del alcance pedido; refactors grandes requieren spec y confirmación.
 
-## Antes de codear
+## Antes de codear (obligatorio)
 
-1. Leer `specs/memory/constitution.md`; `specs/memory/domain-context.md` si toca entidades o flujos clínicos.
-2. Clasificar el cambio en **L1 / L2 / L3** (abajo) y aplicar solo lo que ese nivel exige.
-3. L2/L3 con spec: leer `specs/NNN-*/spec.md` (+ `plan.md`/`tasks.md` si existen). Sin spec en L3: crear desde `specs/templates/` y confirmar alcance.
+1. Leer `specs/memory/constitution.md` **y** `specs/memory/agent-guardrails.md` (checklist + decisiones de negocio; no omitir).
+2. Si toca entidades o flujos clínicos → `specs/memory/domain-context.md`. Módulos/límites → `specs/memory/module-map.md`.
+3. Clasificar el cambio en **L1 / L2 / L3** (abajo) y aplicar solo lo que ese nivel exige.
+4. Buscar en `specs/INDEX.md` antes de reinventar. L2/L3 con spec: leer `specs/NNN-*/spec.md` (+ `plan.md`/`tasks.md` si existen). Sin spec en L3: crear desde `specs/templates/` y confirmar alcance.
+
+La checklist QA de muchas filas vive **solo** en `specs/templates/qa-validation-guide.md` — no duplicarla aquí.
 
 ## Niveles de cambio
 
@@ -36,6 +39,7 @@ Ante duda entre niveles, elegir el superior. Un cambio L1 no requiere abrir task
 - Loading con `LoadingService` contextual y `hide()` en success **y** error; copy destructivo «Borrar».
 - `spec.md` → `done` solo con la validación de su nivel registrada. Regenerar índice: `node scripts/specs-index.mjs`.
 - Callable nuevo → documentar pasos de deploy; Luis autoriza. Hosting autorizado → retención 1 versión (spec 063).
+- **Specs vivas (078):** al cerrar, actualizar `tasks.md` (QA + dónde vive el código), `module-map` si hubo extractos, decisiones en `agent-guardrails` / `domain-context`. Checklist completa: `specs/memory/agent-guardrails.md` → **DESPUÉS DE CODEAR / AL CERRAR**.
 
 ## Prompt usuario típico
 

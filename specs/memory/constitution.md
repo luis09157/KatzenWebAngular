@@ -89,3 +89,4 @@ Cuando corresponda deploy a producción:
 - Spec en `specs/NNN-feature/` es la fuente de verdad de esa entrega.
 - Si el alcance cambia mid-flight: actualizar `spec.md` antes de seguir codeando.
 - Handoff UI externo: mantener alineado con `ADMIN-UI-ARCHITECTURE.md`.
+- Antes de codear: `specs/memory/agent-guardrails.md` (checklist operativa) + este archivo. Mapa de módulos: `specs/memory/module-map.md`.

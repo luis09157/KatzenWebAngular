@@ -2,6 +2,20 @@
 
 Proyecto privado de clínica veterinaria: **landing**, **panel admin** (`/admin`) y **portal dueños** (`/portal`).
 
+## Antes de implementar (obligatorio)
+
+1. Leer `specs/memory/constitution.md`
+2. Leer `specs/memory/agent-guardrails.md` (checklist + prohibiciones + decisiones + **anti-duplicación**)
+3. Si toca entidades/flujos → `specs/memory/domain-context.md`
+4. Buscar spec en `specs/INDEX.md` (+ `rg` / anti-duplicación); clasificar L1/L2/L3 (`.cursor/rules/sdd-workflow.mdc`)
+5. Mapa de módulos: `specs/memory/module-map.md`
+
+Sin esos pasos, no codear. Detalle del flujo: rule always-applied `sdd-workflow.mdc`.
+
+## Al cerrar (obligatorio — specs vivas)
+
+Actualizar `tasks.md` de la spec activa (QA + qué se extrajo/dónde vive), `module-map` si hubo utils, decisiones en guardrails/`domain-context`, e INDEX si cambió estado. Ver `agent-guardrails.md` → **DESPUÉS DE CODEAR / AL CERRAR** y plan **078**.
+
 ## Stack
 
 | Capa | Tecnología |
@@ -49,7 +63,7 @@ Detalle en `.cursor/rules/sdd-workflow.mdc`; checklist QA completa **solo** en `
 - **L2 feature UI/lógica**: unit tests del util + build + smoke 375/1280 + registro ≤10 líneas en `tasks.md`.
 - **L3 datos/infra** (rules, functions, scripts a prod, modelos compartidos con móvil, imports): guía QA completa + `plan.md` (Contratos de Datos / Rollback) + emulador + autorización explícita de Luis.
 
-Índice specs: `specs/INDEX.md` (autogenerado) · dominio: `specs/memory/domain-context.md` · principios: `specs/memory/constitution.md` · plan maestro: `specs/ROADMAP.md`.
+Índice specs: `specs/INDEX.md` (autogenerado) · dominio: `specs/memory/domain-context.md` · principios: `specs/memory/constitution.md` · guardrails agentes: `specs/memory/agent-guardrails.md` · mapa módulos: `specs/memory/module-map.md` · plan maestro: `specs/ROADMAP.md`.
 
 ## Idioma
 
@@ -62,4 +76,4 @@ Respuestas, mensajes de UI y commits en **español latino**.
 - Cambios destructivos en RTDB o borrado de datos legacy
 - Refactors grandes fuera del alcance de la spec activa
 
-Desarrollo y pruebas del agente: **localhost, emuladores Firebase o mocks** (`src/app/core/testing/mock-data.ts`) — ver `specs/memory/constitution.md`.
+Desarrollo y pruebas del agente: **localhost, emuladores Firebase o mocks** (`src/app/core/testing/mock-data.ts`) — ver `specs/memory/constitution.md` y `specs/memory/agent-guardrails.md`.

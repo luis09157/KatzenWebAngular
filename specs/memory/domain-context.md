@@ -1,7 +1,7 @@
 # Contexto de dominio — KatzenVet Web
 
 Documento vivo de lógica de negocio inferida del código, reglas RTDB y Cloud Functions.  
-**Última revisión:** 2026-09-04 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` · **069** Fase 1 UX · **070** Fase 2: asistente «Llegó un paciente»; kits POS explotan `kitComponentes` (N salidas); sin BOM no se inventan componentes · **071** Fase 3: turno `Caja/Turnos/{fecha}`, ticket 80 mm + `Visitas.folio?` · **072** Fase 4: menú 6 grupos; `STAFF_MODULE_ACCESS` por rol; `Katzen/Config/clinica` · **074** portal dueño: cartilla + baños + avisos UX; citas read-only (solicitud futura `CitasSolicitud` solo en spec).
+**Última revisión:** 2026-09-30 · **Fuente:** inspección de código + decisiones de negocio (Luis Alfonso Niño Martínez) · **053** desparasitación ola 1 · **054** cierre operable · **055** POS móvil · **056** catálogo `ServiciosClinica` · **069** Fase 1 UX · **070** Fase 2: asistente «Llegó un paciente»; kits POS explotan `kitComponentes` (N salidas); sin BOM no se inventan componentes · **071** Fase 3: turno `Caja/Turnos/{fecha}`, ticket 80 mm + `Visitas.folio?` · **072** Fase 4: menú 6 grupos; `STAFF_MODULE_ACCESS` por rol; `Katzen/Config/clinica` · **074** portal dueño: cartilla + baños + avisos UX; citas read-only (solicitud futura `CitasSolicitud` solo en spec) · **075** memoria agentes (`agent-guardrails` + `module-map`). Antes de codear: `specs/memory/agent-guardrails.md`.
 
 ---
 
@@ -592,6 +592,8 @@ flowchart TD
 | Baseline módulos | `specs/001-baseline/spec.md` |
 | Auditoría técnica | `specs/AUDIT-CODE.md` |
 | Constitución | `specs/memory/constitution.md` |
+| Guardrails agentes | `specs/memory/agent-guardrails.md` |
+| Mapa módulos | `specs/memory/module-map.md` |
 
 ---
 
@@ -718,7 +720,7 @@ Features futuras derivadas de las decisiones de negocio. Sin fechas — prioriza
 
 | Feature | Origen | Notas |
 |---------|--------|-------|
-| **Resend / correos portal** | Provision / registro | **Diferido al final** (decisión Luis 2026-08-26) — `RESEND_API_KEY` + dominio + deploy; ver ROADMAP |
+| **Resend / correos portal** | Provision / registro | **Activado 2026-08-26** (spec **038**). Pendiente: dominio propio + `PORTAL_FROM_EMAIL` (Fase B). Fuente: `038/notas-resend.md` — no re-diferir |
 | **Módulo finanzas / caja** | #19, #20 | **018/021/022 A–D done** — `specs/022-automatizacion-costos-dashboard/` (E opcional) |
 | **Pensión / alojamiento** | ops | `/admin/pension` — **022 done** (defaults + comida opt-in) |
 | **Push notifications Firebase** | #10 | Bridge recordatorios → FCM; posible extensión a citas y portal |

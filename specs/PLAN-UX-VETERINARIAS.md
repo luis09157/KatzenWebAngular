@@ -89,6 +89,24 @@ Esfuerzo: **S** ½–1 día · **M** 2–4 días · **L** 1–2 semanas (con age
 
 En `/admin/paciente` el UUID no se muestra. Spec **068**: el número que capturan las doctoras (Excel/clínica) en `Mascota.expediente` gana; si está vacío se genera/persiste `KV-XXXXXX`. No se usa el `expediente` del dueño.
 
+## Nota — memoria agentes / modularidad (2026-09-30 → 2026-10-01)
+
+Spec **075**: guardrails + mapa de módulos para que la IA lea decisiones (mostrador sin cliente, portal no agenda, sin Excel importer, etc.) **antes** de codear. Modularización = plan + cortes seguros, no rewrite.
+
+Specs **076** / **077**: oleadas POS utils + pacientes fecha/timeline + boundaries login/FCM en core. Smoke QA 077 registrada en `tasks.md` (2026-10-01).
+
+### Specs vivas **078** (2026-10-01)
+
+Proceso obligatorio: al cerrar una feature, actualizar `tasks.md` + memoria (`module-map` / guardrails / INDEX). Ver `specs/078-plan-automatizacion-y-specs-vivas/`. Backlog priorizado ahí (Resend ops, freeze Eleventa, portal onboarding, cartilla PDF, citas, oleada 4 modular).
+
+| Bloque | En repo (specs done) | Hosting / “prod” |
+|--------|----------------------|------------------|
+| **UX Fases 1–4** (065–072) | Código de producto entregado; specs `done` | Depende del último `firebase deploy --only hosting` **autorizado por Luis** — no afirmar live sin su confirmación |
+| **Modular 075–077** | Utils + docs en working tree; QA local/smoke registrada | **Solo local** hasta commit + deploy autorizados (tasks: commit/deploy = no) |
+| **Proceso 078** | Docs / ganchos / plantillas | N/A (sin TS de app) |
+
+Infra continuo (sin confundir con “modular local”): dominio Resend (**038** Fase B), freeze/cutover PDV (**064**), FCM/scheduler según ROADMAP.
+
 ## Extras que recomiendo (no pedidos)
 
 1. **Sesión de observación real:** 1 hora viendo a una veterinaria usar el sistema con 3 tareas ("llegó cliente nuevo con perro", "cobra vacuna a cliente existente", "haz el corte"). Vale más que cualquier auditoría; hacerla antes de Fase 2 y repetirla después.

@@ -35,7 +35,9 @@ for (const dir of dirs) {
 
   const clave = estado.split(/[\s(→]/)[0].toLowerCase() || estado;
   conteo[clave] = (conteo[clave] ?? 0) + 1;
-  rows.push(`| ${numero} | [${nombre}](${dir}/spec.md) | ${titulo.replace(/\|/g, '\\|')} | ${estado.replace(/\|/g, '\\|')} |`);
+  rows.push(
+    `| ${numero} | [${nombre}](${dir}/spec.md) | ${titulo.replace(/\|/g, '\\|')} | ${estado.replace(/\|/g, '\\|')} |`
+  );
 }
 
 const resumen = Object.entries(conteo)
@@ -46,6 +48,8 @@ const resumen = Object.entries(conteo)
 const contenido = `# Índice de specs — KatzenVet
 
 > **Autogenerado** por \`node scripts/specs-index.mjs\` a partir de \`specs/NNN-*/spec.md\`. **No editar a mano**: cambia el \`Estado:\` en la spec y regenera.
+>
+> Memoria / proceso: [\`agent-guardrails\`](memory/agent-guardrails.md) · [\`module-map\`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [\`PLAN-UX\`](PLAN-UX-VETERINARIAS.md) · [\`ROADMAP\`](ROADMAP.md)
 
 Total: **${rows.length}** specs · ${resumen}
 

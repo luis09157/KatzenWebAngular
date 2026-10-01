@@ -44,9 +44,13 @@ Plantillas de `specs/templates/` probadas desde la spec 003 en adelante; checkli
 |----------|------------|
 | Nueva feature → carpeta `specs/NNN-*` antes de code | Siempre |
 | Actualizar spec si cambia alcance | En la misma sesión |
-| Revisar constitution al tocar Auth/RTDB | Siempre |
+| Revisar constitution + **agent-guardrails** (075) **antes** y **después** de codear (078) | Siempre |
+| Mapa de módulos (`module-map.md`) al cruzar Admin/Portal/Core | Al dudar límites / al extraer utils |
 | Deploy functions documentado en spec | Cada callable nuevo |
 | Opcional: GitHub Spec Kit (`specify init`) | Si el equipo crece |
+
+**Memoria agentes (2026-09-30):** spec **075** — `agent-guardrails.md` + `module-map.md` + hooks AGENTS/SDD; modularización incremental (sin rewrite).  
+**Specs vivas + automatización (2026-10-01):** spec **078** — proceso A–D, backlog P1–P6, anti-duplicación; al cerrar → actualizar memoria. Modular **076**/**077** = oleadas locales (sin deploy autorizado).
 
 ---
 

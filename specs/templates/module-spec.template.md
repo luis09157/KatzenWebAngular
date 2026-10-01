@@ -89,3 +89,11 @@ Ver `tasks.md` sección Testing.
 ## Notas / decisiones
 
 - ...
+
+---
+
+## Código tocado / utils reutilizados / no duplicar (078)
+
+- **Reutilizar (no inventar segundo):** consultar `agent-guardrails.md` anti-duplicación + `module-map.md`.
+- **Utils / módulos a extender:** …
+- **Memoria al cerrar:** [ ] module-map [ ] guardrails / domain-context [ ] INDEX — detalle en `tasks.md`.

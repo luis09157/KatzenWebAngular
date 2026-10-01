@@ -12,6 +12,7 @@
 
 - [ ] Carpeta spec creada y alcance confirmado
 - [ ] Plan aprobado (L3)
+- [ ] Anti-duplicación: `rg` + `specs/INDEX.md` + tabla en `agent-guardrails.md` (no segundo POS / expediente / mailer / wizard)
 
 ### Backend (si aplica)
 
@@ -27,6 +28,18 @@
 - [ ] Componente lista + diálogos según `admin-ui-architecture`
 - [ ] ErrorMessagesService contextos nuevos
 - [ ] Menú admin (si aplica)
+
+---
+
+## Código tocado / utils reutilizados / no duplicar
+
+> Obligatorio al cerrar (spec **078** / `agent-guardrails` → DESPUÉS DE CODEAR).
+
+| Qué | Ruta / nota |
+|-----|-------------|
+| Archivos nuevos o tocados | … |
+| Utils / módulos **reutilizados** (no reimplementados) | ej. `pos-wizard`, `folio-expediente-paciente`, … |
+| Extractos nuevos (si hubo) | dónde viven ahora |
 
 ---
 
@@ -56,8 +69,18 @@
 
 ---
 
+## Memoria actualizada (specs vivas — 078)
+
+- [ ] `module-map.md` (si hubo extractos / límites)
+- [ ] `agent-guardrails.md` o `domain-context.md` (si hubo decisión de negocio)
+- [ ] `INDEX` (`node scripts/specs-index.mjs` si cambió Estado/nombre)
+- [ ] Este `tasks.md` con QA + tabla «código tocado» arriba
+
+---
+
 ## Cierre
 
 - [ ] Validación del nivel registrada arriba
+- [ ] Memoria actualizada (checklist anterior)
 - [ ] `spec.md` estado → `done` + `node scripts/specs-index.mjs`
 - [ ] Commit / deploy — solo si Luis lo pidió
