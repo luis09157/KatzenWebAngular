@@ -35,8 +35,9 @@ Para **cerrar la oleada de sheets UI POS sin cambiar UX ni negocio**
 
 - Cambiar copy, cobro, persistir (**080**), orquestación (**079**), wizard/bloqueo.
 - Mover estilos fuera de `visita-dialog.component.scss`.
-- Restaurar botón sticky de carrito (histórico `pos-cart-bar`; no cableado hoy).
 - RTDB / rules / Functions / firebase deploy.
+
+**Nota (fix 2026-10-01):** se restauró `pos-cart-bar` sticky en móvil (arts + total abre sheet Ticket). Había quedado fuera de alcance en la oleada; era regresión UX para recepción.
 
 ---
 

@@ -865,21 +865,22 @@
     </div>
   </mat-dialog-content>
 
-  <!-- Sticky: cliente/mostrador + Cobrar -->
-  <div class="pos-sticky no-print" *ngIf="!soloLectura && pasoWizard === 2">
-    <button type="button" class="pos-sticky__cliente" (click)="abrirBloqueCliente()">
-      <span class="pos-sticky__avatar" aria-hidden="true">
-        <mat-icon>{{ modoMostrador ? 'storefront' : 'person' }}</mat-icon>
-      </span>
-      <span class="pos-sticky__cliente-text">
-        <span class="pos-sticky__lbl">{{ artsCount }} art{{ artsCount === 1 ? '' : 's' }}</span>
-        <strong>{{ chipClienteLabel }}</strong>
-      </span>
+  <!-- Carrito sticky móvil: arts + total abre sheet Ticket; Cobrar. Desktop ≥721px usa pos-cart-panel. -->
+  <div class="pos-cart-bar no-print" *ngIf="!soloLectura && pasoWizard === 2">
+    <button
+      type="button"
+      class="pos-cart-bar__info"
+      data-testid="pos-abrir-carrito"
+      (click)="abrirSheetCarrito()"
+      [attr.aria-label]="'Ver ticket: ' + artsCount + ' artículos, ' + formatMoney(totales.total)"
+    >
+      <span>{{ artsCount }} art{{ artsCount === 1 ? '' : 's' }}</span>
+      <strong>{{ formatMoney(totales.total) }}</strong>
     </button>
     <button
       mat-raised-button
       color="primary"
-      class="btn-primary-teal pos-sticky__cobrar"
+      class="btn-primary-teal pos-cart-bar__cobrar"
       type="button"
       [disabled]="!puedeIrACobrar"
       (click)="irACobrar()"
@@ -889,26 +890,6 @@
   </div>
 
   <!-- Sheets POS (081–082): panel + cantidad/scanner/carrito -->
-  <!-- Hook smoke/E2E (sin UI): carrito sheet no tiene botón sticky desde que se reemplazó pos-cart-bar. -->
-  <button
-    type="button"
-    data-testid="pos-abrir-carrito"
-    tabindex="-1"
-    aria-hidden="true"
-    style="
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
-    "
-    (click)="abrirSheetCarrito()"
-  >
-    Abrir carrito
-  </button>
   <app-pos-sheet-panel *ngIf="sheetAbierta" (cerrar)="cerrarSheet()">
     <app-pos-sheet-scanner
       *ngIf="sheetModo === 'scanner'"

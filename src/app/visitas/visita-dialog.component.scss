@@ -936,74 +936,44 @@
     min-width: 140px;
   }
 
-  .pos-sticky {
+  .pos-cart-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--admin-border, #e2e8f0);
     background: #fff;
     flex-shrink: 0;
   }
 
-  .pos-sticky__cliente {
+  .pos-cart-bar__info {
     flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 52px;
-    padding: 4px 8px 4px 4px;
-    border: 1px solid #99f6e4;
-    border-radius: 14px;
-    background: #f0fdfa;
-    text-align: left;
-    cursor: pointer;
-    color: #0f766e;
-  }
-
-  .pos-sticky__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: #ccfbf1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
-    }
-  }
-
-  .pos-sticky__cliente-text {
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    align-items: flex-start;
+    min-height: 48px;
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+
+    span {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
 
     strong {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.9375rem;
+      font-size: 1.125rem;
     }
   }
 
-  .pos-sticky__lbl {
-    font-size: 0.7rem;
-    color: #64748b;
-    font-weight: 600;
-  }
-
-  .pos-sticky__cobrar {
-    flex: 1.1;
-    min-width: 148px;
-    min-height: 52px !important;
+  .pos-cart-bar__cobrar {
+    min-width: 132px;
+    min-height: 48px !important;
     font-weight: 800 !important;
-    font-size: 1.02rem !important;
+    font-size: 1rem !important;
   }
 
   .pos-sheet-backdrop {
@@ -1119,6 +1089,10 @@
       flex-direction: column;
       min-height: 0;
     }
+
+    .pos-cart-bar {
+      display: none;
+    }
   }
 }
 
@@ -1198,7 +1172,7 @@
   body.visita-printing .no-print,
   body.visita-printing .cdk-overlay-backdrop,
   body.visita-printing .mat-mdc-dialog-actions,
-  body.visita-printing .pos-sticky,
+  body.visita-printing .pos-cart-bar,
   body.visita-printing .pos-sheet,
   body.visita-printing .pos-sheet-backdrop {
     display: none !important;
