@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-01 · Specs **075**–**078** (specs vivas + anti-duplicación)
+**Última revisión:** 2026-10-01 · Specs **075**–**079** (specs vivas + anti-duplicación + orquestación POS)
 
 ---
 
@@ -94,6 +94,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Pasos wizard POS / destino | `visitas/pos-wizard.util.ts` | **076** |
 | Hints / bloqueos / puedeGuardar POS | `visitas/pos-bloqueo.util.ts` | **076** |
 | Sheets táctiles (qty, escáner, monto) | `visitas/pos-sheet.util.ts` | **077** |
+| Orquestación guardar/cobrar POS | `visitas/pos-orquestacion.util.ts` | **079** |
 | Ticket WhatsApp POS | `visitas/pos-ticket-whatsapp.util.ts` | **071** / POS |
 | Folio expediente mascota | `core/utils/folio-expediente-paciente.util.ts` | **068** |
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
@@ -102,7 +103,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |
-| Venta rápida / mostrador | flujo en `visita-dialog` + utils POS | **065**, **046** |
+| Venta rápida / mostrador | flujo en `visita-dialog` + utils POS (`pos-orquestacion` cobro/guardar) | **065**, **046**, **079** |
 | Correo portal (Resend) | Functions 038 — **no** segundo mailer | **038** |
 
 ---

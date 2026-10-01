@@ -64,4 +64,5 @@ N/A — sin cambios RTDB. UI: mismos strings y flujos táctiles.
 ## Relación
 
 - Continúa: **075**, **076**
-- Siguiente (opcional): componentes sheet / tabs lazy si Luis pide oleada 4
+- Oleada 4: **079** (`pos-orquestacion` + tabs lazy expediente)
+- Siguiente (oleada 5): extraer `persistir`/kits; sheets como componentes si Luis pide

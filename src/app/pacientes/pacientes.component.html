@@ -251,282 +251,290 @@
         >
           <mat-tab-group class="expediente-tabs" animationDuration="200ms" dynamicHeight>
             <mat-tab label="Historial">
-              <div class="tab-panel">
-                <div class="tab-panel__toolbar">
-                  <button
-                    mat-raised-button
-                    color="primary"
-                    class="btn-primary-teal"
-                    type="button"
-                    (click)="agregarHistorialClinico()"
-                  >
-                    <mat-icon>add</mat-icon>
-                    Nuevo historial
-                  </button>
-                </div>
-
-                <div class="clinical-list" *ngIf="historialClinico.length; else emptyHistorial">
-                  <article
-                    *ngFor="let historial of historialClinico"
-                    class="clinical-list__item"
-                    (dblclick)="verDetalleHistorial(historial)"
-                  >
-                    <div class="clinical-list__icon clinical-list__icon--teal">
-                      <mat-icon>medical_services</mat-icon>
-                    </div>
-                    <div class="clinical-list__body">
-                      <div class="clinical-list__title">
-                        {{ historial.diagnostico_presuntivo || 'Sin diagnóstico' }}
-                      </div>
-                      <div class="clinical-list__meta">
-                        {{ historial.fecha_formateada }} · {{ historial.tiempo_transcurrido }}
-                      </div>
-                      <div class="clinical-list__tags">
-                        <span
-                          class="estado-badge"
-                          [ngClass]="(historial.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass"
-                        >
-                          {{ historial.activo !== false ? 'Activo' : 'Inactivo' }}
-                        </span>
-                      </div>
-                      <p class="clinical-list__note" *ngIf="historial.manejo_terapeutico">
-                        {{ historial.manejo_terapeutico }}
-                      </p>
-                      <p class="clinical-list__note" *ngIf="historial.receta">{{ historial.receta }}</p>
-                    </div>
-                    <div
-                      class="row-actions hide-mobile"
-                      (click)="$event.stopPropagation()"
-                      (dblclick)="$event.stopPropagation()"
+              <ng-template matTabContent>
+                <div class="tab-panel">
+                  <div class="tab-panel__toolbar">
+                    <button
+                      mat-raised-button
+                      color="primary"
+                      class="btn-primary-teal"
+                      type="button"
+                      (click)="agregarHistorialClinico()"
                     >
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Editar"
-                        (click)="editarHistorialClinico(historial); $event.stopPropagation()"
+                      <mat-icon>add</mat-icon>
+                      Nuevo historial
+                    </button>
+                  </div>
+
+                  <div class="clinical-list" *ngIf="historialClinico.length; else emptyHistorial">
+                    <article
+                      *ngFor="let historial of historialClinico"
+                      class="clinical-list__item"
+                      (dblclick)="verDetalleHistorial(historial)"
+                    >
+                      <div class="clinical-list__icon clinical-list__icon--teal">
+                        <mat-icon>medical_services</mat-icon>
+                      </div>
+                      <div class="clinical-list__body">
+                        <div class="clinical-list__title">
+                          {{ historial.diagnostico_presuntivo || 'Sin diagnóstico' }}
+                        </div>
+                        <div class="clinical-list__meta">
+                          {{ historial.fecha_formateada }} · {{ historial.tiempo_transcurrido }}
+                        </div>
+                        <div class="clinical-list__tags">
+                          <span
+                            class="estado-badge"
+                            [ngClass]="(historial.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass"
+                          >
+                            {{ historial.activo !== false ? 'Activo' : 'Inactivo' }}
+                          </span>
+                        </div>
+                        <p class="clinical-list__note" *ngIf="historial.manejo_terapeutico">
+                          {{ historial.manejo_terapeutico }}
+                        </p>
+                        <p class="clinical-list__note" *ngIf="historial.receta">{{ historial.receta }}</p>
+                      </div>
+                      <div
+                        class="row-actions hide-mobile"
+                        (click)="$event.stopPropagation()"
+                        (dblclick)="$event.stopPropagation()"
                       >
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Borrar"
-                        (click)="eliminarHistorialClinico(historial); $event.stopPropagation()"
-                      >
-                        <mat-icon>delete_outline</mat-icon>
-                      </button>
-                    </div>
-                  </article>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Editar"
+                          (click)="editarHistorialClinico(historial); $event.stopPropagation()"
+                        >
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Borrar"
+                          (click)="eliminarHistorialClinico(historial); $event.stopPropagation()"
+                        >
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                  <ng-template #emptyHistorial>
+                    <app-admin-empty-state
+                      icon="medical_services"
+                      title="Sin historial clínico"
+                      message="Aún no hay entradas en el expediente."
+                      actionLabel="Crear primer historial"
+                      (action)="agregarHistorialClinico()"
+                    >
+                    </app-admin-empty-state>
+                  </ng-template>
                 </div>
-                <ng-template #emptyHistorial>
-                  <app-admin-empty-state
-                    icon="medical_services"
-                    title="Sin historial clínico"
-                    message="Aún no hay entradas en el expediente."
-                    actionLabel="Crear primer historial"
-                    (action)="agregarHistorialClinico()"
-                  >
-                  </app-admin-empty-state>
-                </ng-template>
-              </div>
+              </ng-template>
             </mat-tab>
 
             <mat-tab label="Recordatorios">
-              <div class="tab-panel">
-                <div class="tab-panel__toolbar">
-                  <button
-                    mat-raised-button
-                    color="primary"
-                    class="btn-primary-teal"
-                    type="button"
-                    (click)="agregarRecordatorio()"
-                  >
-                    <mat-icon>add</mat-icon>
-                    Nuevo recordatorio
-                  </button>
-                </div>
-
-                <div class="clinical-list" *ngIf="recordatorios.length; else emptyRecordatorios">
-                  <article
-                    *ngFor="let recordatorio of recordatorios"
-                    class="clinical-list__item"
-                    (dblclick)="verDetalleRecordatorio(recordatorio)"
-                  >
-                    <div class="clinical-list__icon clinical-list__icon--orange">
-                      <mat-icon>notifications</mat-icon>
-                    </div>
-                    <div class="clinical-list__body">
-                      <div class="clinical-list__title">{{ recordatorio.titulo }}</div>
-                      <div class="clinical-list__meta">
-                        {{ recordatorio.fecha_formateada }} · {{ recordatorio.estado_tiempo }}
-                      </div>
-                      <div class="clinical-list__tags">
-                        <span class="estado-badge" [ngClass]="recordatorio.estado | adminEstadoClass">{{
-                          recordatorio.estado | titlecase
-                        }}</span>
-                        <span class="tag tag-muted">{{ recordatorio.prioridad | titlecase }}</span>
-                      </div>
-                    </div>
-                    <div
-                      class="row-actions hide-mobile"
-                      (click)="$event.stopPropagation()"
-                      (dblclick)="$event.stopPropagation()"
+              <ng-template matTabContent>
+                <div class="tab-panel">
+                  <div class="tab-panel__toolbar">
+                    <button
+                      mat-raised-button
+                      color="primary"
+                      class="btn-primary-teal"
+                      type="button"
+                      (click)="agregarRecordatorio()"
                     >
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Editar"
-                        (click)="editarRecordatorio(recordatorio); $event.stopPropagation()"
+                      <mat-icon>add</mat-icon>
+                      Nuevo recordatorio
+                    </button>
+                  </div>
+
+                  <div class="clinical-list" *ngIf="recordatorios.length; else emptyRecordatorios">
+                    <article
+                      *ngFor="let recordatorio of recordatorios"
+                      class="clinical-list__item"
+                      (dblclick)="verDetalleRecordatorio(recordatorio)"
+                    >
+                      <div class="clinical-list__icon clinical-list__icon--orange">
+                        <mat-icon>notifications</mat-icon>
+                      </div>
+                      <div class="clinical-list__body">
+                        <div class="clinical-list__title">{{ recordatorio.titulo }}</div>
+                        <div class="clinical-list__meta">
+                          {{ recordatorio.fecha_formateada }} · {{ recordatorio.estado_tiempo }}
+                        </div>
+                        <div class="clinical-list__tags">
+                          <span class="estado-badge" [ngClass]="recordatorio.estado | adminEstadoClass">{{
+                            recordatorio.estado | titlecase
+                          }}</span>
+                          <span class="tag tag-muted">{{ recordatorio.prioridad | titlecase }}</span>
+                        </div>
+                      </div>
+                      <div
+                        class="row-actions hide-mobile"
+                        (click)="$event.stopPropagation()"
+                        (dblclick)="$event.stopPropagation()"
                       >
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Borrar"
-                        (click)="eliminarRecordatorio(recordatorio); $event.stopPropagation()"
-                      >
-                        <mat-icon>delete_outline</mat-icon>
-                      </button>
-                      <button
-                        *ngIf="recordatorio.estado === 'pendiente'"
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Completar"
-                        (click)="cambiarEstadoRecordatorio(recordatorio, 'completado'); $event.stopPropagation()"
-                      >
-                        <mat-icon>check</mat-icon>
-                      </button>
-                      <button
-                        *ngIf="recordatorio.estado === 'completado'"
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Marcar pendiente"
-                        (click)="cambiarEstadoRecordatorio(recordatorio, 'pendiente'); $event.stopPropagation()"
-                      >
-                        <mat-icon>schedule</mat-icon>
-                      </button>
-                    </div>
-                  </article>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Editar"
+                          (click)="editarRecordatorio(recordatorio); $event.stopPropagation()"
+                        >
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Borrar"
+                          (click)="eliminarRecordatorio(recordatorio); $event.stopPropagation()"
+                        >
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                        <button
+                          *ngIf="recordatorio.estado === 'pendiente'"
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Completar"
+                          (click)="cambiarEstadoRecordatorio(recordatorio, 'completado'); $event.stopPropagation()"
+                        >
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                          *ngIf="recordatorio.estado === 'completado'"
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Marcar pendiente"
+                          (click)="cambiarEstadoRecordatorio(recordatorio, 'pendiente'); $event.stopPropagation()"
+                        >
+                          <mat-icon>schedule</mat-icon>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                  <ng-template #emptyRecordatorios>
+                    <app-admin-empty-state
+                      icon="notifications_off"
+                      title="Sin recordatorios"
+                      message="No hay recordatorios para este paciente."
+                      actionLabel="Agregar recordatorio"
+                      (action)="agregarRecordatorio()"
+                    >
+                    </app-admin-empty-state>
+                  </ng-template>
                 </div>
-                <ng-template #emptyRecordatorios>
-                  <app-admin-empty-state
-                    icon="notifications_off"
-                    title="Sin recordatorios"
-                    message="No hay recordatorios para este paciente."
-                    actionLabel="Agregar recordatorio"
-                    (action)="agregarRecordatorio()"
-                  >
-                  </app-admin-empty-state>
-                </ng-template>
-              </div>
+              </ng-template>
             </mat-tab>
 
             <mat-tab label="Vacunas">
-              <div class="tab-panel">
-                <div class="tab-panel__toolbar">
-                  <button
-                    mat-raised-button
-                    color="primary"
-                    class="btn-primary-teal"
-                    type="button"
-                    (click)="agregarVacuna()"
-                  >
-                    <mat-icon>add</mat-icon>
-                    Nueva vacuna
-                  </button>
-                </div>
-
-                <div class="clinical-list" *ngIf="vacunas.length; else emptyVacunas">
-                  <article
-                    *ngFor="let vacuna of vacunas"
-                    class="clinical-list__item"
-                    (dblclick)="verVacunaDetalle(vacuna)"
-                  >
-                    <div class="clinical-list__icon clinical-list__icon--blue">
-                      <mat-icon>{{ getVacunaIcono(vacuna.vacuna) }}</mat-icon>
-                    </div>
-                    <div class="clinical-list__body">
-                      <div class="clinical-list__title">{{ vacuna.vacuna | titlecase }}</div>
-                      <div class="clinical-list__meta">{{ vacuna.fecha_formateada }} · Dosis {{ vacuna.dosis }}</div>
-                      <div class="clinical-list__tags">
-                        <span
-                          class="estado-badge"
-                          [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass"
-                        >
-                          {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
-                        </span>
-                      </div>
-                      <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
-                    </div>
-                    <div
-                      class="row-actions hide-mobile"
-                      (click)="$event.stopPropagation()"
-                      (dblclick)="$event.stopPropagation()"
+              <ng-template matTabContent>
+                <div class="tab-panel">
+                  <div class="tab-panel__toolbar">
+                    <button
+                      mat-raised-button
+                      color="primary"
+                      class="btn-primary-teal"
+                      type="button"
+                      (click)="agregarVacuna()"
                     >
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Editar"
-                        (click)="editarVacuna(vacuna); $event.stopPropagation()"
+                      <mat-icon>add</mat-icon>
+                      Nueva vacuna
+                    </button>
+                  </div>
+
+                  <div class="clinical-list" *ngIf="vacunas.length; else emptyVacunas">
+                    <article
+                      *ngFor="let vacuna of vacunas"
+                      class="clinical-list__item"
+                      (dblclick)="verVacunaDetalle(vacuna)"
+                    >
+                      <div class="clinical-list__icon clinical-list__icon--blue">
+                        <mat-icon>{{ getVacunaIcono(vacuna.vacuna) }}</mat-icon>
+                      </div>
+                      <div class="clinical-list__body">
+                        <div class="clinical-list__title">{{ vacuna.vacuna | titlecase }}</div>
+                        <div class="clinical-list__meta">{{ vacuna.fecha_formateada }} · Dosis {{ vacuna.dosis }}</div>
+                        <div class="clinical-list__tags">
+                          <span
+                            class="estado-badge"
+                            [ngClass]="(vacuna.aplicada ? 'aplicada' : 'pendiente') | adminEstadoClass"
+                          >
+                            {{ vacuna.aplicada ? 'Aplicada' : 'Pendiente' }}
+                          </span>
+                        </div>
+                        <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
+                      </div>
+                      <div
+                        class="row-actions hide-mobile"
+                        (click)="$event.stopPropagation()"
+                        (dblclick)="$event.stopPropagation()"
                       >
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Borrar"
-                        (click)="eliminarVacuna(vacuna); $event.stopPropagation()"
-                      >
-                        <mat-icon>delete_outline</mat-icon>
-                      </button>
-                      <button
-                        *ngIf="!vacuna.aplicada"
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Marcar aplicada"
-                        (click)="cambiarEstadoVacuna(vacuna, 'aplicada'); $event.stopPropagation()"
-                      >
-                        <mat-icon>check</mat-icon>
-                      </button>
-                      <button
-                        *ngIf="vacuna.aplicada"
-                        mat-icon-button
-                        type="button"
-                        matTooltip="Marcar pendiente"
-                        (click)="cambiarEstadoVacuna(vacuna, 'pendiente'); $event.stopPropagation()"
-                      >
-                        <mat-icon>schedule</mat-icon>
-                      </button>
-                    </div>
-                  </article>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Editar"
+                          (click)="editarVacuna(vacuna); $event.stopPropagation()"
+                        >
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Borrar"
+                          (click)="eliminarVacuna(vacuna); $event.stopPropagation()"
+                        >
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                        <button
+                          *ngIf="!vacuna.aplicada"
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Marcar aplicada"
+                          (click)="cambiarEstadoVacuna(vacuna, 'aplicada'); $event.stopPropagation()"
+                        >
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                          *ngIf="vacuna.aplicada"
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Marcar pendiente"
+                          (click)="cambiarEstadoVacuna(vacuna, 'pendiente'); $event.stopPropagation()"
+                        >
+                          <mat-icon>schedule</mat-icon>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                  <ng-template #emptyVacunas>
+                    <app-admin-empty-state
+                      icon="vaccines"
+                      title="Sin vacunas"
+                      message="No hay vacunas registradas."
+                      actionLabel="Agregar vacuna"
+                      (action)="agregarVacuna()"
+                    >
+                    </app-admin-empty-state>
+                  </ng-template>
                 </div>
-                <ng-template #emptyVacunas>
-                  <app-admin-empty-state
-                    icon="vaccines"
-                    title="Sin vacunas"
-                    message="No hay vacunas registradas."
-                    actionLabel="Agregar vacuna"
-                    (action)="agregarVacuna()"
-                  >
-                  </app-admin-empty-state>
-                </ng-template>
-              </div>
+              </ng-template>
             </mat-tab>
 
             <mat-tab label="Baños">
-              <div class="tab-panel tab-panel--embedded">
-                <app-banios-paciente
-                  [pacienteId]="pacienteSeleccionado?.id"
-                  [pacienteNombre]="pacienteSeleccionado?.nombre"
-                  [clienteId]="getPacienteClienteId(pacienteSeleccionado)"
-                  [clienteNombre]="getClienteNombreFromPaciente(pacienteSeleccionado)"
-                  (banioCreado)="onBanioCreado($event)"
-                  (banioActualizado)="onBanioActualizado($event)"
-                  (banioEliminado)="onBanioEliminado($event)"
-                >
-                </app-banios-paciente>
-              </div>
+              <ng-template matTabContent>
+                <div class="tab-panel tab-panel--embedded">
+                  <app-banios-paciente
+                    [pacienteId]="pacienteSeleccionado?.id"
+                    [pacienteNombre]="pacienteSeleccionado?.nombre"
+                    [clienteId]="getPacienteClienteId(pacienteSeleccionado)"
+                    [clienteNombre]="getClienteNombreFromPaciente(pacienteSeleccionado)"
+                    (banioCreado)="onBanioCreado($event)"
+                    (banioActualizado)="onBanioActualizado($event)"
+                    (banioEliminado)="onBanioEliminado($event)"
+                  >
+                  </app-banios-paciente>
+                </div>
+              </ng-template>
             </mat-tab>
           </mat-tab-group>
         </app-admin-data-panel>

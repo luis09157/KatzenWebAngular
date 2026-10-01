@@ -56,12 +56,14 @@ Documentación viva: `specs/memory/module-map.md`.
 ## Fases siguientes (no en esta entrega)
 
 1. ~~Extraer sub-pasos del wizard POS / sheets a componentes o facades con tests.~~ → **076** wizard/bloqueo; **077** `pos-sheet.util` (estado/validación sheets).
-2. ~~Partir `pacientes.component` en tabs/paneles lazy.~~ → **parcial 077**: fecha/edad/timeline en utils; tabs hijo = oleada futura.
+2. ~~Partir `pacientes.component` en tabs/paneles lazy.~~ → **077** fecha/edad/timeline; **079** `matTabContent` en expediente.
 3. Evaluar `NgModule` boundaries más estrictos (SharedAdminModule vs PortalShared) solo si el build lo soporta sin churn.
 4. ~~Unificar formatters de fecha portal/admin **si** aparece tercer duplicado.~~ → **parcial en 076**: `formatMoneyMx` migrado en visita-dialog + cliente-cuenta (+ caja-corte); fechas portal aún pendientes.
 5. ~~Sheets POS (`producto`/`línea`/`scanner`) → componente/facade (oleada 3).~~ → **077** facade util; UI sigue en diálogo (sin rewrite).
+6. ~~Orquestación async guardar/cobrar (oleada 4).~~ → **079** `pos-orquestacion.util`.
+7. Extraer `persistir` + salidas kit/stock (oleada 5). Sheets como componentes Angular si Luis pide.
 
-Ver detalle: `specs/076-modularizacion-pos-core/` · `specs/077-modularizacion-pos-pacientes/`.
+Ver detalle: `specs/076-modularizacion-pos-core/` · `specs/077-modularizacion-pos-pacientes/` · `specs/079-modularizacion-pos-orquestacion/`.
 
 ---
 

@@ -19,14 +19,15 @@ import { CajaService } from '../finanzas/caja.service';
 import { ClinicConfigService } from '../core/services/clinic-config.service';
 import { CLINICA_NOMBRE_DEFAULT } from '../core/utils/clinica-config.util';
 import { CajaMetodoPago } from '../finanzas/caja.models';
+import { PartePagoMixto, calcularCambioEfectivo, pagoIncluyeEfectivo } from './pos-pago-mixto.util';
 import {
-  PartePagoMixto,
-  armarPartesPagoMixto,
-  calcularCambioEfectivo,
-  mensajePagoInvalido,
-  pagoIncluyeEfectivo,
-  validarPagoContraSaldo,
-} from './pos-pago-mixto.util';
+  CTX_ERROR_COBRAR_VISITA,
+  CTX_ERROR_GUARDAR_VISITA,
+  construirEstadoPostCobro,
+  ejecutarFlujoCobro,
+  ejecutarFlujoGuardar,
+  validarPrecondicionesCobro,
+} from './pos-orquestacion.util';
 import { generarTextoTicketWhatsApp, telefonoWhatsAppValido, urlWhatsAppTicket } from './pos-ticket-whatsapp.util';
 import { Ticket80View, buildTicket80View } from './ticket-80mm.util';
 import { puedeDevolverLinea } from './pos-devolucion.util';
@@ -62,7 +63,6 @@ import {
   VisitaLinea,
   VisitaLineaCategoria,
   VISITA_ESTADO_LABELS,
-  VISITA_LINEA_A_CAJA,
   VISITA_LINEA_CATEGORIA_LABELS,
 } from './visitas.models';
 import { VisitasService } from './visitas.service';
@@ -1320,10 +1320,10 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
-      const id = await this.persistir();
-      this.dialogRef.close({ visitaId: id, saved: true });
+      const { visitaId } = await ejecutarFlujoGuardar({ persistir: () => this.persistir() });
+      this.dialogRef.close({ visitaId, saved: true });
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar visita'), 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, CTX_ERROR_GUARDAR_VISITA), 'error');
     } finally {
       this.loading = false;
       this.loadingService.hide();
@@ -1331,103 +1331,96 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   async confirmarCobro(): Promise<void> {
-    if (this.soloLectura || !this.puedeCobrar) return;
     const t = this.totales;
-    if (!this.lineas.length) {
-      Swal.fire('Sin líneas', 'Agrega al menos un servicio o producto al ticket.', 'warning');
+    const pre = validarPrecondicionesCobro({
+      soloLectura: this.soloLectura,
+      puedeCobrar: this.puedeCobrar,
+      lineasCount: this.lineas.length,
+      saldo: t.saldo,
+      mixto: !!this.cobroForm.get('mixto')?.value,
+      metodoPago: this.cobroForm.get('metodoPago')?.value || 'efectivo',
+      monto: Number(this.cobroForm.get('monto')?.value) || 0,
+      montoEfectivo: Number(this.cobroForm.get('montoEfectivo')?.value) || 0,
+      montoTarjeta: Number(this.cobroForm.get('montoTarjeta')?.value) || 0,
+      montoTransferencia: Number(this.cobroForm.get('montoTransferencia')?.value) || 0,
+      incluyeEfectivo: this.incluyeEfectivo,
+      cambioEfectivoOk: this.cambioEfectivo.ok,
+      cambioEfectivoError: !this.cambioEfectivo.ok ? this.cambioEfectivo.error : undefined,
+    });
+    if (pre.ok === false) {
+      if (pre.markCobroTouched) this.cobroForm.markAllAsTouched();
+      if (pre.alert) Swal.fire(pre.alert.title, pre.alert.text, pre.alert.icon);
       return;
     }
-    const mixto = !!this.cobroForm.get('mixto')?.value;
-    const partes = mixto
-      ? armarPartesPagoMixto({
-          efectivo: Number(this.cobroForm.get('montoEfectivo')?.value) || 0,
-          tarjeta: Number(this.cobroForm.get('montoTarjeta')?.value) || 0,
-          transferencia: Number(this.cobroForm.get('montoTransferencia')?.value) || 0,
-        })
-      : armarPartesPagoMixto({
-          [this.cobroForm.get('metodoPago')?.value || 'efectivo']: Number(this.cobroForm.get('monto')?.value) || 0,
-        } as { efectivo?: number; tarjeta?: number; transferencia?: number });
-    const valid = validarPagoContraSaldo(partes, t.saldo);
-    const pagoErr = mensajePagoInvalido(valid);
-    if (pagoErr) {
-      this.cobroForm.markAllAsTouched();
-      Swal.fire('Monto', pagoErr, 'warning');
-      return;
-    }
-    if (this.incluyeEfectivo && !this.cambioEfectivo.ok) {
-      Swal.fire('Efectivo', this.cambioEfectivo.error || 'El efectivo recibido no alcanza.', 'warning');
-      return;
-    }
-    const montoPago = valid.total;
 
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
-      const visitaId = await this.persistir();
-      const cat = this.lineas.length === 1 ? this.lineas[0].categoria : 'otro';
       const raw = this.form.getRawValue();
-      const saldoAntes = t.saldo;
-      const movIdsInv = this.lineas.map((l) => l.movimientoInventarioId).filter((id): id is string => !!id);
-      const visita = await this.visitasService.getVisita(visitaId);
-      if (!visita) throw new Error('Visita no encontrada');
-      const ids = [...(visita.cajaMovimientoIds || [])];
-      let pagadoAcc = visita.pagado || 0;
-      for (const parte of partes) {
-        const movId = await this.cajaService.crearMovimiento({
-          tipo: 'ingreso',
-          concepto: `Ticket ${raw.fecha} · ${raw.cliente || (this.modoMostrador ? 'Mostrador' : raw.cliente_id)}`,
-          monto: parte.monto,
-          metodoPago: parte.metodo,
-          ivaDeclarado: false,
+      const flujo = await ejecutarFlujoCobro(
+        {
+          partes: pre.partes,
+          montoPago: pre.montoPago,
+          saldoAntes: t.saldo,
+          lineas: this.lineas,
           fecha: raw.fecha,
-          visitaId,
-          clienteId: this.modoMostrador || esClienteMostrador(raw.cliente_id) ? undefined : raw.cliente_id,
-          categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
-          movimientoInventarioIds: movIdsInv.length ? movIdsInv : undefined,
-        });
-        if (!ids.includes(movId)) ids.push(movId);
-        pagadoAcc = roundMoney(pagadoAcc + parte.monto);
-      }
-      await this.visitasService.actualizarVisita(visitaId, {
-        pagado: pagadoAcc,
-        cajaMovimientoIds: ids,
+          cliente: String(raw.cliente || ''),
+          clienteId: String(raw.cliente_id || ''),
+          modoMostrador: this.modoMostrador,
+        },
+        {
+          persistir: () => this.persistir(),
+          getVisita: (id) => this.visitasService.getVisita(id),
+          crearMovimiento: (data) => this.cajaService.crearMovimiento(data),
+          actualizarVisita: (id, patch) => this.visitasService.actualizarVisita(id, patch),
+          asignarFolioSiFalta: (id) => this.visitasService.asignarFolioSiFalta(id),
+        }
+      );
+      const recibido = Number(this.cobroForm.get('recibidoEfectivo')?.value) || this.montoEfectivoCobro;
+      const estado = construirEstadoPostCobro({
+        visitaId: flujo.visitaId,
+        folio: flujo.folio,
+        saldoAntes: flujo.saldoAntes,
+        montoPago: flujo.montoPago,
+        partes: flujo.partes,
+        pagadoAcc: flujo.pagadoAcc,
+        incluyeEfectivo: this.incluyeEfectivo,
+        recibidoEfectivo: Number.isFinite(recibido) ? recibido : null,
+        montoEfectivoCobro: this.montoEfectivoCobro,
+        cambioEfectivo: this.cambioEfectivo.ok ? this.cambioEfectivo.cambio : 0,
+        telefonoCliente: this.telefonoCliente || '',
       });
-      this.folioTicket = await this.visitasService.asignarFolioSiFalta(visitaId);
-      const esParcial = montoPago < saldoAntes - 0.001;
-      this.ultimoRecibido = this.incluyeEfectivo
-        ? Number(this.cobroForm.get('recibidoEfectivo')?.value) || this.montoEfectivoCobro
-        : null;
-      this.ultimoCambio = this.incluyeEfectivo ? this.cambioEfectivo.cambio : null;
       // Spec 065 — el diálogo se queda abierto para imprimir / enviar por WhatsApp; se cierra con «Cerrar».
-      this.pagado = pagadoAcc;
-      this.resultadoCobro = { visitaId, cobrado: true, parcial: esParcial };
-      this.ultimoPago = { partes, saldoPendiente: roundMoney(Math.max(0, saldoAntes - montoPago)) };
-      this.telefonoWhatsApp = this.telefonoCliente || '';
+      this.folioTicket = estado.folioTicket;
+      this.ultimoRecibido = estado.ultimoRecibido;
+      this.ultimoCambio = estado.ultimoCambio;
+      this.pagado = estado.pagado;
+      this.resultadoCobro = estado.resultadoCobro;
+      this.ultimoPago = estado.ultimoPago;
+      this.telefonoWhatsApp = estado.telefonoWhatsApp;
       this.estadoLabel = VISITA_ESTADO_LABELS[this.totales.estado] || this.estadoLabel;
-      if (!esParcial) {
+      if (estado.deshabilitarForms) {
         this.soloLectura = true;
         this.form.disable({ emitEvent: false });
         this.lineaForm.disable({ emitEvent: false });
         this.productoForm.disable({ emitEvent: false });
         this.cobroForm.disable({ emitEvent: false });
-      } else {
-        this.cobroForm.patchValue({ monto: this.totales.saldo, mixto: false });
+      } else if (estado.patchCobroParcial) {
+        this.cobroForm.patchValue(estado.patchCobroParcial);
       }
-      this.pasoWizard = 3;
-      this.cerrarSheet();
+      this.pasoWizard = estado.pasoWizard;
+      if (estado.cerrarSheet) this.cerrarSheet();
       void Swal.fire({
         toast: true,
         position: 'top',
         icon: 'success',
-        title: esParcial ? 'Pago parcial registrado' : 'Venta cobrada',
-        text: esParcial
-          ? 'Queda saldo. Puedes cobrar el resto después.'
-          : 'Ticket en $0. Puedes enviarlo por WhatsApp.',
-        timer: 2600,
+        title: estado.toast.title,
+        text: estado.toast.text,
+        timer: estado.toast.timer,
         showConfirmButton: false,
       });
     } catch (error) {
-      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cobrar visita'), 'error');
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, CTX_ERROR_COBRAR_VISITA), 'error');
     } finally {
       this.loading = false;
       this.loadingService.hide();

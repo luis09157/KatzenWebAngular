@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **78** specs · `done`: 65 · `in_progress`: 10 · `superseded`: 3
+Total: **79** specs · `done`: 66 · `in_progress`: 10 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -86,3 +86,4 @@ Total: **78** specs · `done`: 65 · `in_progress`: 10 · `superseded`: 3
 | 076 | [modularizacion-pos-core](076-modularizacion-pos-core/spec.md) | Modularización POS / Core (oleada 2) | done |
 | 077 | [modularizacion-pos-pacientes](077-modularizacion-pos-pacientes/spec.md) | Modularización POS sheets + pacientes (oleada 3) | done |
 | 078 | [plan-automatizacion-y-specs-vivas](078-plan-automatizacion-y-specs-vivas/spec.md) | Plan de automatización y specs vivas | done |
+| 079 | [modularizacion-pos-orquestacion](079-modularizacion-pos-orquestacion/spec.md) | Modularización POS orquestación (oleada 4) | done |

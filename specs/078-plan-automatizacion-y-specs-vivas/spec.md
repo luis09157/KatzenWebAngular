@@ -68,7 +68,7 @@ Alineado a lo dicho a Luis. **No implementar aquí** — solo ordenar. Cada íte
 | P3 | **Portal onboarding** | UX dueño (hints / activación); respetar portal read-only citas | **074**, PLAN-UX continuo |
 | P4 | **Cartilla PDF** | Export/impresión cartilla portal; reutilizar mapper portal, no segundo expediente | **074** follow-up |
 | P5 | **Citas con validación** | Refuerzos agenda staff; **no** wizard agendar desde portal | **003**, **074** |
-| P6 | **Oleada 4 modular** | Sheets como componentes / tabs lazy expediente **solo si Luis pide**; orquestación async POS sigue en diálogo | **075**–**077** |
+| P6 | **Oleada 4 modular** | Hecho en **079**: `pos-orquestacion` + tabs lazy expediente. Oleada 5: `persistir`/kits; sheets componentes si Luis pide | **075**–**079** |
 
 Infra ya en continuo PLAN-UX (no reordenar aquí): FCM scheduler, keystore Android, decisiones 054 abiertas.
 
