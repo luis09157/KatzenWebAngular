@@ -124,7 +124,7 @@ Core / Shared ──► sin UI de negocio propia
 | `core/utils` sin índice | Mitigado | Barrel `index.ts` (**075**/**076**) |
 | Duplicar formatters moneda | **Parcial 076** | `formatMoneyMx` en visita-dialog, cliente-cuenta, caja-corte |
 
-**Estado modularización Visitas/POS (075–081):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner). Ticket WhatsApp en `pos-ticket-whatsapp.util`. Queda opcional: sheet **carrito** como componente. 079–080 ya en `main` (push autorizado); 081 local hasta commit si Luis pide.
+**Estado modularización Visitas/POS (075–081):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner) en `main`. Ticket WhatsApp en `pos-ticket-whatsapp.util`. Queda opcional: sheet **carrito** como componente.
 
 **Anti-duplicación:** tabla canónica en `agent-guardrails.md` (pos-wizard, pos-bloqueo, pos-sheet, pos-copy, pos-orquestacion, pos-persistir, pos-sheet-* components, folio-expediente, recordatorio-whatsapp, alta-rapida, login/fcm copy, etc.). No reimplementar.
 
