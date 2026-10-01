@@ -62,9 +62,9 @@ Documentación viva: `specs/memory/module-map.md`.
 5. ~~Sheets POS (`producto`/`línea`/`scanner`) → componente/facade (oleada 3).~~ → **077** facade util; UI sigue en diálogo (sin rewrite).
 6. ~~Orquestación async guardar/cobrar (oleada 4).~~ → **079** `pos-orquestacion.util`.
 7. ~~Extraer `persistir` + salidas kit/stock (oleada 5).~~ → **080** `pos-persistir.util`.
-8. ~~Sheets POS como componentes (oleada 6).~~ → **081** panel/cantidad/scanner; carrito aún inline.
+8. ~~Sheets POS como componentes (oleada 6).~~ → **081** panel/cantidad/scanner; carrito → **082**.
 
-Ver detalle: `specs/076-modularizacion-pos-core/` · `specs/077-modularizacion-pos-pacientes/` · `specs/079-modularizacion-pos-orquestacion/` · `specs/080-modularizacion-pos-persistir/` · `specs/081-modularizacion-pos-sheets/`.
+Ver detalle: `specs/076-modularizacion-pos-core/` · `specs/077-modularizacion-pos-pacientes/` · `specs/079-modularizacion-pos-orquestacion/` · `specs/080-modularizacion-pos-persistir/` · `specs/081-modularizacion-pos-sheets/` · `specs/082-modularizacion-pos-sheet-carrito/`.
 
 ---
 

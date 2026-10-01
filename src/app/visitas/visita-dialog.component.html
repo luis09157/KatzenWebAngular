@@ -888,7 +888,27 @@
     </button>
   </div>
 
-  <!-- Sheets POS (081): panel + cantidad/scanner; carrito aún inline -->
+  <!-- Sheets POS (081–082): panel + cantidad/scanner/carrito -->
+  <!-- Hook smoke/E2E (sin UI): carrito sheet no tiene botón sticky desde que se reemplazó pos-cart-bar. -->
+  <button
+    type="button"
+    data-testid="pos-abrir-carrito"
+    tabindex="-1"
+    aria-hidden="true"
+    style="
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    "
+    (click)="abrirSheetCarrito()"
+  >
+    Abrir carrito
+  </button>
   <app-pos-sheet-panel *ngIf="sheetAbierta" (cerrar)="cerrarSheet()">
     <app-pos-sheet-scanner
       *ngIf="sheetModo === 'scanner'"
@@ -896,54 +916,14 @@
       (codigoChange)="scannerCodigo = $event"
       (buscar)="aplicarCodigoEscaneado()"
     ></app-pos-sheet-scanner>
-    <ng-container *ngIf="sheetModo === 'carrito'">
-      <h3 class="section-title">Ticket</h3>
-      <p class="hint-empty" *ngIf="!lineas.length">Sin artículos.</p>
-      <div class="linea-row linea-row--cart" *ngFor="let l of lineas">
-        <button type="button" class="linea-row__hit" (click)="abrirSheetLinea(l)">
-          <span class="linea-foto" *ngIf="fotoDeLinea(l)">
-            <img [src]="fotoDeLinea(l)" [alt]="l.descripcion" />
-          </span>
-          <span class="linea-foto linea-foto--empty" *ngIf="!fotoDeLinea(l)" aria-hidden="true">
-            <mat-icon>{{ iconoLinea(l) }}</mat-icon>
-          </span>
-          <span class="linea-main">
-            <span class="linea-desc">{{ l.descripcion }}</span>
-            <span>{{ formatMoney(l.monto) }}</span>
-          </span>
-        </button>
-        <div class="linea-qty-ctrl">
-          <button
-            type="button"
-            class="pos-hit"
-            (click)="ajustarLineaCarrito(l, -1, $event)"
-            [disabled]="!puedeAjustarLinea(l)"
-            aria-label="Menos"
-          >
-            −
-          </button>
-          <span class="linea-qty">{{ cantidadDe(l) }}</span>
-          <button
-            type="button"
-            class="pos-hit"
-            (click)="ajustarLineaCarrito(l, 1, $event)"
-            [disabled]="!puedeAjustarLinea(l)"
-            aria-label="Más"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            class="pos-hit pos-hit--danger"
-            (click)="quitarLineaGrande(l, $event)"
-            [disabled]="pagado > 0"
-            aria-label="Quitar"
-          >
-            <mat-icon>delete_outline</mat-icon>
-          </button>
-        </div>
-      </div>
-    </ng-container>
+    <app-pos-sheet-carrito
+      *ngIf="sheetModo === 'carrito'"
+      [filas]="filasSheetCarrito"
+      [puedeQuitar]="pagado <= 0"
+      (abrirLinea)="abrirSheetLinea($event)"
+      (ajustar)="ajustarLineaCarrito($event.linea, $event.delta, $event.event)"
+      (quitar)="quitarLineaGrande($event.linea, $event.event)"
+    ></app-pos-sheet-carrito>
     <app-pos-sheet-cantidad
       *ngIf="sheetModo !== 'carrito' && sheetModo !== 'scanner'"
       [modo]="sheetModo"

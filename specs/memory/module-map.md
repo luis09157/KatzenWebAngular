@@ -117,14 +117,14 @@ Core / Shared ──► sin UI de negocio propia
 
 | Ítem | Estado | Acción |
 |------|--------|--------|
-| `visita-dialog.component.ts` (~1.8k) | **Mejorado 081** | Utils 075–080 + sheets UI: `pos-sheet-panel` / `cantidad` / `scanner` (**081**). Queda sheet **carrito** inline |
+| `visita-dialog.component.ts` (~1.8k) | **Mejorado 082** | Utils 075–080 + sheets UI: `pos-sheet-panel` / `cantidad` / `scanner` (**081**) + `carrito` (**082**) |
 | `pacientes.component.ts` (~1.3k → fecha/timeline fuera) | **Mejorado 079** (local) | `paciente-fecha` / `paciente-timeline` (**077**); tabs lazy `matTabContent` (**079**) |
 | `portal-client-access` vs `paciente-cliente` | OK | Portal reutiliza core |
 | Login/FCM copy en portal importado por Auth/Core | **Mitigado 076** (local) | `core/utils/login-error-copy` + `fcm-copy`; portal re-exporta |
 | `core/utils` sin índice | Mitigado | Barrel `index.ts` (**075**/**076**) |
 | Duplicar formatters moneda | **Parcial 076** | `formatMoneyMx` en visita-dialog, cliente-cuenta, caja-corte |
 
-**Estado modularización Visitas/POS (075–081):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner) en `main`. Ticket WhatsApp en `pos-ticket-whatsapp.util`. Queda opcional: sheet **carrito** como componente.
+**Estado modularización Visitas/POS (075–082):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner/carrito) en `main`. Ticket WhatsApp en `pos-ticket-whatsapp.util`.
 
 **Anti-duplicación:** tabla canónica en `agent-guardrails.md` (pos-wizard, pos-bloqueo, pos-sheet, pos-copy, pos-orquestacion, pos-persistir, pos-sheet-* components, folio-expediente, recordatorio-whatsapp, alta-rapida, login/fcm copy, etc.). No reimplementar.
 
@@ -137,4 +137,4 @@ Core / Shared ──► sin UI de negocio propia
 3. Preferir util en el módulo dueño o `core/utils` si es transversal — **consultar anti-duplicación** antes.
 4. Spec nueva: enlazar carpetas afectadas aquí (una línea en `tasks.md` basta).
 5. Al cerrar feature: actualizar este mapa si hubo extracto (spec **078**).
-6. Modularización de código = **incremental**; sheet carrito como componente solo con pedido explícito.
+6. Modularización de código = **incremental**; sheets UI POS cerrados en **081**–**082**.

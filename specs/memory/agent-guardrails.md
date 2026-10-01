@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-01 · Specs **075**–**081** (specs vivas + anti-duplicación + sheets UI POS)
+**Última revisión:** 2026-10-01 · Specs **075**–**082** (specs vivas + anti-duplicación + sheets UI POS)
 
 ---
 
@@ -94,7 +94,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Pasos wizard POS / destino | `visitas/pos-wizard.util.ts` | **076** |
 | Hints / bloqueos / puedeGuardar POS | `visitas/pos-bloqueo.util.ts` | **076** |
 | Sheets táctiles (qty, escáner, monto) | `visitas/pos-sheet.util.ts` | **077** |
-| Sheets UI (panel / cantidad / scanner) | `visitas/pos-sheet-panel|cantidad|scanner.component` | **081** |
+| Sheets UI (panel / cantidad / scanner / carrito) | `visitas/pos-sheet-panel|cantidad|scanner|carrito.component` | **081**, **082** |
 | Orquestación guardar/cobrar POS | `visitas/pos-orquestacion.util.ts` | **079** |
 | Persistir ticket + salidas kit/stock POS | `visitas/pos-persistir.util.ts` | **080** |
 | Ticket WhatsApp POS | `visitas/pos-ticket-whatsapp.util.ts` | **071** / POS |
@@ -105,7 +105,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |
-| Venta rápida / mostrador | flujo en `visita-dialog` + utils POS + sheets UI (**081** panel/cantidad/scanner; carrito aún inline) | **065**, **046**, **079**–**081** |
+| Venta rápida / mostrador | flujo en `visita-dialog` + utils POS + sheets UI (**081**–**082**) | **065**, **046**, **079**–**082** |
 | Correo portal (Resend) | Functions 038 — **no** segundo mailer | **038** |
 
 ---

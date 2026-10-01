@@ -1,0 +1,46 @@
+<h3 class="section-title">Ticket</h3>
+<p class="hint-empty" *ngIf="vacio">Sin artículos.</p>
+<div class="linea-row linea-row--cart" *ngFor="let f of filas">
+  <button type="button" class="linea-row__hit" (click)="abrirLinea.emit(f.linea)">
+    <span class="linea-foto" *ngIf="f.fotoUrl">
+      <img [src]="f.fotoUrl" [alt]="f.linea.descripcion" />
+    </span>
+    <span class="linea-foto linea-foto--empty" *ngIf="!f.fotoUrl" aria-hidden="true">
+      <mat-icon>{{ f.icono }}</mat-icon>
+    </span>
+    <span class="linea-main">
+      <span class="linea-desc">{{ f.linea.descripcion }}</span>
+      <span>{{ f.montoLabel }}</span>
+    </span>
+  </button>
+  <div class="linea-qty-ctrl">
+    <button
+      type="button"
+      class="pos-hit"
+      (click)="onAjustar(f, -1, $event)"
+      [disabled]="!f.puedeAjustar"
+      aria-label="Menos"
+    >
+      −
+    </button>
+    <span class="linea-qty">{{ f.cantidad }}</span>
+    <button
+      type="button"
+      class="pos-hit"
+      (click)="onAjustar(f, 1, $event)"
+      [disabled]="!f.puedeAjustar"
+      aria-label="Más"
+    >
+      +
+    </button>
+    <button
+      type="button"
+      class="pos-hit pos-hit--danger"
+      (click)="onQuitar(f, $event)"
+      [disabled]="!puedeQuitar"
+      aria-label="Quitar"
+    >
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+  </div>
+</div>

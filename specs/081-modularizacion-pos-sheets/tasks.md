@@ -18,7 +18,7 @@
 - [x] `pos-sheet-cantidad` (producto / línea)
 - [x] `pos-sheet-scanner`
 - [x] Cablear en `visita-dialog.component.html` + `VisitasDialogModule`
-- [ ] Sheet carrito como componente (diferido — queda inline)
+- [x] Sheet carrito como componente → **082**
 
 ---
 
@@ -74,4 +74,4 @@ npm run build → exit 0
 
 ### Qué queda
 
-- Sheet **carrito** como componente Angular hijo (UI) — opcional oleada siguiente.
+- Sheets UI POS cerrados en **082** (`pos-sheet-carrito`).

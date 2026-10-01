@@ -145,6 +145,7 @@ import {
   sheetQtyMenos,
   tituloPosSheet,
 } from './pos-sheet.util';
+import { PosSheetCarritoFila } from './pos-sheet-carrito.component';
 
 @Component({
   selector: 'app-visita-dialog',
@@ -481,6 +482,18 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   get puedeQuitarSheet(): boolean {
     return puedeQuitarLineaSheet(this.pagado, this.sheetLinea);
+  }
+
+  /** Filas presentacionales del sheet carrito (**082**). */
+  get filasSheetCarrito(): PosSheetCarritoFila[] {
+    return this.lineas.map((l) => ({
+      linea: l,
+      fotoUrl: this.fotoDeLinea(l),
+      icono: this.iconoLinea(l),
+      montoLabel: this.formatMoney(l.monto),
+      cantidad: this.cantidadDe(l),
+      puedeAjustar: this.puedeAjustarLinea(l),
+    }));
   }
 
   constructor(

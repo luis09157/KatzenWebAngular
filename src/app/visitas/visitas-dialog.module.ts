@@ -19,6 +19,7 @@ import { VisitaDiaFlujoDialogComponent } from './visita-dia-flujo-dialog.compone
 import { PosSheetPanelComponent } from './pos-sheet-panel.component';
 import { PosSheetCantidadComponent } from './pos-sheet-cantidad.component';
 import { PosSheetScannerComponent } from './pos-sheet-scanner.component';
+import { PosSheetCarritoComponent } from './pos-sheet-carrito.component';
 
 /** Diálogos de visitas — usable desde clientes, citas, baños, expediente. */
 @NgModule({
@@ -29,6 +30,7 @@ import { PosSheetScannerComponent } from './pos-sheet-scanner.component';
     PosSheetPanelComponent,
     PosSheetCantidadComponent,
     PosSheetScannerComponent,
+    PosSheetCarritoComponent,
   ],
   imports: [
     CommonModule,
