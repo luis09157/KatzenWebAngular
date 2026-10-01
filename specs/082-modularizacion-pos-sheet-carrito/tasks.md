@@ -75,3 +75,13 @@ npm run build → exit 0
 - [x] Este `tasks.md` con QA
 - [x] Nota en `081/tasks.md` (carrito → 082)
 - [x] Nota fix regresión `pos-cart-bar` (2026-10-01)
+
+---
+
+## Deploy hosting (autorizado Luis — 2026-10-01)
+
+- Commit live: `d2149be` (079–082 + fix carrito móvil)
+- `npm run build` → exit 0 (Hash `10d87768a4e0ed5d`, `main.6882c5bd73c4e205.js`)
+- `firebase deploy --only hosting` → https://katzen-a0e3e.web.app
+- Release/version: `5a965cc69cf76f10` (FINALIZED); spec 063: `retainedReleaseCount=1`, borradas 7 versiones no live
+- Probar (Cmd+Shift+R): Nueva venta móvil → barra carrito, sheets, cobro
