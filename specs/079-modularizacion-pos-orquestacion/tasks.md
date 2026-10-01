@@ -56,7 +56,7 @@ npm run build → exit 0
 - [x] plan 075 / nota 077 «qué queda» / 078 P6
 - [x] `node scripts/specs-index.mjs` (079 in_progress → done al cerrar)
 
-### Oleada 5 (siguiente)
+### Oleada 5 (hecha en **080**)
 
-- Extraer `persistir` + `asegurarSalidasProducto` (kits/stock) a facade con deps.
+- ~~Extraer `persistir` + `asegurarSalidasProducto` (kits/stock) a facade con deps.~~ → `pos-persistir.util.ts`
 - Sheets POS como componentes Angular hijos (UI) — solo si Luis pide.

@@ -1,6 +1,6 @@
 # Mapa de módulos — KatzenVet Web
 
-Base documental de modularidad (specs **075** / **076** / **077** / **079**; proceso specs vivas **078**).  
+Base documental de modularidad (specs **075** / **076** / **077** / **079** / **080**; proceso specs vivas **078**).  
 **Última revisión:** 2026-10-01 · No es código; describe límites y dependencias.
 
 ---
@@ -117,16 +117,16 @@ Core / Shared ──► sin UI de negocio propia
 
 | Ítem | Estado | Acción |
 |------|--------|--------|
-| `visita-dialog.component.ts` (~1.9k) | **Mejorado 079** (local) | Utils: `pos-copy` (**075**), `pos-wizard`/`pos-bloqueo` (**076**), `pos-sheet` (**077**), `pos-orquestacion` (**079**). Queda `persistir`/kits en el diálogo; UI sheets en el diálogo |
+| `visita-dialog.component.ts` (~1.8k) | **Mejorado 080** (local) | Utils: `pos-copy` (**075**), `pos-wizard`/`pos-bloqueo` (**076**), `pos-sheet` (**077**), `pos-orquestacion` (**079**), `pos-persistir` (**080**). Queda UI sheets en el diálogo |
 | `pacientes.component.ts` (~1.3k → fecha/timeline fuera) | **Mejorado 079** (local) | `paciente-fecha` / `paciente-timeline` (**077**); tabs lazy `matTabContent` (**079**) |
 | `portal-client-access` vs `paciente-cliente` | OK | Portal reutiliza core |
 | Login/FCM copy en portal importado por Auth/Core | **Mitigado 076** (local) | `core/utils/login-error-copy` + `fcm-copy`; portal re-exporta |
 | `core/utils` sin índice | Mitigado | Barrel `index.ts` (**075**/**076**) |
 | Duplicar formatters moneda | **Parcial 076** | `formatMoneyMx` en visita-dialog, cliente-cuenta, caja-corte |
 
-**Estado modularización Visitas/POS (075–079):** wizard + bloqueos + sheets + copy + orquestación fuera del diálogo con tests. Ticket WhatsApp en `pos-ticket-whatsapp.util`. Queda: `persistir`/kits (oleada 5) y sheets como componentes si Luis pide. **Commit/deploy de estas oleadas: no autorizado** → tratar como **modular solo local** hasta OK de Luis (ver PLAN-UX nota 078).
+**Estado modularización Visitas/POS (075–080):** wizard + bloqueos + sheets + copy + orquestación + **persistir/kits-stock** fuera del diálogo con tests. Ticket WhatsApp en `pos-ticket-whatsapp.util`. Queda opcional: sheets como componentes Angular hijos. **Commit/deploy de estas oleadas: no autorizado** → tratar como **modular solo local** hasta OK de Luis (ver PLAN-UX nota 078).
 
-**Anti-duplicación:** tabla canónica en `agent-guardrails.md` (pos-wizard, pos-bloqueo, pos-sheet, pos-copy, pos-orquestacion, folio-expediente, recordatorio-whatsapp, alta-rapida, login/fcm copy, etc.). No reimplementar.
+**Anti-duplicación:** tabla canónica en `agent-guardrails.md` (pos-wizard, pos-bloqueo, pos-sheet, pos-copy, pos-orquestacion, pos-persistir, folio-expediente, recordatorio-whatsapp, alta-rapida, login/fcm copy, etc.). No reimplementar.
 
 ---
 
@@ -137,4 +137,4 @@ Core / Shared ──► sin UI de negocio propia
 3. Preferir util en el módulo dueño o `core/utils` si es transversal — **consultar anti-duplicación** antes.
 4. Spec nueva: enlazar carpetas afectadas aquí (una línea en `tasks.md` basta).
 5. Al cerrar feature: actualizar este mapa si hubo extracto (spec **078**).
-6. Modularización de código = **incremental**; oleada 5 (`persistir`) y sheets como componentes solo con pedido explícito.
+6. Modularización de código = **incremental**; sheets como componentes Angular solo con pedido explícito.

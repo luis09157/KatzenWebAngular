@@ -65,4 +65,4 @@ N/A — sin cambios RTDB. UI: mismos strings y flujos táctiles.
 
 - Continúa: **075**, **076**
 - Oleada 4: **079** (`pos-orquestacion` + tabs lazy expediente)
-- Siguiente (oleada 5): extraer `persistir`/kits; sheets como componentes si Luis pide
+- Oleada 5: **080** (`pos-persistir` / kits-stock); sheets como componentes si Luis pide

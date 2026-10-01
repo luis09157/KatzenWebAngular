@@ -28,6 +28,7 @@ import {
   ejecutarFlujoGuardar,
   validarPrecondicionesCobro,
 } from './pos-orquestacion.util';
+import { ejecutarPersistirVisita } from './pos-persistir.util';
 import { generarTextoTicketWhatsApp, telefonoWhatsAppValido, urlWhatsAppTicket } from './pos-ticket-whatsapp.util';
 import { Ticket80View, buildTicket80View } from './ticket-80mm.util';
 import { puedeDevolverLinea } from './pos-devolucion.util';
@@ -106,7 +107,6 @@ import {
   debeMostrarCatalogoDemoPos,
   esIdProductoDemoPos,
   esProductoDemoPos,
-  lineasSinProductosDemo,
   mezclarCatalogoPos,
 } from './pos-catalogo-demo.util';
 import { iconoPlaceholderPos, kindPlaceholderLinea, kindPlaceholderProducto, urlFotoProducto } from './pos-foto.util';
@@ -1768,134 +1768,56 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   private async persistir(): Promise<string> {
-    if (this.soloLectura) {
-      throw new Error('El ticket está cerrado o cancelado.');
-    }
     const raw = this.form.getRawValue();
-    const esMostrador = this.modoMostrador || esClienteMostrador(raw.cliente_id);
-    const clienteId = esMostrador ? CLIENTE_MOSTRADOR_ID : String(raw.cliente_id || '').trim();
-    const clienteNombre = esMostrador ? CLIENTE_MOSTRADOR_NOMBRE : String(raw.cliente || '').trim();
-
-    if (!esMostrador && !clienteId) {
-      throw new Error('Elige el dueño, o activa venta de mostrador para vender sin cliente.');
-    }
-    if (!String(raw.fecha || '').trim()) {
-      throw new Error('La fecha es obligatoria.');
-    }
-
-    if (!this.visitaId && !esMostrador) {
-      const existente = await this.visitasService.buscarVisitaAbiertaDelDia(clienteId, raw.fecha || hoyLocalIsoDate());
-      if (existente?.id) {
-        const conf = await Swal.fire({
-          icon: 'question',
-          title: 'Ya hay un ticket abierto',
-          html: `Cliente <strong>${existente.cliente || clienteNombre}</strong> · ${existente.fecha}<br/>Saldo ${this.formatMoney(existente.saldo)}. ¿Usar ese ticket en lugar de crear otro?`,
-          showCancelButton: true,
-          confirmButtonText: 'Usar ticket existente',
-          cancelButtonText: 'Crear otro',
-        });
-        if (conf.isConfirmed) {
-          this.visitaId = existente.id;
-          this.esEdicion = true;
-          this.lineas = [...(existente.lineas || []), ...this.lineas];
-          this.pagado = Number(existente.pagado) || 0;
-          this.estadoLabel = VISITA_ESTADO_LABELS[existente.estado] || existente.estado;
-        }
-      }
-    }
-
-    const persistibles = lineasSinProductosDemo(this.lineas, this.productosCatalogo);
-    if (!persistibles.length) {
-      throw new Error('El catálogo de muestra no se cobra ni se guarda. Agrega productos reales del inventario.');
-    }
-    this.lineas = await this.asegurarSalidasProducto(persistibles, String(raw.paciente_id || ''));
-
-    if (this.visitaId) {
-      await this.visitasService.actualizarVisita(this.visitaId, {
-        cliente_id: clienteId,
-        cliente: clienteNombre,
-        paciente_id: esMostrador ? undefined : raw.paciente_id || undefined,
-        paciente: esMostrador ? '' : raw.paciente || '',
-        fecha: raw.fecha,
-        notas: raw.notas || '',
-        atendidoPorUid: raw.atendidoPorUid || undefined,
-        atendidoPorNombre: raw.atendidoPorNombre || undefined,
-        esMostrador: esMostrador || undefined,
+    const result = await ejecutarPersistirVisita(
+      {
+        soloLectura: this.soloLectura,
+        modoMostrador: this.modoMostrador,
+        visitaId: this.visitaId,
         lineas: this.lineas,
-      });
-      return this.visitaId;
-    }
-    const id = await this.visitasService.crearVisita({
-      cliente_id: clienteId,
-      cliente: clienteNombre,
-      paciente_id: esMostrador ? undefined : raw.paciente_id || undefined,
-      paciente: esMostrador ? '' : raw.paciente || '',
-      fecha: raw.fecha,
-      notas: raw.notas || '',
-      atendidoPorUid: raw.atendidoPorUid || undefined,
-      atendidoPorNombre: raw.atendidoPorNombre || undefined,
-      esMostrador: esMostrador || undefined,
-      lineas: this.lineas,
-    });
-    this.visitaId = id;
-    this.esEdicion = true;
-    for (const l of this.lineas) {
-      if (l.movimientoInventarioId) {
-        await this.visitasService.vincularOrigenesDesdeLineas(id, [l]);
+        productosCatalogo: this.productosCatalogo,
+        form: raw,
+        pagado: this.pagado,
+      },
+      {
+        buscarVisitaAbiertaDelDia: (clienteId, fecha) =>
+          this.visitasService.buscarVisitaAbiertaDelDia(clienteId, fecha),
+        confirmarUsarTicketExistente: async (existente, clienteNombre) => {
+          const conf = await Swal.fire({
+            icon: 'question',
+            title: 'Ya hay un ticket abierto',
+            html: `Cliente <strong>${existente.cliente || clienteNombre}</strong> · ${existente.fecha}<br/>Saldo ${this.formatMoney(existente.saldo)}. ¿Usar ese ticket en lugar de crear otro?`,
+            showCancelButton: true,
+            confirmButtonText: 'Usar ticket existente',
+            cancelButtonText: 'Crear otro',
+          });
+          return conf.isConfirmed;
+        },
+        actualizarVisita: (id, patch) => this.visitasService.actualizarVisita(id, patch),
+        crearVisita: (data) => this.visitasService.crearVisita(data),
+        vincularOrigenesDesdeLineas: (id, lineas) => this.visitasService.vincularOrigenesDesdeLineas(id, lineas),
+        registrarSalida: (productoId, cantidad, motivo, pacienteId, historialId, ventaId, observaciones, visitaId) =>
+          this.inventarioService.registrarSalida(
+            productoId,
+            cantidad,
+            motivo,
+            pacienteId,
+            historialId,
+            ventaId,
+            observaciones,
+            visitaId
+          ),
+      }
+    );
+    this.visitaId = result.visitaId;
+    this.esEdicion = result.esEdicion;
+    this.lineas = result.lineas;
+    if (result.adoptadoTicketExistente) {
+      this.pagado = result.pagado;
+      if (result.estadoLabel) {
+        this.estadoLabel = result.estadoLabel;
       }
     }
-    return id;
-  }
-
-  private async asegurarSalidasProducto(lineas: VisitaLinea[], pacienteId: string): Promise<VisitaLinea[]> {
-    const out: VisitaLinea[] = [];
-    for (const linea of lineas) {
-      if (linea.categoria === 'venta_producto' && linea.productoId && !linea.movimientoInventarioId) {
-        if (
-          esIdProductoDemoPos(linea.productoId) ||
-          esProductoDemoPos(this.productosCatalogo.find((p) => p.id === linea.productoId))
-        ) {
-          continue;
-        }
-        const qty = Math.max(1, Number(linea.cantidad) || 1);
-        const prod = this.productosCatalogo.find((p) => p.id === linea.productoId);
-        if (productoEsKit(prod)) {
-          const kit = resolverVentaKit(prod!, qty, this.productosCatalogo, {});
-          if (!kit.ok) {
-            throw new Error(kit.mensaje || MENSAJE_KIT_SIN_BOM);
-          }
-          let firstId = '';
-          for (const s of kit.salidas) {
-            const movId = await this.inventarioService.registrarSalida(
-              s.productoId,
-              s.cantidad,
-              'venta_directa',
-              pacienteId || '',
-              '',
-              '',
-              `Ticket visita · kit ${prod!.nombre} · ${s.nombre} × ${s.cantidad}`,
-              this.visitaId || ''
-            );
-            if (!firstId) firstId = movId;
-          }
-          out.push({ ...linea, cantidad: qty, movimientoInventarioId: firstId });
-        } else {
-          const movId = await this.inventarioService.registrarSalida(
-            linea.productoId,
-            qty,
-            'venta_directa',
-            pacienteId || '',
-            '',
-            '',
-            `Ticket visita · ${linea.descripcion}`,
-            this.visitaId || ''
-          );
-          out.push({ ...linea, cantidad: qty, movimientoInventarioId: movId });
-        }
-      } else {
-        out.push(linea);
-      }
-    }
-    return out;
+    return result.visitaId;
   }
 }
