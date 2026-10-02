@@ -121,3 +121,5 @@ Tras deploy POS baños cola 085 (`7e941d2`): PATCH `retainedReleaseCount=1` OK; 
 Tras deploy logout-fix 051 + clínicos 086 (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `ed89a5ec1cfa46b2`; sitio HTTP 200.
 
 Tras deploy splash+auth+portrait POS (`7207d1f`): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `111f0b04b6d26a0f`; sitio HTTP 200.
+
+Tras deploy inventario alertas densas (`c6c1be4`): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `74edc228749d3b09`; sitio HTTP 200.
