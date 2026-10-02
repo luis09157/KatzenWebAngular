@@ -96,3 +96,15 @@ Smoke autenticado 2026-08-25 (opción A — Cypress + cypress.env.json gitignore
 - cy:admin: smoke 3/3, routes 17/17, login 2/2 PASS; clientes CRUD fail (tooltip legacy, fuera de alcance 005)
 - Features smoke citas/merma: 2/2 PASS
 ```
+
+---
+
+## Oleada US-3 (2026-10-01) — anti-patrón show→close
+
+- [x] Auditoría `rg` multiline: show + dialogRef.close
+- [x] Fix: `banio-dialog`, `vacuna-dialog`, `historial-dialog`, `recordatorio-dialog`
+- [x] `LoadingService.forceHide()` + `alta-rapida` finally
+- [x] Docs: ADMIN-UI, constitution, guardrails, new-admin-module, qa-validation-guide, spec US-3
+- [x] Script `scripts/check-loading-antipattern.mjs` + `npm run check:loading`
+- [x] Unit tests `loading.service.spec.ts`
+- [x] `npm run build` + check script OK

@@ -103,7 +103,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
 | SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
-| Loading global | `LoadingService` + `LOADING_MESSAGES` (incl. `charging`, `loadingCatalog`); hide en success **y** error; spec **005** | **005** |
+| Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` | **005** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
 | Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `por-cobrar-hoy` — solo completados del día; al cobrar salen | **085** |

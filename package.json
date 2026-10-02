@@ -22,6 +22,7 @@
     "emulators:full": "npm run functions:build && node scripts/emulators-start.mjs auth,database,functions",
     "emulators:seed": "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:9000 node scripts/emulator-seed.mjs",
     "specs:index": "node scripts/specs-index.mjs",
+    "check:loading": "node scripts/check-loading-antipattern.mjs",
     "pdv:import-emulator": "node scripts/pdv-eleventa/import-emulator.mjs",
     "pdv:import-prod": "node scripts/pdv-eleventa/import-prod.mjs",
     "smoke:008:provision": "node scripts/smoke-008-provision-roles.mjs provision",

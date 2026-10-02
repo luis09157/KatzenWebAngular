@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -9,19 +9,14 @@ import Swal from 'sweetalert2';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
-import {
-  ClientePacientePickerFields,
-  ClientePacienteSelection
-} from '../shared/admin/cliente-paciente-picker.models';
-import {
-  mensajeHintClientePaciente
-} from '../shared/components/flow-hint/flow-hint.util';
+import { ClientePacientePickerFields, ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
+import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
 import { TIPOS_DESPARASITACION } from './esquema-desparasitacion.defaults';
 import { ConfirmacionDesparasitacionResultado, TipoDesparasitacion } from './esquema-desparasitacion.models';
 import { normalizarTipoDesparasitacion, sugerirEsquemaDesparasitacion } from './esquema-desparasitacion.util';
 import {
   DesparasitacionEsquemaConfirmDialogComponent,
-  DesparasitacionEsquemaConfirmData
+  DesparasitacionEsquemaConfirmData,
 } from './desparasitacion-esquema-confirm-dialog.component';
 import { esPacienteFallecido, extraerHoraHhMm } from '../vacunas/esquema-vacuna.util';
 import { dayKeyLocal, formatRtdbLocal, labelFechaEs, parseFechaFlexible } from '../vacunas/vacuna-recordatorio.util';
@@ -44,7 +39,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     clienteId: 'cliente_id',
     pacienteId: 'paciente_id',
     clienteNombre: 'cliente',
-    pacienteNombre: 'paciente'
+    pacienteNombre: 'paciente',
   };
 
   get muestraPickerClientePaciente(): boolean {
@@ -70,14 +65,14 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     { value: 'cirugia', label: 'Cirugía' },
     { value: 'revision', label: 'Revisión' },
     { value: 'medicamento', label: 'Medicamento' },
-    { value: 'otro', label: 'Otro' }
+    { value: 'otro', label: 'Otro' },
   ];
 
   // Estados del recordatorio
   estados = [
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'completado', label: 'Completado' },
-    { value: 'cancelado', label: 'Cancelado' }
+    { value: 'cancelado', label: 'Cancelado' },
   ];
 
   constructor(
@@ -103,7 +98,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       cliente: [''],
       paciente: [''],
       notas: [''],
-      tipoDesparasitacion: ['interna']
+      tipoDesparasitacion: ['interna'],
     });
   }
 
@@ -117,15 +112,18 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.recordatorioForm.get('tipo')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(tipo => {
-      if (String(tipo || '').toLowerCase() === 'desparasitacion') {
-        const titulo = String(this.recordatorioForm.get('titulo')?.value || '').trim();
-        if (!titulo || /^desparasit/i.test(titulo) || titulo === 'Vacuna anual, desparasitación…') {
-          const kind = normalizarTipoDesparasitacion(this.recordatorioForm.get('tipoDesparasitacion')?.value);
-          this.recordatorioForm.patchValue({ titulo: this.tituloDesparasitacion(kind) }, { emitEvent: false });
+    this.recordatorioForm
+      .get('tipo')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((tipo) => {
+        if (String(tipo || '').toLowerCase() === 'desparasitacion') {
+          const titulo = String(this.recordatorioForm.get('titulo')?.value || '').trim();
+          if (!titulo || /^desparasit/i.test(titulo) || titulo === 'Vacuna anual, desparasitación…') {
+            const kind = normalizarTipoDesparasitacion(this.recordatorioForm.get('tipoDesparasitacion')?.value);
+            this.recordatorioForm.patchValue({ titulo: this.tituloDesparasitacion(kind) }, { emitEvent: false });
+          }
         }
-      }
-    });
+      });
 
     if (this.data?.paciente && typeof this.data.paciente === 'object') {
       this.pacienteInfo = this.data.paciente;
@@ -140,7 +138,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
         titulo: this.data.titulo || 'Desparasitación',
         estado: 'completado',
         fecha_material: now,
-        hora_material: hora
+        hora_material: hora,
       });
     }
 
@@ -156,7 +154,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
           const fechaObj = new Date(this.data.fecha_hora_recordatorio || this.data.fecha_recordatorio);
           if (!isNaN(fechaObj.getTime())) {
             fecha = fechaObj;
-            hora = fechaObj.toTimeString().slice(0,5);
+            hora = fechaObj.toTimeString().slice(0, 5);
           }
         }
         this.recordatorioForm.patchValue({
@@ -169,9 +167,9 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
           prioridad: this.data.prioridad || 'media',
           paciente_id: this.data.paciente_id || '',
           notas: this.data.notas || '',
-          tipoDesparasitacion: this.data.tipoDesparasitacion || 'interna'
+          tipoDesparasitacion: this.data.tipoDesparasitacion || 'interna',
         });
-        
+
         // Cargar información del paciente para edición
         if (this.data.paciente_id) {
           this.cargarInformacionPaciente(this.data.paciente_id);
@@ -182,7 +180,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
         if (this.data.paciente_id) {
           this.recordatorioForm.patchValue({
             paciente_id: this.data.paciente_id,
-            cliente_id: this.data.cliente_id || ''
+            cliente_id: this.data.cliente_id || '',
           });
           this.recordatorioForm.get('paciente_id')?.clearValidators();
           this.recordatorioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
@@ -201,14 +199,14 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
   }
 
   cargarInformacionPaciente(pacienteId: string) {
-    this.pacientesService.getPaciente(pacienteId).subscribe(paciente => {
+    this.pacientesService.getPaciente(pacienteId).subscribe((paciente) => {
       this.pacienteInfo = paciente;
     });
   }
 
   async guardarRecordatorio() {
     if (this.recordatorioForm.invalid) {
-      Object.keys(this.recordatorioForm.controls).forEach(key => {
+      Object.keys(this.recordatorioForm.controls).forEach((key) => {
         const control = this.recordatorioForm.get(key);
         if (control?.invalid) {
           control.markAsTouched();
@@ -217,7 +215,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       Swal.fire({
         icon: 'warning',
         title: 'Campos requeridos',
-        text: 'Por favor completa los campos obligatorios'
+        text: 'Por favor completa los campos obligatorios',
       });
       return;
     }
@@ -248,9 +246,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       recordatorioData.fecha_recordatorio = fechaISO;
 
       if (this.esDesparasitacion) {
-        recordatorioData.tipoDesparasitacion = normalizarTipoDesparasitacion(
-          recordatorioData.tipoDesparasitacion
-        );
+        recordatorioData.tipoDesparasitacion = normalizarTipoDesparasitacion(recordatorioData.tipoDesparasitacion);
         if (confirmacion) {
           recordatorioData.esquemaConfirmado = true;
           recordatorioData.esquemaCodigo = confirmacion.esquemaCodigo;
@@ -287,7 +283,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
               titulo: 'Desparasitación — siguiente dosis',
               tipoDesparasitacion: confirmacion.tipoDesparasitacion,
               intervaloDias: confirmacion.intervaloDias,
-              esquemaCodigo: confirmacion.esquemaCodigo
+              esquemaCodigo: confirmacion.esquemaCodigo,
             });
           }
         }
@@ -324,7 +320,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       edadTexto: this.pacienteInfo?.edad || this.data?.paciente?.edad,
       tipo,
       fechaAplicacion: v.fecha_material,
-      estadoPaciente: this.pacienteInfo?.estado || this.data?.paciente?.estado
+      estadoPaciente: this.pacienteInfo?.estado || this.data?.paciente?.estado,
     });
     const data: DesparasitacionEsquemaConfirmData = {
       sugerencia,
@@ -336,12 +332,12 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       especie: sugerencia.especieNormalizada,
       fechaAplicacion: v.fecha_material,
       horaActual: extraerHoraHhMm(parseFechaFlexible(v.fecha_material)),
-      fallecido: esPacienteFallecido(this.pacienteInfo?.estado || this.data?.paciente?.estado)
+      fallecido: esPacienteFallecido(this.pacienteInfo?.estado || this.data?.paciente?.estado),
     };
     const ref = this.matDialog.open(DesparasitacionEsquemaConfirmDialogComponent, {
       ...ADMIN_DIALOG_DETAIL,
       width: '560px',
-      data
+      data,
     });
     return firstValueFrom(ref.afterClosed());
   }
@@ -373,25 +369,29 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
       this.loading = true;
-      
+      this.loadingService.show(LOADING_MESSAGES.deleting);
+
       try {
         await this.recordatoriosService.eliminarRecordatorio(this.data.id);
-        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         console.error('Error al eliminar recordatorio:', error);
-        this.loadingService.hide();
-        setTimeout(() => Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo borrar el recordatorio'
-        }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo borrar el recordatorio',
+            }),
+          0
+        );
       } finally {
+        this.loadingService.hide();
         this.loading = false;
       }
     }
@@ -401,25 +401,29 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     if (!this.data?.id) return;
 
     this.loading = true;
-    
+    this.loadingService.show(LOADING_MESSAGES.updating);
+
     try {
       if (estado === 'completado') {
         await this.recordatoriosService.marcarCompletado(this.data.id);
       } else {
         await this.recordatoriosService.marcarPendiente(this.data.id);
       }
-      
-      this.loadingService.show();
+
       this.dialogRef.close(true);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
-      this.loadingService.hide();
-      setTimeout(() => Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cambiar el estado del recordatorio'
-      }), 0);
+      setTimeout(
+        () =>
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo cambiar el estado del recordatorio',
+          }),
+        0
+      );
     } finally {
+      this.loadingService.hide();
       this.loading = false;
     }
   }
@@ -428,7 +432,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     const nombre = cliente.nombre || '';
     const apellidoPaterno = cliente.apellidoPaterno || '';
     const apellidoMaterno = cliente.apellidoMaterno || '';
-    
+
     return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
   }
 
@@ -459,10 +463,10 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
           fecha_hora_recordatorio: recordatorioData.fecha_hora_recordatorio,
           estado: recordatorioData.estado,
           prioridad: recordatorioData.prioridad,
-          notas: recordatorioData.notas
+          notas: recordatorioData.notas,
         },
         usuario: await this.currentStaff.getStaffLabel(),
-        paciente_id: recordatorioData.paciente_id
+        paciente_id: recordatorioData.paciente_id,
       };
 
       await this.pacientesService.registrarRecordatorio(recordatorioData.paciente_id, datosLog);
@@ -471,4 +475,4 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
       console.error('Error al registrar recordatorio en log:', error);
     }
   }
-} 
+}

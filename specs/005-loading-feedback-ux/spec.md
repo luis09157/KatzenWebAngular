@@ -42,11 +42,27 @@ Para **entender qué está pasando sin ambigüedad**
 - [x] SC-006: Cambiar estado muestra «Actualizando…»; baja lógica «Eliminando…»
 - [x] SC-007: Overlay en `app.component` muestra el mensaje del servicio
 
+### US-3 — No `show()` al cerrar diálogos (regla permanente 2026-10-01)
+
+Como **staff** (cualquier módulo: baño, vacuna, historial, pensión, recordatorio, módulos nuevos)  
+Quiero **que al guardar desde un wizard o panel el overlay siempre se apague**  
+Para **no quedarme bloqueado en «Cargando…»**
+
+**Causa raíz (baño / Llegó un paciente):** el diálogo hacía `loadingService.show()` y luego `dialogRef.close()` asumiendo que el listado padre haría `hide()`. Desde `alta-rapida` **no** hay ese `hide` → overlay eterno aunque el dato **sí** se guardó.
+
+**Criterios de aceptación:**
+
+- [x] SC-008: **Prohibido** el anti-patrón `show()` inmediatamente seguido de `dialogRef.close()` sin `hide` en `finally`.
+- [x] SC-009: Patrón canónico: `show` al iniciar async → trabajo → `close` → `hide` en `finally` (o `LoadingService.wrap()`).
+- [x] SC-010: Auditoría 2026-10-01: corregidos baño, vacuna, historial, recordatorio; `forceHide()` en red de seguridad de `abrirAtencionAltaRapida`.
+- [x] SC-011: Script `node scripts/check-loading-antipattern.mjs` falla si reaparece el anti-patrón en `src/app`.
+- [x] SC-012: Regla documentada en `ADMIN-UI-ARCHITECTURE.md`, `constitution.md`, `agent-guardrails.md`, `new-admin-module.mdc`, guía QA.
+
 ---
 
 ## Fuera de alcance
 
-- Migrar todos los módulos admin al mensaje contextual en esta entrega (solo citas + API reutilizable)
+- Migrar todos los módulos admin al mensaje contextual en la entrega original (solo citas + API reutilizable); la oleada US-3 (2026-10-01) sí corrige el anti-patrón `show→close` en diálogos clínicos auditados
 - Reemplazar SweetAlert de éxito/error
 - Cambios RTDB / Cloud Functions
 

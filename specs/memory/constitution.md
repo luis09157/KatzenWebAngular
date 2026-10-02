@@ -55,7 +55,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 - **Páginas admin (spec 061):** grids fluidos 3→2→1 según **ancho útil** (container `admin-page`; el sidenav no cuenta). Toolbars wrap alineadas; buscadores sin clip; padding de cards; timelines scaneables. Diálogos = spec 059.
 - Auth / portal / landing: shells centrados (vertical + horizontal en desktop), responsivos en móvil; reutilizar patrones existentes (`.admin-auth-page`, `.portal-login-wrap`); sin cards pegadas a un borde con vacío grande al otro lado.
 - Errores: `ErrorMessagesService.getUserMessage(error, contexto)`.
-- Loading async admin: `LoadingService` con mensaje contextual; overlay **nunca** trabado (`hide` en success y error). Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading y `specs/005-loading-feedback-ux/`.
+- Loading async admin: `LoadingService` con mensaje contextual; overlay **nunca** trabado (`hide` en success y error). **Prohibido** `show()` justo antes de `dialogRef.close()` sin `hide` en `finally`. Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading y `specs/005-loading-feedback-ux/`. Script: `node scripts/check-loading-antipattern.mjs`.
 - **Copy destructivo:** en UI siempre **«Borrar»** (menús, tooltips, leyendas, SweetAlert). Nunca mostrar «Baja lógica» / «Dar de baja» al usuario. Técnicamente sigue siendo baja lógica (`activo: false`); docs/código pueden usar ese término.
 - Sin librerías UI externas ni estilos fuera del design system.
 

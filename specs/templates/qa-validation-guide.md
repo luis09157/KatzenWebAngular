@@ -94,7 +94,7 @@ Ante duda, elegir el nivel superior.
 | Error | Mensaje en tiempo y lugar correctos; contexto claro para el usuario |
 | Timing | Aparece tras la acción, no antes ni duplicado |
 | Loading contextual | Overlay con mensaje acorde: «Cargando…» / «Guardando…» / «Eliminando…» / «Actualizando…» (`LoadingService`) |
-| Loading no trabado | Tras success **y** error el overlay **desaparece** (`finally` / `wrap`); sin doble `show` |
+| Loading no trabado | Tras success **y** error el overlay **desaparece** (`finally` / `wrap`); sin doble `show`; **sin** `show()` inmediatamente antes de `dialogRef.close()` |
 
 ### 2.3 Prevención de doble submit
 

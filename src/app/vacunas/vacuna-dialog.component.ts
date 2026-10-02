@@ -406,7 +406,6 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         }
 
         this.logger.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
-        this.loadingService.show();
         this.dialogRef.close(vacunaData);
       } catch (error) {
         this.logger.error('VacunaDialogComponent - Error al guardar vacuna:', error);
@@ -552,6 +551,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
 
     if (result.isConfirmed) {
       this.loading = true;
+      this.loadingService.show(LOADING_MESSAGES.deleting);
 
       try {
         // Usar baja lógica en lugar de eliminación física
@@ -562,11 +562,9 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           await this.registrarEliminacionEnLog();
         }
 
-        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         this.logger.error('Error al eliminar vacuna:', error);
-        this.loadingService.hide();
         setTimeout(
           () =>
             Swal.fire({
@@ -577,6 +575,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
           0
         );
       } finally {
+        this.loadingService.hide();
         this.loading = false;
       }
     }
@@ -603,6 +602,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     if (!this.data?.id) return;
 
     this.loading = true;
+    this.loadingService.show(LOADING_MESSAGES.updating);
 
     try {
       if (estado === 'aplicada') {
@@ -611,11 +611,9 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         await this.vacunasService.marcarPendiente(this.data.id);
       }
 
-      this.loadingService.show();
       this.dialogRef.close(true);
     } catch (error) {
       this.logger.error('Error al cambiar estado:', error);
-      this.loadingService.hide();
       setTimeout(
         () =>
           Swal.fire({
@@ -626,6 +624,7 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
         0
       );
     } finally {
+      this.loadingService.hide();
       this.loading = false;
     }
   }

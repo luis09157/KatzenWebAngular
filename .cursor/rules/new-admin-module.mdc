@@ -58,6 +58,22 @@ src/app/mi-modulo/
 
 Acciones: `<div class="row-actions">` — **no** flex en `<td>`.
 
+### Loading (spec 005 — obligatorio en diálogos)
+
+```typescript
+this.loadingService.show(LOADING_MESSAGES.saving);
+try {
+  await this.service.guardar(...);
+  this.dialogRef.close(result);
+} catch (e) { /* Swal error */ }
+finally {
+  this.loadingService.hide(); // success Y error
+}
+```
+
+**Prohibido:** `this.loadingService.show(); this.dialogRef.close(...)` sin `hide` — el overlay se traba si el padre no limpia (p. ej. alta rápida).  
+Verificar: `node scripts/check-loading-antipattern.mjs`
+
 ## 6. Cypress smoke
 
 Añadir en `cypress/e2e/admin-modules-authenticated.cy.ts`:

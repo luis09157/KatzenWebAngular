@@ -10,7 +10,7 @@ import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ClientePacientePickerFields, ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
@@ -245,6 +245,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
     if (this.historialForm.valid) {
       this.loading = true;
+      this.loadingService.show(LOADING_MESSAGES.saving);
 
       try {
         const historialData = this.historialForm.value;
@@ -292,7 +293,6 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
             await this.registrarHistorialEnLog(historialData, 'editado');
           }
 
-          this.loadingService.show();
           this.dialogRef.close(historialData);
         } else {
           // Crear nuevo historial
@@ -305,12 +305,10 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
             await this.registrarHistorialEnLog(historialData, 'creado');
           }
 
-          this.loadingService.show();
           this.dialogRef.close(historialData);
         }
       } catch (error) {
         this.logger.error('Error al guardar historial:', error);
-        this.loadingService.hide();
         setTimeout(
           () =>
             Swal.fire({
@@ -321,6 +319,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           0
         );
       } finally {
+        this.loadingService.hide();
         this.loading = false;
       }
     } else {
@@ -360,14 +359,13 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
 
     if (result.isConfirmed) {
       this.loading = true;
+      this.loadingService.show(LOADING_MESSAGES.deleting);
 
       try {
         await this.historialesService.eliminarHistorial(this.data.historial.id);
-        this.loadingService.show();
         this.dialogRef.close(true);
       } catch (error) {
         this.logger.error('Error al eliminar historial:', error);
-        this.loadingService.hide();
         setTimeout(
           () =>
             Swal.fire({
@@ -378,6 +376,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
           0
         );
       } finally {
+        this.loadingService.hide();
         this.loading = false;
       }
     }

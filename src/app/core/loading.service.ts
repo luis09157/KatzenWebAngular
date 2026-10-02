@@ -21,8 +21,9 @@ export type LoadingMessage = (typeof LOADING_MESSAGES)[keyof typeof LOADING_MESS
  * Contador: varias operaciones simultáneas no ocultan la barra hasta que todas terminen.
  *
  * Regla: cada `show()` debe emparejarse con un `hide()` (preferir `finally` / `wrap`).
- * No llamar `show()` en el diálogo y otra vez en el padre al cerrar — duplica el contador
- * y el overlay queda trabado.
+ * **Prohibido** `show()` inmediatamente antes de `dialogRef.close()` — si el padre no hace
+ * `hide()` (p. ej. «Llegó un paciente»), el overlay queda eterno. Spec **005**.
+ * No llamar `show()` en el diálogo y otra vez en el padre al cerrar — duplica el contador.
  */
 @Injectable({ providedIn: 'root' })
 export class LoadingService {
@@ -57,6 +58,16 @@ export class LoadingService {
     } else {
       this.loading$.next(true);
     }
+  }
+
+  /**
+   * Apaga el overlay sin importar el contador.
+   * Solo recuperación / red de seguridad (p. ej. tras cerrar un wizard); no usar en flujo normal.
+   */
+  forceHide(): void {
+    this.count = 0;
+    this.loading$.next(false);
+    this.message$.next(LOADING_MESSAGES.loading);
   }
 
   /**

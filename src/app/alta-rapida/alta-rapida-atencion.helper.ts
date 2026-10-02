@@ -128,8 +128,8 @@ export async function abrirAtencionAltaRapida(
       }
     }
   } finally {
-    // Red de seguridad: diálogos clínicos a veces hacen show() al cerrar sin hide (baño/vacuna).
-    deps.loadingService.hide();
+    // Red de seguridad: diálogos clínicos a veces dejaban show() sin hide.
+    deps.loadingService.forceHide();
   }
   const nav = rutaExpedientePaciente(ctx.paciente_id);
   await deps.router.navigate(nav.commands, nav.extras);
