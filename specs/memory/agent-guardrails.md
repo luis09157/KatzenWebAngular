@@ -72,7 +72,7 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Cerrar sesión admin | Tras GuestGuard 051: nunca bootstrapear Auth residual sin marcador Katzen; logout espera `signOut` asentado | **051** follow-up 2026-10-02 |
 | UI celular | Diseño **portrait-first** (vertical); POS split escritorio solo ≥1024px | **055** ola 1.8 |
 | Hub Inventario | No listar cientos de alertas en el dashboard; resumen + módulo Alertas | **061** follow-up 2026-10-02 |
-| Listas de avisos | Siempre `.admin-dense-list` / fila ~48–56px; docs regla 14 | **061** + `ADMIN-UI-ARCHITECTURE` |
+| Listas de avisos | Siempre `.admin-dense-list` / fila ~48–56px; detalle con icono `info`; docs regla 14 + **061** US-5 | **061** + `ADMIN-UI-ARCHITECTURE` |
 
 ---
 
@@ -106,6 +106,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
+| Listas densas de notificaciones/alertas | `styles/admin-dense-list.scss` (`.admin-dense-list` / `.admin-dense-row`) + detalle Swal/info | **061** US-5 |
 | SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
 | Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` | **005** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |

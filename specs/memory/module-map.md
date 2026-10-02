@@ -61,7 +61,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / Hoy (085); no módulo paralelo |
 | `pension/` | `/admin/pension` | `Pension/Estancias` | 022 | Hospedaje |
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086** | **POS / cuenta del día** · pendientes clínicos `pendientes-clinicos.util` |
-| `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064 | Stock, OC, alertas |
+| `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |
 | `finanzas/` | `/admin/finanzas` | `Caja`, `Finanzas/*` | 014, 021, 022, 071 | Caja, costos, reportes |
 | `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056 | Tarifas sin stock |
 | `consentimientos/` | `/admin/consentimientos` | consentimientos | 037 | Consentimientos |

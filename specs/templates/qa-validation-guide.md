@@ -151,11 +151,12 @@ Aplica a **cualquier** pantalla admin (`.admin-page`, dashboards, expedientes, l
 | Buscador + «Nuevo» | Label/placeholder **completos** (no `…ar baño`). En estrecho el botón pasa debajo o a full width. `.panel-search` alineado si está en data-panel |
 | Cards / paneles | Padding interno visible (≥16px; DUEÑO/acento ≥20px). Gap entre cards ≥16px (20–24px desktop) |
 | Timeline / listas | Gap vertical scaneable (~8–12px); no ítems pegados |
+| Notificaciones / alertas | `.admin-dense-list` / `.admin-dense-row`: mensaje visible, fila ~48–56px, acciones `width: auto`, detalle con `info` (no solo navegar al módulo). Hub = resumen ≤3; listado largo en pantalla dedicada (**061** US-5 / regla 14) |
 | Viewports | Smoke **~1280**, **~900 / 768**, **~375**. En 1280/900 el sidenav sigue visible: el grid debe reaccionar al útil, no al viewport crudo |
 
-**Cómo probar:** expediente paciente (`/admin/paciente`, p. ej. Oreon), dashboard `/admin/inicio` y un CRUD (clientes o citas). Redimensionar ~1280 / ~900 / ~375.
+**Cómo probar:** expediente paciente (`/admin/paciente`, p. ej. Oreon), dashboard `/admin/inicio` y un CRUD (clientes o citas). Redimensionar ~1280 / ~900 / ~375. Alertas: `/admin/inventario/alertas` — cada fila muestra texto + icono info abre detalle.
 
-Spec: `specs/061-admin-paginas-layout-responsivo/`. CSS canónico: `src/styles/admin-page-layout.scss`.
+Spec: `specs/061-admin-paginas-layout-responsivo/`. CSS canónico: `src/styles/admin-page-layout.scss`, `admin-dense-list.scss`.
 
 ---
 

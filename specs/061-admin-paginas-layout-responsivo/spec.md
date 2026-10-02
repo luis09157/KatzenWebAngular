@@ -64,6 +64,22 @@ Para **no repetir el pedido en cada pantalla**
 
 - [x] SC-009: Documentado en `docs/ADMIN-UI-ARCHITECTURE.md` (regla 13), `.cursor/rules/admin-ui-architecture.mdc`, `qa-validation-guide.md`, `sdd-workflow.mdc`, `AGENTS.md` y `specs/README.md`.
 
+### US-5 — Notificaciones / alertas con acomodo denso (2026-10-02)
+
+Como **staff**  
+Quiero **ver avisos (stock, caducidad, pendientes) en filas compactas y legibles**  
+Para **entender qué pasó, abrir el detalle y actuar sin cards gordas ni texto invisible**
+
+**Criterios de aceptación:**
+
+- [x] SC-010: Todo listado de **notificaciones / alertas / avisos** en admin usa `.admin-dense-list` + `.admin-dense-row` (`src/styles/admin-dense-list.scss`). Fila ~48–56px; título 1 línea; meta 1 línea; acciones a la derecha con `width: auto !important` (no heredar `width: 100%` de tablas).
+- [x] SC-011: El mensaje de la alerta es **siempre visible** (fallback `mensaje` → `producto_nombre` → tipo + nombre). Prohibido mostrar solo el badge de prioridad.
+- [x] SC-012: Acción primaria de lectura = **Ver detalle** (icono `info` / tooltip claro): diálogo con tipo, producto, stock, fecha y CTAs (Resolver / Ver producto / Orden de compra según aplique). No basta con navegar al módulo genérico sin contexto.
+- [x] SC-013: En **hubs** (p. ej. Dashboard Inventario) no se vuelca el listado completo: resumen (conteo + ≤3 ejemplos) + CTA al módulo de alertas. El listado largo vive en su pantalla dedicada.
+- [x] SC-014: Patrón documentado como **regla permanente 14** en `docs/ADMIN-UI-ARCHITECTURE.md`, rule Cursor `admin-ui-architecture.mdc`, `agent-guardrails.md` y esta spec — reutilizar en recordatorios, pendientes u otros avisos nuevos; **no** inventar otro layout de cards.
+
+**Referencia de implementación:** `/admin/inventario/alertas` + hub `/admin/inventario`.
+
 ---
 
 ## Fuera de alcance
@@ -87,7 +103,7 @@ Para **no repetir el pedido en cada pantalla**
 
 - **Estrategia de Datos de Prueba:** Smoke visual en localhost (`http://localhost:4200`) con sesión staff ya abierta o mocks. **Prohibido** inventar o usar credenciales de `katzen-a0e3e`. Si no hay login staff, la spec queda `in_progress` con el blocker anotado.
 
-- **Patrones UI Reutilizados:** `.admin-page`, `app-admin-kpi-grid`, `app-admin-page-banner`, `app-admin-data-panel`, `.panel-search`, `.admin-toolbar`, tokens `--admin-*` / `--katzen-verde`. CSS canónico en `src/styles/admin-page-layout.scss` y `admin-crud.scss`. Encapsulación de componentes solo si pisan el global.
+- **Patrones UI Reutilizados:** `.admin-page`, `app-admin-kpi-grid`, `app-admin-page-banner`, `app-admin-data-panel`, `.panel-search`, `.admin-toolbar`, tokens `--admin-*` / `--katzen-verde`. CSS canónico en `src/styles/admin-page-layout.scss`, `admin-crud.scss` y **`admin-dense-list.scss`** (notificaciones/alertas: `.admin-dense-list` / `.admin-dense-row`, regla 14). Encapsulación de componentes solo si pisan el global.
 
 ---
 
