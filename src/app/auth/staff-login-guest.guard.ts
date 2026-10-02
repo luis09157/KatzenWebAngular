@@ -20,8 +20,15 @@ export class StaffLoginGuestGuard implements CanActivate {
   ) {}
 
   async canActivate(): Promise<boolean> {
-    const user = await this.authService.getActiveAuthUser();
+    const user = await this.authService.waitForAuthUser();
     if (!user) {
+      return true;
+    }
+
+    // Misma regla que AuthComponent: si hay marcador Katzen + Firebase user, entrar.
+    // Sin marcador (p. ej. tras «Cerrar sesión»), ensureActiveSession limpia Auth residual
+    // y deja ver el formulario — no reabre /admin.
+    if (!(await this.authService.ensureActiveSession({ bootstrapIfMissing: true }))) {
       return true;
     }
 

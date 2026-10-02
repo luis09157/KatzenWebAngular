@@ -1,3 +1,83 @@
+/* Mismo look que index.html: cubre el hueco GuestGuard → Auth */
+.kv-boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(10, 150, 155, 0.14) 0%, transparent 42%),
+    radial-gradient(circle at 85% 80%, rgba(6, 93, 96, 0.1) 0%, transparent 40%),
+    linear-gradient(165deg, #f8fbfb 0%, #eef6f6 100%);
+  font-family:
+    Poppins,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.kv-boot-splash__card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px 40px;
+  border-radius: 24px;
+  border: 1px solid rgba(10, 150, 155, 0.12);
+  background: #fff;
+  box-shadow:
+    0 4px 6px rgba(26, 46, 46, 0.04),
+    0 24px 48px rgba(10, 150, 155, 0.1);
+  text-align: center;
+}
+
+.kv-boot-splash__logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  object-fit: cover;
+  margin: 0 auto 16px;
+  display: block;
+  box-shadow: 0 8px 20px rgba(10, 150, 155, 0.18);
+}
+
+.kv-boot-splash__title {
+  margin: 0 0 6px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1a2e2e;
+  letter-spacing: -0.02em;
+}
+
+.kv-boot-splash__hint {
+  margin: 0 0 28px;
+  font-size: 0.9375rem;
+  color: #5a6e6e;
+}
+
+.kv-boot-splash__spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 3px solid rgba(10, 150, 155, 0.18);
+  border-top-color: #0a969b;
+  border-radius: 50%;
+  animation: kv-boot-spin 0.75s linear infinite;
+}
+
+@keyframes kv-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-content--booting {
+  visibility: hidden;
+}
+
 /* Cuando hay loading, este contenedor queda por encima del cdk-overlay-container (modales Material) */
 .app-content.global-loading-active {
   position: relative;
@@ -32,6 +112,6 @@
 }
 
 h1 {
-  color: #4CAF50;
+  color: #4caf50;
   font-family: sans-serif;
 }

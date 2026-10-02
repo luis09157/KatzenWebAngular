@@ -30,9 +30,7 @@ export class AuthService {
   }
 
   async login(email: string, password: string, rememberSession = false) {
-    const persistence = rememberSession
-      ? firebase.auth.Auth.Persistence.LOCAL
-      : firebase.auth.Auth.Persistence.SESSION;
+    const persistence = rememberSession ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
     await this.afAuth.setPersistence(persistence);
     const credential = await this.afAuth.signInWithEmailAndPassword(email, password);
     const uid = credential.user?.uid;
@@ -42,21 +40,42 @@ export class AuthService {
     return credential;
   }
 
-  logout() {
+  async logout(): Promise<void> {
     this.logger.log('AuthService: Iniciando logout...');
+    // Primero quitar marcadores Katzen: si GuestGuard corre antes de que
+    // Firebase asiente user=null, no debe re-bootstrapear la sesión.
     this.authSession.clearSession();
-    return this.afAuth.signOut().then(() => {
-      this.logger.log('AuthService: Logout exitoso, redirigiendo a /admin/login');
-      this.router.navigate(['/admin/login']);
-    }).catch(error => {
+    try {
+      await this.afAuth.signOut();
+    } catch (error) {
       this.logger.error('AuthService: Error en logout:', error);
-      this.router.navigate(['/admin/login']);
-    });
+    } finally {
+      this.authSession.clearSession();
+    }
+    await this.waitUntilSignedOut(2500);
+    this.logger.log('AuthService: Logout listo, redirigiendo a /admin/login');
+    await this.router.navigateByUrl('/admin/login');
+  }
+
+  /** Espera a que Firebase deje currentUser en null tras signOut. */
+  private async waitUntilSignedOut(timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const auth = await this.resolveFirebaseAuth();
+      if (!auth?.currentUser) {
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    }
   }
 
   async signOutOnly(): Promise<void> {
     this.authSession.clearSession();
-    await this.afAuth.signOut();
+    try {
+      await this.afAuth.signOut();
+    } finally {
+      this.authSession.clearSession();
+    }
   }
 
   /**
@@ -74,7 +93,7 @@ export class AuthService {
     if (auth && typeof auth.authStateReady === 'function') {
       await Promise.race([
         Promise.resolve(auth.authStateReady()).catch(() => undefined),
-        new Promise<void>(resolve => setTimeout(resolve, timeoutMs))
+        new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
       ]);
       return auth.currentUser;
     }
@@ -115,8 +134,10 @@ export class AuthService {
   }
 
   /**
-   * Usuario Firebase con sesión activa aún vigente.
-   * Fuente de verdad: Auth asentado (LOCAL o SESSION), no el marcador Katzen en storage.
+   * Usuario Firebase con sesión Katzen vigente.
+   * Si hay Auth pero no marcador Katzen, retorna null (no recrea sesión):
+   * eso evitaba que «Cerrar sesión» reabriera el panel al llegar a /admin/login
+   * antes de que Firebase terminara el signOut. El bootstrap vive en ensureActiveSession.
    */
   async getActiveAuthUser(): Promise<AuthUser | null> {
     const user = await this.waitForAuthUser();
@@ -126,8 +147,7 @@ export class AuthService {
 
     const session = this.authSession.getSession();
     if (!session) {
-      this.authSession.startSession(user.uid, true);
-      return user;
+      return null;
     }
 
     if (session.uid !== user.uid) {
@@ -147,12 +167,25 @@ export class AuthService {
       return true;
     }
 
-    const session = this.authSession.getSession();
+    let session = this.authSession.getSession();
     if (!session) {
-      if (options?.bootstrapIfMissing !== false) {
+      // Solo recrear marcador desde «Mantener sesión activa» (localStorage).
+      // Nunca bootstrapear solo porque Firebase aún tiene user: eso hacía que
+      // «Cerrar sesión» reabriera /admin al llegar a /admin/login.
+      const remembered = this.authSession.getRememberedSession();
+      if (options?.bootstrapIfMissing !== false && remembered) {
         this.authSession.startSession(user.uid, true);
-        return true;
+        session = this.authSession.getSession();
+      } else {
+        if (options?.bootstrapIfMissing !== false) {
+          this.logger.log('AuthService: Auth residual sin marcador Katzen → signOut');
+          await this.signOutOnly();
+        }
+        return false;
       }
+    }
+
+    if (!session) {
       return false;
     }
 
@@ -182,13 +215,13 @@ export class AuthService {
       title: 'Sesión expirada',
       text: wasRemembered
         ? 'Tu sesión guardada expiró. Vuelve a iniciar sesión.'
-        : 'Tu sesión expiró. Vuelve a iniciar sesión.'
+        : 'Tu sesión expiró. Vuelve a iniciar sesión.',
     });
     this.sessionExpiredNoticePending = false;
   }
 
   isAuthenticated(): Observable<boolean> {
-    return this.user$.pipe(map(user => !!user));
+    return this.user$.pipe(map((user) => !!user));
   }
 
   async isAuthenticatedOnce(): Promise<boolean> {

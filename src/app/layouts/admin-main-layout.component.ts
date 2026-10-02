@@ -150,17 +150,14 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  logout() {
+  async logout(): Promise<void> {
     this.logger.log('Iniciando logout...');
-    this.authService
-      .logout()
-      .then(() => {
-        this.logger.log('Logout exitoso, redirigiendo...');
-      })
-      .catch((error) => {
-        this.logger.error('Error en logout:', error);
-        this.router.navigate(['/admin/login']);
-      });
+    try {
+      await this.authService.logout();
+    } catch (error) {
+      this.logger.error('Error en logout:', error);
+      await this.router.navigateByUrl('/admin/login');
+    }
   }
 
   navegar(ruta: string) {

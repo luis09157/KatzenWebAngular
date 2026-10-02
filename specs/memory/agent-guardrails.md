@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-01 · Specs **075**–**085** (peluquería flujo fácil planificado)
+**Última revisión:** 2026-10-02 · Specs **075**–**086** (clínicos → cola cobro)
 
 ---
 
@@ -69,6 +69,8 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Resend | **Activado** 2026-08-26 (038). Pendiente dominio propio (Fase B). No “re-diferir” ni re-implementar mailer | **038** |
 | Hosting | Una versión live; no historial como backup (063) | **063** |
 | 048 / 049 / 050 | **Superseded** → **054** | INDEX |
+| Cerrar sesión admin | Tras GuestGuard 051: nunca bootstrapear Auth residual sin marcador Katzen; logout espera `signOut` asentado | **051** follow-up 2026-10-02 |
+| UI celular | Diseño **portrait-first** (vertical); POS split escritorio solo ≥1024px | **055** ola 1.8 |
 
 ---
 
@@ -107,6 +109,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
 | Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `pendientes-visita.util.ts` (`vincularBaniosHuerfanosEnLineas`) — solo completados del día; al cobrar con `banioId`/`visitaId` salen; no «Nuevo baño» huérfano si hay notas | **085** |
+| Cola clínicos vacuna/consulta | `visitas/pendientes-clinicos.util.ts` — aplicadas/historial del día en POS + por cobrar; `vacunaId`/`historialId` al cobrar | **086** |
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |

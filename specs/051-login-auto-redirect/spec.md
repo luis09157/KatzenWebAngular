@@ -91,3 +91,22 @@ Para **no volver a escribir correo y contraseña**
 ## Plan de Mitigación y Rollback
 
 Si el auto-redirect falla o un guest queda en spinner: revertir commit de `051` (AuthService + GuestGuard + routing) y redeploy hosting. No hay datos RTDB que revertir. El login manual sigue siendo el fallback del formulario.
+
+---
+
+## Follow-up 2026-10-02 — «Cerrar sesión» no hacía nada
+
+**Problema:** Tras el GuestGuard de 051, «Cerrar sesión» parecía no hacer nada: se limpiaban marcadores Katzen, pero si Firebase aún tenía `currentUser` un instante, `ensureActiveSession({ bootstrapIfMissing: true })` **recreaba** la sesión y volvía a `/admin/inicio`.
+
+**Fix (L2):**
+- `logout()`: `clearSession` → `await signOut` → esperar `currentUser === null` → `navigateByUrl('/admin/login')`.
+- `getActiveAuthUser`: sin marcador Katzen → `null` (no bootstrap).
+- `ensureActiveSession`: sin marcador Katzen (ni recordada) → `signOutOnly` y `false` (no reabrir admin).
+- Botón menú: `<button mat-list-item type="button">` (no `<a>`).
+
+**Código:** `auth.service.ts`, `staff-login-guest.guard.ts`, `auth.component.ts`, `admin-main-layout.component.*`  
+**QA:** 20/20 tests auth; `npm run build` exit 0.
+
+### Splash boot (misma sesión)
+
+Pantalla blanca larga antes del card de login: splash inline en `index.html` + splash en `app.component` hasta `NavigationEnd` (cubre descarga JS + GuestGuard).

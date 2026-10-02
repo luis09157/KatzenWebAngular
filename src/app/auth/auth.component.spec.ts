@@ -13,7 +13,8 @@ describe('AuthComponent', () => {
   let fixture: ComponentFixture<AuthComponent>;
 
   const authService = {
-    getActiveAuthUser: jasmine.createSpy('getActiveAuthUser').and.resolveTo(null),
+    waitForAuthUser: jasmine.createSpy('waitForAuthUser').and.resolveTo(null),
+    ensureActiveSession: jasmine.createSpy('ensureActiveSession').and.resolveTo(true),
     login: jasmine.createSpy('login'),
     logout: jasmine.createSpy('logout'),
     signOutOnly: jasmine.createSpy('signOutOnly').and.resolveTo(undefined),
@@ -39,7 +40,8 @@ describe('AuthComponent', () => {
   };
 
   beforeEach(async () => {
-    authService.getActiveAuthUser.and.resolveTo(null);
+    authService.waitForAuthUser.and.resolveTo(null);
+    authService.ensureActiveSession.and.resolveTo(true);
     authProfileService.hasStaffAccess.and.resolveTo(false);
     authProfileService.hasClientAccess.and.resolveTo(false);
     authProfileService.isDual.and.resolveTo(false);
@@ -64,7 +66,8 @@ describe('AuthComponent', () => {
   });
 
   afterEach(() => {
-    authService.getActiveAuthUser.calls.reset();
+    authService.waitForAuthUser.calls.reset();
+    authService.ensureActiveSession.calls.reset();
     authProfileService.hasStaffAccess.calls.reset();
     authProfileService.hasClientAccess.calls.reset();
     authProfileService.isDual.calls.reset();
@@ -79,7 +82,7 @@ describe('AuthComponent', () => {
   });
 
   it('sin sesión activa muestra el formulario', async () => {
-    authService.getActiveAuthUser.and.resolveTo(null);
+    authService.waitForAuthUser.and.resolveTo(null);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -88,7 +91,7 @@ describe('AuthComponent', () => {
   });
 
   it('con sesión staff redirige a /admin/inicio', async () => {
-    authService.getActiveAuthUser.and.resolveTo({ uid: 'staff-1' });
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
     authProfileService.hasStaffAccess.and.resolveTo(true);
     authProfileService.isDual.and.resolveTo(false);
 
@@ -100,7 +103,7 @@ describe('AuthComponent', () => {
   });
 
   it('con sesión dual redirige a /admin/inicio (auto-enter, no contexto)', async () => {
-    authService.getActiveAuthUser.and.resolveTo({ uid: 'dual-1' });
+    authService.waitForAuthUser.and.resolveTo({ uid: 'dual-1' });
     authProfileService.hasStaffAccess.and.resolveTo(true);
     authProfileService.isDual.and.resolveTo(true);
 
@@ -113,7 +116,7 @@ describe('AuthComponent', () => {
   });
 
   it('con portalLock activo redirige al portal, no al admin', async () => {
-    authService.getActiveAuthUser.and.resolveTo({ uid: 'client-1' });
+    authService.waitForAuthUser.and.resolveTo({ uid: 'client-1' });
     authSession.isPortalEntryLocked.and.returnValue(true);
     authProfileService.hasClientAccess.and.resolveTo(true);
 
@@ -124,9 +127,9 @@ describe('AuthComponent', () => {
     expect(authSession.setStaffEntryIntent).not.toHaveBeenCalled();
   });
 
-  it('mantiene spinner mientras getActiveAuthUser está pendiente', async () => {
+  it('mantiene spinner mientras waitForAuthUser está pendiente', async () => {
     let resolveUser!: (user: { uid: string } | null) => void;
-    authService.getActiveAuthUser.and.returnValue(
+    authService.waitForAuthUser.and.returnValue(
       new Promise((resolve) => {
         resolveUser = resolve;
       })

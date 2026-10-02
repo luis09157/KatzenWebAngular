@@ -46,8 +46,14 @@ export class AuthComponent implements OnInit {
    * El selector de contexto solo aplica al login fresco, no al auto-enter.
    */
   private async tryEnterIfActiveSession(): Promise<boolean> {
-    const user = await this.authService.getActiveAuthUser();
+    const user = await this.authService.waitForAuthUser();
     if (!user) {
+      return false;
+    }
+
+    // Si hay marcador Katzen + Firebase user → entrar.
+    // Sin marcador (tras «Cerrar sesión»), no recrear sesión.
+    if (!(await this.authService.ensureActiveSession({ bootstrapIfMissing: true }))) {
       return false;
     }
 

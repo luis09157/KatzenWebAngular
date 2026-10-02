@@ -69,3 +69,14 @@
 | Guest form | OK | `authStateReady` vacío → null |
 | build | OK | exit 0 |
 | localhost:4200 | OK | ng serve compiled; `/admin/login` 200 |
+
+---
+
+## Follow-up 2026-10-02 — logout race
+
+- [x] `logout` espera signOut + `currentUser` null antes de navegar
+- [x] Sin marcador Katzen no bootstrap (Auth residual → signOut)
+- [x] Tests auth 20/20 + build exit 0
+- [x] Botón «Cerrar sesión» como `button mat-list-item`
+- [x] Deploy hosting 2026-10-02 — live `ed89a5ec1cfa46b2` (con 086)
+- [x] Splash boot: `index.html` + `app.component` hasta NavigationEnd (sin blanco al cargar) · build exit 0
