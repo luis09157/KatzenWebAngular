@@ -15,7 +15,7 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 9. **Admin layout must use available desktop width:** En viewports anchos (≥1200px) el contenido admin debe aprovechar el ancho de `.admin-content` (sin un segundo `max-width` más agresivo en `.admin-page`). Columnas de texto flexibles absorben el espacio; no dejar texto comprimido mientras sobra hueco vacío entre columnas (p. ej. entre veterinario y acciones).
 10. **Auth / portal / landing shells must stay centered and balanced:** Toda UI nueva (auth, portal, admin, landing) debe verse coherente con el design system existente, **centrada y equilibrada en desktop**, y **responsiva** en móvil. Prohibido layouts aplastados a un lado con huecos vacíos grandes. Páginas de auth reutilizan el shell existente (`.admin-auth-page` / `.admin-auth-card` o `.portal-login-wrap` / `.portal-login-card`) — incluir esos CSS en el componente (no solo copiar nombres de clase: la encapsulación de Angular no hereda estilos de otro componente).
 11. **Panel search / filtros must align with table content:** Dentro de `app-admin-data-panel`, el campo de búsqueda/filtro debe usar `.panel-search` (o `.buscador.panel-search`) para heredar el margen lateral canónico (`8px 28px 22px` en `admin-table.scss` / `admin-crud.scss`). Debe alinearse visualmente con el padding del contenido de la tabla; **sin overflow** ni desfase a la izquierda del card. No usar clases locales (p. ej. `.filter-field`) que anulen ese alineamiento.
-12. **Dialog layout must not clip or collapse content (spec 059):** Nunca usar `:has(.entity-summary)` para quitar padding del body. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`). Tabs (`mat-tab-group`) en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie con `overflow: hidden` solo si el body puede scrollear. `.entity-summary` compacto (≤16px / 12px). Fichas con tabs deben mostrar el expediente, no solo el hero. Ficha paciente: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers: `--picker`; CRUD grandes: shell estándar.
+12. **Dialog layout must not clip or collapse content (spec 059):** Nunca usar `:has(.entity-summary)` para quitar padding del body. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`). Tabs (`mat-tab-group`) en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie con `overflow: hidden` solo si el body puede scrollear. `.entity-summary` compacto (≤16px / 12px). Fichas con tabs deben mostrar el expediente, no solo el hero. Ficha paciente: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers: `--picker`; CRUD grandes: shell estándar. **Pie del modal:** usar `mat-dialog-actions` con clase `admin-dialog-actions` **o** `<footer class="admin-dialog-footer">` (mismos tokens en `admin-dialog.scss`); **prohibido** un footer sin esas clases (queda pegado al borde). Cerrar izquierda + primario derecha: spacer `flex: 1` (p. ej. `.alta-rapida-spacer`).
 13. **Admin pages must reflow (spec 061 + 084 US-7):** Toda pantalla admin (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell) **no** fuerza N columnas cuando el **ancho útil** de `.admin-content` (viewport menos sidenav y padding) no las cabe. Usar container `admin-page` en `.admin-content`. Guía: ≥ ~1100px útil → 3 columnas si el layout las pide; ~720–1099 → 2; &lt;720 → 1. Toolbars/filas de botones: `flex-wrap` + gap; lo que baja de línea se alinea al **inicio** (no huérfanos a la derecha). `matTooltip` `position="below"` + aire bajo la toolbar para no tapar la card. Buscadores: label/placeholder no recortados; en estrecho el botón «Nuevo» apila o va a full width (`.panel-search` / `.admin-split-toolbar`). Cards: padding interno ≥16px (bloques acento tipo DUEÑO ≥20px); gap entre cards ≥16px (20–24px desktop). Timelines: gap vertical ~8–12px. Desktop ≥1200px viewport **y** útil suficiente: regla 9 (aprovechar ancho; no max-width interno que aplaste texto). **Diálogos densos / catálogos (POS `.pos-grid`, tiles):** mismo criterio por ancho del grid (no solo viewport): `auto-fill` + `minmax` legible; prohibido `repeat(4+, 1fr)` que trunque nombres. Ver sección «Diálogos densos…» abajo. **059 = diálogos shell; 061 = páginas; 084 US-7 = legibilidad grids densos.** Canonical: `src/styles/admin-page-layout.scss`, `admin-crud.scss`, `visita-dialog.component.scss`.
 
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
@@ -60,6 +60,27 @@ When asked to refactor or build a CRUD or Dialog view:
     <mat-icon>close</mat-icon>
   </button>
 </header>
+```
+
+### Dialog footer (correct)
+
+CRUD estándar (acciones a la derecha):
+
+```html
+<mat-dialog-actions class="admin-dialog-actions">
+  <button mat-button type="button">Cancelar</button>
+  <button mat-raised-button color="primary" class="btn-primary-teal" type="button">Guardar</button>
+</mat-dialog-actions>
+```
+
+Wizard / ayuda (Cerrar a la izquierda, primario a la derecha):
+
+```html
+<footer class="admin-dialog-footer">
+  <button mat-button type="button">Cerrar</button>
+  <span class="alta-rapida-spacer" aria-hidden="true"></span>
+  <button mat-raised-button color="primary" class="btn-primary-teal" type="button">Siguiente</button>
+</footer>
 ```
 
 ### Detail field (correct)

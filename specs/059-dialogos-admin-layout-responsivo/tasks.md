@@ -53,7 +53,14 @@ Marcar tras inspección CSS/HTML (no refactor de negocio). Resultado en notas.
 | historial-detalle | sí | `--padded` | no | compactar hero 16/12 |
 | banio-detalle | sí | `--padded` | no | compactar hero 16/12 |
 | recordatorio-detalle | sí | `--padded` | no | compactar hero 16/12 |
-| timepicker-dialog | no | `--picker` | no | fuera de este patrón; `--picker` correcto |
+| alta-rapida-dialog (Hoy) | no | wizard | no | **roto** → `admin-dialog-footer` sin tokens; fix SC-009 (2026-10-01) |
+| ayuda-dialog | no | no | no | mismo bug; spacer `.ayuda-spacer`; cubierto por fix global |
+| inversion-meta-dialog | no | no | no | mismo bug; cubierto por fix global |
+| visita-dia-flujo-dialog | no | `--picker` | no | `div.admin-dialog-footer`; padding picker vía `--picker` tras fix |
+| timepicker-dialog | no | `--picker` | no | `footer.admin-dialog-actions` — OK (clase canónica) |
+| caja-corte-dialog | no | no | no | `div.admin-dialog-actions` — OK (clase canónica) |
+| ~35 CRUD/detalle/confirm | mixto | mixto | mixto | `mat-dialog-actions.admin-dialog-actions` — OK; padding local 14/28/18 refuerza |
+| visita-dialog (POS) | no | `--pos` | no | `admin-dialog-actions.pos-footer` con padding propio 12/16 — OK (no el bug) |
 | visita-dialog / POS | no | `--pos` | no | overflow propio del POS; no tocar lógica |
 | inventario *dialog* | no `.entity-summary` | mixto | no | form-section 22px no es hero; no tocar |
 | pensión / producto / portal / servicio-clínica | no el patrón | mixto | no | sin padding 0 + entity-summary sin layout |
@@ -184,6 +191,11 @@ exit 0
 - [x] SC-006: expediente-tabs página
 - [x] SC-007: ficha muestra expediente (058 + CSS 059)
 - [x] SC-008: ~375px apilable (ficha grid 1 col ≤840px)
+- [x] SC-009: `.admin-dialog-footer` = mismos tokens que `.admin-dialog-actions` (2026-10-01)
+- [x] SC-010: spacer Cerrar | primario (alta-rapida, ayuda)
+- [x] SC-011: auditados 4 diálogos con `admin-dialog-footer`
+
+**QA footer 2026-10-01 (L1):** `npm run build` exit 0; smoke visual «Llegó un paciente» en :4200 — footer con borde, fondo gris claro y padding lateral/inferior (375px y desktop).
 
 ---
 

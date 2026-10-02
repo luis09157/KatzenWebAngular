@@ -60,6 +60,18 @@ Para **usar el diálogo sin layout aplastado**
 
 - [x] SC-008: En viewport ~375px, bloques dueño/meta se apilan; chips/badges se ven completos; no hay layout pegado a un lado con hueco vacío.
 
+### US-4 — Footer de diálogo con aire (Cerrar / Siguiente)
+
+Como **staff**  
+Quiero **botones del pie del modal con padding y separación del borde**  
+Para **no ver acciones pegadas al contenedor (p. ej. «Llegó un paciente» en Hoy)**
+
+**Criterios de aceptación:**
+
+- [x] SC-009: `footer.admin-dialog-footer` (o `div.admin-dialog-footer` dentro de `admin-dialog-shell`) recibe los **mismos tokens** que `mat-dialog-actions.admin-dialog-actions` en `admin-dialog.scss` (borde superior, fondo `#f9fafb`, padding `14px 28px 18px`; `--picker` → `18px 28px 22px`; móvil ~375 → `12px 16px 16px`).
+- [x] SC-010: Footers con Cerrar a la izquierda y primario a la derecha usan spacer (`.alta-rapida-spacer`, `.ayuda-spacer` o equivalente) + regla global `:has()`; no duplicar padding solo en un componente.
+- [x] SC-011: Diálogos auditados con `admin-dialog-footer`: alta-rapida (Hoy), ayuda, inversion-meta, visita-dia-flujo (`--picker`).
+
 ---
 
 ## Fuera de alcance

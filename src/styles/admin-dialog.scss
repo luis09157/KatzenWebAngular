@@ -630,14 +630,18 @@
   background: transparent;
 }
 
-/* ── Footer ── */
+/* ── Footer (mat-dialog-actions o footer.admin-dialog-footer — mismo criterio spec 059) ── */
 .admin-dialog-shell mat-dialog-actions,
 .admin-dialog-shell .mat-mdc-dialog-actions,
 .admin-dialog-actions,
+.admin-dialog-shell footer.admin-dialog-footer,
+.admin-dialog-shell .admin-dialog-footer,
+.admin-dialog-panel .admin-dialog-footer,
 .admin-dialog-panel .mat-mdc-dialog-actions,
 .admin-dialog-panel mat-dialog-actions {
   display: flex !important;
   flex-direction: row !important;
+  flex-wrap: wrap;
   justify-content: flex-end !important;
   align-items: center !important;
   gap: 8px !important;
@@ -646,6 +650,19 @@
   border-top: 1px solid #e5e7eb !important;
   background: #f9fafb !important;
   flex-shrink: 0;
+  box-sizing: border-box !important;
+}
+
+/* Cerrar a la izquierda + acciones a la derecha (Llegó un paciente, ayuda, etc.) */
+.admin-dialog-shell .admin-dialog-footer:has(.alta-rapida-spacer),
+.admin-dialog-shell .admin-dialog-footer:has(.ayuda-spacer) {
+  justify-content: flex-start !important;
+}
+
+.admin-dialog-footer .alta-rapida-spacer,
+.admin-dialog-footer .ayuda-spacer {
+  flex: 1 1 auto;
+  min-width: 8px;
 }
 
 /*
@@ -679,7 +696,8 @@
   box-sizing: border-box !important;
 }
 
-.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions {
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions,
+.admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-footer {
   padding: 18px 28px 22px !important;
 }
 
@@ -693,7 +711,8 @@
     gap: 20px !important;
   }
 
-  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions {
+  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-actions,
+  .admin-dialog-shell.admin-dialog-shell--picker .admin-dialog-footer {
     padding: 16px 20px 20px !important;
   }
 }
@@ -1535,14 +1554,16 @@
 
   mat-dialog-actions,
   .dialog-actions,
-  .admin-dialog-actions {
+  .admin-dialog-actions,
+  .admin-dialog-footer {
     flex-wrap: wrap !important;
     gap: 8px !important;
-    padding: 12px 14px 16px !important;
+    padding: 12px 16px 16px !important;
   }
 
   mat-dialog-actions .mat-mdc-button-base,
-  .admin-dialog-actions .mat-mdc-button-base {
+  .admin-dialog-actions .mat-mdc-button-base,
+  .admin-dialog-footer .mat-mdc-button-base {
     flex: 1 1 auto;
     min-width: 0;
   }

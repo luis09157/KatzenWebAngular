@@ -24,6 +24,7 @@
 | Utils + `test:ci` | OK | 367 SUCCESS (incl. kit BOM + atender + helper) |
 | `npm run build` (exit 0) | OK | exit 0 (budget warning 2.88 MB) |
 | Smoke emulador 375 / 1280 | OK | `admin@katzen.test`; inicio → Llegó un paciente → 3 pasos → cita; citas empty + CTA; POS. Shots `/tmp/kz-070/` |
+| Footer modal «Llegó un paciente» (059 SC-009) | OK 2026-10-01 | Tokens globales `.admin-dialog-footer` en `admin-dialog.scss`; ya no pegado al borde |
 
 ```
 lint: 0 errors

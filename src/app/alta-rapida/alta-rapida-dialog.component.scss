@@ -147,17 +147,6 @@
   cursor: wait;
 }
 
-.alta-rapida-spacer {
-  flex: 1;
-}
-
-.alta-rapida-dialog .admin-dialog-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
 @media (max-width: 520px) {
   .alta-rapida-acciones {
     grid-template-columns: 1fr;
