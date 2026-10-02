@@ -6,7 +6,7 @@ alwaysApply: false
 
 # KatzenVet Admin UI
 
-Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle de specs 059 (diálogos) / 061 (páginas): `docs/ADMIN-UI-ARCHITECTURE.md`. CSS canónico: `src/styles/admin-table.scss`, `admin-dialog.scss`, `admin-page-layout.scss`.
+Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle de specs 059 (diálogos) / 061 (páginas): `docs/ADMIN-UI-ARCHITECTURE.md`. CSS canónico: `src/styles/admin-table.scss`, `admin-dialog.scss`, `admin-page-layout.scss`, `admin-dense-list.scss`.
 
 ## NEVER
 
@@ -17,12 +17,14 @@ Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle d
 5. **Loading** — `LoadingService` con mensaje contextual (`LOADING_MESSAGES`); cada `show()` → `hide()` en success **y** error; sin doble `show` diálogo+padre.
 6. **Dialog config** — `{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }`. Pickers compactos: `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER`; fichas: `ADMIN_DIALOG_FICHA`. No usar `--picker` en CRUD grandes.
 7. **Campos de hora** → `app-timepicker-field` (no `type="time"`).
+8. **Listas de alertas/avisos gordas** — usar `.admin-dense-list` / `.admin-dense-row` (fila ~48–56px, título 1 línea). No cards altas con hueco vacío. Hub Inventario = resumen; listado = `/inventario/alertas`.
 
 ## Patrones
 
 - Página: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; grid fluido 3→2→1 según ancho útil; desktop usa todo `.admin-content`.
 - Tabla: `.table-scroll` + `mat-table`; acciones `mat-column-acciones` 120px con `mat-icon-button` + `matTooltip` en `.row-actions`; nombres de persona completos en desktop.
 - **MUST (spec 073):** filas de listado `(dblclick)` al mismo handler que Ver detalle; `.row-actions` con `$event.stopPropagation()`.
+- Avisos: `.admin-dense-list` (ver `docs/ADMIN-UI-ARCHITECTURE.md` § Listas densas).
 - Diálogo: `admin-dialog-shell` + `.admin-dialog-layout`; tabs `dynamicHeight`, `overflow: visible`; `.entity-summary` compacto.
 - Primarias: `.btn-primary-teal` en `mat-raised-button`. Tokens CSS: `--katzen-verde`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-*`.
 - Búsqueda en panel: `.panel-search` alineada al padding de la tabla. Shells auth/portal: `.admin-auth-page` / `.portal-login-wrap`, centrados y responsivos.

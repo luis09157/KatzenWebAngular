@@ -203,3 +203,12 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 3
 - [ ] `spec.md` estado → `done` — permanece **in_progress** por gaps explícitos (portal/landing, POS catálogo 3 col en dialog ancho, diálogos no todos a 375)
 - [ ] Commit / deploy — no pedido
 
+### Follow-up 2026-10-02 — Hub Inventario vs Alertas
+
+- [x] Dashboard `/admin/inventario`: accesos del módulo **antes** del listado de alertas
+- [x] Alertas = resumen compacto (conteo + máx. 3 ejemplos) + CTA a `/inventario/alertas`
+- [x] Stock bajo: muestra ≤5 productos, no volcar cientos de cards
+- [x] Copy banner: inventario primero; alertas se revisan aparte
+- [x] Listado `/inventario/alertas`: filas densas `.admin-dense-list` (no cards gordas)
+- [x] Patrón documentado: `docs/ADMIN-UI-ARCHITECTURE.md` regla 14 + `admin-dense-list.scss` + rule Cursor
+

@@ -194,6 +194,21 @@ export class AlertasComponent implements OnInit, OnDestroy {
     return alerta?.icono || 'notifications';
   }
 
+  /** Badge corto para fila densa (no “CRITICA” a ancho completo). */
+  prioridadCorta(prioridad: string): string {
+    const map: Record<string, string> = {
+      critica: 'Crítica',
+      alta: 'Alta',
+      media: 'Media',
+      baja: 'Baja',
+    };
+    return map[prioridad] || prioridad;
+  }
+
+  etiquetaTipo(tipo: string): string {
+    return this.tiposAlerta.find((t) => t.valor === tipo)?.etiqueta || tipo;
+  }
+
   async resolverAlerta(alerta: Alerta): Promise<void> {
     if (!alerta.id) return;
 

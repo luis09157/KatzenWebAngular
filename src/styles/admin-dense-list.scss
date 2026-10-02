@@ -1,0 +1,134 @@
+/**
+ * Listas densas admin (alertas, avisos, pendientes).
+ * Spec / docs: ADMIN-UI-ARCHITECTURE.md § Listas densas + 061 follow-up.
+ *
+ * Uso:
+ *   <div class="admin-dense-list">
+ *     <div class="admin-dense-row admin-dense-row--critica">…</div>
+ *   </div>
+ *
+ * Una fila ≈ 48–56px. Título 1 línea (ellipsis). Meta 1 línea. Acciones a la derecha.
+ * Prohibido apilar párrafos que hagan la card “gorda” con hueco vacío.
+ */
+
+.admin-content .admin-dense-list,
+.admin-dense-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 16px 16px;
+  box-sizing: border-box;
+}
+
+.admin-content .admin-dense-row,
+.admin-dense-row {
+  display: flex;
+  align-items: center;
+  gap: 10px 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: var(--admin-radius-sm, 8px);
+  background: var(--admin-surface, #fff);
+  box-sizing: border-box;
+}
+
+.admin-dense-row--critica {
+  border-left: 3px solid #c62828;
+}
+
+.admin-dense-row--alta {
+  border-left: 3px solid #ef6c00;
+}
+
+.admin-dense-row--media {
+  border-left: 3px solid #f9a825;
+}
+
+.admin-dense-row--baja {
+  border-left: 3px solid #1976d2;
+}
+
+.admin-dense-row--resuelta {
+  opacity: 0.65;
+}
+
+.admin-dense-row__prio {
+  flex: 0 0 auto;
+}
+
+.admin-dense-row__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.admin-dense-row__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.admin-dense-row__meta {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.admin-dense-row .row-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .admin-content .admin-dense-list,
+  .admin-dense-list {
+    padding: 4px 8px 12px;
+    gap: 6px;
+  }
+
+  .admin-content .admin-dense-row,
+  .admin-dense-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    min-height: 0;
+    padding: 10px 10px;
+  }
+
+  .admin-dense-row__body {
+    flex: 1 1 calc(100% - 100px);
+  }
+
+  .admin-dense-row__title,
+  .admin-dense-row__meta {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .admin-dense-row .row-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    padding-top: 2px;
+  }
+}

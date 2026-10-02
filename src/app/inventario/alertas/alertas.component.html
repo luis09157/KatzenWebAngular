@@ -61,7 +61,7 @@
     <app-admin-data-panel
       accent="orange"
       title="Listado de alertas"
-      description="Las alertas se revisan solas al abrir esta pantalla y al recibir una compra."
+      description="Filas compactas: una línea por aviso. Usa filtros para acotar."
       [meta]="alertasFiltradas.length + ' alertas'"
       [showLegend]="false"
     >
@@ -96,25 +96,30 @@
       >
       </app-admin-empty-state>
 
-      <div class="alertas-lista" *ngIf="alertasFiltradas.length > 0">
+      <div class="admin-dense-list" *ngIf="alertasFiltradas.length > 0" role="list">
         <div
           *ngFor="let alerta of alertasFiltradas"
-          class="alerta-row"
-          [class.alerta-row--critica]="alerta.prioridad === 'critica'"
-          [class.alerta-row--alta]="alerta.prioridad === 'alta'"
-          [class.alerta-row--resuelta]="alerta.estado === 'resuelta'"
+          class="admin-dense-row"
+          role="listitem"
+          [class.admin-dense-row--critica]="alerta.prioridad === 'critica'"
+          [class.admin-dense-row--alta]="alerta.prioridad === 'alta'"
+          [class.admin-dense-row--media]="alerta.prioridad === 'media'"
+          [class.admin-dense-row--baja]="alerta.prioridad === 'baja'"
+          [class.admin-dense-row--resuelta]="alerta.estado === 'resuelta'"
         >
-          <div class="alerta-row__main">
-            <span class="estado-badge" [ngClass]="alerta.prioridad | adminPrioridadClass">{{ alerta.prioridad }}</span>
-            <div class="alerta-row__text">
-              <strong class="cell-nombre">{{ alerta.mensaje }}</strong>
-              <span class="cell-sub"
-                >{{ getProductoNombre(alerta.producto_id) }} · {{ formatearFecha(alerta.fecha_alerta) }}</span
-              >
-              <span class="cell-sub" *ngIf="alerta.tipo === 'stock_bajo'">
-                Stock: {{ getProductoStock(alerta.producto_id) }} {{ getProductoUnidad(alerta.producto_id) }}
-              </span>
-            </div>
+          <span class="estado-badge admin-dense-row__prio" [ngClass]="alerta.prioridad | adminPrioridadClass">{{
+            prioridadCorta(alerta.prioridad)
+          }}</span>
+          <div class="admin-dense-row__body">
+            <p class="admin-dense-row__title" [attr.title]="alerta.mensaje">{{ alerta.mensaje }}</p>
+            <p class="admin-dense-row__meta">
+              {{ etiquetaTipo(alerta.tipo) }}
+              · {{ formatearFecha(alerta.fecha_alerta) }}
+              <ng-container *ngIf="alerta.tipo === 'stock_bajo' || alerta.tipo === 'punto_reorden'">
+                · Stock {{ getProductoStock(alerta.producto_id) }}
+                {{ getProductoUnidad(alerta.producto_id) }}
+              </ng-container>
+            </p>
           </div>
           <div class="row-actions">
             <button mat-icon-button type="button" matTooltip="Ver producto" (click)="verProducto(alerta.producto_id)">
@@ -138,7 +143,7 @@
             >
               <mat-icon>check_circle</mat-icon>
             </button>
-            <span *ngIf="alerta.estado === 'resuelta'" class="estado-badge estado-badge--success">Resuelta</span>
+            <span *ngIf="alerta.estado === 'resuelta'" class="estado-badge estado-badge--success">OK</span>
           </div>
         </div>
       </div>

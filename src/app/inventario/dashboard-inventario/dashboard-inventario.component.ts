@@ -18,7 +18,7 @@ import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.co
 @Component({
   selector: 'app-dashboard-inventario',
   templateUrl: './dashboard-inventario.component.html',
-  styleUrls: ['./dashboard-inventario.component.css']
+  styleUrls: ['./dashboard-inventario.component.css'],
 })
 export class DashboardInventarioComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -28,6 +28,30 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   productosPorCaducar: Producto[] = [];
   loading = true;
   puedeAjustar = false;
+
+  /** Máximo de alertas de ejemplo en el hub (el resto vive en /alertas). */
+  private readonly alertasPreviewLimit = 3;
+  private readonly stockPreviewLimit = 5;
+
+  get alertasActivasCount(): number {
+    return this.alertas.length;
+  }
+
+  get alertasStockBajoCount(): number {
+    return this.alertas.filter((a) => a.tipo === 'stock_bajo' || a.tipo === 'punto_reorden').length;
+  }
+
+  get alertasCaducarCount(): number {
+    return this.alertas.filter((a) => a.tipo === 'por_caducar' || a.tipo === 'caducado').length;
+  }
+
+  get alertasPreview(): Alerta[] {
+    return this.alertas.slice(0, this.alertasPreviewLimit);
+  }
+
+  get productosBajoStockPreview(): Producto[] {
+    return this.productosBajoStock.slice(0, this.stockPreviewLimit);
+  }
 
   constructor(
     private inventarioService: InventarioService,
@@ -63,17 +87,26 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
       this.loading = true;
       this.estadisticas = await this.inventarioService.getEstadisticas();
 
-      this.inventarioService.getAlertas().pipe(takeUntil(this.destroy$)).subscribe(alertas => {
-        this.alertas = alertas;
-      });
+      this.inventarioService
+        .getAlertas()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((alertas) => {
+          this.alertas = alertas;
+        });
 
-      this.inventarioService.getProductosBajoStock().pipe(takeUntil(this.destroy$)).subscribe(productos => {
-        this.productosBajoStock = productos;
-      });
+      this.inventarioService
+        .getProductosBajoStock()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((productos) => {
+          this.productosBajoStock = productos;
+        });
 
-      this.inventarioService.getProductosPorCaducar(30).pipe(takeUntil(this.destroy$)).subscribe(productos => {
-        this.productosPorCaducar = productos;
-      });
+      this.inventarioService
+        .getProductosPorCaducar(30)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((productos) => {
+          this.productosPorCaducar = productos;
+        });
 
       this.loading = false;
     } catch (error) {
@@ -82,7 +115,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
       Swal.fire({
         icon: 'error',
         title: 'Error al cargar',
-        text: this.errorMessages.getUserMessage(error, 'cargar datos')
+        text: this.errorMessages.getUserMessage(error, 'cargar datos'),
       });
     }
   }
@@ -92,21 +125,21 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   }
 
   getIconoAlerta(tipo: string): string {
-    const iconos: {[key: string]: string} = {
-      'stock_bajo': 'inventory',
-      'por_caducar': 'event_busy',
-      'caducado': 'cancel',
-      'punto_reorden': 'shopping_cart'
+    const iconos: { [key: string]: string } = {
+      stock_bajo: 'inventory',
+      por_caducar: 'event_busy',
+      caducado: 'cancel',
+      punto_reorden: 'shopping_cart',
     };
     return iconos[tipo] || 'warning';
   }
 
   getColorAlerta(prioridad: string): string {
-    const colores: {[key: string]: string} = {
-      'critica': '#f44336',
-      'alta': '#ff9800',
-      'media': '#ffc107',
-      'baja': '#2196f3'
+    const colores: { [key: string]: string } = {
+      critica: '#f44336',
+      alta: '#ff9800',
+      media: '#ffc107',
+      baja: '#2196f3',
     };
     return colores[prioridad] || '#9e9e9e';
   }
@@ -121,7 +154,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: this.errorMessages.getUserMessage(error, 'resolver alerta')
+        text: this.errorMessages.getUserMessage(error, 'resolver alerta'),
       });
     }
   }
@@ -129,31 +162,40 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   registrarEntrada(): void {
     const dialogRef = this.dialog.open(EntradaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      disableClose: false
+      disableClose: false,
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   registrarSalida(): void {
     const dialogRef = this.dialog.open(SalidaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      disableClose: false
+      disableClose: false,
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   registrarAjuste(): void {
     const dialogRef = this.dialog.open(AjusteDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      disableClose: false
+      disableClose: false,
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result) this.cargarDatos();
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) this.cargarDatos();
+      });
   }
 
   verHistorialMovimientos(): void {
@@ -181,4 +223,3 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
     return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
   }
 }
-

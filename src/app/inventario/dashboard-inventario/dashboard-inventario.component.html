@@ -5,44 +5,59 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <p class="section-eyebrow">Resumen del módulo</p>
+    <p class="section-eyebrow">Inventario</p>
     <app-admin-kpi-grid>
       <app-admin-stat-card
         accent="orange"
         [value]="estadisticas?.total_productos || 0"
         label="Total productos"
-        hint="Catálogo activo">
+        hint="Catálogo activo"
+      >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="blue"
         [value]="formatMoney(estadisticas?.invertido_costo ?? estadisticas?.valor_total_inventario)"
         label="Invertido (a costo)"
-        hint="Stock × precio compra">
+        hint="Stock × precio compra"
+      >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="green"
         [value]="formatMoney(estadisticas?.valor_precio_venta)"
         label="Valor a precio venta"
-        hint="Stock × precio venta">
+        hint="Stock × precio venta"
+      >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="teal"
         [value]="formatMoney(estadisticas?.margen_potencial)"
         label="Margen potencial"
-        hint="Venta − costo (no es caja)">
+        hint="Venta − costo (no es caja)"
+      >
       </app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-kpi-grid class="kpi-secondary">
-      <app-admin-stat-card accent="pink" [value]="estadisticas?.productos_bajo_stock || 0" label="Stock bajo" hint="Requieren reposición"></app-admin-stat-card>
-      <app-admin-stat-card accent="blue" [value]="productosPorCaducar.length" label="Por caducar" hint="Próximos 30 días"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="pink"
+        [value]="estadisticas?.productos_bajo_stock || alertasStockBajoCount"
+        label="Stock bajo"
+        hint="Ver detalle en Alertas"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="productosPorCaducar.length || alertasCaducarCount"
+        label="Por caducar"
+        hint="Próximos 30 días"
+      ></app-admin-stat-card>
     </app-admin-kpi-grid>
 
     <app-admin-page-banner
       accent="orange"
       icon="inventory"
-      title="Dashboard de Inventario"
-      subtitle="Control de stock, movimientos, alertas y órdenes de compra.">
+      title="Inventario"
+      subtitle="Catálogo, entradas, movimientos y compras. Las alertas se revisan aparte."
+    >
       <div bannerActions>
         <button mat-stroked-button type="button" (click)="irAProductos()">
           <mat-icon>list</mat-icon>
@@ -55,44 +70,119 @@
       </div>
     </app-admin-page-banner>
 
-    <section class="dashboard-modules" *ngIf="alertas.length > 0">
-      <h2 class="dashboard-modules__heading">Alertas activas</h2>
-      <app-admin-data-panel accent="orange" title="Requieren atención" [description]="alertas.length + ' alerta(s) pendiente(s)'" [showLegend]="false">
-        <div class="alertas-lista">
-          <div class="alerta-item" *ngFor="let alerta of alertas" [style.border-left-color]="getColorAlerta(alerta.prioridad)">
-            <mat-icon [style.color]="getColorAlerta(alerta.prioridad)">{{ getIconoAlerta(alerta.tipo) }}</mat-icon>
-            <div class="alerta-content">
-              <span class="alerta-mensaje">{{ alerta.mensaje }}</span>
-              <span class="alerta-fecha">{{ alerta.fecha_alerta | date:'short' }}</span>
-            </div>
-            <button mat-icon-button color="primary" matTooltip="Marcar como resuelta" (click)="resolverAlerta(alerta)">
-              <mat-icon>check_circle</mat-icon>
-            </button>
-          </div>
-        </div>
-      </app-admin-data-panel>
-    </section>
-
+    <!-- Inventario primero: antes se veía solo la lista enorme de alertas -->
     <section class="dashboard-modules">
-      <h2 class="dashboard-modules__heading">Accesos rápidos del inventario</h2>
+      <h2 class="dashboard-modules__heading">Qué quieres hacer</h2>
       <div class="admin-feature-grid">
-        <app-admin-module-card title="Productos" description="Catálogo, códigos de barras, stock y precios." route="inventario/productos" accent="orange" ctaLabel="Explorar"></app-admin-module-card>
-        <app-admin-module-card title="Movimientos" description="Entradas, salidas, mermas, ajustes e historial." route="inventario/movimientos" accent="teal" ctaLabel="Explorar"></app-admin-module-card>
-        <app-admin-module-card title="Proveedores" description="Contactos y datos de compra." route="inventario/proveedores" accent="blue" ctaLabel="Explorar"></app-admin-module-card>
-        <app-admin-module-card title="Órdenes de compra" description="Pedidos pendientes y recepción." route="inventario/ordenes" accent="purple" ctaLabel="Explorar"></app-admin-module-card>
-        <app-admin-module-card title="Alertas" description="Stock bajo, caducidad y avisos." route="inventario/alertas" accent="pink" ctaLabel="Explorar"></app-admin-module-card>
-        <app-admin-module-card title="Reportes" description="Informes y exportación de datos." route="inventario/reportes" accent="green" ctaLabel="Explorar"></app-admin-module-card>
+        <app-admin-module-card
+          title="Productos"
+          description="Catálogo, códigos de barras, stock y precios."
+          route="inventario/productos"
+          accent="orange"
+          ctaLabel="Abrir"
+        ></app-admin-module-card>
+        <app-admin-module-card
+          title="Movimientos"
+          description="Entradas, salidas, mermas, ajustes e historial."
+          route="inventario/movimientos"
+          accent="teal"
+          ctaLabel="Abrir"
+        ></app-admin-module-card>
+        <app-admin-module-card
+          title="Proveedores"
+          description="Contactos y datos de compra."
+          route="inventario/proveedores"
+          accent="blue"
+          ctaLabel="Abrir"
+        ></app-admin-module-card>
+        <app-admin-module-card
+          title="Órdenes de compra"
+          description="Pedidos pendientes y recepción."
+          route="inventario/ordenes"
+          accent="purple"
+          ctaLabel="Abrir"
+        ></app-admin-module-card>
+        <app-admin-module-card
+          title="Alertas"
+          description="Stock bajo y caducidad — listado completo con filtros."
+          route="inventario/alertas"
+          accent="pink"
+          ctaLabel="Revisar"
+        ></app-admin-module-card>
+        <app-admin-module-card
+          title="Reportes"
+          description="Informes y exportación de datos."
+          route="inventario/reportes"
+          accent="green"
+          ctaLabel="Abrir"
+        ></app-admin-module-card>
       </div>
     </section>
 
+    <!-- Resumen compacto: no listar cientos de alertas aquí -->
+    <section class="dashboard-modules" *ngIf="alertasActivasCount > 0">
+      <h2 class="dashboard-modules__heading">Atención de stock</h2>
+      <div class="alertas-resumen" role="status">
+        <div class="alertas-resumen__main">
+          <mat-icon class="alertas-resumen__icon" aria-hidden="true">notification_important</mat-icon>
+          <div class="alertas-resumen__text">
+            <p class="alertas-resumen__title">
+              {{ alertasActivasCount }} aviso{{ alertasActivasCount === 1 ? '' : 's' }} de inventario
+            </p>
+            <p class="alertas-resumen__hint">
+              <span *ngIf="alertasStockBajoCount">{{ alertasStockBajoCount }} stock bajo</span>
+              <span *ngIf="alertasStockBajoCount && alertasCaducarCount"> · </span>
+              <span *ngIf="alertasCaducarCount">{{ alertasCaducarCount }} caducidad</span>
+              <span *ngIf="!alertasStockBajoCount && !alertasCaducarCount">Requieren revisión</span>
+              . No saturan esta pantalla: ábrelas en Alertas.
+            </p>
+          </div>
+        </div>
+        <div class="alertas-resumen__actions">
+          <button mat-stroked-button type="button" (click)="verAlertas()">
+            <mat-icon>open_in_new</mat-icon>
+            Ver alertas
+          </button>
+        </div>
+      </div>
+
+      <ul
+        class="admin-dense-list alertas-preview-list"
+        *ngIf="alertasPreview.length > 0"
+        aria-label="Ejemplos de alertas"
+      >
+        <li
+          class="admin-dense-row"
+          *ngFor="let alerta of alertasPreview"
+          [class.admin-dense-row--critica]="alerta.prioridad === 'critica'"
+          [class.admin-dense-row--alta]="alerta.prioridad === 'alta'"
+        >
+          <div class="admin-dense-row__body">
+            <p class="admin-dense-row__title" [attr.title]="alerta.mensaje">{{ alerta.mensaje }}</p>
+            <p class="admin-dense-row__meta">{{ alerta.fecha_alerta | date: 'short' }}</p>
+          </div>
+        </li>
+      </ul>
+      <p class="alertas-preview__more" *ngIf="alertasActivasCount > alertasPreview.length">
+        +{{ alertasActivasCount - alertasPreview.length }} más en el módulo Alertas
+      </p>
+    </section>
+
     <app-admin-data-panel
-      *ngIf="productosBajoStock.length > 0"
+      *ngIf="productosBajoStockPreview.length > 0"
       accent="orange"
-      title="Productos con stock bajo"
-      [description]="productosBajoStock.length + ' producto(s) bajo el mínimo'"
-      [showLegend]="false">
+      title="Muestra de stock bajo"
+      [description]="
+        'Hasta ' +
+        productosBajoStockPreview.length +
+        ' de ' +
+        productosBajoStock.length +
+        ' — el listado completo está en Productos o Alertas'
+      "
+      [showLegend]="false"
+    >
       <div class="productos-lista">
-        <div class="producto-item" *ngFor="let producto of productosBajoStock">
+        <div class="producto-item" *ngFor="let producto of productosBajoStockPreview">
           <div class="producto-info">
             <span class="producto-nombre">{{ producto.nombre }}</span>
             <span class="producto-categoria">{{ producto.categoria }}</span>
@@ -103,6 +193,10 @@
           </div>
         </div>
       </div>
+      <div class="panel-footer-actions" *ngIf="productosBajoStock.length > productosBajoStockPreview.length">
+        <button mat-stroked-button type="button" (click)="irAProductos()">Ver productos</button>
+        <button mat-button color="primary" type="button" (click)="verAlertas()">Ir a alertas</button>
+      </div>
     </app-admin-data-panel>
 
     <app-admin-data-panel
@@ -110,12 +204,13 @@
       accent="green"
       title="Resumen por categorías"
       description="Distribución del valor del inventario."
-      [showLegend]="false">
+      [showLegend]="false"
+    >
       <div class="categorias-grid">
         <div class="categoria-item" *ngFor="let cat of estadisticas.categorias_resumen">
           <h3>{{ cat.categoria }}</h3>
           <p>Productos: {{ cat.cantidad_productos }}</p>
-          <p>Valor: ${{ cat.valor_total | number:'1.2-2' }}</p>
+          <p>Valor: ${{ cat.valor_total | number: '1.2-2' }}</p>
         </div>
       </div>
     </app-admin-data-panel>

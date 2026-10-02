@@ -71,6 +71,8 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | 048 / 049 / 050 | **Superseded** → **054** | INDEX |
 | Cerrar sesión admin | Tras GuestGuard 051: nunca bootstrapear Auth residual sin marcador Katzen; logout espera `signOut` asentado | **051** follow-up 2026-10-02 |
 | UI celular | Diseño **portrait-first** (vertical); POS split escritorio solo ≥1024px | **055** ola 1.8 |
+| Hub Inventario | No listar cientos de alertas en el dashboard; resumen + módulo Alertas | **061** follow-up 2026-10-02 |
+| Listas de avisos | Siempre `.admin-dense-list` / fila ~48–56px; docs regla 14 | **061** + `ADMIN-UI-ARCHITECTURE` |
 
 ---
 
