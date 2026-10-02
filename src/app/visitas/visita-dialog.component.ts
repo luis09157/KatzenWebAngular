@@ -88,6 +88,7 @@ import {
   banioYaEnLineas,
   descripcionLineaBanio,
   filtrarBaniosPendientesTicket,
+  vincularBaniosHuerfanosEnLineas,
 } from './pendientes-visita.util';
 import {
   CLIENTE_MOSTRADOR_ID,
@@ -817,6 +818,21 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   async nuevoBanioEnTicket(): Promise<void> {
     if (this.soloLectura || !puedeUsarRiel('peluqueria', this.contextoRiel)) {
       this.elegirRiel('peluqueria');
+      return;
+    }
+    // Si hay nota pendiente del día, cobrar esa (lleva banioId) en vez de línea huérfana
+    const pendientes = this.pendientesBanio || [];
+    if (pendientes.length === 1) {
+      this.incluirBanioPendiente(pendientes[0]);
+      return;
+    }
+    if (pendientes.length > 1) {
+      void Swal.fire({
+        icon: 'info',
+        title: 'Hay baños por cobrar',
+        text: 'Toca la nota de peluquería pendiente para agregarla al ticket. Así no se vuelve a cobrar el mismo baño.',
+        confirmButtonText: 'Entendido',
+      });
       return;
     }
     const mascota = String(this.form.get('paciente')?.value || 'mascota').trim();
@@ -1833,12 +1849,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   private async persistir(): Promise<string> {
     const raw = this.form.getRawValue();
+    await this.cargarPendientes();
+    const lineasConBanio = vincularBaniosHuerfanosEnLineas(this.lineas, this.pendientesBanio);
+    this.lineas = lineasConBanio;
     const result = await ejecutarPersistirVisita(
       {
         soloLectura: this.soloLectura,
         modoMostrador: this.modoMostrador,
         visitaId: this.visitaId,
-        lineas: this.lineas,
+        lineas: lineasConBanio,
         productosCatalogo: this.productosCatalogo,
         form: raw,
         pagado: this.pagado,
@@ -1882,6 +1901,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         this.estadoLabel = result.estadoLabel;
       }
     }
+    await this.cargarPendientes();
     return result.visitaId;
   }
 }

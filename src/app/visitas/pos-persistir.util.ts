@@ -233,6 +233,8 @@ export async function ejecutarPersistirVisita(
 
   if (visitaId) {
     await deps.actualizarVisita(visitaId, patch);
+    // actualizarVisita ya vincula si hay lineas; reforzamos para baños/citas sin stock
+    await deps.vincularOrigenesDesdeLineas(visitaId, lineas);
     return {
       visitaId,
       lineas,
@@ -244,11 +246,8 @@ export async function ejecutarPersistirVisita(
   }
 
   const id = await deps.crearVisita(patch);
-  for (const l of lineas) {
-    if (l.movimientoInventarioId) {
-      await deps.vincularOrigenesDesdeLineas(id, [l]);
-    }
-  }
+  // crearVisita también vincula; llamada explícita cubre baño/cita aunque no haya movimiento inventario
+  await deps.vincularOrigenesDesdeLineas(id, lineas);
   return {
     visitaId: id,
     lineas,

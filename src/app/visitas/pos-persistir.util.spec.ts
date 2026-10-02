@@ -253,15 +253,28 @@ describe('pos-persistir (spec 080)', () => {
       expect(r.lineas[0].movimientoInventarioId).toBe('mov-1');
     });
 
-    it('actualiza si ya hay visitaId', async () => {
+    it('actualiza si ya hay visitaId y vincula orígenes (baños)', async () => {
       const actualizar = jasmine.createSpy('upd').and.resolveTo(undefined);
       const crear = jasmine.createSpy('crear');
+      const vincular = jasmine.createSpy('vinc').and.resolveTo(undefined);
       const r = await ejecutarPersistirVisita(
-        baseCtx({ visitaId: 'v-exist' }),
-        baseDeps({ actualizarVisita: actualizar, crearVisita: crear })
+        baseCtx({
+          visitaId: 'v-exist',
+          lineas: [
+            {
+              id: 'l-banio',
+              descripcion: 'Baño · Oreon',
+              monto: 200,
+              categoria: 'banio',
+              banioId: 'b1',
+            },
+          ],
+        }),
+        baseDeps({ actualizarVisita: actualizar, crearVisita: crear, vincularOrigenesDesdeLineas: vincular })
       );
       expect(actualizar).toHaveBeenCalled();
       expect(crear).not.toHaveBeenCalled();
+      expect(vincular).toHaveBeenCalledWith('v-exist', jasmine.any(Array));
       expect(r.visitaId).toBe('v-exist');
       expect(r.esEdicion).toBeTrue();
     });

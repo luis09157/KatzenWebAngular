@@ -49,6 +49,14 @@
 - [x] Unit tests + build
 - [x] Hotfix loading trabado al guardar baño desde alta rápida (`show` sin `hide` → overlay eterno); `finally` + red de seguridad en `abrirAtencionAltaRapida`
 
+### Fix cola POS: baño cobrado no desaparecía (2026-10-01)
+
+- [x] Causa: línea «Nuevo baño» sin `banioId` → no se escribe `visitaId` en `Katzen/Banios`
+- [x] `vincularBaniosHuerfanosEnLineas` + persistir siempre llama `vincularOrigenesDesdeLineas`
+- [x] Si hay notas pendientes, «Nuevo baño» pide tocar la nota (o usa la única)
+- [x] Pendientes POS solo `completado` con precio &gt; 0 (alineado cola 085)
+- [x] Unit tests + build
+
 ### Fase C — Precios claros
 
 - [ ] C.1 Entrada obvia a tarifas por tamaño (022)
@@ -76,6 +84,7 @@
 | Defaults | `finanzas/defaults-banio.service` (022) — reutilizar |
 | Ticket | flujo existente «Agregar al ticket» — no segundo cobro |
 | Cola mostrador | `visitas/banio-cola-mostrador.util.ts` (+ spec) — no duplicar filtros en componentes |
+| Pendientes POS + huérfanos | `visitas/pendientes-visita.util.ts` — `vincularBaniosHuerfanosEnLineas`; persistir siempre `vincularOrigenesDesdeLineas` |
 | Captura rápida | `banios/banio-captura-rapida.util.ts` (+ spec) |
 | Prefill Llegó un paciente | `alta-rapida/alta-rapida-prefill.util.ts` — oculta picker si ya hay mascota |
 | No duplicar | No crear `/admin/peluqueria` paralelo |
@@ -87,8 +96,8 @@
 | Verificación | Resultado | Notas |
 |--------------|-----------|-------|
 | Unit tests captura rápida | **3/3 OK** | `banio-captura-rapida.util.spec` |
-| Unit tests cola + por-cobrar + pendientes | **19/19 OK** (antes) | + captura rápida = 12 en corrida conjunta util |
-| `npm run build` (exit 0) | **0** | 2026-10-01 Fase A |
+| Unit tests cola + por-cobrar + pendientes | **OK** 2026-10-01 | + `vincularBaniosHuerfanosEnLineas` |
+| `npm run build` (exit 0) | **0** | 2026-10-01 fix cola POS baños |
 | Reglas cola (revisión código) | OK | programado≠cola; completado+precio=entra; visitaId/pagado/caja/otra fecha=sale |
 | Smoke UI :4200 1280 | **OK** (cola) + serve vivo Fase A | Banios diálogo: toggle Rápido/Completo |
 | RTDB aditiva | N/A | usa campos existentes |
@@ -99,7 +108,8 @@ QA agente 2026-10-01:
 - Fase A captura rápida: modo Rápido default, chips tipo/tamaño, más detalles colapsado, prefill ahora
 - Cola limpia B.3b + Listo para cobrar
 - Prefill «Llegó un paciente» → baño/pensión con resumen (sin picker vacío)
-- Tests captura 3/3 · prefill util · cola utils OK · build exit 0 · ng serve :4200
+- Fix POS: baño cobrado sale de pendientes (banioId + visitaId); no «Nuevo baño» si hay notas
+- Tests captura 3/3 · pendientes/persistir OK · build exit 0
 - Fases C/D y B.1/B.3c pendientes
 - commit/push/deploy: solo con autorización de Luis
 ```

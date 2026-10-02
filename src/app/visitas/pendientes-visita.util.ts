@@ -27,9 +27,12 @@ function fechaBanioIso(banio: Banio): string {
 export function esBanioPendienteDeTicket(banio: Banio | null | undefined): boolean {
   if (!banio?.id || banio.activo === false) return false;
   if (banio.estado === 'cancelado') return false;
+  // Spec 085: solo listos para cobrar (completado); al cobrar (visitaId/pagado/caja) salen
+  if (String(banio.estado || '').toLowerCase() !== 'completado') return false;
   if (banio.visitaId || banio.cajaMovimientoId || banio.pagado) return false;
   if (!String(banio.cliente_id || '').trim()) return false;
-  return true;
+  const monto = Number(banio.precio_total) || 0;
+  return monto > 0;
 }
 
 export function filtrarBaniosPendientesTicket(
@@ -77,4 +80,37 @@ export function banioYaEnLineas(lineas: VisitaLinea[] | null | undefined, banioI
   const id = String(banioId || '').trim();
   if (!id) return false;
   return (lineas || []).some((l) => String(l.banioId || '') === id);
+}
+
+/**
+ * Spec 085 — si cobraron con «Nuevo baño» sin tocar la nota, la línea no lleva banioId
+ * y el baño sigue en por-cobrar. Religa líneas huérfanas a pendientes del día (precio exacto,
+ * o el único pendiente restante). No adivina si hay varios con montos distintos.
+ */
+export function vincularBaniosHuerfanosEnLineas(
+  lineas: VisitaLinea[] | null | undefined,
+  pendientes: BanioPendienteTicket[] | null | undefined
+): VisitaLinea[] {
+  const out = (lineas || []).map((l) => ({ ...l }));
+  const usados = new Set(out.map((l) => String(l.banioId || '').trim()).filter(Boolean));
+  const pool = (pendientes || []).filter((p) => p?.id && !usados.has(String(p.id)));
+
+  for (const linea of out) {
+    if (String(linea.banioId || '').trim()) continue;
+    const cat = String(linea.categoria || '').toLowerCase();
+    if (cat !== 'banio' && cat !== 'corte') continue;
+
+    const monto = Number(linea.monto) || 0;
+    let idx = pool.findIndex((p) => Math.abs((Number(p.precio_total) || 0) - monto) < 0.021);
+    if (idx < 0 && pool.length === 1) {
+      idx = 0;
+    }
+    if (idx < 0) continue;
+
+    const matched = pool.splice(idx, 1)[0];
+    linea.banioId = matched.id;
+    usados.add(matched.id);
+  }
+
+  return out;
 }

@@ -106,7 +106,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` | **005** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
-| Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `por-cobrar-hoy` — solo completados del día; al cobrar salen | **085** |
+| Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `pendientes-visita.util.ts` (`vincularBaniosHuerfanosEnLineas`) — solo completados del día; al cobrar con `banioId`/`visitaId` salen; no «Nuevo baño» huérfano si hay notas | **085** |
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |
