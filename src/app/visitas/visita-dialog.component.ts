@@ -91,6 +91,16 @@ import {
   vincularBaniosHuerfanosEnLineas,
 } from './pendientes-visita.util';
 import {
+  ClinicoPendienteTicket,
+  clinicoYaEnLineas,
+  descripcionLineaClinico,
+  filtrarHistorialesPendientesTicket,
+  filtrarVacunasPendientesTicket,
+  vincularClinicosHuerfanosEnLineas,
+} from './pendientes-clinicos.util';
+import { VacunasService } from '../vacunas/vacunas.service';
+import { HistorialesService } from '../historiales/historiales.service';
+import {
   CLIENTE_MOSTRADOR_ID,
   CLIENTE_MOSTRADOR_NOMBRE,
   esClienteMostrador,
@@ -175,6 +185,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   estadoLabel = VISITA_ESTADO_LABELS.abierta;
   alergiasPaciente: string[] = [];
   pendientesBanio: BanioPendienteTicket[] = [];
+  /** Spec 086 — vacunas/historiales pendientes del cliente hoy. */
+  pendientesClinicos: ClinicoPendienteTicket[] = [];
   mostrandoProducto = false;
   modoMostrador = false;
   pasoWizard = 1;
@@ -511,6 +523,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     private pacientesService: PacientesService,
     private baniosService: BaniosService,
+    private vacunasService: VacunasService,
+    private historialesService: HistorialesService,
     private inventarioService: InventarioService,
     private serviciosClinica: ServiciosClinicaService,
     private defaultsBanioService: DefaultsBanioService,
@@ -573,7 +587,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         this.clinicaNombre = nombre || CLINICA_NOMBRE_DEFAULT;
       });
     this.dialogRef.addPanelClass('admin-dialog-panel--pos');
-    if (typeof window !== 'undefined' && window.innerWidth < 721) {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       this.dialogRef.updateSize('100vw', '100vh');
     } else {
       this.dialogRef.updateSize('min(1120px, 98vw)', 'min(92vh, 900px)');
@@ -1043,6 +1057,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.tamanoPaciente = '';
     this.recalcularPrecioBanioDefault();
     this.pendientesBanio = [];
+    this.pendientesClinicos = [];
   }
 
   vincularClienteReal(): void {
@@ -1278,6 +1293,20 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       this.elegirRiel('consulta');
       return;
     }
+    const pendientesConsulta = (this.pendientesClinicos || []).filter((p) => p.tipo === 'historial');
+    if (pendientesConsulta.length === 1) {
+      await this.incluirClinicoPendiente(pendientesConsulta[0]);
+      return;
+    }
+    if (pendientesConsulta.length > 1) {
+      void Swal.fire({
+        icon: 'info',
+        title: 'Hay consultas por cobrar',
+        text: 'Toca la consulta pendiente para agregarla al ticket. Así no se cobra dos veces el mismo historial.',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
     const desdeCatalogo = this.serviciosCatalogo.find(
       (s) => s.tipo === 'consulta' && Number(s.precio_venta) > 0 && s.activo !== false
     );
@@ -1355,6 +1384,29 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     this.pushLineaBanio(p, monto);
+  }
+
+  async incluirClinicoPendiente(p: ClinicoPendienteTicket): Promise<void> {
+    if (this.soloLectura || clinicoYaEnLineas(this.lineas, p)) return;
+    let monto = Number(p.montoSugerido) || 0;
+    if (!(monto > 0)) {
+      const defaultConsulta =
+        p.tipo === 'historial'
+          ? Number(
+              this.serviciosCatalogo.find(
+                (s) => s.tipo === 'consulta' && Number(s.precio_venta) > 0 && s.activo !== false
+              )?.precio_venta
+            ) || 0
+          : 0;
+      const asked = await promptMontoVisita(
+        p.tipo === 'vacuna' ? 'Monto de la vacuna' : 'Monto de la consulta',
+        p.detalle || p.titulo,
+        { sugerido: defaultConsulta || undefined, forzarDialogo: true }
+      );
+      if (!(asked != null && asked > 0)) return;
+      monto = asked;
+    }
+    this.pushLineaClinico(p, monto);
   }
 
   verNotaBanioPendiente(p: BanioPendienteTicket, event?: Event): void {
@@ -1764,6 +1816,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   private async cargarPendientes(): Promise<void> {
     if (this.soloLectura) {
       this.pendientesBanio = [];
+      this.pendientesClinicos = [];
       return;
     }
     const clienteId = String(this.form.get('cliente_id')?.value || '').trim();
@@ -1772,17 +1825,57 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       .slice(0, 10);
     if (!clienteId || !fecha) {
       this.pendientesBanio = [];
+      this.pendientesClinicos = [];
       return;
     }
+    const pacienteId = String(this.form.get('paciente_id')?.value || '').trim() || undefined;
     try {
       const banios = await firstValueFrom(this.baniosService.getBanios().pipe(take(1)));
       this.pendientesBanio = filtrarBaniosPendientesTicket(banios || [], {
         clienteId,
         fecha,
-        pacienteId: String(this.form.get('paciente_id')?.value || '').trim() || undefined,
+        pacienteId,
       }).filter((p) => !banioYaEnLineas(this.lineas, p.id));
     } catch {
       this.pendientesBanio = [];
+    }
+    try {
+      const [vacunas, historiales, pacientes] = await Promise.all([
+        firstValueFrom(this.vacunasService.getVacunas().pipe(take(1))).catch(() => [] as unknown[]),
+        firstValueFrom(this.historialesService.getHistoriales().pipe(take(1))).catch(() => [] as unknown[]),
+        firstValueFrom(this.pacientesService.getPacientes().pipe(take(1))).catch(
+          () => [] as { id?: string; idCliente?: string; nombre?: string }[]
+        ),
+      ]);
+      const clientesPorPaciente: Record<string, string> = {};
+      const nombresPaciente: Record<string, string> = {};
+      for (const p of pacientes || []) {
+        const id = String(p.id || '').trim();
+        if (!id) continue;
+        const dueño = String(
+          (p as { idCliente?: string; cliente_id?: string }).idCliente ||
+            (p as { cliente_id?: string }).cliente_id ||
+            ''
+        ).trim();
+        if (dueño) clientesPorPaciente[id] = dueño;
+        if (p.nombre) nombresPaciente[id] = String(p.nombre);
+      }
+      const vacPend = filtrarVacunasPendientesTicket(vacunas || [], {
+        clienteId,
+        fecha,
+        pacienteId,
+        clientesPorPaciente,
+        nombresPaciente,
+      });
+      const histPend = filtrarHistorialesPendientesTicket(historiales || [], {
+        clienteId,
+        fecha,
+        pacienteId,
+        clientesPorPaciente,
+      });
+      this.pendientesClinicos = [...vacPend, ...histPend].filter((p) => !clinicoYaEnLineas(this.lineas, p));
+    } catch {
+      this.pendientesClinicos = [];
     }
   }
 
@@ -1847,17 +1940,41 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
+  private pushLineaClinico(p: ClinicoPendienteTicket, monto: number): void {
+    const categoria = p.tipo === 'vacuna' ? ('vacuna' as const) : ('consulta' as const);
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: descripcionLineaClinico(p),
+        monto: roundMoney(monto),
+        categoria,
+        cantidad: 1,
+        vacunaId: p.tipo === 'vacuna' ? p.id : undefined,
+        historialId: p.tipo === 'historial' ? p.id : undefined,
+        citaId: p.tipo === 'cita' ? p.id : undefined,
+        ...snapshotEconomiaLinea({
+          precioVenta: monto,
+          aplicaIva: false,
+          cantidad: 1,
+        }),
+      },
+    ];
+    this.pendientesClinicos = this.pendientesClinicos.filter((x) => !(x.tipo === p.tipo && x.id === p.id));
+  }
+
   private async persistir(): Promise<string> {
     const raw = this.form.getRawValue();
     await this.cargarPendientes();
     const lineasConBanio = vincularBaniosHuerfanosEnLineas(this.lineas, this.pendientesBanio);
-    this.lineas = lineasConBanio;
+    const lineasConClinicos = vincularClinicosHuerfanosEnLineas(lineasConBanio, this.pendientesClinicos);
+    this.lineas = lineasConClinicos;
     const result = await ejecutarPersistirVisita(
       {
         soloLectura: this.soloLectura,
         modoMostrador: this.modoMostrador,
         visitaId: this.visitaId,
-        lineas: lineasConBanio,
+        lineas: lineasConClinicos,
         productosCatalogo: this.productosCatalogo,
         form: raw,
         pagado: this.pagado,

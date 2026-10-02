@@ -1600,7 +1600,7 @@
   height: 100% !important;
 }
 
-@media (min-width: 721px) {
+@media (min-width: 1024px) {
   .cdk-overlay-pane.admin-dialog-panel--pos {
     width: min(1280px, 98vw) !important;
     max-width: 98vw !important;
@@ -1622,9 +1622,111 @@
   }
 }
 
+/* Teléfonos / phablets (incl. S25 Ultra): chrome compacto + tarjetas densas */
+@media (max-width: 1023px) {
+  .admin-dialog-panel--pos .admin-dialog-header {
+    padding: 10px 12px 8px !important;
+  }
+
+  .admin-dialog-panel--pos .admin-dialog-subtitle {
+    display: none !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card {
+    min-height: 120px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__hit {
+    min-height: 120px !important;
+    padding: 0 0 8px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__foto,
+  .admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    flex-basis: 56px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__name {
+    font-size: 0.875rem !important;
+    line-height: 1.25 !important;
+    max-height: 2.5em !important;
+    padding: 6px 10px 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__price {
+    font-size: 0.9375rem !important;
+    padding: 2px 10px 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-grid {
+    gap: 10px !important;
+    padding: 0 10px 12px !important;
+  }
+}
+
 @media (max-width: 430px) {
   .admin-dialog-panel--pos .admin-dialog-header {
-    padding: 12px 14px 10px !important;
+    padding: 8px 10px 6px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-grid {
+    gap: 8px !important;
+    padding: 0 8px 10px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card {
+    min-height: 104px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__hit {
+    min-height: 104px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__foto,
+  .admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    flex-basis: 48px !important;
+  }
+}
+
+/* Portrait phones (~360–600): catálogo más denso, más productos visibles */
+@media (max-width: 600px) {
+  .admin-dialog-panel--pos .pos-card {
+    min-height: 104px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__hit {
+    min-height: 104px !important;
+    padding: 0 0 6px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__foto,
+  .admin-dialog-panel--pos .pos-card__hit > .pos-card__foto {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    flex-basis: 48px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__name {
+    font-size: 0.8125rem !important;
+    padding: 4px 8px 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card__price {
+    font-size: 0.875rem !important;
+    padding: 2px 8px 0 !important;
+  }
+
+  .admin-dialog-panel--pos .pos-grid {
+    gap: 8px !important;
+    padding: 0 8px 10px !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -1810,7 +1912,9 @@ app-visita-dialog {
   }
 }
 
-@media (min-width: 721px) {
+/* Split catálogo | ticket solo en escritorio real (≥1024).
+   Phablets / S25 Ultra landscape (~900px) siguen en 1 columna + barra sticky. */
+@media (min-width: 1024px) {
   .admin-dialog-panel--pos .pos-stage--caja {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important;
@@ -1828,6 +1932,10 @@ app-visita-dialog {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 14px !important;
     padding: 0 16px 20px !important;
+  }
+
+  .admin-dialog-panel--pos .pos-card {
+    min-height: 152px !important;
   }
 
   .admin-dialog-panel--pos .pos-card__hit {
@@ -1858,7 +1966,7 @@ app-visita-dialog {
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1280px) {
   .admin-dialog-panel--pos .pos-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }

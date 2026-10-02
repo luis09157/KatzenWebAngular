@@ -1,16 +1,11 @@
 import { bloquearCobroDirectoEnCaja, vinculadoATicketVisita } from '../core/utils/cobro-integridad.util';
 import { esBanioEnColaMostradorHoy } from './banio-cola-mostrador.util';
+import { esVacunaPendienteDeTicket } from './pendientes-clinicos.util';
 import { PorCobrarInput, PorCobrarItem } from './por-cobrar-hoy.models';
 
 function fechaIso(val: string | undefined | null): string {
   if (!val) return '';
   return String(val).slice(0, 10);
-}
-
-function vacunaAplicada(v: PorCobrarInput['vacunas'][0]): boolean {
-  const est = String(v.estado || '').toLowerCase();
-  if (est === 'aplicada' || est === 'completada') return true;
-  return v.aplicada === true;
 }
 
 /** Agrega ítems «por cobrar hoy» desde fuentes clínicas y tickets. */
@@ -104,8 +99,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
   }
 
   for (const v of input.vacunas || []) {
-    if (v.activo === false || !vacunaAplicada(v)) continue;
-    if (v.visitaId || !v.id) continue;
+    if (!esVacunaPendienteDeTicket(v)) continue;
     const f = fechaIso(v.fecha_vacuna || v.fechaAplicacion);
     if (f !== hoy) continue;
     const pacienteId = v.paciente_id || '';
@@ -115,7 +109,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
     items.push({
       key: `vacuna-${v.id}`,
       tipo: 'vacuna',
-      id: v.id,
+      id: v.id!,
       cliente_id: clienteId,
       cliente: clientes[clienteId],
       paciente: link?.nombre,

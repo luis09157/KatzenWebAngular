@@ -330,11 +330,18 @@ Warning: bundle initial exceeded maximum budget (preexistente, 2.34 MB).
 - [x] SC-022: sticky cliente + Cobrar; picker sin crear fichas
 - [x] SC-023: home táctil; catálogo inventario solo ver
 
+### Ola 1.8 — Portrait-first celulares (2026-10-02)
+
+- [x] Split catálogo|ticket solo ≥1024px; fullscreen JS `<1024`
+- [x] Portrait ≤600: 1 col, tarjetas densas, barra Cobrar flexible, dock home
+- [x] Shell admin ≤600: gutters 8px, tablas min 560, padding celdas compacto
+- [x] Wizard cliente en 2ª fila; subtítulo oculto en phone
+
 ---
 
 ## Cierre
 
 - [x] Validación pre-entrega ola 1.7 (precios inventario)
 - [x] Validación exhaustiva registrada
-- [ ] `spec.md` estado → `done` — **ola 1.7 entregada; spec sigue in_progress por ola 2 (scanner)**
-- [x] Commit / deploy — no (Luis no lo pidió)
+- [ ] `spec.md` estado → `done` — **ola 1.7/1.8 UI; spec sigue in_progress por ola 2 (scanner)**
+- [ ] Commit / deploy — pendiente autorización Luis

@@ -1126,7 +1126,8 @@
   }
 }
 
-@media (min-width: 721px) {
+/* Split ticket solo ≥1024 (phablets / S25 Ultra usan barra sticky + sheets). */
+@media (min-width: 1024px) {
   .visita-dialog.visita-dialog--pos {
     .pos-tiles {
       grid-template-columns: 1fr 1fr;
@@ -1178,7 +1179,7 @@
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1280px) {
   .visita-dialog.visita-dialog--pos .pos-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1188,18 +1189,113 @@
   }
 }
 
+/* Chrome compacto + wizard usable en teléfono vertical */
+@media (max-width: 1023px) {
+  .visita-dialog.visita-dialog--pos {
+    .pos-header {
+      padding: 10px 12px 8px;
+      gap: 6px;
+    }
+
+    .pos-header .admin-dialog-title {
+      font-size: 1rem !important;
+    }
+
+    .visita-wizard {
+      flex-wrap: wrap;
+      padding: 4px 10px 0;
+      gap: 6px;
+    }
+
+    .visita-wizard__step {
+      min-height: 40px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+    }
+
+    .visita-wizard__step--cliente {
+      margin-left: 0;
+      max-width: none;
+      flex: 1 1 100%;
+      justify-content: flex-start;
+      order: 10;
+    }
+
+    .pos-search-sticky {
+      padding: 8px 10px 6px;
+    }
+
+    .pos-chips {
+      padding: 0 10px 8px;
+      gap: 6px;
+    }
+
+    .pos-chip {
+      min-height: 40px;
+      padding: 6px 12px;
+      font-size: 0.8125rem;
+    }
+
+    .pos-cart-bar {
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .pos-cart-bar__cobrar {
+      min-height: 48px;
+      font-size: 1rem;
+    }
+  }
+}
+
+/* Portrait phones: barra Cobrar no se aprieta; 1 col catálogo */
+@media (max-width: 600px) {
+  .visita-dialog.visita-dialog--pos {
+    .pos-cart-bar {
+      gap: 8px;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .pos-cart-bar__info {
+      min-width: 0;
+      flex: 1 1 48%;
+
+      strong {
+        font-size: 1rem;
+      }
+    }
+
+    .pos-cart-bar__cobrar {
+      min-width: 0;
+      flex: 1 1 42%;
+      font-size: 0.9375rem;
+      padding: 0 10px;
+    }
+
+    .pos-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 0 8px 12px;
+    }
+
+    .visitas-quick-filters,
+    .pos-riel-hint {
+      margin-left: 8px;
+      margin-right: 8px;
+    }
+  }
+}
+
 @media (max-width: 720px) {
   .visita-dialog.visita-dialog--pos {
     .admin-dialog-actions.pos-footer {
       justify-content: stretch !important;
-    }
-
-    .pos-footer__group {
-      flex: 1 1 100%;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .pos-footer__group--nav,
     .pos-footer__group--tools {
+      flex: 1 1 auto;
       justify-content: stretch;
     }
 
@@ -1210,6 +1306,7 @@
     }
 
     .pos-footer__group--pay {
+      flex: 1 1 100%;
       margin-left: 0;
     }
 

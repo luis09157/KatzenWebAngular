@@ -340,7 +340,7 @@
   }
 }
 
-@media (min-width: 721px) {
+@media (min-width: 601px) {
   .visitas-contenedor.pos-home {
     padding-bottom: 24px;
 
@@ -384,8 +384,12 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 600px) {
   .visitas-contenedor.pos-home {
+    .visitas-quick-filters {
+      margin: 8px 8px 0;
+    }
+
     .pos-home__dock {
       display: grid;
       grid-template-columns: repeat(3, 1fr);

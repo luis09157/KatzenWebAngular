@@ -25,7 +25,8 @@ Investigación de mercado (Pulpos, Square/Shopify, Lightspeed, PIMS vet, CFDI MX
 |-----|---------|-----|
 | **1** | Entregada | UI móvil POS: 1 columna, búsqueda sticky, chips, lista táctil, carrito sticky, cobro grande. |
 | **1.5** | Entregada | Home POS + **3 rieles**: Petshop \| Consulta \| Peluquería. Walk-in solo petshop. |
-| **1.6** | **Vigente** | **UI redo táctil:** grid con foto, tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar. **No mutar** Productos/Clientes/Pacientes. Lógica reutilizada. |
+| **1.6** | **Entregada** | **UI redo táctil:** grid con foto, tap = agregar, +/−/quitar ≥48px, sticky cliente + Cobrar. **No mutar** Productos/Clientes/Pacientes. Lógica reutilizada. |
+| **1.8** | **2026-10-02** | Portrait-first (celulares vertical): split ≥1024; chrome/tarjetas ≤600; shell/tablas densas; dock POS ≤600. |
 | **2 = P0** | Después | Scanner cámara + pegar/HID (`codigo_barras` 043). |
 | **3 = P1** | Después | Servicios 1 tap con precio sugerido 022. |
 | **P2** | Fuera de 055 | CFDI/PAC, WhatsApp, bundles, offline. |

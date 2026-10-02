@@ -66,7 +66,7 @@
   <app-flow-hint
     hintId="historiales-listado"
     icon="receipt_long"
-    message="Registra la consulta aquí. Para cobrar, usa «Agregar al ticket del día» — no registres el servicio directo en finanzas."
+    message="Registra la consulta aquí. Para cobrar, usa «Enviar a cobrar» — no registres el servicio directo en finanzas."
     variant="info"
   >
   </app-flow-hint>
@@ -199,7 +199,7 @@
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Agregar al ticket del día"
+                matTooltip="Enviar a cobrar"
                 (click)="agregarAVisita(historial)"
                 *ngIf="!historial.visitaId && !historial.cobradaEnVisitaId"
               >
@@ -259,7 +259,7 @@
       [disabled]="!menuContext || menuContext?.visitaId || menuContext?.cobradaEnVisitaId"
     >
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Agregar al ticket del día' }}
+      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Enviar a cobrar' }}
     </button>
     <button mat-menu-item *ngIf="isSuperAdmin && necesitaMigracion" (click)="ejecutarMigracion()">
       <mat-icon>sync</mat-icon> Migrar base de datos

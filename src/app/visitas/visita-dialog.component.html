@@ -301,6 +301,25 @@
 
           <div class="pos-grid" *ngIf="posTab === 'consulta'">
             <ng-container *ngIf="!rielHint; else rielBloqueado">
+              <article class="pos-card pos-card--svc" *ngFor="let p of pendientesClinicos">
+                <button
+                  type="button"
+                  class="pos-card__hit"
+                  (click)="incluirClinicoPendiente(p)"
+                  [attr.aria-label]="'Incluir ' + (p.detalle || p.titulo)"
+                >
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                    <mat-icon>{{ p.tipo === 'vacuna' ? 'vaccines' : 'medical_services' }}</mat-icon>
+                  </div>
+                  <span class="pos-card__name">{{ p.titulo }}</span>
+                  <span class="pos-card__price" *ngIf="p.montoSugerido > 0">{{ formatMoney(p.montoSugerido) }}</span>
+                  <span class="pos-card__price" *ngIf="!(p.montoSugerido > 0)">Pide monto</span>
+                  <span class="pos-card__meta">{{ p.detalle }}</span>
+                  <span class="pos-card__nota-badge">{{
+                    p.tipo === 'vacuna' ? 'Vacuna por cobrar' : 'Consulta por cobrar'
+                  }}</span>
+                </button>
+              </article>
               <article
                 class="pos-card pos-card--svc"
                 *ngFor="let s of serviciosConsultaFiltrados"
@@ -877,7 +896,7 @@
     </div>
   </mat-dialog-content>
 
-  <!-- Carrito sticky móvil: arts + total abre sheet Ticket; Cobrar. Desktop ≥721px usa pos-cart-panel. -->
+  <!-- Carrito sticky móvil (retrato): arts + total abre sheet Ticket; Cobrar. Desktop ≥1024px usa pos-cart-panel. -->
   <div class="pos-cart-bar no-print" *ngIf="!soloLectura && pasoWizard === 2">
     <button
       type="button"

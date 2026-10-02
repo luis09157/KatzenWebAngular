@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **84** specs · `done`: 70 · `in_progress`: 11 · `superseded`: 3
+Total: **85** specs · `done`: 70 · `in_progress`: 12 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -92,3 +92,4 @@ Total: **84** specs · `done`: 70 · `in_progress`: 11 · `superseded`: 3
 | 082 | [modularizacion-pos-sheet-carrito](082-modularizacion-pos-sheet-carrito/spec.md) | Modularización POS sheet carrito (oleada 7) | done |
 | 084 | [ui-ux-oleada-impacto](084-ui-ux-oleada-impacto/spec.md) | UI/UX oleada de impacto (post PLAN-UX 1–4) | done |
 | 085 | [peluqueria-flujo-facil](085-peluqueria-flujo-facil/spec.md) | Peluquería — flujo fácil + precios claros | in_progress |
+| 086 | [clinicos-cola-cobrar](086-clinicos-cola-cobrar/spec.md) | Vacunas y consultas → cola de cobro (mismo molde peluquería) | in_progress |

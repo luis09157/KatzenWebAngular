@@ -458,9 +458,33 @@
   }
 }
 
+/* Celular en vertical: gutters mínimos + espacio para dock inferior */
+@media (max-width: 600px) {
+  .admin-content {
+    --admin-page-gutter: 8px;
+    padding: 8px var(--admin-page-gutter) 72px !important;
+  }
+
+  .admin-content .panel-search,
+  .admin-content .buscador.panel-search {
+    margin: 6px 0 12px !important;
+    width: 100% !important;
+  }
+
+  .admin-content .buscador,
+  .admin-content .admin-search {
+    margin: 12px 0 4px;
+    width: 100%;
+  }
+
+  .admin-content table {
+    min-width: 560px;
+  }
+}
+
 @media (max-width: 480px) {
   .admin-content {
-    --admin-page-gutter: 10px;
-    padding: 10px var(--admin-page-gutter) 24px !important;
+    --admin-page-gutter: 8px;
+    padding: 8px var(--admin-page-gutter) 72px !important;
   }
 }

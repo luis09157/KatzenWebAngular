@@ -551,6 +551,42 @@
   }
 }
 
+/* Celular en vertical: menos margen, tabla más usable, celdas compactas */
+@media (max-width: 600px) {
+  .admin-content .panel-search,
+  .admin-content .buscador.panel-search,
+  .admin-content .catalogo-toolbar.panel-search,
+  .admin-content .panel-toolbar.panel-search {
+    margin: 6px 8px 12px !important;
+    width: calc(100% - 16px) !important;
+  }
+
+  .admin-content .table-scroll {
+    margin: 0 0 12px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .admin-content .table-scroll table {
+    min-width: 560px;
+  }
+
+  .admin-content .table-scroll .mat-mdc-header-cell,
+  .admin-content .table-scroll .mat-mdc-cell,
+  .admin-content .table-shell .mat-mdc-header-cell,
+  .admin-content .table-shell .mat-mdc-cell {
+    padding: 10px 12px !important;
+  }
+
+  .admin-content .table-scroll .mat-mdc-header-cell:first-of-type,
+  .admin-content .table-scroll .mat-mdc-cell:first-of-type,
+  .admin-content .table-shell .mat-mdc-header-cell:first-of-type,
+  .admin-content .table-shell .mat-mdc-cell:first-of-type {
+    padding-left: 12px !important;
+  }
+}
+
 /* Historiales — columnas legibles */
 .admin-content .historiales-table .mat-column-diagnostico_presuntivo,
 .admin-content .historiales-table .mat-mdc-column-diagnostico_presuntivo {
