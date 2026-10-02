@@ -52,7 +52,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 - Nombres de personas en tablas (veterinario, cliente, doctor, dueño, etc.): **completos** en pantallas anchas — sin ellipsis si hay espacio; ver `admin-table.scss` y `docs/ADMIN-UI-ARCHITECTURE.md`.
 - Celdas multi-línea (fecha+hora, paciente+dueño): **gap vertical visible** (≈4–8px); no líneas pegadas.
 - Layout admin en desktop (≥1200px): aprovechar ancho de `.admin-content`; no comprimir columnas de texto mientras sobra espacio vacío.
-- **Páginas admin (spec 061):** grids fluidos 3→2→1 según **ancho útil** (container `admin-page`; el sidenav no cuenta). Toolbars wrap alineadas; buscadores sin clip; padding de cards; timelines scaneables. Diálogos = spec 059.
+- **Páginas admin (spec 061):** grids fluidos 3→2→1 según **ancho útil** (container `admin-page`; el sidenav no cuenta). Toolbars wrap alineadas; buscadores sin clip; padding de cards; timelines scaneables. **Notificaciones/alertas:** siempre `.admin-dense-list` (US-5 / regla 14); hubs solo resumen. Diálogos = spec 059.
 - Auth / portal / landing: shells centrados (vertical + horizontal en desktop), responsivos en móvil; reutilizar patrones existentes (`.admin-auth-page`, `.portal-login-wrap`); sin cards pegadas a un borde con vacío grande al otro lado.
 - Errores: `ErrorMessagesService.getUserMessage(error, contexto)`.
 - Loading async admin: `LoadingService` con mensaje contextual; overlay **nunca** trabado (`hide` en success y error). **Prohibido** `show()` justo antes de `dialogRef.close()` sin `hide` en `finally`. Ver `docs/ADMIN-UI-ARCHITECTURE.md` § Loading y `specs/005-loading-feedback-ux/`. Script: `node scripts/check-loading-antipattern.mjs`.
