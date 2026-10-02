@@ -26,6 +26,7 @@ import { Cliente } from '../core/models';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { PensionService } from './pension.service';
+import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
 
 @Component({
   selector: 'app-pension-dialog',
@@ -44,6 +45,14 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
   readonly tamanoLabels = TAMANO_PENSION_LABELS;
   readonly estados: EstadoPension[] = ['reservada', 'activa', 'finalizada', 'cancelada'];
   readonly estadoLabels = ESTADO_PENSION_LABELS;
+
+  /** Si ya vienen dueño/mascota (Llegó un paciente), mostrar resumen y no el picker. */
+  get muestraPickerClientePaciente(): boolean {
+    return debeMostrarPickerAltaRapida({
+      esEdicion: this.esEdicion,
+      paciente_id: this.data?.paciente_id,
+    });
+  }
 
   constructor(
     private fb: FormBuilder,

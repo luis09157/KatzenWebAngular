@@ -100,7 +100,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Ticket WhatsApp POS | `visitas/pos-ticket-whatsapp.util.ts` | **071** / POS |
 | Folio expediente mascota | `core/utils/folio-expediente-paciente.util.ts` | **068** |
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
-| Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper`) | **070** |
+| Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
 | SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
 | Loading global | `LoadingService` + `LOADING_MESSAGES` (incl. `charging`, `loadingCatalog`); hide en success **y** error; spec **005** | **005** |

@@ -14,6 +14,8 @@ import { VacunaDialogComponent } from '../vacunas/vacuna-dialog.component';
 
 export type AccionAltaRapida = 'consulta' | 'vacuna' | 'banio' | 'pension' | 'cita';
 
+export { debeMostrarPickerAltaRapida } from './alta-rapida-prefill.util';
+
 export interface AltaRapidaContexto {
   cliente_id: string;
   cliente: string;

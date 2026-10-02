@@ -68,7 +68,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `usuarios/` | `/admin/usuarios` | `Usuarios`, `AuthPerfiles` | 002, 011, 012 | Staff + provision portal |
 | `contactos-web/` | `/admin/contactos-web` | `ContactosWeb` | 001 | Leads landing |
 | `configuracion/` | `/admin/configuracion` | `Config/clinica` | 072 | Config clínica |
-| `alta-rapida/` | (diálogo) | Cliente + Mascota | 070 | Asistente «Llegó un paciente» |
+| `alta-rapida/` | (diálogo) | Cliente + Mascota | 070, 085 | Asistente «Llegó un paciente»; `alta-rapida-prefill.util` |
 | `ayuda/` | (diálogo) | — | 072 | Manual usuario |
 | `layouts/` | shell admin | — | 061, 072 | Sidenav + content |
 

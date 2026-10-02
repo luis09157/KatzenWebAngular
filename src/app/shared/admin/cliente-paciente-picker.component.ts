@@ -155,26 +155,33 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
       });
   }
 
-  /** Restaura cliente/paciente cuando el formulario padre ya trae IDs (edición). */
+  /** Restaura cliente/paciente cuando el formulario padre ya trae IDs (alta rápida / edición). */
   private restaurarSeleccionEdicion(): void {
-    if (!this.formGroup || !this.clientes.length || !this.pacientes.length) return;
+    if (!this.formGroup || !this.clientes.length) return;
 
     const { clienteId, pacienteId, clienteNombre, pacienteNombre } = this.fieldNames;
-    const idCliente = this.formGroup.get(clienteId)?.value;
-    const idPaciente = this.formGroup.get(pacienteId)?.value;
+    const idCliente = String(this.formGroup.get(clienteId)?.value || '').trim();
+    const idPaciente = String(this.formGroup.get(pacienteId)?.value || '').trim();
 
     if (!idCliente || idCliente === 'manual') return;
 
-    const cliente = this.clientes.find((c) => c.id === idCliente);
+    const cliente = this.clientes.find((c) => String(c.id) === idCliente);
     if (!cliente) return;
 
     this.clienteSeleccionado = cliente;
     this.clienteSearch.setValue(getClienteDisplayLabel(cliente), { emitEvent: false });
     this.actualizarPacientesDelCliente(cliente.id);
 
+    if (!this.pacientes.length) return;
+
     if (idPaciente && idPaciente !== 'manual') {
-      const paciente = this.pacientesDelCliente.find((p) => p.id === idPaciente);
+      const paciente =
+        this.pacientesDelCliente.find((p) => String(p.id) === idPaciente) ||
+        this.pacientes.find((p) => String(p.id) === idPaciente);
       if (paciente) {
+        if (!this.pacientesDelCliente.some((p) => String(p.id) === String(paciente.id))) {
+          this.pacientesDelCliente = [paciente, ...this.pacientesDelCliente];
+        }
         this.formGroup.patchValue(
           {
             [pacienteId]: paciente.id,

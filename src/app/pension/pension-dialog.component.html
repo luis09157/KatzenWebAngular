@@ -12,6 +12,7 @@
   <mat-dialog-content class="admin-dialog-body">
     <form [formGroup]="form" class="admin-form-layout">
       <app-cliente-paciente-picker
+        *ngIf="muestraPickerClientePaciente"
         class="full-width"
         [formGroup]="form"
         [permitirCrear]="!esEdicion"
@@ -20,6 +21,10 @@
         (crearPaciente)="crearMascotaRapida($event)"
       >
       </app-cliente-paciente-picker>
+      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente">
+        <h3 class="entity-summary__name">{{ form.get('paciente')?.value || data?.paciente || 'Paciente' }}</h3>
+        <p class="entity-summary__meta">Dueño: {{ form.get('cliente')?.value || data?.cliente || '—' }}</p>
+      </div>
       <mat-form-field appearance="outline">
         <mat-label>Fecha ingreso</mat-label>
         <input matInput type="date" formControlName="fecha_ingreso" required (change)="recalcularTotal()" />

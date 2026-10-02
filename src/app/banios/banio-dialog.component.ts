@@ -39,6 +39,7 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
+import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -88,8 +89,17 @@ export class BanioDialogComponent implements OnInit {
     }).ganancia;
   }
 
+  /**
+   * Si ya vienen dueño/mascota (Llegó un paciente / expediente), no pedirlos otra vez:
+   * se muestra el resumen compacto (mismo criterio que vacuna/historial — specs 070 / 085).
+   */
   get muestraPickerClientePaciente(): boolean {
-    return !this.esEdicion && !this.hidePatientInfo;
+    return debeMostrarPickerAltaRapida({
+      esEdicion: this.esEdicion,
+      hidePatientInfo: this.hidePatientInfo,
+      paciente_id: this.data?.paciente_id,
+      idPaciente: this.data?.idPaciente,
+    });
   }
 
   /** Hint dinámico bajo «Precio al cliente». */
@@ -218,16 +228,18 @@ export class BanioDialogComponent implements OnInit {
       this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
       this.aplicarPrefillCapturaRapida();
-      // Pre-selección opcional (p. ej. desde expediente de paciente)
-      if (this.data.paciente_id) {
+      // Pre-selección (Llegó un paciente / expediente) — ids duales como vacuna (070)
+      const pacienteId = String(this.data.paciente_id || this.data.idPaciente || '').trim();
+      const clienteId = String(this.data.cliente_id || this.data.idCliente || '').trim();
+      if (pacienteId) {
         this.banioForm.patchValue({
-          paciente_id: this.data.paciente_id,
-          paciente: this.data.paciente,
-          cliente_id: this.data.cliente_id,
-          cliente: this.data.cliente,
+          paciente_id: pacienteId,
+          paciente: this.data.paciente || this.data.paciente_nombre || '',
+          cliente_id: clienteId,
+          cliente: this.data.cliente || this.data.cliente_nombre || '',
           created_by: 'system',
         });
-        void this.cargarAlergiasDesdeMascota(this.data.paciente_id);
+        void this.cargarAlergiasDesdeMascota(pacienteId);
       } else {
         this.banioForm.patchValue({ created_by: 'system' });
       }

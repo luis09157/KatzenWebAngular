@@ -47,18 +47,13 @@
       >
       </app-cliente-paciente-picker>
 
-      <div
-        class="entity-summary entity-summary--compact"
-        *ngIf="
-          !muestraPickerClientePaciente &&
-          (banioForm.get('paciente')?.value || banioForm.get('cliente')?.value || data?.paciente_nombre)
-        "
-      >
+      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && !hidePatientInfo">
         <h3 class="entity-summary__name">
-          {{ data?.paciente_nombre || banioForm.get('paciente')?.value || 'Paciente' }}
+          {{ banioForm.get('paciente')?.value || data?.paciente || data?.paciente_nombre || 'Paciente' }}
         </h3>
         <p class="entity-summary__meta">
-          Cliente: {{ data?.cliente_nombre || banioForm.get('cliente')?.value || '—' }}
+          Dueño:
+          {{ banioForm.get('cliente')?.value || data?.cliente || data?.cliente_nombre || '—' }}
         </p>
       </div>
 

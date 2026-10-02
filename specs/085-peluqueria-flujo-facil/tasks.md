@@ -42,6 +42,12 @@
 - [x] Aviso al incluir baño con nota (ofrecer medicamento)
 - [x] Spec 085 modelo + ciclo de vida anti-basura + domain-context
 
+### Prefill desde «Llegó un paciente» (2026-10-01)
+
+- [x] Baño/pensión: si ya hay `paciente_id`, **no** volver a pedir dueño/mascota — resumen compacto (paridad vacuna/historial, SC-002 de 070)
+- [x] Util `alta-rapida-prefill.util` + picker con `[formGroup]` + restore de IDs más robusto
+- [x] Unit tests + build
+
 ### Fase C — Precios claros
 
 - [ ] C.1 Entrada obvia a tarifas por tamaño (022)
@@ -70,6 +76,7 @@
 | Ticket | flujo existente «Agregar al ticket» — no segundo cobro |
 | Cola mostrador | `visitas/banio-cola-mostrador.util.ts` (+ spec) — no duplicar filtros en componentes |
 | Captura rápida | `banios/banio-captura-rapida.util.ts` (+ spec) |
+| Prefill Llegó un paciente | `alta-rapida/alta-rapida-prefill.util.ts` — oculta picker si ya hay mascota |
 | No duplicar | No crear `/admin/peluqueria` paralelo |
 
 ---
@@ -90,7 +97,8 @@
 QA agente 2026-10-01:
 - Fase A captura rápida: modo Rápido default, chips tipo/tamaño, más detalles colapsado, prefill ahora
 - Cola limpia B.3b + Listo para cobrar
-- Tests captura 3/3 · cola utils OK · build exit 0 · ng serve :4200
+- Prefill «Llegó un paciente» → baño/pensión con resumen (sin picker vacío)
+- Tests captura 3/3 · prefill util · cola utils OK · build exit 0 · ng serve :4200
 - Fases C/D y B.1/B.3c pendientes
 - commit/push/deploy: solo con autorización de Luis
 ```
