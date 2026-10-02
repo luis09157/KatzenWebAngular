@@ -144,6 +144,63 @@ export class AlertasComponent implements OnInit, OnDestroy {
     this.router.navigate(['/admin/inventario/productos']);
   }
 
+  tituloAlerta(alerta: Alerta): string {
+    const msg = String(alerta?.mensaje || '').trim();
+    if (msg) {
+      return msg;
+    }
+    const nombre =
+      String(alerta?.producto_nombre || '').trim() || this.getProductoNombre(alerta?.producto_id) || 'Producto';
+    return `${this.etiquetaTipo(alerta?.tipo)}: ${nombre}`;
+  }
+
+  /** Detalle de la alerta (no solo saltar al catálogo). */
+  async verDetalleAlerta(alerta: Alerta): Promise<void> {
+    const nombre = String(alerta.producto_nombre || '').trim() || this.getProductoNombre(alerta.producto_id) || '—';
+    const stock = `${this.getProductoStock(alerta.producto_id)} ${this.getProductoUnidad(alerta.producto_id)}`.trim();
+    const puedeOc = alerta.tipo === 'stock_bajo' || alerta.tipo === 'punto_reorden';
+
+    const result = await Swal.fire({
+      icon: alerta.prioridad === 'critica' ? 'error' : 'warning',
+      title: this.prioridadCorta(alerta.prioridad),
+      html: `
+        <div style="text-align:left;font-size:0.95rem;line-height:1.45">
+          <p style="margin:0 0 10px;font-weight:600;color:#0f172a">${this.escapeHtml(this.tituloAlerta(alerta))}</p>
+          <p style="margin:0 0 6px;color:#475569"><strong>Tipo:</strong> ${this.escapeHtml(this.etiquetaTipo(alerta.tipo))}</p>
+          <p style="margin:0 0 6px;color:#475569"><strong>Producto:</strong> ${this.escapeHtml(nombre)}</p>
+          <p style="margin:0 0 6px;color:#475569"><strong>Stock actual:</strong> ${this.escapeHtml(stock || '—')}</p>
+          <p style="margin:0;color:#475569"><strong>Fecha:</strong> ${this.escapeHtml(this.formatearFecha(alerta.fecha_alerta))}</p>
+        </div>
+      `,
+      showDenyButton: !!alerta.producto_id,
+      showCancelButton: puedeOc,
+      confirmButtonText: alerta.estado === 'resuelta' ? 'Cerrar' : 'Resolver alerta',
+      denyButtonText: 'Ver producto',
+      cancelButtonText: 'Orden de compra',
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed && alerta.estado !== 'resuelta') {
+      await this.resolverAlerta(alerta);
+      return;
+    }
+    if (result.isDenied && alerta.producto_id) {
+      this.verProducto(alerta.producto_id);
+      return;
+    }
+    if (result.dismiss === Swal.DismissReason.cancel && puedeOc) {
+      this.crearOrdenDesdeAlerta(alerta);
+    }
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   verProducto(productoId: string): void {
     this.router.navigate(['/admin/inventario/productos'], {
       queryParams: { highlight: productoId },

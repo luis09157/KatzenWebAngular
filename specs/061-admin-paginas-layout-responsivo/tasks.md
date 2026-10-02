@@ -211,4 +211,5 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 3
 - [x] Copy banner: inventario primero; alertas se revisan aparte
 - [x] Listado `/inventario/alertas`: filas densas `.admin-dense-list` (no cards gordas)
 - [x] Patrón documentado: `docs/ADMIN-UI-ARCHITECTURE.md` regla 14 + `admin-dense-list.scss` + rule Cursor
+- [x] Fix: `.row-actions width:100%` ya no aplasta el texto; icono info → detalle Swal
 

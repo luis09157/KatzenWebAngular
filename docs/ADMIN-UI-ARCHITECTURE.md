@@ -369,7 +369,8 @@ Panel: `ADMIN_DIALOG_TIMEPICKER` ≈ **420px** / `maxWidth: 94vw` (no estrechar 
 | Título | 1 línea + ellipsis; `title` nativo con texto completo |
 | Meta | 1 línea; no repetir el mismo dato del título |
 | Hub vs listado | Dashboard Inventario = resumen (conteo + ≤3); listado completo = `/admin/inventario/alertas` |
-| CSS | Global `src/styles/admin-dense-list.scss` (en `angular.json`). No reinventar cards locales. |
+| Acciones | `.row-actions` con `width: auto !important` (el global de tablas usa `width: 100%` y **aplasta** el texto) |
+| Detalle | Icono `info` → diálogo con mensaje, producto, stock, fecha + CTAs Resolver / Ver producto / OC |
 
 ### Timepicker (patrón estándar de formularios)
 

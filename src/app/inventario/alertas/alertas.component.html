@@ -111,7 +111,7 @@
             prioridadCorta(alerta.prioridad)
           }}</span>
           <div class="admin-dense-row__body">
-            <p class="admin-dense-row__title" [attr.title]="alerta.mensaje">{{ alerta.mensaje }}</p>
+            <p class="admin-dense-row__title" [attr.title]="tituloAlerta(alerta)">{{ tituloAlerta(alerta) }}</p>
             <p class="admin-dense-row__meta">
               {{ etiquetaTipo(alerta.tipo) }}
               · {{ formatearFecha(alerta.fecha_alerta) }}
@@ -122,13 +122,20 @@
             </p>
           </div>
           <div class="row-actions">
-            <button mat-icon-button type="button" matTooltip="Ver producto" (click)="verProducto(alerta.producto_id)">
-              <mat-icon>visibility</mat-icon>
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Ver detalle de la alerta"
+              aria-label="Ver detalle de la alerta"
+              (click)="verDetalleAlerta(alerta)"
+            >
+              <mat-icon>info</mat-icon>
             </button>
             <button
               mat-icon-button
               type="button"
               matTooltip="Crear orden de compra"
+              aria-label="Crear orden de compra"
               *ngIf="alerta.tipo === 'stock_bajo' || alerta.tipo === 'punto_reorden'"
               (click)="crearOrdenDesdeAlerta(alerta)"
             >
@@ -137,7 +144,8 @@
             <button
               mat-icon-button
               type="button"
-              matTooltip="Resolver"
+              matTooltip="Marcar como resuelta"
+              aria-label="Marcar como resuelta"
               *ngIf="alerta.estado !== 'resuelta'"
               (click)="resolverAlerta(alerta)"
             >
