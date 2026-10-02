@@ -12,6 +12,8 @@ export interface BanioPendienteTicket {
   precio_total: number;
   costoEstimado?: number;
   categoria: 'banio' | 'corte';
+  /** Spec 085 — nota de la peluquera para mostrador. */
+  observaciones?: string;
 }
 
 function fechaBanioIso(banio: Banio): string {
@@ -35,16 +37,18 @@ export function filtrarBaniosPendientesTicket(
   opts: { clienteId: string; fecha: string; pacienteId?: string }
 ): BanioPendienteTicket[] {
   const clienteId = String(opts.clienteId || '').trim();
-  const fecha = String(opts.fecha || '').trim().slice(0, 10);
+  const fecha = String(opts.fecha || '')
+    .trim()
+    .slice(0, 10);
   const pacienteId = String(opts.pacienteId || '').trim();
   if (!clienteId || !fecha) return [];
 
   return (banios || [])
     .filter(esBanioPendienteDeTicket)
-    .filter(b => String(b.cliente_id || '').trim() === clienteId)
-    .filter(b => fechaBanioIso(b) === fecha)
-    .filter(b => !pacienteId || String(b.paciente_id || '').trim() === pacienteId)
-    .map(b => {
+    .filter((b) => String(b.cliente_id || '').trim() === clienteId)
+    .filter((b) => fechaBanioIso(b) === fecha)
+    .filter((b) => !pacienteId || String(b.paciente_id || '').trim() === pacienteId)
+    .map((b) => {
       const tipo = String(b.tipo_servicio || '').toLowerCase();
       return {
         id: b.id!,
@@ -56,10 +60,9 @@ export function filtrarBaniosPendientesTicket(
         tipo_servicio: b.tipo_servicio,
         precio_total: Number(b.precio_total) || 0,
         costoEstimado:
-          b.costoEstimado != null && !Number.isNaN(Number(b.costoEstimado))
-            ? Number(b.costoEstimado)
-            : undefined,
-        categoria: tipo.includes('corte') ? ('corte' as const) : ('banio' as const)
+          b.costoEstimado != null && !Number.isNaN(Number(b.costoEstimado)) ? Number(b.costoEstimado) : undefined,
+        categoria: tipo.includes('corte') ? ('corte' as const) : ('banio' as const),
+        observaciones: String(b.observaciones || '').trim() || undefined,
       };
     });
 }
@@ -73,5 +76,5 @@ export function descripcionLineaBanio(p: BanioPendienteTicket): string {
 export function banioYaEnLineas(lineas: VisitaLinea[] | null | undefined, banioId: string): boolean {
   const id = String(banioId || '').trim();
   if (!id) return false;
-  return (lineas || []).some(l => String(l.banioId || '') === id);
+  return (lineas || []).some((l) => String(l.banioId || '') === id);
 }

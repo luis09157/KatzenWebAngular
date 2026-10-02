@@ -58,7 +58,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `historiales/` | `/admin/historiales` | `Historiales_Clinicos`, notas internas | 010, 016 | Historial clínico |
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
-| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034 | Peluquería |
+| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / Hoy (085); no módulo paralelo |
 | `pension/` | `/admin/pension` | `Pension/Estancias` | 022 | Hospedaje |
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071 | **POS / cuenta del día** |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064 | Stock, OC, alertas |

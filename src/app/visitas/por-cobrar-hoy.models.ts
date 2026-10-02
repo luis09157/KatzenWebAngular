@@ -17,6 +17,8 @@ export interface PorCobrarItem {
   fecha: string;
   visitaId?: string;
   accion: PorCobrarAccion;
+  /** Spec 085 — nota de peluquería para mostrador (medicamento / cuidado). */
+  nota?: string;
 }
 
 export interface PorCobrarInput {
@@ -44,6 +46,7 @@ export interface PorCobrarInput {
     cajaMovimientoId?: string;
     visitaId?: string;
     activo?: boolean;
+    observaciones?: string;
   }>;
   citas: Array<{
     id?: string;

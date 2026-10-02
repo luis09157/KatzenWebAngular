@@ -101,7 +101,7 @@
 
   <app-flow-hint
     icon="receipt_long"
-    message="Registra el baño aquí. Cuando termine, usa «Agregar al ticket del día» en el menú ⋮ para cobrar desde Ticket del día."
+    message="1) Fija el precio y la nota. 2) «Listo para cobrar» → sale en Cobrar hoy. 3) Al cobrar desaparece de la cola; el historial sigue en esta lista."
     variant="info"
   >
   </app-flow-hint>
@@ -110,7 +110,7 @@
     accent="teal"
     icon="spa"
     title="Peluquería / baños"
-    subtitle="Registra el servicio aquí. El cobro va en Ticket del día (menú ⋮ → Agregar al ticket)."
+    subtitle="Registra el servicio y el precio. Mostrador lo selecciona en Cobrar con ese mismo monto."
   >
     <div bannerActions>
       <button mat-stroked-button (click)="exportarCsv()">
@@ -235,6 +235,32 @@
               <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verBanio(banio)">
                 <mat-icon>visibility</mat-icon>
               </button>
+              <button
+                mat-icon-button
+                type="button"
+                color="accent"
+                matTooltip="Listo para cobrar (cola mostrador)"
+                (click)="marcarListoParaCobrar(banio)"
+                [disabled]="
+                  banio.cajaMovimientoId ||
+                  banio.pagado ||
+                  banio.visitaId ||
+                  banio.estado === 'completado' ||
+                  banio.estado === 'cancelado'
+                "
+              >
+                <mat-icon>storefront</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Agregar al ticket ahora"
+                (click)="agregarAVisita(banio)"
+                [disabled]="banio.cajaMovimientoId || banio.pagado || banio.visitaId"
+              >
+                <mat-icon>point_of_sale</mat-icon>
+              </button>
               <button mat-icon-button type="button" matTooltip="Editar" (click)="editarBanio(banio)">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -295,6 +321,14 @@
     </button>
     <button
       mat-menu-item
+      *ngIf="menuContext?.estado === 'en_proceso' || menuContext?.estado === 'programado'"
+      (click)="marcarListoParaCobrar(menuContext)"
+      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId"
+    >
+      <mat-icon>storefront</mat-icon> Listo para cobrar (mostrador)
+    </button>
+    <button
+      mat-menu-item
       *ngIf="menuContext?.estado === 'en_proceso'"
       (click)="cambiarEstado(menuContext, 'completado')"
     >
@@ -313,7 +347,7 @@
       [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId"
     >
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Agregar al ticket del día' }}
+      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Enviar a mostrador (Cobrar)' }}
     </button>
   </mat-menu>
 </div>

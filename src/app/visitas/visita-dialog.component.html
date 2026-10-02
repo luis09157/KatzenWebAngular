@@ -620,13 +620,25 @@
                   type="button"
                   class="pos-card__hit"
                   (click)="incluirBanioPendiente(p)"
-                  [attr.aria-label]="'Incluir baño de ' + (p.paciente || 'mascota')"
+                  [attr.aria-label]="
+                    'Incluir baño de ' + (p.paciente || 'mascota') + ' por ' + formatMoney(p.precio_total)
+                  "
                 >
                   <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
                     <mat-icon>pets</mat-icon>
                   </div>
                   <span class="pos-card__name">{{ p.paciente || 'Mascota' }}</span>
                   <span class="pos-card__price">{{ formatMoney(p.precio_total) }}</span>
+                  <span class="pos-card__meta" *ngIf="p.tipo_servicio">{{ p.tipo_servicio | titlecase }}</span>
+                  <span class="pos-card__nota-badge" *ngIf="p.observaciones">Nota de peluquería</span>
+                </button>
+                <button
+                  *ngIf="p.observaciones"
+                  type="button"
+                  class="pos-card__nota-btn"
+                  (click)="verNotaBanioPendiente(p, $event)"
+                >
+                  Ver nota
                 </button>
               </article>
               <p class="hint-empty pos-grid__hint" *ngIf="!pendientesBanio.length && !productosFiltrados.length">

@@ -96,13 +96,20 @@
 
     <section class="pos-home__pendientes" *ngIf="porCobrarItems.length" aria-label="Por cobrar hoy">
       <h2>Por cobrar hoy</h2>
-      <p class="pos-home__lead pos-home__lead--tight">Servicios sueltos del día. Cobras aquí, no en finanzas.</p>
+      <p class="pos-home__lead pos-home__lead--tight">
+        Incluye baños listos de hoy (completados) con el precio de la peluquera. Al cobrar, salen de esta lista.
+      </p>
       <ul class="pos-ticket-list">
         <li *ngFor="let row of porCobrarItems">
           <div class="pos-ticket-card pos-ticket-card--pendiente">
             <div class="pos-ticket-card__main">
               <span class="pos-ticket-card__name">{{ row.cliente || '—' }}</span>
               <span class="pos-ticket-card__meta"> {{ tipoPorCobrarLabel(row.tipo) }} · {{ row.descripcion }} </span>
+              <span class="pos-ticket-card__nota" *ngIf="row.nota">
+                <mat-icon inline>sticky_note_2</mat-icon>
+                Nota de peluquería
+                <button type="button" class="pos-home__link" (click)="verNotaPorCobrar(row, $event)">Ver</button>
+              </span>
             </div>
             <div class="pos-ticket-card__right">
               <strong *ngIf="row.monto > 0">{{ formatMoney(row.monto) }}</strong>

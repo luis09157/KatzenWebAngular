@@ -272,6 +272,19 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     return map[tipo] || tipo;
   }
 
+  verNotaPorCobrar(item: PorCobrarItem, event?: Event): void {
+    event?.stopPropagation();
+    const nota = String(item.nota || '').trim();
+    if (!nota) return;
+    void KatzenSwal.fire({
+      icon: 'info',
+      title: 'Nota de peluquería',
+      html: `<p style="text-align:left;white-space:pre-wrap">${nota.replace(/</g, '&lt;')}</p>
+        <p style="text-align:left;margin-top:12px;color:#4b5563">Si aplica, ofrece medicamento o producto al dueño y agrégalo al ticket.</p>`,
+      confirmButtonText: 'Entendido',
+    });
+  }
+
   async accionPorCobrar(item: PorCobrarItem): Promise<void> {
     if (item.accion === 'abrir_ticket' && item.visitaId) {
       const visita = await this.visitasService.getVisita(item.visitaId);
@@ -319,7 +332,18 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
         ...ADMIN_DIALOG_POS,
         data: { visita: visita || undefined, cliente_id: item.cliente_id, cliente: item.cliente },
       });
-      KatzenSwal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      const nota = String(item.nota || '').trim();
+      if (item.tipo === 'banio' && nota) {
+        await KatzenSwal.fire({
+          icon: 'info',
+          title: 'Baño en el ticket · hay nota',
+          html: `<p style="text-align:left;white-space:pre-wrap">${nota.replace(/</g, '&lt;')}</p>
+            <p style="text-align:left;margin-top:12px">El monto del baño ya está en el ticket (<strong>${this.formatMoney(monto)}</strong>). Revisa si debes agregar medicamento u otro producto.</p>`,
+          confirmButtonText: 'Abrí el ticket',
+        });
+      } else {
+        KatzenSwal.fire({ icon: 'success', title: 'Agregado al ticket', timer: 1400, showConfirmButton: false });
+      }
       this.cargar();
       this.cargarPorCobrarHoy();
     } catch (error) {

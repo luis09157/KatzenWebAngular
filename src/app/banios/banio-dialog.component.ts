@@ -38,6 +38,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -51,6 +52,10 @@ export class BanioDialogComponent implements OnInit {
   loading = false;
   esEdicion = false;
   hidePatientInfo = false; // Flag para ocultar campos de paciente/cliente
+  /** Spec 085 A — captura rápida por defecto en alta; edición abre completo. */
+  modoRapido = true;
+  masDetallesAbiertos = false;
+  iniciarYa = false;
   defaultsBanio: DefaultsBanioPorTamano = emptyDefaultsBanio();
   plantillasCosto: PlantillaCosto[] = [];
   /** Spec 034 — alergias canónicas desde Mascota (editor + alerta). */
@@ -192,6 +197,8 @@ export class BanioDialogComponent implements OnInit {
 
     if (this.data && this.data.id) {
       this.esEdicion = true;
+      this.modoRapido = false;
+      this.masDetallesAbiertos = true;
       this.cargarDatosBanio();
       // En edición, estos campos son de solo lectura; no deben bloquear el guardado
       this.banioForm.get('paciente')?.clearValidators();
@@ -210,6 +217,7 @@ export class BanioDialogComponent implements OnInit {
       // Mantener la fecha original de alta (solo lectura en edición)
       this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
+      this.aplicarPrefillCapturaRapida();
       // Pre-selección opcional (p. ej. desde expediente de paciente)
       if (this.data.paciente_id) {
         this.banioForm.patchValue({
@@ -241,6 +249,8 @@ export class BanioDialogComponent implements OnInit {
         this.banioForm.get('paciente')?.updateValueAndValidity({ emitEvent: false });
         this.banioForm.get('cliente')?.updateValueAndValidity({ emitEvent: false });
       }
+    } else {
+      this.aplicarPrefillCapturaRapida();
     }
 
     this.configurarCalculoPrecio();
@@ -265,6 +275,46 @@ export class BanioDialogComponent implements OnInit {
         pagadoCtrl.disable({ emitEvent: false });
       }
     }
+  }
+
+  setModoRapido(rapido: boolean): void {
+    this.modoRapido = rapido;
+    if (!rapido) {
+      this.masDetallesAbiertos = true;
+    }
+  }
+
+  elegirTipoServicio(value: string): void {
+    this.banioForm.patchValue({ tipo_servicio: value });
+    // Recalcular base si el tipo tiene precio implícito vía tamaño ya elegido
+    const tamano = this.banioForm.get('tamano_perro')?.value;
+    if (tamano) {
+      this.onTamanoChange();
+    }
+  }
+
+  elegirTamano(t: TamanoPerroBanio | ''): void {
+    this.banioForm.patchValue({ tamano_perro: t });
+    this.onTamanoChange();
+  }
+
+  onIniciarYaChange(checked: boolean): void {
+    this.iniciarYa = checked;
+    this.banioForm.patchValue({ estado: checked ? 'en_proceso' : 'programado' });
+  }
+
+  private aplicarPrefillCapturaRapida(): void {
+    const p = prefillCapturaRapidaBanio({ iniciarYa: this.iniciarYa });
+    const [y, m, d] = p.fecha_banio.split('-').map(Number);
+    this.banioForm.patchValue({
+      fecha_banio: new Date(y, m - 1, d),
+      hora_banio: p.hora_banio,
+      estado: p.estado,
+      prioridad: p.prioridad,
+      comportamiento: p.comportamiento,
+      duracion_estimada: p.duracion_estimada,
+      pagado: p.pagado,
+    });
   }
 
   cargarDatosBanio() {
@@ -718,6 +768,15 @@ export class BanioDialogComponent implements OnInit {
     this.sincronizarPrecioBaseDesdeTotal();
     this.revalidarCostoVsVenta();
     this.banioForm.get('costoEstimado')?.markAsTouched();
+
+    if (!this.banioForm.get('tipo_servicio')?.value) {
+      Swal.fire('Falta el servicio', 'Elige el tipo de baño o corte.', 'warning');
+      return;
+    }
+    if (!(Number(this.banioForm.get('precio_total')?.value) > 0)) {
+      Swal.fire('Falta el precio', 'Indica el precio al cliente (lo que cobrará mostrador).', 'warning');
+      return;
+    }
 
     if (this.banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')) {
       Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');

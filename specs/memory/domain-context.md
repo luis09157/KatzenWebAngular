@@ -391,6 +391,7 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 
 - Baño **cancelado:** puede cancelarse; debe afectar métricas operativas.
 - **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link **018** + costos **021** · defaults por tamaño + precio por registro **022**.
+- **Handoff cobro (085):** mostrador cobra `precio_total`. **Cola «Por cobrar hoy»** = solo baños **listos del día** aún no cobrados; al vincular ticket/`pagado`/caja **salen de la cola**. Historial y basura se gestionan en Peluquería (filtros / Borrar / Cancelar), no en mostrador. `observaciones` = nota para mostrador. Ver `specs/085-peluqueria-flujo-facil/spec.md` § Ciclo de vida.
 - Cancelar revierte `pagado: false` (código actual).
 - **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
 - **Costo vs venta (2026-08-26):** al crear/editar baño, `costoEstimado` (si se informa) debe ser **estrictamente menor** que `precio_total`. Si costo ≥ venta → no guardar; mensaje en formulario («El costo debe ser menor que el precio de venta»). Datos legacy con costo=venta siguen leyéndose en KPIs con margen 0. Margen % opcional en UI recalcula `precio_total` desde costo.

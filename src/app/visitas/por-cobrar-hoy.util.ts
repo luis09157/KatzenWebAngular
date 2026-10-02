@@ -1,4 +1,5 @@
 import { bloquearCobroDirectoEnCaja, vinculadoATicketVisita } from '../core/utils/cobro-integridad.util';
+import { esBanioEnColaMostradorHoy } from './banio-cola-mostrador.util';
 import { PorCobrarInput, PorCobrarItem } from './por-cobrar-hoy.models';
 
 function fechaIso(val: string | undefined | null): string {
@@ -34,28 +35,29 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       monto: saldo,
       fecha: v.fecha || hoy,
       visitaId: v.id,
-      accion: 'abrir_ticket'
+      accion: 'abrir_ticket',
     });
   }
 
   for (const b of input.banios || []) {
-    if (b.activo === false || b.estado === 'cancelado') continue;
-    if (bloquearCobroDirectoEnCaja(b) || b.pagado) continue;
-    if (b.estado !== 'completado') continue;
-    const f = fechaIso(b.fecha_banio);
-    if (f !== hoy || !b.id || !b.cliente_id) continue;
+    // Spec 085: cola limpia — solo listos del día; al cobrar (visitaId/pagado/caja) salen
+    if (!esBanioEnColaMostradorHoy(b, hoy)) continue;
+    // defensa extra anti doble camino caja (039)
+    if (bloquearCobroDirectoEnCaja(b)) continue;
+    const nota = String(b.observaciones || '').trim();
     items.push({
       key: `banio-${b.id}`,
       tipo: 'banio',
-      id: b.id,
-      cliente_id: b.cliente_id,
-      cliente: b.cliente || clientes[b.cliente_id],
+      id: b.id!,
+      cliente_id: b.cliente_id!,
+      cliente: b.cliente || clientes[b.cliente_id!],
       paciente: b.paciente,
       paciente_id: b.paciente_id,
       descripcion: `Baño · ${b.paciente || 'paciente'}`,
       monto: Number(b.precio_total) || 0,
-      fecha: f,
-      accion: 'agregar_ticket'
+      fecha: fechaIso(b.fecha_banio) || hoy,
+      accion: 'agregar_ticket',
+      nota: nota || undefined,
     });
   }
 
@@ -76,7 +78,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       descripcion: `Consulta · ${c.paciente || 'paciente'}`,
       monto: Number(c.precio) || Number(c.monto) || 0,
       fecha: f,
-      accion: 'agregar_ticket'
+      accion: 'agregar_ticket',
     });
   }
 
@@ -97,7 +99,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       descripcion: `Pensión · ${p.paciente || 'mascota'}`,
       monto: Number(p.precio_total) || Number(p.precio_dia) || 0,
       fecha: f,
-      accion: 'agregar_ticket'
+      accion: 'agregar_ticket',
     });
   }
 
@@ -121,7 +123,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       descripcion: `Vacuna · ${v.tipo_vacuna || v.vacuna || 'aplicada'}`,
       monto: Number(v.precio) || 0,
       fecha: f,
-      accion: 'agregar_ticket'
+      accion: 'agregar_ticket',
     });
   }
 
@@ -143,7 +145,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       descripcion: `Consulta · ${String(h.diagnostico_presuntivo || 'historial').slice(0, 40)}`,
       monto: 0,
       fecha: f,
-      accion: 'agregar_ticket'
+      accion: 'agregar_ticket',
     });
   }
 

@@ -1341,6 +1341,19 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.pushLineaBanio(p, monto);
   }
 
+  verNotaBanioPendiente(p: BanioPendienteTicket, event?: Event): void {
+    event?.stopPropagation();
+    const nota = String(p.observaciones || '').trim();
+    if (!nota) return;
+    void Swal.fire({
+      icon: 'info',
+      title: 'Nota de peluquería',
+      html: `<p style="text-align:left;white-space:pre-wrap">${nota.replace(/</g, '&lt;')}</p>
+        <p style="text-align:left;margin-top:12px;color:#4b5563">Si hace falta, agrega medicamento o producto al ticket (riel Petshop).</p>`,
+      confirmButtonText: 'Entendido',
+    });
+  }
+
   quitarLinea(id: string): void {
     if (this.pagado > 0) return;
     this.lineas = this.lineas.filter((l) => l.id !== id);
@@ -1806,6 +1819,16 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       },
     ];
     this.pendientesBanio = this.pendientesBanio.filter((x) => x.id !== p.id);
+    const nota = String(p.observaciones || '').trim();
+    if (nota) {
+      void Swal.fire({
+        icon: 'info',
+        title: 'Baño agregado · hay nota',
+        html: `<p style="text-align:left;white-space:pre-wrap">${nota.replace(/</g, '&lt;')}</p>
+          <p style="text-align:left;margin-top:12px">Revisa si el cliente necesita <strong>medicamento u otro producto</strong> y agrégalo al ticket antes de cobrar.</p>`,
+        confirmButtonText: 'Seguir en el ticket',
+      });
+    }
   }
 
   private async persistir(): Promise<string> {

@@ -107,7 +107,11 @@ Proceso obligatorio: al cerrar una feature, actualizar `tasks.md` + memoria (`mo
 
 ### Oleada UI **084** (2026-10-01) — post Fases 1–4
 
-Spec `084-ui-ux-oleada-impacto`: oleada L2 + **US-7** (web+tablet táctil): catálogo POS 1/2/3 cols, nombre siempre visible sin foto, CSS global overlay, baños `BACO*` seleccionables con stock 0 (`productoDescuentaInventarioPos`), lecciones anti-regresión en `spec.md`. Follow-up SC-014 otros mosaicos. **Commit/deploy = no** hasta OK de Luis. Oleada 2 UI: resto de Swal, empty states secundarios.
+Spec `084-ui-ux-oleada-impacto`: oleada L2 + **US-7** (web+tablet táctil): catálogo POS 1/2/3 cols, nombre siempre visible sin foto, CSS global overlay, baños `BACO*` seleccionables con stock 0 (`productoDescuentaInventarioPos`), lecciones anti-regresión en `spec.md`. Follow-up SC-014 otros mosaicos. Oleada 2 UI: resto de Swal, empty states secundarios.
+
+### Peluquería fácil **085** (plan 2026-10-01)
+
+Spec `085-peluqueria-flujo-facil`: mejorar `/admin/banios` **sin** segundo módulo. Fases **A** captura rápida → **B** Hoy + Iniciar/Terminé/ticket → **C** tarifas 022 claras → **D** pulido. Regla: baño ≠ cobro; defaults tamaño se reutilizan. Estado: `draft` (arranque Fase A pendiente).
 
 ### Oleada rendimiento + UX “prisa” + loading (backlog)
 

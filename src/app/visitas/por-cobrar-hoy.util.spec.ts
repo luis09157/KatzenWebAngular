@@ -14,14 +14,14 @@ describe('por-cobrar-hoy.util (spec 040)', () => {
           fecha: hoy,
           saldo: 300,
           estado: 'parcial',
-          activo: true
-        }
+          activo: true,
+        },
       ],
       banios: [],
       citas: [],
       pensiones: [],
       vacunas: [],
-      historiales: []
+      historiales: [],
     });
     expect(items.some((i) => i.tipo === 'visita' && i.accion === 'abrir_ticket')).toBe(true);
   });
@@ -37,13 +37,13 @@ describe('por-cobrar-hoy.util (spec 040)', () => {
           fecha_banio: hoy,
           precio_total: 200,
           estado: 'completado',
-          visitaId: 'vis-1'
-        }
+          visitaId: 'vis-1',
+        },
       ],
       citas: [],
       pensiones: [],
       vacunas: [],
-      historiales: []
+      historiales: [],
     });
     expect(items.length).toBe(0);
   });
@@ -59,12 +59,12 @@ describe('por-cobrar-hoy.util (spec 040)', () => {
           cliente_id: 'c1',
           fecha_hora: `${hoy}T10:00:00`,
           estado: 'completada',
-          precio: 450
-        }
+          precio: 450,
+        },
       ],
       pensiones: [],
       vacunas: [],
-      historiales: []
+      historiales: [],
     });
     expect(items.some((i) => i.tipo === 'cita')).toBe(true);
     expect(totalPorCobrarHoy(items)).toBe(450);
@@ -84,33 +84,68 @@ describe('por-cobrar-hoy.util (spec 040)', () => {
           fecha_vacuna: hoy,
           tipo_vacuna: 'antirrabica',
           estado: 'aplicada',
-          precio: 180
-        }
+          precio: 180,
+        },
       ],
       historiales: [],
-      pacientesClienteMap: { p1: { cliente_id: 'c1', nombre: 'Firulais' } }
+      pacientesClienteMap: { p1: { cliente_id: 'c1', nombre: 'Firulais' } },
     });
     expect(items.some((i) => i.tipo === 'vacuna' && i.monto === 180)).toBe(true);
   });
 
-  it('incluye historial de hoy sin ticket', () => {
+  it('085: programado NO ensucia cola; completado con nota SÍ', () => {
     const items = buildPorCobrarHoy({
       hoy,
       visitas: [],
-      banios: [],
+      banios: [
+        {
+          id: 'b-prog',
+          cliente_id: 'c1',
+          fecha_banio: hoy,
+          precio_total: 350,
+          estado: 'programado',
+          observaciones: 'Irritación',
+        },
+        {
+          id: 'b-ok',
+          cliente_id: 'c1',
+          paciente: 'Michi',
+          fecha_banio: hoy,
+          precio_total: 350,
+          estado: 'completado',
+          observaciones: 'Irritación en panza; sugerir shampoo',
+        },
+      ],
       citas: [],
       pensiones: [],
       vacunas: [],
-      historiales: [
-        {
-          id: 'h1',
-          cliente_id: 'c1',
-          paciente_id: 'p1',
-          fecha_registro: `${hoy} 09:00:00`,
-          diagnostico_presuntivo: 'Otitis'
-        }
-      ]
+      historiales: [],
     });
-    expect(items.some((i) => i.tipo === 'historial')).toBe(true);
+    expect(items.some((i) => i.id === 'b-prog')).toBe(false);
+    const banio = items.find((i) => i.id === 'b-ok');
+    expect(banio).toBeTruthy();
+    expect(banio!.monto).toBe(350);
+    expect(banio!.nota).toContain('Irritación');
+  });
+
+  it('excluye baño sin precio', () => {
+    const items = buildPorCobrarHoy({
+      hoy,
+      visitas: [],
+      banios: [
+        {
+          id: 'b0',
+          cliente_id: 'c1',
+          fecha_banio: hoy,
+          precio_total: 0,
+          estado: 'completado',
+        },
+      ],
+      citas: [],
+      pensiones: [],
+      vacunas: [],
+      historiales: [],
+    });
+    expect(items.some((i) => i.tipo === 'banio')).toBe(false);
   });
 });
