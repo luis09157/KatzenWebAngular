@@ -111,3 +111,5 @@ Tras deploy 084 (`92d396e`): PATCH `retainedReleaseCount=1` OK; queda 1 FINALIZE
 Tras deploy 085 (`c3e16d6`): PATCH `retainedReleaseCount=1` OK; DELETE 3 no live; queda 1 FINALIZED `a99eb70b8a3f57ef`; sitio HTTP 200.
 
 Tras deploy prefill Llegó un paciente (`75fc6d3`): PATCH `retainedReleaseCount=1` OK; queda 1 FINALIZED `c5235f331baae716`; sitio HTTP 200.
+
+Tras deploy loading US-3 (`4e5ec84`): PATCH `retainedReleaseCount=1` OK; sitio HTTP 200.
