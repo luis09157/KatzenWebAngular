@@ -59,72 +59,77 @@ export async function abrirAtencionAltaRapida(
   ctx: AltaRapidaContexto
 ): Promise<void> {
   const ids = dataAtencionDesdeContexto(ctx);
-  if (accion === 'consulta') {
-    await firstValueFrom(
-      deps.dialog
-        .open(HistorialDialogComponent, {
-          ...ADMIN_DIALOG_FORM,
-          data: { historial: null, modoVer: false, ...ids },
-        })
-        .afterClosed()
-    );
-  } else if (accion === 'vacuna') {
-    await firstValueFrom(
-      deps.dialog
-        .open(VacunaDialogComponent, {
-          ...ADMIN_DIALOG_FORM,
-          data: ids,
-        })
-        .afterClosed()
-    );
-  } else if (accion === 'banio') {
-    await firstValueFrom(
-      deps.dialog
-        .open(BanioDialogComponent, {
-          ...ADMIN_DIALOG_FORM,
-          data: ids,
-        })
-        .afterClosed()
-    );
-  } else if (accion === 'pension') {
-    await firstValueFrom(
-      deps.dialog
-        .open(PensionDialogComponent, {
-          ...ADMIN_DIALOG_CONFIG,
-          width: '720px',
-          disableClose: true,
-          data: ids,
-        })
-        .afterClosed()
-    );
-  } else {
-    const result = await firstValueFrom(
-      deps.dialog
-        .open(CitaDialogComponent, {
-          ...ADMIN_DIALOG_CONFIG,
-          data: {
-            modoVer: false,
-            cita: {
-              cliente_id: ctx.cliente_id,
-              paciente_id: ctx.paciente_id,
-              paciente: ctx.paciente,
-              nombreCliente: ctx.cliente,
+  try {
+    if (accion === 'consulta') {
+      await firstValueFrom(
+        deps.dialog
+          .open(HistorialDialogComponent, {
+            ...ADMIN_DIALOG_FORM,
+            data: { historial: null, modoVer: false, ...ids },
+          })
+          .afterClosed()
+      );
+    } else if (accion === 'vacuna') {
+      await firstValueFrom(
+        deps.dialog
+          .open(VacunaDialogComponent, {
+            ...ADMIN_DIALOG_FORM,
+            data: ids,
+          })
+          .afterClosed()
+      );
+    } else if (accion === 'banio') {
+      await firstValueFrom(
+        deps.dialog
+          .open(BanioDialogComponent, {
+            ...ADMIN_DIALOG_FORM,
+            data: ids,
+          })
+          .afterClosed()
+      );
+    } else if (accion === 'pension') {
+      await firstValueFrom(
+        deps.dialog
+          .open(PensionDialogComponent, {
+            ...ADMIN_DIALOG_CONFIG,
+            width: '720px',
+            disableClose: true,
+            data: ids,
+          })
+          .afterClosed()
+      );
+    } else {
+      const result = await firstValueFrom(
+        deps.dialog
+          .open(CitaDialogComponent, {
+            ...ADMIN_DIALOG_CONFIG,
+            data: {
+              modoVer: false,
+              cita: {
+                cliente_id: ctx.cliente_id,
+                paciente_id: ctx.paciente_id,
+                paciente: ctx.paciente,
+                nombreCliente: ctx.cliente,
+              },
             },
-          },
-        })
-        .afterClosed()
-    );
-    if (result) {
-      deps.loadingService.show(LOADING_MESSAGES.saving);
-      try {
-        await deps.citasService.guardarCita(result);
-        await Swal.fire({ icon: 'success', title: 'Cita guardada', timer: 1600, showConfirmButton: false });
-      } catch (error) {
-        await Swal.fire('Error', deps.errorMessages.getUserMessage(error, 'guardar cita'), 'error');
-      } finally {
-        deps.loadingService.hide();
+          })
+          .afterClosed()
+      );
+      if (result) {
+        deps.loadingService.show(LOADING_MESSAGES.saving);
+        try {
+          await deps.citasService.guardarCita(result);
+          await Swal.fire({ icon: 'success', title: 'Cita guardada', timer: 1600, showConfirmButton: false });
+        } catch (error) {
+          await Swal.fire('Error', deps.errorMessages.getUserMessage(error, 'guardar cita'), 'error');
+        } finally {
+          deps.loadingService.hide();
+        }
       }
     }
+  } finally {
+    // Red de seguridad: diálogos clínicos a veces hacen show() al cerrar sin hide (baño/vacuna).
+    deps.loadingService.hide();
   }
   const nav = rutaExpedientePaciente(ctx.paciente_id);
   await deps.router.navigate(nav.commands, nav.extras);

@@ -5,7 +5,7 @@ import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { Banio } from '../shared/banio.model';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import { LoadingService } from '../core/loading.service';
+import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import {
   DefaultsBanioPorTamano,
@@ -902,17 +902,19 @@ export class BanioDialogComponent implements OnInit {
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
         const metodoActualizar = this.hidePatientInfo ? 'actualizarBanioPaciente' : 'actualizarBanio';
 
+        this.loadingService.show(LOADING_MESSAGES.saving);
         servicioAUsar[metodoActualizar](this.data.id, payload)
           .then(async () => {
             const pid = String(this.banioForm.get('paciente_id')?.value || this.data.paciente_id || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
-            this.loadingService.show();
             this.dialogRef.close(true);
           })
           .catch((error) => {
             console.error('❌ Error al actualizar baño:', error);
-            this.loadingService.hide();
             setTimeout(() => Swal.fire('Error', `No se pudo actualizar el baño: ${error.message}`, 'error'), 0);
+          })
+          .finally(() => {
+            this.loadingService.hide();
             this.loading = false;
           });
       } else {
@@ -920,17 +922,19 @@ export class BanioDialogComponent implements OnInit {
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
         const metodoCrear = this.hidePatientInfo ? 'crearBanioPaciente' : 'crearBanio';
 
+        this.loadingService.show(LOADING_MESSAGES.saving);
         servicioAUsar[metodoCrear](datosLimpios)
           .then(async (nuevoId: string) => {
             const pid = String(datosLimpios.paciente_id || this.banioForm.get('paciente_id')?.value || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
-            this.loadingService.show();
             this.dialogRef.close({ created: true, id: nuevoId });
           })
           .catch((error) => {
             console.error('❌ Error al crear baño:', error);
-            this.loadingService.hide();
             setTimeout(() => Swal.fire('Error', `No se pudo crear el baño: ${error.message}`, 'error'), 0);
+          })
+          .finally(() => {
+            this.loadingService.hide();
             this.loading = false;
           });
       }

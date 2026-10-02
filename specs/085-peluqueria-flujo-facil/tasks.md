@@ -47,6 +47,7 @@
 - [x] Baño/pensión: si ya hay `paciente_id`, **no** volver a pedir dueño/mascota — resumen compacto (paridad vacuna/historial, SC-002 de 070)
 - [x] Util `alta-rapida-prefill.util` + picker con `[formGroup]` + restore de IDs más robusto
 - [x] Unit tests + build
+- [x] Hotfix loading trabado al guardar baño desde alta rápida (`show` sin `hide` → overlay eterno); `finally` + red de seguridad en `abrirAtencionAltaRapida`
 
 ### Fase C — Precios claros
 
