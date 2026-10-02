@@ -115,3 +115,5 @@ Tras deploy prefill Llegó un paciente (`75fc6d3`): PATCH `retainedReleaseCount=
 Tras deploy loading US-3 (`4e5ec84`): PATCH `retainedReleaseCount=1` OK; sitio HTTP 200.
 
 Tras deploy footer diálogos 059 (`fc00c89`): PATCH `retainedReleaseCount=1` OK; queda 1 FINALIZED `2560dc8a4843b8dd`; sitio HTTP 200.
+
+Tras deploy POS baños cola 085 (`7e941d2`): PATCH `retainedReleaseCount=1` OK; queda 1 FINALIZED `95330ff1b8860308`; sitio HTTP 200.
