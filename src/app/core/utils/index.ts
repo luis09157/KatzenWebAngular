@@ -18,6 +18,7 @@ export * from './fcm-copy.util';
 export * from './firebase-messaging-sw-register';
 export * from './folio-expediente-paciente.util';
 export * from './login-error-copy.util';
+export * from './omit-undefined-rtdb.util';
 export * from './paciente-cliente.util';
 export * from './paciente-hydrate.util';
 export * from './paciente-search.util';

@@ -211,6 +211,16 @@
     .pos-btn-full {
       min-height: 44px;
     }
+
+    .pos-ticket-digital-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+
+      @media (max-width: 420px) {
+        grid-template-columns: 1fr;
+      }
+    }
   }
 
   .pos-more-toggle {

@@ -133,3 +133,5 @@ Tras deploy datepicker 090 + pensión/datepicker locales (2026-10-02): PATCH `re
 Tras deploy fix costo_dia undefined (pensión payload) + datepicker 090 en working tree (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`f5d4cff42d9e6ccf`); queda 1 FINALIZED `0d687d371abd0fb9`; sitio HTTP 200.
 
 Tras deploy datepicker 090 + fix costo_dia + POS riel pensión 091 + legibilidad ticket (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`0d687d371abd0fb9`); queda 1 FINALIZED `3b332e9068e1ee25`; sitio HTTP 200.
+
+Tras deploy working tree: sanitize líneas visita (citaId undefined) + ticket digital PDF CSS 092 + pendientes (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 2 no live (`3b332e9068e1ee25`, `0be715febd6f4793`); queda 1 FINALIZED `dd0d706c197d332a`; sitio HTTP 200; `main.5c32cbc8052212bf.js`.

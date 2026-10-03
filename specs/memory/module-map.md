@@ -28,7 +28,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 |------|-----------|-------|
 | `config/` | `staff-role.config.ts` | Matriz módulos / nav (**072**) |
 | `services/` | Auth profile, session, FCM portal, Functions, sucursal | Un solo camino a callables |
-| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run… | Barrel: `core/utils/index.ts` |
+| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run, `omitUndefinedRtdb`… | Barrel: `core/utils/index.ts` |
 | `ui/` | `katzen-swal.ts` — SweetAlert2 mixin marca (**084**) | Preferir `KatzenSwal` vs `Swal` suelto en pantallas nuevas |
 | `models/` + `models.ts` | Tipos compartidos | RTDB aditivo |
 | `testing/` | `mock-data.ts` | Obligatorio para demos agente |
@@ -60,8 +60,8 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
 | `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / Hoy (085); no módulo paralelo |
-| `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload RTDB `pension-estancia-payload.util` (sin undefined) |
-| `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` |
+| `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload `pension-estancia-payload.util` → `omitUndefinedRtdb` en `core/utils` |
+| `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` · líneas RTDB `visita-linea-rtdb.util` |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |
 | `finanzas/` | `/admin/finanzas` | `Caja`, `Finanzas/*` | 014, 021, 022, 071 | Caja, costos, reportes |
 | `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056 | Tarifas sin stock |
@@ -127,7 +127,7 @@ Core / Shared ──► sin UI de negocio propia
 | `core/utils` sin índice | Mitigado | Barrel `index.ts` (**075**/**076**) |
 | Duplicar formatters moneda | **Parcial 076** | `formatMoneyMx` en visita-dialog, cliente-cuenta, caja-corte |
 
-**Estado modularización Visitas/POS (075–082):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner/carrito) en `main`. Ticket WhatsApp en `pos-ticket-whatsapp.util`.
+**Estado modularización Visitas/POS (075–082 + 092):** wizard + bloqueos + sheet-util + copy + orquestación + persistir + **sheets UI** (panel/cantidad/scanner/carrito) en `main`. Ticket WhatsApp en `pos-ticket-whatsapp.util`. Ticket digital/PDF en `ticket-digital.util` (**092**); térmico 80 mm en `ticket-80mm.util`.
 
 **Anti-duplicación:** tabla canónica en `agent-guardrails.md` (pos-wizard, pos-bloqueo, pos-sheet, pos-copy, pos-orquestacion, pos-persistir, pos-sheet-* components, folio-expediente, recordatorio-whatsapp, alta-rapida, login/fcm copy, etc.). No reimplementar.
 

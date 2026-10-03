@@ -14,7 +14,7 @@ Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle d
 2. **CSS de diálogos** — apuntar a `.admin-dialog-panel` o `:host` del componente, nunca a `.admin-content`. Nunca `:has(.entity-summary)` para quitar padding del body.
 3. **Copy destructivo = «Borrar»** — labels, tooltips, menús, SweetAlert. Nunca «Baja lógica» / «Dar de baja» (internamente sigue `activo: false`).
 4. **Chips de estado completos** — `.estado-badge` / `.admin-badge` sin clip; `mat-column-estado` ≥ ~148px, `overflow: visible`.
-5. **Loading** — `LoadingService` con mensaje contextual (`LOADING_MESSAGES`); cada `show()` → `hide()` en success **y** error; sin doble `show` diálogo+padre.
+5. **Loading** — `LoadingService` con mensaje contextual (`LOADING_MESSAGES`); cada `show()` → `hide()` en success **y** error; sin doble `show` diálogo+padre; **sin** `await` Swal/share/PDF post-éxito dentro del `try` con `show` (persistir → `hide` → acciones; specs **005**/**092**).
 6. **Dialog config** — `{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }`. Pickers compactos: `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER`; fichas: `ADMIN_DIALOG_FICHA`. No usar `--picker` en CRUD grandes.
 7. **Campos de hora** → `app-timepicker-field` (no `type="time"`).
 8. **Listas de alertas/avisos gordas** — usar `.admin-dense-list` / `.admin-dense-row` (fila ~48–56px, título 1 línea). No cards altas con hueco vacío. Hub Inventario = resumen; listado = `/inventario/alertas`.

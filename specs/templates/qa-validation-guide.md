@@ -94,7 +94,7 @@ Ante duda, elegir el nivel superior.
 | Error | Mensaje en tiempo y lugar correctos; contexto claro para el usuario |
 | Timing | Aparece tras la acción, no antes ni duplicado |
 | Loading contextual | Overlay con mensaje acorde: «Cargando…» / «Guardando…» / «Eliminando…» / «Actualizando…» (`LoadingService`) |
-| Loading no trabado | Tras success **y** error el overlay **desaparece** (`finally` / `wrap`); sin doble `show`; **sin** `show()` inmediatamente antes de `dialogRef.close()` |
+| Loading no trabado | Tras success **y** error el overlay **desaparece** (`finally` / `wrap`); sin doble `show`; **sin** `show()` inmediatamente antes de `dialogRef.close()`; **sin** `await` Swal/share/PDF post-éxito dentro del `try` con `show` (hide primero, luego acciones) |
 
 ### 2.3 Prevención de doble submit
 
@@ -115,7 +115,8 @@ Ante duda, elegir el nivel superior.
 | Filtros / búsqueda en `admin-data-panel` | Campo con `.panel-search` (o `.buscador.panel-search`); margen lateral alineado con el contenido de la tabla; **sin** overflow ni desfase visual a la izquierda del card |
 | Shells auth / portal / landing | Coherente con design system; card centrada (V+H) en desktop; responsiva en móvil; **no** pegada a un borde con vacío grande |
 | Diálogos picker / compactos | Usan `admin-dialog-shell--picker` (espaciado `--picker`); no CRUD grandes |
-| Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`) |
+| Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`); post-cobro/guardar: acciones Swal/share **después** de `hide()` |
+| RTDB payloads | Sin `undefined` anidado; usar `omitUndefinedRtdb` / `sanitizeVisitaLinea(s)ForRtdb` en Estancias / `Visitas.lineas` |
 | Campos de hora | Usan `app-timepicker-field` + diálogo timepicker (no `type="time"` nativo) — `specs/004-timepicker-dialog/` |
 | Campos de fecha | Usan `app-datepicker-field` (ISO `yyyy-MM-dd`) o `mat-datepicker` con clic → calendario (no `type="date"` nativo) — `specs/090-datepicker-canonico/` |
 | Acción destructiva (copy) | Labels visibles = **«Borrar»** (menú, tooltip, leyenda, SweetAlert). **No** «Baja lógica» / «Dar de baja». Técnico: sigue siendo soft-delete |

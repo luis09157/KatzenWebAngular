@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, firstValueFrom } from 'rxjs';
 import { map, take } from 'rxjs/operators';
+import { omitUndefinedRtdb } from '../core/utils/omit-undefined-rtdb.util';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ClientesService } from '../clientes/clientes.service';
@@ -9,19 +10,11 @@ import { CajaService } from '../finanzas/caja.service';
 import { CajaMetodoPago, CajaMovimientoFormData } from '../finanzas/caja.models';
 import { InventarioService } from '../inventario/inventario.service';
 import { lineasADevolver, marcarLineasDevueltas, montoDevolucion, reintegrosInventario } from './pos-devolucion.util';
+import { sanitizeVisitaLineaForRtdb, sanitizeVisitaLineasForRtdb } from './visita-linea-rtdb.util';
 import { Visita, VisitaFormData, VisitaLinea, VisitaLineaCategoria, VISITA_LINEA_A_CAJA } from './visitas.models';
 import { agregarSaldoCliente, hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
 import { esClienteMostrador } from './visita-mostrador.util';
 import { siguienteFolioTicketDia } from './folio-ticket-visita.util';
-
-/** RTDB `push`/`update` rechaza `undefined`; la venta de mostrador no trae paciente. */
-function omitUndefined<T extends Record<string, unknown>>(obj: T): T {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined) out[k] = v;
-  }
-  return out as T;
-}
 
 @Injectable({ providedIn: 'root' })
 export class VisitasService {
@@ -76,7 +69,7 @@ export class VisitasService {
   async crearVisita(data: VisitaFormData): Promise<string> {
     const staffId = await this.currentStaff.getStaffId();
     const now = new Date().toISOString();
-    const lineas = Array.isArray(data.lineas) ? data.lineas : [];
+    const lineas = sanitizeVisitaLineasForRtdb(Array.isArray(data.lineas) ? data.lineas : []);
     const calc = recalcularVisita({ lineas, pagado: 0 });
     const payload: Visita = {
       cliente_id: data.cliente_id,
@@ -101,7 +94,7 @@ export class VisitasService {
     };
     const ref = await this.db
       .list<Visita>(this.path)
-      .push(omitUndefined(payload as unknown as Record<string, unknown>) as unknown as Visita);
+      .push(omitUndefinedRtdb(payload as unknown as Record<string, unknown>) as unknown as Visita);
     await stampRtdbIdAfterPush(this.db, this.path, ref.key);
     await this.vincularOrigenesDesdeLineas(ref.key!, lineas);
     await this.syncSaldoCliente(data.cliente_id);
@@ -112,7 +105,7 @@ export class VisitasService {
     const current = await this.getVisita(id);
     if (!current) throw new Error('Visita no encontrada');
 
-    const mergedLineas = patch.lineas != null ? patch.lineas : current.lineas;
+    const mergedLineas = sanitizeVisitaLineasForRtdb(patch.lineas != null ? patch.lineas : current.lineas);
     const mergedPagado = patch.pagado != null ? patch.pagado : current.pagado;
     const calc = recalcularVisita({
       lineas: mergedLineas,
@@ -122,7 +115,7 @@ export class VisitasService {
 
     const nuevoEstado = patch.estado === 'cancelada' ? 'cancelada' : calc.estado;
     await this.db.object(`${this.path}/${id}`).update(
-      omitUndefined({
+      omitUndefinedRtdb({
         ...patch,
         lineas: mergedLineas,
         total: calc.total,
@@ -163,7 +156,7 @@ export class VisitasService {
   async agregarLinea(id: string, linea: Omit<VisitaLinea, 'id'> & { id?: string }): Promise<void> {
     const visita = await this.getVisita(id);
     if (!visita) throw new Error('Visita no encontrada');
-    const next: VisitaLinea = {
+    const next = sanitizeVisitaLineaForRtdb({
       id: linea.id || nuevaLineaId(),
       descripcion: String(linea.descripcion || '').trim(),
       monto: roundMoney(linea.monto),
@@ -176,7 +169,14 @@ export class VisitasService {
       pensionId: linea.pensionId,
       historialId: linea.historialId,
       movimientoInventarioId: linea.movimientoInventarioId,
-    };
+      servicioClinicaId: linea.servicioClinicaId,
+      costo: linea.costo,
+      precio_venta: linea.precio_venta,
+      iva: linea.iva,
+      ganancia: linea.ganancia,
+      aplicaIva: linea.aplicaIva,
+      tasaIva: linea.tasaIva,
+    });
     await this.setLineas(id, [...(visita.lineas || []), next]);
   }
 

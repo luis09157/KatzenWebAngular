@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 /**
- * Anti-patrón LoadingService (spec 005):
+ * Anti-patrón LoadingService (spec 005 US-3):
  *   loadingService.show(...);
  *   this.dialogRef.close(...);
  * sin hide en medio → overlay trabado si el padre no hace hide (p. ej. Llegó un paciente).
  *
  * Uso: npm run check:loading
  * Exit 1 si encuentra coincidencias en src/app.
+ *
+ * Alcance deliberado: solo el patrón show→close (regex fiable).
+ * NO intenta detectar await Swal / navigator.share / jspdf entre show y hide
+ * (try/finally arbitrarios → heurística frágil). Esa regla vive en docs + revisión:
+ * ADMIN-UI-ARCHITECTURE § Loading regla 4, agent-guardrails, spec 005 US-4 / 092.
  */
 import { execSync } from 'child_process';
 import path from 'path';

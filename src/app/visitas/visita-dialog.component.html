@@ -903,8 +903,33 @@
         </form>
 
         <div class="pos-whatsapp" *ngIf="puedeEnviarWhatsApp">
-          <h3 class="section-title">Enviar ticket por WhatsApp</h3>
-          <p class="hint-empty">{{ whatsappHint }}</p>
+          <h3 class="section-title">Ticket digital</h3>
+          <p class="hint-empty">
+            Descarga PDF, imprime con formato o envía por WhatsApp. {{ whatsappHint }} WhatsApp Web no adjunta el PDF
+            solo: en escritorio se descarga y debes adjuntarlo al chat.
+          </p>
+          <div class="pos-ticket-digital-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              class="pos-btn-full"
+              [disabled]="loading || !lineas.length"
+              (click)="descargarTicketPdf()"
+            >
+              <mat-icon>picture_as_pdf</mat-icon>
+              Descargar PDF
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              class="pos-btn-full"
+              [disabled]="loading || !lineas.length"
+              (click)="imprimirDigital()"
+            >
+              <mat-icon>print</mat-icon>
+              Imprimir (formato)
+            </button>
+          </div>
           <mat-form-field
             appearance="outline"
             class="full-width pos-monto-field"
@@ -933,7 +958,7 @@
             (click)="enviarTicketWhatsApp()"
           >
             <mat-icon>chat</mat-icon>
-            Enviar por WhatsApp
+            WhatsApp + PDF
           </button>
         </div>
       </div>
@@ -1010,9 +1035,35 @@
       </button>
     </div>
     <div class="pos-footer__group pos-footer__group--tools">
-      <button mat-stroked-button type="button" (click)="imprimir()" [disabled]="loading || !lineas.length">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="imprimirDigital()"
+        [disabled]="loading || !lineas.length"
+        matTooltip="Comprobante con formato Katzen (impresora normal)"
+      >
         <mat-icon>print</mat-icon>
         Imprimir
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="imprimirTermico80()"
+        [disabled]="loading || !lineas.length"
+        matTooltip="Ticket térmico 80 mm"
+      >
+        <mat-icon>receipt_long</mat-icon>
+        80 mm
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="descargarTicketPdf()"
+        [disabled]="loading || !lineas.length"
+        matTooltip="Descargar PDF del ticket"
+      >
+        <mat-icon>picture_as_pdf</mat-icon>
+        PDF
       </button>
       <button
         mat-stroked-button
@@ -1021,6 +1072,7 @@
         *ngIf="puedeEnviarWhatsApp"
         [disabled]="!whatsappTelefonoValido"
         (click)="enviarTicketWhatsApp()"
+        matTooltip="PDF + WhatsApp (adjunto manual en Web)"
       >
         <mat-icon>chat</mat-icon>
         WhatsApp

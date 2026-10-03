@@ -454,15 +454,17 @@ Toda operación async del admin que bloquee la UI debe usar `LoadingService` (`s
 1. **Nunca dejar el overlay trabado:** cada `show()` debe emparejarse con `hide()` en **success y error** (`finally` o `LoadingService.wrap()`).
 2. **Un solo `show` por operación:** no llamar `show()` en el diálogo **y** otra vez en el padre al `afterClosed` — el contador interno queda en `1` y el overlay no cierra.
 3. **Prohibido `show()` justo antes de `dialogRef.close()`:** el patrón `show(); close()` asume que el padre hará `hide()`. Si el diálogo se abre desde otro flujo (p. ej. «Llegó un paciente» / `alta-rapida`), **nadie** hace `hide()` y el overlay queda eterno. Correcto: `show` al iniciar la async → `hide` en `finally` → luego `close`.
-4. **API:** `show(message?: string)` — callers sin argumento siguen con «Cargando…». `forceHide()` solo como red de seguridad / recuperación.
-5. Preferir el servicio centralizado; el texto se renderiza en `app.component` (`.global-loading-text`).
-6. **Toda oleada de rendimiento o UX “prisa”** debe incluir loading en operaciones que tarden (red/RTDB): el usuario siempre ve que el sistema trabaja. Spec **005** + checklist QA.
-7. Antes de entregar módulos/diálogos nuevos: `node scripts/check-loading-antipattern.mjs` (debe salir OK).
+4. **Prohibido `await` de UI post-éxito dentro del `try` con `show`:** no await Swal (PDF / WhatsApp / imprimir), `navigator.share`, generación jspdf ni diálogos similares **antes** del `finally { hide() }`. Si el usuario no cierra el Swal o el share no resuelve, el overlay («Cobrando…» / «Guardando…») queda eterno. Orden canónico: **persistir → `finally` `hide()` → luego ofrecer acciones**. Ref: `visita-dialog` `confirmarCobro` (specs **005** / **092**).
+5. **API:** `show(message?: string)` — callers sin argumento siguen con «Cargando…». `forceHide()` solo como red de seguridad / recuperación.
+6. Preferir el servicio centralizado; el texto se renderiza en `app.component` (`.global-loading-text`).
+7. **Toda oleada de rendimiento o UX “prisa”** debe incluir loading en operaciones que tarden (red/RTDB): el usuario siempre ve que el sistema trabaja. Spec **005** + checklist QA.
+8. Antes de entregar módulos/diálogos nuevos: `node scripts/check-loading-antipattern.mjs` (debe salir OK). Ese script solo detecta `show→dialogRef.close`; el anti-patrón post-éxito (regla 4) es revisión de código en flujos cobro/guardar.
 
 ### Checklist QA
 
 - Tras guardar/cobrar: el overlay **desaparece**.
 - Durante guardar: se lee «Guardando…»; durante cobro: «Cobrando…».
+- Tras cobro exitoso: overlay apagado **antes** de Swal PDF/WhatsApp/imprimir o Web Share.
 - Al abrir POS: «Cargando productos…» (overlay o hint inline) hasta el primer catálogo.
 - En error de red/persistencia: overlay cierra + mensaje de error claro.
 - Tras guardar desde «Llegó un paciente» (baño/vacuna/consulta/pensión): overlay **no** queda trabado.

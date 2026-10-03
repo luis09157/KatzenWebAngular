@@ -34,8 +34,10 @@ import {
   validarPrecondicionesCobro,
 } from './pos-orquestacion.util';
 import { ejecutarPersistirVisita } from './pos-persistir.util';
-import { generarTextoTicketWhatsApp, telefonoWhatsAppValido, urlWhatsAppTicket } from './pos-ticket-whatsapp.util';
+import { telefonoWhatsAppValido } from './pos-ticket-whatsapp.util';
 import { Ticket80View, buildTicket80View } from './ticket-80mm.util';
+import { compartirTicketWhatsAppPdf, descargarPdfTicket, imprimirTicketDigital } from './ticket-digital.util';
+import { KatzenSwal } from '../core/ui/katzen-swal';
 import { puedeDevolverLinea } from './pos-devolucion.util';
 import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import { emptyDefaultsBanio, DefaultsBanioPorTamano, TamanoPerroBanio } from '../finanzas/defaults-banio.models';
@@ -1046,16 +1048,94 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Spec 065 — abre WhatsApp con el ticket ya escrito (`wa.me`). */
-  enviarTicketWhatsApp(): void {
+  /**
+   * Spec 092 — PDF + WhatsApp.
+   * Web Share con File si el navegador lo permite; si no, descarga PDF y abre wa.me (texto; sin adjunto nativo).
+   */
+  async enviarTicketWhatsApp(): Promise<void> {
     if (!this.puedeEnviarWhatsApp) return;
-    const texto = generarTextoTicketWhatsApp(this.ticketWhatsAppInput());
-    const url = urlWhatsAppTicket(this.telefonoWhatsApp, texto);
-    if (!url) {
+    if (!this.whatsappTelefonoValido && !this.telefonoWhatsApp?.trim()) {
       Swal.fire('Teléfono', 'Escribe un teléfono de 10 dígitos para enviar el ticket.', 'warning');
       return;
     }
-    window.open(url, '_blank', 'noopener');
+    try {
+      const r = await compartirTicketWhatsAppPdf(this.ticketWhatsAppInput(), this.telefonoWhatsApp);
+      if (r.mode === 'download_wa') {
+        void KatzenSwal.fire({
+          toast: true,
+          position: 'top',
+          icon: 'info',
+          title: 'PDF descargado',
+          text: 'WhatsApp no adjunta el PDF solo: adjúntalo desde Descargas al chat.',
+          timer: 4200,
+          showConfirmButton: false,
+        });
+      } else if (r.mode === 'download_only') {
+        void KatzenSwal.fire({
+          toast: true,
+          position: 'top',
+          icon: 'warning',
+          title: 'PDF listo',
+          text: 'Revisa el teléfono (10 dígitos) para abrir WhatsApp, o comparte el PDF a mano.',
+          timer: 4200,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'enviar ticket WhatsApp'), 'error');
+    }
+  }
+
+  /** Spec 092 — descarga PDF del ticket digital. */
+  async descargarTicketPdf(): Promise<void> {
+    if (!this.lineas.length) return;
+    try {
+      await descargarPdfTicket(this.ticketWhatsAppInput());
+      void KatzenSwal.fire({
+        toast: true,
+        position: 'top',
+        icon: 'success',
+        title: 'PDF descargado',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'descargar PDF ticket'), 'error');
+    }
+  }
+
+  /** Spec 092 — impresión con HTML/CSS (impresora normal / «Guardar como PDF»). */
+  imprimirDigital(): void {
+    if (!this.lineas.length) return;
+    imprimirTicketDigital(this.ticket80);
+  }
+
+  /** Spec 092 — diálogo post-cobro: PDF / imprimir / WhatsApp. */
+  private async ofrecerAccionesPostCobro(): Promise<void> {
+    const conWa = this.whatsappTelefonoValido;
+    const result = await KatzenSwal.fire({
+      icon: 'success',
+      title: 'Venta cobrada',
+      html: '¿Mandar, descargar o imprimir el ticket?<br><small>En WhatsApp Web el PDF se descarga y hay que adjuntarlo al chat. En móvil compatible se usa el compartido del sistema.</small>',
+      showDenyButton: true,
+      showCancelButton: true,
+      showCloseButton: true,
+      confirmButtonText: 'Descargar PDF',
+      denyButtonText: 'Imprimir',
+      cancelButtonText: conWa ? 'WhatsApp' : 'Cerrar',
+      reverseButtons: true,
+    });
+    if (result.isConfirmed) {
+      await this.descargarTicketPdf();
+      return;
+    }
+    if (result.isDenied) {
+      this.imprimirDigital();
+      return;
+    }
+    if (result.dismiss === Swal.DismissReason.cancel && conWa) {
+      await this.enviarTicketWhatsApp();
+    }
   }
 
   activarVentaMostrador(): void {
@@ -1498,6 +1578,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.loadingService.show(LOADING_MESSAGES.charging);
+    let cobroOk = false;
     try {
       const raw = this.form.getRawValue();
       const flujo = await ejecutarFlujoCobro(
@@ -1553,20 +1634,17 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }
       this.pasoWizard = estado.pasoWizard;
       if (estado.cerrarSheet) this.cerrarSheet();
-      void Swal.fire({
-        toast: true,
-        position: 'top',
-        icon: 'success',
-        title: estado.toast.title,
-        text: estado.toast.text,
-        timer: estado.toast.timer,
-        showConfirmButton: false,
-      });
+      cobroOk = true;
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, CTX_ERROR_COBRAR_VISITA), 'error');
     } finally {
+      // Spec 005/092 — hide ANTES del Swal PDF/WhatsApp. Si share/PDF no resuelve, no dejar «Cobrando…».
       this.loading = false;
       this.loadingService.hide();
+    }
+    // Spec 092 — post-cobro fuera del loading (cobro ya persistido).
+    if (cobroOk) {
+      await this.ofrecerAccionesPostCobro();
     }
   }
 
@@ -1609,7 +1687,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  imprimir(): void {
+  /** Spec 071 — ticket térmico 80 mm (impresora de rollo). */
+  imprimirTermico80(): void {
     document.body.classList.add('visita-printing');
     const cleanup = () => {
       document.body.classList.remove('visita-printing');
@@ -1617,6 +1696,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     };
     window.addEventListener('afterprint', cleanup);
     window.print();
+  }
+
+  /** Alias legacy: impresión digital presentable (092). */
+  imprimir(): void {
+    this.imprimirDigital();
   }
 
   async tapServicioClinica(s: ServicioClinica, event?: Event): Promise<void> {

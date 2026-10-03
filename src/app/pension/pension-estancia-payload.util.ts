@@ -3,14 +3,8 @@
  * Firebase rechaza `undefined` en cualquier propiedad del valor.
  */
 
-/** Quita claves con valor `undefined` (RTDB push/update). */
-export function omitUndefinedRtdb<T extends Record<string, unknown>>(obj: T): T {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined) out[k] = v;
-  }
-  return out as T;
-}
+import { omitUndefinedRtdb } from '../core/utils/omit-undefined-rtdb.util';
+export { omitUndefinedRtdb };
 
 /** Costo interno opcional (margen). Sin valor → omitir; no forzar 0. */
 export function normalizeCostoDiaPension(costoDia: unknown): number | undefined {

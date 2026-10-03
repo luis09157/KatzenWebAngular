@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-02 · Specs **075**–**091** (POS riel pensión)
+**Última revisión:** 2026-10-03 · Specs **075**–**092** (lecciones loading post-cobro + RTDB `undefined`)
 
 ---
 
@@ -79,6 +79,9 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Pensión tarifas | Oficiales/día: 250/300/400 (+ gigante 500 Fase 1); util `pension-tarifas`; no mezclar con baño/corte | **089** |
 | Fechas admin | `app-datepicker-field` (ISO `yyyy-MM-dd`); clic abre calendario; **no** `type="date"` nativo | **090** |
 | Pensión en POS | Riel **Pensión** lista estancias por cobrar (no productos fake); línea `categoria: pension` + `descripcionCobroPension` | **091** |
+| Ticket digital / PDF | HTML/CSS + PDF (`jspdf`) para compartir; térmico 80 mm intacto; `wa.me` **no** adjunta PDF (Web Share o descarga + adjunto manual) | **092** |
+| Loading post-éxito | **Nunca** `await` diálogos post-éxito (Swal PDF/WhatsApp/imprimir, `navigator.share`, jspdf) **dentro** del `try` que tiene `LoadingService.show(…)` antes del `finally { hide() }`. Orden canónico: persistir → `finally` `hide()` → luego ofrecer acciones. Ref: `visita-dialog` `confirmarCobro`. Script `check-loading-antipattern` solo cubre `show→close`; esta regla es revisión de código. | **005**, **092** |
+| RTDB sin `undefined` | Firebase rechaza `undefined` en **cualquier** profundidad. Sanitizar con `omitUndefinedRtdb` / `sanitizeVisitaLinea(s)ForRtdb` antes de `push`/`update` de Estancias y `Visitas.lineas` (no solo nivel raíz). Campos típicos opcionales: `costo_dia`, `citaId`, `banioId`, `pensionId`. | **089**, **091**, **092** |
 
 ---
 
@@ -108,6 +111,8 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Orquestación guardar/cobrar POS | `visitas/pos-orquestacion.util.ts` | **079** |
 | Persistir ticket + salidas kit/stock POS | `visitas/pos-persistir.util.ts` | **080** |
 | Ticket WhatsApp POS | `visitas/pos-ticket-whatsapp.util.ts` | **071** / POS |
+| Ticket digital HTML/PDF | `visitas/ticket-digital.util.ts` (reutiliza `buildTicket80View`) | **092** |
+| Ticket térmico 80 mm | `visitas/ticket-80mm.util.ts` + `.ticket-80` print | **071** |
 | Folio expediente mascota | `core/utils/folio-expediente-paciente.util.ts` | **068** |
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
@@ -118,8 +123,10 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Tarifas pensión / día | `pension/pension-tarifas.util.ts` + fallback en `DefaultsPensionService` | **089** |
 | Cobro pensión (texto línea) | `pension/pension-cobro.util.ts` (`descripcionCobroPension` / `conceptoCajaPension`) — siempre categoría `pension` | **089** F2 |
 | Cola pensión en POS | `visitas/pendientes-pension.util.ts` + riel `pension` en `pos-rieles` / `visita-dialog` | **091** |
+| Omitir `undefined` RTDB | `core/utils/omit-undefined-rtdb.util.ts` (`omitUndefinedRtdb`) — Estancias / payloads anidados | **089** / **091** |
+| Líneas visita RTDB-safe | `visitas/visita-linea-rtdb.util.ts` (`sanitizeVisitaLinea(s)ForRtdb`) antes de escribir `Visitas.lineas` | **091** / **092** |
 | SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
-| Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` | **005** |
+| Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; **nunca** `await` Swal/share/PDF post-éxito dentro del `try` con `show` (hide primero); `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` (solo patrón show→close) | **005**, **092** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
 | Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `pendientes-visita.util.ts` (`vincularBaniosHuerfanosEnLineas`) — solo completados del día; al cobrar con `banioId`/`visitaId` salen; no «Nuevo baño» huérfano si hay notas | **085** |

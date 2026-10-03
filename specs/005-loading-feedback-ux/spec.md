@@ -58,6 +58,25 @@ Para **no quedarme bloqueado en «Cargando…»**
 - [x] SC-011: Script `node scripts/check-loading-antipattern.mjs` falla si reaparece el anti-patrón en `src/app`.
 - [x] SC-012: Regla documentada en `ADMIN-UI-ARCHITECTURE.md`, `constitution.md`, `agent-guardrails.md`, `new-admin-module.mdc`, guía QA.
 
+### US-4 — No `await` UI post-éxito dentro del `try` con loading (lección 2026-10-03)
+
+Como **caja / staff**  
+Quiero **que tras cobrar o guardar el overlay se apague aunque el Swal de PDF/WhatsApp quede abierto**  
+Para **no quedar bloqueado en «Cobrando…» / «Guardando…»**
+
+**Causa raíz (POS / ticket digital 092):** `await ofrecerAccionesPostCobro()` (Swal + `navigator.share` / jspdf) iba **dentro** del `try` de `confirmarCobro` **antes** del `finally { hide() }`. Si el share no resolvía o el usuario demoraba el Swal, `hide()` no corría.
+
+**Anti-patrones (permanentes):**
+
+| # | Prohibido | Correcto |
+|---|-----------|----------|
+| A | `show()` → `dialogRef.close()` sin `hide` en `finally` | `show` → async → `hide` en `finally` → `close` (US-3; script `check-loading-antipattern`) |
+| B | `await` Swal / `navigator.share` / jspdf / diálogos post-éxito **dentro** del `try` que tiene `show` antes del `finally` | Persistencia → `finally` `hide()` → **luego** ofrecer acciones (revisión de código; el script **no** detecta B de forma fiable) |
+
+**Criterios:**
+
+- [x] SC-013: Orden canónico documentado: persistir → `hide` → acciones post-éxito. Ref: `visita-dialog` `confirmarCobro`. Specs **005** + **092**; `agent-guardrails` Decisiones.
+
 ---
 
 ## Fuera de alcance

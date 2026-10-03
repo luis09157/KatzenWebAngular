@@ -22,6 +22,7 @@
 | UI | `visita-dialog.component` html/ts |
 | Texto línea | **reutilizado** `pension/pension-cobro.util.ts` |
 | Cobro al guardar | **reutilizado** `VisitasService` + `pensionId` |
+| Sanitizar líneas RTDB | `visitas/visita-linea-rtdb.util.ts` + `core/utils/omit-undefined-rtdb.util.ts` |
 
 ---
 
@@ -39,6 +40,14 @@
 - `partesDescripcionLineaTicket` en `pos-copy.util.ts` (título/meta); HTML panel + sheet carrito.
 - `npm run build` exit 0 · unit `pos-copy` + sheet carrito 10 SUCCESS.
 - Smoke: desktop ≥1024 split legible; &lt;1024 barra sticky + sheet sin romper.
+
+### Follow-up L2 — Agregar pensión «Por cobrar hoy» (2026-10-02)
+
+- **Bug:** RTDB `update` fallaba con `lineas.0.citaId` undefined al agregar pensión (ids opcionales en línea).
+- **Fix:** `sanitizeVisitaLinea(s)ForRtdb` + `omitUndefinedRtdb` en `core/utils`; wire `VisitasService` crear/actualizar/agregarLinea.
+- Unit: `visita-linea-rtdb` + `omit-undefined-rtdb` + pension payload → **8 SUCCESS**.
+- `npm run build` → **exit 0** (budget warning preexistente ~3.00 MB).
+- Reintento: `/admin/visitas` → Por cobrar hoy → Agregar en pensión.
 
 ---
 

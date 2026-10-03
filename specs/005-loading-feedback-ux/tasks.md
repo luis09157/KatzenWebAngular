@@ -108,3 +108,11 @@ Smoke autenticado 2026-08-25 (opción A — Cypress + cypress.env.json gitignore
 - [x] Script `scripts/check-loading-antipattern.mjs` + `npm run check:loading`
 - [x] Unit tests `loading.service.spec.ts`
 - [x] `npm run build` + check script OK
+
+---
+
+## Lección US-4 (2026-10-03) — await post-éxito dentro del try
+
+- [x] Documentar anti-patrón B en `spec.md` US-4 (origen bug 092 `confirmarCobro`)
+- [x] `ADMIN-UI-ARCHITECTURE` regla 4 + checklist; `constitution`; `agent-guardrails` Decisiones; guía QA
+- [x] Script: **no** ampliar a await-Swal (frágil); comentario de alcance en `check-loading-antipattern.mjs`

@@ -72,7 +72,8 @@ finally {
 ```
 
 **Prohibido:** `this.loadingService.show(); this.dialogRef.close(...)` sin `hide` — el overlay se traba si el padre no limpia (p. ej. alta rápida).  
-Verificar: `node scripts/check-loading-antipattern.mjs`
+**Prohibido:** `await` Swal / `navigator.share` / jspdf **dentro** del `try` con `show` antes del `finally` — orden: persistir → `hide` → acciones post-éxito (005 US-4 / 092).  
+Verificar: `node scripts/check-loading-antipattern.mjs` (solo detecta show→close).
 
 ## 6. Cypress smoke
 
