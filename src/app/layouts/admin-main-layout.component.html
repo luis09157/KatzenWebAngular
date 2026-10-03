@@ -1,5 +1,13 @@
 <mat-sidenav-container class="admin-shell">
-  <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="sidenavOpened" class="admin-sidenav">
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile ? 'over' : 'side'"
+    [opened]="sidenavOpened"
+    (openedChange)="onSidenavOpenedChange($event)"
+    (mouseenter)="onSidenavPointerEnter()"
+    (mouseleave)="onSidenavPointerLeave()"
+    class="admin-sidenav"
+  >
     <div class="admin-sidenav__inner">
       <mat-toolbar class="admin-sidenav__brand">
         <mat-icon color="primary">pets</mat-icon>
@@ -300,7 +308,16 @@
       Vista local del PDV (emulador). No es la clínica en Firebase. Catálogo eleventa: 685 SKU.
     </div>
     <mat-toolbar class="m3-top-bar">
-      <button mat-icon-button (click)="toggleSidenav()"><mat-icon>menu</mat-icon></button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="toggleSidenav()"
+        matTooltip="Mostrar u ocultar menú"
+        matTooltipPosition="below"
+        aria-label="Mostrar u ocultar menú lateral"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
       <span class="mat-title-medium">{{ toolbarLabel }}</span>
       <span class="portal-spacer"></span>
       <mat-form-field *ngIf="sucursales.length > 1" appearance="outline" class="sucursal-select hide-mobile">

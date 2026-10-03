@@ -94,7 +94,13 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Fecha de aplicación</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fechaAplicacion" />
+            <input
+              matInput
+              [matDatepicker]="picker"
+              formControlName="fechaAplicacion"
+              readonly
+              (click)="picker.open()"
+            />
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="vacunaForm.get('fechaAplicacion')?.hasError('required')">
@@ -104,7 +110,13 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Fecha de recordatorio</mat-label>
-            <input matInput [matDatepicker]="pickerRecordatorio" formControlName="fechaRecordatorio" />
+            <input
+              matInput
+              [matDatepicker]="pickerRecordatorio"
+              formControlName="fechaRecordatorio"
+              readonly
+              (click)="pickerRecordatorio.open()"
+            />
             <mat-datepicker-toggle matIconSuffix [for]="pickerRecordatorio"></mat-datepicker-toggle>
             <mat-datepicker #pickerRecordatorio></mat-datepicker>
           </mat-form-field>
@@ -116,7 +128,13 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Próxima aplicación</mat-label>
-            <input matInput [matDatepicker]="pickerProxima" formControlName="proximaAplicacion" />
+            <input
+              matInput
+              [matDatepicker]="pickerProxima"
+              formControlName="proximaAplicacion"
+              readonly
+              (click)="pickerProxima.open()"
+            />
             <mat-datepicker-toggle matIconSuffix [for]="pickerProxima"></mat-datepicker-toggle>
             <mat-datepicker #pickerProxima></mat-datepicker>
           </mat-form-field>

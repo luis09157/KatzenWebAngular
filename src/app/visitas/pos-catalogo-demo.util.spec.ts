@@ -5,7 +5,7 @@ import {
   MOCK_PRODUCTO_DEMO_POS_CORTE,
   MOCK_PRODUCTO_DEMO_POS_CROQUETA,
   MOCK_PRODUCTO_DEMO_POS_MEDICAMENTO,
-  MOCK_PRODUCTOS_POS
+  MOCK_PRODUCTOS_POS,
 } from '../core/testing/mock-data';
 import { Producto } from '../shared/inventario.models';
 import { VisitaLinea } from './visitas.models';
@@ -21,7 +21,7 @@ import {
   idsElegiblesParaRegistrarSalida,
   lineasSinProductosDemo,
   mezclarCatalogoPos,
-  productosElegiblesParaCrearEnInventario
+  productosElegiblesParaCrearEnInventario,
 } from './pos-catalogo-demo.util';
 
 describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
@@ -38,7 +38,7 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
       'demo-pos-consulta-1',
       'demo-pos-consulta-2',
       'demo-pos-peluqueria-1',
-      'demo-pos-peluqueria-2'
+      'demo-pos-peluqueria-2',
     ]);
   });
 
@@ -48,20 +48,20 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
     expect(esIdPushRtdb('demo-pos-petshop-1')).toBe(false);
   });
 
-  it('hay exactamente 2 por riel (petshop, consulta, peluqueria)', () => {
+  it('hay exactamente 2 por riel (petshop, consulta, peluqueria); pensión sin demo', () => {
     const counts = contarDemoPorRiel(MOCK_PRODUCTOS_POS);
-    expect(counts).toEqual({ petshop: 2, consulta: 2, peluqueria: 2 });
+    expect(counts).toEqual({ petshop: 2, consulta: 2, peluqueria: 2, pension: 0 });
     expect(filtrarProductosPorRiel(MOCK_PRODUCTOS_POS, 'petshop').map((p) => p.id)).toEqual([
       MOCK_PRODUCTO_DEMO_POS_CROQUETA.id,
-      MOCK_PRODUCTO_DEMO_POS_COLLAR.id
+      MOCK_PRODUCTO_DEMO_POS_COLLAR.id,
     ]);
     expect(filtrarProductosPorRiel(MOCK_PRODUCTOS_POS, 'consulta').map((p) => p.id)).toEqual([
       MOCK_PRODUCTO_DEMO_POS_CONSULTA.id,
-      MOCK_PRODUCTO_DEMO_POS_MEDICAMENTO.id
+      MOCK_PRODUCTO_DEMO_POS_MEDICAMENTO.id,
     ]);
     expect(filtrarProductosPorRiel(MOCK_PRODUCTOS_POS, 'peluqueria').map((p) => p.id)).toEqual([
       MOCK_PRODUCTO_DEMO_POS_BANIO.id,
-      MOCK_PRODUCTO_DEMO_POS_CORTE.id
+      MOCK_PRODUCTO_DEMO_POS_CORTE.id,
     ]);
   });
 
@@ -74,7 +74,7 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
       monto: p.precio_venta,
       categoria: 'venta_producto' as const,
       productoId: p.id,
-      cantidad: 1
+      cantidad: 1,
     }));
 
     const idsSalida = idsElegiblesParaRegistrarSalida(lineas, MOCK_PRODUCTOS_POS);
@@ -96,7 +96,7 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
       id: '-NabcDEF0123456789_x',
       soloDemo: false,
       origen: undefined,
-      rielPos: undefined
+      rielPos: undefined,
     };
     const lineas: VisitaLinea[] = [
       {
@@ -105,7 +105,7 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
         monto: 10,
         categoria: 'venta_producto',
         productoId: 'demo-pos-petshop-1',
-        cantidad: 1
+        cantidad: 1,
       },
       {
         id: 'l-real',
@@ -113,12 +113,10 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
         monto: 20,
         categoria: 'venta_producto',
         productoId: real.id,
-        cantidad: 2
-      }
+        cantidad: 2,
+      },
     ];
-    expect(idsElegiblesParaRegistrarSalida(lineas, [real, ...MOCK_PRODUCTOS_POS])).toEqual([
-      '-NabcDEF0123456789_x'
-    ]);
+    expect(idsElegiblesParaRegistrarSalida(lineas, [real, ...MOCK_PRODUCTOS_POS])).toEqual(['-NabcDEF0123456789_x']);
   });
 
   it('flag usarCatalogoDemoPos: OFF en prod, no mezcla demo con RTDB', () => {
@@ -129,15 +127,11 @@ describe('pos-catalogo-demo (055 muestra UI — no catálogo real)', () => {
     expect(debeMostrarCatalogoDemoPos({ production: true, usarCatalogoDemoPos: true })).toBe(true);
 
     const rtdb: Producto[] = [
-      { ...MOCK_PRODUCTO_DEMO_POS_CROQUETA, id: '-NabcDEF0123456789_x', soloDemo: false, origen: undefined }
+      { ...MOCK_PRODUCTO_DEMO_POS_CROQUETA, id: '-NabcDEF0123456789_x', soloDemo: false, origen: undefined },
     ];
-    expect(mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, false).map((p) => p.id)).toEqual([
-      '-NabcDEF0123456789_x'
-    ]);
+    expect(mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, false).map((p) => p.id)).toEqual(['-NabcDEF0123456789_x']);
     expect(mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, true)[0].id).toBe('demo-pos-petshop-1');
-    expect(mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, true).some((p) => p.id === '-NabcDEF0123456789_x')).toBe(
-      true
-    );
+    expect(mezclarCatalogoPos(rtdb, MOCK_PRODUCTOS_POS, true).some((p) => p.id === '-NabcDEF0123456789_x')).toBe(true);
   });
 
   it('banner de muestra y fotos locales (no URL rota)', () => {

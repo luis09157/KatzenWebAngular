@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-02 · Specs **075**–**086** (clínicos → cola cobro)
+**Última revisión:** 2026-10-02 · Specs **075**–**091** (POS riel pensión)
 
 ---
 
@@ -73,6 +73,12 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | UI celular | Diseño **portrait-first** (vertical); POS split escritorio solo ≥1024px | **055** ola 1.8 |
 | Hub Inventario | No listar cientos de alertas en el dashboard; resumen + módulo Alertas | **061** follow-up 2026-10-02 |
 | Listas de avisos | Siempre `.admin-dense-list` / fila ~48–56px; detalle con icono `info`; docs regla 14 + **061** US-5 | **061** + `ADMIN-UI-ARCHITECTURE` |
+| Sidenav admin | Auto-hide ~15 s + hamburguesa para reabrir; no menú fijo permanente en desktop (regla 15) | **061** US-6 |
+| PWA install | Dos manifests: portal (`scope /portal/`) y clínica (`scope /admin/`); swap por ruta; no un solo ícono para ambos | **087** |
+| Borrar personal | `updateStaffUser` no debe fallar si falta Auth; soft-delete RTDB + tolerar `user-not-found` | **088** |
+| Pensión tarifas | Oficiales/día: 250/300/400 (+ gigante 500 Fase 1); util `pension-tarifas`; no mezclar con baño/corte | **089** |
+| Fechas admin | `app-datepicker-field` (ISO `yyyy-MM-dd`); clic abre calendario; **no** `type="date"` nativo | **090** |
+| Pensión en POS | Riel **Pensión** lista estancias por cobrar (no productos fake); línea `categoria: pension` + `descripcionCobroPension` | **091** |
 
 ---
 
@@ -94,7 +100,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 
 | Qué buscas | Ya vive en | Spec |
 |------------|------------|------|
-| Copy / mensajes POS | `visitas/pos-copy.util.ts` | **075** |
+| Copy / mensajes POS | `visitas/pos-copy.util.ts` (`partesDescripcionLineaTicket` = título/meta Ticket) | **075** / UI ticket |
 | Pasos wizard POS / destino | `visitas/pos-wizard.util.ts` | **076** |
 | Hints / bloqueos / puedeGuardar POS | `visitas/pos-bloqueo.util.ts` | **076** |
 | Sheets táctiles (qty, escáner, monto) | `visitas/pos-sheet.util.ts` | **077** |
@@ -107,6 +113,11 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
 | Listas densas de notificaciones/alertas | `styles/admin-dense-list.scss` (`.admin-dense-list` / `.admin-dense-row`) + detalle Swal/info | **061** US-5 |
+| Auto-hide / toggle menú lateral admin | `layouts/admin-main-layout.component.ts` (`SIDENAV_AUTO_HIDE_MS`, hamburguesa) | **061** US-6 |
+| PWA dual (portal / clínica) | `pwa-manifest.util` + `PwaManifestService` + `PwaInstallService`; manifests en `src/manifest*.webmanifest`; CTA clínica en `/admin/login` | **087** |
+| Tarifas pensión / día | `pension/pension-tarifas.util.ts` + fallback en `DefaultsPensionService` | **089** |
+| Cobro pensión (texto línea) | `pension/pension-cobro.util.ts` (`descripcionCobroPension` / `conceptoCajaPension`) — siempre categoría `pension` | **089** F2 |
+| Cola pensión en POS | `visitas/pendientes-pension.util.ts` + riel `pension` en `pos-rieles` / `visita-dialog` | **091** |
 | SweetAlert marca | `core/ui/katzen-swal.ts` (`KatzenSwal` mixin) | **084** |
 | Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` | **005** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
@@ -116,6 +127,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |
+| Datepicker / fechas ISO | `shared/datepicker/` (`app-datepicker-field`, `datepicker.util`) | **090** |
 | Venta rápida / mostrador | flujo en `visita-dialog` + utils POS + sheets UI (**081**–**082**) | **065**, **046**, **079**–**082** |
 | Correo portal (Resend) | Functions 038 — **no** segundo mailer | **038** |
 

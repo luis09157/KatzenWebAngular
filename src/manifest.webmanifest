@@ -1,9 +1,10 @@
 {
+  "id": "/portal",
   "name": "KatzenVet Portal",
   "short_name": "KatzenVet",
   "description": "Portal de dueños KatzenVet: vacunas, recordatorios y expediente de tus mascotas.",
   "start_url": "/portal/mascotas",
-  "scope": "/",
+  "scope": "/portal/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",

@@ -2,7 +2,9 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">Registrar movimiento</h2>
-      <p class="admin-dialog-subtitle">Cobro o gasto con categoría, método de pago e IVA. Opcional: costo para ver margen.</p>
+      <p class="admin-dialog-subtitle">
+        Cobro o gasto con categoría, método de pago e IVA. Opcional: costo para ver margen.
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -19,15 +21,13 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>Fecha</mat-label>
-          <input matInput type="date" formControlName="fecha" />
-        </mat-form-field>
+        <app-datepicker-field formControlName="fecha" label="Fecha"></app-datepicker-field>
 
         <mat-form-field
           appearance="outline"
           subscriptSizing="dynamic"
-          [class.full-span]="form.get('tipo')?.value === 'egreso'">
+          [class.full-span]="form.get('tipo')?.value === 'egreso'"
+        >
           <mat-label>Categoría *</mat-label>
           <mat-select formControlName="categoria">
             <mat-option *ngFor="let c of categoriasDisponibles" [value]="c">
@@ -36,10 +36,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field
-          appearance="outline"
-          subscriptSizing="dynamic"
-          *ngIf="form.get('tipo')?.value === 'ingreso'">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" *ngIf="form.get('tipo')?.value === 'ingreso'">
           <mat-label>Plantilla de costo (opcional)</mat-label>
           <mat-select formControlName="plantillaCostoId" (selectionChange)="onPlantillaChange()">
             <mat-option value="">— Ninguna —</mat-option>
@@ -71,7 +68,8 @@
           appearance="outline"
           subscriptSizing="dynamic"
           class="full-span"
-          *ngIf="form.get('tipo')?.value === 'ingreso'">
+          *ngIf="form.get('tipo')?.value === 'ingreso'"
+        >
           <mat-label>Costo asociado (opcional)</mat-label>
           <input matInput type="number" formControlName="costoAsociado" min="0" step="0.01" />
           <span matPrefix>$&nbsp;</span>
@@ -86,7 +84,10 @@
 
       <div class="margen-box" *ngIf="margenPreview != null">
         <mat-icon>trending_up</mat-icon>
-        <span>Margen estimado: <strong [class.margen-neg]="margenPreview < 0">{{ formatMoney(margenPreview) }}</strong></span>
+        <span
+          >Margen estimado:
+          <strong [class.margen-neg]="margenPreview < 0">{{ formatMoney(margenPreview) }}</strong></span
+        >
       </div>
 
       <label class="iva-check">
@@ -105,7 +106,8 @@
       type="button"
       data-cy="caja-guardar"
       (click)="guardar()"
-      [disabled]="loading">
+      [disabled]="loading"
+    >
       <mat-icon *ngIf="!loading">payments</mat-icon>
       {{ loading ? 'Guardando…' : 'Registrar' }}
     </button>

@@ -27,15 +27,9 @@ export function esIdProductoDemoPos(id: string | null | undefined): boolean {
   return String(id || '').startsWith(PREFIJO_ID_DEMO_POS);
 }
 
-export function esProductoDemoPos(
-  producto?: Pick<Producto, 'id' | 'soloDemo' | 'origen'> | null
-): boolean {
+export function esProductoDemoPos(producto?: Pick<Producto, 'id' | 'soloDemo' | 'origen'> | null): boolean {
   if (!producto) return false;
-  return (
-    producto.soloDemo === true ||
-    producto.origen === ORIGEN_POS_PREVIEW ||
-    esIdProductoDemoPos(producto.id)
-  );
+  return producto.soloDemo === true || producto.origen === ORIGEN_POS_PREVIEW || esIdProductoDemoPos(producto.id);
 }
 
 /**
@@ -62,14 +56,13 @@ export function mezclarCatalogoPos(
   return [...demos, ...reales];
 }
 
-export function contarDemoPorRiel(
-  productos: Producto[] | null | undefined
-): Record<PosRiel, number> {
+export function contarDemoPorRiel(productos: Producto[] | null | undefined): Record<PosRiel, number> {
   const demo = (productos || []).filter(esProductoDemoPos);
   return {
     petshop: demo.filter((p) => p.rielPos === 'petshop').length,
     consulta: demo.filter((p) => p.rielPos === 'consulta').length,
-    peluqueria: demo.filter((p) => p.rielPos === 'peluqueria').length
+    peluqueria: demo.filter((p) => p.rielPos === 'peluqueria').length,
+    pension: 0,
   };
 }
 
@@ -97,8 +90,6 @@ export function idsElegiblesParaRegistrarSalida(
 }
 
 /** Productos que SÍ pueden ir a `InventarioService.crearProducto`. Demo → ninguno. */
-export function productosElegiblesParaCrearEnInventario(
-  productos: Producto[] | null | undefined
-): Producto[] {
+export function productosElegiblesParaCrearEnInventario(productos: Producto[] | null | undefined): Producto[] {
   return (productos || []).filter((p) => !esProductoDemoPos(p));
 }

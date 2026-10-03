@@ -9,6 +9,9 @@ export interface PosSheetCarritoFila {
   montoLabel: string;
   cantidad: number;
   puedeAjustar: boolean;
+  /** Título corto (p. ej. «Pensión»); meta = resto con · */
+  titulo: string;
+  meta: string;
 }
 
 /**

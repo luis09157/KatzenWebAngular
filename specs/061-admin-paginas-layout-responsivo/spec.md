@@ -80,6 +80,21 @@ Para **entender qué pasó, abrir el detalle y actuar sin cards gordas ni texto 
 
 **Referencia de implementación:** `/admin/inventario/alertas` + hub `/admin/inventario`.
 
+### US-6 — Menú lateral que se oculta para ganar espacio (2026-10-02)
+
+Como **staff**  
+Quiero **que la barra lateral se oculte sola tras un rato sin usarla**  
+Para **tener más ancho útil en expediente, POS y tablas**, y **volver a abrirla con el menú hamburguesa** cuando la necesite
+
+**Criterios de aceptación:**
+
+- [x] SC-015: Tras ~15 s sin interacción sobre el menú (y sin puntero encima), el sidenav se **cierra solo** en desktop y móvil. Al navegar a un módulo también se cierra (ya no queda fijo permanente en desktop).
+- [x] SC-016: El botón **hamburguesa** (toolbar) **abre/cierra** el menú en cualquier viewport; tooltip «Mostrar u ocultar menú».
+- [x] SC-017: Mientras el puntero está sobre el sidenav, el auto-hide se **pausa**; al salir se reprograma. Resize solo reaplica al cruzar el breakpoint 900px (no pelea con el toggle manual).
+- [x] SC-018: Documentado como **regla permanente 15** en `docs/ADMIN-UI-ARCHITECTURE.md`, rule Cursor, `agent-guardrails.md` y esta spec. Código: `admin-main-layout.component.ts` (`SIDENAV_AUTO_HIDE_MS`).
+
+**Notas:** El ancho útil de `.admin-content` crece al ocultar el sidenav (~280px); los grids con container query `admin-page` (US-1) se benefician automáticamente.
+
 ---
 
 ## Fuera de alcance
@@ -95,7 +110,7 @@ Para **entender qué pasó, abrir el detalle y actuar sin cards gordas ni texto 
 
 ## Contratos de Datos y UI (Obligatorio)
 
-- **Impacto en Firebase RTDB:** Ninguno. Solo CSS/HTML de páginas admin y documentación. App móvil no afectada.
+- **Impacto en Firebase RTDB:** Ninguno. Solo CSS/HTML/TS de shell y páginas admin + documentación. App móvil no afectada.
 
   | Nodo | Lectura | Escritura | Notas |
   |------|---------|-----------|-------|
@@ -137,7 +152,7 @@ Sin cambios de permisos.
 
 ## Testing mínimo
 
-Ver `tasks.md` sección Testing. Viewports de smoke: ~1280, ~900, ~375 (el sidenav sigue visible en 1280/900; el grid debe responder al ancho útil).
+Ver `tasks.md` sección Testing. Viewports de smoke: ~1280, ~900, ~375. En 1280/900 el sidenav puede estar abierto o cerrado (US-6); el grid responde al ancho útil de `.admin-content`.
 
 ---
 

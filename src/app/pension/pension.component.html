@@ -92,7 +92,7 @@
           <ng-container matColumnDef="tamano">
             <th mat-header-cell *matHeaderCellDef>Tamaño</th>
             <td mat-cell *matCellDef="let row">
-              {{ row.tamano_mascota ? tamanoLabels[row.tamano_mascota] : '—' }}
+              {{ row.tamano_mascota ? tamanoLabels[row.tamano_mascota] || row.tamano_mascota : '—' }}
             </td>
           </ng-container>
 

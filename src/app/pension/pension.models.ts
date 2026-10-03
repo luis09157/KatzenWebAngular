@@ -1,10 +1,6 @@
-/** Estancia de pensión / alojamiento — spec 022 (scaffold MVP). */
-export type TamanoMascotaPension = 'pequeno' | 'mediano' | 'grande';
-export type EstadoPension =
-  | 'reservada'
-  | 'activa'
-  | 'finalizada'
-  | 'cancelada';
+/** Estancia de pensión / alojamiento — spec 022 + tarifas 089. */
+export type TamanoMascotaPension = 'pequeno' | 'mediano' | 'grande' | 'gigante';
+export type EstadoPension = 'reservada' | 'activa' | 'finalizada' | 'cancelada';
 
 export interface PensionEstancia {
   id?: string;
@@ -48,15 +44,19 @@ export interface PensionEstanciaFormData {
   notas?: string;
 }
 
+/** Etiquetas cortas (lista / KPI). */
 export const TAMANO_PENSION_LABELS: Record<TamanoMascotaPension, string> = {
   pequeno: 'Pequeño',
   mediano: 'Mediano',
-  grande: 'Grande'
+  grande: 'Grande',
+  gigante: 'Gigante',
 };
+
+export const TAMANOS_PENSION_ORDEN: TamanoMascotaPension[] = ['pequeno', 'mediano', 'grande', 'gigante'];
 
 export const ESTADO_PENSION_LABELS: Record<EstadoPension, string> = {
   reservada: 'Reservada',
   activa: 'Activa',
   finalizada: 'Finalizada',
-  cancelada: 'Cancelada'
+  cancelada: 'Cancelada',
 };

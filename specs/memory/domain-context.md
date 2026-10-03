@@ -472,7 +472,7 @@ Excepción: `AuthPerfiles` y `Usuarios` write solo **administrador** (provision 
 |----------|-------|--------|
 | `syncMyClaims` | Autenticado | Sincroniza claims desde AuthPerfiles |
 | `provisionStaffUser` | Admin | Crea Auth + Usuarios + AuthPerfiles |
-| `updateStaffUser` | Admin | Actualiza staff + Auth + claims |
+| `updateStaffUser` | Admin | Actualiza staff + Auth + claims; baja lógica tolera `auth/user-not-found` (**088**) |
 | `provisionPortalClient` | Staff clínica | Activa portal + email bienvenida (alta cliente / Usuarios / **ficha cliente 047**) |
 | `registerPortalOwner` | Público (rate-limit) | Self-registro landing: Cliente + Auth + email (exige Resend); **047 ola 2:** auto-vínculo si correo ya existe; **ola 3:** teléfono MX → sugerencia + confirmación (no auto-vínculo) |
 | `linkStaffPortalCliente` | Admin | Vincula Cliente a staff (dual) |

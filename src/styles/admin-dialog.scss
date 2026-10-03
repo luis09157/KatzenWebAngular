@@ -1917,7 +1917,8 @@ app-visita-dialog {
 @media (min-width: 1024px) {
   .admin-dialog-panel--pos .pos-stage--caja {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important;
+    /* Ticket más ancho: legibilidad de líneas largas (pensión). Split ≥1024 (055). */
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 440px) !important;
     width: 100% !important;
     min-height: 0 !important;
   }

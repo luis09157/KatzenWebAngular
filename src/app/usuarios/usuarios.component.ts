@@ -21,7 +21,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 @Component({
   selector: 'app-usuarios',
   templateUrl: './usuarios.component.html',
-  styleUrls: ['./usuarios.component.css']
+  styleUrls: ['./usuarios.component.css'],
 })
 export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
@@ -105,14 +105,17 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   cargarStaff(): void {
     this.loadingStaff = true;
     void this.refreshDualMap().finally(() => {
-      this.usuariosService.getUsuarios().pipe(takeUntil(this.destroy$)).subscribe({
-        next: usuarios => {
-          this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
-          this.loadingStaff = false;
-          setTimeout(() => this.attachPaginators(), 0);
-        },
-        error: error => this.handleLoadError('staff', error, () => this.cargarStaff())
-      });
+      this.usuariosService
+        .getUsuarios()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (usuarios) => {
+            this.dataSource.data = (usuarios || []).filter((u: { activo?: boolean }) => u.activo !== false);
+            this.loadingStaff = false;
+            setTimeout(() => this.attachPaginators(), 0);
+          },
+          error: (error) => this.handleLoadError('staff', error, () => this.cargarStaff()),
+        });
     });
   }
 
@@ -130,7 +133,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       if (snap) {
         for (const [uid, p] of Object.entries(snap)) {
           if (!p || p.activo === false || !p.clienteId) continue;
-          const roles = new Set([...(p.roles || []), p.role || ''].map(r => String(r).toLowerCase()));
+          const roles = new Set([...(p.roles || []), p.role || ''].map((r) => String(r).toLowerCase()));
           const isDual =
             p.role === 'dual' ||
             (roles.has('staff') && roles.has('client')) ||
@@ -156,21 +159,24 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
 
   cargarPortalClientes(): void {
     this.loadingPortal = true;
-    this.portalClientesService.getPortalClientesLists().pipe(takeUntil(this.destroy$)).subscribe({
-      next: lists => {
-        this.portalConAcceso.data = lists.conPortal;
-        this.portalPendientes.data = lists.pendientes;
-        this.portalSinCorreo.data = lists.sinCorreo;
-        this.portalStats = {
-          conPortal: lists.conPortal.length,
-          pendientes: lists.pendientes.length,
-          sinCorreo: lists.sinCorreo.length
-        };
-        this.loadingPortal = false;
-        setTimeout(() => this.attachPaginators(), 0);
-      },
-      error: error => this.handleLoadError('portal', error, () => this.cargarPortalClientes())
-    });
+    this.portalClientesService
+      .getPortalClientesLists()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (lists) => {
+          this.portalConAcceso.data = lists.conPortal;
+          this.portalPendientes.data = lists.pendientes;
+          this.portalSinCorreo.data = lists.sinCorreo;
+          this.portalStats = {
+            conPortal: lists.conPortal.length,
+            pendientes: lists.pendientes.length,
+            sinCorreo: lists.sinCorreo.length,
+          };
+          this.loadingPortal = false;
+          setTimeout(() => this.attachPaginators(), 0);
+        },
+        error: (error) => this.handleLoadError('portal', error, () => this.cargarPortalClientes()),
+      });
   }
 
   private handleLoadError(scope: string, error: unknown, retry: () => void): void {
@@ -183,8 +189,8 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       text: this.errorMessages.getUserMessage(error, 'cargar datos'),
       showCancelButton: true,
       confirmButtonText: 'Reintentar',
-      cancelButtonText: 'Cerrar'
-    }).then(result => {
+      cancelButtonText: 'Cerrar',
+    }).then((result) => {
       if (result.isConfirmed) retry();
     });
   }
@@ -212,7 +218,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   verDetalleCliente(cliente: PortalClienteRow): void {
     this.dialog.open(ClienteDialogComponent, {
       ...ADMIN_DIALOG_DETAIL,
-      data: { cliente, modoVer: true }
+      data: { cliente, modoVer: true },
     });
   }
 
@@ -221,7 +227,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getCountPerfil(perfil: string): number {
-    return (this.dataSource?.data ?? []).filter(u => u.perfil === perfil).length;
+    return (this.dataSource?.data ?? []).filter((u) => u.perfil === perfil).length;
   }
 
   getPerfilLabel(perfil: string | undefined): string {
@@ -233,7 +239,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       recepcionista: 'Recepcionista',
       super_admin: 'Super admin',
       dueno: 'Dueño sistema',
-      dueño: 'Dueño sistema'
+      dueño: 'Dueño sistema',
     };
     return perfil ? (labels[perfil] ?? perfil) : 'N/P';
   }
@@ -246,32 +252,35 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       data: {
         staffUid: usuario.id,
         staffNombre: usuario.nombre || 'Personal',
-        staffCorreo: usuario.correo || ''
-      }
+        staffCorreo: usuario.correo || '',
+      },
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (!result?.staffUid || !result?.clienteId) return;
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (!result?.staffUid || !result?.clienteId) return;
 
-      this.saving = true;
-      this.loadingService.show(LOADING_MESSAGES.updating);
-      this.firebaseFunctions
-        .linkStaffPortalCliente(result.staffUid, result.clienteId)
-        .then(res => {
-          this.loadingService.hide();
-          Swal.fire('Vinculado', res.message || 'Perfil dual activado.', 'success');
-          this.cargarStaff();
-          this.cargarPortalClientes();
-        })
-        .catch(error => {
-          this.logger.error('Error al vincular portal dual:', error);
-          this.loadingService.hide();
-          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular portal dual'), 'error');
-        })
-        .finally(() => {
-          this.saving = false;
-        });
-    });
+        this.saving = true;
+        this.loadingService.show(LOADING_MESSAGES.updating);
+        this.firebaseFunctions
+          .linkStaffPortalCliente(result.staffUid, result.clienteId)
+          .then((res) => {
+            this.loadingService.hide();
+            Swal.fire('Vinculado', res.message || 'Perfil dual activado.', 'success');
+            this.cargarStaff();
+            this.cargarPortalClientes();
+          })
+          .catch((error) => {
+            this.logger.error('Error al vincular portal dual:', error);
+            this.loadingService.hide();
+            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular portal dual'), 'error');
+          })
+          .finally(() => {
+            this.saving = false;
+          });
+      });
   }
 
   async desvincularPortalDual(usuario: { id?: string; nombre?: string }): Promise<void> {
@@ -286,7 +295,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       showCancelButton: true,
       confirmButtonText: 'Sí, desvincular',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#d33',
     });
     if (!result.isConfirmed) return;
 
@@ -329,7 +338,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       roles: ['staff'],
       staffRole,
       clienteId: null,
-      activo: true
+      activo: true,
     });
     if (cid) {
       const clienteSnap = await this.db.database.ref(`Katzen/Cliente/${cid}`).once('value');
@@ -339,7 +348,7 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
           await this.db.database.ref(`Katzen/Cliente/${cid}`).update({
             authUid: null,
             portalActivo: false,
-            portalUnlinkedAt: timestamp
+            portalUnlinkedAt: timestamp,
           });
         }
       }
@@ -349,31 +358,33 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   abrirModalUsuario(usuario: any = null, modoVer: boolean = false): void {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
       ...(modoVer ? ADMIN_DIALOG_DETAIL : ADMIN_DIALOG_FORM),
-      data: { usuario, modoVer }
+      data: { usuario, modoVer },
     });
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (result && !modoVer) {
-        this.saving = true;
-        this.loadingService.show();
-        const op = result.id
-          ? this.usuariosService.actualizarUsuarioStaff(result.id, {
-              uid: result.id,
-              nombre: result.nombre,
-              telefono: result.telefono,
-              perfil: result.perfil,
-              activo: result.activo,
-              email: result.correo
-            })
-          : this.usuariosService.provisionarUsuarioStaff({
-              email: result.correo,
-              password: result.password,
-              nombre: result.nombre,
-              telefono: result.telefono,
-              perfil: result.perfil
-            });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result && !modoVer) {
+          this.saving = true;
+          this.loadingService.show();
+          const op = result.id
+            ? this.usuariosService.actualizarUsuarioStaff(result.id, {
+                uid: result.id,
+                nombre: result.nombre,
+                telefono: result.telefono,
+                perfil: result.perfil,
+                activo: result.activo,
+                email: result.correo,
+              })
+            : this.usuariosService.provisionarUsuarioStaff({
+                email: result.correo,
+                password: result.password,
+                nombre: result.nombre,
+                telefono: result.telefono,
+                perfil: result.perfil,
+              });
 
-        op
-          .then(() => {
+          op.then(() => {
             this.loadingService.hide();
             Swal.fire(
               'Éxito',
@@ -382,14 +393,16 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
             );
             this.cargarStaff();
           })
-          .catch(error => {
-            this.logger.error('Error al guardar usuario:', error);
-            this.loadingService.hide();
-            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar usuario'), 'error');
-          })
-          .finally(() => { this.saving = false; });
-      }
-    });
+            .catch((error) => {
+              this.logger.error('Error al guardar usuario:', error);
+              this.loadingService.hide();
+              Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar usuario'), 'error');
+            })
+            .finally(() => {
+              this.saving = false;
+            });
+        }
+      });
   }
 
   editarUsuario(usuario: any): void {
@@ -407,23 +420,28 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
-    }).then(result => {
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
       if (result.isConfirmed) {
         this.saving = true;
         this.loadingService.show();
-        this.usuariosService.actualizarUsuarioStaff(id, { uid: id, activo: false })
-          .then(() => {
+        this.usuariosService
+          .actualizarUsuarioStaff(id, { uid: id, activo: false })
+          .then((res) => {
             this.loadingService.hide();
-            Swal.fire('Borrado', 'El usuario fue borrado correctamente.', 'success');
+            Swal.fire('Borrado', res?.message || 'El usuario fue borrado correctamente.', 'success');
             this.cargarStaff();
           })
-          .catch(error => {
+          .catch((error) => {
             this.logger.error('Error al dar de baja usuario:', error);
             this.loadingService.hide();
+            // Puede haber quedado activo:false en RTDB aunque Auth falle (pre-088).
+            this.cargarStaff();
             Swal.fire('Error', this.errorMessages.getUserMessage(error, 'dar de baja usuario'), 'error');
           })
-          .finally(() => { this.saving = false; });
+          .finally(() => {
+            this.saving = false;
+          });
       }
     });
   }
@@ -431,35 +449,41 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   activarPortalCliente(cliente: PortalClienteRow): void {
     const dialogRef = this.dialog.open(ProvisionPortalClienteDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { cliente }
+      data: { cliente },
     });
 
-    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-      if (!result?.clienteId) return;
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (!result?.clienteId) return;
 
-      this.saving = true;
-      this.loadingService.show();
-      this.firebaseFunctions.provisionPortalClient(result.clienteId)
-        .then(res => {
-          this.loadingService.hide();
-          const icon = res.emailSent ? 'success' : 'warning';
-          Swal.fire({
-            icon,
-            title: res.emailSent ? 'Portal activado' : 'Portal activado (sin correo)',
-            text: res.message || 'Cuenta creada correctamente.',
-            footer: res.emailSent
-              ? undefined
-              : 'Modo prueba / Resend no configurado: solo envía al email de la cuenta Resend tras pegar RESEND_API_KEY (ver specs/QA-CRUD-MATRIX.md). Correo a clientes reales requiere dominio verificado.'
+        this.saving = true;
+        this.loadingService.show();
+        this.firebaseFunctions
+          .provisionPortalClient(result.clienteId)
+          .then((res) => {
+            this.loadingService.hide();
+            const icon = res.emailSent ? 'success' : 'warning';
+            Swal.fire({
+              icon,
+              title: res.emailSent ? 'Portal activado' : 'Portal activado (sin correo)',
+              text: res.message || 'Cuenta creada correctamente.',
+              footer: res.emailSent
+                ? undefined
+                : 'Modo prueba / Resend no configurado: solo envía al email de la cuenta Resend tras pegar RESEND_API_KEY (ver specs/QA-CRUD-MATRIX.md). Correo a clientes reales requiere dominio verificado.',
+            });
+            this.cargarPortalClientes();
+          })
+          .catch((error) => {
+            this.logger.error('Error al activar portal:', error);
+            this.loadingService.hide();
+            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'activar portal cliente'), 'error');
+          })
+          .finally(() => {
+            this.saving = false;
           });
-          this.cargarPortalClientes();
-        })
-        .catch(error => {
-          this.logger.error('Error al activar portal:', error);
-          this.loadingService.hide();
-          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'activar portal cliente'), 'error');
-        })
-        .finally(() => { this.saving = false; });
-    });
+      });
   }
 
   desactivarPortalCliente(cliente: PortalClienteRow): void {
@@ -469,24 +493,27 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, desactivar',
-      cancelButtonText: 'Cancelar'
-    }).then(result => {
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
       if (!result.isConfirmed) return;
 
       this.saving = true;
       this.loadingService.show(LOADING_MESSAGES.updating);
-      this.firebaseFunctions.deactivatePortalClient(cliente.id)
-        .then(res => {
+      this.firebaseFunctions
+        .deactivatePortalClient(cliente.id)
+        .then((res) => {
           this.loadingService.hide();
           Swal.fire('Desactivado', res.message || 'Portal desactivado.', 'success');
           this.cargarPortalClientes();
         })
-        .catch(error => {
+        .catch((error) => {
           this.logger.error('Error al desactivar portal:', error);
           this.loadingService.hide();
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'desactivar portal cliente'), 'error');
         })
-        .finally(() => { this.saving = false; });
+        .finally(() => {
+          this.saving = false;
+        });
     });
   }
 
@@ -497,14 +524,15 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Reenviar',
-      cancelButtonText: 'Cancelar'
-    }).then(result => {
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
       if (!result.isConfirmed) return;
 
       this.saving = true;
       this.loadingService.show();
-      this.firebaseFunctions.resendPortalClientAccess(cliente.id)
-        .then(res => {
+      this.firebaseFunctions
+        .resendPortalClientAccess(cliente.id)
+        .then((res) => {
           this.loadingService.hide();
           Swal.fire({
             icon: res.emailSent ? 'success' : 'warning',
@@ -512,15 +540,17 @@ export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
             text: res.message || 'Operación completada.',
             footer: res.emailSent
               ? undefined
-              : 'Configura Resend (modo prueba: solo tu email de cuenta Resend) o verifica dominio para clientes. Ver specs/QA-CRUD-MATRIX.md.'
+              : 'Configura Resend (modo prueba: solo tu email de cuenta Resend) o verifica dominio para clientes. Ver specs/QA-CRUD-MATRIX.md.',
           });
         })
-        .catch(error => {
+        .catch((error) => {
           this.logger.error('Error al reenviar acceso:', error);
           this.loadingService.hide();
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'reenviar acceso portal'), 'error');
         })
-        .finally(() => { this.saving = false; });
+        .finally(() => {
+          this.saving = false;
+        });
     });
   }
 }

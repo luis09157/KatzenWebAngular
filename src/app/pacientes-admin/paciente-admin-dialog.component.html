@@ -260,7 +260,14 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Fecha de nacimiento</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="edad" [max]="maxDate" />
+                <input
+                  matInput
+                  [matDatepicker]="picker"
+                  formControlName="edad"
+                  [max]="maxDate"
+                  readonly
+                  (click)="picker.open()"
+                />
                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                 <mat-datepicker #picker></mat-datepicker>
               </mat-form-field>
@@ -272,6 +279,8 @@
                     [matDatepicker]="fallecimientoPicker"
                     formControlName="fechaFallecimiento"
                     [max]="maxDate"
+                    readonly
+                    (click)="fallecimientoPicker.open()"
                   />
                   <mat-datepicker-toggle matSuffix [for]="fallecimientoPicker"></mat-datepicker-toggle>
                   <mat-datepicker #fallecimientoPicker></mat-datepicker>

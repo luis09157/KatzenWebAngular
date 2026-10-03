@@ -117,6 +117,7 @@ Ante duda, elegir el nivel superior.
 | Diálogos picker / compactos | Usan `admin-dialog-shell--picker` (espaciado `--picker`); no CRUD grandes |
 | Loading | Mensaje contextual + overlay **nunca** trabado (ver `specs/005-loading-feedback-ux/`) |
 | Campos de hora | Usan `app-timepicker-field` + diálogo timepicker (no `type="time"` nativo) — `specs/004-timepicker-dialog/` |
+| Campos de fecha | Usan `app-datepicker-field` (ISO `yyyy-MM-dd`) o `mat-datepicker` con clic → calendario (no `type="date"` nativo) — `specs/090-datepicker-canonico/` |
 | Acción destructiva (copy) | Labels visibles = **«Borrar»** (menú, tooltip, leyenda, SweetAlert). **No** «Baja lógica» / «Dar de baja». Técnico: sigue siendo soft-delete |
 | Live preview | `npm start` vivo en :4200 al entregar cambios UI |
 | Páginas admin (spec 061) | Grid 3→2→1 según ancho **útil**; toolbar wrap alineado; buscador sin clip; padding cards; timeline gap; smoke 375 / 768 / 1280 |
@@ -238,6 +239,7 @@ Antes de marcar cualquier tarea de implementación o testing como completada:
 | Modales — apertura/cierre | OK / N/A / FALLO | ... |
 | UI — diálogos --picker | OK / N/A / FALLO | ... |
 | UI — timepicker en campos hora | OK / N/A / FALLO | ... |
+| UI — datepicker en campos fecha | OK / N/A / FALLO | ... |
 | UI — diálogos spec 059 (padding/tabs/scroll) | OK / N/A / FALLO | no padding 0 por entity-summary; tabs visibles; body scrollea |
 | UI — páginas spec 061 (grid/toolbar/search/padding/timeline) | OK / N/A / FALLO | 3→2→1 por útil; wrap alineado; search sin clip; DUEÑO padding; timeline gap; 1280/900/375 |
 | UI — copy destructivo «Borrar» | OK / N/A / FALLO | menú/tooltip/leyenda/Swal; no «Baja lógica» |

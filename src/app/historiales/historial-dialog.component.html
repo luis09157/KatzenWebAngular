@@ -97,6 +97,8 @@
                 [matDatepicker]="picker"
                 formControlName="fecha_registro"
                 placeholder="Selecciona la fecha"
+                readonly
+                (click)="picker.open()"
               />
               <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>

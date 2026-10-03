@@ -302,9 +302,14 @@ export const updateStaffUser = onCall(async (request) => {
     throw new HttpsError('not-found', 'Usuario no encontrado.');
   }
 
+  const usuarioActual = (usuarioSnap.val() || {}) as {
+    perfil?: string;
+    correo?: string;
+    email?: string;
+  };
   const perfilOperativo = data.perfil
     ? String(data.perfil).toLowerCase()
-    : String(usuarioSnap.val()?.perfil || 'doctor').toLowerCase();
+    : String(usuarioActual.perfil || 'doctor').toLowerCase();
   const staffRole = mapUsuarioPerfilToStaffRole(perfilOperativo);
 
   const usuarioUpdates: Record<string, unknown> = {
@@ -318,31 +323,82 @@ export const updateStaffUser = onCall(async (request) => {
   if (data.activo !== undefined) usuarioUpdates.activo = !!data.activo;
   if (data.email !== undefined) usuarioUpdates.correo = String(data.email).trim().toLowerCase();
 
-  const authPerfilUpdates: Record<string, unknown> = {
-    staffRole,
-    activo: data.activo !== undefined ? !!data.activo : true
-  };
+  // No forzar activo:true en AuthPerfiles si el caller no envió `activo` (evita reactivar al editar nombre).
+  const authPerfilUpdates: Record<string, unknown> = { staffRole };
+  if (data.activo !== undefined) authPerfilUpdates.activo = !!data.activo;
   if (data.email !== undefined) authPerfilUpdates.email = String(data.email).trim().toLowerCase();
 
   await db.ref(`Katzen/Usuarios/${uid}`).update(usuarioUpdates);
-  await db.ref(`Katzen/AuthPerfiles/${uid}`).update(authPerfilUpdates);
 
-  if (data.email !== undefined) {
-    await admin.auth().updateUser(uid, { email: String(data.email).trim().toLowerCase() });
-  }
-  if (data.activo === false) {
-    await admin.auth().updateUser(uid, { disabled: true });
-  } else if (data.activo === true) {
-    await admin.auth().updateUser(uid, { disabled: false });
+  const authPerfilRef = db.ref(`Katzen/AuthPerfiles/${uid}`);
+  const authPerfilSnap = await authPerfilRef.once('value');
+  if (authPerfilSnap.exists()) {
+    await authPerfilRef.update(authPerfilUpdates);
+  } else {
+    // Personal legacy solo en Usuarios: crear AuthPerfiles mínimo al editar/borrar.
+    const emailFallback = String(usuarioActual.correo || usuarioActual.email || '').trim().toLowerCase();
+    await authPerfilRef.set({
+      authUid: uid,
+      email: data.email !== undefined ? String(data.email).trim().toLowerCase() : emailFallback || null,
+      role: 'staff',
+      roles: ['staff'],
+      staffRole,
+      activo: data.activo !== undefined ? !!data.activo : true
+    });
   }
 
-  const claims = await syncClaimsForUid(uid);
+  // Auth puede no existir (UID de RTDB legacy). RTDB ya quedó; no tumbar el flujo.
+  let authUserExists = true;
+  try {
+    if (data.email !== undefined) {
+      await admin.auth().updateUser(uid, { email: String(data.email).trim().toLowerCase() });
+    }
+    if (data.activo === false) {
+      await admin.auth().updateUser(uid, { disabled: true });
+    } else if (data.activo === true) {
+      await admin.auth().updateUser(uid, { disabled: false });
+    }
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code;
+    if (code === 'auth/user-not-found') {
+      authUserExists = false;
+      console.warn('[updateStaffUser] Auth user-not-found; RTDB actualizado', { uid });
+    } else {
+      const message = err instanceof Error ? err.message : 'No se pudo actualizar la cuenta Auth';
+      throw new HttpsError('internal', message);
+    }
+  }
+
+  let claims: StaffClaims = { role: 'none' };
+  if (authUserExists) {
+    try {
+      if (data.activo === false) {
+        await admin.auth().revokeRefreshTokens(uid).catch((revokeErr: unknown) => {
+          console.error('[updateStaffUser] revokeRefreshTokens falló', {
+            uid,
+            error: revokeErr instanceof Error ? revokeErr.message : revokeErr
+          });
+        });
+      }
+      claims = await syncClaimsForUid(uid);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      if (code !== 'auth/user-not-found') {
+        const message = err instanceof Error ? err.message : 'No se pudieron sincronizar claims';
+        throw new HttpsError('internal', message);
+      }
+      authUserExists = false;
+    }
+  }
 
   return {
     success: true,
     uid,
     staffRole: claims.staffRole,
-    message: 'Usuario actualizado'
+    authUserExists,
+    message: authUserExists
+      ? 'Usuario actualizado'
+      : 'Usuario actualizado en la clínica (no tenía cuenta Auth; no podrá iniciar sesión).'
   };
 });
 

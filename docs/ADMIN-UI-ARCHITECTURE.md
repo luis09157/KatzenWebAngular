@@ -18,6 +18,7 @@ You are a Senior Front-End Engineer and UI/UX Designer specializing in Angular M
 12. **Dialog layout must not clip or collapse content (spec 059):** Nunca usar `:has(.entity-summary)` para quitar padding del body. `padding: 0` en `.admin-dialog-body` solo si hay layout interno (`.admin-dialog-layout`, `.admin-dialog-form--padded`, `.info-grid`). Tabs (`mat-tab-group`) en overlay/página: `height: auto` + `overflow: visible`; preferir `dynamicHeight`. Superficie con `overflow: hidden` solo si el body puede scrollear. `.entity-summary` compacto (≤16px / 12px). Fichas con tabs deben mostrar el expediente, no solo el hero. Ficha paciente: `ADMIN_DIALOG_FICHA` + `admin-dialog-panel--ficha`. Pickers: `--picker`; CRUD grandes: shell estándar. **Pie del modal:** usar `mat-dialog-actions` con clase `admin-dialog-actions` **o** `<footer class="admin-dialog-footer">` (mismos tokens en `admin-dialog.scss`); **prohibido** un footer sin esas clases (queda pegado al borde). Cerrar izquierda + primario derecha: spacer `flex: 1` (p. ej. `.alta-rapida-spacer`).
 13. **Admin pages must reflow (spec 061 + 084 US-7):** Toda pantalla admin (`.admin-page`, dashboards, expedientes, CRUD, POS si comparte shell) **no** fuerza N columnas cuando el **ancho útil** de `.admin-content` (viewport menos sidenav y padding) no las cabe. Usar container `admin-page` en `.admin-content`. Guía: ≥ ~1100px útil → 3 columnas si el layout las pide; ~720–1099 → 2; &lt;720 → 1. Toolbars/filas de botones: `flex-wrap` + gap; lo que baja de línea se alinea al **inicio** (no huérfanos a la derecha). `matTooltip` `position="below"` + aire bajo la toolbar para no tapar la card. Buscadores: label/placeholder no recortados; en estrecho el botón «Nuevo» apila o va a full width (`.panel-search` / `.admin-split-toolbar`). Cards: padding interno ≥16px (bloques acento tipo DUEÑO ≥20px); gap entre cards ≥16px (20–24px desktop). Timelines: gap vertical ~8–12px. Desktop ≥1200px viewport **y** útil suficiente: regla 9 (aprovechar ancho; no max-width interno que aplaste texto). **Diálogos densos / catálogos (POS `.pos-grid`, tiles):** mismo criterio por ancho del grid (no solo viewport): `auto-fill` + `minmax` legible; prohibido `repeat(4+, 1fr)` que trunque nombres. Ver sección «Diálogos densos…» abajo. **059 = diálogos shell; 061 = páginas; 084 US-7 = legibilidad grids densos.** Canonical: `src/styles/admin-page-layout.scss`, `admin-crud.scss`, `visita-dialog.component.scss`.
 14. **Listas de avisos densas (alertas / pendientes):** En hubs y listados de alertas **prohibido** cards altas con mensaje en columna estrecha y hueco vacío. Usar `.admin-dense-list` + `.admin-dense-row`: fila ~48–56px, título **1 línea** (ellipsis), meta **1 línea**, acciones a la derecha. El hub de Inventario solo muestra **resumen** (conteo + ≤3 ejemplos); el listado completo vive en `/admin/inventario/alertas`. Canonical: `src/styles/admin-dense-list.scss` · docs § Listas densas · spec **061** follow-up.
+15. **Sidenav auto-hide + hamburguesa (spec 061 US-6):** El menú lateral admin **no** queda fijo permanente en desktop. Tras ~15 s de inactividad sobre el menú (o al navegar) se **oculta** para ganar ancho útil en `.admin-content`. El staff lo reabre con el **menú hamburguesa** de la toolbar. Pause del timer mientras el puntero está sobre el sidenav. Resize solo reaplica al cruzar 900px. Canonical: `admin-main-layout.component.ts` (`SIDENAV_AUTO_HIDE_MS`).
 
 ## DESIGN SYSTEM TOKENS (CSS Variables Reference)
 
@@ -292,7 +293,7 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 
 ### Sidenav y toolbar (menú 3 mundos)
 
-- El sidenav (`admin-main-layout`) usa `.admin-sidenav__scroll` con `overflow-y: auto` y `min-height: 0` para que **Pensión, Alertas, logout** no se corten contra el dock.
+- El sidenav (`admin-main-layout`) usa `.admin-sidenav__scroll` con `overflow-y: auto` y `min-height: 0` para que **Pensión, Alertas, logout** no se corten contra el dock. Auto-hide ~15 s + hamburguesa (regla 15 / 061 US-6): no asumir menú siempre visible al medir layouts.
 - Labels del menú: wrap hasta 2 líneas + `title` nativo en textos largos («Directorio de pacientes»). No clip de una sola línea (`Directorio de pa…`).
 - Toolbar ≤900px: `more_vert` con cuenta, sucursal y atajos; chips de usuario/sucursal van en `.hide-mobile`.
 - Shell: `.admin-shell` / `.mat-drawer-container` = `height: 100dvh`. **Nunca** `height: 100%` en el contenedor: anula el `100dvh` y, con `overflow: hidden` de Material, recorta páginas y tablas **sin scroll**.
@@ -389,6 +390,24 @@ No usar `input type="time"` nativo en formularios admin. Usar el control compart
 - **Display:** 12h con `a.m.` / `p.m.` (español latino).
 - **Diálogo:** `ADMIN_DIALOG_TIMEPICKER` + `admin-dialog-shell admin-dialog-shell--picker` (`src/app/shared/timepicker/`).
 - Spec: `specs/004-timepicker-dialog/`.
+
+### Datepicker (patrón estándar de formularios)
+
+No usar `input type="date"` nativo en formularios admin. Preferir el control compartido (valor ISO):
+
+```html
+<app-datepicker-field
+  formControlName="fecha"
+  label="Fecha"
+  [required]="true">
+</app-datepicker-field>
+```
+
+- **Valor del FormControl / ngModel:** `yyyy-MM-dd` (ISO fecha-local).
+- **Display:** locale `es-MX` (dd/mm/aaaa); input `readonly`; clic abre el calendario Material.
+- **Util:** `src/app/shared/datepicker/datepicker.util.ts`.
+- Si un formulario ya usa `mat-datepicker` con `Date` en el control: mantener toggle + `(click)="picker.open()"` + `readonly` (no teclear).
+- Spec: `specs/090-datepicker-canonico/`.
 
 ### Cliente-Paciente Picker (regla global — obligatorio)
 

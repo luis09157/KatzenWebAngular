@@ -1,8 +1,10 @@
-<div class="admin-dialog-shell">
+<div class="admin-dialog-shell pension-dialog">
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar estancia' : 'Nueva estancia de pensión' }}</h2>
-      <p class="admin-dialog-subtitle">Alojamiento / hospedaje. El total se puede sobreescribir al cobrar.</p>
+      <p class="admin-dialog-subtitle">
+        Hospedaje (no es baño ni corte). Elige fechas y paquete: el total es precio/día × días.
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -25,47 +27,64 @@
         <h3 class="entity-summary__name">{{ form.get('paciente')?.value || data?.paciente || 'Paciente' }}</h3>
         <p class="entity-summary__meta">Dueño: {{ form.get('cliente')?.value || data?.cliente || '—' }}</p>
       </div>
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha ingreso</mat-label>
-        <input matInput type="date" formControlName="fecha_ingreso" required (change)="recalcularTotal()" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Salida prevista</mat-label>
-        <input matInput type="date" formControlName="fecha_salida_prevista" (change)="recalcularTotal()" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Tamaño</mat-label>
-        <mat-select formControlName="tamano_mascota">
-          <mat-option value="">—</mat-option>
-          <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Precio / día</mat-label>
-        <input
-          matInput
-          type="number"
-          min="0"
-          step="0.01"
-          formControlName="precio_dia"
-          required
-          (input)="recalcularTotal()"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Precio total (ajuste manual)</mat-label>
-        <input matInput type="number" min="0" step="0.01" formControlName="precio_total" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Costo / día (opcional)</mat-label>
-        <input matInput type="number" min="0" step="0.01" formControlName="costo_dia" />
-        <mat-hint *ngIf="!form.get('costo_dia')?.hasError('costoMayorOIgualVenta')">
-          Debe ser menor que el precio / día
-        </mat-hint>
-        <mat-error *ngIf="form.get('costo_dia')?.hasError('costoMayorOIgualVenta')">
-          El costo debe ser menor que el precio de venta
-        </mat-error>
-      </mat-form-field>
+
+      <app-datepicker-field
+        formControlName="fecha_ingreso"
+        label="Fecha ingreso"
+        [required]="true"
+        (dateChange)="recalcularTotal()"
+      ></app-datepicker-field>
+      <app-datepicker-field
+        formControlName="fecha_salida_prevista"
+        label="Salida prevista"
+        hint="Si no pones salida, se cuenta 1 día"
+        (dateChange)="recalcularTotal()"
+      ></app-datepicker-field>
+
+      <div class="pension-dias-chip full-width" aria-live="polite">
+        <mat-icon>calendar_month</mat-icon>
+        <span>
+          <strong>{{ diasEstimados }}</strong>
+          {{ diasEstimados === 1 ? 'día' : 'días' }}
+          <span class="pension-dias-chip__hint">según las fechas de arriba</span>
+        </span>
+      </div>
+
+      <div class="pension-paquetes full-width" role="group" aria-label="Paquete de pensión">
+        <p class="pension-paquetes__label">¿Cuánto se cobra por día?</p>
+        <div class="pension-paquetes__grid">
+          <button
+            type="button"
+            class="pension-paquete"
+            *ngFor="let p of paquetes"
+            [class.pension-paquete--on]="form.get('tamano_mascota')?.value === p.tamano"
+            (click)="elegirPaquete(p.tamano)"
+          >
+            <strong>{{ p.titulo }}</strong>
+            <span class="pension-paquete__rango">{{ p.rangoKg }}</span>
+            <span class="pension-paquete__precio">{{ formatMoney(p.precioDia) }}/día</span>
+          </button>
+        </div>
+        <p
+          class="pension-paquetes__error"
+          *ngIf="form.get('tamano_mascota')?.touched && form.get('tamano_mascota')?.invalid"
+        >
+          Elige un paquete
+        </p>
+      </div>
+
+      <div class="pension-resumen full-width" *ngIf="paqueteSeleccionado">
+        <p class="pension-resumen__formula">
+          {{ formatMoney(precioDiaActual) }} × {{ diasEstimados }}
+          {{ diasEstimados === 1 ? 'día' : 'días' }}
+          =
+          <strong>{{ formatMoney(resumenTotal) }}</strong>
+        </p>
+        <p class="pension-resumen__note">
+          Eso es lo que se cobrará (puedes ajustar el monto al pasar a caja / ticket).
+        </p>
+      </div>
+
       <mat-form-field appearance="outline">
         <mat-label>Estado</mat-label>
         <mat-select formControlName="estado" required>

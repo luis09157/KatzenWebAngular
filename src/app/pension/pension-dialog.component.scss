@@ -12,8 +12,124 @@
   grid-column: 1 / -1;
 }
 
+.pension-dias-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f4f9f9;
+  border: 1px solid rgba(10, 150, 155, 0.15);
+  font-size: 0.9375rem;
+  color: #1a2e2e;
+}
+
+.pension-dias-chip mat-icon {
+  color: var(--katzen-verde, #0a969b);
+}
+
+.pension-dias-chip__hint {
+  margin-left: 6px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #5a6e6e;
+}
+
+.pension-paquetes__label {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #3d5252;
+}
+
+.pension-paquetes__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pension-paquete {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  background: var(--admin-surface, #fff);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.pension-paquete:hover {
+  border-color: rgba(10, 150, 155, 0.45);
+}
+
+.pension-paquete--on {
+  border-color: var(--katzen-verde, #0a969b);
+  background: var(--katzen-verde-soft, #e0f7f8);
+  box-shadow: 0 0 0 1px rgba(10, 150, 155, 0.25);
+}
+
+.pension-paquete strong {
+  font-size: 0.9375rem;
+  color: #1a2e2e;
+}
+
+.pension-paquete__rango {
+  font-size: 0.75rem;
+  color: #5a6e6e;
+}
+
+.pension-paquete__precio {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--katzen-verde-fuerte, #065d60);
+}
+
+.pension-paquetes__error {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
+.pension-resumen {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f4f9f9;
+  border: 1px solid rgba(10, 150, 155, 0.12);
+}
+
+.pension-resumen__formula {
+  margin: 0;
+  font-size: 1.0625rem;
+  color: #1a2e2e;
+}
+
+.pension-resumen__formula strong {
+  color: var(--katzen-verde-fuerte, #065d60);
+  font-size: 1.25rem;
+}
+
+.pension-resumen__note {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: #5a6e6e;
+}
+
 @media (max-width: 640px) {
   .admin-form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pension-paquetes__grid {
     grid-template-columns: 1fr;
   }
 }

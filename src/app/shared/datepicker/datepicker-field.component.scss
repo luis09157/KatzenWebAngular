@@ -1,0 +1,12 @@
+.datepicker-field {
+  display: block;
+  width: 100%;
+}
+
+.datepicker-field__form-field {
+  width: 100%;
+}
+
+.datepicker-field input[readonly] {
+  cursor: pointer;
+}

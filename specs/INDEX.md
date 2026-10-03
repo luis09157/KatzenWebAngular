@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **85** specs · `done`: 70 · `in_progress`: 12 · `superseded`: 3
+Total: **90** specs · `done`: 75 · `in_progress`: 12 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -93,3 +93,8 @@ Total: **85** specs · `done`: 70 · `in_progress`: 12 · `superseded`: 3
 | 084 | [ui-ux-oleada-impacto](084-ui-ux-oleada-impacto/spec.md) | UI/UX oleada de impacto (post PLAN-UX 1–4) | done |
 | 085 | [peluqueria-flujo-facil](085-peluqueria-flujo-facil/spec.md) | Peluquería — flujo fácil + precios claros | in_progress |
 | 086 | [clinicos-cola-cobrar](086-clinicos-cola-cobrar/spec.md) | Vacunas y consultas → cola de cobro (mismo molde peluquería) | in_progress |
+| 087 | [pwa-dual-portal-clinica](087-pwa-dual-portal-clinica/spec.md) | PWA dual — portal dueños vs app clínica (staff) | done |
+| 088 | [fix-borrar-personal-auth-missing](088-fix-borrar-personal-auth-missing/spec.md) | Fix borrar personal cuando no hay cuenta Auth | done |
+| 089 | [pension-tarifas-y-flujo](089-pension-tarifas-y-flujo/spec.md) | Pensión — tarifas oficiales y flujo de alta (Fase 0+) | done |
+| 090 | [datepicker-canonico](090-datepicker-canonico/spec.md) | Datepicker canónico (selección de fecha) | done |
+| 091 | [pos-riel-pension](091-pos-riel-pension/spec.md) | POS — riel Pensión (enlace al cobro) | done |

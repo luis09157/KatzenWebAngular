@@ -18,10 +18,12 @@ Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle d
 6. **Dialog config** — `{ width: '840px', maxWidth: '96vw', panelClass: 'admin-dialog-panel' }`. Pickers compactos: `admin-dialog-shell--picker` + `ADMIN_DIALOG_TIMEPICKER`; fichas: `ADMIN_DIALOG_FICHA`. No usar `--picker` en CRUD grandes.
 7. **Campos de hora** → `app-timepicker-field` (no `type="time"`).
 8. **Listas de alertas/avisos gordas** — usar `.admin-dense-list` / `.admin-dense-row` (fila ~48–56px, título 1 línea). No cards altas con hueco vacío. Hub Inventario = resumen; listado = `/inventario/alertas`.
+9. **Sidenav auto-hide** — menú lateral no fijo permanente; ~15 s idle o al navegar se oculta; hamburguesa lo reabre (061 US-6). No pelear con eso desde páginas hijas.
 
 ## Patrones
 
-- Página: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; grid fluido 3→2→1 según ancho útil; desktop usa todo `.admin-content`.
+- Página: `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; grid fluido 3→2→1 según ancho útil; desktop usa todo `.admin-content` (más ancho cuando el sidenav está oculto).
+- Shell: `admin-main-layout` — auto-hide sidenav + toggle hamburguesa (no reimplementar en módulos).
 - Tabla: `.table-scroll` + `mat-table`; acciones `mat-column-acciones` 120px con `mat-icon-button` + `matTooltip` en `.row-actions`; nombres de persona completos en desktop.
 - **MUST (spec 073):** filas de listado `(dblclick)` al mismo handler que Ver detalle; `.row-actions` con `$event.stopPropagation()`.
 - Avisos: `.admin-dense-list` (ver `docs/ADMIN-UI-ARCHITECTURE.md` § Listas densas).

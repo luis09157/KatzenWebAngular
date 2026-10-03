@@ -17,6 +17,8 @@ describe('PosSheetCarritoComponent (spec 082)', () => {
     montoLabel: '$100.00',
     cantidad: 2,
     puedeAjustar: true,
+    titulo: `Item ${id}`,
+    meta: '',
   });
 
   it('vacio es true sin filas', () => {

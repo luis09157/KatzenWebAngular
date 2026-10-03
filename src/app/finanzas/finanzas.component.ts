@@ -333,8 +333,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aplicarFiltroPeriodo();
   }
 
-  onFechaChange(event: Event): void {
-    this.fechaFiltro = (event.target as HTMLInputElement).value;
+  onFechaFiltroChange(iso: string | null): void {
+    this.fechaFiltro = String(iso || '').trim() || this.cajaService.hoyLocalIsoDate();
     this.aplicarFiltroPeriodo();
   }
 
@@ -574,6 +574,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       pequeno: row('pequeno'),
       mediano: row('mediano'),
       grande: row('grande'),
+      gigante: row('gigante'),
     });
   }
 
@@ -683,6 +684,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
         pequeno: row('pequeno'),
         mediano: row('mediano'),
         grande: row('grande'),
+        gigante: row('gigante'),
       };
       await this.defaultsPensionService.guardarDefaults(payload);
       Swal.fire({

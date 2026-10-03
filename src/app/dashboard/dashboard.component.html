@@ -251,14 +251,8 @@
               {{ p.label }}
             </button>
           </div>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-date">
-            <mat-label>Desde</mat-label>
-            <input matInput type="date" [(ngModel)]="desdeCustom" />
-          </mat-form-field>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-date">
-            <mat-label>Hasta</mat-label>
-            <input matInput type="date" [(ngModel)]="hastaCustom" />
-          </mat-form-field>
+          <app-datepicker-field class="owner-date" label="Desde" [(ngModel)]="desdeCustom"></app-datepicker-field>
+          <app-datepicker-field class="owner-date" label="Hasta" [(ngModel)]="hastaCustom"></app-datepicker-field>
           <button
             mat-raised-button
             color="primary"

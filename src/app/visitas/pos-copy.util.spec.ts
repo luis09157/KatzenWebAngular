@@ -1,4 +1,4 @@
-import { mensajeRequiereClientePara, origenLineaHint } from './pos-copy.util';
+import { mensajeRequiereClientePara, origenLineaHint, partesDescripcionLineaTicket } from './pos-copy.util';
 import { VisitaLinea } from './visitas.models';
 
 describe('pos-copy.util', () => {
@@ -20,6 +20,14 @@ describe('pos-copy.util', () => {
       });
       expect(msg).toContain('Ana');
       expect(msg).toContain('baño');
+    });
+
+    it('pide dueño+mascota para pensión', () => {
+      const msg = mensajeRequiereClientePara('pension', {
+        tieneClienteReal: false,
+        tienePaciente: false,
+      });
+      expect(msg.toLowerCase()).toContain('pensión');
     });
   });
 
@@ -55,6 +63,20 @@ describe('pos-copy.util', () => {
         categoria: 'otro',
       };
       expect(origenLineaHint(linea)).toBe('');
+    });
+  });
+
+  describe('partesDescripcionLineaTicket', () => {
+    it('parte pensión en título + meta', () => {
+      const r = partesDescripcionLineaTicket('Pensión · Pequeño (0-10 kg - chico o gato) · $250/día · Oreon');
+      expect(r.titulo).toBe('Pensión');
+      expect(r.meta).toContain('Pequeño');
+      expect(r.meta).toContain('Oreon');
+      expect(r.meta).not.toContain('Pensión ·');
+    });
+
+    it('sin separador deja todo en título', () => {
+      expect(partesDescripcionLineaTicket('Shampoo')).toEqual({ titulo: 'Shampoo', meta: '' });
     });
   });
 });

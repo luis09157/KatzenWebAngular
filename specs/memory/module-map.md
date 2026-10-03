@@ -12,7 +12,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | **Landing** | `/`, `/privacidad` | `src/app/landing/` | Público | Solo `Katzen/ContactosWeb` (create) |
 | **Admin** | `/admin/*` | módulos lazy bajo `src/app/{modulo}/` + `layouts/` | Staff | Operativo (rules `role != client`) |
 | **Portal** | `/portal/*` | `src/app/portal/` | Dueños | Casi solo lectura; notificaciones `leida` |
-| **Auth** | `/admin/login`, `/auth/*` | `src/app/auth/` | Staff / dual | Claims vía Functions |
+| **Auth** | `/admin/login`, `/auth/*` | `src/app/auth/` | Staff / dual | Claims vía Functions; PWA clínica **087** |
 | **Core** | — | `src/app/core/` | Todos (import) | Servicios transversales |
 | **Shared** | — | `src/app/shared/` | Admin (+ algo portal) | UI/modelos compartidos |
 
@@ -41,6 +41,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `admin/` | KPI grid, banner, data-panel, pickers cliente/paciente/producto |
 | `alergias/` | Editor + alerta (**034**) |
 | `timepicker/` | `app-timepicker-field` (**004**) |
+| `datepicker/` | `app-datepicker-field` + util ISO (**090**) |
 | Modelos | `inventario.models`, `banio.model`, catálogos |
 | `validation.service` | Validaciones UI |
 
@@ -59,8 +60,8 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
 | `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / Hoy (085); no módulo paralelo |
-| `pension/` | `/admin/pension` | `Pension/Estancias` | 022 | Hospedaje |
-| `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086** | **POS / cuenta del día** · pendientes clínicos `pendientes-clinicos.util` |
+| `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload RTDB `pension-estancia-payload.util` (sin undefined) |
+| `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |
 | `finanzas/` | `/admin/finanzas` | `Caja`, `Finanzas/*` | 014, 021, 022, 071 | Caja, costos, reportes |
 | `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056 | Tarifas sin stock |
@@ -70,7 +71,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `configuracion/` | `/admin/configuracion` | `Config/clinica` | 072 | Config clínica |
 | `alta-rapida/` | (diálogo) | Cliente + Mascota | 070, 085 | Asistente «Llegó un paciente»; `alta-rapida-prefill.util` |
 | `ayuda/` | (diálogo) | — | 072 | Manual usuario |
-| `layouts/` | shell admin | — | 061, 072 | Sidenav + content |
+| `layouts/` | shell admin | auto-hide sidenav ~15s + hamburguesa | 061 US-6, 072 | Sidenav + content |
 
 ### Dominios lógicos (agrupar mentalmente)
 
@@ -96,8 +97,9 @@ Core / Shared ──► sin UI de negocio propia
 | Layout / login | `/portal/login`, shell | Auth + Cliente | 002, 013, 051, 074 |
 | Mascotas / cartilla | `/portal/mascotas`, detalle | Mascota, Vacunas, Banios, Citas, Historial, … | 020, 028, 031, 074 |
 | Notificaciones | `/portal/notificaciones` | `Notificaciones/{clienteId}` | 023, 052, 074 |
-| Perfil | `/portal/perfil` | Cliente | 006, 074 |
+| Perfil | `/portal/perfil` | Cliente | 006, 074, 052, 087 (install portal) |
 | Utils | `portal/utils/*` | — | Mapper, cartilla, login errors; **no** duplicar `paciente-cliente` (ya importa core) |
+| PWA | manifests + install | — | **087**: portal `scope /portal/` · clínica `scope /admin/`; `PwaManifestService` / `PwaInstallService` en `core/services` |
 
 **Pendiente producto:** solicitud de cita (`CitasSolicitud`) — solo en spec **074**, flag off.
 

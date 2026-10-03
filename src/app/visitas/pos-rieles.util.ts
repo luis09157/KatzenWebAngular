@@ -1,16 +1,11 @@
 import { CategoriaProducto, Producto } from '../shared/inventario.models';
 import { esProductoDemoPos } from './pos-catalogo-demo.util';
 
-/** Tres mundos de la misma caja Katzen (spec 055). */
-export type PosRiel = 'petshop' | 'consulta' | 'peluqueria';
+/** Mundos de la misma caja Katzen (spec 055 + riel pensión 091). */
+export type PosRiel = 'petshop' | 'consulta' | 'peluqueria' | 'pension';
 
 export const CATEGORIAS_PETSHOP: CategoriaProducto[] = ['alimento', 'accesorio', 'peluqueria'];
-export const CATEGORIAS_CLINICAS: CategoriaProducto[] = [
-  'medicamento',
-  'vacuna',
-  'quirurgico',
-  'diagnostico'
-];
+export const CATEGORIAS_CLINICAS: CategoriaProducto[] = ['medicamento', 'vacuna', 'quirurgico', 'diagnostico'];
 
 export interface PosRielContexto {
   modoMostrador: boolean;
@@ -29,10 +24,10 @@ export function esProductoPetshop(producto: Pick<Producto, 'categoria'> | null |
 }
 
 export function rielRequiereDuenoYMascota(riel: PosRiel): boolean {
-  return riel === 'consulta' || riel === 'peluqueria';
+  return riel === 'consulta' || riel === 'peluqueria' || riel === 'pension';
 }
 
-/** Walk-in/mostrador solo petshop. Consulta y peluquería piden dueño + mascota. */
+/** Walk-in/mostrador solo petshop. Consulta, peluquería y pensión piden dueño + mascota. */
 export function puedeUsarRiel(riel: PosRiel, ctx: PosRielContexto): boolean {
   if (riel === 'petshop') return true;
   if (ctx.modoMostrador) return false;
@@ -49,6 +44,9 @@ export function mensajeRielBloqueado(riel: PosRiel, ctx: PosRielContexto): strin
   if (riel === 'peluqueria') {
     return 'La peluquería necesita dueño y mascota. Elige el cliente o registra el baño en Atención clínica.';
   }
+  if (riel === 'pension') {
+    return 'La pensión necesita dueño y mascota. Elige el cliente para ver estancias por cobrar.';
+  }
   return '';
 }
 
@@ -57,9 +55,7 @@ export function rielDeProducto(producto: Producto | null | undefined): PosRiel |
   if (!producto) return null;
   if (
     esProductoDemoPos(producto) &&
-    (producto.rielPos === 'petshop' ||
-      producto.rielPos === 'consulta' ||
-      producto.rielPos === 'peluqueria')
+    (producto.rielPos === 'petshop' || producto.rielPos === 'consulta' || producto.rielPos === 'peluqueria')
   ) {
     return producto.rielPos;
   }
@@ -68,10 +64,9 @@ export function rielDeProducto(producto: Producto | null | undefined): PosRiel |
   return null;
 }
 
-export function filtrarProductosPorRiel(
-  productos: Producto[] | null | undefined,
-  riel: PosRiel
-): Producto[] {
+export function filtrarProductosPorRiel(productos: Producto[] | null | undefined, riel: PosRiel): Producto[] {
+  // Pensión no es anaquel: solo estancias (spec 091).
+  if (riel === 'pension') return [];
   const rows = (productos || []).filter((p) => p && p.activo !== false);
   return rows.filter((p) => rielDeProducto(p) === riel);
 }

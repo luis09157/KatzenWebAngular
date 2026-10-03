@@ -21,6 +21,11 @@ export function mensajeRequiereClientePara(riel: PosRiel, ctx: MensajeClienteCtx
       ? `Elige o agrega la mascota de ${dueno} para registrar el baño.`
       : 'Para registrar un baño necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
   }
+  if (riel === 'pension') {
+    return faltaMascota
+      ? `Elige o agrega la mascota de ${dueno} para cobrar la pensión.`
+      : 'Para cobrar una pensión necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
+  }
   return faltaMascota
     ? `Elige o agrega la mascota de ${dueno} para registrar la consulta.`
     : 'Para registrar una consulta necesito saber de qué paciente es. Elige al dueño y la mascota, o créalos aquí.';
@@ -49,4 +54,19 @@ export function origenLineaHint(
     return 'Producto agregado manualmente — al guardar/cobrar se descontará stock.';
   }
   return '';
+}
+
+/** Título + meta legibles en panel Ticket (pensión y descripciones con ·). */
+export function partesDescripcionLineaTicket(descripcion: string | null | undefined): {
+  titulo: string;
+  meta: string;
+} {
+  const raw = String(descripcion || '').trim();
+  if (!raw) return { titulo: '—', meta: '' };
+  const partes = raw
+    .split(/\s*·\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (partes.length <= 1) return { titulo: raw, meta: '' };
+  return { titulo: partes[0], meta: partes.slice(1).join(' · ') };
 }

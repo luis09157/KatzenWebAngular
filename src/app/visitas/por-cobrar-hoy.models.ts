@@ -73,6 +73,7 @@ export interface PorCobrarInput {
     fecha_ingreso?: string;
     precio_total?: number;
     precio_dia?: number;
+    tamano_mascota?: string;
     estado?: string;
     cajaMovimientoId?: string;
     visitaId?: string;

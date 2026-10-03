@@ -215,3 +215,11 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 3
 - [x] **US-5 en `spec.md`** (SC-010…014): regla permanente para cualquier notificación/aviso admin
 - [x] Memoria: `agent-guardrails` anti-dup + `module-map` + `qa-validation-guide`
 
+### Follow-up 2026-10-02 — US-6 sidenav auto-hide
+
+- [x] `admin-main-layout`: auto-hide ~15 s; pausa con hover; cierra al navegar; hamburguesa abre/cierra
+- [x] Resize solo al cruzar breakpoint 900px (no pelea con toggle)
+- [x] **US-6 en `spec.md`** (SC-015…018) + regla 15 en `ADMIN-UI-ARCHITECTURE.md`
+- [x] Memoria: `agent-guardrails` + `module-map`
+- [x] Build: `npm run build` exit 0 (2026-10-02; warning budget bundle inicial conocido)
+

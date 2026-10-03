@@ -46,7 +46,13 @@
       <form [formGroup]="form" class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Fecha de la siguiente dosis</mat-label>
-          <input matInput [matDatepicker]="pickerEsquema" formControlName="fecha" />
+          <input
+            matInput
+            [matDatepicker]="pickerEsquema"
+            formControlName="fecha"
+            readonly
+            (click)="pickerEsquema.open()"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="pickerEsquema"></mat-datepicker-toggle>
           <mat-datepicker #pickerEsquema></mat-datepicker>
         </mat-form-field>

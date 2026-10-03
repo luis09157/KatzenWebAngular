@@ -1,0 +1,22 @@
+<div class="datepicker-field">
+  <mat-form-field appearance="outline" class="datepicker-field__form-field">
+    <mat-label>{{ label }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="picker"
+      [(ngModel)]="dateValue"
+      [ngModelOptions]="{ standalone: true }"
+      [required]="required"
+      [disabled]="disabled"
+      [placeholder]="placeholder"
+      readonly
+      (click)="picker.open()"
+      (ngModelChange)="onPickerChange($event)"
+      (blur)="markTouched()"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="disabled"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+    <mat-hint *ngIf="hint">{{ hint }}</mat-hint>
+    <mat-error *ngIf="showRequiredError">La fecha es requerida</mat-error>
+  </mat-form-field>
+</div>

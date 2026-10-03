@@ -78,6 +78,27 @@
         </form>
       </div>
 
+      <div class="admin-auth-pwa" *ngIf="!alreadyInstalled">
+        <button
+          *ngIf="installAvailable"
+          mat-stroked-button
+          type="button"
+          class="admin-auth-pwa__btn"
+          (click)="instalarAppClinica()"
+          [disabled]="loading || installingPwa"
+        >
+          <mat-icon>install_mobile</mat-icon>
+          {{ installingPwa ? 'Instalando…' : 'Instalar app de la clínica' }}
+        </button>
+        <p class="admin-auth-pwa__hint" *ngIf="showIosInstallHint && !installAvailable">
+          En iPhone: toca <strong>Compartir</strong> y luego <strong>Añadir a pantalla de inicio</strong>
+          para guardar «KatzenVet Clínica» y abrir siempre este login.
+        </p>
+        <p class="admin-auth-pwa__hint" *ngIf="!showIosInstallHint && !installAvailable">
+          Tip: instala «KatzenVet Clínica» desde este login (menú del navegador → Instalar app) para no escribir la URL.
+        </p>
+      </div>
+
       <mat-divider></mat-divider>
 
       <div class="admin-auth-links">

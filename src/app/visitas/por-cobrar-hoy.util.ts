@@ -1,4 +1,5 @@
 import { bloquearCobroDirectoEnCaja, vinculadoATicketVisita } from '../core/utils/cobro-integridad.util';
+import { descripcionCobroPension } from '../pension/pension-cobro.util';
 import { esBanioEnColaMostradorHoy } from './banio-cola-mostrador.util';
 import { esVacunaPendienteDeTicket } from './pendientes-clinicos.util';
 import { PorCobrarInput, PorCobrarItem } from './por-cobrar-hoy.models';
@@ -91,7 +92,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
       cliente: p.cliente || clientes[p.cliente_id],
       paciente: p.paciente,
       paciente_id: p.paciente_id,
-      descripcion: `Pensión · ${p.paciente || 'mascota'}`,
+      descripcion: descripcionCobroPension(p),
       monto: Number(p.precio_total) || Number(p.precio_dia) || 0,
       fecha: f,
       accion: 'agregar_ticket',

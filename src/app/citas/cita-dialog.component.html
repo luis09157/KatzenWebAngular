@@ -86,7 +86,14 @@
         <div class="form-grid form-grid--3">
           <mat-form-field appearance="outline">
             <mat-label>Fecha</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fecha" required />
+            <input
+              matInput
+              [matDatepicker]="picker"
+              formControlName="fecha"
+              required
+              readonly
+              (click)="picker.open()"
+            />
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="citaForm.get('fecha')?.hasError('required')">La fecha es requerida</mat-error>

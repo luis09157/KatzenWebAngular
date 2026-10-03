@@ -17,9 +17,10 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const PORTAL_CACHE = 'katzen-portal-v4';
+const PORTAL_CACHE = 'katzen-portal-v5';
 const PRECACHE_URLS = [
   '/manifest.webmanifest',
+  '/manifest-admin.webmanifest',
   '/assets/katzen-logo.png',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png'
@@ -117,6 +118,7 @@ self.addEventListener('fetch', (event) => {
   const isStaticAsset =
     path.startsWith('/assets/') ||
     path === '/manifest.webmanifest' ||
+    path === '/manifest-admin.webmanifest' ||
     path.endsWith('.png') ||
     path.endsWith('.svg') ||
     path.endsWith('.ico');

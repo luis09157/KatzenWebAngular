@@ -34,10 +34,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha</mat-label>
-        <input matInput type="date" formControlName="fecha" required />
-      </mat-form-field>
+      <app-datepicker-field formControlName="fecha" label="Fecha" [required]="true"></app-datepicker-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Firmado por</mat-label>

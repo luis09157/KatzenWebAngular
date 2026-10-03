@@ -13,11 +13,8 @@ import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialo
 import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
 import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
 import { InventarioService } from '../inventario/inventario.service';
-import {
-  ESTADO_PENSION_LABELS,
-  PensionEstancia,
-  TAMANO_PENSION_LABELS
-} from './pension.models';
+import { conceptoCajaPension, descripcionCobroPension } from './pension-cobro.util';
+import { ESTADO_PENSION_LABELS, PensionEstancia, TAMANO_PENSION_LABELS } from './pension.models';
 import { PensionDialogComponent } from './pension-dialog.component';
 import { PensionService } from './pension.service';
 import { VisitasService } from '../visitas/visitas.service';
@@ -27,7 +24,7 @@ import { promptMontoVisita } from '../visitas/visita-atalho.util';
 @Component({
   selector: 'app-pension',
   templateUrl: './pension.component.html',
-  styleUrls: ['./pension.component.scss']
+  styleUrls: ['./pension.component.scss'],
 })
 export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -96,7 +93,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
           this.logger.error('Error al cargar pensión:', error);
           this.loading = false;
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar pensión'), 'error');
-        }
+        },
       });
   }
 
@@ -105,10 +102,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   diasEstancia(row: PensionEstancia): number {
-    return this.pensionService.calcularDias(
-      row.fecha_ingreso,
-      row.fecha_salida_real || row.fecha_salida_prevista
-    );
+    return this.pensionService.calcularDias(row.fecha_ingreso, row.fecha_salida_real || row.fecha_salida_prevista);
   }
 
   estadoClass(estado: string): string {
@@ -148,7 +142,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       ...ADMIN_DIALOG_CONFIG,
       width: '720px',
       disableClose: true,
-      data: {}
+      data: {},
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe();
   }
@@ -158,7 +152,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       ...ADMIN_DIALOG_CONFIG,
       width: '720px',
       disableClose: true,
-      data: { estancia }
+      data: { estancia },
     });
     ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe();
   }
@@ -171,7 +165,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, check-in',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (!confirm.isConfirmed) return;
     this.loadingService.show(LOADING_MESSAGES.updating);
@@ -196,7 +190,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       showDenyButton: !estancia.cajaMovimientoId,
       confirmButtonText: 'Solo check-out',
       denyButtonText: 'Check-out y cobrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
     if (confirm.isDismissed) return;
 
@@ -204,14 +198,14 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       await this.pensionService.actualizarEstancia(estancia.id, {
         estado: 'finalizada',
-        fecha_salida_real: hoy
+        fecha_salida_real: hoy,
       });
       this.loadingService.hide();
       if (confirm.isDenied) {
         await this.registrarEnCaja({
           ...estancia,
           estado: 'finalizada',
-          fecha_salida_real: hoy
+          fecha_salida_real: hoy,
         });
       } else {
         Swal.fire({ icon: 'success', title: 'Check-out listo', timer: 1400, showConfirmButton: false });
@@ -228,7 +222,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       Swal.fire({
         icon: 'info',
         title: 'Ya vinculado a caja',
-        text: `Esta estancia ya tiene movimiento ${estancia.cajaMovimientoId}.`
+        text: `Esta estancia ya tiene movimiento ${estancia.cajaMovimientoId}.`,
       });
       return;
     }
@@ -236,7 +230,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       Swal.fire({
         icon: 'info',
         title: 'Cobro en cuenta del día',
-        text: `Estancia en ticket ${estancia.visitaId}. Cobra desde Cuenta del día.`
+        text: `Estancia en ticket ${estancia.visitaId}. Cobra desde Cuenta del día.`,
       });
       return;
     }
@@ -262,7 +256,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         text: `Producto configurado en defaults · ${qty} unidad(es) aprox. (${dias} día(s)).`,
         showCancelButton: true,
         confirmButtonText: 'Sí, descontar',
-        cancelButtonText: 'No, solo cobrar'
+        cancelButtonText: 'No, solo cobrar',
       });
       if (confirmComida.isConfirmed) {
         const salidaRef = this.dialog.open(SalidaDialogComponent, {
@@ -278,16 +272,14 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
             cantidad: qty,
             observaciones: `Comida pensión · ${estancia.paciente || ''}`,
             titulo: 'Consumo comida pensión',
-            subtitulo: 'Opt-in al cobrar estancia'
-          }
+            subtitulo: 'Opt-in al cobrar estancia',
+          },
         });
         const salidaResult = await firstValueFrom(salidaRef.afterClosed());
         if (salidaResult?.ok && salidaResult.movimientoId) {
           movimientoInventarioIds = [salidaResult.movimientoId];
           try {
-            const movs = await firstValueFrom(
-              this.inventarioService.getTodosLosMovimientos()
-            );
+            const movs = await firstValueFrom(this.inventarioService.getTodosLosMovimientos());
             const m = (movs || []).find((x) => x.id === salidaResult.movimientoId);
             costoExtraComida = Number(m?.costo_total) || 0;
           } catch {
@@ -297,10 +289,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    const costoBase =
-      estancia.costo_total_estimado != null
-        ? Number(estancia.costo_total_estimado)
-        : undefined;
+    const costoBase = estancia.costo_total_estimado != null ? Number(estancia.costo_total_estimado) : undefined;
     const costoAsociado =
       costoBase != null || costoExtraComida > 0
         ? Math.round(((costoBase || 0) + costoExtraComida) * 100) / 100
@@ -312,41 +301,40 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       disableClose: true,
       data: {
         fechaDefault: estancia.fecha_ingreso,
-        concepto: `Pensión · ${estancia.paciente || 'mascota'} · ${estancia.cliente || ''}`.trim(),
+        concepto: conceptoCajaPension(estancia),
         monto: Number(estancia.precio_total) || Number(estancia.precio_dia) || 0,
         metodoPago: 'efectivo' as const,
         categoria: 'pension' as const,
         costoAsociado,
-        movimientoInventarioIds: movimientoInventarioIds.length
-          ? movimientoInventarioIds
-          : undefined,
-        notas: estancia.notas || ''
-      }
+        movimientoInventarioIds: movimientoInventarioIds.length ? movimientoInventarioIds : undefined,
+        notas: estancia.notas || '',
+      },
     });
-    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(async (result) => {
-      const id = result?.movimientoId as string | undefined;
-      if (!result?.ok || !id) return;
-      this.loadingService.show(LOADING_MESSAGES.updating);
-      try {
-        const hoy = new Date().toISOString().slice(0, 10);
-        await this.pensionService.actualizarEstancia(estancia.id!, {
-          cajaMovimientoId: id,
-          estado: 'finalizada',
-          fecha_salida_real: estancia.fecha_salida_real || hoy
-        });
-        if (movimientoInventarioIds.length) {
-          await Promise.all(
-            movimientoInventarioIds.map((mid) =>
-              this.inventarioService.vincularMovimientoACaja(mid, id)
-            )
-          );
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (result) => {
+        const id = result?.movimientoId as string | undefined;
+        if (!result?.ok || !id) return;
+        this.loadingService.show(LOADING_MESSAGES.updating);
+        try {
+          const hoy = new Date().toISOString().slice(0, 10);
+          await this.pensionService.actualizarEstancia(estancia.id!, {
+            cajaMovimientoId: id,
+            estado: 'finalizada',
+            fecha_salida_real: estancia.fecha_salida_real || hoy,
+          });
+          if (movimientoInventarioIds.length) {
+            await Promise.all(
+              movimientoInventarioIds.map((mid) => this.inventarioService.vincularMovimientoACaja(mid, id))
+            );
+          }
+        } catch (error) {
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular pensión a caja'), 'error');
+        } finally {
+          this.loadingService.hide();
         }
-      } catch (error) {
-        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'vincular pensión a caja'), 'error');
-      } finally {
-        this.loadingService.hide();
-      }
-    });
+      });
   }
 
   /** Spec 040 — pensión sin cobro → ticket del día. */
@@ -362,11 +350,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     let monto = Number(estancia.precio_total) || Number(estancia.precio_dia) || 0;
     monto =
-      (await promptMontoVisita(
-        'Monto de pensión',
-        '¿Cuánto se cobrará por esta estancia en el ticket?',
-        monto
-      )) ?? 0;
+      (await promptMontoVisita('Monto de pensión', '¿Cuánto se cobrará por esta estancia en el ticket?', monto)) ?? 0;
     if (!(monto > 0)) return;
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
@@ -375,17 +359,17 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         cliente: estancia.cliente,
         paciente_id: estancia.paciente_id !== 'manual' ? estancia.paciente_id : undefined,
         paciente: estancia.paciente,
-        descripcion: `Pensión · ${estancia.paciente || 'mascota'}`,
+        descripcion: descripcionCobroPension(estancia),
         monto,
         categoria: 'pension',
         pensionId: estancia.id,
-        fecha: estancia.fecha_ingreso
+        fecha: estancia.fecha_ingreso,
       });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_CONFIG,
         width: '720px',
-        data: { visita: visita || undefined }
+        data: { visita: visita || undefined },
       });
       Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
       this.cargar();
@@ -405,7 +389,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#d33',
     });
     if (!confirm.isConfirmed) return;
     this.loadingService.show(LOADING_MESSAGES.deleting);

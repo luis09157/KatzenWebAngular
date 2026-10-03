@@ -25,8 +25,16 @@ import Swal from 'sweetalert2';
   styleUrls: ['./admin-main-layout.component.css'],
 })
 export class AdminMainLayoutComponent implements OnInit, OnDestroy {
+  /** Tras este tiempo sin usar el menú, se oculta para ganar espacio (061 US-6). */
+  private static readonly SIDENAV_AUTO_HIDE_MS = 15_000;
+
   private readonly destroy$ = new Subject<void>();
   private resizeHandler = () => this.checkMobile();
+  private autoHideTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Evita que resize reabra el menú si el usuario ya lo cerró / auto-hide. */
+  private sidenavInitialized = false;
+  private pointerOverSidenav = false;
+
   sidenavOpened = false;
   totalPacientes = 0;
   totalClientes = 0;
@@ -107,6 +115,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     window.removeEventListener('resize', this.resizeHandler);
+    this.clearAutoHideTimer();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -134,19 +143,88 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     this.sucursalSeleccionada = sucursalId;
   }
 
+  /**
+   * Desktop: menú lateral abierto al inicio; se oculta solo tras inactividad o navegación.
+   * Móvil: cerrado; se abre con hamburguesa (mode over).
+   * Resize solo aplica al cruzar el breakpoint 900px (no pelea con toggle/auto-hide).
+   */
   checkMobile() {
-    this.isMobile = window.innerWidth < 900;
-    this.sidenavOpened = !this.isMobile;
+    const nextMobile = window.innerWidth < 900;
+    if (!this.sidenavInitialized) {
+      this.isMobile = nextMobile;
+      this.sidenavOpened = !nextMobile;
+      this.sidenavInitialized = true;
+      if (this.sidenavOpened) {
+        this.scheduleAutoHide();
+      }
+      return;
+    }
+    if (this.isMobile === nextMobile) {
+      return;
+    }
+    this.isMobile = nextMobile;
+    this.sidenavOpened = !nextMobile;
+    if (this.sidenavOpened) {
+      this.scheduleAutoHide();
+    } else {
+      this.clearAutoHideTimer();
+    }
   }
 
-  toggleSidenav() {
+  toggleSidenav(): void {
     this.sidenavOpened = !this.sidenavOpened;
+    if (this.sidenavOpened) {
+      this.scheduleAutoHide();
+    } else {
+      this.clearAutoHideTimer();
+    }
   }
 
-  closeSidenav() {
-    // En desktop el sidenav es permanente (mode=side); solo cerrar en móvil (over).
-    if (this.isMobile) {
+  /** Cierra en móvil y desktop (ganar espacio tras navegar / auto-hide). */
+  closeSidenav(): void {
+    this.sidenavOpened = false;
+    this.clearAutoHideTimer();
+  }
+
+  onSidenavOpenedChange(opened: boolean): void {
+    this.sidenavOpened = opened;
+    if (opened) {
+      this.scheduleAutoHide();
+    } else {
+      this.clearAutoHideTimer();
+    }
+  }
+
+  onSidenavPointerEnter(): void {
+    this.pointerOverSidenav = true;
+    this.clearAutoHideTimer();
+  }
+
+  onSidenavPointerLeave(): void {
+    this.pointerOverSidenav = false;
+    if (this.sidenavOpened) {
+      this.scheduleAutoHide();
+    }
+  }
+
+  private scheduleAutoHide(): void {
+    this.clearAutoHideTimer();
+    if (!this.sidenavOpened || this.pointerOverSidenav) {
+      return;
+    }
+    this.autoHideTimer = setTimeout(() => {
+      this.autoHideTimer = null;
+      if (this.pointerOverSidenav) {
+        return;
+      }
       this.sidenavOpened = false;
+    }, AdminMainLayoutComponent.SIDENAV_AUTO_HIDE_MS);
+  }
+
+  private clearAutoHideTimer(): void {
+    if (this.autoHideTimer != null) {
+      clearTimeout(this.autoHideTimer);
+      this.autoHideTimer = null;
     }
   }
 

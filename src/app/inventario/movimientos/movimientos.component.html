@@ -97,6 +97,8 @@
           [matDatepicker]="pickerInicio"
           [(ngModel)]="filtroFechaInicio"
           (ngModelChange)="aplicarFiltros()"
+          readonly
+          (click)="pickerInicio.open()"
         />
         <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
         <mat-datepicker #pickerInicio></mat-datepicker>
@@ -104,7 +106,14 @@
 
       <mat-form-field appearance="outline" class="filtro-fecha">
         <mat-label>Hasta</mat-label>
-        <input matInput [matDatepicker]="pickerFin" [(ngModel)]="filtroFechaFin" (ngModelChange)="aplicarFiltros()" />
+        <input
+          matInput
+          [matDatepicker]="pickerFin"
+          [(ngModel)]="filtroFechaFin"
+          (ngModelChange)="aplicarFiltros()"
+          readonly
+          (click)="pickerFin.open()"
+        />
         <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
         <mat-datepicker #pickerFin></mat-datepicker>
       </mat-form-field>

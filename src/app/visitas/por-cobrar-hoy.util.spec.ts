@@ -148,4 +148,33 @@ describe('por-cobrar-hoy.util (spec 040)', () => {
     });
     expect(items.some((i) => i.tipo === 'banio')).toBe(false);
   });
+
+  it('089 F2: pensión activa hoy describe paquete (no baño/corte)', () => {
+    const items = buildPorCobrarHoy({
+      hoy,
+      visitas: [],
+      banios: [],
+      citas: [],
+      pensiones: [
+        {
+          id: 'pen1',
+          cliente_id: 'c1',
+          paciente: 'Oreon',
+          fecha_ingreso: hoy,
+          precio_total: 600,
+          precio_dia: 300,
+          tamano_mascota: 'mediano',
+          estado: 'activa',
+          activo: true,
+        },
+      ],
+      vacunas: [],
+      historiales: [],
+    });
+    const pen = items.find((i) => i.tipo === 'pension');
+    expect(pen).toBeTruthy();
+    expect(pen!.descripcion).toContain('Mediano');
+    expect(pen!.descripcion.toLowerCase()).not.toContain('corte');
+    expect(pen!.monto).toBe(600);
+  });
 });

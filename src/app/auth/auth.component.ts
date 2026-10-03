@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { PwaInstallService } from '../core/services/pwa-install.service';
+import { PwaManifestService } from '../core/services/pwa-manifest.service';
 import { Router } from '@angular/router';
 import { mensajeErrorLoginStaff } from '../core/utils/login-error-copy.util';
 
@@ -12,7 +16,7 @@ import { mensajeErrorLoginStaff } from '../core/utils/login-error-copy.util';
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css'],
 })
-export class AuthComponent implements OnInit {
+export class AuthComponent implements OnInit, OnDestroy {
   email = '';
   password = '';
   hidePassword = true;
@@ -20,6 +24,12 @@ export class AuthComponent implements OnInit {
   loading = false;
   checkingSession = true;
   loginError = '';
+  /** Spec 087 — instalar PWA clínica. */
+  installAvailable = false;
+  installingPwa = false;
+  showIosInstallHint = false;
+  alreadyInstalled = false;
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
@@ -27,11 +37,21 @@ export class AuthComponent implements OnInit {
     private authSession: AuthSessionService,
     private appCheck: AppCheckService,
     private firebaseFunctions: FirebaseFunctionsService,
+    private pwaInstall: PwaInstallService,
+    private pwaManifest: PwaManifestService,
     private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
     this.appCheck.ensureInitialized();
+    this.pwaManifest.setKind('admin');
+    this.pwaInstall.init();
+    this.alreadyInstalled = this.pwaInstall.isStandalone();
+    this.showIosInstallHint = this.pwaInstall.showIosInstallHint();
+    this.pwaInstall.installAvailable$.pipe(takeUntil(this.destroy$)).subscribe((v) => {
+      this.alreadyInstalled = this.pwaInstall.isStandalone();
+      this.installAvailable = v && !this.alreadyInstalled;
+    });
     try {
       await this.tryEnterIfActiveSession();
     } catch {
@@ -39,6 +59,11 @@ export class AuthComponent implements OnInit {
     } finally {
       this.checkingSession = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -129,6 +154,19 @@ export class AuthComponent implements OnInit {
     }
     if (await this.authProfileService.hasStaffAccess()) {
       await this.router.navigate(['/admin/inicio']);
+    }
+  }
+
+  async instalarAppClinica(): Promise<void> {
+    if (this.installingPwa) return;
+    this.installingPwa = true;
+    try {
+      const result = await this.pwaInstall.promptInstall();
+      if (result === 'unavailable') {
+        this.showIosInstallHint = this.pwaInstall.showIosInstallHint();
+      }
+    } finally {
+      this.installingPwa = false;
     }
   }
 

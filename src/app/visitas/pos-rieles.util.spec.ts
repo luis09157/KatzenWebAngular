@@ -4,7 +4,7 @@ import {
   filtrarProductosPorRiel,
   mensajeRielBloqueado,
   puedeUsarRiel,
-  rielRequiereDuenoYMascota
+  rielRequiereDuenoYMascota,
 } from './pos-rieles.util';
 import { Producto } from '../shared/inventario.models';
 
@@ -28,15 +28,16 @@ function prod(parcial: Partial<Producto> & Pick<Producto, 'categoria'>): Product
     precio_venta: 10,
     margen_ganancia: 0,
     activo: true,
-    ...parcial
+    ...parcial,
   } as Producto;
 }
 
 describe('pos-rieles.util', () => {
-  it('petshop no exige dueño; consulta y peluquería sí', () => {
+  it('petshop no exige dueño; consulta, peluquería y pensión sí', () => {
     expect(rielRequiereDuenoYMascota('petshop')).toBe(false);
     expect(rielRequiereDuenoYMascota('consulta')).toBe(true);
     expect(rielRequiereDuenoYMascota('peluqueria')).toBe(true);
+    expect(rielRequiereDuenoYMascota('pension')).toBe(true);
   });
 
   it('mostrador solo puede petshop', () => {
@@ -44,16 +45,20 @@ describe('pos-rieles.util', () => {
     expect(puedeUsarRiel('petshop', ctx)).toBe(true);
     expect(puedeUsarRiel('consulta', ctx)).toBe(false);
     expect(puedeUsarRiel('peluqueria', ctx)).toBe(false);
+    expect(puedeUsarRiel('pension', ctx)).toBe(false);
     expect(mensajeRielBloqueado('consulta', ctx)).toContain('dueño y mascota');
+    expect(mensajeRielBloqueado('pension', ctx)).toContain('pensión');
   });
 
-  it('consulta/peluquería piden dueño y mascota reales', () => {
-    expect(
-      puedeUsarRiel('consulta', { modoMostrador: false, clienteId: 'c1', pacienteId: '' })
-    ).toBe(false);
-    expect(
-      puedeUsarRiel('peluqueria', { modoMostrador: false, clienteId: 'c1', pacienteId: 'p1' })
-    ).toBe(true);
+  it('consulta/peluquería/pensión piden dueño y mascota reales', () => {
+    expect(puedeUsarRiel('consulta', { modoMostrador: false, clienteId: 'c1', pacienteId: '' })).toBe(false);
+    expect(puedeUsarRiel('peluqueria', { modoMostrador: false, clienteId: 'c1', pacienteId: 'p1' })).toBe(true);
+    expect(puedeUsarRiel('pension', { modoMostrador: false, clienteId: 'c1', pacienteId: 'p1' })).toBe(true);
+  });
+
+  it('riel pensión no lista productos de inventario', () => {
+    const alimento = prod({ id: 'a', categoria: 'alimento', nombre: 'Croqueta' });
+    expect(filtrarProductosPorRiel([alimento], 'pension')).toEqual([]);
   });
 
   it('separa catálogo clínico vs petshop', () => {
@@ -74,11 +79,11 @@ describe('pos-rieles.util', () => {
       nombre: 'Baño muestra',
       soloDemo: true,
       origen: 'pos_preview',
-      rielPos: 'peluqueria'
+      rielPos: 'peluqueria',
     });
     expect(filtrarProductosPorRiel([shampoo, demoBanio], 'petshop').map((p) => p.id)).toEqual(['sh']);
     expect(filtrarProductosPorRiel([shampoo, demoBanio], 'peluqueria').map((p) => p.id)).toEqual([
-      'demo-pos-peluqueria-1'
+      'demo-pos-peluqueria-1',
     ]);
   });
 });

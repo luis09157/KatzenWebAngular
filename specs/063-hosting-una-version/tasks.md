@@ -123,3 +123,13 @@ Tras deploy logout-fix 051 + clínicos 086 (2026-10-02): PATCH `retainedReleaseC
 Tras deploy splash+auth+portrait POS (`7207d1f`): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `111f0b04b6d26a0f`; sitio HTTP 200.
 
 Tras deploy inventario alertas densas (`c6c1be4`): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `74edc228749d3b09`; sitio HTTP 200.
+
+Tras deploy pensión 089 F0–F2 + PWA/layout (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 6 no live; queda 1 FINALIZED `e854ad70ebb241a0`; sitio HTTP 200.
+
+Tras deploy pensión diálogo simplificado (fechas×paquete, sin costos) 2026-10-02 noche: PATCH `retainedReleaseCount=1` OK; DELETE 1 no live; queda 1 FINALIZED `29560627248d336e`; sitio HTTP 200.
+
+Tras deploy datepicker 090 + pensión/datepicker locales (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE no live; queda 1 FINALIZED `f5d4cff42d9e6ccf`; sitio HTTP 200.
+
+Tras deploy fix costo_dia undefined (pensión payload) + datepicker 090 en working tree (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`f5d4cff42d9e6ccf`); queda 1 FINALIZED `0d687d371abd0fb9`; sitio HTTP 200.
+
+Tras deploy datepicker 090 + fix costo_dia + POS riel pensión 091 + legibilidad ticket (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`0d687d371abd0fb9`); queda 1 FINALIZED `3b332e9068e1ee25`; sitio HTTP 200.

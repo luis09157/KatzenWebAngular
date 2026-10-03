@@ -120,7 +120,7 @@ Para no depender de recordar la URL.
 
 **Criterios:**
 
-- [x] SC-022: Web App Manifest + iconos; criterio installable en portal (no hace falta PWA del admin).
+- [x] SC-022: Web App Manifest + iconos; criterio installable en portal. **Follow-up 087:** también existe PWA clínica (`manifest-admin.webmanifest`, scope `/admin/`); portal queda con `scope` `/portal/`.
 - [x] SC-023: SW: reutilizar / complementar `firebase-messaging-sw.js`; no romper FCM 023/031.
 - [x] SC-024: Offline **best-effort** de última ficha cacheada (no escritura clínica offline).
 - [x] SC-025: CTA «Activar avisos» existente no spamea el permiso.

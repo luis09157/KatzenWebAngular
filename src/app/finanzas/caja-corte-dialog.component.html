@@ -12,10 +12,7 @@
   <mat-dialog-content class="admin-dialog-body">
     <p class="corte-ya-hecho" *ngIf="yaHayCorte">Ya hay un corte de este día. No se puede guardar otro.</p>
     <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded">
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
-        <mat-label>Fecha</mat-label>
-        <input matInput type="date" formControlName="fecha" />
-      </mat-form-field>
+      <app-datepicker-field class="full-width" formControlName="fecha" label="Fecha"></app-datepicker-field>
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width corte-campo-principal">
         <mat-label>Efectivo contado</mat-label>
         <input matInput type="number" min="0" step="0.01" formControlName="efectivoContado" />

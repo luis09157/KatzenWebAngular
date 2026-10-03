@@ -10,6 +10,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
@@ -20,6 +22,7 @@ import { ValidationService } from './validation.service';
 import { AutocompleteFieldComponent } from './autocomplete-field.component';
 import { TimepickerFieldComponent } from './timepicker/timepicker-field.component';
 import { TimepickerDialogComponent } from './timepicker/timepicker-dialog.component';
+import { DatepickerFieldComponent } from './datepicker/datepicker-field.component';
 import { AdminPageBannerComponent } from './admin/admin-page-banner.component';
 import { AdminStatCardComponent } from './admin/admin-stat-card.component';
 import { AdminEmptyStateComponent } from './admin/admin-empty-state.component';
@@ -43,6 +46,7 @@ import { RouterModule } from '@angular/router';
     AutocompleteFieldComponent,
     TimepickerFieldComponent,
     TimepickerDialogComponent,
+    DatepickerFieldComponent,
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AdminEmptyStateComponent,
@@ -56,7 +60,7 @@ import { RouterModule } from '@angular/router';
     StaffPickerComponent,
     AlergiasAlertaComponent,
     AlergiasEditorComponent,
-    FlowHintComponent
+    FlowHintComponent,
   ],
   imports: [
     CommonModule,
@@ -71,9 +75,11 @@ import { RouterModule } from '@angular/router';
     MatSelectModule,
     MatButtonToggleModule,
     MatAutocompleteModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatCardModule,
     MatMenuModule,
-    RouterModule
+    RouterModule,
   ],
   providers: [
     DiagnosticosService,
@@ -81,7 +87,7 @@ import { RouterModule } from '@angular/router';
     MedicamentosService,
     MigrationService,
     BaniosService,
-    ValidationService
+    ValidationService,
   ],
   exports: [
     CommonModule,
@@ -95,6 +101,7 @@ import { RouterModule } from '@angular/router';
     MatCardModule,
     AutocompleteFieldComponent,
     TimepickerFieldComponent,
+    DatepickerFieldComponent,
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AdminEmptyStateComponent,
@@ -112,7 +119,9 @@ import { RouterModule } from '@angular/router';
     MatAutocompleteModule,
     MatCardModule,
     MatMenuModule,
-    RouterModule
-  ]
+    MatDatepickerModule,
+    MatNativeDateModule,
+    RouterModule,
+  ],
 })
-export class SharedModule { }
+export class SharedModule {}

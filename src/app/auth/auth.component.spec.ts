@@ -7,6 +7,9 @@ import { AuthProfileService } from '../core/services/auth-profile.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import { AppCheckService } from '../core/app-check.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { PwaInstallService } from '../core/services/pwa-install.service';
+import { PwaManifestService } from '../core/services/pwa-manifest.service';
+import { BehaviorSubject } from 'rxjs';
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
@@ -38,6 +41,16 @@ describe('AuthComponent', () => {
   const router = {
     navigate: jasmine.createSpy('navigate').and.resolveTo(true),
   };
+  const pwaInstall = {
+    installAvailable$: new BehaviorSubject(false),
+    init: jasmine.createSpy('init'),
+    isStandalone: jasmine.createSpy('isStandalone').and.returnValue(false),
+    showIosInstallHint: jasmine.createSpy('showIosInstallHint').and.returnValue(false),
+    promptInstall: jasmine.createSpy('promptInstall').and.resolveTo('unavailable'),
+  };
+  const pwaManifest = {
+    setKind: jasmine.createSpy('setKind'),
+  };
 
   beforeEach(async () => {
     authService.waitForAuthUser.and.resolveTo(null);
@@ -57,6 +70,8 @@ describe('AuthComponent', () => {
         { provide: AppCheckService, useValue: appCheck },
         { provide: FirebaseFunctionsService, useValue: firebaseFunctions },
         { provide: Router, useValue: router },
+        { provide: PwaInstallService, useValue: pwaInstall },
+        { provide: PwaManifestService, useValue: pwaManifest },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();

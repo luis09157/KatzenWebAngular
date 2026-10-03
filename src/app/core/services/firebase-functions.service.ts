@@ -25,6 +25,8 @@ export interface UpdateStaffResult {
   uid?: string;
   staffRole?: string;
   message?: string;
+  /** false si el UID no existe en Firebase Auth (personal legacy). Spec 088. */
+  authUserExists?: boolean;
 }
 
 export interface ProvisionStaffInput {
@@ -141,19 +143,21 @@ export class FirebaseFunctionsService {
 
   /** Self-registro dueño desde landing (callable pública). */
   async registerPortalOwner(input: RegisterPortalOwnerInput): Promise<RegisterPortalOwnerResult> {
-    const callable = this.fns.httpsCallable<RegisterPortalOwnerInput, RegisterPortalOwnerResult>(
-      'registerPortalOwner'
-    );
+    const callable = this.fns.httpsCallable<RegisterPortalOwnerInput, RegisterPortalOwnerResult>('registerPortalOwner');
     return firstValueFrom(callable(input));
   }
 
   async deactivatePortalClient(clienteId: string): Promise<PortalClientActionResult> {
-    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('deactivatePortalClient');
+    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>(
+      'deactivatePortalClient'
+    );
     return firstValueFrom(callable({ clienteId }));
   }
 
   async resendPortalClientAccess(clienteId: string): Promise<PortalClientActionResult> {
-    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>('resendPortalClientAccess');
+    const callable = this.fns.httpsCallable<PortalClientActionInput, PortalClientActionResult>(
+      'resendPortalClientAccess'
+    );
     return firstValueFrom(callable({ clienteId }));
   }
 
@@ -165,9 +169,7 @@ export class FirebaseFunctionsService {
 
   /** Quita vínculo dual (staff solo admin). Solo admin. Spec 015. */
   async unlinkStaffPortalCliente(staffUid: string): Promise<LinkStaffPortalResult> {
-    const callable = this.fns.httpsCallable<{ staffUid: string }, LinkStaffPortalResult>(
-      'unlinkStaffPortalCliente'
-    );
+    const callable = this.fns.httpsCallable<{ staffUid: string }, LinkStaffPortalResult>('unlinkStaffPortalCliente');
     return firstValueFrom(callable({ staffUid }));
   }
 

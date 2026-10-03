@@ -50,6 +50,7 @@ import { Producto } from '../shared/inventario.models';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { BaniosService } from '../banios/banios.service';
+import { PensionService } from '../pension/pension.service';
 import { ServicioClinica } from '../servicios-clinica/servicios-clinica.models';
 import { ServiciosClinicaService } from '../servicios-clinica/servicios-clinica.service';
 import {
@@ -98,6 +99,7 @@ import {
   filtrarVacunasPendientesTicket,
   vincularClinicosHuerfanosEnLineas,
 } from './pendientes-clinicos.util';
+import { PensionPendienteTicket, filtrarPensionesPendientesTicket, pensionYaEnLineas } from './pendientes-pension.util';
 import { VacunasService } from '../vacunas/vacunas.service';
 import { HistorialesService } from '../historiales/historiales.service';
 import {
@@ -129,6 +131,7 @@ import { iconoPlaceholderPos, kindPlaceholderLinea, kindPlaceholderProducto, url
 import {
   mensajeRequiereClientePara as buildMensajeRequiereCliente,
   origenLineaHint as buildOrigenLineaHint,
+  partesDescripcionLineaTicket,
 } from './pos-copy.util';
 import { resolverDestinoPaso, resolverPasoInicial } from './pos-wizard.util';
 import {
@@ -187,6 +190,8 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   pendientesBanio: BanioPendienteTicket[] = [];
   /** Spec 086 — vacunas/historiales pendientes del cliente hoy. */
   pendientesClinicos: ClinicoPendienteTicket[] = [];
+  /** Spec 091 — estancias de pensión por cobrar del cliente. */
+  pendientesPension: PensionPendienteTicket[] = [];
   mostrandoProducto = false;
   modoMostrador = false;
   pasoWizard = 1;
@@ -505,14 +510,24 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
 
   /** Filas presentacionales del sheet carrito (**082**). */
   get filasSheetCarrito(): PosSheetCarritoFila[] {
-    return this.lineas.map((l) => ({
-      linea: l,
-      fotoUrl: this.fotoDeLinea(l),
-      icono: this.iconoLinea(l),
-      montoLabel: this.formatMoney(l.monto),
-      cantidad: this.cantidadDe(l),
-      puedeAjustar: this.puedeAjustarLinea(l),
-    }));
+    return this.lineas.map((l) => {
+      const partes = partesDescripcionLineaTicket(l.descripcion);
+      return {
+        linea: l,
+        fotoUrl: this.fotoDeLinea(l),
+        icono: this.iconoLinea(l),
+        montoLabel: this.formatMoney(l.monto),
+        cantidad: this.cantidadDe(l),
+        puedeAjustar: this.puedeAjustarLinea(l),
+        titulo: partes.titulo,
+        meta: partes.meta,
+      };
+    });
+  }
+
+  /** Título + meta legibles en panel Ticket (pensión / descripciones con ·). */
+  partesDescTicket(descripcion: string | null | undefined): { titulo: string; meta: string } {
+    return partesDescripcionLineaTicket(descripcion);
   }
 
   constructor(
@@ -523,6 +538,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     private pacientesService: PacientesService,
     private baniosService: BaniosService,
+    private pensionService: PensionService,
     private vacunasService: VacunasService,
     private historialesService: HistorialesService,
     private inventarioService: InventarioService,
@@ -1058,6 +1074,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     this.recalcularPrecioBanioDefault();
     this.pendientesBanio = [];
     this.pendientesClinicos = [];
+    this.pendientesPension = [];
   }
 
   vincularClienteReal(): void {
@@ -1384,6 +1401,20 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
     this.pushLineaBanio(p, monto);
+  }
+
+  async incluirPensionPendiente(p: PensionPendienteTicket): Promise<void> {
+    if (this.soloLectura || pensionYaEnLineas(this.lineas, p.id)) return;
+    let monto = Number(p.precio_total) || Number(p.precio_dia) || 0;
+    if (!(monto > 0)) {
+      const asked = await promptMontoVisita('Monto de pensión', p.descripcion || 'Estancia de hospedaje', {
+        sugerido: undefined,
+        forzarDialogo: true,
+      });
+      if (!(asked != null && asked > 0)) return;
+      monto = asked;
+    }
+    this.pushLineaPension(p, monto);
   }
 
   async incluirClinicoPendiente(p: ClinicoPendienteTicket): Promise<void> {
@@ -1817,6 +1848,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (this.soloLectura) {
       this.pendientesBanio = [];
       this.pendientesClinicos = [];
+      this.pendientesPension = [];
       return;
     }
     const clienteId = String(this.form.get('cliente_id')?.value || '').trim();
@@ -1826,6 +1858,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     if (!clienteId || !fecha) {
       this.pendientesBanio = [];
       this.pendientesClinicos = [];
+      this.pendientesPension = [];
       return;
     }
     const pacienteId = String(this.form.get('paciente_id')?.value || '').trim() || undefined;
@@ -1838,6 +1871,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
       }).filter((p) => !banioYaEnLineas(this.lineas, p.id));
     } catch {
       this.pendientesBanio = [];
+    }
+    try {
+      const pensiones = await firstValueFrom(this.pensionService.getEstancias().pipe(take(1)));
+      this.pendientesPension = filtrarPensionesPendientesTicket(pensiones || [], {
+        clienteId,
+        pacienteId,
+      }).filter((p) => !pensionYaEnLineas(this.lineas, p.id));
+    } catch {
+      this.pendientesPension = [];
     }
     try {
       const [vacunas, historiales, pacientes] = await Promise.all([
@@ -1938,6 +1980,27 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         confirmButtonText: 'Seguir en el ticket',
       });
     }
+  }
+
+  private pushLineaPension(p: PensionPendienteTicket, monto: number): void {
+    this.lineas = [
+      ...this.lineas,
+      {
+        id: nuevaLineaId(),
+        descripcion: p.descripcion,
+        monto: roundMoney(monto),
+        categoria: 'pension',
+        pensionId: p.id,
+        cantidad: 1,
+        ...snapshotEconomiaLinea({
+          precioVenta: monto,
+          costo: p.costoEstimado,
+          aplicaIva: false,
+          cantidad: 1,
+        }),
+      },
+    ];
+    this.pendientesPension = this.pendientesPension.filter((x) => x.id !== p.id);
   }
 
   private pushLineaClinico(p: ClinicoPendienteTicket, monto: number): void {

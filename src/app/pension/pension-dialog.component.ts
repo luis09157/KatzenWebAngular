@@ -6,15 +6,15 @@ import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
-import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from '../core/utils/precio-margen.util';
 import { DefaultsPensionService } from '../finanzas/defaults-pension.service';
 import {
   ESTADO_PENSION_LABELS,
   EstadoPension,
   PensionEstancia,
-  TAMANO_PENSION_LABELS,
+  TAMANOS_PENSION_ORDEN,
   TamanoMascotaPension,
 } from './pension.models';
+import { PaquetePensionOficial, paquetesPensionOficiales, sugerirTamanoPensionPorPeso } from './pension-tarifas.util';
 import {
   AltaRapidaPickerDeps,
   crearClienteRapidoDesdePicker,
@@ -25,6 +25,7 @@ import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picke
 import { Cliente } from '../core/models';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { normalizeCostoDiaPension, omitUndefinedRtdb } from './pension-estancia-payload.util';
 import { PensionService } from './pension.service';
 import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
 
@@ -41,17 +42,38 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
   loading = false;
   esEdicion = false;
 
-  readonly tamanos: TamanoMascotaPension[] = ['pequeno', 'mediano', 'grande'];
-  readonly tamanoLabels = TAMANO_PENSION_LABELS;
+  readonly paquetes: PaquetePensionOficial[] = paquetesPensionOficiales();
+  readonly tamanos = TAMANOS_PENSION_ORDEN;
   readonly estados: EstadoPension[] = ['reservada', 'activa', 'finalizada', 'cancelada'];
   readonly estadoLabels = ESTADO_PENSION_LABELS;
 
-  /** Si ya vienen dueño/mascota (Llegó un paciente), mostrar resumen y no el picker. */
   get muestraPickerClientePaciente(): boolean {
     return debeMostrarPickerAltaRapida({
       esEdicion: this.esEdicion,
       paciente_id: this.data?.paciente_id,
     });
+  }
+
+  get paqueteSeleccionado(): PaquetePensionOficial | null {
+    const t = this.form?.get('tamano_mascota')?.value as TamanoMascotaPension | '';
+    if (!t) return null;
+    return this.paquetes.find((p) => p.tamano === t) || null;
+  }
+
+  get diasEstimados(): number {
+    return this.pensionService.calcularDias(
+      this.form?.get('fecha_ingreso')?.value,
+      this.form?.get('fecha_salida_prevista')?.value
+    );
+  }
+
+  get precioDiaActual(): number {
+    return Number(this.form?.get('precio_dia')?.value) || 0;
+  }
+
+  /** Siempre precio/día × días (fechas de arriba). */
+  get resumenTotal(): number {
+    return Math.round(this.precioDiaActual * this.diasEstimados * 100) / 100;
   }
 
   constructor(
@@ -80,11 +102,12 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
       cliente_id: ['', Validators.required],
       fecha_ingreso: ['', Validators.required],
       fecha_salida_prevista: [''],
-      tamano_mascota: [''],
-      precio_dia: [0, [Validators.required, Validators.min(0)]],
-      precio_total: [null],
-      costo_dia: [null, [costoMenorQueVentaValidator('precio_dia')]],
-      estado: ['reservada' as EstadoPension, Validators.required],
+      tamano_mascota: ['', Validators.required],
+      // Internos: los pone el paquete; no se editan en UI.
+      precio_dia: [null as number | null, [Validators.required, Validators.min(1)]],
+      precio_total: [null as number | null],
+      costo_dia: [null as number | null],
+      estado: ['activa' as EstadoPension, Validators.required],
       notas: [''],
     });
   }
@@ -103,16 +126,17 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         fecha_ingreso: e.fecha_ingreso,
         fecha_salida_prevista: e.fecha_salida_prevista || '',
         tamano_mascota: e.tamano_mascota || '',
-        precio_dia: e.precio_dia,
+        precio_dia: e.precio_dia > 0 ? e.precio_dia : null,
         precio_total: e.precio_total ?? null,
         costo_dia: e.costo_dia ?? null,
         estado: e.estado,
         notas: e.notas || '',
       });
+      this.recalcularTotal();
     } else {
       this.form.patchValue({
         fecha_ingreso: iso,
-        estado: 'reservada',
+        estado: 'activa',
         paciente_id: this.data?.paciente_id || '',
         cliente_id: this.data?.cliente_id || '',
         paciente: this.data?.paciente || '',
@@ -124,20 +148,6 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
       .get('tamano_mascota')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((t: TamanoMascotaPension) => this.aplicarDefaultsTamano(t));
-
-    this.form
-      .get('precio_dia')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.revalidarCostoDia());
-    this.form
-      .get('costo_dia')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.revalidarCostoDia());
-    this.revalidarCostoDia();
-  }
-
-  private revalidarCostoDia(): void {
-    this.form.get('costo_dia')?.updateValueAndValidity({ emitEvent: false });
   }
 
   ngOnDestroy(): void {
@@ -145,34 +155,35 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  elegirPaquete(tamano: TamanoMascotaPension): void {
+    if (this.esEdicion && this.form.get('tamano_mascota')?.value === tamano) {
+      return;
+    }
+    this.form.patchValue({ tamano_mascota: tamano });
+    void this.aplicarDefaultsTamano(tamano);
+  }
+
   private async aplicarDefaultsTamano(tamano: TamanoMascotaPension | ''): Promise<void> {
-    if (!tamano || this.esEdicion) return;
+    if (!tamano) return;
     try {
       const defaults = await this.defaultsPension.getDefaultsOnce();
       const row = this.defaultsPension.defaultParaTamano(defaults, tamano);
-      if (!row) return;
-      const patch: Record<string, unknown> = {};
-      if (row.precioDia > 0 && !this.form.get('precio_dia')?.dirty) {
-        patch['precio_dia'] = row.precioDia;
-      }
-      if (row.costoDia != null && !this.form.get('costo_dia')?.dirty) {
+      if (!row || !(row.precioDia > 0)) return;
+      const patch: Record<string, unknown> = { precio_dia: row.precioDia };
+      // Costo interno (margen): viene de Finanzas, no se muestra en el alta.
+      if (row.costoDia != null && !this.esEdicion) {
         patch['costo_dia'] = row.costoDia;
       }
-      if (Object.keys(patch).length) {
-        this.form.patchValue(patch);
-        this.recalcularTotal();
-      }
+      this.form.patchValue(patch);
+      this.recalcularTotal();
     } catch {
       /* defaults opcionales */
     }
   }
 
   recalcularTotal(): void {
-    if (this.form.get('precio_total')?.dirty) return;
-    const ingreso = this.form.get('fecha_ingreso')?.value;
-    const salida = this.form.get('fecha_salida_prevista')?.value;
     const precioDia = Number(this.form.get('precio_dia')?.value) || 0;
-    const dias = this.pensionService.calcularDias(ingreso, salida);
+    const dias = this.diasEstimados;
     this.form.patchValue({ precio_total: Math.round(precioDia * dias * 100) / 100 }, { emitEvent: false });
   }
 
@@ -200,25 +211,24 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
     const tamano = this.inferirTamanoMascota(sel.pacienteData);
     if (tamano && !this.esEdicion) {
-      this.form.patchValue({ tamano_mascota: tamano });
-      void this.aplicarDefaultsTamano(tamano);
+      this.elegirPaquete(tamano);
     }
   }
 
-  /** Mapea tamaño conocido del paciente (baños) a tamaño pensión si aplica. */
   private inferirTamanoMascota(paciente: ClientePacienteSelection['pacienteData']): TamanoMascotaPension | '' {
     const raw = String(paciente?.['tamano_perro'] || paciente?.['tamano'] || '').toLowerCase();
-    if (raw === 'pequeno' || raw === 'mediano' || raw === 'grande') {
+    if (raw === 'pequeno' || raw === 'mediano' || raw === 'grande' || raw === 'gigante') {
       return raw as TamanoMascotaPension;
     }
-    return '';
+    const peso = Number(paciente?.['peso'] ?? paciente?.['peso_kg'] ?? paciente?.['pesoKg']);
+    return sugerirTamanoPensionPorPeso(peso);
   }
 
   async guardar(): Promise<void> {
-    this.revalidarCostoDia();
-    this.form.get('costo_dia')?.markAsTouched();
-    if (this.form.get('costo_dia')?.hasError('costoMayorOIgualVenta')) {
-      Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
+    this.recalcularTotal();
+    if (!this.form.get('tamano_mascota')?.value) {
+      this.form.get('tamano_mascota')?.markAsTouched();
+      Swal.fire('Elige un paquete', 'Selecciona cuánto se cobra por día.', 'info');
       return;
     }
     if (this.form.invalid) {
@@ -229,7 +239,9 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
     this.loadingService.show(LOADING_MESSAGES.saving);
     try {
       const raw = this.form.getRawValue();
-      const payload = {
+      const precioDia = Number(raw.precio_dia) || 0;
+      // RTDB no acepta undefined: omitir opcionales vacíos (costo interno, fechas, etc.).
+      const payload = omitUndefinedRtdb({
         paciente_id: String(raw.paciente_id || '').trim(),
         paciente: String(raw.paciente || '').trim(),
         cliente_id: String(raw.cliente_id || '').trim(),
@@ -237,12 +249,12 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
         fecha_ingreso: raw.fecha_ingreso,
         fecha_salida_prevista: raw.fecha_salida_prevista || undefined,
         tamano_mascota: raw.tamano_mascota || undefined,
-        precio_dia: Number(raw.precio_dia) || 0,
-        precio_total: raw.precio_total != null && raw.precio_total !== '' ? Number(raw.precio_total) : undefined,
-        costo_dia: raw.costo_dia != null && raw.costo_dia !== '' ? Number(raw.costo_dia) : undefined,
+        precio_dia: precioDia,
+        precio_total: this.resumenTotal,
+        costo_dia: normalizeCostoDiaPension(raw.costo_dia),
         estado: raw.estado as EstadoPension,
         notas: raw.notas || '',
-      };
+      });
       if (this.esEdicion && this.data.estancia?.id) {
         await this.pensionService.actualizarEstancia(this.data.estancia.id, payload);
       } else {
@@ -265,5 +277,9 @@ export class PensionDialogComponent implements OnInit, OnDestroy {
 
   cancelar(): void {
     this.dialogRef.close(false);
+  }
+
+  formatMoney(n: number): string {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n || 0);
   }
 }

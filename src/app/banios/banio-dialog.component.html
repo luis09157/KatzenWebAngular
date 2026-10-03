@@ -207,10 +207,11 @@
                 [matDatepicker]="fechaPicker"
                 formControlName="fecha_banio"
                 required
-                [readonly]="esEdicion"
+                readonly
+                (click)="!esEdicion && fechaPicker.open()"
               />
               <mat-datepicker-toggle matIconSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
-              <mat-datepicker #fechaPicker></mat-datepicker>
+              <mat-datepicker #fechaPicker [disabled]="esEdicion"></mat-datepicker>
             </mat-form-field>
 
             <app-timepicker-field

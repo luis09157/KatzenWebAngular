@@ -3,9 +3,11 @@
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ isEditMode ? 'Editar recordatorio' : 'Nuevo recordatorio' }}</h2>
       <p class="admin-dialog-subtitle">
-        {{ data?.registrarDesparasitacion
-          ? 'Registra la aplicación y confirma si se agenda la siguiente dosis.'
-          : 'Programación, prioridad y seguimiento del recordatorio.' }}
+        {{
+          data?.registrarDesparasitacion
+            ? 'Registra la aplicación y confirma si se agenda la siguiente dosis.'
+            : 'Programación, prioridad y seguimiento del recordatorio.'
+        }}
       </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
@@ -21,11 +23,15 @@
         class="full-span"
         [formGroup]="recordatorioForm"
         [fields]="pickerFields"
-        (selectionChange)="onClientePacienteSelected($event)">
+        (selectionChange)="onClientePacienteSelected($event)"
+      >
       </app-cliente-paciente-picker>
 
-      <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))">
-        <h3 class="entity-summary__name">{{ (data.paciente?.nombre || pacienteInfo?.nombre) || 'Sin nombre' }}</h3>
+      <div
+        class="entity-summary entity-summary--compact"
+        *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))"
+      >
+        <h3 class="entity-summary__name">{{ data.paciente?.nombre || pacienteInfo?.nombre || 'Sin nombre' }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
         <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="data.cliente || pacienteInfo?.cliente">
           Dueño: {{ data.cliente ? getNombreCompletoCliente(data.cliente) : pacienteInfo?.cliente }}
@@ -40,17 +46,18 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Título</mat-label>
-            <input matInput formControlName="titulo" placeholder="Ej: Vacuna anual, desparasitación…">
-            <mat-error *ngIf="recordatorioForm.get('titulo')?.hasError('required')">
-              El título es requerido
-            </mat-error>
+            <input matInput formControlName="titulo" placeholder="Ej: Vacuna anual, desparasitación…" />
+            <mat-error *ngIf="recordatorioForm.get('titulo')?.hasError('required')"> El título es requerido </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Descripción</mat-label>
-            <textarea matInput formControlName="descripcion"
+            <textarea
+              matInput
+              formControlName="descripcion"
               placeholder="Descripción detallada del recordatorio"
-              rows="3"></textarea>
+              rows="3"
+            ></textarea>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-span">
@@ -60,9 +67,7 @@
                 {{ tipo.label }}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="recordatorioForm.get('tipo')?.hasError('required')">
-              El tipo es requerido
-            </mat-error>
+            <mat-error *ngIf="recordatorioForm.get('tipo')?.hasError('required')"> El tipo es requerido </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-span" *ngIf="esDesparasitacion">
@@ -84,7 +89,7 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Fecha</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fecha_material">
+            <input matInput [matDatepicker]="picker" formControlName="fecha_material" readonly(click)="picker.open()" />
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="recordatorioForm.get('fecha_material')?.hasError('required')">
@@ -96,7 +101,8 @@
             formControlName="hora_material"
             label="Hora"
             [required]="true"
-            dialogTitle="Hora del recordatorio">
+            dialogTitle="Hora del recordatorio"
+          >
           </app-timepicker-field>
         </div>
       </section>
@@ -133,58 +139,67 @@
         <div class="form-grid">
           <mat-form-field appearance="outline" class="full-span">
             <mat-label>Notas</mat-label>
-            <textarea matInput formControlName="notas"
+            <textarea
+              matInput
+              formControlName="notas"
               placeholder="Notas o comentarios adicionales"
-              rows="3"></textarea>
+              rows="3"
+            ></textarea>
           </mat-form-field>
         </div>
       </section>
 
-      <input type="hidden" formControlName="paciente_id">
+      <input type="hidden" formControlName="paciente_id" />
     </mat-dialog-content>
 
     <mat-dialog-actions class="admin-dialog-actions">
       <div class="admin-dialog-actions__left">
-        <button *ngIf="isEditMode"
-                type="button"
-                mat-stroked-button
-                color="warn"
-                (click)="eliminarRecordatorio()"
-                [disabled]="loading">
+        <button
+          *ngIf="isEditMode"
+          type="button"
+          mat-stroked-button
+          color="warn"
+          (click)="eliminarRecordatorio()"
+          [disabled]="loading"
+        >
           <mat-icon>delete</mat-icon>
           Borrar
         </button>
 
-        <button *ngIf="isEditMode && data.estado === 'pendiente'"
-                type="button"
-                mat-stroked-button
-                color="accent"
-                (click)="cambiarEstado('completado')"
-                [disabled]="loading">
+        <button
+          *ngIf="isEditMode && data.estado === 'pendiente'"
+          type="button"
+          mat-stroked-button
+          color="accent"
+          (click)="cambiarEstado('completado')"
+          [disabled]="loading"
+        >
           <mat-icon>check</mat-icon>
           Marcar completado
         </button>
 
-        <button *ngIf="isEditMode && data.estado === 'completado'"
-                type="button"
-                mat-stroked-button
-                color="primary"
-                (click)="cambiarEstado('pendiente')"
-                [disabled]="loading">
+        <button
+          *ngIf="isEditMode && data.estado === 'completado'"
+          type="button"
+          mat-stroked-button
+          color="primary"
+          (click)="cambiarEstado('pendiente')"
+          [disabled]="loading"
+        >
           <mat-icon>schedule</mat-icon>
           Marcar pendiente
         </button>
       </div>
 
       <div class="admin-dialog-actions__right">
-        <button type="button" mat-button (click)="cancelar()" [disabled]="loading">
-          Cancelar
-        </button>
-        <button type="submit"
-                mat-raised-button
-                color="primary"
-                form="recordatorioForm"
-                [disabled]="recordatorioForm.invalid || loading">
+        <button type="button" mat-button (click)="cancelar()" [disabled]="loading">Cancelar</button>
+        <button
+          type="submit"
+          mat-raised-button
+          color="primary"
+          form="recordatorioForm"
+          [disabled]="recordatorioForm.invalid || loading"
+        >
           <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           {{ isEditMode ? 'Actualizar' : 'Crear' }}

@@ -3,6 +3,8 @@ import { NavigationEnd, NavigationError, Router } from '@angular/router';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { LoadingService } from './core/loading.service';
+import { PwaInstallService } from './core/services/pwa-install.service';
+import { PwaManifestService } from './core/services/pwa-manifest.service';
 import { refreshFirebaseMessagingSw } from './core/utils/firebase-messaging-sw-register';
 
 @Component({
@@ -19,12 +21,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     public globalLoading: LoadingService,
-    private router: Router
+    private router: Router,
+    private pwaManifest: PwaManifestService,
+    private pwaInstall: PwaInstallService
   ) {
     void refreshFirebaseMessagingSw();
   }
 
   ngOnInit(): void {
+    // Spec 087: dos manifests (portal / clínica) según la ruta.
+    this.pwaManifest.start();
+    this.pwaInstall.init();
+
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd || e instanceof NavigationError),

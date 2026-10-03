@@ -13,7 +13,7 @@
   </button>
 </div>
 <div class="linea-row linea-row--cart" *ngFor="let f of filas">
-  <button type="button" class="linea-row__hit" (click)="abrirLinea.emit(f.linea)">
+  <button type="button" class="linea-row__hit" (click)="abrirLinea.emit(f.linea)" [attr.title]="f.linea.descripcion">
     <span class="linea-foto" *ngIf="f.fotoUrl">
       <img [src]="f.fotoUrl" [alt]="f.linea.descripcion" />
     </span>
@@ -21,8 +21,9 @@
       <mat-icon>{{ f.icono }}</mat-icon>
     </span>
     <span class="linea-main">
-      <span class="linea-desc">{{ f.linea.descripcion }}</span>
-      <span>{{ f.montoLabel }}</span>
+      <span class="linea-desc">{{ f.titulo }}</span>
+      <span class="linea-meta" *ngIf="f.meta">{{ f.meta }}</span>
+      <span class="linea-unit">{{ f.montoLabel }}</span>
     </span>
   </button>
   <div class="linea-qty-ctrl">

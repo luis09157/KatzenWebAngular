@@ -46,8 +46,8 @@ export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
   readonly acciones: AccionChip[] = [
     { id: 'consulta', label: 'Consulta', icon: 'medical_services', hint: 'Abrir historial clínico' },
     { id: 'vacuna', label: 'Vacuna', icon: 'vaccines', hint: 'Registrar vacuna' },
-    { id: 'banio', label: 'Baño', icon: 'spa', hint: 'Peluquería / baño' },
-    { id: 'pension', label: 'Pensión', icon: 'hotel', hint: 'Dejar en pensión' },
+    { id: 'banio', label: 'Baño / corte', icon: 'spa', hint: 'Peluquería, baño o corte de pelo' },
+    { id: 'pension', label: 'Pensión', icon: 'hotel', hint: 'Hospedaje por días (no es baño)' },
     { id: 'cita', label: 'Solo cita', icon: 'event', hint: 'Agendar para después' },
   ];
 

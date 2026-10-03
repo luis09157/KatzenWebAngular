@@ -23,7 +23,8 @@
               "src/robots.txt",
               "src/sitemap.xml",
               "src/firebase-messaging-sw.js",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/manifest-admin.webmanifest"
             ],
             "styles": [
               "src/styles/material-katzen-theme.scss",
@@ -61,7 +62,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "2.5mb",
-                  "maximumError": "3mb"
+                  "maximumError": "3.1mb"
                 },
                 {
                   "type": "anyComponentStyle",

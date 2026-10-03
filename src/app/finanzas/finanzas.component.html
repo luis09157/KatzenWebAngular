@@ -94,15 +94,13 @@
             Mes
           </button>
         </div>
-        <mat-form-field
+        <app-datepicker-field
           *ngIf="periodoModo === 'dia' || periodoModo === 'semana'"
-          appearance="outline"
-          subscriptSizing="dynamic"
           class="fecha-filtro"
-        >
-          <mat-label>{{ periodoModo === 'semana' ? 'Día de la semana' : 'Fecha' }}</mat-label>
-          <input matInput type="date" [value]="fechaFiltro" (change)="onFechaChange($event)" />
-        </mat-form-field>
+          [label]="periodoModo === 'semana' ? 'Día de la semana' : 'Fecha'"
+          [ngModel]="fechaFiltro"
+          (ngModelChange)="onFechaFiltroChange($event)"
+        ></app-datepicker-field>
         <mat-form-field
           *ngIf="periodoModo === 'mes'"
           appearance="outline"
@@ -435,8 +433,8 @@
           *ngIf="!loadingPlantillas"
           accent="teal"
           title="Defaults pensión por tamaño"
-          description="Precio/día y costo/día. Opcional: ID de producto de comida y cantidad/día para opt-in al cobrar."
-          meta="3 tamaños"
+          description="Precio/día y costo/día (tarifas oficiales 089). Opcional: ID de producto de comida y cantidad/día."
+          meta="4 paquetes"
           [showLegend]="false"
         >
           <div class="defaults-banio-grid" *ngIf="defaultsPensionForm" [formGroup]="defaultsPensionForm">
