@@ -135,3 +135,5 @@ Tras deploy fix costo_dia undefined (pensión payload) + datepicker 090 en worki
 Tras deploy datepicker 090 + fix costo_dia + POS riel pensión 091 + legibilidad ticket (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`0d687d371abd0fb9`); queda 1 FINALIZED `3b332e9068e1ee25`; sitio HTTP 200.
 
 Tras deploy working tree: sanitize líneas visita (citaId undefined) + ticket digital PDF CSS 092 + pendientes (2026-10-02): PATCH `retainedReleaseCount=1` OK; DELETE 2 no live (`3b332e9068e1ee25`, `0be715febd6f4793`); queda 1 FINALIZED `dd0d706c197d332a`; sitio HTTP 200; `main.5c32cbc8052212bf.js`.
+
+Tras deploy `9d53615` (loading hide antes de Swal, sanitize RTDB, ticket PDF 092, docs antipatrones) 2026-10-03: PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`dd0d706c197d332a`); queda 1 FINALIZED `6e6be6aad15604a4`; sitio HTTP 200; `main.4964905709596658.js`.
