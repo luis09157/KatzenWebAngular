@@ -139,3 +139,5 @@ Tras deploy working tree: sanitize líneas visita (citaId undefined) + ticket di
 Tras deploy `9d53615` (loading hide antes de Swal, sanitize RTDB, ticket PDF 092, docs antipatrones) 2026-10-03: PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`dd0d706c197d332a`); queda 1 FINALIZED `6e6be6aad15604a4`; sitio HTTP 200; `main.4964905709596658.js`.
 
 Tras deploy working tree CTA «Pagar ya» POS + pendientes locales (2026-10-03): PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`c0cab92a486c39c4`, `4128700604e7d5c2`, `6e6be6aad15604a4`); queda 1 FINALIZED `4b417c41a449b784`; sitio HTTP 200; `main.e2c3c60332b46508.js` (CTA confirmado en bundle).
+
+Tras deploy `ca45a12` (093 taxonomía servicios Fase 1+2 + CTA Pagar ya + script migración dry-run) 2026-10-04: PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`4b417c41a449b784`); queda 1 FINALIZED `9ef3f1921d94382f`; sitio HTTP 200; `main.7e6edffe3a9dad35.js`.
