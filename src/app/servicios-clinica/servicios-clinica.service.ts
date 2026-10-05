@@ -7,8 +7,9 @@ import { SucursalContextService } from '../core/services/sucursal-context.servic
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { ServicioClinica, ServicioClinicaFormData } from './servicios-clinica.models';
 import {
+  hidratarServicioClinica,
   normalizarTipoServicioClinica,
-  ordenarServiciosClinica
+  ordenarServiciosClinica,
 } from './servicios-clinica.util';
 
 @Injectable({ providedIn: 'root' })
@@ -30,22 +31,7 @@ export class ServiciosClinicaService {
           ordenarServiciosClinica(
             changes.map((c) => {
               const raw = (c.payload.val() || {}) as ServicioClinica;
-              return {
-                ...raw,
-                id: c.payload.key || raw.id,
-                tipo: normalizarTipoServicioClinica(raw.tipo),
-                precio_venta: Number(raw.precio_venta) || 0,
-                precio_costo: Number(raw.precio_costo) || 0,
-                aplicaIva: raw.aplicaIva === true,
-                tasaIva:
-                  raw.aplicaIva === true
-                    ? Number(raw.tasaIva) > 0
-                      ? Number(raw.tasaIva)
-                      : 16
-                    : 0,
-                activo: raw.activo !== false,
-                nombre: String(raw.nombre || '').trim()
-              };
+              return hidratarServicioClinica(raw, c.payload.key || raw.id);
             })
           )
         ),
@@ -57,9 +43,12 @@ export class ServiciosClinicaService {
     const staffId = await this.currentStaff.getStaffId();
     const now = new Date().toISOString();
     const aplicaIva = data.aplicaIva === true;
+    const esDomicilio = data.esDomicilio === true;
     const payload = this.sucursal.stamp({
       nombre: String(data.nombre || '').trim(),
+      // Spec 093: altas nuevas nunca escriben tipo domicilio.
       tipo: normalizarTipoServicioClinica(data.tipo),
+      esDomicilio,
       precio_venta: Math.max(0, Number(data.precio_venta) || 0),
       precio_costo: Math.max(0, Number(data.precio_costo) || 0),
       aplicaIva,
@@ -68,7 +57,7 @@ export class ServiciosClinicaService {
       activo: data.activo !== false,
       created_at: now,
       updated_at: now,
-      created_by: staffId || 'system'
+      created_by: staffId || 'system',
     }) as ServicioClinica;
     const ref = await this.db.list<ServicioClinica>(this.path).push(payload);
     await stampRtdbIdAfterPush(this.db, this.path, ref.key);
@@ -78,7 +67,11 @@ export class ServiciosClinicaService {
   async actualizar(id: string, patch: Partial<ServicioClinica>): Promise<void> {
     const clean: Partial<ServicioClinica> = { ...patch, updated_at: new Date().toISOString() };
     if (patch.tipo != null) {
+      // Escritura: tipo clínico (nunca domicilio).
       clean.tipo = normalizarTipoServicioClinica(patch.tipo);
+    }
+    if (patch.esDomicilio != null) {
+      clean.esDomicilio = patch.esDomicilio === true;
     }
     if (patch.precio_venta != null) {
       clean.precio_venta = Math.max(0, Number(patch.precio_venta) || 0);
@@ -88,9 +81,7 @@ export class ServiciosClinicaService {
     }
     if (patch.aplicaIva != null) {
       clean.aplicaIva = patch.aplicaIva === true;
-      clean.tasaIva = clean.aplicaIva
-        ? Math.max(0, Number(patch.tasaIva != null ? patch.tasaIva : 16) || 16)
-        : 0;
+      clean.tasaIva = clean.aplicaIva ? Math.max(0, Number(patch.tasaIva != null ? patch.tasaIva : 16) || 16) : 0;
     } else if (patch.tasaIva != null) {
       clean.tasaIva = Math.max(0, Number(patch.tasaIva) || 0);
     }

@@ -2,7 +2,10 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar servicio' : 'Nuevo servicio de clínica' }}</h2>
-      <p class="admin-dialog-subtitle">Tarifa de consulta, diagnóstico, domicilio u honorarios. No descuenta inventario.</p>
+      <p class="admin-dialog-subtitle">
+        Tarifa de consulta, diagnóstico, procedimiento u honorarios. Marca «A domicilio» si aplica. No descuenta
+        inventario.
+      </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -14,7 +17,13 @@
       <div class="form-grid">
         <mat-form-field appearance="outline" class="full-span" subscriptSizing="dynamic">
           <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" required maxlength="120" placeholder="Consulta general, ultrasonido…" />
+          <input
+            matInput
+            formControlName="nombre"
+            required
+            maxlength="120"
+            placeholder="Consulta general, ultrasonido…"
+          />
           <mat-error *ngIf="form.get('nombre')?.hasError('required')">El nombre es obligatorio.</mat-error>
           <mat-error *ngIf="form.get('nombre')?.hasError('minlength')">Usa al menos 2 caracteres.</mat-error>
         </mat-form-field>
@@ -25,6 +34,11 @@
           </mat-select>
           <mat-error *ngIf="form.get('tipo')?.hasError('required')">Elige un tipo.</mat-error>
         </mat-form-field>
+        <div class="full-span domicilio-flag">
+          <mat-checkbox formControlName="esDomicilio">
+            A domicilio (se presta / cobra como visita a casa)
+          </mat-checkbox>
+        </div>
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Costo</mat-label>
           <input matInput type="number" min="0" step="0.01" formControlName="precio_costo" required />
@@ -48,7 +62,12 @@
           <mat-checkbox formControlName="aplicaIva">
             Aplicar IVA {{ tasaDefault }}% (precio al público ya lo incluye; no es factura CFDI)
           </mat-checkbox>
-          <mat-form-field appearance="outline" *ngIf="form.get('aplicaIva')?.value" class="tasa-iva-field" subscriptSizing="dynamic">
+          <mat-form-field
+            appearance="outline"
+            *ngIf="form.get('aplicaIva')?.value"
+            class="tasa-iva-field"
+            subscriptSizing="dynamic"
+          >
             <mat-label>Tasa IVA %</mat-label>
             <input matInput type="number" min="0" max="100" step="1" formControlName="tasaIva" />
             <mat-hint>México general: {{ tasaDefault }}%</mat-hint>
@@ -58,13 +77,14 @@
           <mat-icon>trending_up</mat-icon>
           <div class="ganancia-preview__text">
             <p *ngIf="desglose.aplicaIva">
-              De ${{ desglose.ventaPublica | number:'1.2-2' }} al público:
-              IVA {{ desglose.tasa }}% ${{ desglose.ivaTrasladado | number:'1.2-2' }}
-              · venta neta ${{ desglose.ventaNeta | number:'1.2-2' }}
+              De ${{ desglose.ventaPublica | number: '1.2-2' }} al público: IVA {{ desglose.tasa }}% ${{
+                desglose.ivaTrasladado | number: '1.2-2'
+              }}
+              · venta neta ${{ desglose.ventaNeta | number: '1.2-2' }}
             </p>
             <p>
               Ganancia:
-              <strong>${{ desglose.ganancia | number:'1.2-2' }}</strong>
+              <strong>${{ desglose.ganancia | number: '1.2-2' }}</strong>
               <span *ngIf="desglose.aplicaIva"> (después de IVA)</span>
               <span *ngIf="!desglose.aplicaIva"> (venta − costo)</span>
             </p>
@@ -86,7 +106,8 @@
       class="btn-primary-teal"
       type="button"
       (click)="guardar()"
-      [disabled]="loading || form.invalid">
+      [disabled]="loading || form.invalid"
+    >
       <mat-icon>save</mat-icon>
       {{ loading ? 'Guardando…' : 'Guardar' }}
     </button>

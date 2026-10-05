@@ -337,6 +337,16 @@ Warning: bundle initial exceeded maximum budget (preexistente, 2.34 MB).
 - [x] Shell admin ≤600: gutters 8px, tablas min 560, padding celdas compacto
 - [x] Wizard cliente en 2ª fila; subtítulo oculto en phone
 
+### Follow-up L2 — CTA «Pagar ya» Caja→Cobrar (2026-10-03)
+
+- [x] Desktop: botón primario en footer del ticket (`pos-cart-panel__pagar`) si hay ≥1 línea; `(click)="irACobrar()"`; disabled si `!puedeIrACobrar`
+- [x] Móvil: barra sticky `pos-cart-bar` copy unificado «Pagar ya» (mismo handler)
+- [x] Código: `visita-dialog.component.html` + `.scss` — sin cambios de flujo mostrador/cliente
+
+| Verificación | Resultado |
+|--------------|-----------|
+| `npm run build` | OK exit 0 · Hash 55df5cbe2d09a015 |
+
 ---
 
 ## Cierre

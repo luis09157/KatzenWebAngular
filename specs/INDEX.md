@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **91** specs · `done`: 76 · `in_progress`: 12 · `superseded`: 3
+Total: **92** specs · `done`: 77 · `in_progress`: 12 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -99,3 +99,4 @@ Total: **91** specs · `done`: 76 · `in_progress`: 12 · `superseded`: 3
 | 090 | [datepicker-canonico](090-datepicker-canonico/spec.md) | Datepicker canónico (selección de fecha) | done |
 | 091 | [pos-riel-pension](091-pos-riel-pension/spec.md) | POS — riel Pensión (enlace al cobro) | done |
 | 092 | [ticket-digital-pdf-whatsapp](092-ticket-digital-pdf-whatsapp/spec.md) | Ticket digital (CSS imprimible + PDF + WhatsApp) | done |
+| 093 | [taxonomia-servicios-clinica](093-taxonomia-servicios-clinica/spec.md) | Taxonomía de servicios de clínica (tipo + domicilio) | done |

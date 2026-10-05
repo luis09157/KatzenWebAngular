@@ -128,6 +128,7 @@ Ver `tasks.md` sección Testing.
 - Honorarios = tipo `otro`.
 - Ultrasonido = tipo `diagnostico`.
 - Consulta genérica del POS: si hay servicio tipo `consulta` con precio, se usa el catálogo; si no, fallback inventario 055; si no, prompt.
+- **Verificación cobro POS (2026-10-04):** enlazado en código (riel Consulta). No abrir 094. Follow-up corto en `specs/093-taxonomia-servicios-clinica/spec.md` § Follow-up. Gap típico = discoverability (CTA) o RTDB/rules, no lógica de cobro faltante.
 
 ### Modelo IVA (único — 2026-08-31)
 

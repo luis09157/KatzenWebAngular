@@ -25,10 +25,16 @@
         hint="Ultrasonido y similares"
       ></app-admin-stat-card>
       <app-admin-stat-card
+        accent="orange"
+        [value]="totalProcedimientos"
+        label="Procedimientos"
+        hint="Cirugía menor / curaciones"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
         accent="green"
         [value]="totalDomicilios"
-        label="Domicilio"
-        hint="Visitas a casa"
+        label="A domicilio"
+        hint="Flag o legado domicilio"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
 
@@ -36,7 +42,7 @@
       accent="teal"
       icon="medical_services"
       title="Servicios de clínica"
-      subtitle="Consulta, ultrasonido, domicilio y honorarios. No son stock de anaquel."
+      subtitle="Consulta, diagnóstico, procedimiento y honorarios. Marca domicilio si aplica. No son stock de anaquel."
     >
       <div bannerActions>
         <a mat-stroked-button routerLink="/admin/finanzas" type="button">
@@ -62,14 +68,14 @@
       <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
         <mat-label>Buscar servicio</mat-label>
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, tipo, notas…" />
+        <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, tipo, domicilio, notas…" />
       </mat-form-field>
 
       <app-admin-empty-state
         *ngIf="dataSource.data.length === 0"
         icon="medical_services"
         title="Sin servicios de clínica"
-        message="Da de alta consulta, ultrasonido, domicilio u honorarios. El baño se configura en Finanzas."
+        message="Da de alta consulta, diagnóstico, procedimiento u honorarios. El baño se configura en Finanzas."
         actionLabel="Nuevo servicio"
         (action)="nuevo()"
       >
@@ -89,7 +95,12 @@
 
           <ng-container matColumnDef="tipo">
             <th mat-header-cell *matHeaderCellDef>Tipo</th>
-            <td mat-cell *matCellDef="let row">{{ tipoLabels[row.tipo] || row.tipo }}</td>
+            <td mat-cell *matCellDef="let row">
+              <div class="cell-primary">
+                <span>{{ labelTipo(row) }}</span>
+                <span class="estado-badge estado-badge--activo" *ngIf="esDomicilio(row)">Domicilio</span>
+              </div>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="costo">

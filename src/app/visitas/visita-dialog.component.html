@@ -348,6 +348,7 @@
                   <span class="pos-card__meta">{{
                     s.precio_venta > 0 ? copyPrecioServicio : labelTipoServicio(s)
                   }}</span>
+                  <span class="pos-card__nota-badge" *ngIf="esServicioDomicilio(s)">Domicilio</span>
                 </button>
                 <div class="pos-card__ctrl" *ngIf="qtyServicioEnCarrito(s.id)">
                   <button
@@ -778,16 +779,33 @@
           <ng-template #sinLineasPanel>
             <p class="hint-empty">Vacío. Toca un producto para agregar.</p>
           </ng-template>
-          <div class="pos-cart-totales">
-            <div>
-              <span class="lbl">Subtotal</span><strong>{{ formatMoney(totales.total) }}</strong>
+          <div class="pos-cart-footer">
+            <div class="pos-cart-totales">
+              <div>
+                <span class="lbl">Subtotal</span><strong>{{ formatMoney(totales.total) }}</strong>
+              </div>
+              <div>
+                <span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong>
+              </div>
+              <div>
+                <span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong>
+              </div>
             </div>
-            <div>
-              <span class="lbl">Pagado</span><strong>{{ formatMoney(totales.pagado) }}</strong>
-            </div>
-            <div>
-              <span class="lbl">Saldo</span><strong class="saldo">{{ formatMoney(totales.saldo) }}</strong>
-            </div>
+            <!-- CTA Caja→Cobrar (desktop ≥1024). Móvil usa pos-cart-bar. -->
+            <button
+              *ngIf="lineas.length"
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal pos-cart-panel__pagar"
+              type="button"
+              data-testid="pos-pagar-ya"
+              [disabled]="!puedeIrACobrar"
+              [matTooltip]="cobrarBloqueoHint"
+              (click)="irACobrar()"
+            >
+              <mat-icon>payments</mat-icon>
+              Pagar ya
+            </button>
           </div>
         </aside>
       </div>
@@ -982,10 +1000,12 @@
       color="primary"
       class="btn-primary-teal pos-cart-bar__cobrar"
       type="button"
+      data-testid="pos-pagar-ya-bar"
       [disabled]="!puedeIrACobrar"
+      [matTooltip]="cobrarBloqueoHint"
       (click)="irACobrar()"
     >
-      {{ cobrarLabel }}
+      Pagar ya
     </button>
   </div>
 

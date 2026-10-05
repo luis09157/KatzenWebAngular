@@ -1,7 +1,7 @@
 # Mapa de módulos — KatzenVet Web
 
 Base documental de modularidad (specs **075**–**084**; proceso specs vivas **078**).  
-**Última revisión:** 2026-10-01 · No es código; describe límites y dependencias.
+**Última revisión:** 2026-10-04 · No es código; describe límites y dependencias.
 
 ---
 
@@ -64,7 +64,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` · líneas RTDB `visita-linea-rtdb.util` |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |
 | `finanzas/` | `/admin/finanzas` | `Caja`, `Finanzas/*` | 014, 021, 022, 071 | Caja, costos, reportes |
-| `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056 | Tarifas sin stock |
+| `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056, **093** | Tarifas sin stock; tipo clínico + `esDomicilio`; util hidratar/mapeo/migración KPIs; script `migrate-servicios-clinica-domicilio.mjs` |
 | `consentimientos/` | `/admin/consentimientos` | consentimientos | 037 | Consentimientos |
 | `usuarios/` | `/admin/usuarios` | `Usuarios`, `AuthPerfiles` | 002, 011, 012 | Staff + provision portal |
 | `contactos-web/` | `/admin/contactos-web` | `ContactosWeb` | 001 | Leads landing |

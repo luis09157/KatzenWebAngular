@@ -615,13 +615,28 @@
       font-weight: 700;
       color: #0f172a;
     }
+
+    .lineas-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+    }
+  }
+
+  .pos-cart-footer {
+    margin-top: auto;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 12px;
   }
 
   .pos-cart-totales {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
-    margin: 12px 0 0;
+    margin: 0;
     padding: 14px 12px;
     border-radius: 12px;
     background: #fff;
@@ -655,6 +670,17 @@
     .saldo {
       color: var(--katzen-verde-fuerte, #0f766e);
       font-size: 1rem;
+    }
+  }
+
+  .pos-cart-panel__pagar {
+    width: 100%;
+    min-height: 48px !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+
+    mat-icon {
+      margin-right: 6px;
     }
   }
 
@@ -1273,6 +1299,7 @@
       flex-direction: column;
       min-width: 0;
       min-height: 0;
+      overflow: hidden;
     }
 
     .pos-cart-bar {

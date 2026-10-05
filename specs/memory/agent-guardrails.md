@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-03 · Specs **075**–**092** (lecciones loading post-cobro + RTDB `undefined`)
+**Última revisión:** 2026-10-04 · Specs **075**–**093** (taxonomía servicios: tipo clínico + `esDomicilio`)
 
 ---
 
@@ -82,6 +82,7 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Ticket digital / PDF | HTML/CSS + PDF (`jspdf`) para compartir; térmico 80 mm intacto; `wa.me` **no** adjunta PDF (Web Share o descarga + adjunto manual) | **092** |
 | Loading post-éxito | **Nunca** `await` diálogos post-éxito (Swal PDF/WhatsApp/imprimir, `navigator.share`, jspdf) **dentro** del `try` que tiene `LoadingService.show(…)` antes del `finally { hide() }`. Orden canónico: persistir → `finally` `hide()` → luego ofrecer acciones. Ref: `visita-dialog` `confirmarCobro`. Script `check-loading-antipattern` solo cubre `show→close`; esta regla es revisión de código. | **005**, **092** |
 | RTDB sin `undefined` | Firebase rechaza `undefined` en **cualquier** profundidad. Sanitizar con `omitUndefinedRtdb` / `sanitizeVisitaLinea(s)ForRtdb` antes de `push`/`update` de Estancias y `Visitas.lineas` (no solo nivel raíz). Campos típicos opcionales: `costo_dia`, `citaId`, `banioId`, `pensionId`. | **089**, **091**, **092** |
+| Taxonomía servicios clínica | Tipos UI: `consulta` \| `diagnostico` \| `procedimiento` \| `otro`. Domicilio = `esDomicilio?` (no tipo). Legacy `tipo: domicilio` → flag + tipo efectivo consulta. `procedimiento` → línea/caja `cirugia`. Sin riel POS Domicilio. Migración masiva: script dry-run `migrate-servicios-clinica-domicilio.mjs` (apply prod solo Luis). **Sin** categoría caja `diagnostico` hasta OK P&L (sigue bucket `consulta`). | **093** (Fase 1+2 código; apply prod pendiente Luis) |
 
 ---
 
@@ -131,6 +132,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
 | Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `pendientes-visita.util.ts` (`vincularBaniosHuerfanosEnLineas`) — solo completados del día; al cobrar con `banioId`/`visitaId` salen; no «Nuevo baño» huérfano si hay notas | **085** |
 | Cola clínicos vacuna/consulta | `visitas/pendientes-clinicos.util.ts` — aplicadas/historial del día en POS + por cobrar; `vacunaId`/`historialId` al cobrar | **086** |
+| Servicios clínica / taxonomía | `servicios-clinica/` (`hidratarServicioClinica`, `esServicioDomicilio`, `categoriaLineaDesdeServicioClinica`, `planPatchMigracionDomicilio`, `contarKpisServiciosClinica`) + script `scripts/migrate-servicios-clinica-domicilio.mjs` — no segundo catálogo ni riel Domicilio ni categoría caja `diagnostico` sin OK Luis | **056**, **093** |
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |

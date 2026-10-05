@@ -9,19 +9,22 @@ import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
-import { ServicioClinica, TIPO_SERVICIO_CLINICA_LABELS } from './servicios-clinica.models';
+import { ServicioClinica } from './servicios-clinica.models';
 import { ServicioClinicaDialogComponent } from './servicio-clinica-dialog.component';
 import { ServiciosClinicaService } from './servicios-clinica.service';
 import {
   COPY_BANIO_EN_FINANZAS,
-  labelTipoServicioClinica
+  contarKpisServiciosClinica,
+  esServicioDomicilio,
+  labelTipoServicioClinica,
+  tipoEfectivoServicioClinica,
 } from './servicios-clinica.util';
 import { desglosarPrecioIvaIncluido } from '../core/utils/precio-margen.util';
 
 @Component({
   selector: 'app-servicios-clinica',
   templateUrl: './servicios-clinica.component.html',
-  styleUrls: ['./servicios-clinica.component.scss']
+  styleUrls: ['./servicios-clinica.component.scss'],
 })
 export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
@@ -31,7 +34,6 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
   displayedColumns = ['nombre', 'tipo', 'costo', 'precio', 'iva', 'ganancia', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<ServicioClinica>([]);
   loading = true;
-  readonly tipoLabels = TIPO_SERVICIO_CLINICA_LABELS;
   readonly hintBanio = COPY_BANIO_EN_FINANZAS;
   readonly hintIva =
     'El precio al público incluye IVA si está marcado. El costo es lo que te cuesta a ti. La ganancia es venta neta − costo.';
@@ -39,6 +41,7 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
   totalActivos = 0;
   totalConsultas = 0;
   totalDiagnosticos = 0;
+  totalProcedimientos = 0;
   totalDomicilios = 0;
 
   constructor(
@@ -51,7 +54,9 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
     this.dataSource.filterPredicate = (row, filter) => {
       const q = (filter || '').trim().toLowerCase();
       if (!q) return true;
-      const blob = `${row.nombre || ''} ${labelTipoServicioClinica(row.tipo)} ${row.notas || ''}`.toLowerCase();
+      const tipo = labelTipoServicioClinica(tipoEfectivoServicioClinica(row));
+      const modalidad = esServicioDomicilio(row) ? 'domicilio a domicilio' : '';
+      const blob = `${row.nombre || ''} ${tipo} ${modalidad} ${row.notas || ''}`.toLowerCase();
       return blob.includes(q);
     };
   }
@@ -77,11 +82,12 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
       .subscribe({
         next: (rows) => {
           this.dataSource.data = rows;
-          const visibles = rows.filter((r) => r.activo !== false);
-          this.totalActivos = visibles.length;
-          this.totalConsultas = visibles.filter((r) => r.tipo === 'consulta').length;
-          this.totalDiagnosticos = visibles.filter((r) => r.tipo === 'diagnostico').length;
-          this.totalDomicilios = visibles.filter((r) => r.tipo === 'domicilio').length;
+          const kpis = contarKpisServiciosClinica(rows);
+          this.totalActivos = kpis.activos;
+          this.totalConsultas = kpis.consultas;
+          this.totalDiagnosticos = kpis.diagnosticos;
+          this.totalProcedimientos = kpis.procedimientos;
+          this.totalDomicilios = kpis.aDomicilio;
           this.loading = false;
           setTimeout(() => {
             if (this.paginator) this.dataSource.paginator = this.paginator;
@@ -90,12 +96,8 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
         error: (error) => {
           this.logger.error('Error al cargar servicios de clínica:', error);
           this.loading = false;
-          Swal.fire(
-            'Error',
-            this.errorMessages.getUserMessage(error, 'cargar servicios de clínica'),
-            'error'
-          );
-        }
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar servicios de clínica'), 'error');
+        },
       });
   }
 
@@ -110,7 +112,7 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
   formatMoney(n: number | undefined): string {
     return `$${(Number(n) || 0).toLocaleString('es-MX', {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     })}`;
   }
 
@@ -125,8 +127,16 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
       precioVenta: row.precio_venta,
       costo: row.precio_costo,
       aplicaIva: row.aplicaIva === true,
-      tasaIva: row.tasaIva
+      tasaIva: row.tasaIva,
     }).ganancia;
+  }
+
+  labelTipo(row: ServicioClinica): string {
+    return labelTipoServicioClinica(tipoEfectivoServicioClinica(row));
+  }
+
+  esDomicilio(row: ServicioClinica): boolean {
+    return esServicioDomicilio(row);
   }
 
   nuevo(): void {
@@ -140,7 +150,7 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
   private abrirDialogo(servicio?: ServicioClinica): void {
     const ref = this.dialog.open(ServicioClinicaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { servicio }
+      data: { servicio },
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
@@ -158,7 +168,7 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
       showCancelButton: true,
       confirmButtonText: 'Sí, borrar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#d33',
     });
     if (!confirm.isConfirmed) return;
     this.loadingService.show(LOADING_MESSAGES.deleting);
@@ -166,11 +176,7 @@ export class ServiciosClinicaComponent implements OnInit, AfterViewInit, OnDestr
       await this.servicios.bajaLogica(row.id);
       Swal.fire({ icon: 'success', title: 'Borrado', timer: 1400, showConfirmButton: false });
     } catch (error) {
-      Swal.fire(
-        'Error',
-        this.errorMessages.getUserMessage(error, 'borrar servicio de clínica'),
-        'error'
-      );
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar servicio de clínica'), 'error');
     } finally {
       this.loadingService.hide();
     }

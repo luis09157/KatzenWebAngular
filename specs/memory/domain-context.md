@@ -80,7 +80,7 @@ erDiagram
 | Notificación clínica | `Katzen/NotificacionesClinica/{id}` | Push key | **052 ola 2** resumen staff; cliente no lee; write Functions |
 | Log paciente | `Katzen/Log_Paciente/{pacienteId}/{id}` | Push key | Timeline admin en expediente |
 | Audit portal | `Katzen/PortalProvisionLog/{id}` | Push key | Solo lectura staff; write vía Functions |
-| Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056** tarifa (no stock): consulta, diagnóstico, domicilio, honorarios. Campos aditivos `precio_costo`, `aplicaIva`, `tasaIva`. Baño **no** vive aquí. |
+| Servicio de clínica | `Katzen/ServiciosClinica/{id}` | Push key | **056**/**093** tarifa (no stock): `tipo` consulta\|diagnostico\|procedimiento\|otro + `esDomicilio?`. Legacy `tipo: domicilio` se lee como flag. Baño **no** vive aquí. |
 | Config clínica | `Katzen/Config/clinica` | hijo único | **072** aditivo: nombre, logoUrl, horario, ivaDefaultPct, vet default. Staff lee; admin escribe. |
 
 ### 2.3 Catálogos auxiliares
@@ -266,7 +266,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Nombre de negocio (UI):** “Punto de venta” / “Nueva venta” (ruta `/admin/visitas`). Tres rieles en la misma caja: petshop, consulta, peluquería (**055**). El ticket es comprobante interno; **no** es CFDI (PAC fuera de alcance — 024 / investigación 055).
 
-**Precios en caja (2026-08-30, Luis):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas entran al ticket con `precio_venta` de inventario. **Servicios de clínica (056):** consulta, ultrasonido, domicilio y honorarios viven en `Katzen/ServiciosClinica` (no stock); el riel Consulta los lista y no pide monto si hay precio. **Única excepción editable:** baño/peluquería — tarifa default 022 precargada; no se migra a ServiciosClinica en ola 1. Consulta genérica pide monto solo si no hay servicio de catálogo ni producto inventario con precio.
+**Precios en caja (2026-08-30, Luis; taxonomía 093 2026-10-04):** el cajero **no escribe** precios de anaquel. Productos, medicamentos y vacunas entran al ticket con `precio_venta` de inventario. **Servicios de clínica (056/093):** consulta, diagnóstico, procedimiento y honorarios viven en `Katzen/ServiciosClinica` (no stock); domicilio es flag `esDomicilio` (badge en riel Consulta, sin riel nuevo). El riel Consulta los lista y no pide monto si hay precio. **Única excepción editable:** baño/peluquería — tarifa default 022 precargada; no se migra a ServiciosClinica. Consulta genérica pide monto solo si no hay servicio de catálogo ni producto inventario con precio.
 
 Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin cliente → **046**), `paciente_id?`, `fecha`, `estado` (`abierta`|`parcial`|`cerrada`|`cancelada`), `lineas[]` (pueden llevar `banioId` / `productoId` / `cantidad?` / `movimientoInventarioId?` / `servicioClinicaId?` / snapshot `costo?` `precio_venta?` `iva?` `ganancia?` — **056**; el cajero no captura costo), `total`, `pagado`, `saldo`, `cajaMovimientoIds[]`, `atendidoPorUid?` / `atendidoPorNombre?` (**035**), `folio?` (**071** `KV-YYYYMMDD-NNN` al cobrar), `activo`.
 
@@ -274,9 +274,9 @@ Ticket unificado por visita/día: `cliente_id` (en MVP con cliente; walk-in sin 
 
 Fuente de verdad CxC; `Cliente.saldoPendiente` denormalizado. Admin `/admin/visitas`. Portal: lectura propia.
 
-### 3.8e `Katzen/ServiciosClinica/{id}` (spec **056**)
+### 3.8e `Katzen/ServiciosClinica/{id}` (spec **056** + taxonomía **093**)
 
-Tarifa de clínica **sin stock**: `nombre`, `tipo` (`consulta` \| `diagnostico` \| `domicilio` \| `otro`), `precio_venta` (al público), `precio_costo?` (neto), `aplicaIva?`, `tasaIva?` (default 16), `activo`, `notas?`. Modelo IVA: precio incluye IVA; ganancia = venta neta − costo. Baño **no** vive aquí (Finanzas 022).
+Tarifa de clínica **sin stock**: `nombre`, `tipo` (`consulta` \| `diagnostico` \| `procedimiento` \| `otro`), `esDomicilio?` (modalidad; ausente/false = clínica), `precio_venta` (al público), `precio_costo?` (neto), `aplicaIva?`, `tasaIva?` (default 16), `activo`, `notas?`. Legacy `tipo: 'domicilio'` → lectura como `esDomicilio: true` + tipo efectivo `consulta`; migración masiva SC-008 = script dry-run `scripts/migrate-servicios-clinica-domicilio.mjs` (apply prod solo Luis). Línea POS: `procedimiento` → categoría `cirugia`; consulta/diagnóstico → `consulta` (sin categoría caja `diagnostico` aún); `otro` → `otro`. Modelo IVA: precio incluye IVA; ganancia = venta neta − costo. Baño **no** vive aquí (Finanzas 022).
 
 ### 3.9 Auth y usuarios
 

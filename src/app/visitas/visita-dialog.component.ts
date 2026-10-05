@@ -58,13 +58,15 @@ import { ServiciosClinicaService } from '../servicios-clinica/servicios-clinica.
 import {
   COPY_BANIO_EN_FINANZAS,
   COPY_PRECIO_SERVICIO,
-  categoriaLineaDesdeTipoServicio,
+  categoriaLineaDesdeServicioClinica,
   esDecisionPrecioServicio,
+  esServicioDomicilio as servicioEsDomicilio,
   hayServicioConsultaConPrecio,
   iconoTipoServicioClinica,
   labelTipoServicioClinica,
   resolverLineaServicioClinica,
   serviciosParaRielConsulta,
+  tipoEfectivoServicioClinica,
 } from '../servicios-clinica/servicios-clinica.util';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import {
@@ -1279,11 +1281,15 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   iconoServicioClinica(s: ServicioClinica): string {
-    return iconoTipoServicioClinica(s.tipo);
+    return iconoTipoServicioClinica(tipoEfectivoServicioClinica(s));
   }
 
   labelTipoServicio(s: ServicioClinica): string {
-    return labelTipoServicioClinica(s.tipo);
+    return labelTipoServicioClinica(tipoEfectivoServicioClinica(s));
+  }
+
+  esServicioDomicilio(s: ServicioClinica): boolean {
+    return servicioEsDomicilio(s);
   }
 
   lineaDeProducto(productoId: string | undefined): VisitaLinea | undefined {
@@ -1733,7 +1739,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         id: nuevaLineaId(),
         descripcion: s.nombre,
         monto: roundMoney(monto),
-        categoria: categoriaLineaDesdeTipoServicio(s.tipo),
+        categoria: categoriaLineaDesdeServicioClinica(s),
         cantidad: 1,
         servicioClinicaId: s.id,
         ...snapshotEconomiaLinea({

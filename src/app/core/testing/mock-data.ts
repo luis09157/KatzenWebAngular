@@ -683,7 +683,11 @@ export const MOCK_SERVICIO_CLINICA_DIAGNOSTICO = {
   created_at: '2026-08-30T18:00:00.000Z',
 };
 
-export const MOCK_SERVICIO_CLINICA_DOMICILIO = {
+/**
+ * Raw RTDB legacy (`tipo: domicilio`) — solo tests de hidratación.
+ * En listas tipadas usar MOCK_SERVICIO_CLINICA_DOMICILIO (ya hidratado).
+ */
+export const MOCK_SERVICIO_CLINICA_DOMICILIO_LEGACY_RAW = {
   id: 'svc-dom-001',
   nombre: 'Visita a domicilio',
   tipo: 'domicilio' as const,
@@ -693,6 +697,46 @@ export const MOCK_SERVICIO_CLINICA_DOMICILIO = {
   tasaIva: 16,
   activo: true,
   created_at: '2026-08-30T18:00:00.000Z',
+};
+
+/** Spec 093 — forma hidratada del legacy domicilio (tipo efectivo + flag). */
+export const MOCK_SERVICIO_CLINICA_DOMICILIO = {
+  id: 'svc-dom-001',
+  nombre: 'Visita a domicilio',
+  tipo: 'consulta' as const,
+  esDomicilio: true,
+  precio_venta: 600,
+  precio_costo: 150,
+  aplicaIva: true,
+  tasaIva: 16,
+  activo: true,
+  created_at: '2026-08-30T18:00:00.000Z',
+};
+
+/** Spec 093 — consulta con flag esDomicilio (alta nueva). */
+export const MOCK_SERVICIO_CLINICA_CONSULTA_DOMICILIO = {
+  id: 'svc-consulta-dom-001',
+  nombre: 'Consulta a domicilio',
+  tipo: 'consulta' as const,
+  esDomicilio: true,
+  precio_venta: 650,
+  precio_costo: 120,
+  aplicaIva: true,
+  tasaIva: 16,
+  activo: true,
+  created_at: '2026-10-04T18:00:00.000Z',
+};
+
+export const MOCK_SERVICIO_CLINICA_PROCEDIMIENTO = {
+  id: 'svc-proc-001',
+  nombre: 'Sutura menor',
+  tipo: 'procedimiento' as const,
+  precio_venta: 900,
+  precio_costo: 250,
+  aplicaIva: true,
+  tasaIva: 16,
+  activo: true,
+  created_at: '2026-10-04T18:00:00.000Z',
 };
 
 export const MOCK_SERVICIO_CLINICA_HONORARIOS = {
@@ -732,6 +776,8 @@ export const MOCK_SERVICIOS_CLINICA = [
   MOCK_SERVICIO_CLINICA_CONSULTA,
   MOCK_SERVICIO_CLINICA_DIAGNOSTICO,
   MOCK_SERVICIO_CLINICA_DOMICILIO,
+  MOCK_SERVICIO_CLINICA_CONSULTA_DOMICILIO,
+  MOCK_SERVICIO_CLINICA_PROCEDIMIENTO,
   MOCK_SERVICIO_CLINICA_HONORARIOS,
   MOCK_SERVICIO_CLINICA_SIN_PRECIO,
   MOCK_SERVICIO_CLINICA_INACTIVO,
