@@ -248,7 +248,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 
 **Plantillas de costo** (`Katzen/Finanzas/PlantillasCosto/{id}`): `nombre`, `tipoServicio` (`banio|corte|cirugia|consulta|vacuna|pension|otro`), `precioSugeridoCliente?`, `items[]` (producto inventario o gasto libre), `costoTotalEstimado`, `activo`.
 
-**Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en config; override al registrar baño; `precio_total` siempre por registro.
+**Defaults baño por tamaño** (`Katzen/Finanzas/DefaultsBanioPorTamano` — **022**): por `pequeno` / `mediano` / `grande` / `xl` (aditivo) → `costoDefault`, `precioSugerido?`, `plantillaCostoId?`. Editables en Finanzas; override al registrar baño; `precio_total` = cobro; `costoDefault`/`costoEstimado` = KPI interno (no POS). Si fila 0/ausente → fallback en código (`TARIFAS_BANIO_FALLBACK`).
 
 **Defaults pensión** (`Katzen/Finanzas/DefaultsPensionPorTamano` — **022 B**): `precioDia`, `costoDia?`, `productoComidaId?`, `cantidadComidaPorDia?`.
 
@@ -389,11 +389,13 @@ Detalle y olas: `specs/046-ux-intuitiva-guiada/`. Hub ticket + grid: `specs/045-
 
 ### 4.9 Peluquería / baños
 
+- **Baño ≠ SKU Petshop (2026-10-04, Luis):** el servicio de baño/corte **no** se agrega como producto de inventario Petshop para ir descontando stock. Alta operativa = `Katzen/Banios` + tarifas/defaults Finanzas **022**; cobro = riel POS Peluquería (pendientes del día / Nuevo baño). Insumos físicos (shampoo, etc. `categoria: peluqueria`) sí son Petshop y sí pueden bajar anaquel. Prefijos PDV `BACO*` son tarifas de referencia (`productoDescuentaInventarioPos` = false); no borrar en prod — solo ocultar del riel si molestan (L1).
 - Baño **cancelado:** puede cancelarse; debe afectar métricas operativas.
 - **Ingresos de baños** integran ventas/caja (confirmado): tarjeta, transferencia, efectivo; checkbox IVA declarado/no declarado por pago para control fiscal · link **018** + costos **021** · defaults por tamaño + precio por registro **022**.
 - **Handoff cobro (085):** mostrador cobra `precio_total`. **Cola «Por cobrar hoy»** = solo baños **listos del día** aún no cobrados; al vincular ticket/`pagado`/caja **salen de la cola**. Historial y basura se gestionan en Peluquería (filtros / Borrar / Cancelar), no en mostrador. `observaciones` = nota para mostrador. Ver `specs/085-peluqueria-flujo-facil/spec.md` § Ciclo de vida.
 - Cancelar revierte `pagado: false` (código actual).
-- **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
+- **Costo por tamaño (022):** defaults configurables pequeño/mediano/grande/**xl**; ajustables al registrar; `precio_total` siempre por registro (sugerencia opcional).
+- **Costo/margen = KPIs internos (2026-10-18):** `costoEstimado` y margen bruto **no** se cobran en POS/mostrador; el cobro es `precio_total`. Sirven para dashboard de ganancia (ingresos − costos).
 - **Costo vs venta (2026-08-26):** al crear/editar baño, `costoEstimado` (si se informa) debe ser **estrictamente menor** que `precio_total`. Si costo ≥ venta → no guardar; mensaje en formulario («El costo debe ser menor que el precio de venta»). Datos legacy con costo=venta siguen leyéndose en KPIs con margen 0. Margen % opcional en UI recalcula `precio_total` desde costo.
 - **Alergias (034):** fuente de verdad en `Mascota.alergias`; baño muestra alerta + editor y al guardar sincroniza a la mascota; `alergias_conocidas` queda como snapshot.
 

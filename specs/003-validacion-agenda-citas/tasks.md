@@ -145,3 +145,5 @@ Smoke autenticado 2026-08-25 (opción A — Cypress + cypress.env.json gitignore
 - [ ] Verificar portal con cita cancelada que tenga `motivo_cancelacion`
 
 **Nota smoke 2026-08-25 (opción A):** login OK vía Cypress; MCP browser no operativo; smoke citas OK con `admin-qa-features-smoke.cy.ts`.
+
+**Follow-up 2026-10-18:** `cita-dialog` alineado a picker baños (`permitirCrear=false` + `busquedaDual`); ver nota en tasks **085**.

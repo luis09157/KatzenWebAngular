@@ -19,29 +19,81 @@ import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
 import { contarRefuerzosClinicos } from './esquema-vacuna.util';
+import {
+  coincidenciaTextoListado,
+  fechaHoyListadoLocal,
+  filtrarListadoAgendaOBusqueda,
+  listadoFechaIso,
+  metaListadoHoyManana,
+  partirListadoHoyManana,
+} from '../core/utils/listado-hoy-manana.util';
 
 @Component({
   selector: 'app-vacunas',
   templateUrl: './vacunas.component.html',
-  styleUrls: ['./vacunas.component.css']
+  styleUrls: ['./vacunas.component.css'],
 })
 export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
-  displayedColumns: string[] = ['fecha_vacuna', 'paciente', 'tipo_vacuna', 'estado', 'proxima_dosis', 'veterinario', 'acciones'];
+  displayedColumns: string[] = [
+    'fecha_vacuna',
+    'paciente',
+    'tipo_vacuna',
+    'estado',
+    'proxima_dosis',
+    'veterinario',
+    'acciones',
+  ];
   menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
+  dataSourceHoy = new MatTableDataSource<any>([]);
+  dataSourceManana = new MatTableDataSource<any>([]);
+  private todasFilas: any[] = [];
+  buscarTexto = '';
+  tablaInicializada = false;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   pacientesMap: { [id: string]: string } = {};
   pacientesClienteMap: { [id: string]: string } = {};
   loading = false;
+
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaListadoHoyManana({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.estadisticas.total || this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceHoy.data.length;
+  }
+
+  get seccionMananaVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceManana.data.length;
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length && this.modoBusqueda;
+  }
   estadisticas = {
     total: 0,
     pendientes: 0,
     aplicadas: 0,
     delMes: 0,
     estaSemana: 0,
-    vencidas: 0
+    vencidas: 0,
   };
 
   constructor(
@@ -55,30 +107,33 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.pacientesService.getPacientes().pipe(takeUntil(this.destroy$)).subscribe({
-      next: pacientes => {
-        (pacientes || []).forEach((p: { id: string; nombre?: string; cliente_id?: string; idCliente?: string }) => {
-          this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
-          this.pacientesClienteMap[p.id] = p.cliente_id || p.idCliente || '';
-        });
-        this.cargarVacunas();
-      },
-      error: error => {
-        this.logger.error('Error al cargar pacientes para vacunas:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: this.errorMessages.getUserMessage(error, 'cargar datos'),
-          showCancelButton: true,
-          confirmButtonText: 'Reintentar',
-          cancelButtonText: 'Cerrar'
-        }).then(result => {
-          if (result.isConfirmed) {
-            this.ngOnInit();
-          }
-        });
-      }
-    });
+    this.pacientesService
+      .getPacientes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (pacientes) => {
+          (pacientes || []).forEach((p: { id: string; nombre?: string; cliente_id?: string; idCliente?: string }) => {
+            this.pacientesMap[p.id] = p.nombre ? p.nombre : 'N/P';
+            this.pacientesClienteMap[p.id] = p.cliente_id || p.idCliente || '';
+          });
+          this.cargarVacunas();
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar pacientes para vacunas:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: this.errorMessages.getUserMessage(error, 'cargar datos'),
+            showCancelButton: true,
+            confirmButtonText: 'Reintentar',
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.ngOnInit();
+            }
+          });
+        },
+      });
   }
 
   ngAfterViewInit(): void {
@@ -92,66 +147,71 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   cargarVacunas() {
     this.loading = true;
-    this.vacunasService.getVacunas().pipe(takeUntil(this.destroy$)).subscribe({
-      next: vacunas => {
-        const vacunasActivas = (vacunas || []).filter((v: { activo?: boolean }) => v.activo !== false);
-        this.dataSource.data = vacunasActivas.map((vacuna: any) => {
-          const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
-          const fechaVacuna = vacuna.fecha_vacuna || vacuna.fechaAplicacion || vacuna.fecha_aplicacion || vacuna.fechaRegistro;
-          const proximaDosis = vacuna.proxima_dosis || vacuna.proximaAplicacion || vacuna.proxima_aplicacion;
-          const tipoVacuna = vacuna.tipo_vacuna || vacuna.vacuna;
-          const veterinario = vacuna.veterinario || vacuna.veterinario_nombre || 'N/A';
-          let estado = 'pendiente';
-          if (vacuna.estado) {
-            estado = vacuna.estado;
-          } else if (vacuna.aplicada === true) {
-            estado = 'aplicada';
-          } else if (vacuna.aplicada === false) {
-            estado = 'pendiente';
-          }
-          return {
-            ...vacuna,
-            paciente_id: pacienteId,
-            paciente: this.pacientesMap[pacienteId] || 'N/P',
-            fecha_vacuna: this.formatearFecha(fechaVacuna),
-            proxima_dosis: this.formatearFecha(proximaDosis),
-            tipo_vacuna: tipoVacuna,
-            veterinario: veterinario,
-            estado: estado
-          };
-        });
-        this.calcularEstadisticas(vacunasActivas);
-        this.loading = false;
-        setTimeout(() => {
-          if (this.paginator) this.dataSource.paginator = this.paginator;
-        }, 0);
-      },
-      error: error => {
-        this.logger.error('Error al cargar vacunas:', error);
-        this.loading = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al Cargar Vacunas',
-          html: `
+    this.vacunasService
+      .getVacunas()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (vacunas) => {
+          const vacunasActivas = (vacunas || []).filter((v: { activo?: boolean }) => v.activo !== false);
+          this.todasFilas = vacunasActivas.map((vacuna: any) => {
+            const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
+            const fechaVacuna =
+              vacuna.fecha_vacuna || vacuna.fechaAplicacion || vacuna.fecha_aplicacion || vacuna.fechaRegistro;
+            const proximaDosis = vacuna.proxima_dosis || vacuna.proximaAplicacion || vacuna.proxima_aplicacion;
+            const tipoVacuna = vacuna.tipo_vacuna || vacuna.vacuna;
+            const veterinario = vacuna.veterinario || vacuna.veterinario_nombre || 'N/A';
+            let estado = 'pendiente';
+            if (vacuna.estado) {
+              estado = vacuna.estado;
+            } else if (vacuna.aplicada === true) {
+              estado = 'aplicada';
+            } else if (vacuna.aplicada === false) {
+              estado = 'pendiente';
+            }
+            return {
+              ...vacuna,
+              paciente_id: pacienteId,
+              paciente: this.pacientesMap[pacienteId] || 'N/P',
+              fecha_vacuna_iso: listadoFechaIso(fechaVacuna),
+              proxima_dosis_iso: listadoFechaIso(proximaDosis),
+              fecha_vacuna: this.formatearFecha(fechaVacuna),
+              proxima_dosis: this.formatearFecha(proximaDosis),
+              tipo_vacuna: tipoVacuna,
+              veterinario: veterinario,
+              estado: estado,
+            };
+          });
+          this.calcularEstadisticas(vacunasActivas);
+          this.aplicarVistaListado();
+          this.tablaInicializada = true;
+          this.loading = false;
+        },
+        error: (error) => {
+          this.logger.error('Error al cargar vacunas:', error);
+          this.loading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Cargar Vacunas',
+            html: `
             <p>No se pudieron cargar las vacunas del sistema.</p>
             <p class="text-muted">Por favor, verifica tu conexión e intenta de nuevo.</p>
           `,
-          confirmButtonText: 'Reintentar',
-          showCancelButton: true,
-          cancelButtonText: 'Cerrar'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            this.cargarVacunas();
-          }
-        });
-      }
-    });
+            confirmButtonText: 'Reintentar',
+            showCancelButton: true,
+            cancelButtonText: 'Cerrar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.cargarVacunas();
+            }
+          });
+        },
+      });
   }
 
   calcularEstadisticas(vacunas: any[]) {
     this.estadisticas.total = vacunas.length;
-    this.estadisticas.pendientes = vacunas.filter(v => v.estado === 'pendiente' || !v.aplicada).length;
-    this.estadisticas.aplicadas = vacunas.filter(v => v.estado === 'aplicada' || v.aplicada).length;
+    this.estadisticas.pendientes = vacunas.filter((v) => v.estado === 'pendiente' || !v.aplicada).length;
+    this.estadisticas.aplicadas = vacunas.filter((v) => v.estado === 'aplicada' || v.aplicada).length;
     const mes = new Date().toISOString().slice(0, 7);
     this.estadisticas.delMes = vacunas.filter((v) => {
       const f = String(v.fecha_vacuna || v.fecha_aplicacion || v.created_at || '');
@@ -164,27 +224,27 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   formatearFecha(fecha: any): string {
     if (!fecha) return 'N/P';
-    
+
     try {
       if (fecha instanceof Date) {
         return fecha.toLocaleDateString('es-ES', {
           year: 'numeric',
           month: '2-digit',
-          day: '2-digit'
+          day: '2-digit',
         });
       }
-      
+
       if (typeof fecha === 'string') {
         const date = new Date(fecha);
         if (!isNaN(date.getTime())) {
           return date.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
           });
         }
       }
-      
+
       return 'N/P';
     } catch (error) {
       return 'N/P';
@@ -192,8 +252,52 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   aplicarFiltro(event: Event) {
-    const filtro = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filtro.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
+  }
+
+  private vacunaFechasIso = (v: { fecha_vacuna_iso?: string; proxima_dosis_iso?: string }) => [
+    v.fecha_vacuna_iso,
+    v.proxima_dosis_iso,
+  ];
+
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyListadoLocal();
+    const coincide = (v: Record<string, unknown>, q: string) =>
+      coincidenciaTextoListado(
+        [
+          v['paciente'],
+          v['tipo_vacuna'],
+          v['estado'],
+          v['veterinario'],
+          v['fecha_vacuna'],
+          v['proxima_dosis'],
+          v['fecha_vacuna_iso'],
+          v['proxima_dosis_iso'],
+        ],
+        q
+      );
+    if (this.modoBusqueda) {
+      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
+        query: this.buscarTexto,
+        hoyIso,
+        getFechasIso: this.vacunaFechasIso,
+        coincideBusqueda: coincide,
+      });
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+    const partes = partirListadoHoyManana(this.todasFilas, this.vacunaFechasIso, { hoyIso });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   abrirModalVacuna(vacuna: any = null) {
@@ -201,27 +305,33 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
     if (vacuna && vacuna.id) {
       const dialogRef = this.dialog.open(VacunaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: vacuna
+        data: vacuna,
       });
-      
-      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result) {
-          this.loadingService.hide();
-          this.cargarVacunas();
-        }
-      });
+
+      dialogRef
+        .afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((result) => {
+          if (result) {
+            this.loadingService.hide();
+            this.cargarVacunas();
+          }
+        });
     } else {
       const dialogRef = this.dialog.open(VacunaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: {}
+        data: {},
       });
 
-      dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
-        if (result) {
-          this.loadingService.hide();
-          this.cargarVacunas();
-        }
-      });
+      dialogRef
+        .afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((result) => {
+          if (result) {
+            this.loadingService.hide();
+            this.cargarVacunas();
+          }
+        });
     }
   }
 
@@ -232,21 +342,21 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   verVacuna(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDialogComponent, {
       ...ADMIN_DIALOG_FORM,
-      data: { ...vacuna, modoSoloLectura: true }
+      data: { ...vacuna, modoSoloLectura: true },
     });
   }
 
   verVacunaDetalle(vacuna: any) {
     const dialogRef = this.dialog.open(VacunaDetalleComponent, {
       ...ADMIN_DIALOG_DETAIL,
-      data: vacuna
+      data: vacuna,
     });
   }
 
   async eliminarVacuna(vacuna: any) {
     const nombreVacuna = this.getNombreVacuna(vacuna.tipo_vacuna || vacuna.vacuna);
     const nombrePaciente = vacuna.paciente || 'N/P';
-    
+
     const result = await Swal.fire({
       icon: 'warning',
       title: '¿Borrar esta vacuna?',
@@ -263,7 +373,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
     });
 
     if (result.isConfirmed) {
@@ -272,12 +382,24 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: 'Borrada', html: '<p>La vacuna ha sido borrada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>' });
+          Swal.fire({
+            icon: 'success',
+            title: 'Borrada',
+            html: '<p>La vacuna ha sido borrada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>',
+          });
           this.cargarVacunas();
         }, 0);
       } catch (error) {
         this.loadingService.hide();
-        setTimeout(() => Swal.fire({ icon: 'error', title: 'Error al borrar', text: this.errorMessages.getUserMessage(error, 'eliminar vacuna') }), 0);
+        setTimeout(
+          () =>
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al borrar',
+              text: this.errorMessages.getUserMessage(error, 'eliminar vacuna'),
+            }),
+          0
+        );
       }
     }
   }
@@ -297,16 +419,23 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       }, 0);
     } catch (error) {
       this.loadingService.hide();
-      setTimeout(() => Swal.fire({ icon: 'error', title: 'Error', text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna') }), 0);
+      setTimeout(
+        () =>
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: this.errorMessages.getUserMessage(error, 'cambiar estado vacuna'),
+          }),
+        0
+      );
     }
   }
 
   getEstadoColor(estado: string | boolean): string {
     // Normalizar a string
-    const estadoStr = typeof estado === 'boolean' 
-      ? (estado ? 'aplicada' : 'pendiente') 
-      : (estado || 'pendiente').toLowerCase();
-    
+    const estadoStr =
+      typeof estado === 'boolean' ? (estado ? 'aplicada' : 'pendiente') : (estado || 'pendiente').toLowerCase();
+
     switch (estadoStr) {
       case 'aplicada':
       case 'completada':
@@ -324,10 +453,9 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getEstadoText(estado: string | boolean): string {
     // Normalizar a string
-    const estadoStr = typeof estado === 'boolean' 
-      ? (estado ? 'aplicada' : 'pendiente') 
-      : (estado || 'pendiente').toLowerCase();
-    
+    const estadoStr =
+      typeof estado === 'boolean' ? (estado ? 'aplicada' : 'pendiente') : (estado || 'pendiente').toLowerCase();
+
     switch (estadoStr) {
       case 'aplicada':
       case 'completada':
@@ -370,40 +498,40 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Mapa de tipos de vacunas para conversión rápida
   private tiposVacunasMap: { [key: string]: string } = {
-    'puppy': 'Puppy',
-    'quintuple': 'Quíntuple',
-    'sextuple': 'Séxtuple',
-    'triple_felina': 'Triple Felina',
-    'antirrabica': 'Antirrábica',
-    'bordetella': 'Bordetella',
-    'leucemia_felina': 'Leucemia Felina',
-    'giardia': 'Giardia',
-    'mixomatosis': 'Mixomatosis',
-    'rhdv_rhdv2': 'RHDV / RHDV2',
-    'otra_conejo': 'Otra (conejo)',
-    'coronavirus': 'Coronavirus',
-    'parvovirus': 'Parvovirus',
-    'moquillo': 'Moquillo',
-    'hepatitis': 'Hepatitis',
-    'leucemia': 'Leucemia',
-    'otra': 'Otra'
+    puppy: 'Puppy',
+    quintuple: 'Quíntuple',
+    sextuple: 'Séxtuple',
+    triple_felina: 'Triple Felina',
+    antirrabica: 'Antirrábica',
+    bordetella: 'Bordetella',
+    leucemia_felina: 'Leucemia Felina',
+    giardia: 'Giardia',
+    mixomatosis: 'Mixomatosis',
+    rhdv_rhdv2: 'RHDV / RHDV2',
+    otra_conejo: 'Otra (conejo)',
+    coronavirus: 'Coronavirus',
+    parvovirus: 'Parvovirus',
+    moquillo: 'Moquillo',
+    hepatitis: 'Hepatitis',
+    leucemia: 'Leucemia',
+    otra: 'Otra',
   };
 
   // Convertir valor técnico a nombre formateado
   getNombreVacuna(value: string): string {
     if (!value) return 'N/A';
-    
+
     // Intentar obtener del mapa
     if (this.tiposVacunasMap[value]) {
       return this.tiposVacunasMap[value];
     }
-    
+
     // Si no está en el mapa, formatear el valor
     // Reemplazar guiones bajos por espacios y capitalizar cada palabra
     return value
       .replace(/_/g, ' ')
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   }
 
@@ -466,7 +594,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       Swal.fire({
         icon: 'info',
         title: 'Ya en cuenta del día',
-        text: `Vinculada al ticket ${vacuna.visitaId}.`
+        text: `Vinculada al ticket ${vacuna.visitaId}.`,
       });
       return;
     }
@@ -477,8 +605,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
     const pacienteId = vacuna.paciente_id || vacuna.idPaciente;
-    const clienteId =
-      vacuna.cliente_id || vacuna.idCliente || this.pacientesClienteMap[pacienteId] || '';
+    const clienteId = vacuna.cliente_id || vacuna.idCliente || this.pacientesClienteMap[pacienteId] || '';
     if (!clienteId) {
       Swal.fire('Falta cliente', 'No se pudo resolver el dueño de la mascota.', 'warning');
       return;
@@ -500,12 +627,12 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         monto,
         categoria: 'vacuna',
         vacunaId: vacuna.id,
-        fecha: String(vacuna.fecha_vacuna || vacuna.fechaAplicacion || '').slice(0, 10) || undefined
+        fecha: String(vacuna.fecha_vacuna || vacuna.fechaAplicacion || '').slice(0, 10) || undefined,
       });
       const visita = await this.visitasService.getVisita(visitaId);
       this.dialog.open(VisitaDialogComponent, {
         ...ADMIN_DIALOG_FORM,
-        data: { visita: visita || undefined, cliente_id: clienteId }
+        data: { visita: visita || undefined, cliente_id: clienteId },
       });
       Swal.fire({ icon: 'success', title: 'Agregada a visita', timer: 1400, showConfirmButton: false });
       this.cargarVacunas();
@@ -521,8 +648,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
   consumirInventario(vacuna: any): void {
     if (!vacuna) return;
     const pacienteId = vacuna.idPaciente || vacuna.paciente_id;
-    const pacienteNombre =
-      vacuna.paciente || this.pacientesMap[pacienteId] || 'paciente';
+    const pacienteNombre = vacuna.paciente || this.pacientesMap[pacienteId] || 'paciente';
     this.dialog.open(SalidaDialogComponent, {
       ...ADMIN_DIALOG_CONFIG,
       width: '720px',
@@ -534,8 +660,8 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         hideRegistrarEnCaja: true,
         observaciones: `Vacuna · ${vacuna.tipo_vacuna || vacuna.vacuna || ''} · dosis ${vacuna.dosis || ''}`.trim(),
         titulo: 'Consumir inventario (vacuna)',
-        subtitulo: `Descuenta el producto/dosis aplicado a ${pacienteNombre}`
-      }
+        subtitulo: `Descuenta el producto/dosis aplicado a ${pacienteNombre}`,
+      },
     });
   }
-} 
+}

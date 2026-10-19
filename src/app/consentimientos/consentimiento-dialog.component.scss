@@ -9,6 +9,62 @@
     grid-column: 1 / -1;
   }
 
+  .consentimiento-dialog__preview {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--admin-border, #e2e8f0);
+  }
+
+  .consentimiento-dialog__preview-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .consentimiento-dialog__preview-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--katzen-verde-oscuro, #065d60);
+  }
+
+  .consentimiento-dialog__preview-note {
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
+  .consentimiento-dialog__preview-frame {
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 10px;
+    background: #f1f5f9;
+
+    .consent-doc {
+      margin: 8px auto;
+      box-shadow: none;
+      border-radius: 8px;
+    }
+
+    .consent-doc__brand {
+      padding: 12px 16px;
+    }
+
+    .consent-doc__clinica {
+      font-size: 16px;
+    }
+
+    .consent-doc__body {
+      padding: 12px 16px 16px;
+      font-size: 12px;
+    }
+  }
+
   @media (max-width: 720px) {
     .admin-form-layout {
       grid-template-columns: 1fr;

@@ -144,6 +144,15 @@
   overflow: hidden;
 }
 
+/* Dentro de .table-scroll el overflow lo maneja el contenedor (scroll-x usable) */
+.admin-content .table-scroll table.mat-mdc-table,
+.admin-content .table-scroll table[mat-table] {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  min-width: 880px;
+}
+
 .admin-content .mat-mdc-header-row,
 .admin-content .mat-header-row {
   background: #f0f8f8 !important;
@@ -440,7 +449,7 @@
   }
 
   .admin-content table {
-    min-width: 640px;
+    min-width: 800px; /* scroll-x vía .table-scroll; no comprimir (061) */
   }
 
   .admin-content .welcome-section {
@@ -458,11 +467,12 @@
   }
 }
 
-/* Celular en vertical: gutters mínimos + espacio para dock inferior */
+/* Celular en vertical: gutters densos + aire inferior (toolbar/safe-area) */
 @media (max-width: 600px) {
   .admin-content {
     --admin-page-gutter: 8px;
-    padding: 8px var(--admin-page-gutter) 72px !important;
+    padding: 6px var(--admin-page-gutter) 56px !important;
+    min-height: 0;
   }
 
   .admin-content .panel-search,
@@ -478,13 +488,18 @@
   }
 
   .admin-content table {
-    min-width: 560px;
+    min-width: 880px; /* nunca ≤560: comprimía headers/chips (061 follow-up) */
   }
 }
 
 @media (max-width: 480px) {
   .admin-content {
-    --admin-page-gutter: 8px;
-    padding: 8px var(--admin-page-gutter) 72px !important;
+    --admin-page-gutter: 6px;
+    padding: 4px var(--admin-page-gutter) 48px !important;
+    min-height: 0;
+  }
+
+  .admin-content app-admin-page-banner {
+    margin-bottom: 12px;
   }
 }

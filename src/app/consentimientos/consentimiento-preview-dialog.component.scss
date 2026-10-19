@@ -1,0 +1,35 @@
+.consentimiento-preview-dialog {
+  .consentimiento-preview-dialog__hint {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .consentimiento-preview-dialog__frame {
+    max-height: min(62vh, 640px);
+    overflow: auto;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 10px;
+    background: #f1f5f9;
+
+    .consent-doc {
+      margin: 8px auto;
+      box-shadow: none;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  }
+
+  .admin-dialog-actions mat-icon {
+    margin-right: 4px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+  }
+}

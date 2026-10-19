@@ -36,6 +36,7 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { InventarioService } from '../inventario/inventario.service';
+import { CitaDialogModule } from '../citas/cita-dialog.module';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import { InventarioService } from '../inventario/inventario.service';
     AltaRapidaDialogModule,
     VisitasDialogModule,
     CajaDialogModule,
+    CitaDialogModule,
   ],
   providers: [
     CitasService,

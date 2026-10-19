@@ -1,5 +1,501 @@
 <div class="admin-page usuarios-contenedor">
-  <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+  <div class="admin-list-shell">
+    <mat-progress-bar *ngIf="saving" mode="indeterminate" color="primary"></mat-progress-bar>
+
+    <app-admin-page-banner
+      accent="purple"
+      icon="manage_accounts"
+      title="Personal staff y portal"
+      subtitle="Personal de la clínica (staff) y dueños con portal. Listas separadas: no confundir con clientes externos."
+    >
+      <div bannerActions>
+        <button
+          mat-raised-button
+          color="primary"
+          class="btn-primary-teal"
+          (click)="abrirModalUsuario()"
+          [disabled]="saving"
+          *ngIf="selectedTabIndex === 0"
+        >
+          <mat-icon>person_add</mat-icon>
+          Nuevo personal
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <mat-tab-group
+      class="usuarios-tabs"
+      [(selectedIndex)]="selectedTabIndex"
+      (selectedIndexChange)="onTabChange($event)"
+    >
+      <mat-tab label="Staff">
+        <div *ngIf="loadingStaff" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Cargando personal…</p>
+        </div>
+
+        <app-admin-data-panel
+          *ngIf="!loadingStaff"
+          accent="purple"
+          title="Personal"
+          description="Administradores, doctoras y personal operativo. «También portal» = usa la misma cuenta para ver mascotas."
+          [meta]="
+            dataSource.data.length
+              ? dataSource.filteredData.length + ' en pantalla · ' + getTotalUsuarios() + ' totales'
+              : ''
+          "
+          [showLegend]="dataSource.data.length > 0"
+        >
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="buscador panel-search usuarios-search-field"
+          >
+            <input
+              matInput
+              type="search"
+              aria-label="Buscar personal staff"
+              (keyup)="aplicarFiltroStaff($event)"
+              placeholder="Buscar personal…"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <app-admin-empty-state
+            *ngIf="dataSource.data.length === 0"
+            icon="manage_accounts"
+            title="No hay personal staff"
+            message="No se ha registrado personal de la clínica."
+            actionLabel="Agregar primer personal"
+            [actionDisabled]="saving"
+            (action)="abrirModalUsuario()"
+          >
+          </app-admin-empty-state>
+
+          <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+            <table mat-table [dataSource]="dataSource" class="usuarios-table usuarios-staff-table">
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let usuario">
+                  <strong>{{ usuario.nombre || 'N/P' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="correo">
+                <th mat-header-cell *matHeaderCellDef>Correo</th>
+                <td mat-cell *matCellDef="let usuario">
+                  <span class="cell-sub">{{ usuario.correo || 'N/P' }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="perfil">
+                <th mat-header-cell *matHeaderCellDef>Perfil</th>
+                <td mat-cell *matCellDef="let usuario">
+                  <span class="admin-badge admin-badge--success">{{ getPerfilLabel(usuario.perfil) }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="dual">
+                <th mat-header-cell *matHeaderCellDef>Portal</th>
+                <td mat-cell *matCellDef="let usuario">
+                  <span
+                    *ngIf="isDualStaff(usuario)"
+                    class="admin-badge admin-badge--info"
+                    matTooltip="clienteId: {{ getDualClienteId(usuario) }}"
+                    >También portal</span
+                  >
+                  <span *ngIf="!isDualStaff(usuario)" class="cell-sub">—</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td
+                  mat-cell
+                  *matCellDef="let usuario"
+                  (click)="$event.stopPropagation()"
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  <div class="row-actions">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Ver detalle"
+                      (click)="verUsuario(usuario)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Editar"
+                      (click)="editarUsuario(usuario)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      *ngIf="!isDualStaff(usuario)"
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Vincular portal de mascotas"
+                      (click)="vincularPortalDual(usuario)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>link</mat-icon>
+                    </button>
+                    <button
+                      *ngIf="isDualStaff(usuario)"
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Desvincular portal"
+                      (click)="desvincularPortalDual(usuario)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>link_off</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Borrar"
+                      (click)="bajaLogicaUsuario(usuario.id)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: displayedColumns"
+                class="data-row data-row--interactive"
+                title="Doble clic para ver detalle"
+                (dblclick)="verUsuario(row)"
+              ></tr>
+            </table>
+          </div>
+          <mat-paginator
+            *ngIf="dataSource.data.length"
+            #staffPaginator
+            [pageSize]="50"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </app-admin-data-panel>
+      </mat-tab>
+
+      <mat-tab label="Clientes con portal">
+        <div *ngIf="loadingPortal" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Cargando clientes con portal…</p>
+        </div>
+
+        <app-admin-data-panel
+          *ngIf="!loadingPortal"
+          accent="green"
+          title="Dueños con acceso al portal"
+          description="Clientes que ya pueden iniciar sesión en /portal."
+          [meta]="portalConAcceso.data.length + ' activos'"
+          [showLegend]="portalConAcceso.data.length > 0"
+        >
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="buscador panel-search usuarios-search-field"
+          >
+            <input
+              matInput
+              type="search"
+              aria-label="Buscar cliente con portal"
+              (keyup)="aplicarFiltroPortal($event)"
+              placeholder="Buscar cliente…"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <app-admin-empty-state
+            *ngIf="portalConAcceso.data.length === 0"
+            icon="verified_user"
+            title="Sin clientes con portal"
+            message="Activa el portal desde la pestaña Pendientes."
+          >
+          </app-admin-empty-state>
+
+          <div class="table-scroll" *ngIf="portalConAcceso.data.length > 0">
+            <table mat-table [dataSource]="portalConAcceso" class="usuarios-table usuarios-portal-table">
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <td mat-cell *matCellDef="let c">
+                  <strong>{{ c.nombreCompleto }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="correo">
+                <th mat-header-cell *matHeaderCellDef>Correo</th>
+                <td mat-cell *matCellDef="let c">{{ c.correo }}</td>
+              </ng-container>
+              <ng-container matColumnDef="telefono">
+                <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+                <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td
+                  mat-cell
+                  *matCellDef="let c"
+                  (click)="$event.stopPropagation()"
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  <div class="portal-acciones-inner">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Ver detalle"
+                      (click)="verDetalleCliente(c)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      matTooltip="Reenviar acceso"
+                      (click)="reenviarAccesoPortal(c)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>forward_to_inbox</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      matTooltip="Desactivar portal"
+                      (click)="desactivarPortalCliente(c)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>block</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: portalColumns"
+                class="data-row data-row--interactive"
+                title="Doble clic para ver detalle"
+                (dblclick)="verDetalleCliente(row)"
+              ></tr>
+            </table>
+          </div>
+          <mat-paginator
+            *ngIf="portalConAcceso.data.length"
+            #portalPaginator
+            [pageSize]="25"
+            showFirstLastButtons
+          ></mat-paginator>
+        </app-admin-data-panel>
+      </mat-tab>
+
+      <mat-tab label="Pendientes portal">
+        <div *ngIf="loadingPortal" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Cargando clientes…</p>
+        </div>
+
+        <ng-container *ngIf="!loadingPortal">
+          <app-admin-data-panel
+            accent="orange"
+            title="Clientes listos para activar"
+            description="Tienen correo registrado pero aún no tienen acceso al portal."
+            [meta]="portalPendientes.data.length + ' pendientes'"
+            [showLegend]="portalPendientes.data.length > 0"
+          >
+            <mat-form-field
+              appearance="outline"
+              subscriptSizing="dynamic"
+              class="buscador panel-search usuarios-search-field"
+            >
+              <input
+                matInput
+                type="search"
+                aria-label="Buscar cliente pendiente de portal"
+                (keyup)="aplicarFiltroPendientes($event)"
+                placeholder="Buscar cliente…"
+              />
+              <mat-icon matPrefix>search</mat-icon>
+            </mat-form-field>
+
+            <app-admin-empty-state
+              *ngIf="portalPendientes.data.length === 0"
+              icon="task_alt"
+              title="No hay pendientes con correo"
+              message="Todos los clientes con correo ya tienen portal o faltan correos por capturar."
+            >
+            </app-admin-empty-state>
+
+            <div class="table-scroll" *ngIf="portalPendientes.data.length > 0">
+              <table
+                mat-table
+                [dataSource]="portalPendientes"
+                class="usuarios-table usuarios-portal-table usuarios-portal-table--pendientes"
+              >
+                <ng-container matColumnDef="nombre">
+                  <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                  <td mat-cell *matCellDef="let c">
+                    <strong>{{ c.nombreCompleto }}</strong>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="correo">
+                  <th mat-header-cell *matHeaderCellDef>Correo</th>
+                  <td mat-cell *matCellDef="let c">{{ c.correo }}</td>
+                </ng-container>
+                <ng-container matColumnDef="telefono">
+                  <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+                  <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td
+                    mat-cell
+                    *matCellDef="let c"
+                    (click)="$event.stopPropagation()"
+                    (dblclick)="$event.stopPropagation()"
+                  >
+                    <div class="portal-acciones-inner portal-acciones-inner--pendientes">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        matTooltip="Ver detalle"
+                        (click)="verDetalleCliente(c)"
+                        [disabled]="saving"
+                      >
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      <button
+                        mat-raised-button
+                        color="primary"
+                        class="btn-primary-teal btn-activar-portal"
+                        matTooltip="Dar de alta en portal"
+                        (click)="activarPortalCliente(c)"
+                        [disabled]="saving"
+                      >
+                        <mat-icon>how_to_reg</mat-icon>
+                        <span class="btn-activar-portal__text">Activar portal</span>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: portalColumns"
+                  class="data-row data-row--interactive"
+                  title="Doble clic para ver detalle"
+                  (dblclick)="verDetalleCliente(row)"
+                ></tr>
+              </table>
+            </div>
+            <mat-paginator
+              *ngIf="portalPendientes.data.length"
+              #pendientesPaginator
+              [pageSize]="25"
+              showFirstLastButtons
+            ></mat-paginator>
+          </app-admin-data-panel>
+        </ng-container>
+      </mat-tab>
+
+      <mat-tab label="Sin correo">
+        <div *ngIf="loadingPortal" class="loading-container">
+          <mat-spinner diameter="48"></mat-spinner>
+          <p>Cargando clientes…</p>
+        </div>
+
+        <app-admin-data-panel
+          *ngIf="!loadingPortal"
+          accent="blue"
+          title="Clientes sin correo"
+          description="No se puede activar el portal hasta capturar un correo válido en el módulo Clientes."
+          [meta]="portalSinCorreo.data.length + ' clientes'"
+          [showLegend]="portalSinCorreo.data.length > 0"
+        >
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="buscador panel-search usuarios-search-field"
+          >
+            <input
+              matInput
+              type="search"
+              aria-label="Buscar cliente sin correo"
+              (keyup)="aplicarFiltroSinCorreo($event)"
+              placeholder="Buscar cliente…"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <app-admin-empty-state
+            *ngIf="portalSinCorreo.data.length === 0"
+            icon="mail"
+            title="Todos tienen correo"
+            message="No hay clientes activos pendientes por falta de correo."
+          >
+          </app-admin-empty-state>
+
+          <div class="table-scroll" *ngIf="portalSinCorreo.data.length > 0">
+            <table
+              mat-table
+              [dataSource]="portalSinCorreo"
+              class="usuarios-table usuarios-portal-table usuarios-portal-table--sin-correo"
+            >
+              <ng-container matColumnDef="nombre">
+                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <td mat-cell *matCellDef="let c">
+                  <strong>{{ c.nombreCompleto }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="telefono">
+                <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+                <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td
+                  mat-cell
+                  *matCellDef="let c"
+                  (click)="$event.stopPropagation()"
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  <div class="portal-acciones-inner">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      matTooltip="Ver detalle"
+                      (click)="verDetalleCliente(c)"
+                      [disabled]="saving"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <span class="portal-badge-sin-correo">Sin correo</span>
+                  </div>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="portalSinCorreoColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: portalSinCorreoColumns"
+                class="data-row data-row--interactive"
+                title="Doble clic para ver detalle"
+                (dblclick)="verDetalleCliente(row)"
+              ></tr>
+            </table>
+          </div>
+          <mat-paginator
+            *ngIf="portalSinCorreo.data.length"
+            #sinCorreoPaginator
+            [pageSize]="25"
+            showFirstLastButtons
+          ></mat-paginator>
+        </app-admin-data-panel>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
 
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
@@ -32,486 +528,6 @@
       hint="Agregar en Clientes"
     ></app-admin-stat-card>
   </app-admin-kpi-grid>
-
-  <app-admin-page-banner
-    accent="purple"
-    icon="manage_accounts"
-    title="Personal staff y portal"
-    subtitle="Personal de la clínica (staff) y dueños con portal. Listas separadas: no confundir con clientes externos."
-  >
-    <div bannerActions>
-      <button
-        mat-raised-button
-        color="primary"
-        class="btn-primary-teal"
-        (click)="abrirModalUsuario()"
-        [disabled]="saving"
-        *ngIf="selectedTabIndex === 0"
-      >
-        <mat-icon>person_add</mat-icon>
-        Nuevo personal
-      </button>
-    </div>
-  </app-admin-page-banner>
-
-  <mat-tab-group class="usuarios-tabs" [(selectedIndex)]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
-    <mat-tab label="Staff">
-      <div *ngIf="loadingStaff" class="loading-container">
-        <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando personal…</p>
-      </div>
-
-      <app-admin-data-panel
-        *ngIf="!loadingStaff"
-        accent="purple"
-        title="Personal"
-        description="Administradores, doctoras y personal operativo. «También portal» = usa la misma cuenta para ver mascotas."
-        [meta]="
-          dataSource.data.length
-            ? dataSource.filteredData.length + ' en pantalla · ' + getTotalUsuarios() + ' totales'
-            : ''
-        "
-        [showLegend]="dataSource.data.length > 0"
-      >
-        <mat-form-field
-          appearance="outline"
-          subscriptSizing="dynamic"
-          class="buscador panel-search usuarios-search-field"
-        >
-          <input
-            matInput
-            type="search"
-            aria-label="Buscar personal staff"
-            (keyup)="aplicarFiltroStaff($event)"
-            placeholder="Buscar personal…"
-          />
-          <mat-icon matPrefix>search</mat-icon>
-        </mat-form-field>
-
-        <app-admin-empty-state
-          *ngIf="dataSource.data.length === 0"
-          icon="manage_accounts"
-          title="No hay personal staff"
-          message="No se ha registrado personal de la clínica."
-          actionLabel="Agregar primer personal"
-          [actionDisabled]="saving"
-          (action)="abrirModalUsuario()"
-        >
-        </app-admin-empty-state>
-
-        <div class="table-scroll" *ngIf="dataSource.data.length > 0">
-          <table mat-table [dataSource]="dataSource" class="usuarios-table usuarios-staff-table">
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Nombre</th>
-              <td mat-cell *matCellDef="let usuario">
-                <strong>{{ usuario.nombre || 'N/P' }}</strong>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="correo">
-              <th mat-header-cell *matHeaderCellDef>Correo</th>
-              <td mat-cell *matCellDef="let usuario">
-                <span class="cell-sub">{{ usuario.correo || 'N/P' }}</span>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="perfil">
-              <th mat-header-cell *matHeaderCellDef>Perfil</th>
-              <td mat-cell *matCellDef="let usuario">
-                <span class="admin-badge admin-badge--success">{{ getPerfilLabel(usuario.perfil) }}</span>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="dual">
-              <th mat-header-cell *matHeaderCellDef>Portal</th>
-              <td mat-cell *matCellDef="let usuario">
-                <span
-                  *ngIf="isDualStaff(usuario)"
-                  class="admin-badge admin-badge--info"
-                  matTooltip="clienteId: {{ getDualClienteId(usuario) }}"
-                  >También portal</span
-                >
-                <span *ngIf="!isDualStaff(usuario)" class="cell-sub">—</span>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td
-                mat-cell
-                *matCellDef="let usuario"
-                (click)="$event.stopPropagation()"
-                (dblclick)="$event.stopPropagation()"
-              >
-                <div class="row-actions">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Ver detalle"
-                    (click)="verUsuario(usuario)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Editar"
-                    (click)="editarUsuario(usuario)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button
-                    *ngIf="!isDualStaff(usuario)"
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Vincular portal de mascotas"
-                    (click)="vincularPortalDual(usuario)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>link</mat-icon>
-                  </button>
-                  <button
-                    *ngIf="isDualStaff(usuario)"
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Desvincular portal"
-                    (click)="desvincularPortalDual(usuario)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>link_off</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Borrar"
-                    (click)="bajaLogicaUsuario(usuario.id)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>delete_outline</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: displayedColumns"
-              class="data-row data-row--interactive"
-              title="Doble clic para ver detalle"
-              (dblclick)="verUsuario(row)"
-            ></tr>
-          </table>
-        </div>
-        <mat-paginator
-          *ngIf="dataSource.data.length"
-          #staffPaginator
-          [pageSize]="50"
-          [pageSizeOptions]="[10, 25, 50, 100]"
-          showFirstLastButtons
-        ></mat-paginator>
-      </app-admin-data-panel>
-    </mat-tab>
-
-    <mat-tab label="Clientes con portal">
-      <div *ngIf="loadingPortal" class="loading-container">
-        <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando clientes con portal…</p>
-      </div>
-
-      <app-admin-data-panel
-        *ngIf="!loadingPortal"
-        accent="green"
-        title="Dueños con acceso al portal"
-        description="Clientes que ya pueden iniciar sesión en /portal."
-        [meta]="portalConAcceso.data.length + ' activos'"
-        [showLegend]="portalConAcceso.data.length > 0"
-      >
-        <mat-form-field
-          appearance="outline"
-          subscriptSizing="dynamic"
-          class="buscador panel-search usuarios-search-field"
-        >
-          <input
-            matInput
-            type="search"
-            aria-label="Buscar cliente con portal"
-            (keyup)="aplicarFiltroPortal($event)"
-            placeholder="Buscar cliente…"
-          />
-          <mat-icon matPrefix>search</mat-icon>
-        </mat-form-field>
-
-        <app-admin-empty-state
-          *ngIf="portalConAcceso.data.length === 0"
-          icon="verified_user"
-          title="Sin clientes con portal"
-          message="Activa el portal desde la pestaña Pendientes."
-        >
-        </app-admin-empty-state>
-
-        <div class="table-scroll" *ngIf="portalConAcceso.data.length > 0">
-          <table mat-table [dataSource]="portalConAcceso" class="usuarios-table usuarios-portal-table">
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Cliente</th>
-              <td mat-cell *matCellDef="let c">
-                <strong>{{ c.nombreCompleto }}</strong>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="correo">
-              <th mat-header-cell *matHeaderCellDef>Correo</th>
-              <td mat-cell *matCellDef="let c">{{ c.correo }}</td>
-            </ng-container>
-            <ng-container matColumnDef="telefono">
-              <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-              <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
-                <div class="portal-acciones-inner">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Ver detalle"
-                    (click)="verDetalleCliente(c)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    matTooltip="Reenviar acceso"
-                    (click)="reenviarAccesoPortal(c)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>forward_to_inbox</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    matTooltip="Desactivar portal"
-                    (click)="desactivarPortalCliente(c)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>block</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: portalColumns"
-              class="data-row data-row--interactive"
-              title="Doble clic para ver detalle"
-              (dblclick)="verDetalleCliente(row)"
-            ></tr>
-          </table>
-        </div>
-        <mat-paginator
-          *ngIf="portalConAcceso.data.length"
-          #portalPaginator
-          [pageSize]="25"
-          showFirstLastButtons
-        ></mat-paginator>
-      </app-admin-data-panel>
-    </mat-tab>
-
-    <mat-tab label="Pendientes portal">
-      <div *ngIf="loadingPortal" class="loading-container">
-        <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando clientes…</p>
-      </div>
-
-      <ng-container *ngIf="!loadingPortal">
-        <app-admin-data-panel
-          accent="orange"
-          title="Clientes listos para activar"
-          description="Tienen correo registrado pero aún no tienen acceso al portal."
-          [meta]="portalPendientes.data.length + ' pendientes'"
-          [showLegend]="portalPendientes.data.length > 0"
-        >
-          <mat-form-field
-            appearance="outline"
-            subscriptSizing="dynamic"
-            class="buscador panel-search usuarios-search-field"
-          >
-            <input
-              matInput
-              type="search"
-              aria-label="Buscar cliente pendiente de portal"
-              (keyup)="aplicarFiltroPendientes($event)"
-              placeholder="Buscar cliente…"
-            />
-            <mat-icon matPrefix>search</mat-icon>
-          </mat-form-field>
-
-          <app-admin-empty-state
-            *ngIf="portalPendientes.data.length === 0"
-            icon="task_alt"
-            title="No hay pendientes con correo"
-            message="Todos los clientes con correo ya tienen portal o faltan correos por capturar."
-          >
-          </app-admin-empty-state>
-
-          <div class="table-scroll" *ngIf="portalPendientes.data.length > 0">
-            <table
-              mat-table
-              [dataSource]="portalPendientes"
-              class="usuarios-table usuarios-portal-table usuarios-portal-table--pendientes"
-            >
-              <ng-container matColumnDef="nombre">
-                <th mat-header-cell *matHeaderCellDef>Cliente</th>
-                <td mat-cell *matCellDef="let c">
-                  <strong>{{ c.nombreCompleto }}</strong>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="correo">
-                <th mat-header-cell *matHeaderCellDef>Correo</th>
-                <td mat-cell *matCellDef="let c">{{ c.correo }}</td>
-              </ng-container>
-              <ng-container matColumnDef="telefono">
-                <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-                <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
-              </ng-container>
-              <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                <td
-                  mat-cell
-                  *matCellDef="let c"
-                  (click)="$event.stopPropagation()"
-                  (dblclick)="$event.stopPropagation()"
-                >
-                  <div class="portal-acciones-inner portal-acciones-inner--pendientes">
-                    <button
-                      mat-icon-button
-                      type="button"
-                      matTooltip="Ver detalle"
-                      (click)="verDetalleCliente(c)"
-                      [disabled]="saving"
-                    >
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    <button
-                      mat-raised-button
-                      color="primary"
-                      class="btn-primary-teal btn-activar-portal"
-                      matTooltip="Dar de alta en portal"
-                      (click)="activarPortalCliente(c)"
-                      [disabled]="saving"
-                    >
-                      <mat-icon>how_to_reg</mat-icon>
-                      <span class="btn-activar-portal__text">Activar portal</span>
-                    </button>
-                  </div>
-                </td>
-              </ng-container>
-              <tr mat-header-row *matHeaderRowDef="portalColumns"></tr>
-              <tr
-                mat-row
-                *matRowDef="let row; columns: portalColumns"
-                class="data-row data-row--interactive"
-                title="Doble clic para ver detalle"
-                (dblclick)="verDetalleCliente(row)"
-              ></tr>
-            </table>
-          </div>
-          <mat-paginator
-            *ngIf="portalPendientes.data.length"
-            #pendientesPaginator
-            [pageSize]="25"
-            showFirstLastButtons
-          ></mat-paginator>
-        </app-admin-data-panel>
-      </ng-container>
-    </mat-tab>
-
-    <mat-tab label="Sin correo">
-      <div *ngIf="loadingPortal" class="loading-container">
-        <mat-spinner diameter="48"></mat-spinner>
-        <p>Cargando clientes…</p>
-      </div>
-
-      <app-admin-data-panel
-        *ngIf="!loadingPortal"
-        accent="blue"
-        title="Clientes sin correo"
-        description="No se puede activar el portal hasta capturar un correo válido en el módulo Clientes."
-        [meta]="portalSinCorreo.data.length + ' clientes'"
-        [showLegend]="portalSinCorreo.data.length > 0"
-      >
-        <mat-form-field
-          appearance="outline"
-          subscriptSizing="dynamic"
-          class="buscador panel-search usuarios-search-field"
-        >
-          <input
-            matInput
-            type="search"
-            aria-label="Buscar cliente sin correo"
-            (keyup)="aplicarFiltroSinCorreo($event)"
-            placeholder="Buscar cliente…"
-          />
-          <mat-icon matPrefix>search</mat-icon>
-        </mat-form-field>
-
-        <app-admin-empty-state
-          *ngIf="portalSinCorreo.data.length === 0"
-          icon="mail"
-          title="Todos tienen correo"
-          message="No hay clientes activos pendientes por falta de correo."
-        >
-        </app-admin-empty-state>
-
-        <div class="table-scroll" *ngIf="portalSinCorreo.data.length > 0">
-          <table
-            mat-table
-            [dataSource]="portalSinCorreo"
-            class="usuarios-table usuarios-portal-table usuarios-portal-table--sin-correo"
-          >
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef>Cliente</th>
-              <td mat-cell *matCellDef="let c">
-                <strong>{{ c.nombreCompleto }}</strong>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="telefono">
-              <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-              <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
-                <div class="portal-acciones-inner">
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Ver detalle"
-                    (click)="verDetalleCliente(c)"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <span class="portal-badge-sin-correo">Sin correo</span>
-                </div>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="portalSinCorreoColumns"></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: portalSinCorreoColumns"
-              class="data-row data-row--interactive"
-              title="Doble clic para ver detalle"
-              (dblclick)="verDetalleCliente(row)"
-            ></tr>
-          </table>
-        </div>
-        <mat-paginator
-          *ngIf="portalSinCorreo.data.length"
-          #sinCorreoPaginator
-          [pageSize]="25"
-          showFirstLastButtons
-        ></mat-paginator>
-      </app-admin-data-panel>
-    </mat-tab>
-  </mat-tab-group>
 
   <!-- Spec 066: métrica local de uso por módulo (solo admin ve esta página). -->
   <app-uso-sistema-panel></app-uso-sistema-panel>

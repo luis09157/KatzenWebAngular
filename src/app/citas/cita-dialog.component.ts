@@ -1,5 +1,5 @@
-import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
@@ -7,21 +7,11 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { LoggerService } from '../core/logger.service';
-import { ErrorMessagesService } from '../core/error-messages.service';
-import { LoadingService } from '../core/loading.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
-import { Cliente } from '../core/models';
 import { CITA_DURACION_DEFAULT_MIN, CITA_DURACION_MINIMA_MIN } from './cita-agenda.util';
-import {
-  AltaRapidaPickerDeps,
-  crearClienteRapidoDesdePicker,
-  crearMascotaRapidaDesdePicker,
-} from '../shared/admin/alta-rapida-picker.helper';
-import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { ClientePacientePickerFields } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
-import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
 
 @Component({
   selector: 'app-cita-dialog',
@@ -48,7 +38,6 @@ import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-
 })
 export class CitaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   citaForm: FormGroup;
   modoVer = false;
   clientes: any[] = [];
@@ -94,18 +83,18 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   puedeAgendarFechaPasada = false;
   readonly duracionDefault = CITA_DURACION_DEFAULT_MIN;
 
-  /** Spec 048 — dueño → mascota → agenda. */
+  /** Spec 085 / 029 — búsqueda dual dueño o mascota; sin alta rápida en el diálogo. */
   get hintCita(): string {
     if (this.modoVer) return '';
-    const base = mensajeHintClientePaciente(this.citaForm, {
-      clienteId: 'cliente_id',
-      pacienteId: 'paciente_id',
-    });
-    if (base) return base;
+    const clienteId = String(this.citaForm.get('cliente_id')?.value ?? '').trim();
+    const pacienteId = String(this.citaForm.get('paciente_id')?.value ?? '').trim();
+    if (!clienteId || !pacienteId) {
+      return 'Busca por dueño o por nombre de la mascota. Altas nuevas van en Clientes / Pacientes.';
+    }
     const fecha = this.citaForm.get('fecha')?.value;
     const hora = this.citaForm.get('hora')?.value;
     if (!fecha || !hora) {
-      return 'Paso 3: indica fecha, hora y veterinario para la cita.';
+      return 'Indica fecha, hora y veterinario para la cita.';
     }
     return '';
   }
@@ -118,10 +107,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     private pacientesService: PacientesService,
     private dateAdapter: DateAdapter<any>,
     private logger: LoggerService,
-    private authProfile: AuthProfileService,
-    private dialog: MatDialog,
-    private loadingService: LoadingService,
-    private errorMessages: ErrorMessagesService
+    private authProfile: AuthProfileService
   ) {
     this.modoVer = data.modoVer;
 
@@ -290,27 +276,6 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       control.clearValidators();
     }
     control.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private altaRapidaDeps(): AltaRapidaPickerDeps {
-    return {
-      dialog: this.dialog,
-      clientesService: this.clientesService,
-      pacientesService: this.pacientesService,
-      loadingService: this.loadingService,
-      errorMessages: this.errorMessages,
-      picker: this.picker,
-    };
-  }
-
-  async crearClienteRapido(prefill = ''): Promise<void> {
-    if (this.modoVer) return;
-    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
-  }
-
-  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
-    if (this.modoVer) return;
-    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
   }
 
   cargarClientes() {

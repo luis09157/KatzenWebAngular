@@ -1,0 +1,44 @@
+<div class="admin-dialog-shell consentimiento-preview-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Ver machote</h2>
+      <p class="admin-dialog-subtitle">{{ titulo }}</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <p class="consentimiento-preview-dialog__hint">
+      Borrador clínico — revisar con veterinario/abogado. La firma digital o en tablet llega en una fase posterior; por
+      ahora puedes imprimir el PDF y firmar en papel.
+    </p>
+    <div class="consentimiento-preview-dialog__frame" [innerHTML]="previewHtml"></div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions" align="end">
+    <button mat-button type="button" (click)="cerrar()" [disabled]="busy">Cerrar</button>
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="enviarWhatsApp()"
+      [disabled]="busy"
+      matTooltip="wa.me no adjunta PDF; en móvil compatible se usa el compartido del sistema"
+    >
+      <mat-icon>chat</mat-icon>
+      WhatsApp
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      (click)="descargarPdf()"
+      [disabled]="busy"
+    >
+      <mat-icon>picture_as_pdf</mat-icon>
+      Descargar PDF
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -5,66 +5,132 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <app-admin-kpi-grid>
-      <app-admin-stat-card accent="teal" [value]="total" label="Total" hint="Activos"></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="green"
-        [value]="vigentes"
-        label="Vigentes"
-        hint="Autorizaciones activas"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="blue"
-        [value]="delMes"
-        label="Del mes"
-        hint="Registrados este mes"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="orange"
-        [value]="revocados"
-        label="Revocados"
-        hint="Aún visibles en KPI"
-      ></app-admin-stat-card>
-    </app-admin-kpi-grid>
-
-    <app-admin-page-banner
-      accent="teal"
-      icon="assignment_turned_in"
-      title="Consentimientos clínicos"
-      subtitle="Autorizaciones informadas ligadas a cliente y paciente."
-    >
-      <div bannerActions>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevo()">
-          <mat-icon>add</mat-icon>
-          Nuevo consentimiento
-        </button>
-      </div>
-    </app-admin-page-banner>
-
-    <app-admin-data-panel
-      accent="teal"
-      title="Registros"
-      description="Evidencia de quién firmó y cuándo"
-      [showLegend]="false"
-    >
-      <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
-        <mat-label>Buscar</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Cliente, paciente, firmante, tipo…" />
-      </mat-form-field>
-
-      <app-admin-empty-state
-        *ngIf="dataSource.data.length === 0"
+    <div class="admin-list-shell">
+      <app-admin-page-banner
+        accent="teal"
         icon="assignment_turned_in"
-        title="Sin consentimientos registrados"
-        message="Documenta autorizaciones informadas ligadas al dueño y la mascota antes de procedimientos."
-        actionLabel="Nuevo consentimiento"
-        (action)="nuevo()"
+        title="Consentimientos clínicos"
+        subtitle="Machote por tipo, preview y PDF. WhatsApp descarga el PDF (wa.me no lo adjunta solo). Firma digital pendiente."
       >
-      </app-admin-empty-state>
+        <div bannerActions>
+          <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevo()">
+            <mat-icon>add</mat-icon>
+            Nuevo consentimiento
+          </button>
+        </div>
+      </app-admin-page-banner>
 
-      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
-        <table mat-table [dataSource]="dataSource" class="admin-table">
+      <app-admin-data-panel
+        accent="teal"
+        title="Registros"
+        description="Hoy y mañana por defecto. Busca cliente, paciente, tipo o fecha para el historial."
+        [meta]="listadoMeta"
+        [showLegend]="todasFilasTieneDatos"
+      >
+        <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
+          <mat-label>Buscar en historial</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            (keyup)="applyFilter($event)"
+            (input)="applyFilter($event)"
+            placeholder="Cliente, paciente, tipo o fecha…"
+          />
+        </mat-form-field>
+        <p class="listado-hint cell-sub" *ngIf="!modoBusqueda">
+          Consentimientos de hoy y mañana. Escribe para consultar el historial.
+        </p>
+        <p class="listado-hint cell-sub" *ngIf="modoBusqueda">
+          Resultados. Borra el buscador para volver a Hoy y Mañana.
+        </p>
+
+        <app-admin-empty-state
+          *ngIf="!todasFilasTieneDatos"
+          icon="assignment_turned_in"
+          title="Sin consentimientos registrados"
+          message="Documenta autorizaciones informadas ligadas al dueño y la mascota antes de procedimientos."
+          actionLabel="Nuevo consentimiento"
+          (action)="nuevo()"
+        >
+        </app-admin-empty-state>
+
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
+          <section class="listado-seccion listado-seccion--hoy" aria-labelledby="cons-hoy-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="cons-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+                <p class="listado-seccion__meta">{{ dataSourceHoy.data.length }}</p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="seccionHoyVacia"
+              icon="today"
+              title="No hay consentimientos de hoy"
+              message="Los de mañana se ven abajo."
+            ></app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSourceHoy.data.length"
+              [ngTemplateOutlet]="consTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
+            ></ng-container>
+          </section>
+          <section class="listado-seccion listado-seccion--manana" aria-labelledby="cons-manana-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="cons-manana-titulo" class="listado-seccion__title">Mañana</h3>
+                <p class="listado-seccion__meta">{{ dataSourceManana.data.length }}</p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="seccionMananaVacia"
+              icon="event"
+              title="No hay consentimientos de mañana"
+              message="Revisa el historial con el buscador."
+            ></app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSourceManana.data.length"
+              [ngTemplateOutlet]="consTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+            ></ng-container>
+          </section>
+        </ng-container>
+
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && modoBusqueda">
+          <section class="listado-seccion listado-seccion--resultados" aria-labelledby="cons-res-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="cons-res-titulo" class="listado-seccion__title">Resultados</h3>
+                <p class="listado-seccion__meta">{{ dataSource.data.length }}</p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="busquedaSinResultados"
+              icon="search_off"
+              title="Sin coincidencias"
+              message="Prueba otro cliente, paciente o fecha."
+            ></app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSource.data.length"
+              [ngTemplateOutlet]="consTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSource }"
+            ></ng-container>
+            <mat-paginator
+              *ngIf="dataSource.data.length"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              showFirstLastButtons
+            ></mat-paginator>
+          </section>
+        </ng-container>
+      </app-admin-data-panel>
+    </div>
+
+    <ng-template #consTablaTpl let-ds>
+      <div class="table-scroll" *ngIf="ds && ds.data && ds.data.length > 0">
+        <table mat-table [dataSource]="ds" class="admin-table">
           <ng-container matColumnDef="fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
             <td mat-cell *matCellDef="let row">{{ row.fecha }}</td>
@@ -108,6 +174,20 @@
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let row">
               <div class="row-actions" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+                <button mat-icon-button type="button" matTooltip="Ver machote" (click)="verMachote(row)">
+                  <mat-icon>description</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Descargar PDF" (click)="descargarPdf(row)">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="WhatsApp (PDF se descarga/adjunta aparte; wa.me no adjunta solo)"
+                  (click)="enviarWhatsApp(row)"
+                >
+                  <mat-icon>chat</mat-icon>
+                </button>
                 <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(row)">
                   <mat-icon>edit</mat-icon>
                 </button>
@@ -128,14 +208,28 @@
           ></tr>
         </table>
       </div>
+    </ng-template>
 
-      <mat-paginator
-        *ngIf="dataSource.data.length"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[10, 25, 50, 100]"
-        showFirstLastButtons
-      >
-      </mat-paginator>
-    </app-admin-data-panel>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card accent="teal" [value]="total" label="Total" hint="Activos"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="green"
+        [value]="vigentes"
+        label="Vigentes"
+        hint="Autorizaciones activas"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="delMes"
+        label="Del mes"
+        hint="Registrados este mes"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="revocados"
+        label="Revocados"
+        hint="Aún visibles en KPI"
+      ></app-admin-stat-card>
+    </app-admin-kpi-grid>
   </ng-container>
 </div>

@@ -5,6 +5,143 @@
   </div>
 
   <ng-container *ngIf="!loading">
+    <div class="admin-list-shell">
+      <app-admin-page-banner
+        accent="teal"
+        icon="hotel"
+        title="Pensión / alojamiento"
+        subtitle="Check-in y check-out aquí. El cobro se hace en Ticket del día."
+      >
+        <div bannerActions>
+          <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
+            <mat-icon>add</mat-icon>
+            Nueva estancia
+          </button>
+        </div>
+      </app-admin-page-banner>
+
+      <app-admin-data-panel
+        accent="teal"
+        title="Estancias"
+        description="Hoy: activas e ingresos del día. Mañana: ingresos/salidas previstas. Busca para ver el historial."
+        [meta]="listadoMeta"
+        [showLegend]="todasFilasTieneDatos"
+      >
+        <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
+          <mat-label>Buscar en historial</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            (keyup)="applyFilter($event)"
+            (input)="applyFilter($event)"
+            placeholder="Paciente, cliente, fecha…"
+          />
+        </mat-form-field>
+        <p class="listado-hint cell-sub" *ngIf="!modoBusqueda">
+          Activas e ingresos de hoy / mañana. Escribe para consultar el historial.
+        </p>
+        <p class="listado-hint cell-sub" *ngIf="modoBusqueda">
+          Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+        </p>
+
+        <app-admin-empty-state
+          *ngIf="!todasFilasTieneDatos"
+          icon="hotel"
+          title="Sin estancias de pensión"
+          message="Registra check-in y check-out aquí. Al finalizar, agrega la estancia al ticket del día para cobrar."
+          actionLabel="Nueva estancia"
+          (action)="nueva()"
+        >
+        </app-admin-empty-state>
+
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
+          <section class="listado-seccion listado-seccion--hoy" aria-labelledby="pension-hoy-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="pension-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+                <p class="listado-seccion__meta">
+                  {{ dataSourceHoy.data.length }} estancia{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
+                </p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="seccionHoyVacia"
+              icon="today"
+              title="Nada activo ni con ingreso hoy"
+              message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
+              actionLabel="Nueva estancia"
+              (action)="nueva()"
+            >
+            </app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSourceHoy.data.length"
+              [ngTemplateOutlet]="pensionTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
+            ></ng-container>
+          </section>
+
+          <section class="listado-seccion listado-seccion--manana" aria-labelledby="pension-manana-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="pension-manana-titulo" class="listado-seccion__title">Mañana</h3>
+                <p class="listado-seccion__meta">
+                  {{ dataSourceManana.data.length }} estancia{{ dataSourceManana.data.length === 1 ? '' : 's' }}
+                </p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="seccionMananaVacia"
+              icon="event"
+              title="Sin ingresos ni salidas de mañana"
+              message="Programa una estancia o revisa el historial con el buscador."
+              actionLabel="Nueva estancia"
+              (action)="nueva()"
+            >
+            </app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSourceManana.data.length"
+              [ngTemplateOutlet]="pensionTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+            ></ng-container>
+          </section>
+        </ng-container>
+
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && modoBusqueda">
+          <section class="listado-seccion listado-seccion--resultados" aria-labelledby="pension-resultados-titulo">
+            <header class="listado-seccion__header">
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+              <div class="listado-seccion__titles">
+                <h3 id="pension-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+                <p class="listado-seccion__meta">
+                  {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+                </p>
+              </div>
+            </header>
+            <app-admin-empty-state
+              *ngIf="busquedaSinResultados"
+              icon="search_off"
+              title="Sin coincidencias"
+              message="Prueba otro paciente, cliente o fecha."
+            >
+            </app-admin-empty-state>
+            <ng-container
+              *ngIf="dataSource.data.length"
+              [ngTemplateOutlet]="pensionTablaTpl"
+              [ngTemplateOutletContext]="{ $implicit: dataSource }"
+            ></ng-container>
+            <mat-paginator
+              *ngIf="dataSource.data.length"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="[25, 50, 100]"
+              showFirstLastButtons
+            ></mat-paginator>
+          </section>
+        </ng-container>
+      </app-admin-data-panel>
+    </div>
+
     <app-admin-kpi-grid>
       <app-admin-stat-card
         accent="teal"
@@ -31,168 +168,137 @@
         hint="Check-out / cobradas"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
+  </ng-container>
 
-    <app-admin-page-banner
-      accent="teal"
-      icon="hotel"
-      title="Pensión / alojamiento"
-      subtitle="Check-in y check-out aquí. El cobro se hace en Ticket del día."
-    >
-      <div bannerActions>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nueva()">
-          <mat-icon>add</mat-icon>
-          Nueva estancia
-        </button>
-      </div>
-    </app-admin-page-banner>
+  <ng-template #pensionTablaTpl let-ds>
+    <div class="table-scroll" *ngIf="ds && ds.data && ds.data.length > 0">
+      <table mat-table [dataSource]="ds" class="admin-table">
+        <ng-container matColumnDef="paciente">
+          <th mat-header-cell *matHeaderCellDef>Paciente / dueño</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-primary">
+              <span>{{ row.paciente || '—' }}</span>
+              <span class="cell-secondary">{{ row.cliente || '—' }}</span>
+            </div>
+          </td>
+        </ng-container>
 
-    <app-admin-data-panel accent="teal" title="Estancias" description="Lista operativa de pensión" [showLegend]="false">
-      <mat-form-field appearance="outline" class="buscador panel-search" subscriptSizing="dynamic">
-        <mat-label>Buscar</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Paciente, cliente…" />
-      </mat-form-field>
-
-      <app-admin-empty-state
-        *ngIf="dataSource.data.length === 0"
-        icon="hotel"
-        title="Sin estancias de pensión"
-        message="Registra check-in y check-out aquí. Al finalizar, agrega la estancia al ticket del día para cobrar."
-        actionLabel="Nueva estancia"
-        (action)="nueva()"
-      >
-      </app-admin-empty-state>
-
-      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
-        <table mat-table [dataSource]="dataSource" class="admin-table">
-          <ng-container matColumnDef="paciente">
-            <th mat-header-cell *matHeaderCellDef>Paciente / dueño</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="cell-primary">
-                <span>{{ row.paciente || '—' }}</span>
-                <span class="cell-secondary">{{ row.cliente || '—' }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="fechas">
-            <th mat-header-cell *matHeaderCellDef>Fechas</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="fecha-compact">
-                <span>Ingreso {{ row.fecha_ingreso }}</span>
-                <span *ngIf="row.fecha_salida_prevista && !row.fecha_salida_real"
-                  >Salida prev. {{ row.fecha_salida_prevista }}</span
-                >
-                <span *ngIf="row.fecha_salida_real">Salida real {{ row.fecha_salida_real }}</span>
-                <span class="cell-secondary">{{ diasEstancia(row) }} día(s)</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="tamano">
-            <th mat-header-cell *matHeaderCellDef>Tamaño</th>
-            <td mat-cell *matCellDef="let row">
-              {{ row.tamano_mascota ? tamanoLabels[row.tamano_mascota] || row.tamano_mascota : '—' }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="precio">
-            <th mat-header-cell *matHeaderCellDef>Precio</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="cell-primary">
-                <span>{{ formatMoney(row.precio_total) }}</span>
-                <span class="cell-secondary">{{ formatMoney(row.precio_dia) }}/día</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let row">
-              <span class="estado-badge" [ngClass]="estadoClass(row.estado)">
-                {{ estadoLabels[row.estado] || row.estado }}
-              </span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let row">
-              <div
-                class="row-actions hide-mobile"
-                (click)="$event.stopPropagation()"
-                (dblclick)="$event.stopPropagation()"
+        <ng-container matColumnDef="fechas">
+          <th mat-header-cell *matHeaderCellDef>Fechas</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="fecha-compact">
+              <span>Ingreso {{ row.fecha_ingreso }}</span>
+              <span *ngIf="row.fecha_salida_prevista && !row.fecha_salida_real"
+                >Salida prev. {{ row.fecha_salida_prevista }}</span
               >
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Check-in"
-                  *ngIf="puedeCheckIn(row)"
-                  (click)="checkIn(row)"
-                >
-                  <mat-icon>login</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Check-out"
-                  *ngIf="puedeCheckOut(row)"
-                  (click)="checkOut(row)"
-                >
-                  <mat-icon>logout</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(row)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Agregar al ticket del día"
-                  *ngIf="puedeCobrar(row)"
-                  (click)="agregarAVisita(row)"
-                >
-                  <mat-icon>receipt_long</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Ya cobrado"
-                  *ngIf="row.cajaMovimientoId || row.visitaId"
-                  disabled
-                >
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
+              <span *ngIf="row.fecha_salida_real">Salida real {{ row.fecha_salida_real }}</span>
+              <span class="cell-secondary">{{ diasEstancia(row) }} día(s)</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="tamano">
+          <th mat-header-cell *matHeaderCellDef>Tamaño</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.tamano_mascota ? tamanoLabels[row.tamano_mascota] || row.tamano_mascota : '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="precio">
+          <th mat-header-cell *matHeaderCellDef>Precio</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-primary">
+              <span>{{ formatMoney(row.precio_total) }}</span>
+              <span class="cell-secondary">{{ formatMoney(row.precio_dia) }}/día</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="estado-badge" [ngClass]="estadoClass(row.estado)">
+              {{ estadoLabels[row.estado] || row.estado }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let row">
+            <div
+              class="row-actions hide-mobile"
+              (click)="$event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
               <button
                 mat-icon-button
                 type="button"
-                class="show-mobile-only"
-                matTooltip="Acciones"
-                [matMenuTriggerFor]="pensionMenu"
-                (click)="menuContext = row; $event.stopPropagation()"
-                (dblclick)="$event.stopPropagation()"
+                matTooltip="Check-in"
+                *ngIf="puedeCheckIn(row)"
+                (click)="checkIn(row)"
               >
-                <mat-icon>more_vert</mat-icon>
+                <mat-icon>login</mat-icon>
               </button>
-            </td>
-          </ng-container>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Check-out"
+                *ngIf="puedeCheckOut(row)"
+                (click)="checkOut(row)"
+              >
+                <mat-icon>logout</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(row)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Agregar al ticket del día"
+                *ngIf="puedeCobrar(row)"
+                (click)="agregarAVisita(row)"
+              >
+                <mat-icon>receipt_long</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Ya cobrado"
+                *ngIf="row.cajaMovimientoId || row.visitaId"
+                disabled
+              >
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            <button
+              mat-icon-button
+              type="button"
+              class="show-mobile-only"
+              matTooltip="Acciones"
+              [matMenuTriggerFor]="pensionMenu"
+              (click)="menuContext = row; $event.stopPropagation()"
+              (dblclick)="$event.stopPropagation()"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-            class="data-row data-row--interactive"
-            title="Doble clic para ver detalle"
-            (dblclick)="editar(row)"
-          ></tr>
-        </table>
-      </div>
-      <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="[25, 50, 100]" showFirstLastButtons></mat-paginator>
-    </app-admin-data-panel>
-  </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="data-row data-row--interactive"
+          title="Doble clic para ver detalle"
+          (dblclick)="editar(row)"
+        ></tr>
+      </table>
+    </div>
+  </ng-template>
 
   <mat-menu #pensionMenu="matMenu">
     <button mat-menu-item (click)="checkIn(menuContext)" [disabled]="!menuContext || !puedeCheckIn(menuContext)">

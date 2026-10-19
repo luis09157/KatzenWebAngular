@@ -559,6 +559,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       pequeno: row('pequeno'),
       mediano: row('mediano'),
       grande: row('grande'),
+      xl: row('xl'),
     });
   }
 
@@ -641,6 +642,12 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
               ? Number(raw.grande.precioSugerido)
               : undefined,
           plantillaCostoId: raw.grande.plantillaCostoId || undefined,
+        },
+        xl: {
+          costoDefault: Number(raw.xl.costoDefault) || 0,
+          precioSugerido:
+            raw.xl.precioSugerido != null && raw.xl.precioSugerido !== '' ? Number(raw.xl.precioSugerido) : undefined,
+          plantillaCostoId: raw.xl.plantillaCostoId || undefined,
         },
       };
       await this.defaultsBanioService.guardarDefaults(payload);

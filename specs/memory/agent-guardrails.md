@@ -3,7 +3,7 @@
 Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (principios) y `domain-context.md` (dominio).  
 **No** sustituye la guía QA completa (`specs/templates/qa-validation-guide.md`).
 
-**Última revisión:** 2026-10-04 · Specs **075**–**093** (taxonomía servicios: tipo clínico + `esDomicilio`)
+**Última revisión:** 2026-10-04 · Specs **075**–**094** (094 in_progress: machotes + preview + PDF/WA; firma diferida)
 
 ---
 
@@ -76,13 +76,26 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Sidenav admin | Auto-hide ~15 s + hamburguesa para reabrir; no menú fijo permanente en desktop (regla 15) | **061** US-6 |
 | PWA install | Dos manifests: portal (`scope /portal/`) y clínica (`scope /admin/`); swap por ruta; no un solo ícono para ambos | **087** |
 | Borrar personal | `updateStaffUser` no debe fallar si falta Auth; soft-delete RTDB + tolerar `user-not-found` | **088** |
+| Baño ≠ SKU Petshop | Servicios baño/peluquería **no** se dan de alta en inventario Petshop para «dar de baja» stock. Viven en `/admin/banios` + tarifas Finanzas **022**; cobro = riel POS **Peluquería** (pendientes / Nuevo baño). `productoDescuentaInventarioPos` = false para `BACO*` y tarifas baño/corte. En Petshop solo insumos físicos (`categoria: peluqueria` tipo shampoo). Residual PDV `BACO*` en Inventario: no borrar prod; L1 opcional = ocultar del riel Petshop | **022**, **085**, **064** |
 | Pensión tarifas | Oficiales/día: 250/300/400 (+ gigante 500 Fase 1); util `pension-tarifas`; no mezclar con baño/corte | **089** |
 | Fechas admin | `app-datepicker-field` (ISO `yyyy-MM-dd`); clic abre calendario; **no** `type="date"` nativo | **090** |
+| Timestamps baño | `created_at`/`updated_at` = `formatLocalDateTimeStamp()` (naive local); display = `formatearFechaLocalEs` — **nunca** `toISOString().slice` ni `new Date('yyyy-MM-dd')` (desfase UTC±1 día en MX) | **090**, **085** |
 | Pensión en POS | Riel **Pensión** lista estancias por cobrar (no productos fake); línea `categoria: pension` + `descripcionCobroPension` | **091** |
 | Ticket digital / PDF | HTML/CSS + PDF (`jspdf`) para compartir; térmico 80 mm intacto; `wa.me` **no** adjunta PDF (Web Share o descarga + adjunto manual) | **092** |
 | Loading post-éxito | **Nunca** `await` diálogos post-éxito (Swal PDF/WhatsApp/imprimir, `navigator.share`, jspdf) **dentro** del `try` que tiene `LoadingService.show(…)` antes del `finally { hide() }`. Orden canónico: persistir → `finally` `hide()` → luego ofrecer acciones. Ref: `visita-dialog` `confirmarCobro`. Script `check-loading-antipattern` solo cubre `show→close`; esta regla es revisión de código. | **005**, **092** |
 | RTDB sin `undefined` | Firebase rechaza `undefined` en **cualquier** profundidad. Sanitizar con `omitUndefinedRtdb` / `sanitizeVisitaLinea(s)ForRtdb` antes de `push`/`update` de Estancias y `Visitas.lineas` (no solo nivel raíz). Campos típicos opcionales: `costo_dia`, `citaId`, `banioId`, `pensionId`. | **089**, **091**, **092** |
 | Taxonomía servicios clínica | Tipos UI: `consulta` \| `diagnostico` \| `procedimiento` \| `otro`. Domicilio = `esDomicilio?` (no tipo). Legacy `tipo: domicilio` → flag + tipo efectivo consulta. `procedimiento` → línea/caja `cirugia`. Sin riel POS Domicilio. Migración masiva: script dry-run `migrate-servicios-clinica-domicilio.mjs` (apply prod solo Luis). **Sin** categoría caja `diagnostico` hasta OK P&L (sigue bucket `consulta`). | **093** (Fase 1+2 código; apply prod pendiente Luis) |
+| Consentimientos documento | Machotes borrador en código (7 tipos); preview + PDF + WA con límite 092. Firma digital/papel con evidencia = Fase C tras decisión Luis. Textos = borrador clínico revisable (no certificado legal). | **094** |
+| KPIs admin debajo | En CRUD admin el orden es banner + CTA + listado primero; `app-admin-kpi-grid` **abajo**. Dashboard `/admin/inicio` es excepción (analytics = contenido). | **061** follow-up 2026-10-18 |
+| Listas CRUD shell | Banner + hint + data-panel van dentro de **`.admin-list-shell`** (una composición; no cards sueltas). CSS `admin-page-layout.scss`. Ref: `/admin/banios`. | **061** follow-up 2026-10-18 shell |
+| Listas con fecha de servicio | Default **Hoy + Mañana**; historial solo al buscar. Util `listado-hoy-manana.util`. Sin agenda diaria → no forzar Hoy/Mañana. | **085** / **061** 2026-10-18 |
+| Tablas admin móvil | Scroll-x usable: `.table-scroll` + `min-width` tabla ~880px (nunca ≤560). No comprimir columnas. `.row-actions.hide-mobile` se oculta ≤900. Card-rows (opción B) diferido. | **061** 2026-10-18 |
+| Calendario en Hoy | En `/admin/inicio`, mes + lista del día **debajo** de las 3 cards de acceso (no al final). Solo citas en el grid; baños/pensión siguen paneles aparte. | **072** follow-up 2026-10-18 |
+| Nuevo baño / picker | En `banio-dialog`: **sin** alta rápida (`permitirCrear=false`); altas en Clientes/Pacientes. Búsqueda dual dueño **o** mascota (`busquedaDual`); elegir mascota rellena dueño. CTAs crear del picker van **debajo** del campo (no solapan hints). | **085** / **029** 2026-10-18 |
+| Nueva cita / picker | Mismo patrón que baño: `cita-dialog` con `permitirCrear=false` + `busquedaDual=true`; sin «+ Cliente nuevo» / «+ Agregar mascota». | **085** / **003** / **029** 2026-10-18 |
+| Nuevo baño / precio | Rápido **y** Completo: **solo** «Precio a cobrar» (`precio_total`). Sin UI de costo/margen en el diálogo. Tarifas tamaño prefilling `precio_total` + `costoEstimado` en background (Finanzas **022**). | **085** / **022** 2026-10-18 |
+| Baño costo/margen | `costoEstimado` / margen = **KPIs internos automáticos** (tarifas). **NO** se cobran en POS; cobro = `precio_total`. Sin costo → KPI margen N/A parcial (no reabrir UI confusa). Edición de tarifas = Finanzas. | **022**, **085** 2026-10-18 |
+| Baño tamaño XL | `tamano_perro: 'xl'` aditivo (extra grande/gigante) + key `xl` en `DefaultsBanioPorTamano`; fallback código `TARIFAS_BANIO_FALLBACK` si RTDB 0/ausente (mismo patrón pensión gigante **089**). No romper P/M/G. | **022** / **085** 2026-10-18 |
 
 ---
 
@@ -130,9 +143,12 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Loading global | `LoadingService` + `LOADING_MESSAGES` + `wrap`/`finally`; **nunca** `show()` antes de `dialogRef.close()`; **nunca** `await` Swal/share/PDF post-éxito dentro del `try` con `show` (hide primero); `forceHide` solo recuperación; check `scripts/check-loading-antipattern.mjs` (solo patrón show→close) | **005**, **092** |
 | Grids densos / catálogo POS | Nombre visible; CSS global overlay; baños `BACO` → `productoDescuentaInventarioPos` (no `productoSinStock` ciego). Lecciones en **084** US-7 | **084** |
 | Captura rápida baño | `banios/banio-captura-rapida.util.ts` + diálogo modo Rápido/Completo | **085** A |
+| Listado baños Hoy+Mañana / búsqueda | `banios/banio-listado-filtro.util.ts` — default hoy+mañana; búsqueda abre historial; CSV = filas visibles | **085** B.1 |
+| Listado agenda Hoy+Mañana (genérico) | `core/utils/listado-hoy-manana.util.ts` — citas/pensión/recordatorios/vacunas/consentimientos/historiales; sin agenda (clientes/usuarios/inventario) = solo shell + búsqueda | **085** / **061** |
 | Cola mostrador baños | `visitas/banio-cola-mostrador.util.ts` + `pendientes-visita.util.ts` (`vincularBaniosHuerfanosEnLineas`) — solo completados del día; al cobrar con `banioId`/`visitaId` salen; no «Nuevo baño» huérfano si hay notas | **085** |
 | Cola clínicos vacuna/consulta | `visitas/pendientes-clinicos.util.ts` — aplicadas/historial del día en POS + por cobrar; `vacunaId`/`historialId` al cobrar | **086** |
 | Servicios clínica / taxonomía | `servicios-clinica/` (`hidratarServicioClinica`, `esServicioDomicilio`, `categoriaLineaDesdeServicioClinica`, `planPatchMigracionDomicilio`, `contarKpisServiciosClinica`) + script `scripts/migrate-servicios-clinica-domicilio.mjs` — no segundo catálogo ni riel Domicilio ni categoría caja `diagnostico` sin OK Luis | **056**, **093** |
+| Consentimiento PDF / plantilla / WA | CRUD **037**; plantillas `consentimiento-plantillas.util` + HTML `consentimiento-documento.util` + PDF/WA `consentimiento-pdf.util` (reusa `descargarBlob`/`puedeWebSharePdf` **092**). Preview en diálogo/lista. **Firma canvas/Storage = Fase C**. No WhatsApp Business API | **037**, **092**, **094** |
 | Fecha / edad / timeline expediente | `pacientes/paciente-fecha.util` · `paciente-timeline.util` | **077** |
 | Pickers cliente/paciente/producto | `shared/admin/` | **029**, **044** |
 | Timepicker | `shared/timepicker/` | **004** |

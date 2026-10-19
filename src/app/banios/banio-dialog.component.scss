@@ -70,12 +70,30 @@
   color: #6b7280;
 }
 
+/* Picker + hints: aire antes de «Tipo de servicio» (evita overlap en 375). */
+.admin-dialog-panel app-banio-dialog app-cliente-paciente-picker {
+  display: block !important;
+  margin-bottom: 20px !important;
+}
+
+.admin-dialog-panel app-banio-dialog app-cliente-paciente-picker + app-alergias-alerta,
+.admin-dialog-panel app-banio-dialog app-cliente-paciente-picker + .form-section {
+  margin-top: 4px !important;
+}
+
 .admin-dialog-panel app-banio-dialog .form-section {
   margin-bottom: 20px !important;
+  clear: both;
+  position: relative;
+  z-index: 0;
 }
 
 .admin-dialog-panel app-banio-dialog .form-section:last-child {
   margin-bottom: 0 !important;
+}
+
+.admin-dialog-panel app-banio-dialog .form-section__title {
+  margin-top: 0 !important;
 }
 
 .admin-dialog-panel app-banio-dialog .form-section__badge {
@@ -237,8 +255,14 @@
   line-height: 1.4;
 }
 
+/* Reserva mínima; con subscriptSizing=dynamic el wrapper crece con el hint. */
 .admin-dialog-panel app-banio-dialog .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
-  min-height: 18px !important;
+  min-height: 1.25em !important;
+  overflow: visible !important;
+}
+
+.admin-dialog-panel app-banio-dialog app-cliente-paciente-picker .mat-mdc-form-field-subscript-wrapper {
+  margin-top: 4px !important;
 }
 
 .admin-dialog-panel app-banio-dialog .admin-dialog-actions {
@@ -259,16 +283,11 @@
   gap: 8px;
 }
 
-.admin-dialog-panel app-banio-dialog .ganancia-banio {
-  margin: 8px 0 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #ecfdf5;
-  color: #047857;
-  font-size: 0.875rem;
-}
-
 @media (max-width: 640px) {
+  .admin-dialog-panel app-banio-dialog app-cliente-paciente-picker {
+    margin-bottom: 24px !important;
+  }
+
   .admin-dialog-panel app-banio-dialog .form-grid,
   .admin-dialog-panel app-banio-dialog .dynamic-list__row .form-grid--compact {
     grid-template-columns: 1fr !important;

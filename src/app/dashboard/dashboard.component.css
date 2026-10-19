@@ -88,6 +88,77 @@
   background: #f0fdf4;
 }
 
+.calendar-day.selected {
+  border-color: #0a969b;
+  box-shadow: 0 0 0 2px rgba(10, 150, 155, 0.35);
+}
+
+.calendar-day:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+button.calendar-day {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.calendar-hoy-btn {
+  margin-left: 4px;
+}
+
+.calendario-dia-panel {
+  margin: 0 16px 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.calendario-dia-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.calendario-dia-panel__title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #032d60;
+  text-transform: capitalize;
+}
+
+.calendario-dia-panel__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.calendario-cita-row {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.calendario-cita-row:hover .cell-primary strong {
+  color: #0a969b;
+  text-decoration: underline;
+}
+
 .day-number {
   font-weight: 700;
   font-size: 0.9375rem;

@@ -1,10 +1,7 @@
-import {
-  DefaultsBanioPorTamano,
-  TamanoPerroBanio
-} from './defaults-banio.models';
+import { DefaultsBanioPorTamano, TARIFAS_BANIO_FALLBACK, TamanoPerroBanio } from './defaults-banio.models';
 import { PlantillaCosto } from './plantilla-costo.models';
 
-export type BanioPrefillFuente = 'defaults' | 'plantilla' | 'ninguno';
+export type BanioPrefillFuente = 'defaults' | 'plantilla' | 'fallback' | 'ninguno';
 
 export interface BanioPrefillResult {
   costoEstimado: number | null;
@@ -16,7 +13,8 @@ export interface BanioPrefillResult {
 const TAMANO_KEYWORDS: Record<TamanoPerroBanio, string[]> = {
   pequeno: ['peque', 'chico', 'small', 'mini'],
   mediano: ['medi', 'medium', 'estandar', 'estándar'],
-  grande: ['grand', 'large', 'xl', 'maxi']
+  grande: ['grand', 'large', 'maxi'],
+  xl: ['xl', 'extra', 'gigant', 'giant', 'xxl'],
 };
 
 function positivo(n: unknown): number | null {
@@ -26,10 +24,7 @@ function positivo(n: unknown): number | null {
   return v;
 }
 
-function plantillaPorId(
-  plantillas: PlantillaCosto[],
-  id: string | undefined
-): PlantillaCosto | undefined {
+function plantillaPorId(plantillas: PlantillaCosto[], id: string | undefined): PlantillaCosto | undefined {
   if (!id) return undefined;
   return plantillas.find((p) => p.id === id && p.activo !== false);
 }
@@ -40,9 +35,7 @@ export function plantillaBanioFallback(
   tamano: TamanoPerroBanio
 ): PlantillaCosto | undefined {
   const candidatas = (plantillas || []).filter(
-    (p) =>
-      p.activo !== false &&
-      (p.tipoServicio === 'banio' || p.tipoServicio === 'corte')
+    (p) => p.activo !== false && (p.tipoServicio === 'banio' || p.tipoServicio === 'corte')
   );
   if (!candidatas.length) return undefined;
   const keys = TAMANO_KEYWORDS[tamano] || [];
@@ -77,18 +70,26 @@ export function resolverPrefillBanioPorTamano(
   const costoPlantilla = positivo(plantilla?.costoTotalEstimado);
   const precioPlantilla = positivo(plantilla?.precioSugeridoCliente);
 
-  const costo = costoPlantilla ?? costoDefault;
-  const precio = precioPlantilla ?? precioDefault;
+  // Fallback en código solo para XL (aditivo, patrón pensión gigante 089).
+  // P/M/G siguen: 0 = sin tarifa (POS puede caer a inventario/plantilla).
+  const usarFallbackCodigo = tamano === 'xl';
+  const fb = usarFallbackCodigo ? TARIFAS_BANIO_FALLBACK.xl : null;
+  const costoFallback = positivo(fb?.costoDefault);
+  const precioFallback = positivo(fb?.precioSugerido);
+
+  const costo = costoPlantilla ?? costoDefault ?? costoFallback;
+  const precio = precioPlantilla ?? precioDefault ?? precioFallback;
 
   if (costo == null && precio == null) {
     return { costoEstimado: null, precioSugerido: null, fuente: 'ninguno' };
   }
 
   const usoPlantilla = !!(costoPlantilla || precioPlantilla);
+  const usoDefaults = !usoPlantilla && !!(costoDefault || precioDefault);
   return {
     costoEstimado: costo,
     precioSugerido: precio,
     plantillaCostoId: plantilla?.id || row?.plantillaCostoId || undefined,
-    fuente: usoPlantilla ? 'plantilla' : 'defaults'
+    fuente: usoPlantilla ? 'plantilla' : usoDefaults ? 'defaults' : 'fallback',
   };
 }

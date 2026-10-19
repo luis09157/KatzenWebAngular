@@ -20,6 +20,7 @@ import {
 } from './desparasitacion-esquema-confirm-dialog.component';
 import { esPacienteFallecido, extraerHoraHhMm } from '../vacunas/esquema-vacuna.util';
 import { dayKeyLocal, formatRtdbLocal, labelFechaEs, parseFechaFlexible } from '../vacunas/vacuna-recordatorio.util';
+import { debeMostrarPickerAltaRapida, labelDueñoDesdeDialogData } from '../alta-rapida/alta-rapida-prefill.util';
 
 @Component({
   selector: 'app-recordatorio-dialog',
@@ -42,9 +43,12 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     pacienteNombre: 'paciente',
   };
 
+  /** Spec 070/085: si ya hay paciente_id (expediente / alta rápida), no pedir dueño otra vez. */
   get muestraPickerClientePaciente(): boolean {
-    if (this.isEditMode) return false;
-    return !this.data?.paciente_id;
+    return debeMostrarPickerAltaRapida({
+      esEdicion: this.isEditMode,
+      paciente_id: this.data?.paciente_id,
+    });
   }
 
   /** Spec 048 */
@@ -175,12 +179,17 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
           this.cargarInformacionPaciente(this.data.paciente_id);
         }
       } else {
-        // Es un nuevo recordatorio, establecer el paciente_id si viene desde la página del paciente
+        // Nuevo recordatorio desde expediente / alta rápida: IDs + nombres en form y resumen
         this.isEditMode = false;
         if (this.data.paciente_id) {
+          const pacienteNombre =
+            typeof this.data.paciente === 'string' ? this.data.paciente : this.data.paciente?.nombre || '';
+          const clienteNombre = labelDueñoDesdeDialogData(this.data);
           this.recordatorioForm.patchValue({
             paciente_id: this.data.paciente_id,
             cliente_id: this.data.cliente_id || '',
+            paciente: pacienteNombre,
+            cliente: clienteNombre,
           });
           this.recordatorioForm.get('paciente_id')?.clearValidators();
           this.recordatorioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
@@ -428,17 +437,27 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  getNombreCompletoCliente(cliente: any): string {
-    const nombre = cliente.nombre || '';
-    const apellidoPaterno = cliente.apellidoPaterno || '';
-    const apellidoMaterno = cliente.apellidoMaterno || '';
+  /** Dueño para entity-summary: string o Cliente en data, form o pacienteInfo. */
+  getDisplayDueno(): string {
+    const fromData = labelDueñoDesdeDialogData(this.data);
+    if (fromData) return fromData;
+    const fromForm = String(this.recordatorioForm?.get('cliente')?.value || '').trim();
+    if (fromForm) return fromForm;
+    const p = this.pacienteInfo;
+    if (!p) return '';
+    return String(p.nombreCliente || p.cliente || '').trim();
+  }
 
-    return `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+  getPacienteNombre(): string {
+    const p = this.data?.paciente;
+    if (typeof p === 'string' && p.trim()) return p.trim();
+    if (p && typeof p === 'object' && p.nombre) return String(p.nombre);
+    return this.pacienteInfo?.nombre || 'Sin nombre';
   }
 
   getPacienteMeta(): string {
-    const p = this.data?.paciente || this.pacienteInfo;
-    if (!p) return '';
+    const p = this.data?.paciente && typeof this.data.paciente === 'object' ? this.data.paciente : this.pacienteInfo;
+    if (!p || typeof p === 'string') return '';
     const parts: string[] = [];
     if (p.especie) parts.push(p.especie);
     if (p.raza) parts.push(p.raza);

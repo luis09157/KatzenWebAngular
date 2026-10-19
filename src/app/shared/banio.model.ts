@@ -4,24 +4,24 @@ export interface Banio {
   paciente?: string; // Nombre del paciente
   cliente_id: string;
   cliente?: string; // Nombre del cliente
-  
+
   // Información del servicio
   fecha_banio: string;
   hora_banio: string;
   tipo_servicio: 'baño_básico' | 'baño_completo' | 'corte_pelo' | 'corte_uñas' | 'deslanado' | 'tratamiento_especial';
   estado: 'programado' | 'en_proceso' | 'completado' | 'cancelado';
   prioridad: 'baja' | 'media' | 'alta' | 'urgente';
-  
+
   // Detalles del servicio
   observaciones?: string;
   productos_utilizados?: string[];
   alergias_conocidas?: string[];
   comportamiento?: 'tranquilo' | 'nervioso' | 'agresivo' | 'cooperativo';
-  
+
   // Información del peluquero
   peluquero_id: string;
   peluquero?: string; // Nombre del peluquero
-  
+
   // Precios y pagos
   precio_base: number;
   servicios_adicionales?: Array<{
@@ -35,18 +35,18 @@ export interface Banio {
   cajaMovimientoId?: string;
   /** Spec 032 — ticket de visita unificado. */
   visitaId?: string;
-  /** Spec 022 — tamaño para defaults de costo/precio (aditivo; móvil ignora). */
-  tamano_perro?: 'pequeno' | 'mediano' | 'grande';
+  /** Spec 022 — tamaño para defaults de costo/precio (aditivo; móvil ignora). XL = extra grande. */
+  tamano_perro?: 'pequeno' | 'mediano' | 'grande' | 'xl';
   /** Costo estimado del servicio (default por tamaño u override). */
   costoEstimado?: number;
   /** Plantilla de costo opcional (021/022). */
   plantillaCostoId?: string;
-  
+
   // Tiempos estimados
   duracion_estimada: number; // en minutos
   tiempo_inicio?: string;
   tiempo_fin?: string;
-  
+
   // Sistema
   activo: boolean;
   created_at: string;

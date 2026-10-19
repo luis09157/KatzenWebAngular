@@ -7,7 +7,7 @@ import {
   DefaultBanioTamano,
   DefaultsBanioPorTamano,
   TamanoPerroBanio,
-  emptyDefaultsBanio
+  emptyDefaultsBanio,
 } from './defaults-banio.models';
 
 @Injectable({ providedIn: 'root' })
@@ -20,9 +20,10 @@ export class DefaultsBanioService {
   ) {}
 
   getDefaults(): Observable<DefaultsBanioPorTamano> {
-    return this.db.object<DefaultsBanioPorTamano>(this.path).valueChanges().pipe(
-      map((raw) => this.normalize(raw))
-    );
+    return this.db
+      .object<DefaultsBanioPorTamano>(this.path)
+      .valueChanges()
+      .pipe(map((raw) => this.normalize(raw)));
   }
 
   async getDefaultsOnce(): Promise<DefaultsBanioPorTamano> {
@@ -36,8 +37,9 @@ export class DefaultsBanioService {
       pequeno: this.sanitizeRow(data.pequeno),
       mediano: this.sanitizeRow(data.mediano),
       grande: this.sanitizeRow(data.grande),
+      xl: this.sanitizeRow(data.xl),
       updatedAt: new Date().toISOString(),
-      updatedBy: staffId || 'system'
+      updatedBy: staffId || 'system',
     };
     await this.db.object(this.path).set(payload);
   }
@@ -57,14 +59,16 @@ export class DefaultsBanioService {
       pequeno: this.sanitizeRow(raw.pequeno || base.pequeno),
       mediano: this.sanitizeRow(raw.mediano || base.mediano),
       grande: this.sanitizeRow(raw.grande || base.grande),
+      // Aditivo: RTDB legacy sin `xl` → fila vacía (prefill usa fallback en código).
+      xl: this.sanitizeRow(raw.xl || base.xl),
       updatedAt: raw.updatedAt,
-      updatedBy: raw.updatedBy
+      updatedBy: raw.updatedBy,
     };
   }
 
   private sanitizeRow(row: DefaultBanioTamano): DefaultBanioTamano {
     const out: DefaultBanioTamano = {
-      costoDefault: Math.max(0, Number(row?.costoDefault) || 0)
+      costoDefault: Math.max(0, Number(row?.costoDefault) || 0),
     };
     if (row?.precioSugerido != null && !Number.isNaN(Number(row.precioSugerido))) {
       out.precioSugerido = Math.max(0, Number(row.precioSugerido));

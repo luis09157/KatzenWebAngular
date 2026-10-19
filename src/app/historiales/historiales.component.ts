@@ -24,6 +24,14 @@ import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { bloquearCobroDirectoEnCaja } from '../core/utils/cobro-integridad.util';
 import { AuthProfileService } from '../core/services/auth-profile.service';
+import {
+  coincidenciaTextoListado,
+  fechaHoyListadoLocal,
+  filtrarListadoAgendaOBusqueda,
+  listadoFechaIso,
+  metaListadoHoyManana,
+  partirListadoHoyManana,
+} from '../core/utils/listado-hoy-manana.util';
 
 @Component({
   selector: 'app-historiales',
@@ -41,8 +49,44 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
   menuContext: any = null;
   dataSource = new MatTableDataSource<any>([]);
+  dataSourceHoy = new MatTableDataSource<any>([]);
+  dataSourceManana = new MatTableDataSource<any>([]);
+  private todasFilas: any[] = [];
+  buscarTexto = '';
+  tablaInicializada = false;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
+
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaListadoHoyManana({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.estadisticas.total || this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceHoy.data.length;
+  }
+
+  get seccionMananaVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceManana.data.length;
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length && this.modoBusqueda;
+  }
   pacientesMap: { [id: string]: string } = {};
   pacientesClienteMap: { [id: string]: string } = {};
   estadisticas: any = {
@@ -184,16 +228,16 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (historiales) => {
           this.historialesRaw = historiales || [];
-          this.dataSource.data = (historiales || []).map((historial) => ({
+          this.todasFilas = (historiales || []).map((historial) => ({
             ...historial,
             paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
+            fecha_registro_iso: listadoFechaIso(historial.fecha_registro || historial.created_at),
             fecha_registro: this.formatearFecha(historial.fecha_registro),
           }));
           this.calcularKpisMes();
+          this.aplicarVistaListado();
+          this.tablaInicializada = true;
           this.loading = false;
-          setTimeout(() => {
-            if (this.paginator) this.dataSource.paginator = this.paginator;
-          }, 0);
         },
         error: (error) => {
           this.logger.error('Error al cargar historiales:', error);
@@ -308,8 +352,48 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   aplicarFiltro(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
+  }
+
+  private historialFechasIso = (h: { fecha_registro_iso?: string }) => [h.fecha_registro_iso];
+
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyListadoLocal();
+    const coincide = (h: Record<string, unknown>, q: string) =>
+      coincidenciaTextoListado(
+        [
+          h['paciente'],
+          h['diagnostico_presuntivo'],
+          h['tratamiento'],
+          h['medico_atendio'],
+          h['estado'],
+          h['fecha_registro'],
+          h['fecha_registro_iso'],
+        ],
+        q
+      );
+    if (this.modoBusqueda) {
+      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
+        query: this.buscarTexto,
+        hoyIso,
+        getFechasIso: this.historialFechasIso,
+        coincideBusqueda: coincide,
+      });
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+    const partes = partirListadoHoyManana(this.todasFilas, this.historialFechasIso, { hoyIso });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   abrirModalHistorial(pacienteId?: string) {
@@ -524,11 +608,15 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (historiales) => {
-          this.dataSource.data = historiales.map((historial) => ({
+          this.todasFilas = historiales.map((historial) => ({
             ...historial,
             paciente: this.pacientesMap[historial.paciente_id] || 'N/P',
+            fecha_registro_iso: listadoFechaIso(historial.fecha_registro || historial.created_at),
             fecha_registro: this.formatearFecha(historial.fecha_registro),
           }));
+          this.buscarTexto = texto;
+          this.aplicarVistaListado();
+          this.tablaInicializada = true;
         },
         error: (error) => {
           this.logger.error('Error en búsqueda:', error);

@@ -1,10 +1,6 @@
 import { ProductoPeluqueria, TipoServicio } from '../shared/banio.model';
 import { CategoriaProducto, Producto } from '../shared/inventario.models';
-import {
-  DefaultsBanioPorTamano,
-  TamanoPerroBanio,
-  TAMANOS_PERRO_ORDEN
-} from '../finanzas/defaults-banio.models';
+import { DefaultsBanioPorTamano, TamanoPerroBanio, TAMANOS_PERRO_ORDEN } from '../finanzas/defaults-banio.models';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
 import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
 import { rielDeProducto } from './pos-rieles.util';
@@ -18,12 +14,7 @@ export const COPY_BANIO_AJUSTABLE = 'Puedes ajustar el precio de este baño';
 export type AtajoPos = 'consulta' | 'vacuna' | 'medicamento' | 'producto' | 'banio';
 
 export type FuentePrecioBanioPos =
-  | 'defaults'
-  | 'plantilla'
-  | 'tipo_servicio'
-  | 'inventario'
-  | 'productos_peluqueria'
-  | 'ninguno';
+  'defaults' | 'plantilla' | 'tipo_servicio' | 'inventario' | 'productos_peluqueria' | 'ninguno';
 
 export interface PrecioBanioPosResult {
   precio: number | null;
@@ -45,9 +36,7 @@ export type DecisionMontoPos =
   | { pedirMonto: true; motivo: 'sin_precio_catalogo' }
   | { pedirMonto: false; error: 'sin_precio' };
 
-export function esDecisionPrecioInventario(
-  d: DecisionMontoPos
-): d is DecisionPrecioInventario {
+export function esDecisionPrecioInventario(d: DecisionMontoPos): d is DecisionPrecioInventario {
   return !d.pedirMonto && !('error' in d);
 }
 
@@ -58,15 +47,11 @@ function positivo(n: unknown): number | null {
   return v;
 }
 
-export function precioVentaInventario(
-  producto: Pick<Producto, 'precio_venta'> | null | undefined
-): number | null {
+export function precioVentaInventario(producto: Pick<Producto, 'precio_venta'> | null | undefined): number | null {
   return positivo(producto?.precio_venta);
 }
 
-export function costoInternoInventario(
-  producto: Pick<Producto, 'precio_compra'> | null | undefined
-): number | null {
+export function costoInternoInventario(producto: Pick<Producto, 'precio_compra'> | null | undefined): number | null {
   return positivo(producto?.precio_compra);
 }
 
@@ -75,23 +60,26 @@ export function esProductoConsultaCatalogo(
   producto: Pick<Producto, 'nombre' | 'subcategoria' | 'activo'> | null | undefined
 ): boolean {
   if (!producto || producto.activo === false) return false;
-  const nom = String(producto.nombre || '').trim().toLowerCase();
-  const sub = String(producto.subcategoria || '').trim().toLowerCase();
+  const nom = String(producto.nombre || '')
+    .trim()
+    .toLowerCase();
+  const sub = String(producto.subcategoria || '')
+    .trim()
+    .toLowerCase();
   return nom.includes('consulta') || sub === 'consulta';
 }
 
-export function encontrarProductoConsulta(
-  productos: Producto[] | null | undefined
-): Producto | null {
+export function encontrarProductoConsulta(productos: Producto[] | null | undefined): Producto | null {
   const rows = (productos || []).filter((p) => p && p.activo !== false);
-  const conPrecio = rows.filter(
-    (p) => esProductoConsultaCatalogo(p) && precioVentaInventario(p) != null
-  );
+  const conPrecio = rows.filter((p) => esProductoConsultaCatalogo(p) && precioVentaInventario(p) != null);
   if (!conPrecio.length) {
     return rows.find((p) => esProductoConsultaCatalogo(p)) || null;
   }
   const exacto = conPrecio.find((p) =>
-    String(p.nombre || '').trim().toLowerCase().startsWith('consulta')
+    String(p.nombre || '')
+      .trim()
+      .toLowerCase()
+      .startsWith('consulta')
   );
   return exacto || conPrecio[0];
 }
@@ -101,10 +89,7 @@ export function encontrarProductoConsulta(
  * Consulta: pide solo si no hay producto de catálogo con precio.
  * Baño: siempre diálogo, pero con default precargado (no campo vacío si hay tarifa).
  */
-export function atajoPideMonto(
-  atajo: AtajoPos,
-  catalogo: Producto[] | null | undefined = []
-): boolean {
+export function atajoPideMonto(atajo: AtajoPos, catalogo: Producto[] | null | undefined = []): boolean {
   if (atajo === 'vacuna' || atajo === 'medicamento' || atajo === 'producto') {
     return false;
   }
@@ -126,13 +111,11 @@ export function resolverLineaProductoInventario(producto: Producto): DecisionMon
     monto,
     producto,
     origen: 'inventario',
-    costoInterno: costoInternoInventario(producto)
+    costoInterno: costoInternoInventario(producto),
   };
 }
 
-export function resolverAtajoConsulta(
-  catalogo: Producto[] | null | undefined
-): DecisionMontoPos {
+export function resolverAtajoConsulta(catalogo: Producto[] | null | undefined): DecisionMontoPos {
   const producto = encontrarProductoConsulta(catalogo);
   const monto = precioVentaInventario(producto);
   if (producto && monto != null) {
@@ -141,7 +124,7 @@ export function resolverAtajoConsulta(
       monto,
       producto,
       origen: 'inventario',
-      costoInterno: costoInternoInventario(producto)
+      costoInterno: costoInternoInventario(producto),
     };
   }
   return { pedirMonto: true, motivo: 'sin_precio_catalogo' };
@@ -151,9 +134,7 @@ export function filtrarCatalogoPorCategoria(
   productos: Producto[] | null | undefined,
   categoria: CategoriaProducto
 ): Producto[] {
-  return (productos || []).filter(
-    (p) => p && p.activo !== false && p.categoria === categoria
-  );
+  return (productos || []).filter((p) => p && p.activo !== false && p.categoria === categoria);
 }
 
 export function inferirTamanoBanio(
@@ -167,6 +148,16 @@ export function inferirTamanoBanio(
   }
   if (raw === 'mediano' || raw === 'medium') return 'mediano';
   if (raw === 'grande' || raw === 'large') return 'grande';
+  if (
+    raw === 'xl' ||
+    raw === 'gigante' ||
+    raw === 'extra' ||
+    raw === 'extragrande' ||
+    raw === 'extra grande' ||
+    raw === 'xxl'
+  ) {
+    return 'xl';
+  }
   return '';
 }
 
@@ -175,12 +166,11 @@ function precioTipoServicioBanio(
 ): number | null {
   const activos = (tipos || []).filter((t) => t && t.activo !== false);
   const banio = activos.find((t) =>
-    String(t.nombre || '').toLowerCase().includes('baño')
+    String(t.nombre || '')
+      .toLowerCase()
+      .includes('baño')
   );
-  return (
-    positivo(banio?.precio_base) ??
-    positivo(activos.find((t) => positivo(t.precio_base))?.precio_base)
-  );
+  return positivo(banio?.precio_base) ?? positivo(activos.find((t) => positivo(t.precio_base))?.precio_base);
 }
 
 function precioProductoPeluqueria(
@@ -188,18 +178,16 @@ function precioProductoPeluqueria(
 ): number | null {
   const activos = (productos || []).filter((p) => p && p.activo !== false);
   const banio = activos.find((p) =>
-    String(p.nombre || '').toLowerCase().includes('baño')
+    String(p.nombre || '')
+      .toLowerCase()
+      .includes('baño')
   );
   return positivo(banio?.precio) ?? positivo(activos.find((p) => positivo(p.precio))?.precio);
 }
 
-function precioInventarioPeluqueria(
-  catalogo: Producto[] | null | undefined
-): number | null {
+function precioInventarioPeluqueria(catalogo: Producto[] | null | undefined): number | null {
   const rows = (catalogo || []).filter((p) => p && p.activo !== false);
-  const pelu = rows.find(
-    (p) => rielDeProducto(p) === 'peluqueria' && precioVentaInventario(p) != null
-  );
+  const pelu = rows.find((p) => rielDeProducto(p) === 'peluqueria' && precioVentaInventario(p) != null);
   return precioVentaInventario(pelu);
 }
 
@@ -222,14 +210,15 @@ export function resolverPrecioBanioPos(input: {
 
   for (const tamano of tamanos) {
     const prefill = resolverPrefillBanioPorTamano(tamano, input.defaults, plantillas);
-    if (prefill.precioSugerido != null) {
-      return {
-        precio: prefill.precioSugerido,
-        fuente: prefill.fuente === 'plantilla' ? 'plantilla' : 'defaults',
-        editable: true,
-        inputLabel: COPY_BANIO_AJUSTABLE
-      };
-    }
+    if (prefill.precioSugerido == null) continue;
+    // Fallback código (XL) solo si el tamaño pedido es exactamente ese; no al explorar cascada.
+    if (prefill.fuente === 'fallback' && input.tamano !== tamano) continue;
+    return {
+      precio: prefill.precioSugerido,
+      fuente: prefill.fuente === 'plantilla' ? 'plantilla' : 'defaults',
+      editable: true,
+      inputLabel: COPY_BANIO_AJUSTABLE,
+    };
   }
 
   const tipo = precioTipoServicioBanio(input.tiposServicio);
@@ -238,7 +227,7 @@ export function resolverPrecioBanioPos(input: {
       precio: tipo,
       fuente: 'tipo_servicio',
       editable: true,
-      inputLabel: COPY_BANIO_AJUSTABLE
+      inputLabel: COPY_BANIO_AJUSTABLE,
     };
   }
 
@@ -248,7 +237,7 @@ export function resolverPrecioBanioPos(input: {
       precio: inventario,
       fuente: 'inventario',
       editable: true,
-      inputLabel: COPY_BANIO_AJUSTABLE
+      inputLabel: COPY_BANIO_AJUSTABLE,
     };
   }
 
@@ -258,7 +247,7 @@ export function resolverPrecioBanioPos(input: {
       precio: peluqueria,
       fuente: 'productos_peluqueria',
       editable: true,
-      inputLabel: COPY_BANIO_AJUSTABLE
+      inputLabel: COPY_BANIO_AJUSTABLE,
     };
   }
 
@@ -266,7 +255,7 @@ export function resolverPrecioBanioPos(input: {
     precio: null,
     fuente: 'ninguno',
     editable: true,
-    inputLabel: COPY_BANIO_AJUSTABLE
+    inputLabel: COPY_BANIO_AJUSTABLE,
   };
 }
 

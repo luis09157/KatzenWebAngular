@@ -78,50 +78,104 @@
       </div>
 
       <app-admin-data-panel
-        *ngIf="citasHoy.length"
+        id="calendario-citas"
         accent="teal"
-        title="Citas de hoy"
-        [description]="citasHoyCount + ' en agenda'"
+        title="Agenda del mes"
+        description="Clic en un día para ver sus citas. Clic en una cita para abrir el detalle."
         [showLegend]="false"
       >
-        <ul class="citas-hoy-list">
-          <li *ngFor="let cita of citasHoy">
-            <div class="cell-primary">
-              <strong>{{ pacientesMap[cita.paciente_id] || cita.paciente || 'Mascota' }}</strong>
-              <span class="cell-sub"
-                >{{ clientesMap[cita.cliente_id] || cita.cliente || 'Dueño' }} · {{ cita.hora || '' }}</span
-              >
-            </div>
-            <button
-              mat-raised-button
-              color="primary"
-              class="btn-primary-teal hoy-atender-btn"
-              type="button"
-              [disabled]="!puedeAtender(cita)"
-              [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
-              (click)="atenderCita(cita)"
-            >
-              Atender
-            </button>
-          </li>
-        </ul>
-      </app-admin-data-panel>
+        <div class="calendar-toolbar">
+          <button mat-icon-button type="button" (click)="previousMonth()" aria-label="Mes anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <h3 class="month-year">{{ getMonthYearString() }}</h3>
+          <button mat-icon-button type="button" (click)="nextMonth()" aria-label="Mes siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-stroked-button type="button" class="calendar-hoy-btn" (click)="goToToday()">Hoy</button>
+        </div>
 
-      <app-admin-data-panel
-        *ngIf="!loading && !citasHoy.length"
-        accent="teal"
-        title="Citas de hoy"
-        description="Nadie en agenda todavía"
-        [showLegend]="false"
-      >
-        <app-admin-empty-state
-          icon="event_available"
-          title="Sin citas para hoy"
-          message="Si acaba de llegar alguien, regístralo aquí. También puedes abrir el calendario de citas."
-          actionLabel="Llegó un paciente"
-          (action)="llegoUnPaciente()"
-        >
-        </app-admin-empty-state>
+        <div class="calendar-container">
+          <div class="calendar-weekdays">
+            <div class="weekday">Dom</div>
+            <div class="weekday">Lun</div>
+            <div class="weekday">Mar</div>
+            <div class="weekday">Mié</div>
+            <div class="weekday">Jue</div>
+            <div class="weekday">Vie</div>
+            <div class="weekday">Sáb</div>
+          </div>
+
+          <div class="calendar-grid" role="grid" aria-label="Calendario de citas">
+            <button
+              type="button"
+              *ngFor="let day of calendarDays"
+              class="calendar-day"
+              [class.current-month]="day.isCurrentMonth"
+              [class.today]="day.isToday"
+              [class.has-citas]="day.hasCitas"
+              [class.selected]="day.isoKey === selectedDayIso"
+              [disabled]="!day.isCurrentMonth"
+              (click)="selectCalendarDay(day)"
+              (dblclick)="showCitasForDay(day)"
+              [attr.aria-label]="
+                day.isCurrentMonth ? 'Día ' + day.day + (day.hasCitas ? ', ' + day.citas.length + ' citas' : '') : null
+              "
+              [matTooltip]="day.hasCitas ? day.citas.length + ' cita(s) — clic para ver' : ''"
+              matTooltipPosition="above"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              <span *ngIf="day.hasCitas" class="citas-indicator" aria-hidden="true">
+                <span class="citas-dot"></span>
+                <span class="citas-count">{{ day.citas.length }}</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="calendario-dia-panel">
+          <div class="calendario-dia-panel__head">
+            <div>
+              <h4 class="calendario-dia-panel__title">{{ calendarioDiaLabel }}</h4>
+              <p class="calendario-dia-panel__desc">{{ calendarioDiaDesc }}</p>
+            </div>
+            <a mat-stroked-button routerLink="/admin/citas">Abrir citas</a>
+          </div>
+
+          <ul class="citas-hoy-list" *ngIf="selectedDayCitas.length">
+            <li *ngFor="let cita of selectedDayCitas">
+              <button type="button" class="calendario-cita-row" (click)="verDetalleCita(cita)">
+                <div class="cell-primary">
+                  <strong>{{ pacientesMap[cita.paciente_id || ''] || cita.paciente || 'Mascota' }}</strong>
+                  <span class="cell-sub"
+                    >{{ clientesMap[cita.cliente_id || ''] || cita.cliente || 'Dueño' }} · {{ horaCita(cita) }}</span
+                  >
+                </div>
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                class="btn-primary-teal hoy-atender-btn"
+                type="button"
+                [disabled]="!puedeAtender(cita)"
+                [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
+                (click)="atenderCita(cita)"
+              >
+                Atender
+              </button>
+            </li>
+          </ul>
+
+          <app-admin-empty-state
+            *ngIf="!loading && !selectedDayCitas.length"
+            icon="event_available"
+            title="Sin citas este día"
+            message="Si acaba de llegar alguien, regístralo aquí. También puedes agendar desde Citas."
+            actionLabel="Llegó un paciente"
+            (action)="llegoUnPaciente()"
+          >
+          </app-admin-empty-state>
+        </div>
       </app-admin-data-panel>
 
       <app-admin-data-panel
@@ -505,55 +559,5 @@
         </app-admin-data-panel>
       </ng-container>
     </section>
-
-    <app-admin-data-panel
-      accent="teal"
-      id="calendario-citas"
-      title="Calendario de citas"
-      description="Doble clic en un día con citas para ver el detalle del día."
-      [showLegend]="false"
-    >
-      <div class="calendar-toolbar">
-        <button mat-icon-button type="button" (click)="previousMonth()" aria-label="Mes anterior">
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        <h3 class="month-year">{{ getMonthYearString() }}</h3>
-        <button mat-icon-button type="button" (click)="nextMonth()" aria-label="Mes siguiente">
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-
-      <div class="calendar-container">
-        <div class="calendar-weekdays">
-          <div class="weekday">Dom</div>
-          <div class="weekday">Lun</div>
-          <div class="weekday">Mar</div>
-          <div class="weekday">Mié</div>
-          <div class="weekday">Jue</div>
-          <div class="weekday">Vie</div>
-          <div class="weekday">Sáb</div>
-        </div>
-
-        <div class="calendar-grid">
-          <div
-            *ngFor="let day of calendarDays"
-            class="calendar-day"
-            [class.current-month]="day.isCurrentMonth"
-            [class.today]="day.isToday"
-            [class.has-citas]="day.hasCitas"
-            (dblclick)="showCitasForDay(day)"
-            [style.cursor]="day.hasCitas ? 'pointer' : 'default'"
-            [matTooltip]="day.hasCitas ? 'Doble clic para ver citas' : ''"
-            matTooltipPosition="above"
-          >
-            <div class="day-number">{{ day.day }}</div>
-            <div *ngIf="day.hasCitas" class="citas-indicator">
-              <div class="citas-dot"></div>
-              <span class="citas-count">{{ day.citas.length }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </app-admin-data-panel>
   </ng-container>
 </div>

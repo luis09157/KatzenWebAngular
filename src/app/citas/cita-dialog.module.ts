@@ -12,8 +12,6 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SharedModule } from '../shared/shared.module';
-import { ClientesDialogModule } from '../clientes/clientes-dialog.module';
-import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { CitaDialogComponent } from './cita-dialog.component';
 
 /** Diálogo de cita sin routing — usable desde expediente (spec 031). */
@@ -33,8 +31,6 @@ import { CitaDialogComponent } from './cita-dialog.component';
     MatIconModule,
     MatTooltipModule,
     SharedModule,
-    ClientesDialogModule,
-    PacienteAdminDialogModule,
   ],
   exports: [CitaDialogComponent],
 })

@@ -1,5 +1,7 @@
 /** Spec 072 — defaults y normalización de `Katzen/Config/clinica`. */
 
+import { omitUndefinedRtdb } from './omit-undefined-rtdb.util';
+
 export interface ClinicaConfig {
   nombre?: string;
   logoUrl?: string;
@@ -42,9 +44,13 @@ export function nombreClinicaVisible(raw: ClinicaConfig | null | undefined): str
   return normalizeClinicaConfig(raw).nombre || CLINICA_NOMBRE_DEFAULT;
 }
 
+/**
+ * Payload para `set` en `Katzen/Config/clinica`.
+ * Opcionales vacíos se omiten (no `undefined` — RTDB lo rechaza).
+ */
 export function payloadClinicaParaGuardar(form: Partial<ClinicaConfig>, staffId?: string): ClinicaConfig {
   const n = normalizeClinicaConfig(form);
-  return {
+  return omitUndefinedRtdb({
     nombre: n.nombre,
     logoUrl: n.logoUrl || undefined,
     horario: n.horario || undefined,
@@ -53,5 +59,5 @@ export function payloadClinicaParaGuardar(form: Partial<ClinicaConfig>, staffId?
     vetDefaultNombre: n.vetDefaultNombre || undefined,
     updatedAt: new Date().toISOString(),
     updatedBy: staffId || undefined,
-  };
+  }) as ClinicaConfig;
 }

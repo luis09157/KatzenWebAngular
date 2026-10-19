@@ -155,7 +155,7 @@ Internamente la mayoría de módulos hacen **baja lógica** (`activo: false`). A
 
 - Columna `estado`: anchos en `admin-table.scss` (no reducir a ≤108px: “CONFIRMADA”/“COMPLETADA” se recortan).
 - Chip: `white-space: nowrap`, `width: max-content`, sin `text-overflow: ellipsis` en el pill.
-- Scroll horizontal de la tabla (`.table-scroll`) está bien; **clip del badge** no.
+- Scroll horizontal de la tabla (`.table-scroll` + `min-width` ≥ ~800–880px) está bien; **clip del badge** no. Nunca bajar el `min-width` de la tabla en móvil para «que quepa»: eso comprime columnas a cero.
 
 ### Person name in table (correct)
 
@@ -231,9 +231,42 @@ Cuando el módulo tiene **filtros que afectan varias tabs o KPIs** (p. ej. Finan
 - Diálogos del módulo: `admin-dialog-form admin-dialog-form--padded` + `.form-grid` global (no grid local con gap distinto).
 - Referencia: `src/app/finanzas/`.
 
+### Orden canónico de página CRUD (obligatorio)
+
+En módulos admin con listado operativo, el orden del `.admin-page` es:
+
+1. **`.admin-list-shell`** — una sola composición (no 2–3 cards apiladas):
+   - `app-admin-page-banner` (título del módulo + CTA **Nuevo** / Exportar)
+   - `app-flow-hint` (opcional; franja flush bajo el banner, sin card extra)
+   - `app-admin-data-panel` (título de listado compacto + buscador + tabla / empty + paginador)
+2. Filtros / `.admin-toolbar` **solo** si afectan tabs o varios paneles (p. ej. Finanzas) — van fuera o entre shell y KPIs según el caso
+3. `app-admin-kpi-grid` (**abajo** — resumen analítico; no compite con «agregar» ni con la lista)
+
+**Prohibido:** banner + data-panel como dos `mat-card` / superficies con sombra y borde superior teal independientes. El acento de color vive **solo** en el borde superior del shell (vía banner). Canonical CSS: `src/styles/admin-page-layout.scss` (`.admin-list-shell`).
+
+**Excepción:** hubs de analytics puros (`/admin/inicio` dashboard dueña) donde los KPIs *son* el contenido principal. Inventario hub y reportes siguen el orden CRUD (acciones/navegación primero, KPIs al final). Finanzas con tabs puede mantener toolbar + paneles por tab sin forzar un único shell.
+
+```html
+<div class="admin-page mi-modulo-contenedor">
+  <div class="admin-list-shell">
+    <app-admin-page-banner …>
+      <div bannerActions>
+        <button mat-raised-button class="btn-primary-teal">Nuevo …</button>
+      </div>
+    </app-admin-page-banner>
+    <!-- opcional: app-flow-hint -->
+    <app-admin-data-panel …>…buscador + tabla…</app-admin-data-panel>
+  </div>
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>…3–4 stat cards…</app-admin-kpi-grid>
+</div>
+```
+
+**Referencia visual:** `/admin/banios`. Ya migrados: baños, clientes, consentimientos, pensión, servicios-clínica, vacunas, recordatorios, citas. Pendiente checklist: historiales, contactos-web, usuarios, pacientes-admin, inventario (productos/movimientos/proveedores/órdenes/alertas), finanzas (tabs).
+
 ### KPIs operativos (obligatorio en módulos CRUD admin)
 
-Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, historiales, inventario, pensión, finanzas, usuarios, recordatorios, etc.) **debe** exponer un `app-admin-kpi-grid` con **3–4** `app-admin-stat-card` defaults:
+Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, historiales, inventario, pensión, finanzas, usuarios, recordatorios, etc.) **debe** exponer un `app-admin-kpi-grid` con **3–4** `app-admin-stat-card` defaults, **debajo del listado**:
 
 | Tipo típico | Ejemplo |
 |-------------|---------|
@@ -298,6 +331,7 @@ Todo módulo admin con listado operativo (clientes, citas, baños, vacunas, hist
 - Toolbar ≤900px: `more_vert` con cuenta, sucursal y atajos; chips de usuario/sucursal van en `.hide-mobile`.
 - Shell: `.admin-shell` / `.mat-drawer-container` = `height: 100dvh`. **Nunca** `height: 100%` en el contenedor: anula el `100dvh` y, con `overflow: hidden` de Material, recorta páginas y tablas **sin scroll**.
 - Contenido: `.mat-drawer-content` / `.mat-sidenav-content` con `overflow-y: auto` (scroll independiente del sidenav). Tablas: `.table-scroll` hace scroll horizontal; el vertical lo hace la página.
+- **Móvil ≤600px (tablas):** `.table-scroll` con `overflow-x: auto` **siempre** + `table { min-width: ~880px }` (nunca ≤560: comprimía headers/`PROGRAMADO`/acciones). Chips `.estado-badge` sin clip. `.row-actions.hide-mobile` se oculta en ≤900 (especificidad correcta). Columna `acciones` sticky derecha. Patrón card-rows (opción B) diferido; referencia baños. Canonical: `admin-table.scss`.
 - `app-admin-page-banner` / `app-admin-data-panel`: el `@Input() title` no debe filtrarse al atributo nativo `title` del host (tooltip negro huérfano). Host: `[attr.title]: null`.
 - Leyenda Ver detalle / Editar / Borrar: footer del data-panel (`.data-panel-footer`), no esquina superior derecha.
 

@@ -72,39 +72,6 @@
 
   <!-- Expediente -->
   <ng-container *ngIf="!loading && pacienteSeleccionado">
-    <p class="section-eyebrow">Expediente clínico</p>
-
-    <app-admin-kpi-grid>
-      <app-admin-stat-card
-        accent="teal"
-        icon="medical_services"
-        [value]="historialClinico.length"
-        label="Historial"
-        hint="Entradas clínicas"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="orange"
-        icon="notifications"
-        [value]="recordatorios.length"
-        label="Recordatorios"
-        hint="Seguimiento"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="blue"
-        icon="vaccines"
-        [value]="vacunas.length"
-        label="Vacunas"
-        hint="Registro"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="purple"
-        icon="shower"
-        [value]="banios.length"
-        label="Baños"
-        hint="Peluquería"
-      ></app-admin-stat-card>
-    </app-admin-kpi-grid>
-
     <app-admin-page-banner
       accent="teal"
       icon="pets"
@@ -581,5 +548,37 @@
         </section>
       </aside>
     </div>
+
+    <p class="section-eyebrow">Resumen del expediente</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card
+        accent="teal"
+        icon="medical_services"
+        [value]="historialClinico.length"
+        label="Historial"
+        hint="Entradas clínicas"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        icon="notifications"
+        [value]="recordatorios.length"
+        label="Recordatorios"
+        hint="Seguimiento"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        icon="vaccines"
+        [value]="vacunas.length"
+        label="Vacunas"
+        hint="Registro"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="purple"
+        icon="shower"
+        [value]="banios.length"
+        label="Baños"
+        hint="Peluquería"
+      ></app-admin-stat-card>
+    </app-admin-kpi-grid>
   </ng-container>
 </div>

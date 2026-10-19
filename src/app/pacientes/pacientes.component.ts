@@ -408,8 +408,9 @@ export class PacientesComponent implements OnInit, OnDestroy {
       data: {
         paciente_id: this.pacienteSeleccionado.id,
         cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
-        paciente: this.pacienteSeleccionado.nombre,
+        paciente: this.pacienteSeleccionado,
         cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
+        cliente_nombre: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
         desdePaciente: true,
       },
     });
@@ -454,6 +455,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
         cliente_id: this.getPacienteClienteId(this.pacienteSeleccionado),
         paciente: this.pacienteSeleccionado,
         cliente: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
+        cliente_nombre: this.getClienteNombreFromPaciente(this.pacienteSeleccionado),
         desdePaciente: true,
         registrarDesparasitacion: true,
       },

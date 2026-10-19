@@ -71,8 +71,23 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     }
     this.saving = true;
     this.loadingService.show(LOADING_MESSAGES.saving);
+    let guardadoOk = false;
+    let error: unknown = null;
     try {
+      // Spec 005 US-4 — solo persistir bajo el overlay; Swal va DESPUÉS del hide.
       await this.clinicConfig.saveClinica(this.form.getRawValue());
+      guardadoOk = true;
+    } catch (e) {
+      error = e;
+    } finally {
+      this.loadingService.hide();
+      this.saving = false;
+    }
+    if (error) {
+      await Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar configuración'), 'error');
+      return;
+    }
+    if (guardadoOk) {
       await Swal.fire({
         icon: 'success',
         title: 'Configuración guardada',
@@ -80,11 +95,6 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
         timer: 1600,
         showConfirmButton: false,
       });
-    } catch (error) {
-      await Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar configuración'), 'error');
-    } finally {
-      this.loadingService.hide();
-      this.saving = false;
     }
   }
 }

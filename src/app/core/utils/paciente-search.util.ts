@@ -22,6 +22,13 @@ export function getPacienteDisplayLabel(paciente: Paciente | null | undefined): 
   return `${nombre} — ${especie}`;
 }
 
+/** displayWith: Paciente seleccionado u string al tipear (mismo patrón que dueño). */
+export function displayPacienteAutocompleteValue(value: Paciente | string | null | undefined): string {
+  if (value == null || value === '') return '';
+  if (typeof value === 'string') return value;
+  return getPacienteDisplayLabel(value);
+}
+
 /**
  * Búsqueda de expediente (Buscar paciente): mascota o dueño.
  * Query vacío → ninguna sugerencia (el staff debe escribir).
@@ -35,13 +42,11 @@ export function filtrarPacientesPorTexto(
   if (!term) {
     return [];
   }
-  return (pacientes || []).filter(p => {
+  return (pacientes || []).filter((p) => {
     if (p?.activo === false) {
       return false;
     }
-    const haystack = [getPacienteNombre(p), nombreDueno(p), p.especie, p.raza]
-      .filter(Boolean)
-      .join(' ');
+    const haystack = [getPacienteNombre(p), nombreDueno(p), p.especie, p.raza].filter(Boolean).join(' ');
     return textoCoincide(haystack, term);
   });
 }
@@ -54,9 +59,7 @@ export function filtrarPacientesDelCliente(
   clienteId: string | null | undefined,
   query: unknown
 ): Paciente[] {
-  const delCliente = (pacientes || []).filter(
-    p => pacientePerteneceACliente(p, clienteId) && isPacienteActivo(p)
-  );
+  const delCliente = (pacientes || []).filter((p) => pacientePerteneceACliente(p, clienteId) && isPacienteActivo(p));
 
   if (!query || typeof query !== 'string') {
     return delCliente;
@@ -67,10 +70,40 @@ export function filtrarPacientesDelCliente(
     return delCliente;
   }
 
-  return delCliente.filter(paciente => {
-    const haystack = [getPacienteNombre(paciente), paciente.especie, paciente.raza]
-      .filter(Boolean)
-      .join(' ');
+  return delCliente.filter((paciente) => {
+    const haystack = [getPacienteNombre(paciente), paciente.especie, paciente.raza].filter(Boolean).join(' ');
     return textoCoincide(haystack, filterValue);
   });
+}
+
+/**
+ * Etiqueta de opción en picker: «Nombre — especie · Dueño» (dueño opcional).
+ * Spec 085 / 029 follow-up — búsqueda dual mascota o dueño.
+ */
+export function getPacientePickerOptionLabel(paciente: Paciente | null | undefined, nombreDueno?: string): string {
+  const base = getPacienteDisplayLabel(paciente);
+  if (!base) return '';
+  const dueno = String(nombreDueno || '').trim();
+  return dueno ? `${base} · ${dueno}` : base;
+}
+
+/**
+ * Filtro del picker con búsqueda dual:
+ * - Con dueño elegido → mascotas de ese cliente (texto opcional).
+ * - Sin dueño → busca en todas las activas por nombre/dueño (query vacío → []).
+ */
+export function filtrarPacientesPickerDual(
+  pacientes: Paciente[],
+  clienteId: string | null | undefined,
+  query: unknown,
+  nombreDueno: (p: Paciente) => string
+): Paciente[] {
+  if (clienteId) {
+    return filtrarPacientesDelCliente(pacientes, clienteId, query);
+  }
+  return filtrarPacientesPorTexto(
+    (pacientes || []).filter((p) => isPacienteActivo(p)),
+    query,
+    nombreDueno
+  );
 }

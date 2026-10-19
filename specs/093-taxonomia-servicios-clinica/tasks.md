@@ -89,3 +89,9 @@ Apply prod / deploy → NO ejecutados
 - [x] `agent-guardrails.md` + `domain-context.md`
 - [x] `INDEX` (`node scripts/specs-index.mjs`)
 - [x] Este `tasks.md` + `plan.md`
+
+---
+
+## Follow-up menú (072 UX) — 2026-10-04
+
+Label sidenav/toolbar/banner del módulo: **«Catálogo de servicios»** (ruta igual `/admin/servicios-clinica`). Detalle de orden Cobrar / Finanzas y corte → `specs/072-fase4-hoy-roles-onboarding/tasks.md`.

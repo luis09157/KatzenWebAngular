@@ -9,8 +9,13 @@
  * Exit 1 si encuentra coincidencias en src/app.
  *
  * Alcance deliberado: solo el patrón show→close (regex fiable).
- * NO intenta detectar await Swal / navigator.share / jspdf entre show y hide
- * (try/finally arbitrarios → heurística frágil). Esa regla vive en docs + revisión:
+ * NO intenta detectar anti-patrón B (await Swal / navigator.share / jspdf entre show y hide):
+ * try/finally arbitrarios → heurística frágil (rg --pcre2 encuentra hits pero también
+ * flujos legítimos / falsos positivos). Casos reales de B corregidos por revisión:
+ *   - visita-dialog confirmarCobro (092 / 2026-10-03)
+ *   - configuracion.component guardar (2026-10-04) — Swal éxito/error dentro del try
+ *     bloqueaba finally; en error el OK del Swal quedaba bajo el overlay → «Guardando…» eterno
+ * Regla B vive en docs + revisión de código:
  * ADMIN-UI-ARCHITECTURE § Loading regla 4, agent-guardrails, spec 005 US-4 / 092.
  */
 import { execSync } from 'child_process';

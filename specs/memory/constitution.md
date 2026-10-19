@@ -45,7 +45,7 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 ## 3. UI Admin unificada
 
 - Seguir `docs/ADMIN-UI-ARCHITECTURE.md` (obligatorio; ver reglas Katzen arriba).
-- KPIs + banner + panel + tabla + paginador.
+- Banner + panel + tabla + paginador; KPIs **debajo** del listado (CTA/lista primero).
 - Acciones: `mat-icon-button` + `matTooltip` dentro de `.row-actions`.
 - Celdas `<td>`: **display table-cell**; flex solo en contenedores internos.
 - Chips/badges de estado (`.estado-badge`, etc.): deben verse **completos** (sin clip por columna estrecha u `overflow`); ver `admin-table.scss`.

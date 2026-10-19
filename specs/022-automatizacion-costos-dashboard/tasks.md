@@ -153,3 +153,14 @@
 Modal **Nuevo baño**: secciones «Tamaño y costo» + «Precios» fusionadas en un solo bloque **Costos y precio**. `precio_base` sigue en RTDB (sync interno desde precio al cliente − adicionales); ya no se muestra en UI. Costo 0 = opcional (`treatZeroAsEmpty`).
 
 **Validación 2026-08-26:** `npm run build` exit 0 · commit `3a7a41f` · push + deploy hosting OK · `:4200` vivo.
+
+## Decisión 2026-10-04 — baño no es producto Petshop
+
+Luis: los baños **no** se dan de alta desde Petshop para «dar de baja» stock. Tarifas/defaults de este spec (**022**) + módulo Banios / cobro riel Peluquería. Detalle en `agent-guardrails` + `domain-context` §4.9 + nota en tasks **085**.
+
+## Follow-up 2026-10-18 — XL + aclaración costo interno
+
+- **Costo/margen** = KPIs internos (margen bruto); **no** cobran en POS; cobro = `precio_total`. Copy en `banio-dialog` + filas en `agent-guardrails` / `domain-context`.
+- **Tamaño XL** (`tamano_perro: 'xl'`) aditivo en modelo, chips/select diálogo, defaults Finanzas, KPI listado. Fallback código solo para **XL** (`TARIFAS_BANIO_FALLBACK.xl` = costo 160 / precio 550) si RTDB 0/ausente — mismo patrón pensión gigante **089**. P/M/G sin cambiar (0 = sin tarifa / cascada POS).
+- Código: `defaults-banio.models.ts`, `defaults-banio.service.ts`, `banio-prefill.util.ts`, `banio-dialog`, `banios.component`, `finanzas`, `pos-precios.util`, `banio.model`.
+- QA L2: unit tests 18/18 (prefill/models/pos-precios) + `npm run build` exit 0.

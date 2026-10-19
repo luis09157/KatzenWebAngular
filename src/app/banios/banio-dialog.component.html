@@ -32,18 +32,17 @@
 
       <app-flow-hint
         *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value"
-        icon="person"
-        message="Primero elige o crea el dueño. Después la mascota."
+        icon="pets"
+        message="Busca por dueño o por nombre de la mascota. Altas nuevas van en Clientes / Pacientes."
       >
       </app-flow-hint>
       <app-cliente-paciente-picker
         *ngIf="muestraPickerClientePaciente"
         class="full-span"
         [formGroup]="banioForm"
-        [permitirCrear]="true"
+        [permitirCrear]="false"
+        [busquedaDual]="true"
         (selectionChange)="onClientePacienteSelected($event)"
-        (crearCliente)="crearClienteRapido($event)"
-        (crearPaciente)="crearMascotaRapida($event)"
       >
       </app-cliente-paciente-picker>
 
@@ -106,12 +105,12 @@
 
         <section class="form-section">
           <h3 class="form-section__title">
-            Precio al cliente
+            Precio a cobrar
             <span class="form-section__badge">Requerido</span>
           </h3>
           <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Precio al cliente</mat-label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Precio a cobrar</mat-label>
               <input
                 matInput
                 type="number"
@@ -120,7 +119,7 @@
                 required
                 (input)="onPrecioTotalManual()"
               />
-              <mat-hint>Lo que cobrará mostrador · editable</mat-hint>
+              <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
             </mat-form-field>
             <div class="form-section__checkbox banio-iniciar-ya">
               <mat-checkbox [checked]="iniciarYa" (change)="onIniciarYaChange($event.checked)" color="primary">
@@ -148,7 +147,7 @@
 
         <button type="button" class="banio-mas-detalles-toggle" (click)="masDetallesAbiertos = !masDetallesAbiertos">
           <mat-icon>{{ masDetallesAbiertos ? 'expand_less' : 'expand_more' }}</mat-icon>
-          {{ masDetallesAbiertos ? 'Ocultar más detalles' : 'Más detalles (costo, hora, peluquero…)' }}
+          {{ masDetallesAbiertos ? 'Ocultar más detalles' : 'Más detalles (hora, peluquero…)' }}
         </button>
       </ng-container>
 
@@ -269,20 +268,24 @@
           </div>
         </section>
 
-        <section class="form-section">
-          <h3 class="form-section__title">Costos y precio</h3>
+        <!-- Completo: solo precio a cobrar (+ tamaño para prefill). Costo interno = background desde tarifas Finanzas; sin UI. -->
+        <section class="form-section" *ngIf="!modoRapido">
+          <h3 class="form-section__title">
+            Precio a cobrar
+            <span class="form-section__badge">Requerido</span>
+          </h3>
           <div class="form-grid">
-            <mat-form-field appearance="outline" *ngIf="!modoRapido">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>Tamaño del perro</mat-label>
               <mat-select formControlName="tamano_perro" (selectionChange)="onTamanoChange()">
                 <mat-option value="">Sin especificar</mat-option>
                 <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
               </mat-select>
-              <mat-hint>{{ prefillHint || 'Prefill desde tarifas por tamaño' }}</mat-hint>
+              <mat-hint>{{ prefillHint || 'Tarifa por tamaño · sugiere el precio' }}</mat-hint>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="!modoRapido">
-              <mat-label>Precio al cliente</mat-label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Precio a cobrar</mat-label>
               <input
                 matInput
                 type="number"
@@ -293,43 +296,7 @@
               />
               <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
             </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Costo</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="costoEstimado"
-                min="0"
-                step="0.01"
-                placeholder="Opcional"
-              />
-              <mat-hint *ngIf="!banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')">
-                Costo interno · no lo cobra mostrador
-              </mat-hint>
-              <mat-error *ngIf="banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')">
-                El costo debe ser menor que el precio de venta.
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Margen deseado %</mat-label>
-              <input
-                matInput
-                type="number"
-                [ngModel]="margenPct"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="onMargenPctChange($event)"
-                step="0.1"
-                placeholder="Ej. 100"
-              />
-              <mat-hint>Opcional · recalcula el precio desde el costo</mat-hint>
-            </mat-form-field>
           </div>
-          <p class="ganancia-banio" *ngIf="gananciaEstimada != null">
-            Ganancia: <strong>${{ gananciaEstimada | number: '1.2-2' }}</strong>
-            (precio al cliente − costo)
-          </p>
         </section>
 
         <section class="form-section">

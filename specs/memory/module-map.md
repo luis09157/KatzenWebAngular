@@ -28,7 +28,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 |------|-----------|-------|
 | `config/` | `staff-role.config.ts` | Matriz módulos / nav (**072**) |
 | `services/` | Auth profile, session, FCM portal, Functions, sucursal | Un solo camino a callables |
-| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run, `omitUndefinedRtdb`… | Barrel: `core/utils/index.ts` |
+| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run, `omitUndefinedRtdb`, `listado-hoy-manana.util` (agenda Hoy+Mañana)… | Barrel: `core/utils/index.ts` |
 | `ui/` | `katzen-swal.ts` — SweetAlert2 mixin marca (**084**) | Preferir `KatzenSwal` vs `Swal` suelto en pantallas nuevas |
 | `models/` + `models.ts` | Tipos compartidos | RTDB aditivo |
 | `testing/` | `mock-data.ts` | Obligatorio para demos agente |
@@ -38,10 +38,10 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 
 | Área | Contenido |
 |------|-----------|
-| `admin/` | KPI grid, banner, data-panel, pickers cliente/paciente/producto |
+| `admin/` | KPI grid, banner, data-panel, pickers cliente/paciente/producto (`cliente-paciente-picker`: `permitirCrear`, `busquedaDual` + `filtrarPacientesPickerDual`) |
 | `alergias/` | Editor + alerta (**034**) |
 | `timepicker/` | `app-timepicker-field` (**004**) |
-| `datepicker/` | `app-datepicker-field` + util ISO (**090**) |
+| `datepicker/` | `app-datepicker-field` + util ISO (**090**): `formatLocalDateToIso`, `formatearFechaLocalEs`, `formatLocalDateTimeStamp` |
 | Modelos | `inventario.models`, `banio.model`, catálogos |
 | `validation.service` | Validaciones UI |
 
@@ -51,7 +51,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 
 | Carpeta | Ruta | RTDB principal | Specs clave | Responsabilidad |
 |---------|------|----------------|-------------|-----------------|
-| `dashboard/` | `/admin/inicio` | agregados varios | 025, 072 | Hoy / KPIs por rol |
+| `dashboard/` | `/admin/inicio` | agregados varios | 025, 072 | Hoy / KPIs por rol; calendario mes + lista día (`dashboard-calendario.util`) |
 | `clientes/` | `/admin/clientes` | `Cliente` | 001, 009, 047 | Dueños CRUD + portal flags |
 | `pacientes/` | `/admin/paciente` | `Mascota`, logs | 057, 062, 068 | Expediente clínico (mascota) |
 | `pacientes-admin/` | `/admin/pacientes-admin` | `Mascota`, `Cliente` | 057, 058, 069 | Directorio / ficha rápida |
@@ -59,13 +59,13 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `historiales/` | `/admin/historiales` | `Historiales_Clinicos`, notas internas | 010, 016 | Historial clínico |
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
-| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / Hoy (085); no módulo paralelo |
+| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / listado Hoy+Mañana + búsqueda (`banio-listado-filtro` → `listado-hoy-manana.util`); fechas UI/stamp vía `datepicker.util` (local MX); no módulo paralelo |
 | `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload `pension-estancia-payload.util` → `omitUndefinedRtdb` en `core/utils` |
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` · líneas RTDB `visita-linea-rtdb.util` |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |
 | `finanzas/` | `/admin/finanzas` | `Caja`, `Finanzas/*` | 014, 021, 022, 071 | Caja, costos, reportes |
 | `servicios-clinica/` | `/admin/servicios-clinica` | `ServiciosClinica` | 056, **093** | Tarifas sin stock; tipo clínico + `esDomicilio`; util hidratar/mapeo/migración KPIs; script `migrate-servicios-clinica-domicilio.mjs` |
-| `consentimientos/` | `/admin/consentimientos` | consentimientos | 037 | Consentimientos |
+| `consentimientos/` | `/admin/consentimientos` | `Consentimientos` | 037, **094** | Registro + machotes/PDF/WA (`consentimiento-plantillas|documento|pdf.util`; preview dialog; firma diferida) |
 | `usuarios/` | `/admin/usuarios` | `Usuarios`, `AuthPerfiles` | 002, 011, 012 | Staff + provision portal |
 | `contactos-web/` | `/admin/contactos-web` | `ContactosWeb` | 001 | Leads landing |
 | `configuracion/` | `/admin/configuracion` | `Config/clinica` | 072 | Config clínica |

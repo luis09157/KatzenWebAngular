@@ -17,9 +17,10 @@ import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dia
 import { ConsentimientosRoutingModule } from './consentimientos-routing.module';
 import { ConsentimientosComponent } from './consentimientos.component';
 import { ConsentimientoDialogComponent } from './consentimiento-dialog.component';
+import { ConsentimientoPreviewDialogComponent } from './consentimiento-preview-dialog.component';
 
 @NgModule({
-  declarations: [ConsentimientosComponent, ConsentimientoDialogComponent],
+  declarations: [ConsentimientosComponent, ConsentimientoDialogComponent, ConsentimientoPreviewDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

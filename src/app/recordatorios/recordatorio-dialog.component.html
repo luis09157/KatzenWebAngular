@@ -29,12 +29,12 @@
 
       <div
         class="entity-summary entity-summary--compact"
-        *ngIf="!muestraPickerClientePaciente && ((data.cliente && data.paciente) || (pacienteInfo && !data.cliente))"
+        *ngIf="!muestraPickerClientePaciente && (data?.paciente_id || data?.paciente || pacienteInfo)"
       >
-        <h3 class="entity-summary__name">{{ data.paciente?.nombre || pacienteInfo?.nombre || 'Sin nombre' }}</h3>
+        <h3 class="entity-summary__name">{{ getPacienteNombre() }}</h3>
         <p class="entity-summary__meta">{{ getPacienteMeta() }}</p>
-        <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="data.cliente || pacienteInfo?.cliente">
-          Dueño: {{ data.cliente ? getNombreCompletoCliente(data.cliente) : pacienteInfo?.cliente }}
+        <p class="entity-summary__meta entity-summary__meta--secondary" *ngIf="getDisplayDueno()">
+          Dueño: {{ getDisplayDueno() }}
         </p>
       </div>
 

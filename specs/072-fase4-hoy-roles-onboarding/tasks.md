@@ -90,3 +90,41 @@ subset 072 → 21 SUCCESS
 - [x] Fase 4 marcada en PLAN-UX; #3 y #4 cerrados en 054
 - [x] `node scripts/specs-index.mjs`
 - [ ] Commit / deploy — solo si Luis lo pidió
+
+---
+
+## Follow-up UX menú (L1/L2) — 2026-10-04
+
+Claridad Cobrar vs catálogo vs finanzas (**sin** cambiar rutas ni `STAFF_MODULE_ACCESS`):
+
+| Label menú | Ruta | Notas |
+|------------|------|-------|
+| Cobrar | `/admin/visitas` | tooltip POS; toolbar alineada |
+| Catálogo de servicios | `/admin/servicios-clinica` | antes «Servicios de clínica»; junto a Inventario |
+| Finanzas y corte | `/admin/finanzas` | antes «Caja / finanzas»; bloque Administración (con Personal/Config) |
+
+- Reorden Más: catálogo tras inventario; finanzas lejos de Cobrar (subgrupo Administración).
+- Archivos: `admin-main-layout`, `admin-route-labels`, `STAFF_NAV_MAS`, banner 056/093, Cypress titles.
+- Relaciona copy catálogo: spec **093**.
+
+---
+
+## Follow-up 2026-10-04 — `saveClinica` sin `undefined` en RTDB
+
+- **Causa:** `payloadClinicaParaGuardar` ponía `logoUrl`/`horario`/vet vacíos como `undefined` → Firebase `set failed` al guardar solo vet preferida con logo vacío.
+- **Fix:** `omitUndefinedRtdb` en `clinica-config.util.ts` (opcionales vacíos se omiten del objeto). Tests en `clinica-config.util.spec.ts`.
+- **Loading (005):** hide antes de Swal en `configuracion.component` **sigue** (Luis ya ve el Swal de error).
+- [x] Unit `clinica-config.util.spec.ts` — **4/4** SUCCESS
+- [x] `npm run build` — exit 0 · Hash `c9a5727abd49242a` (2026-10-04)
+
+---
+
+## Follow-up 2026-10-18 — Calendario de citas bajo cards (L2)
+
+Luis: debajo de Clínica / POS / Inventario, ver agenda del mes (antes solo «Citas de hoy» vacío; el calendario vivía al final de la página).
+
+- **Qué muestra:** mes con puntos/conteo de citas activas; día seleccionado (default hoy) → lista hora · mascota · dueño; clic cita → `CitaDialog` modo ver; Atender → expediente; CTA «Llegó un paciente» y atajos intactos. Baños/pensión del día: no en calendario (prioridad citas; siguen paneles aparte).
+- **Código:** `dashboard-calendario.util.ts` (+ spec); `dashboard.component.*` (panel `#calendario-citas` tras tiles); `CitaDialogModule` en dashboard.
+- [x] Unit `dashboard-calendario.util.spec.ts` — **4/4** SUCCESS
+- [x] `npm run build` — exit 0 · Hash `4e5305744db4abe2` (2026-10-18)
+- [ ] Smoke 375 / 1280 en `/admin/inicio` — pendiente Luis (sesión local)

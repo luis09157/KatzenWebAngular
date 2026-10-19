@@ -76,7 +76,7 @@ commit/push/deploy: NO hasta Luis confirme y autorice hosting.
 | `productoSinStock` / picker | OK | Hereda `productoDescuentaInventarioPos` |
 | Inventario productos grid | Fix | `aspect-ratio`+`max-height` → `height: 120px` |
 | Portal `.portal-stats` | Fix | 1 col &lt;480 → 3 cols |
-| `admin-kpi-grid` / `admin-crud` stats | OK | `@container admin-page` 1/2/4 |
+| `admin-kpi-grid` / `admin-crud` stats | OK | `@container admin-page` 1/2/4 · orden canónico 2026-10-18: KPI **debajo** del listado (061) |
 | Inventario diálogos form/stats | OK | media 900/640 ya presentes |
 | POS home tiles | OK | `@container` 1/2/3 |
 | Citas / clientes / baños / finanzas grids densos | OK | sin `repeat(4+)` fijo problemático |

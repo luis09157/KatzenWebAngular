@@ -67,14 +67,35 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Notas</mat-label>
-        <textarea matInput rows="3" formControlName="notas" maxlength="800"></textarea>
+        <mat-label>Procedimiento / notas (van al machote)</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          formControlName="notas"
+          maxlength="800"
+          placeholder="Ej. OVH electiva, riesgos conversados, ayuno indicado…"
+        ></textarea>
       </mat-form-field>
+
+      <section class="consentimiento-dialog__preview full-width" aria-label="Vista previa del machote">
+        <div class="consentimiento-dialog__preview-head">
+          <h3 class="consentimiento-dialog__preview-title">Vista previa del machote</h3>
+          <button mat-stroked-button type="button" (click)="verMachoteCompleto()">
+            <mat-icon>description</mat-icon>
+            Ver machote completo
+          </button>
+        </div>
+        <p class="consentimiento-dialog__preview-note">
+          Cambia al elegir el tipo y los datos del formulario. Borrador clínico — revisar con veterinario/abogado.
+        </p>
+        <div class="consentimiento-dialog__preview-frame" [innerHTML]="previewCompactHtml"></div>
+      </section>
     </form>
   </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions" align="end">
     <button mat-button type="button" (click)="cancelar()" [disabled]="loading">Cancelar</button>
+    <button mat-stroked-button type="button" (click)="verMachoteCompleto()" [disabled]="loading">Ver machote</button>
     <button
       mat-raised-button
       color="primary"

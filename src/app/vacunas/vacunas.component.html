@@ -1,95 +1,152 @@
 <div class="admin-page vacunas-contenedor">
-  <p class="section-eyebrow">Resumen del módulo</p>
-  <app-admin-kpi-grid>
-    <app-admin-stat-card
-      accent="teal"
-      [value]="estadisticas.delMes"
-      label="Vacunas del mes"
-      hint="Registradas este mes"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="blue"
-      icon="event"
-      [value]="estadisticas.estaSemana"
-      label="Refuerzos esta semana"
-      hint="Próxima dosis en estos 7 días"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="orange"
-      icon="warning"
-      [value]="estadisticas.vencidas"
-      label="Refuerzos vencidos"
-      hint="Fecha de siguiente dosis pasada"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
+  <div class="admin-list-shell">
+    <app-admin-page-banner
       accent="green"
-      icon="check_circle"
-      [value]="estadisticas.aplicadas"
-      label="Aplicadas"
-      hint="Completadas"
-    ></app-admin-stat-card>
-  </app-admin-kpi-grid>
-
-  <app-admin-page-banner
-    accent="green"
-    icon="vaccines"
-    title="Vacunas"
-    subtitle="Registra la aplicación aquí. El cobro se hace en Cuenta del día."
-  >
-    <div bannerActions>
-      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalVacuna()">
-        <mat-icon>add</mat-icon>
-        Nueva vacuna
-      </button>
-    </div>
-  </app-admin-page-banner>
-
-  <app-flow-hint
-    hintId="vacunas-listado"
-    icon="notifications_active"
-    message="El dueño recibe el aviso cerca de la fecha acordada (7 días antes y el mismo día), no el día en que se vacunó a meses vista. Activa avisos de clínica en el menú lateral si quieres el resumen del día."
-  >
-  </app-flow-hint>
-
-  <app-admin-data-panel
-    accent="green"
-    title="Listado de vacunas"
-    description="Busca por paciente, tipo de vacuna o veterinario."
-    [meta]="
-      !loading && dataSource?.data?.length
-        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales'
-        : ''
-    "
-    [showLegend]="!loading && !!dataSource?.data?.length"
-  >
-    <mat-form-field appearance="outline" class="buscador panel-search">
-      <mat-label>Buscar vacuna</mat-label>
-      <input
-        matInput
-        (keyup)="aplicarFiltro($event)"
-        (input)="aplicarFiltro($event)"
-        placeholder="Paciente, tipo de vacuna..."
-      />
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando vacunas…</p>
-    </div>
-
-    <app-admin-empty-state
-      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
       icon="vaccines"
-      title="Aún no hay vacunas"
-      message="Elige paciente y vacuna. Luego puedes agregar el cobro a la cuenta del día."
-      actionLabel="Nueva vacuna"
-      (action)="abrirModalVacuna()"
+      title="Vacunas"
+      subtitle="Registra la aplicación aquí. El cobro se hace en Cuenta del día."
     >
-    </app-admin-empty-state>
+      <div bannerActions>
+        <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalVacuna()">
+          <mat-icon>add</mat-icon>
+          Nueva vacuna
+        </button>
+      </div>
+    </app-admin-page-banner>
 
-    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
-      <table mat-table [dataSource]="dataSource">
+    <app-flow-hint
+      hintId="vacunas-listado"
+      icon="notifications_active"
+      message="El dueño recibe el aviso cerca de la fecha acordada (7 días antes y el mismo día), no el día en que se vacunó a meses vista. Activa avisos de clínica en el menú lateral si quieres el resumen del día."
+    >
+    </app-flow-hint>
+
+    <app-admin-data-panel
+      accent="green"
+      title="Listado de vacunas"
+      description="Hoy y mañana: aplicación o próxima dosis. Busca paciente, tipo o fecha para el historial."
+      [meta]="listadoMeta"
+      [showLegend]="!loading && todasFilasTieneDatos"
+    >
+      <mat-form-field appearance="outline" class="buscador panel-search">
+        <mat-label>Buscar en historial</mat-label>
+        <input
+          matInput
+          (keyup)="aplicarFiltro($event)"
+          (input)="aplicarFiltro($event)"
+          placeholder="Paciente, tipo, fecha…"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
+        Aplicaciones o próximas dosis de hoy y mañana. Escribe para consultar el historial ({{
+          estadisticas.total
+        }}
+        registros).
+      </p>
+      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
+        Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      </p>
+
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando vacunas…</p>
+      </div>
+
+      <app-admin-empty-state
+        *ngIf="!loading && !todasFilasTieneDatos"
+        icon="vaccines"
+        title="Aún no hay vacunas"
+        message="Elige paciente y vacuna. Luego puedes agregar el cobro a la cuenta del día."
+        actionLabel="Nueva vacuna"
+        (action)="abrirModalVacuna()"
+      >
+      </app-admin-empty-state>
+
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
+        <section class="listado-seccion listado-seccion--hoy" aria-labelledby="vacunas-hoy-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="vacunas-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSourceHoy.data.length }} vacuna{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionHoyVacia"
+            icon="today"
+            title="No hay vacunas de hoy"
+            message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceHoy.data.length"
+            [ngTemplateOutlet]="vacunaTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
+          ></ng-container>
+        </section>
+        <section class="listado-seccion listado-seccion--manana" aria-labelledby="vacunas-manana-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="vacunas-manana-titulo" class="listado-seccion__title">Mañana</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSourceManana.data.length }} vacuna{{ dataSourceManana.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionMananaVacia"
+            icon="event"
+            title="No hay vacunas de mañana"
+            message="Programa una o revisa el historial con el buscador."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceManana.data.length"
+            [ngTemplateOutlet]="vacunaTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+          ></ng-container>
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && modoBusqueda">
+        <section class="listado-seccion listado-seccion--resultados" aria-labelledby="vacunas-resultados-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="vacunas-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="busquedaSinResultados"
+            icon="search_off"
+            title="Sin coincidencias"
+            message="Prueba otro paciente, tipo o fecha."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSource.data.length"
+            [ngTemplateOutlet]="vacunaTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSource }"
+          ></ng-container>
+          <mat-paginator
+            *ngIf="dataSource.data.length"
+            #paginator
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </section>
+      </ng-container>
+    </app-admin-data-panel>
+  </div>
+
+  <ng-template #vacunaTablaTpl let-ds>
+    <div class="table-scroll" *ngIf="ds && ds.data && ds.data.length > 0">
+      <table mat-table [dataSource]="ds">
         <ng-container matColumnDef="fecha_vacuna">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let vacuna">
@@ -209,15 +266,38 @@
         ></tr>
       </table>
     </div>
+  </ng-template>
 
-    <mat-paginator
-      *ngIf="!loading && dataSource?.data?.length"
-      #paginator
-      [pageSize]="pageSize"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      showFirstLastButtons
-    ></mat-paginator>
-  </app-admin-data-panel>
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card
+      accent="teal"
+      [value]="estadisticas.delMes"
+      label="Vacunas del mes"
+      hint="Registradas este mes"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      icon="event"
+      [value]="estadisticas.estaSemana"
+      label="Refuerzos esta semana"
+      hint="Próxima dosis en estos 7 días"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      icon="warning"
+      [value]="estadisticas.vencidas"
+      label="Refuerzos vencidos"
+      hint="Fecha de siguiente dosis pasada"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="check_circle"
+      [value]="estadisticas.aplicadas"
+      label="Aplicadas"
+      hint="Completadas"
+    ></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
   <mat-menu #vacunaMenu="matMenu">
     <button mat-menu-item (click)="verVacuna(menuContext)" [disabled]="!menuContext">

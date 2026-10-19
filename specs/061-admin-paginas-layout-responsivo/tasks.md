@@ -223,3 +223,52 @@ Warning: bundle initial exceeded maximum budget. Budget 2.00 MB was not met by 3
 - [x] Memoria: `agent-guardrails` + `module-map`
 - [x] Build: `npm run build` exit 0 (2026-10-02; warning budget bundle inicial conocido)
 
+### Follow-up 2026-10-18 — KPIs debajo del listado (L2)
+
+- [x] Orden canónico CRUD: banner + CTA → data-panel → `app-admin-kpi-grid` abajo
+- [x] Módulos: baños, consentimientos, servicios-clínica, pensión, clientes, vacunas, recordatorios, finanzas, citas, usuarios, historiales, contactos, inventario (productos/movimientos/proveedores/órdenes/alertas/reportes/hub), pacientes-admin, expediente pacientes
+- [x] Docs: `ADMIN-UI-ARCHITECTURE.md` § orden canónico; rules `admin-ui` / `new-admin-module`; AGENTS + constitution
+- [x] CSS: `admin-page-layout.scss` (márgenes KPI post-listado)
+- [x] `npm run build` exit 0 (2026-10-18; warning budget bundle inicial conocido)
+- Excepción: dashboard `/admin/inicio` (KPIs = contenido principal)
+
+### Follow-up 2026-10-18 — Shell unificado listas CRUD (L2)
+
+- [x] Patrón `.admin-list-shell`: banner + flow-hint + data-panel = **una** composición (sin 2–3 cards apiladas)
+- [x] CSS canónico: `src/styles/admin-page-layout.scss` (borde/sombra únicos; hint flush; header de listado compacto)
+- [x] Referencia visual: `/admin/banios`
+- [x] Migrados: baños, clientes, consentimientos, pensión, servicios-clínica, vacunas, recordatorios, citas
+- [x] Checklist shell: historiales, contactos-web, usuarios, pacientes-admin, inventario (productos/movimientos/proveedores/órdenes/alertas), finanzas (parcial: hint+banner)
+- [x] Docs: `ADMIN-UI-ARCHITECTURE.md` § orden canónico; rules `admin-ui` / `new-admin-module`
+- [x] KPIs siguen **fuera** del shell, debajo
+- [x] `npm run build` exit 0 (2026-10-18; warning budget bundle inicial conocido)
+
+### Follow-up 2026-10-18 — Listados Hoy+Mañana / búsqueda (L2, patrón 085)
+
+- [x] Util genérico `core/utils/listado-hoy-manana.util.ts` (+ spec); baños delega vía `banio-listado-filtro.util`
+- [x] CSS secciones: `admin-page-layout.scss` (`.listado-seccion--hoy|manana|resultados`)
+- [x] Con agenda: citas, pensión (activas en Hoy), recordatorios, vacunas (aplicación|próxima), consentimientos, historiales, baños
+- [x] Sin Hoy/Mañana (solo shell + búsqueda): clientes, usuarios, pacientes-admin, contactos-web, inventario, finanzas, servicios-clínica
+- [x] Excepción POS: visitas ya es «tickets de hoy» — no forzar secciones
+- [x] Unit tests listado genérico 8/8 + banio filtro; `npm run build` exit 0
+
+### Follow-up 2026-10-18 — Fix hueco móvil banner/list-shell (L2, ≤480/375)
+
+- [x] Causa: `.banner-actions { flex: 1 1 420px }` + `justify-content: space-between` en columna → CTAs al fondo del viewport
+- [x] Fix compartido: `admin-page-banner.component.scss` (flex-start, sin basis 420px, CTAs wrap/full-width ≤720/400)
+- [x] Refuerzo shell: `admin-page-layout.scss` (@container ≤720/400) + padding denso; `admin-crud` min-height móvil
+- [x] Touch: `.row-actions` icon-buttons ≥40px (≤900); `.table-scroll` overflow-x en ≤600
+- [x] `npm run build` exit 0 (2026-10-19; warning budget bundle inicial conocido)
+- Smoke 375: `/admin/banios`, `/admin/citas` (Hoy/Mañana), `/admin/inicio` (calendario), otra lista con KPI abajo
+
+### Follow-up 2026-10-18 — Tablas móvil scroll usable (L2, ≤600)
+
+- [x] **Opción A:** `.table-scroll` overflow-x siempre; `table min-width` 880px (≤600) / 800px (≤900) — **no** 560px
+- [x] Bug: `.row-actions.hide-mobile { display:inline-flex !important }` ganaba a `display:none` → iconos solapaban chip ESTADO
+- [x] Fix: ocultar `.row-actions.hide-mobile` en ≤900; `td.acciones` = `table-cell` (no flex); sticky derecha ≤600
+- [x] Columnas `fecha_banio` / `hora_banio` / `tipo_servicio` con min-width; headers nowrap
+- [x] Global: `admin-table.scss` + `admin-data-panel.scss` + `admin-crud.scss`; baños/listado-seccion overflow visible
+- [x] Docs: `ADMIN-UI-ARCHITECTURE.md` (patrón scroll; card-rows B diferido)
+- [x] `npm run build` exit 0 (2026-10-19; Hash 2ff0f66c2c653170; warning budget bundle inicial conocido)
+- Verificar 375: `/admin/banios` → deslizar tabla Hoy/Mañana; headers completos; PROGRAMADO sin clip; menú `more_vert` sticky
+

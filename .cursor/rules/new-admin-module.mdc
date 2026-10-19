@@ -46,13 +46,15 @@ src/app/mi-modulo/
 
 ```html
 <div class="admin-page mi-modulo-contenedor">
+  <div class="admin-list-shell">
+    <app-admin-page-banner>...</app-admin-page-banner>
+    <app-admin-data-panel>
+      <div class="table-scroll">
+        <table mat-table>...</table>
+      </div>
+    </app-admin-data-panel>
+  </div>
   <app-admin-kpi-grid>...</app-admin-kpi-grid>
-  <app-admin-page-banner>...</app-admin-page-banner>
-  <app-admin-data-panel>
-    <div class="table-scroll">
-      <table mat-table>...</table>
-    </div>
-  </app-admin-data-panel>
 </div>
 ```
 

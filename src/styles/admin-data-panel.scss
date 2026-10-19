@@ -54,12 +54,9 @@
 .admin-content td.mat-column-acciones,
 .admin-content .mat-mdc-cell.mat-column-acciones {
   overflow: visible !important;
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 2px !important;
+  /* table-cell (no flex): flex en <td> rompe el layout y solapa chips en móvil */
+  display: table-cell !important;
+  text-align: right !important;
   white-space: nowrap !important;
   vertical-align: middle !important;
   padding-left: 6px !important;
@@ -104,6 +101,7 @@
 }
 
 @media (max-width: 900px) {
+  .admin-content .row-actions.hide-mobile,
   .admin-content .row-actions .hide-mobile,
   .admin-content .hide-mobile {
     display: none !important;
@@ -125,10 +123,24 @@
     padding-left: 4px !important;
     padding-right: 4px !important;
   }
+
+  /* Touch targets ≥40px en celular (antes 36px) */
+  .admin-content .row-actions .mat-mdc-icon-button,
+  .admin-content .row-actions-icons .mat-mdc-icon-button,
+  .admin-content td.mat-column-acciones > .mat-mdc-icon-button,
+  .admin-content .mat-mdc-cell.mat-column-acciones > .mat-mdc-icon-button,
+  .admin-content button.mat-mdc-icon-button.show-mobile-only {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
 }
 
 .admin-content .table-scroll {
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-content .data-row:hover {

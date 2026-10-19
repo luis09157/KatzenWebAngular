@@ -1,93 +1,140 @@
 <div class="admin-page recordatorios-contenedor">
-  <p class="section-eyebrow">Resumen del módulo</p>
-  <app-admin-kpi-grid>
-    <app-admin-stat-card
+  <div class="admin-list-shell">
+    <app-admin-page-banner
       accent="blue"
       icon="notifications"
-      [value]="estadisticas.total"
-      label="Total recordatorios"
-      hint="En el sistema"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="orange"
-      icon="schedule"
-      [value]="estadisticas.pendientes"
-      label="Pendientes"
-      hint="Por atender"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="green"
-      icon="check_circle"
-      [value]="estadisticas.completados"
-      label="Completados"
-      hint="Finalizados"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="purple"
-      icon="pets"
-      [value]="estadisticas.pacientesUnicos"
-      label="Pacientes únicos"
-      hint="Con recordatorio"
-    ></app-admin-stat-card>
-  </app-admin-kpi-grid>
-
-  <app-admin-page-banner
-    accent="blue"
-    icon="notifications"
-    title="Administración de Recordatorios"
-    subtitle="Vacunas, desparasitación, medicamentos y seguimientos."
-  >
-    <div bannerActions>
-      <button mat-stroked-button color="primary" type="button" (click)="abrirRegistrarDesparasitacion()">
-        <mat-icon>medication</mat-icon>
-        Registrar desparasitación
-      </button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalRecordatorio()">
-        <mat-icon>add</mat-icon>
-        Nuevo recordatorio
-      </button>
-    </div>
-  </app-admin-page-banner>
-
-  <app-admin-data-panel
-    accent="blue"
-    title="Listado de recordatorios"
-    description="Busca por título, paciente, tipo o prioridad."
-    [meta]="
-      !loading && dataSource?.data?.length
-        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.total + ' totales'
-        : ''
-    "
-    [showLegend]="!loading && !!dataSource?.data?.length"
-  >
-    <mat-form-field appearance="outline" class="buscador panel-search">
-      <mat-label>Buscar recordatorio</mat-label>
-      <input
-        matInput
-        (keyup)="aplicarFiltro($event)"
-        (input)="aplicarFiltro($event)"
-        placeholder="Título, paciente, tipo..."
-      />
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando recordatorios…</p>
-    </div>
-
-    <app-admin-empty-state
-      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
-      icon="notifications_off"
-      title="Aún no hay recordatorios"
-      message="Crea recordatorios de vacunas, desparasitación o seguimiento. Elige dueño y mascota primero."
-      actionLabel="Nuevo recordatorio"
-      (action)="abrirModalRecordatorio()"
+      title="Administración de Recordatorios"
+      subtitle="Vacunas, desparasitación, medicamentos y seguimientos."
     >
-    </app-admin-empty-state>
+      <div bannerActions>
+        <button mat-stroked-button color="primary" type="button" (click)="abrirRegistrarDesparasitacion()">
+          <mat-icon>medication</mat-icon>
+          Registrar desparasitación
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalRecordatorio()">
+          <mat-icon>add</mat-icon>
+          Nuevo recordatorio
+        </button>
+      </div>
+    </app-admin-page-banner>
 
-    <div class="table-scroll" *ngIf="!loading && dataSource && dataSource.data.length > 0">
-      <table mat-table [dataSource]="dataSource" class="recordatorios-table">
+    <app-admin-data-panel
+      accent="blue"
+      title="Listado de recordatorios"
+      description="Hoy y mañana por defecto. Busca título, paciente, tipo o fecha para el historial."
+      [meta]="listadoMeta"
+      [showLegend]="!loading && todasFilasTieneDatos"
+    >
+      <mat-form-field appearance="outline" class="buscador panel-search">
+        <mat-label>Buscar en historial</mat-label>
+        <input
+          matInput
+          (keyup)="aplicarFiltro($event)"
+          (input)="aplicarFiltro($event)"
+          placeholder="Título, paciente, tipo o fecha…"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
+        Agenda de hoy y mañana. Escribe para consultar el historial.
+      </p>
+      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
+        Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      </p>
+
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando recordatorios…</p>
+      </div>
+
+      <app-admin-empty-state
+        *ngIf="!loading && !todasFilasTieneDatos"
+        icon="notifications_off"
+        title="Aún no hay recordatorios"
+        message="Crea recordatorios de vacunas, desparasitación o seguimiento. Elige dueño y mascota primero."
+        actionLabel="Nuevo recordatorio"
+        (action)="abrirModalRecordatorio()"
+      >
+      </app-admin-empty-state>
+
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
+        <section class="listado-seccion listado-seccion--hoy" aria-labelledby="rec-hoy-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="rec-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+              <p class="listado-seccion__meta">{{ dataSourceHoy.data.length }}</p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionHoyVacia"
+            icon="today"
+            title="No hay recordatorios de hoy"
+            message="Los de mañana se ven abajo."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceHoy.data.length"
+            [ngTemplateOutlet]="recTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
+          ></ng-container>
+        </section>
+        <section class="listado-seccion listado-seccion--manana" aria-labelledby="rec-manana-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="rec-manana-titulo" class="listado-seccion__title">Mañana</h3>
+              <p class="listado-seccion__meta">{{ dataSourceManana.data.length }}</p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionMananaVacia"
+            icon="event"
+            title="No hay recordatorios de mañana"
+            message="Revisa el historial con el buscador."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceManana.data.length"
+            [ngTemplateOutlet]="recTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+          ></ng-container>
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && modoBusqueda">
+        <section class="listado-seccion listado-seccion--resultados" aria-labelledby="rec-res-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="rec-res-titulo" class="listado-seccion__title">Resultados</h3>
+              <p class="listado-seccion__meta">{{ dataSource.data.length }}</p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="busquedaSinResultados"
+            icon="search_off"
+            title="Sin coincidencias"
+            message="Prueba otro título, paciente o fecha."
+          ></app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSource.data.length"
+            [ngTemplateOutlet]="recTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSource }"
+          ></ng-container>
+          <mat-paginator
+            *ngIf="dataSource.data.length"
+            #paginator
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </section>
+      </ng-container>
+    </app-admin-data-panel>
+  </div>
+
+  <ng-template #recTablaTpl let-ds>
+    <div class="table-scroll" *ngIf="ds && ds.data && ds.data.length > 0">
+      <table mat-table [dataSource]="ds" class="recordatorios-table">
         <ng-container matColumnDef="fecha_recordatorio">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let recordatorio">
@@ -233,15 +280,39 @@
         ></tr>
       </table>
     </div>
+  </ng-template>
 
-    <mat-paginator
-      *ngIf="!loading && dataSource?.data?.length"
-      #paginator
-      [pageSize]="pageSize"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      showFirstLastButtons
-    ></mat-paginator>
-  </app-admin-data-panel>
+  <p class="section-eyebrow">Resumen del módulo</p>
+  <app-admin-kpi-grid>
+    <app-admin-stat-card
+      accent="blue"
+      icon="notifications"
+      [value]="estadisticas.total"
+      label="Total recordatorios"
+      hint="En el sistema"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      icon="schedule"
+      [value]="estadisticas.pendientes"
+      label="Pendientes"
+      hint="Por atender"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      icon="check_circle"
+      [value]="estadisticas.completados"
+      label="Completados"
+      hint="Finalizados"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="purple"
+      icon="pets"
+      [value]="estadisticas.pacientesUnicos"
+      label="Pacientes únicos"
+      hint="Con recordatorio"
+    ></app-admin-stat-card>
+  </app-admin-kpi-grid>
 
   <mat-menu #recordatorioMenu="matMenu">
     <button mat-menu-item (click)="verRecordatorio(menuContext)" [disabled]="!menuContext">

@@ -5,66 +5,40 @@
   </div>
 
   <ng-container *ngIf="!(loading && selectedTab === 0)">
-    <app-flow-hint
-      hintId="finanzas-caja"
-      icon="receipt_long"
-      variant="warn"
-      message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin)."
-    >
-    </app-flow-hint>
+    <div class="admin-list-shell">
+      <app-flow-hint
+        hintId="finanzas-caja"
+        icon="receipt_long"
+        variant="warn"
+        message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin)."
+      >
+      </app-flow-hint>
 
-    <p class="section-eyebrow">Finanzas de la clínica</p>
-    <app-admin-kpi-grid>
-      <app-admin-stat-card
-        accent="green"
-        [value]="formatMoney(kpis.neto)"
-        label="Neto caja"
-        hint="Ingresos − egresos"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
+      <app-admin-page-banner
         accent="teal"
-        [value]="formatMoney(kpis.totalIngresos)"
-        label="Ingresos"
-        hint="Cobros del período"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="blue"
-        [value]="formatMoney(kpis.margenEstimado)"
-        label="Margen estimado"
-        hint="Solo cobros con costo · sin costo → no entra aquí"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="orange"
-        [value]="formatMoney(kpis.totalEgresos)"
-        label="Gastos"
-        hint="Egresos del período"
-      ></app-admin-stat-card>
-    </app-admin-kpi-grid>
-
-    <app-admin-page-banner
-      accent="teal"
-      icon="account_balance_wallet"
-      title="Caja / costos / rentabilidad"
-      subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día."
-    >
-      <div bannerActions>
-        <button mat-stroked-button type="button" *ngIf="isAdmin" (click)="abrirCorteCaja()">
-          <mat-icon>point_of_sale</mat-icon>
-          Corte de caja
-        </button>
-        <button
-          mat-raised-button
-          color="primary"
-          class="btn-primary-teal"
-          type="button"
-          *ngIf="isAdmin"
-          (click)="nuevoMovimiento()"
-        >
-          <mat-icon>add</mat-icon>
-          Registrar cobro
-        </button>
-      </div>
-    </app-admin-page-banner>
+        icon="account_balance_wallet"
+        title="Caja / costos / rentabilidad"
+        subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día."
+      >
+        <div bannerActions>
+          <button mat-stroked-button type="button" *ngIf="isAdmin" (click)="abrirCorteCaja()">
+            <mat-icon>point_of_sale</mat-icon>
+            Corte de caja
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal"
+            type="button"
+            *ngIf="isAdmin"
+            (click)="nuevoMovimiento()"
+          >
+            <mat-icon>add</mat-icon>
+            Registrar cobro
+          </button>
+        </div>
+      </app-admin-page-banner>
+    </div>
 
     <div class="admin-toolbar finanzas-toolbar" aria-label="Filtros de período">
       <div class="admin-toolbar__actions finanzas-toolbar__filters">
@@ -390,8 +364,8 @@
           *ngIf="!loadingPlantillas"
           accent="teal"
           title="Defaults baño por tamaño"
-          description="Costo, precio sugerido y plantilla opcional (P/M/G). El modal de baño prellena al elegir tamaño; 0 = sin tarifa."
-          meta="3 tamaños"
+          description="Costo (KPI interno) y precio sugerido al cliente (P/M/G/XL). El modal prellena al elegir tamaño; XL sin tarifa usa fallback en código."
+          meta="4 tamaños"
           [showLegend]="false"
         >
           <div class="defaults-banio-grid" *ngIf="defaultsForm" [formGroup]="defaultsForm">
@@ -673,5 +647,33 @@
         </app-admin-data-panel>
       </mat-tab>
     </mat-tab-group>
+
+    <p class="section-eyebrow">Finanzas de la clínica</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card
+        accent="green"
+        [value]="formatMoney(kpis.neto)"
+        label="Neto caja"
+        hint="Ingresos − egresos"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="formatMoney(kpis.totalIngresos)"
+        label="Ingresos"
+        hint="Cobros del período"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="formatMoney(kpis.margenEstimado)"
+        label="Margen estimado"
+        hint="Solo cobros con costo · sin costo → no entra aquí"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="formatMoney(kpis.totalEgresos)"
+        label="Gastos"
+        hint="Egresos del período"
+      ></app-admin-stat-card>
+    </app-admin-kpi-grid>
   </ng-container>
 </div>

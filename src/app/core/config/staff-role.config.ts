@@ -174,7 +174,10 @@ export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
 /** Hijos de Agenda (no van sueltos al nivel de Cobrar). */
 export const STAFF_NAV_AGENDA: StaffModule[] = ['citas', 'banios', 'pension'];
 
-/** Ítems de Más (visibles según rol / nav). */
+/**
+ * Ítems de Más (visibles según rol / nav).
+ * Orden UX: clínica → inventario/catálogo → administración (finanzas/corte al final, lejos de Cobrar).
+ */
 export const STAFF_NAV_MAS: StaffModule[] = [
   'clientes',
   'consentimientos',
@@ -182,9 +185,9 @@ export const STAFF_NAV_MAS: StaffModule[] = [
   'vacunas',
   'inventario',
   'servicios-clinica',
-  'finanzas',
   'usuarios',
   'contactos-web',
+  'finanzas',
   'configuracion',
 ];
 
@@ -215,7 +218,7 @@ export function staffRoleIsVeterinarioOperativo(staffRole: string | undefined | 
 export function mensajeAccesoDenegadoModulo(module: StaffModule | string): string {
   switch (module) {
     case 'finanzas':
-      return 'Caja y finanzas las ve administración. Te llevamos a Hoy.';
+      return 'Finanzas y corte los ve administración. Te llevamos a Hoy.';
     case 'usuarios':
       return 'El personal lo administra la dueña o un administrador.';
     case 'inventario':

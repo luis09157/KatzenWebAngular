@@ -9,7 +9,12 @@ import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { MatDialog } from '@angular/material/dialog';
 import { CitasDiaDialogComponent } from './citas-dia-dialog.component';
-import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_CONFIRM, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import {
+  ADMIN_DIALOG_DETAIL,
+  ADMIN_DIALOG_CONFIRM,
+  ADMIN_DIALOG_FORM,
+  ADMIN_DIALOG_CONFIG,
+} from '../core/config/admin-ui.config';
 import { OwnerDashboardService } from './owner-dashboard.service';
 import { OwnerDashboardSnapshot } from './owner-dashboard.models';
 import { InversionMetaProgress } from '../core/models/clinic-config.model';
@@ -30,11 +35,20 @@ import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.component';
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from '../citas/cita-atender.util';
+import { CitaDialogComponent } from '../citas/cita-dialog.component';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleSeesOwnerDashboard } from '../core/config/staff-role.config';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { esEstanciaPensionHoy, esRecordatorioHoyOVencido } from './hoy-operacion.util';
+import {
+  CalendarioDiaCell,
+  CitaCalendarioLike,
+  buildCalendarioMesDays,
+  buildCitasMapByDate,
+  isoKeyFromLocalDate,
+  labelDiaSeleccionado,
+} from './dashboard-calendario.util';
 import {
   buildMensajeWhatsappRecordatorio,
   buildTelUrl,
@@ -59,11 +73,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private ownerSub?: Subscription;
   breadcrumbs: Array<{ label: string; url: string }> = [];
   selectedDate = new Date();
-  calendarDays: any[] = [];
-  citas: any[] = [];
-  citasMap: { [key: string]: any[] } = {};
-  selectedDayCitas: any[] = [];
-  selectedDayDate: Date | null = null;
+  calendarDays: CalendarioDiaCell[] = [];
+  citas: CitaCalendarioLike[] = [];
+  citasMap: Record<string, CitaCalendarioLike[]> = {};
+  selectedDayIso = hoyLocalIsoDate();
+  selectedDayCitas: CitaCalendarioLike[] = [];
+  selectedDayDate: Date | null = new Date();
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
   monthNames = [
@@ -83,6 +98,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loading = false;
   ownerLoading = false;
 
+  get calendarioDiaLabel(): string {
+    return labelDiaSeleccionado(this.selectedDayIso, hoyLocalIsoDate());
+  }
+
+  get calendarioDiaDesc(): string {
+    const n = this.selectedDayCitas.length;
+    if (!n) return 'Nadie en agenda este día';
+    return `${n} cita${n === 1 ? '' : 's'} en agenda`;
+  }
+
   /** Spec 025 — filtros dashboard dueño */
   periodoPreset: PeriodoPreset = 'este_mes';
   desdeCustom = '';
@@ -101,7 +126,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   porCobrarTotal = 0;
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   citasHoyCount = 0;
-  citasHoy: any[] = [];
+  citasHoy: CitaCalendarioLike[] = [];
   readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
   verOwnerDash = false;
   verStockBajo = false;
@@ -509,7 +534,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return 'Buenas noches';
   }
 
-  // ——— calendario (existente) ———
+  // ——— calendario (072: debajo de cards de acceso) ———
 
   loadClientesYPacientes(): void {
     this.clientesService
@@ -540,18 +565,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (citas) => {
-          this.citas = (citas || []).filter((c: any) => c.activo !== false);
+          this.citas = (citas || []).filter((c: CitaCalendarioLike) => c.activo !== false);
           const hoy = hoyLocalIsoDate();
-          this.citasHoy = this.citas.filter((c) => this.getCitaDateKey(c) === hoy);
+          this.citasMap = buildCitasMapByDate(this.citas);
+          this.citasHoy = this.citasMap[hoy] || [];
           this.citasHoyCount = this.citasHoy.length;
-          this.citasMap = {};
-          this.citas.forEach((cita) => {
-            const key = this.getCitaDateKey(cita);
-            if (!key) return;
-            if (!this.citasMap[key]) this.citasMap[key] = [];
-            this.citasMap[key].push(cita);
-          });
           this.generateCalendar();
+          this.syncSelectedDayFromMap();
           this.loading = false;
         },
         error: () => {
@@ -560,64 +580,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  private getCitaDateKey(cita: any): string | null {
-    const raw = cita.fecha || cita.fecha_hora;
-    if (!raw) return null;
-    const s = String(raw);
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-    const d = new Date(s);
-    if (isNaN(d.getTime())) return null;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
   generateCalendar(): void {
-    const year = this.selectedDate.getFullYear();
-    const month = this.selectedDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const startDay = firstDay.getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days: any[] = [];
-    const prevMonthDays = new Date(year, month, 0).getDate();
-
-    for (let i = startDay - 1; i >= 0; i--) {
-      days.push({
-        day: prevMonthDays - i,
-        isCurrentMonth: false,
-        isToday: false,
-        hasCitas: false,
-        citas: [],
-      });
-    }
-    const today = new Date();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
-      const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const dayCitas = this.citasMap[key] || [];
-      days.push({
-        day: d,
-        date,
-        isCurrentMonth: true,
-        isToday:
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth() &&
-          date.getFullYear() === today.getFullYear(),
-        hasCitas: dayCitas.length > 0,
-        citas: dayCitas,
-      });
-    }
-    while (days.length % 7 !== 0) {
-      days.push({
-        day: days.length % 7,
-        isCurrentMonth: false,
-        isToday: false,
-        hasCitas: false,
-        citas: [],
-      });
-    }
-    this.calendarDays = days;
+    this.calendarDays = buildCalendarioMesDays(this.selectedDate, this.citasMap);
   }
 
   previousMonth(): void {
@@ -630,21 +594,72 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.generateCalendar();
   }
 
+  goToToday(): void {
+    const hoy = new Date();
+    this.selectedDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    this.generateCalendar();
+    this.selectCalendarDay({
+      day: hoy.getDate(),
+      date: hoy,
+      isoKey: isoKeyFromLocalDate(hoy),
+      isCurrentMonth: true,
+      isToday: true,
+      hasCitas: (this.citasMap[isoKeyFromLocalDate(hoy)] || []).length > 0,
+      citas: this.citasMap[isoKeyFromLocalDate(hoy)] || [],
+    });
+  }
+
   getMonthYearString(): string {
     return `${this.monthNames[this.selectedDate.getMonth()]} ${this.selectedDate.getFullYear()}`;
   }
 
-  showCitasForDay(day: any): void {
-    if (!day?.hasCitas) return;
+  selectCalendarDay(day: CalendarioDiaCell): void {
+    if (!day?.isCurrentMonth || !day.isoKey || !day.date) return;
+    this.selectedDayIso = day.isoKey;
+    this.selectedDayDate = day.date;
+    this.selectedDayCitas = day.citas || this.citasMap[day.isoKey] || [];
+  }
+
+  private syncSelectedDayFromMap(): void {
+    const key = this.selectedDayIso || hoyLocalIsoDate();
+    this.selectedDayIso = key;
+    this.selectedDayCitas = this.citasMap[key] || [];
+    const [y, m, d] = key.split('-').map(Number);
+    if (y && m && d) this.selectedDayDate = new Date(y, m - 1, d);
+  }
+
+  /** Lista del día en diálogo (accesibilidad / móvil). */
+  showCitasForDay(day: CalendarioDiaCell): void {
+    this.selectCalendarDay(day);
+    if (!day?.date) return;
     this.dialog.open(CitasDiaDialogComponent, {
       ...ADMIN_DIALOG_DETAIL,
       data: {
         fecha: day.date,
-        citas: day.citas,
+        citas: day.citas || [],
         clientesMap: this.clientesMap,
         pacientesMap: this.pacientesMap,
       },
     });
+  }
+
+  verDetalleCita(cita: CitaCalendarioLike): void {
+    this.dialog.open(CitaDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      data: { cita, modoVer: true },
+    });
+  }
+
+  horaCita(cita: CitaCalendarioLike): string {
+    if (cita?.hora) return String(cita.hora);
+    const fh = cita?.fecha_hora;
+    if (fh) {
+      const d = new Date(String(fh));
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+    return '—';
   }
 
   private buildBreadcrumbs(

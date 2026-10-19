@@ -1,4 +1,163 @@
 <div class="admin-page banios-contenedor">
+  <div class="admin-list-shell">
+    <app-admin-page-banner
+      accent="teal"
+      icon="spa"
+      title="Peluquería / baños"
+      subtitle="Registra el servicio y el precio. Mostrador lo selecciona en Cobrar con ese mismo monto."
+    >
+      <div bannerActions>
+        <button mat-stroked-button (click)="exportarCsv()">
+          <mat-icon>download</mat-icon>
+          Exportar CSV
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalBanio()">
+          <mat-icon>add</mat-icon>
+          Nuevo baño
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-flow-hint
+      icon="receipt_long"
+      message="1) Fija el precio y la nota. 2) «Listo para cobrar» → sale en Cobrar hoy. 3) Al cobrar desaparece de la cola; el historial sigue en esta lista."
+      variant="info"
+    >
+    </app-flow-hint>
+
+    <app-admin-data-panel
+      accent="teal"
+      title="Listado de baños"
+      description="Hoy y mañana por defecto. Busca cliente, paciente, tipo o fecha para ver el historial."
+      [meta]="listadoMeta"
+      [showLegend]="!loading && filasVisiblesCsv.length > 0"
+    >
+      <mat-form-field appearance="outline" class="buscador panel-search">
+        <mat-label>Buscar en historial</mat-label>
+        <input
+          matInput
+          (keyup)="aplicarFiltro($event)"
+          (input)="aplicarFiltro($event)"
+          placeholder="Cliente, paciente, tipo o fecha…"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
+        Agenda del día y de mañana. Escribe en el buscador para consultar el historial ({{
+          estadisticas.totalHistorico
+        }}
+        registros).
+      </p>
+      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
+        Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      </p>
+
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando baños…</p>
+      </div>
+
+      <app-admin-empty-state
+        *ngIf="!loading && !todasFilasTieneDatos"
+        icon="shower"
+        title="Aún no hay baños"
+        message="Registra un baño con dueño y mascota. Al terminar puedes incluirlo en la cuenta del día para cobrar."
+        actionLabel="Nuevo baño"
+        (action)="abrirModalBanio()"
+      >
+      </app-admin-empty-state>
+
+      <!-- Vista default: dos secciones Hoy / Mañana -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
+        <section class="listado-seccion listado-seccion--hoy" aria-labelledby="banios-hoy-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="banios-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSourceHoy.data.length }} baño{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionHoyVacia"
+            icon="today"
+            title="No hay baños de hoy"
+            message="Los de mañana se ven abajo. Busca en el historial para otras fechas."
+            actionLabel="Nuevo baño"
+            (action)="abrirModalBanio()"
+          >
+          </app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceHoy.data.length"
+            [ngTemplateOutlet]="banioTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
+          ></ng-container>
+        </section>
+
+        <section class="listado-seccion listado-seccion--manana" aria-labelledby="banios-manana-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="banios-manana-titulo" class="listado-seccion__title">Mañana</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSourceManana.data.length }} baño{{ dataSourceManana.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionMananaVacia"
+            icon="event"
+            title="No hay baños de mañana"
+            message="Programa uno con fecha de mañana o revisa el historial con el buscador."
+            actionLabel="Nuevo baño"
+            (action)="abrirModalBanio()"
+          >
+          </app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceManana.data.length"
+            [ngTemplateOutlet]="banioTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+          ></ng-container>
+        </section>
+      </ng-container>
+
+      <!-- Vista búsqueda: una sección Resultados -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && modoBusqueda">
+        <section class="listado-seccion listado-seccion--resultados" aria-labelledby="banios-resultados-titulo">
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="banios-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="busquedaSinResultados"
+            icon="search_off"
+            title="Sin coincidencias"
+            message="Prueba otro cliente, paciente, tipo de baño o fecha (ej. 18/10/2026)."
+          >
+          </app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSource.data.length"
+            [ngTemplateOutlet]="banioTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSource }"
+          ></ng-container>
+          <mat-paginator
+            *ngIf="dataSource.data.length"
+            #paginator
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </section>
+      </ng-container>
+    </app-admin-data-panel>
+  </div>
+
   <p class="section-eyebrow">Resumen del módulo · {{ periodoKpiLabel }}</p>
   <div class="kpi-periodo-bar">
     <button
@@ -61,13 +220,13 @@
       accent="orange"
       [value]="formatMoney(estadisticas.costosEstimados)"
       label="Costos estimados"
-      hint="Campo costoEstimado"
+      hint="Auto desde tarifas · N/A si no hay · no cobro POS"
     ></app-admin-stat-card>
     <app-admin-stat-card
       accent="green"
       [value]="formatMoney(estadisticas.margenEstimado)"
       label="Ganancia (margen)"
-      hint="Ingresos brutos − costos · si costo=venta → $0"
+      hint="Ingresos − costo estimado auto · N/A sin costo"
     ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
@@ -92,6 +251,12 @@
       hint="Mascotas grandes"
     ></app-admin-stat-card>
     <app-admin-stat-card
+      accent="teal"
+      [value]="estadisticas.tamanoXl"
+      label="XL"
+      hint="Extra grande / gigante"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
       accent="orange"
       [value]="estadisticas.tamanoSinClasificar"
       label="Sin tamaño"
@@ -99,73 +264,9 @@
     ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
-  <app-flow-hint
-    icon="receipt_long"
-    message="1) Fija el precio y la nota. 2) «Listo para cobrar» → sale en Cobrar hoy. 3) Al cobrar desaparece de la cola; el historial sigue en esta lista."
-    variant="info"
-  >
-  </app-flow-hint>
-
-  <app-admin-page-banner
-    accent="teal"
-    icon="spa"
-    title="Peluquería / baños"
-    subtitle="Registra el servicio y el precio. Mostrador lo selecciona en Cobrar con ese mismo monto."
-  >
-    <div bannerActions>
-      <button mat-stroked-button (click)="exportarCsv()">
-        <mat-icon>download</mat-icon>
-        Exportar CSV
-      </button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalBanio()">
-        <mat-icon>add</mat-icon>
-        Nuevo baño
-      </button>
-    </div>
-  </app-admin-page-banner>
-
-  <app-admin-data-panel
-    accent="teal"
-    title="Listado de baños"
-    description="Primero dueño y mascota. Luego tipo de servicio y precio."
-    [meta]="
-      !loading && dataSource?.data?.length
-        ? dataSource.filteredData.length + ' en pantalla · ' + estadisticas.totalHistorico + ' totales'
-        : ''
-    "
-    [showLegend]="!loading && !!dataSource?.data?.length"
-  >
-    <mat-form-field appearance="outline" class="buscador panel-search">
-      <mat-label>Buscar baño</mat-label>
-      <input
-        matInput
-        (keyup)="aplicarFiltro($event)"
-        (input)="aplicarFiltro($event)"
-        placeholder="Paciente, cliente, tipo de servicio..."
-      />
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando baños…</p>
-    </div>
-
-    <app-admin-empty-state
-      *ngIf="!loading && (!dataSource || dataSource.data.length === 0)"
-      icon="shower"
-      title="Aún no hay baños"
-      message="Registra un baño con dueño y mascota. Al terminar puedes incluirlo en la cuenta del día para cobrar."
-      actionLabel="Nuevo baño"
-      (action)="abrirModalBanio()"
-    >
-    </app-admin-empty-state>
-
-    <div
-      class="table-scroll"
-      *ngIf="!loading && tablaInicializada && dataSource && dataSource.data && dataSource.data.length > 0"
-    >
-      <table mat-table [dataSource]="dataSource">
+  <ng-template #banioTablaTpl let-ds>
+    <div class="table-scroll" *ngIf="ds && ds.data && ds.data.length > 0">
+      <table mat-table [dataSource]="ds">
         <ng-container matColumnDef="fecha_banio">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let banio">
@@ -292,15 +393,7 @@
         ></tr>
       </table>
     </div>
-
-    <mat-paginator
-      *ngIf="!loading && dataSource?.data?.length"
-      #paginator
-      [pageSize]="pageSize"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      showFirstLastButtons
-    ></mat-paginator>
-  </app-admin-data-panel>
+  </ng-template>
 
   <mat-menu #banioMenu="matMenu">
     <button mat-menu-item (click)="verBanio(menuContext)" [disabled]="!menuContext">

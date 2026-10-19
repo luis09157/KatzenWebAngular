@@ -1,8 +1,28 @@
+/* Host: margen inferior para no solapar la siguiente sección del formulario. */
+app-cliente-paciente-picker {
+  display: block;
+  margin-bottom: 8px;
+}
+
 .cliente-paciente-picker {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
+  gap: 16px 16px;
   width: 100%;
+}
+
+/* Hints multilínea: subscriptSizing=dynamic + sin clip. */
+.cliente-paciente-picker__field.mat-mdc-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    margin-top: 4px;
+    overflow: visible;
+  }
+
+  mat-hint {
+    display: block;
+    line-height: 1.35;
+    white-space: normal;
+  }
 }
 
 .cliente-paciente-picker__field.full-span,
@@ -10,23 +30,26 @@
   grid-column: 1 / -1;
 }
 
-/* Spec 065 — fila campo + botón «Cliente nuevo» / «Agregar mascota» (táctil ≥44px). */
+/* Spec 065 — fila campo + CTA crear. CTAs debajo del campo (no solapan mat-hint). */
 .cliente-paciente-picker__row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   min-width: 0;
 
   .cliente-paciente-picker__field {
     flex: 1 1 auto;
     min-width: 0;
+    width: 100%;
   }
 }
 
 .cliente-paciente-picker__crear.mat-mdc-outlined-button {
   flex: 0 0 auto;
+  align-self: stretch;
   min-height: 48px;
-  margin-top: 4px;
+  margin: 0;
   padding: 0 14px;
   border-radius: var(--admin-radius-md, 12px);
   white-space: nowrap;
@@ -40,17 +63,33 @@
   opacity: 0.85;
 }
 
+@media (min-width: 641px) {
+  /* Desktop: CTA a la derecha del input, alineado al outline (no encima del hint). */
+  .cliente-paciente-picker__row--crear {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+
+    .cliente-paciente-picker__crear.mat-mdc-outlined-button {
+      align-self: flex-start;
+      /* Empuja el botón a la altura del outline (debajo del label flotante). */
+      margin-top: 8px;
+      width: auto;
+    }
+  }
+}
+
 @media (max-width: 640px) {
-  .cliente-paciente-picker {
-    grid-template-columns: 1fr;
+  app-cliente-paciente-picker {
+    margin-bottom: 12px;
   }
 
-  .cliente-paciente-picker__row {
-    flex-wrap: wrap;
+  .cliente-paciente-picker {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .cliente-paciente-picker__crear.mat-mdc-outlined-button {
     width: 100%;
-    margin-top: 0;
   }
 }

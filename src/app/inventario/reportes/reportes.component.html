@@ -5,34 +5,6 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <p class="section-eyebrow">Inventario · análisis</p>
-    <app-admin-kpi-grid>
-      <app-admin-stat-card
-        accent="blue"
-        [value]="totalProductos"
-        label="Productos"
-        hint="En catálogo"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="green"
-        [value]="productosActivos"
-        label="Activos"
-        hint="Disponibles"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="teal"
-        [value]="'$' + (valorInventario | number: '1.0-0')"
-        label="Valor inventario"
-        hint="Stock × costo"
-      ></app-admin-stat-card>
-      <app-admin-stat-card
-        accent="orange"
-        [value]="getMovimientosPorTipo().total"
-        label="Movimientos"
-        hint="Histórico registrado"
-      ></app-admin-stat-card>
-    </app-admin-kpi-grid>
-
     <app-admin-page-banner
       accent="teal"
       icon="assessment"
@@ -325,5 +297,33 @@
         </table>
       </div>
     </app-admin-data-panel>
+
+    <p class="section-eyebrow">Inventario · análisis</p>
+    <app-admin-kpi-grid>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="totalProductos"
+        label="Productos"
+        hint="En catálogo"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="green"
+        [value]="productosActivos"
+        label="Activos"
+        hint="Disponibles"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="'$' + (valorInventario | number: '1.0-0')"
+        label="Valor inventario"
+        hint="Stock × costo"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="orange"
+        [value]="getMovimientosPorTipo().total"
+        label="Movimientos"
+        hint="Histórico registrado"
+      ></app-admin-stat-card>
+    </app-admin-kpi-grid>
   </ng-container>
 </div>

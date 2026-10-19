@@ -1,6 +1,6 @@
-import { Component, OnInit, Inject, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { Banio } from '../shared/banio.model';
@@ -17,29 +17,15 @@ import {
 import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
 import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
-import { costoMenorQueVentaValidator, MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA } from './banio-costo.validators';
-import {
-  calcularMargenPorcentaje,
-  calcularVentaDesdeMargen,
-  desglosarPrecioIvaIncluido,
-} from '../core/utils/precio-margen.util';
-import {
-  AltaRapidaPickerDeps,
-  crearClienteRapidoDesdePicker,
-  crearMascotaRapidaDesdePicker,
-} from '../shared/admin/alta-rapida-picker.helper';
-import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
-import { Cliente } from '../core/models';
-import { ClientesService } from '../clientes/clientes.service';
-import { ErrorMessagesService } from '../core/error-messages.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
 import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
+import { formatLocalDateToIso, parseIsoDateToLocalDate } from '../shared/datepicker/datepicker.util';
 
 @Component({
   selector: 'app-banio-dialog',
@@ -48,7 +34,6 @@ import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.
   encapsulation: ViewEncapsulation.None,
 })
 export class BanioDialogComponent implements OnInit {
-  @ViewChild(ClientePacientePickerComponent) picker?: ClientePacientePickerComponent;
   banioForm: FormGroup;
   loading = false;
   esEdicion = false;
@@ -72,22 +57,6 @@ export class BanioDialogComponent implements OnInit {
   };
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
   private precioTotalManual = false;
-  /** Evita bucles al sincronizar margen % ↔ precio_total. */
-  private syncingMargen = false;
-  /** Margen % editable (UI; recalcula precio cobrado desde costo). */
-  margenPct: number | null = null;
-
-  /** Ganancia bruta 022: precio al cliente − costo (sin desglose IVA en esta ola). */
-  get gananciaEstimada(): number | null {
-    const costo = this.banioForm?.get('costoEstimado')?.value;
-    const venta = this.banioForm?.get('precio_total')?.value;
-    if (costo == null || costo === '' || !(Number(costo) > 0)) return null;
-    return desglosarPrecioIvaIncluido({
-      precioVenta: venta,
-      costo,
-      aplicaIva: false,
-    }).ganancia;
-  }
 
   /**
    * Si ya vienen dueño/mascota (Llegó un paciente / expediente), no pedirlos otra vez:
@@ -102,14 +71,14 @@ export class BanioDialogComponent implements OnInit {
     });
   }
 
-  /** Hint dinámico bajo «Precio al cliente». */
+  /** Hint bajo el único campo de dinero: precio a cobrar. */
   get hintPrecioAlCliente(): string {
     const adicionales = this.totalServiciosAdicionales();
     if (adicionales > 0) {
       const base = Number(this.banioForm.get('precio_base')?.value) || 0;
-      return `Incluye $${adicionales} en servicios adicionales · base baño: $${base}`;
+      return `Incluye $${adicionales} en extras · base baño: $${base}`;
     }
-    return 'Precio final que se cobra al cliente (editable por registro)';
+    return 'Único monto · lo que cobra mostrador';
   }
 
   // Opciones para los selects
@@ -157,13 +126,10 @@ export class BanioDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<BanioDialogComponent>,
-    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private baniosService: BaniosService,
     private baniosPacienteService: BaniosPacienteService,
     private loadingService: LoadingService,
-    private errorMessages: ErrorMessagesService,
-    private clientesService: ClientesService,
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
     private pacientesService: PacientesService
@@ -187,7 +153,8 @@ export class BanioDialogComponent implements OnInit {
       servicios_adicionales: [[]],
       precio_total: [0, [Validators.required, Validators.min(0)]],
       tamano_perro: [''],
-      costoEstimado: [null as number | null, [costoMenorQueVentaValidator('precio_total', { treatZeroAsEmpty: true })]],
+      /** KPI interno (background desde tarifas Finanzas); sin UI en el diálogo. */
+      costoEstimado: [null as number | null],
       plantillaCostoId: [''],
       pagado: [false],
       metodo_pago: [''],
@@ -266,7 +233,6 @@ export class BanioDialogComponent implements OnInit {
     }
 
     this.configurarCalculoPrecio();
-    this.configurarValidacionCostoVsVenta();
 
     // Reglas de negocio: si el estado no es 'completado', no se puede marcar pagado
     const estadoCtrl = this.banioForm.get('estado');
@@ -354,13 +320,15 @@ export class BanioDialogComponent implements OnInit {
           if (!normalizado.cliente_id && this.data.cliente_id) normalizado.cliente_id = this.data.cliente_id;
           if (!normalizado.tipo_servicio) normalizado.tipo_servicio = 'baño_básico';
           if (!normalizado.estado) normalizado.estado = 'programado';
-          // Asegurar que el datepicker reciba un Date válido y conservar la fecha original
+          // Datepicker: ISO fecha-solo → Date local (no `new Date('yyyy-MM-dd')` = UTC)
           if (typeof normalizado.fecha_banio === 'string') {
-            const d = new Date(normalizado.fecha_banio);
-            if (!isNaN(d.getTime())) {
-              // Elimina la parte de hora para evitar desfaces de zona horaria
-              normalizado.fecha_banio = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            }
+            const local =
+              parseIsoDateToLocalDate(normalizado.fecha_banio) ||
+              (() => {
+                const d = new Date(normalizado.fecha_banio);
+                return Number.isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+              })();
+            if (local) normalizado.fecha_banio = local;
           } else if (normalizado.fecha_banio instanceof Date) {
             const d = normalizado.fecha_banio as Date;
             normalizado.fecha_banio = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -379,7 +347,6 @@ export class BanioDialogComponent implements OnInit {
           this.precioTotalManual = true;
           // Recalcular precio por si faltaba precio_total
           this.calcularPrecioTotal();
-          this.revalidarCostoVsVenta();
           const pid = String(normalizado.paciente_id || this.data.paciente_id || '');
           if (pid) {
             void this.cargarAlergiasDesdeMascota(pid, normalizeAlergias(normalizado.alergias_conocidas));
@@ -399,57 +366,27 @@ export class BanioDialogComponent implements OnInit {
   }
 
   /**
-   * Normaliza la fecha a formato YYYY-MM-DD preservando exactamente la fecha seleccionada
-   * sin importar si es pasada o futura. Esto evita problemas de zona horaria.
+   * Normaliza a `yyyy-MM-dd` con componentes locales (spec 090 / datepicker.util).
    */
   private normalizarFecha(fecha: any): string {
     try {
       if (!fecha) return '';
-
-      let date: Date;
-
-      // Si ya es string en formato YYYY-MM-DD, retornarlo directamente
       if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
         return fecha;
       }
-
-      // Si es un objeto Date, usar los componentes directamente para evitar zona horaria
       if (fecha instanceof Date) {
-        const year = fecha.getFullYear();
-        const month = (fecha.getMonth() + 1).toString().padStart(2, '0');
-        const day = fecha.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return formatLocalDateToIso(fecha);
       }
-
-      // Si es string, intentar parsearlo
       if (typeof fecha === 'string') {
-        // Si viene en formato ISO con hora, extraer solo la fecha
-        if (fecha.includes('T')) {
-          const datePart = fecha.split('T')[0];
-          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-            return datePart;
-          }
+        if (fecha.includes('T') || fecha.includes(' ')) {
+          const datePart = fecha.split(/[T ]/)[0];
+          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
         }
-
-        // Si viene en formato YYYY-MM-DD HH:mm:ss
-        if (fecha.includes(' ')) {
-          const datePart = fecha.split(' ')[0];
-          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-            return datePart;
-          }
-        }
-
-        // Intentar crear Date y extraer componentes
-        date = new Date(fecha);
-        if (!isNaN(date.getTime())) {
-          const year = date.getFullYear();
-          const month = (date.getMonth() + 1).toString().padStart(2, '0');
-          const day = date.getDate().toString().padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
+        const fromIso = parseIsoDateToLocalDate(fecha.slice(0, 10));
+        if (fromIso) return formatLocalDateToIso(fromIso);
+        const date = new Date(fecha);
+        if (!Number.isNaN(date.getTime())) return formatLocalDateToIso(date);
       }
-
-      // Si no se pudo parsear, retornar string vacío
       console.warn('⚠️ No se pudo normalizar la fecha:', fecha);
       return '';
     } catch (error) {
@@ -532,55 +469,8 @@ export class BanioDialogComponent implements OnInit {
 
     setTimeout(() => {
       this.calcularPrecioTotal();
-      this.revalidarCostoVsVenta();
       this.banioForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
     }, 100);
-  }
-
-  /** Revalida costo vs precio_total al cambiar cualquiera (crear y editar). */
-  private configurarValidacionCostoVsVenta(): void {
-    this.banioForm.get('precio_total')?.valueChanges.subscribe(() => {
-      this.revalidarCostoVsVenta();
-    });
-    this.banioForm.get('costoEstimado')?.valueChanges.subscribe(() => {
-      this.revalidarCostoVsVenta();
-    });
-  }
-
-  private revalidarCostoVsVenta(): void {
-    this.banioForm.get('costoEstimado')?.updateValueAndValidity({ emitEvent: false });
-    this.sincronizarMargenDesdePrecios();
-  }
-
-  /** Actualiza el campo margen % desde costo + precio (si no estamos escribiendo el %). */
-  private sincronizarMargenDesdePrecios(): void {
-    if (this.syncingMargen) return;
-    const costo = this.banioForm.get('costoEstimado')?.value;
-    const venta = this.banioForm.get('precio_total')?.value;
-    if (costo == null || costo === '' || Number(costo) <= 0) {
-      return;
-    }
-    this.margenPct = Math.round(calcularMargenPorcentaje(costo, venta) * 100) / 100;
-  }
-
-  /**
-   * Al editar margen %: precio cobrado = costo × (1 + margen/100).
-   * No pisa si no hay costo.
-   */
-  onMargenPctChange(raw: string | number): void {
-    const margen = Number(raw);
-    this.margenPct = Number.isNaN(margen) ? null : margen;
-    const costo = this.banioForm.get('costoEstimado')?.value;
-    if (costo == null || costo === '' || Number(costo) <= 0 || Number.isNaN(margen)) {
-      return;
-    }
-    const venta = calcularVentaDesdeMargen(costo, margen);
-    if (venta == null) return;
-    this.syncingMargen = true;
-    this.precioTotalManual = true;
-    this.banioForm.patchValue({ precio_total: venta }, { emitEvent: false });
-    this.revalidarCostoVsVenta();
-    this.syncingMargen = false;
   }
 
   private async cargarDefaultsBanio(): Promise<void> {
@@ -603,31 +493,13 @@ export class BanioDialogComponent implements OnInit {
     }
   }
 
-  private altaRapidaDeps(): AltaRapidaPickerDeps {
-    return {
-      dialog: this.dialog,
-      clientesService: this.clientesService,
-      pacientesService: this.pacientesService,
-      loadingService: this.loadingService,
-      errorMessages: this.errorMessages,
-      picker: this.picker,
-    };
-  }
-
-  async crearClienteRapido(prefill = ''): Promise<void> {
-    await crearClienteRapidoDesdePicker(this.altaRapidaDeps(), prefill);
-  }
-
-  async crearMascotaRapida(cliente?: Cliente | null): Promise<void> {
-    await crearMascotaRapidaDesdePicker(this.altaRapidaDeps(), cliente);
-  }
-
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
     const raw = String(sel.pacienteData?.['tamano_perro'] || sel.pacienteData?.['tamano'] || '').toLowerCase();
     let tamano: TamanoPerroBanio | '' = '';
     if (raw === 'pequeno' || raw === 'chico') tamano = 'pequeno';
     else if (raw === 'mediano') tamano = 'mediano';
     else if (raw === 'grande') tamano = 'grande';
+    else if (raw === 'xl' || raw === 'gigante' || raw === 'extra' || raw === 'extragrande') tamano = 'xl';
     if (tamano) {
       this.banioForm.patchValue({ tamano_perro: tamano });
       this.onTamanoChange();
@@ -693,7 +565,9 @@ export class BanioDialogComponent implements OnInit {
     this.prefillHint =
       prefill.fuente === 'plantilla'
         ? 'Prefill desde plantilla de costo (Finanzas).'
-        : 'Prefill desde defaults baño (Finanzas).';
+        : prefill.fuente === 'fallback'
+          ? 'Prefill desde tarifa base en código (configura Finanzas para personalizar).'
+          : 'Prefill desde defaults baño (Finanzas).';
     const patch: Record<string, unknown> = {
       costoEstimado: prefill.costoEstimado,
       plantillaCostoId: prefill.plantillaCostoId || '',
@@ -705,13 +579,11 @@ export class BanioDialogComponent implements OnInit {
     }
     this.banioForm.patchValue(patch);
     this.calcularPrecioTotal();
-    this.revalidarCostoVsVenta();
   }
 
   onPrecioTotalManual(): void {
     this.precioTotalManual = true;
     this.sincronizarPrecioBaseDesdeTotal();
-    this.revalidarCostoVsVenta();
   }
 
   /** RTDB legacy: precio_base = precio_total − servicios adicionales. */
@@ -750,7 +622,6 @@ export class BanioDialogComponent implements OnInit {
 
     if (!this.precioTotalManual) {
       this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
-      this.revalidarCostoVsVenta();
     }
 
     return Number(this.banioForm.get('precio_total')?.value) || precioTotal;
@@ -778,20 +649,13 @@ export class BanioDialogComponent implements OnInit {
 
   onSubmit() {
     this.sincronizarPrecioBaseDesdeTotal();
-    this.revalidarCostoVsVenta();
-    this.banioForm.get('costoEstimado')?.markAsTouched();
 
     if (!this.banioForm.get('tipo_servicio')?.value) {
       Swal.fire('Falta el servicio', 'Elige el tipo de baño o corte.', 'warning');
       return;
     }
     if (!(Number(this.banioForm.get('precio_total')?.value) > 0)) {
-      Swal.fire('Falta el precio', 'Indica el precio al cliente (lo que cobrará mostrador).', 'warning');
-      return;
-    }
-
-    if (this.banioForm.get('costoEstimado')?.hasError('costoMayorOIgualVenta')) {
-      Swal.fire('Error', MENSAJE_COSTO_MAYOR_O_IGUAL_VENTA, 'error');
+      Swal.fire('Falta el precio', 'Indica el precio a cobrar (mostrador / Ticket del día).', 'warning');
       return;
     }
 
@@ -833,8 +697,18 @@ export class BanioDialogComponent implements OnInit {
         productos_utilizados: banioData.productos_utilizados || [],
       };
 
-      if (datosLimpios.costoEstimado != null && datosLimpios.costoEstimado !== '') {
-        datosLimpios.costoEstimado = Number(datosLimpios.costoEstimado);
+      // Costo = estimado interno (tarifas Finanzas). Solo se persiste si es útil para KPIs
+      // (positivo y menor que el precio). El staff no lo edita; no bloquear el alta.
+      const precioCobro = Number(datosLimpios.precio_total) || 0;
+      const costoNum = Number(datosLimpios.costoEstimado);
+      if (
+        datosLimpios.costoEstimado != null &&
+        datosLimpios.costoEstimado !== '' &&
+        Number.isFinite(costoNum) &&
+        costoNum > 0 &&
+        costoNum < precioCobro
+      ) {
+        datosLimpios.costoEstimado = costoNum;
       } else {
         delete datosLimpios.costoEstimado;
       }

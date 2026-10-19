@@ -7,190 +7,286 @@
   </div>
 
   <ng-container *ngIf="!loading">
+    <div class="admin-list-shell">
+      <app-admin-page-banner
+        accent="blue"
+        icon="people"
+        title="Administración de Clientes"
+        subtitle="Administra fichas, contacto y expedientes. Doble clic abre la ficha y las mascotas. Al borrar se conserva el historial clínico vinculado."
+      >
+        <div bannerActions>
+          <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="toggleSoloConDeuda()">
+            {{ soloConDeuda ? 'Ver todos' : 'Con deuda' }}
+          </button>
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            [disabled]="saving"
+            (click)="encontrarClientesSinPacientes()"
+          >
+            Sin pacientes
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            class="btn-primary-teal"
+            type="button"
+            [disabled]="saving"
+            (click)="abrirModalCliente()"
+          >
+            <mat-icon>add</mat-icon>
+            Nuevo cliente
+          </button>
+        </div>
+      </app-admin-page-banner>
+
+      <app-admin-data-panel
+        accent="blue"
+        title="Listado de clientes"
+        description="Busca por nombre, teléfono, correo o número de expediente. Doble clic o Enter abre la ficha."
+        [meta]="
+          dataSource.data.length ? dataSource.filteredData.length + ' en pantalla · ' + totalClientes + ' totales' : ''
+        "
+        [showLegend]="!!dataSource.data.length"
+      >
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="buscador panel-search">
+          <mat-label>Buscar cliente</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input
+            matInput
+            [value]="filtroActual"
+            (keyup)="aplicarFiltro($event)"
+            (input)="aplicarFiltro($event)"
+            placeholder="Nombre, teléfono, correo, expediente…"
+          />
+          <button
+            *ngIf="filtroActual"
+            matSuffix
+            mat-icon-button
+            type="button"
+            aria-label="Limpiar búsqueda"
+            (click)="limpiarFiltro()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <app-admin-empty-state
+          *ngIf="dataSource.data.length === 0"
+          icon="people_outline"
+          title="No hay clientes"
+          message="No se han encontrado clientes registrados."
+          actionLabel="Agregar primer cliente"
+          [actionDisabled]="saving"
+          (action)="abrirModalCliente()"
+        >
+        </app-admin-empty-state>
+
+        <div class="table-scroll" *ngIf="dataSource.data.length > 0">
+          <table mat-table [dataSource]="dataSource" class="clientes-table">
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Nombre</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="cell-nombre">{{ getNombreCompleto(c) }}</span>
+                <span class="estado-badge portal-chip" [class]="portalChipClass(c)" *ngIf="c.id">{{
+                  portalChipLabel(c)
+                }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="expediente">
+              <th mat-header-cell *matHeaderCellDef>Expediente</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="badge-expediente" *ngIf="c.expediente; else sinExpediente">{{ c.expediente }}</span>
+                <ng-template #sinExpediente><span class="text-muted">—</span></ng-template>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="telefono">
+              <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+              <td mat-cell *matCellDef="let c">
+                <span [class.text-muted]="isDatoFaltante(c.telefono)">{{ getTelefono(c) }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="correo">
+              <th mat-header-cell *matHeaderCellDef>Correo</th>
+              <td mat-cell *matCellDef="let c">
+                <span [class.text-muted]="isCorreoFaltante(c.correo)">{{ getCorreo(c) }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="saldo">
+              <th mat-header-cell *matHeaderCellDef>Saldo</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="estado-badge warning" *ngIf="getSaldo(c) > 0">{{ formatMoney(getSaldo(c)) }}</span>
+                <span class="text-muted" *ngIf="getSaldo(c) <= 0">—</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="ubicacion">
+              <th mat-header-cell *matHeaderCellDef>Ubicación</th>
+              <td mat-cell *matCellDef="let c">
+                <span [class.text-muted]="!getUbicacion(c)">{{ getUbicacion(c) || 'N/P' }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="estado-badge" [ngClass]="(c.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
+                  {{ c.activo !== false ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td
+                mat-cell
+                *matCellDef="let c"
+                (click)="$event.stopPropagation()"
+                (dblclick)="$event.stopPropagation()"
+                (keydown)="$event.stopPropagation()"
+              >
+                <div class="row-actions hide-mobile">
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    type="button"
+                    matTooltip="Ver detalles"
+                    (click)="verCliente(c, $event)"
+                  >
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Cuenta corriente"
+                    (click)="verCuentaCorriente(c); $event.stopPropagation()"
+                  >
+                    <mat-icon>account_balance</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Nueva cuenta del día"
+                    (click)="nuevaVisitaCliente(c); $event.stopPropagation()"
+                  >
+                    <mat-icon>receipt_long</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Editar"
+                    (click)="editarCliente(c); $event.stopPropagation()"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Borrar"
+                    (click)="bajaLogicaCliente(c.id); $event.stopPropagation()"
+                    [disabled]="saving"
+                  >
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="show-mobile-only"
+                  matTooltip="Acciones"
+                  [matMenuTriggerFor]="rowMenu"
+                  (click)="clienteMenuContext = c; $event.stopPropagation()"
+                  (dblclick)="$event.stopPropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              class="data-row data-row--interactive"
+              [class.data-row--selected]="filaSeleccionadaId === row.id"
+              tabindex="0"
+              [attr.title]="'Doble clic o Enter para ver la ficha'"
+              [attr.aria-label]="'Ficha de ' + getNombreCompleto(row) + '. Doble clic o Enter para abrir.'"
+              (click)="seleccionarFila(row, $event)"
+              (dblclick)="abrirFichaCliente(row, $event)"
+              (keydown)="onFilaKeydown(row, $event)"
+            ></tr>
+          </table>
+        </div>
+
+        <mat-paginator
+          *ngIf="dataSource.data.length"
+          #paginator
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 25, 50, 100]"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+      </app-admin-data-panel>
+    </div>
+
     <p class="section-eyebrow">Resumen del módulo</p>
     <app-admin-kpi-grid>
-      <app-admin-stat-card accent="blue" [value]="totalClientes" label="Total clientes" hint="Activos en sistema"></app-admin-stat-card>
-      <app-admin-stat-card accent="teal" [value]="clientesConPacientes" label="Con pacientes" hint="Mascota vinculada"></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="blue"
+        [value]="totalClientes"
+        label="Total clientes"
+        hint="Activos en sistema"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="teal"
+        [value]="clientesConPacientes"
+        label="Con pacientes"
+        hint="Mascota vinculada"
+      ></app-admin-stat-card>
       <button type="button" class="kpi-filter" [class.active]="soloConDeuda" (click)="filtrarConDeuda()">
-        <app-admin-stat-card accent="orange" [value]="clientesConDeuda" label="Con deuda" hint="Clic para filtrar"></app-admin-stat-card>
+        <app-admin-stat-card
+          accent="orange"
+          [value]="clientesConDeuda"
+          label="Con deuda"
+          hint="Clic para filtrar"
+        ></app-admin-stat-card>
       </button>
       <button type="button" class="kpi-filter" [class.active]="soloConDeuda" (click)="filtrarConDeuda()">
-        <app-admin-stat-card accent="green" [value]="formatMoney(saldoPendienteTotal)" label="Saldo por cobrar" hint="Clic = con deuda"></app-admin-stat-card>
+        <app-admin-stat-card
+          accent="green"
+          [value]="formatMoney(saldoPendienteTotal)"
+          label="Saldo por cobrar"
+          hint="Clic = con deuda"
+        ></app-admin-stat-card>
       </button>
     </app-admin-kpi-grid>
-
-    <app-admin-page-banner
-      accent="blue"
-      icon="people"
-      title="Administración de Clientes"
-      subtitle="Administra fichas, contacto y expedientes. Doble clic abre la ficha y las mascotas. Al borrar se conserva el historial clínico vinculado.">
-      <div bannerActions>
-        <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="toggleSoloConDeuda()">
-          {{ soloConDeuda ? 'Ver todos' : 'Con deuda' }}
-        </button>
-        <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="encontrarClientesSinPacientes()">
-          Sin pacientes
-        </button>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" [disabled]="saving" (click)="abrirModalCliente()">
-          <mat-icon>add</mat-icon>
-          Nuevo cliente
-        </button>
-      </div>
-    </app-admin-page-banner>
-
-    <app-admin-data-panel
-      accent="blue"
-      title="Listado de clientes"
-      description="Busca por nombre, teléfono, correo o número de expediente. Doble clic o Enter abre la ficha."
-      [meta]="dataSource.data.length ? (dataSource.filteredData.length + ' en pantalla · ' + totalClientes + ' totales') : ''"
-      [showLegend]="!!dataSource.data.length">
-
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="buscador panel-search">
-        <mat-label>Buscar cliente</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input
-          matInput
-          [value]="filtroActual"
-          (keyup)="aplicarFiltro($event)"
-          (input)="aplicarFiltro($event)"
-          placeholder="Nombre, teléfono, correo, expediente…" />
-        <button
-          *ngIf="filtroActual"
-          matSuffix
-          mat-icon-button
-          type="button"
-          aria-label="Limpiar búsqueda"
-          (click)="limpiarFiltro()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </mat-form-field>
-
-      <app-admin-empty-state
-        *ngIf="dataSource.data.length === 0"
-        icon="people_outline"
-        title="No hay clientes"
-        message="No se han encontrado clientes registrados."
-        actionLabel="Agregar primer cliente"
-        [actionDisabled]="saving"
-        (action)="abrirModalCliente()">
-      </app-admin-empty-state>
-
-      <div class="table-scroll" *ngIf="dataSource.data.length > 0">
-        <table mat-table [dataSource]="dataSource" class="clientes-table">
-          <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let c">
-              <span class="cell-nombre">{{ getNombreCompleto(c) }}</span>
-              <span
-                class="estado-badge portal-chip"
-                [class]="portalChipClass(c)"
-                *ngIf="c.id">{{ portalChipLabel(c) }}</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="expediente">
-            <th mat-header-cell *matHeaderCellDef>Expediente</th>
-            <td mat-cell *matCellDef="let c">
-              <span class="badge-expediente" *ngIf="c.expediente; else sinExpediente">{{ c.expediente }}</span>
-              <ng-template #sinExpediente><span class="text-muted">—</span></ng-template>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="telefono">
-            <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-            <td mat-cell *matCellDef="let c">
-              <span [class.text-muted]="isDatoFaltante(c.telefono)">{{ getTelefono(c) }}</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="correo">
-            <th mat-header-cell *matHeaderCellDef>Correo</th>
-            <td mat-cell *matCellDef="let c">
-              <span [class.text-muted]="isCorreoFaltante(c.correo)">{{ getCorreo(c) }}</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="saldo">
-            <th mat-header-cell *matHeaderCellDef>Saldo</th>
-            <td mat-cell *matCellDef="let c">
-              <span class="estado-badge warning" *ngIf="getSaldo(c) > 0">{{ formatMoney(getSaldo(c)) }}</span>
-              <span class="text-muted" *ngIf="getSaldo(c) <= 0">—</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="ubicacion">
-            <th mat-header-cell *matHeaderCellDef>Ubicación</th>
-            <td mat-cell *matCellDef="let c">
-              <span [class.text-muted]="!getUbicacion(c)">{{ getUbicacion(c) || 'N/P' }}</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="estado">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let c">
-              <span class="estado-badge" [ngClass]="(c.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">
-                {{ c.activo !== false ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-              <div class="row-actions hide-mobile">
-                <button mat-icon-button color="primary" type="button" matTooltip="Ver detalles" (click)="verCliente(c, $event)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Cuenta corriente" (click)="verCuentaCorriente(c); $event.stopPropagation()">
-                  <mat-icon>account_balance</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Nueva cuenta del día" (click)="nuevaVisitaCliente(c); $event.stopPropagation()">
-                  <mat-icon>receipt_long</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCliente(c); $event.stopPropagation()">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Borrar" (click)="bajaLogicaCliente(c.id); $event.stopPropagation()" [disabled]="saving">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
-              </div>
-              <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones" [matMenuTriggerFor]="rowMenu" (click)="clienteMenuContext = c; $event.stopPropagation()" (dblclick)="$event.stopPropagation()">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns;"
-            class="data-row data-row--interactive"
-            [class.data-row--selected]="filaSeleccionadaId === row.id"
-            tabindex="0"
-            [attr.title]="'Doble clic o Enter para ver la ficha'"
-            [attr.aria-label]="'Ficha de ' + getNombreCompleto(row) + '. Doble clic o Enter para abrir.'"
-            (click)="seleccionarFila(row, $event)"
-            (dblclick)="abrirFichaCliente(row, $event)"
-            (keydown)="onFilaKeydown(row, $event)">
-          </tr>
-        </table>
-      </div>
-
-      <mat-paginator
-        *ngIf="dataSource.data.length"
-        #paginator
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[10, 25, 50, 100]"
-        showFirstLastButtons>
-      </mat-paginator>
-    </app-admin-data-panel>
   </ng-container>
 
   <mat-menu #rowMenu="matMenu">
-    <button mat-menu-item (click)="verCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>visibility</mat-icon> Ver detalle</button>
-    <button mat-menu-item (click)="verCuentaCorriente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>account_balance</mat-icon> Cuenta corriente</button>
-    <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>receipt_long</mat-icon> Nueva cuenta del día</button>
-    <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext"><mat-icon>edit</mat-icon> Editar</button>
-    <button mat-menu-item (click)="bajaLogicaCliente(clienteMenuContext?.id)" [disabled]="!clienteMenuContext || saving"><mat-icon>delete_outline</mat-icon> Borrar</button>
+    <button mat-menu-item (click)="verCliente(clienteMenuContext)" [disabled]="!clienteMenuContext">
+      <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+    <button mat-menu-item (click)="verCuentaCorriente(clienteMenuContext)" [disabled]="!clienteMenuContext">
+      <mat-icon>account_balance</mat-icon> Cuenta corriente
+    </button>
+    <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext">
+      <mat-icon>receipt_long</mat-icon> Nueva cuenta del día
+    </button>
+    <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext">
+      <mat-icon>edit</mat-icon> Editar
+    </button>
+    <button
+      mat-menu-item
+      (click)="bajaLogicaCliente(clienteMenuContext?.id)"
+      [disabled]="!clienteMenuContext || saving"
+    >
+      <mat-icon>delete_outline</mat-icon> Borrar
+    </button>
   </mat-menu>
 </div>

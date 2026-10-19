@@ -116,3 +116,21 @@ Smoke autenticado 2026-08-25 (opción A — Cypress + cypress.env.json gitignore
 - [x] Documentar anti-patrón B en `spec.md` US-4 (origen bug 092 `confirmarCobro`)
 - [x] `ADMIN-UI-ARCHITECTURE` regla 4 + checklist; `constitution`; `agent-guardrails` Decisiones; guía QA
 - [x] Script: **no** ampliar a await-Swal (frágil); comentario de alcance en `check-loading-antipattern.mjs`
+
+---
+
+## Follow-up 2026-10-04 — Configuración clínica (mismo anti-patrón B)
+
+- **Causa:** `configuracion.component.ts` `guardar()` hacía `await Swal.fire` (éxito y error) **dentro** del `try`/`catch` antes del `finally { hide() }`. El overlay «Guardando…» cubría el Swal; en error el OK no era clicable → overlay eterno. Éxito con timer ~1.6 s también dejaba el overlay visible encima del toast.
+- **Por qué no se tocó antes:** el fix de cobro (`visita-dialog` / 092) fue alcance puntual POS; Configuración no estaba en esa oleada. El script `check-loading-antipattern` solo cubre show→close (US-3), no B.
+- **Fix:** persistir → `finally` `hide()` → luego Swal éxito/error. Único save del módulo `configuracion/` (sin otros `show` en el módulo).
+- **Script:** comentario ampliado con este caso; **sin** ampliar regex a await-Swal (sigue frágil / falsos positivos).
+- [x] `npm run build` — exit 0 (2026-10-04) Hash f4dafd0ed68d394a
+- [x] `npm run check:loading` — OK
+
+---
+
+## Follow-up 2026-10-04 — Config clínica RTDB `undefined` (logoUrl)
+
+- **Causa:** `payloadClinicaParaGuardar` convertía opcionales vacíos (`logoUrl`, `horario`, vet) a `undefined` y el `set` de RTDB fallaba. Loading hide-antes-Swal **sigue** en sitio (por eso Luis ve el Swal de error).
+- **Fix:** `omitUndefinedRtdb` en el payload (spec **072** util); tests actualizados. Detalle en `specs/072-fase4-hoy-roles-onboarding/tasks.md`.

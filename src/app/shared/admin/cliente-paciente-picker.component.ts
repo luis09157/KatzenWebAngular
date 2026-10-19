@@ -17,11 +17,21 @@ import { Cliente, Paciente } from '../../core/models';
 import { ClientesService } from '../../clientes/clientes.service';
 import { PacientesService } from '../../pacientes/pacientes.service';
 import { LoggerService } from '../../core/logger.service';
-import { getClienteDisplayLabel, getClienteNombreCompleto } from '../../core/utils/cliente-search.util';
+import {
+  displayClienteAutocompleteValue,
+  getClienteDisplayLabel,
+  getClienteNombreCompleto,
+} from '../../core/utils/cliente-search.util';
 import { filtrarClientesTelefonoPrimero } from './cliente-picker-search.util';
-import { filtrarPacientesDelCliente, getPacienteDisplayLabel } from '../../core/utils/paciente-search.util';
-import { pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
-import { isPacienteActivo } from '../../core/utils/paciente-search.util';
+import {
+  displayPacienteAutocompleteValue,
+  filtrarPacientesDelCliente,
+  filtrarPacientesPickerDual,
+  getPacienteDisplayLabel,
+  getPacientePickerOptionLabel,
+  isPacienteActivo,
+} from '../../core/utils/paciente-search.util';
+import { getPacienteClienteId, pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
 import {
   ClientePacientePickerFields,
   ClientePacienteSelection,
@@ -49,6 +59,11 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
    * `seleccionarPacienteExterno`.
    */
   @Input() permitirCrear = false;
+  /**
+   * Spec 085 — buscar por mascota sin dueño previo; al elegir mascota se rellena el dueño.
+   * Activa autocomplete de paciente si aún no estaba.
+   */
+  @Input() busquedaDual = false;
   /** `false` = la mascota es opcional: se emite `selectionChange` al elegir solo el dueño. */
   @Input() pacienteRequerido = true;
   /** Enfoca el campo de teléfono/nombre al montar (POS táctil). */
@@ -63,7 +78,8 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   @ViewChild('clienteInput') clienteInput?: ElementRef<HTMLInputElement>;
 
   readonly clienteSearch = new FormControl<string | Cliente>('');
-  readonly pacienteSearch = new FormControl<string>('');
+  /** Objeto Paciente cuando hay selección (displayWith); string solo al tipear. */
+  readonly pacienteSearch = new FormControl<string | Paciente>('');
 
   clientes: Cliente[] = [];
   pacientes: Paciente[] = [];
@@ -107,6 +123,28 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     };
   }
 
+  /** Autocomplete de mascota si el padre lo pide o si hay búsqueda dual. */
+  get usaPacienteAutocomplete(): boolean {
+    return this.pacienteAutocomplete || this.busquedaDual;
+  }
+
+  get busquedaDualEfectiva(): boolean {
+    return this.busquedaDual;
+  }
+
+  get pacienteInputReadonly(): boolean {
+    if (this.disabled) return true;
+    if (this.busquedaDualEfectiva) return false;
+    return !this.clienteSeleccionado;
+  }
+
+  get placeholderPaciente(): string {
+    if (this.busquedaDualEfectiva && !this.clienteSeleccionado) {
+      return 'Nombre de la mascota…';
+    }
+    return 'Buscar mascota del cliente…';
+  }
+
   private configurarAutocomplete(): void {
     this.filteredClientes = this.clienteSearch.valueChanges.pipe(
       startWith(''),
@@ -115,8 +153,36 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
 
     this.filteredPacientes = this.pacienteSearch.valueChanges.pipe(
       startWith(''),
-      map((value) => filtrarPacientesDelCliente(this.pacientes, this.clienteSeleccionado?.id, value))
+      map((value) => this.filtrarPacientesSugeridos(value))
     );
+  }
+
+  private filtrarPacientesSugeridos(value: string | Paciente | null): Paciente[] {
+    const query = typeof value === 'string' ? value : '';
+    if (this.busquedaDualEfectiva) {
+      return filtrarPacientesPickerDual(this.pacientes, this.clienteSeleccionado?.id, query, (p) =>
+        this.nombreDuenoDePaciente(p)
+      );
+    }
+    return filtrarPacientesDelCliente(this.pacientes, this.clienteSeleccionado?.id, query);
+  }
+
+  /** displayWith: objeto en writeValue; string solo al tipear. */
+  displayCliente = displayClienteAutocompleteValue;
+  displayPaciente = displayPacienteAutocompleteValue;
+
+  private nombreDuenoDePaciente(paciente: Paciente): string {
+    const id = getPacienteClienteId(paciente);
+    if (!id) return '';
+    const cliente = this.clientes.find((c) => String(c.id) === id);
+    return cliente ? getClienteNombreCompleto(cliente) : '';
+  }
+
+  labelOpcionPaciente(paciente: Paciente): string {
+    if (!this.busquedaDualEfectiva || this.clienteSeleccionado) {
+      return getPacienteDisplayLabel(paciente);
+    }
+    return getPacientePickerOptionLabel(paciente, this.nombreDuenoDePaciente(paciente));
   }
 
   private valorBusquedaCliente(value: string | Cliente | null): string {
@@ -169,7 +235,7 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     if (!cliente) return;
 
     this.clienteSeleccionado = cliente;
-    this.clienteSearch.setValue(getClienteDisplayLabel(cliente), { emitEvent: false });
+    this.clienteSearch.setValue(cliente, { emitEvent: false });
     this.actualizarPacientesDelCliente(cliente.id);
 
     if (!this.pacientes.length) return;
@@ -190,14 +256,10 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
           },
           { emitEvent: false }
         );
-        if (this.pacienteAutocomplete) {
-          this.pacienteSearch.setValue(getPacienteDisplayLabel(paciente), { emitEvent: false });
+        if (this.usaPacienteAutocomplete) {
+          this.pacienteSearch.setValue(paciente, { emitEvent: false });
         }
       }
-    } else if (this.formGroup.get(clienteNombre)?.value) {
-      this.clienteSearch.setValue(this.formGroup.get(clienteNombre)?.value || getClienteDisplayLabel(cliente), {
-        emitEvent: false,
-      });
     }
   }
 
@@ -212,8 +274,8 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
       [pacienteNombre]: '',
     });
 
-    this.clienteSearch.setValue(getClienteDisplayLabel(cliente), { emitEvent: false });
-    this.pacienteSearch.setValue('', { emitEvent: false });
+    this.clienteSearch.setValue(cliente, { emitEvent: false });
+    this.pacienteSearch.setValue('', { emitEvent: true });
     this.actualizarPacientesDelCliente(cliente.id);
 
     if (!this.pacienteRequerido) {
@@ -269,27 +331,50 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
       this.pacientesDelCliente = [paciente, ...this.pacientesDelCliente];
     }
     this.onPacienteSelected(paciente.id);
-    if (this.pacienteAutocomplete) {
-      this.pacienteSearch.setValue(getPacienteDisplayLabel(paciente), { emitEvent: false });
+    if (this.usaPacienteAutocomplete) {
+      this.pacienteSearch.setValue(paciente, { emitEvent: false });
     }
   }
 
   onPacienteSelected(pacienteId: string): void {
-    const paciente = this.pacientesDelCliente.find((p) => p.id === pacienteId);
-    if (!paciente || !this.clienteSeleccionado) return;
+    const id = String(pacienteId || '').trim();
+    if (!id) return;
+    const paciente =
+      this.pacientesDelCliente.find((p) => String(p.id) === id) || this.pacientes.find((p) => String(p.id) === id);
+    if (!paciente) return;
+
+    if (!this.clienteSeleccionado) {
+      if (!this.asegurarClienteDesdePaciente(paciente)) return;
+    }
+
+    if (!this.clienteSeleccionado) return;
+
+    if (!this.pacientesDelCliente.some((p) => String(p.id) === String(paciente.id))) {
+      this.pacientesDelCliente = [paciente, ...this.pacientesDelCliente];
+    }
 
     const { clienteId, pacienteId: pacienteField, clienteNombre, pacienteNombre } = this.fieldNames;
+    const nombreDueno = getClienteNombreCompleto(this.clienteSeleccionado);
 
     this.formGroup.patchValue({
       [pacienteField]: paciente.id,
       [pacienteNombre]: paciente.nombre || '',
       [clienteId]: this.clienteSeleccionado.id,
-      [clienteNombre]: getClienteNombreCompleto(this.clienteSeleccionado),
+      [clienteNombre]: nombreDueno,
     });
+
+    // Autocomplete dueño: writeValue con objeto (displayWith); no string suelto.
+    this.clienteSearch.setValue(this.clienteSeleccionado, { emitEvent: false });
+    if (this.usaPacienteAutocomplete) {
+      this.pacienteSearch.setValue(paciente, { emitEvent: false });
+    }
+
+    this.clienteIdControl?.updateValueAndValidity({ emitEvent: false });
+    this.pacienteIdControl?.updateValueAndValidity({ emitEvent: false });
 
     this.selectionChange.emit({
       cliente_id: this.clienteSeleccionado.id!,
-      cliente: getClienteNombreCompleto(this.clienteSeleccionado),
+      cliente: nombreDueno,
       paciente_id: paciente.id!,
       paciente: paciente.nombre || '',
       clienteData: this.clienteSeleccionado,
@@ -297,10 +382,25 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     });
   }
 
+  /**
+   * Resuelve el dueño desde la mascota (búsqueda dual) sin borrar la selección de paciente.
+   * @returns false si no hay cliente enlazado en catálogo.
+   */
+  private asegurarClienteDesdePaciente(paciente: Paciente): boolean {
+    const idCliente = getPacienteClienteId(paciente);
+    if (!idCliente) return false;
+    const cliente = this.clientes.find((c) => String(c.id) === idCliente);
+    if (!cliente) return false;
+
+    this.clienteSeleccionado = cliente;
+    this.clienteSearch.setValue(cliente, { emitEvent: false });
+    this.actualizarPacientesDelCliente(cliente.id);
+    return true;
+  }
+
   onPacienteAutocompleteSelected(paciente: Paciente): void {
     if (!paciente?.id) return;
-    this.onPacienteSelected(paciente.id);
-    this.pacienteSearch.setValue(getPacienteDisplayLabel(paciente), { emitEvent: false });
+    this.onPacienteSelected(String(paciente.id));
   }
 
   limpiarCliente(): void {

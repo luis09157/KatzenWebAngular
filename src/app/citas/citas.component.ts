@@ -29,6 +29,14 @@ import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.component';
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from './cita-atender.util';
+import {
+  coincidenciaTextoListado,
+  fechaHoyListadoLocal,
+  filtrarListadoAgendaOBusqueda,
+  listadoFechaIso,
+  metaListadoHoyManana,
+  partirListadoHoyManana,
+} from '../core/utils/listado-hoy-manana.util';
 
 @Component({
   selector: 'app-citas',
@@ -39,16 +47,58 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_hora', 'consulta', 'motivo', 'estado', 'veterinario', 'acciones'];
   menuContext: any = null;
+  /** Vista búsqueda: una sola tabla. Spec 085/061 */
   dataSource = new MatTableDataSource<any>([]);
+  dataSourceHoy = new MatTableDataSource<any>([]);
+  dataSourceManana = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   readonly pageSize = 50;
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
   loading = false;
+  tablaInicializada = false;
+  /** Histórico hidratado; default = Hoy+Mañana. */
+  private todasFilas: any[] = [];
+  buscarTexto = '';
   /** doctor | administrador pueden revertir completada → confirmada */
   puedeRevertirCompletada = false;
   readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
+
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaListadoHoyManana({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return (
+      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceHoy?.data?.length || 0)
+    );
+  }
+
+  get seccionMananaVacia(): boolean {
+    return (
+      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceManana?.data?.length || 0)
+    );
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !(this.dataSource?.data?.length || 0) && this.modoBusqueda;
+  }
 
   constructor(
     private citasService: CitasService,
@@ -118,12 +168,13 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                   .subscribe({
                     next: (citas) => {
                       const citasFiltradas = filterBySucursal(citas || [], this.sucursalContext.getSelectedId());
-                      this.dataSource.data = citasFiltradas
+                      this.todasFilas = citasFiltradas
                         .filter((c) => c.activo !== false)
                         .map((cita) => ({
                           ...cita,
                           cliente: this.clientesMap[cita.cliente_id] || 'N/P',
                           paciente: this.pacientesMap[cita.paciente_id] || 'N/P',
+                          fecha_cita_iso: listadoFechaIso(cita.fecha || cita.fecha_hora),
                         }))
                         .sort((a, b) => {
                           const estadoA = (a.estado || '').toLowerCase();
@@ -143,18 +194,9 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                           const fechaB = new Date(b.fecha || b.fecha_hora || 0);
                           return fechaA.getTime() - fechaB.getTime();
                         });
-                      if (this.sort) {
-                        this.dataSource.sort = this.sort;
-                        this.sort.sort({
-                          id: 'fecha_hora',
-                          start: 'desc',
-                          disableClear: false,
-                        });
-                      }
+                      this.aplicarVistaListado();
+                      this.tablaInicializada = true;
                       this.loading = false;
-                      setTimeout(() => {
-                        if (this.paginator) this.dataSource.paginator = this.paginator;
-                      }, 0);
                     },
                     error: (error) => this.handleLoadError(error, 'cargar citas', () => this.cargarCitas()),
                   });
@@ -207,32 +249,20 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getCitasHoy(): number {
-    const hoy = new Date();
-    const y = hoy.getFullYear();
-    const m = String(hoy.getMonth() + 1).padStart(2, '0');
-    const d = String(hoy.getDate()).padStart(2, '0');
-    const key = `${y}-${m}-${d}`;
-    return this.dataSource.data.filter((cita) => {
-      const raw = String(cita.fecha || cita.fecha_hora || '');
-      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10) === key;
-      const dt = new Date(raw);
-      if (isNaN(dt.getTime())) return false;
-      return (
-        dt.getFullYear() === hoy.getFullYear() && dt.getMonth() === hoy.getMonth() && dt.getDate() === hoy.getDate()
-      );
-    }).length;
+    const key = fechaHoyListadoLocal();
+    return this.todasFilas.filter((cita) => String(cita.fecha_cita_iso || '').slice(0, 10) === key).length;
   }
 
   getCitasPendientes(): number {
-    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'pendiente').length;
+    return this.todasFilas.filter((cita) => cita.estado?.toLowerCase() === 'pendiente').length;
   }
 
   getCitasConfirmadas(): number {
-    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'confirmada').length;
+    return this.todasFilas.filter((cita) => cita.estado?.toLowerCase() === 'confirmada').length;
   }
 
   getCitasCompletadas(): number {
-    return this.dataSource.data.filter((cita) => cita.estado?.toLowerCase() === 'completada').length;
+    return this.todasFilas.filter((cita) => cita.estado?.toLowerCase() === 'completada').length;
   }
 
   /** Fecha + hora en una sola línea (filtros / legacy). */
@@ -311,8 +341,52 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   aplicarFiltro(event: Event) {
-    const filtro = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filtro.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
+  }
+
+  private citaFechasIso = (c: { fecha_cita_iso?: string }) => [c.fecha_cita_iso];
+
+  private citaCoincideBusqueda(cita: Record<string, unknown>, q: string): boolean {
+    return coincidenciaTextoListado(
+      [
+        cita['paciente'],
+        cita['cliente'],
+        cita['motivo'],
+        cita['estado'],
+        cita['veterinario'],
+        cita['fecha'],
+        cita['fecha_hora'],
+        cita['fecha_cita_iso'],
+      ],
+      q
+    );
+  }
+
+  /** Default Hoy+Mañana; con texto → historial. Spec 085/061 */
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyListadoLocal();
+    if (this.modoBusqueda) {
+      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
+        query: this.buscarTexto,
+        hoyIso,
+        getFechasIso: this.citaFechasIso,
+        coincideBusqueda: (f, q) => this.citaCoincideBusqueda(f, q),
+      });
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+    const partes = partirListadoHoyManana(this.todasFilas, this.citaFechasIso, { hoyIso });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   getEstadoColor(estado: string): string {
@@ -472,7 +546,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   bajaLogicaCita(id: string) {
-    const cita = this.dataSource.data.find((c) => c.id === id);
+    const cita = this.todasFilas.find((c) => c.id === id);
     if (!id || id.length === 0) {
       this.logger.error('❌ ERROR: ID de cita inválido:', id);
       Swal.fire({

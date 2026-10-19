@@ -23,6 +23,14 @@ import {
   normalizarTelefonoMx,
   tieneTelefonoCapturado,
 } from './recordatorio-whatsapp.util';
+import {
+  coincidenciaTextoListado,
+  fechaHoyListadoLocal,
+  filtrarListadoAgendaOBusqueda,
+  listadoFechaIso,
+  metaListadoHoyManana,
+  partirListadoHoyManana,
+} from '../core/utils/listado-hoy-manana.util';
 
 /** Fila de la tabla: recordatorio RTDB + campos derivados para UI (spec 066). */
 interface RecordatorioRow {
@@ -51,8 +59,44 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   displayedColumns: string[] = ['fecha_recordatorio', 'titulo', 'tipo', 'estado', 'prioridad', 'paciente', 'acciones'];
   menuContext: RecordatorioRow | null = null;
   dataSource = new MatTableDataSource<RecordatorioRow>([]);
+  dataSourceHoy = new MatTableDataSource<RecordatorioRow>([]);
+  dataSourceManana = new MatTableDataSource<RecordatorioRow>([]);
+  private todasFilas: RecordatorioRow[] = [];
+  buscarTexto = '';
+  tablaInicializada = false;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
+
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaListadoHoyManana({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.estadisticas.total || this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceHoy.data.length;
+  }
+
+  get seccionMananaVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceManana.data.length;
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length && this.modoBusqueda;
+  }
   pacientesMap: { [id: string]: string } = {};
   private pacientesById: { [id: string]: Paciente } = {};
   private clientesById: { [id: string]: Cliente } = {};
@@ -76,13 +120,6 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   ) {}
 
   ngOnInit(): void {
-    this.dataSource.filterPredicate = (row, filtro) => {
-      const texto = [row['titulo'], row.paciente, row['tipo'], row['estado'], row['prioridad'], row.clienteNombre]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return texto.includes(filtro);
-    };
     // Spec 066: teléfono del dueño para WhatsApp / Llamar. Si falla, la tabla sigue sin esas acciones.
     this.clientesService
       .getClientes()
@@ -174,7 +211,9 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
 
   /** Re-mapea filas con lo que haya de pacientes/clientes (llegan por separado). */
   private refrescarFilas(): void {
-    this.dataSource.data = this.recordatoriosCrudos.map((r) => this.enriquecerFila(r));
+    this.todasFilas = this.recordatoriosCrudos.map((r) => this.enriquecerFila(r));
+    this.aplicarVistaListado();
+    this.tablaInicializada = true;
   }
 
   private enriquecerFila(recordatorio: Record<string, unknown>): RecordatorioRow {
@@ -283,8 +322,49 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   aplicarFiltro(event: Event) {
-    const filtro = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filtro.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
+  }
+
+  private recordatorioFechasIso = (r: RecordatorioRow) => [listadoFechaIso(r.fechaRaw)];
+
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyListadoLocal();
+    const coincide = (r: RecordatorioRow, q: string) =>
+      coincidenciaTextoListado(
+        [
+          r['titulo'],
+          r.paciente,
+          r['tipo'],
+          r['estado'],
+          r['prioridad'],
+          r.clienteNombre,
+          r.fecha_recordatorio,
+          r.fechaRaw,
+        ],
+        q
+      );
+    if (this.modoBusqueda) {
+      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
+        query: this.buscarTexto,
+        hoyIso,
+        getFechasIso: this.recordatorioFechasIso,
+        coincideBusqueda: coincide,
+      });
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+    const partes = partirListadoHoyManana(this.todasFilas, this.recordatorioFechasIso, { hoyIso });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   abrirModalRecordatorio(recordatorio: any = null) {

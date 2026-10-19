@@ -79,7 +79,7 @@
             (click)="closeSidenav()"
           >
             <mat-icon matListItemIcon>point_of_sale</mat-icon>
-            <span matListItemTitle>Cobrar</span>
+            <span matListItemTitle title="Punto de venta — tickets y cobro del día">Cobrar</span>
           </a>
           <a
             *ngIf="canShow('recordatorios')"
@@ -226,20 +226,10 @@
             class="admin-nav-subitem"
             (click)="closeSidenav()"
           >
-            <mat-icon matListItemIcon>medical_services</mat-icon>
-            <span matListItemTitle title="Servicios de clínica">Servicios de clínica</span>
+            <mat-icon matListItemIcon>price_change</mat-icon>
+            <span matListItemTitle title="Catálogo de precios clínicos (no es cobrar)">Catálogo de servicios</span>
           </a>
-          <a
-            *ngIf="canShow('finanzas')"
-            mat-list-item
-            routerLink="/admin/finanzas"
-            routerLinkActive="active"
-            class="admin-nav-subitem"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
-            <span matListItemTitle>Caja / finanzas</span>
-          </a>
+          <div class="admin-nav-group-label" *ngIf="hasAdminNav">Administración</div>
           <a
             *ngIf="canShow('usuarios')"
             mat-list-item
@@ -261,6 +251,17 @@
           >
             <mat-icon matListItemIcon>mail</mat-icon>
             <span matListItemTitle>Contactos web</span>
+          </a>
+          <a
+            *ngIf="canShow('finanzas')"
+            mat-list-item
+            routerLink="/admin/finanzas"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>analytics</mat-icon>
+            <span matListItemTitle title="Reportes, costos y corte de caja (no es el POS)">Finanzas y corte</span>
           </a>
           <a
             *ngIf="canShow('configuracion')"

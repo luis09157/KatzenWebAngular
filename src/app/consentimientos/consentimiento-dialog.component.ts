@@ -1,11 +1,14 @@
 import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
+import { ClinicConfigService } from '../core/services/clinic-config.service';
 import {
   AltaRapidaPickerDeps,
   crearClienteRapidoDesdePicker,
@@ -27,6 +30,16 @@ import {
 } from './consentimientos.models';
 import { ConsentimientosService } from './consentimientos.service';
 import { hoyLocalIsoDate } from './consentimientos.util';
+import {
+  buildConsentimientoDocumentoView,
+  ConsentimientoDocumentoDatos,
+  cssConsentimientoDocumento,
+  htmlCuerpoConsentimientoDocumento,
+} from './consentimiento-documento.util';
+import {
+  ConsentimientoPreviewDialogComponent,
+  ConsentimientoPreviewDialogData,
+} from './consentimiento-preview-dialog.component';
 
 @Component({
   selector: 'app-consentimiento-dialog',
@@ -51,6 +64,10 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
     nombreField: 'staff_nombre',
   };
 
+  nombreClinica = 'KatzenVet';
+  previewCompactHtml: SafeHtml = '';
+  telefonoCliente = '';
+
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ConsentimientoDialogComponent>,
@@ -59,6 +76,8 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
     private service: ConsentimientosService,
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
+    private clinicConfig: ClinicConfigService,
+    private sanitizer: DomSanitizer,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService
   ) {
@@ -79,6 +98,14 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.clinicConfig
+      .nombreClinica$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((n) => {
+        this.nombreClinica = n || 'KatzenVet';
+        this.refreshPreview();
+      });
+
     const c = this.data?.consentimiento;
     if (c?.id) {
       this.esEdicion = true;
@@ -100,6 +127,60 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
       if (c.paciente_id) {
         void this.loadAlergias(c.paciente_id);
       }
+      if (c.cliente_id) {
+        void this.loadTelefonoCliente(c.cliente_id);
+      }
+    }
+
+    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.refreshPreview());
+    this.form
+      .get('cliente_id')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((id) => {
+        if (id) void this.loadTelefonoCliente(String(id));
+        else this.telefonoCliente = '';
+      });
+    this.refreshPreview();
+  }
+
+  private documentoDatosDesdeForm(): ConsentimientoDocumentoDatos {
+    const v = this.form.getRawValue();
+    return {
+      tipo: (v.tipo || 'otro') as ConsentimientoTipo,
+      clinica: this.nombreClinica,
+      paciente: v.paciente,
+      dueno: v.cliente,
+      fecha: v.fecha,
+      veterinario: v.staff_nombre,
+      procedimiento: v.notas,
+      firmado_por: v.firmado_por,
+      parentesco: v.parentesco,
+    };
+  }
+
+  private refreshPreview(): void {
+    const view = buildConsentimientoDocumentoView(this.documentoDatosDesdeForm());
+    const html = `<style>${cssConsentimientoDocumento()}</style>${htmlCuerpoConsentimientoDocumento(view)}`;
+    this.previewCompactHtml = this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  verMachoteCompleto(): void {
+    const data: ConsentimientoPreviewDialogData = {
+      datos: this.documentoDatosDesdeForm(),
+      telefono: this.telefonoCliente,
+    };
+    this.dialog.open(ConsentimientoPreviewDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data,
+    });
+  }
+
+  private async loadTelefonoCliente(clienteId: string): Promise<void> {
+    try {
+      const cli = await firstValueFrom(this.clientesService.getCliente(clienteId).pipe(take(1)));
+      this.telefonoCliente = String(cli?.telefono || '').trim();
+    } catch {
+      this.telefonoCliente = '';
     }
   }
 

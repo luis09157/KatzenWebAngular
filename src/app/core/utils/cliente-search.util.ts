@@ -9,14 +9,8 @@ export function getClienteNombreCompleto(cliente: Cliente | null | undefined): s
     return '';
   }
   const rec = cliente as Record<string, unknown>;
-  const hidratado = rec['nombre'] || rec['Nombre']
-    ? hydrateCliente(cliente.id, cliente)
-    : cliente;
-  const partes = [
-    hidratado.nombre,
-    hidratado.apellidoPaterno,
-    hidratado.apellidoMaterno
-  ]
+  const hidratado = rec['nombre'] || rec['Nombre'] ? hydrateCliente(cliente.id, cliente) : cliente;
+  const partes = [hidratado.nombre, hidratado.apellidoPaterno, hidratado.apellidoMaterno]
     .filter(Boolean)
     .join(' ')
     .trim();
@@ -34,11 +28,21 @@ export function getClienteDisplayLabel(cliente: Cliente | null | undefined): str
 }
 
 /**
+ * displayWith de mat-autocomplete: el control guarda Cliente (selección) o string (tipeo).
+ * No pasar solo el label string al setValue si displayWith asume objeto — el input queda vacío.
+ */
+export function displayClienteAutocompleteValue(value: Cliente | string | null | undefined): string {
+  if (value == null || value === '') return '';
+  if (typeof value === 'string') return value;
+  return getClienteDisplayLabel(value);
+}
+
+/**
  * Filtra clientes activos por nombre (incl. Nombre/razón), apellidos, teléfono o expediente.
  * Normaliza acentos y espacios. Reutilizado en citas, baños, pensión y listado admin.
  */
 export function filtrarClientes(clientes: Cliente[], query: unknown): Cliente[] {
-  const activos = (clientes || []).filter(c => c.activo !== false);
+  const activos = (clientes || []).filter((c) => c.activo !== false);
   if (!query || typeof query !== 'string') {
     return activos;
   }
@@ -48,7 +52,7 @@ export function filtrarClientes(clientes: Cliente[], query: unknown): Cliente[] 
     return activos;
   }
 
-  return activos.filter(cliente => clienteCoincideBusqueda(cliente, filterValue));
+  return activos.filter((cliente) => clienteCoincideBusqueda(cliente, filterValue));
 }
 
 export function clienteCoincideBusqueda(cliente: Cliente | null | undefined, query: unknown): boolean {
@@ -62,7 +66,7 @@ export function clienteCoincideBusqueda(cliente: Cliente | null | undefined, que
     cliente.telefono,
     cliente.correo,
     cliente.expediente,
-    cliente.razonSocial
+    cliente.razonSocial,
   ]
     .filter(Boolean)
     .join(' ');
@@ -71,13 +75,7 @@ export function clienteCoincideBusqueda(cliente: Cliente | null | undefined, que
 
 export function haystackClienteParaFiltro(cliente: Cliente | null | undefined): string {
   return normalizarTextoBusqueda(
-    [
-      getClienteNombreCompleto(cliente),
-      cliente?.telefono,
-      cliente?.correo,
-      cliente?.expediente,
-      cliente?.razonSocial
-    ]
+    [getClienteNombreCompleto(cliente), cliente?.telefono, cliente?.correo, cliente?.expediente, cliente?.razonSocial]
       .filter(Boolean)
       .join(' ')
   );

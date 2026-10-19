@@ -22,11 +22,11 @@ describe('Admin modules authenticated', () => {
     { path: '/admin/inventario/movimientos', container: '.admin-page', title: 'Historial de movimientos' },
     { path: '/admin/inventario/alertas', container: '.alertas-contenedor', title: 'Alertas de inventario' },
     { path: '/admin/inventario/reportes', container: '.reportes-contenedor', title: 'Reportes e informes' },
-    { path: '/admin/finanzas', container: '.finanzas-contenedor', title: 'Caja / finanzas' },
-    { path: '/admin/visitas', container: '.visitas-contenedor', title: 'Visitas / tickets' },
+    { path: '/admin/finanzas', container: '.finanzas-contenedor', title: 'Finanzas y corte' },
+    { path: '/admin/visitas', container: '.visitas-contenedor', title: 'Cobrar' },
     { path: '/admin/consentimientos', container: '.consentimientos-contenedor', title: 'Consentimientos clínicos' },
     { path: '/admin/pension', container: '.pension-contenedor', title: 'Pensión / alojamiento' },
-    { path: '/admin/servicios-clinica', container: '.servicios-clinica-contenedor', title: 'Servicios de clínica' },
+    { path: '/admin/servicios-clinica', container: '.servicios-clinica-contenedor', title: 'Catálogo de servicios' },
     { path: '/admin/configuracion', container: '.configuracion-contenedor', title: 'Configuración de la clínica' },
   ];
 

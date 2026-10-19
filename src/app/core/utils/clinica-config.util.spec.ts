@@ -21,12 +21,24 @@ describe('clinica-config.util (072)', () => {
     expect(nombreClinicaVisible({ nombre: '  Clínica Sur  ' })).toBe('Clínica Sur');
   });
 
-  it('payload omite URL/horario vacíos', () => {
-    const p = payloadClinicaParaGuardar({ nombre: 'Katzen', logoUrl: '', horario: '' }, 'uid-1');
+  it('payload omite opcionales vacíos (sin undefined en el objeto)', () => {
+    const p = payloadClinicaParaGuardar(
+      { nombre: 'Katzen', logoUrl: '', horario: '', vetDefaultUid: 'v1', vetDefaultNombre: 'Dra. X' },
+      'uid-1'
+    );
     expect(p.nombre).toBe('Katzen');
-    expect(p.logoUrl).toBeUndefined();
-    expect(p.horario).toBeUndefined();
+    expect('logoUrl' in p).toBe(false);
+    expect('horario' in p).toBe(false);
+    expect(p.vetDefaultUid).toBe('v1');
+    expect(p.vetDefaultNombre).toBe('Dra. X');
     expect(p.updatedBy).toBe('uid-1');
     expect(p.updatedAt).toBeTruthy();
+    expect(Object.values(p).some((v) => v === undefined)).toBe(false);
+  });
+
+  it('payload sin staffId no incluye updatedBy', () => {
+    const p = payloadClinicaParaGuardar({ nombre: 'Katzen' });
+    expect('updatedBy' in p).toBe(false);
+    expect(Object.values(p).some((v) => v === undefined)).toBe(false);
   });
 });

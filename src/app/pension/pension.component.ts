@@ -20,6 +20,14 @@ import { PensionService } from './pension.service';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
+import {
+  coincidenciaTextoListado,
+  fechaHoyListadoLocal,
+  filtrarListadoAgendaOBusqueda,
+  listadoFechaIso,
+  metaListadoHoyManana,
+  partirListadoHoyManana,
+} from '../core/utils/listado-hoy-manana.util';
 
 @Component({
   selector: 'app-pension',
@@ -33,8 +41,44 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   displayedColumns = ['paciente', 'fechas', 'tamano', 'precio', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<PensionEstancia>([]);
+  dataSourceHoy = new MatTableDataSource<PensionEstancia>([]);
+  dataSourceManana = new MatTableDataSource<PensionEstancia>([]);
+  private todasFilas: PensionEstancia[] = [];
+  buscarTexto = '';
+  tablaInicializada = false;
   loading = true;
   menuContext: PensionEstancia | null = null;
+
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaListadoHoyManana({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceHoy.data.length;
+  }
+
+  get seccionMananaVacia(): boolean {
+    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceManana.data.length;
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length && this.modoBusqueda;
+  }
 
   readonly estadoLabels = ESTADO_PENSION_LABELS;
   readonly tamanoLabels = TAMANO_PENSION_LABELS;
@@ -76,18 +120,17 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (rows) => {
-          this.dataSource.data = rows;
-          this.totalActivas = rows.filter((r) => r.estado === 'activa').length;
-          this.totalReservadas = rows.filter((r) => r.estado === 'reservada').length;
-          this.totalFinalizadas = rows.filter((r) => r.estado === 'finalizada').length;
+          this.todasFilas = rows || [];
+          this.totalActivas = this.todasFilas.filter((r) => r.estado === 'activa').length;
+          this.totalReservadas = this.todasFilas.filter((r) => r.estado === 'reservada').length;
+          this.totalFinalizadas = this.todasFilas.filter((r) => r.estado === 'finalizada').length;
           this.ocupacionVisible = this.totalActivas;
-          this.valorEstimado = rows
+          this.valorEstimado = this.todasFilas
             .filter((r) => r.estado === 'activa' || r.estado === 'reservada')
             .reduce((sum, r) => sum + (Number(r.precio_total) || 0), 0);
+          this.aplicarVistaListado();
+          this.tablaInicializada = true;
           this.loading = false;
-          setTimeout(() => {
-            if (this.paginator) this.dataSource.paginator = this.paginator;
-          }, 0);
         },
         error: (error) => {
           this.logger.error('Error al cargar pensión:', error);
@@ -98,7 +141,58 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applyFilter(event: Event): void {
-    this.dataSource.filter = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
+  }
+
+  /** Agenda: ingreso hoy/mañana; activas siempre en Hoy. */
+  private pensionFechasIso = (r: PensionEstancia) => [
+    listadoFechaIso(r.fecha_ingreso),
+    listadoFechaIso(r.fecha_salida_prevista),
+  ];
+
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyListadoLocal();
+    const opts = {
+      hoyIso,
+      getFechasIso: this.pensionFechasIso,
+      extraHoy: (row: unknown) => (row as PensionEstancia).estado === 'activa',
+      coincideBusqueda: (r: PensionEstancia, q: string) =>
+        coincidenciaTextoListado(
+          [
+            r.paciente,
+            r.cliente,
+            r.estado,
+            r.fecha_ingreso,
+            r.fecha_salida_prevista,
+            r.fecha_salida_real,
+            r.tamano_mascota,
+          ],
+          q
+        ),
+    };
+    if (this.modoBusqueda) {
+      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
+        ...opts,
+        query: this.buscarTexto,
+      });
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+    const partes = partirListadoHoyManana(this.todasFilas, this.pensionFechasIso, {
+      hoyIso,
+      extraHoy: opts.extraHoy,
+    });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   diasEstancia(row: PensionEstancia): number {

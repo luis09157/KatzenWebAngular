@@ -1,135 +1,179 @@
 <div class="admin-page ordenes-container">
+  <div class="admin-list-shell">
+    <app-admin-page-banner
+      accent="purple"
+      icon="shopping_cart"
+      title="Órdenes de compra"
+      subtitle="Pide mercancía al proveedor. Al recibir, el stock sube. Si falta proveedor, créalo primero."
+    >
+      <div bannerActions>
+        <button mat-stroked-button type="button" (click)="exportarExcel()">
+          <mat-icon>file_download</mat-icon>
+          Exportar
+        </button>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevaOrden()">
+          <mat-icon>add_shopping_cart</mat-icon>
+          Nueva orden
+        </button>
+      </div>
+    </app-admin-page-banner>
+
+    <app-admin-data-panel
+      accent="purple"
+      title="Listado de órdenes"
+      description="Orden = proveedor + productos. Luego «Recibir» para entrar stock."
+      [showLegend]="false"
+    >
+      <mat-form-field appearance="outline" class="filtro-estado panel-search">
+        <mat-label>Estado</mat-label>
+        <mat-select [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
+          <mat-option *ngFor="let estado of estadosOrden" [value]="estado.valor">
+            {{ estado.etiqueta }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>Cargando órdenes…</p>
+      </div>
+
+      <div class="table-scroll" *ngIf="!loading">
+        <table mat-table [dataSource]="dataSource" matSort class="ordenes-table">
+          <ng-container matColumnDef="numero_orden">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Orden #</th>
+            <td mat-cell *matCellDef="let orden">
+              <strong>{{ orden.folio }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fecha_orden">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
+            <td mat-cell *matCellDef="let orden">{{ formatearFecha(orden.fecha_orden) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="proveedor">
+            <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+            <td mat-cell *matCellDef="let orden">{{ getProveedorNombre(orden.proveedor_id) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
+            <td mat-cell *matCellDef="let orden">
+              <div class="cell-primary">
+                <strong>${{ orden.total | number: '1.2-2' }}</strong>
+                <span class="cell-sub">{{ orden.items.length }} productos</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+            <td mat-cell *matCellDef="let orden">
+              <span class="tag" [style.background-color]="getEstadoColor(orden.estado)">
+                {{ getEstadoTexto(orden.estado) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="fecha_entrega_esperada">
+            <th mat-header-cell *matHeaderCellDef>Entrega esperada</th>
+            <td mat-cell *matCellDef="let orden">{{ formatearFecha(orden.fecha_entrega_esperada) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let orden">
+              <div class="row-actions hide-mobile">
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="primary"
+                  matTooltip="Recibir mercancía"
+                  *ngIf="puedeRecibir(orden)"
+                  (click)="recibirOrden(orden)"
+                >
+                  <mat-icon>inventory</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Cancelar orden"
+                  *ngIf="puedeCancelar(orden)"
+                  (click)="cancelarOrden(orden)"
+                >
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </div>
+              <button
+                mat-icon-button
+                type="button"
+                class="show-mobile-only"
+                matTooltip="Acciones"
+                [matMenuTriggerFor]="ordenMenu"
+                (click)="menuContext = orden"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="data-row"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+              <app-admin-empty-state
+                icon="shopping_cart"
+                title="Aún no hay órdenes"
+                message="Elige un proveedor y los productos a pedir. Cuando llegue la mercancía, recíbela aquí."
+                actionLabel="Nueva orden"
+                (action)="nuevaOrden()"
+              >
+              </app-admin-empty-state>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        *ngIf="!loading"
+        #paginator
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </app-admin-data-panel>
+  </div>
+
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
-    <app-admin-stat-card accent="purple" [value]="kpiTotal" label="Total órdenes" hint="Histórico"></app-admin-stat-card>
-    <app-admin-stat-card accent="orange" [value]="kpiPendientes" label="Abiertas" hint="Borrador / enviada"></app-admin-stat-card>
-    <app-admin-stat-card accent="green" [value]="kpiRecibidas" label="Recibidas" hint="Parcial o completa"></app-admin-stat-card>
-    <app-admin-stat-card accent="blue" [value]="formatMoney(kpiMontoAbierto)" label="Monto abierto" hint="Órdenes no recibidas"></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="purple"
+      [value]="kpiTotal"
+      label="Total órdenes"
+      hint="Histórico"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="orange"
+      [value]="kpiPendientes"
+      label="Abiertas"
+      hint="Borrador / enviada"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="green"
+      [value]="kpiRecibidas"
+      label="Recibidas"
+      hint="Parcial o completa"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="blue"
+      [value]="formatMoney(kpiMontoAbierto)"
+      label="Monto abierto"
+      hint="Órdenes no recibidas"
+    ></app-admin-stat-card>
   </app-admin-kpi-grid>
-
-  <app-admin-page-banner
-    accent="purple"
-    icon="shopping_cart"
-    title="Órdenes de compra"
-    subtitle="Pide mercancía al proveedor. Al recibir, el stock sube. Si falta proveedor, créalo primero.">
-    <div bannerActions>
-      <button mat-stroked-button type="button" (click)="exportarExcel()">
-        <mat-icon>file_download</mat-icon>
-        Exportar
-      </button>
-      <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="nuevaOrden()">
-        <mat-icon>add_shopping_cart</mat-icon>
-        Nueva orden
-      </button>
-    </div>
-  </app-admin-page-banner>
-
-  <app-admin-data-panel
-    accent="purple"
-    title="Listado de órdenes"
-    description="Orden = proveedor + productos. Luego «Recibir» para entrar stock."
-    [showLegend]="false">
-
-    <mat-form-field appearance="outline" class="filtro-estado panel-search">
-      <mat-label>Estado</mat-label>
-      <mat-select [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
-        <mat-option *ngFor="let estado of estadosOrden" [value]="estado.valor">
-          {{ estado.etiqueta }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando órdenes…</p>
-    </div>
-
-    <div class="table-scroll" *ngIf="!loading">
-      <table mat-table [dataSource]="dataSource" matSort class="ordenes-table">
-        <ng-container matColumnDef="numero_orden">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Orden #</th>
-          <td mat-cell *matCellDef="let orden"><strong>{{ orden.folio }}</strong></td>
-        </ng-container>
-
-        <ng-container matColumnDef="fecha_orden">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
-          <td mat-cell *matCellDef="let orden">{{ formatearFecha(orden.fecha_orden) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="proveedor">
-          <th mat-header-cell *matHeaderCellDef>Proveedor</th>
-          <td mat-cell *matCellDef="let orden">{{ getProveedorNombre(orden.proveedor_id) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="total">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
-          <td mat-cell *matCellDef="let orden">
-            <div class="cell-primary">
-              <strong>${{ orden.total | number:'1.2-2' }}</strong>
-              <span class="cell-sub">{{ orden.items.length }} productos</span>
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
-          <td mat-cell *matCellDef="let orden">
-            <span class="tag" [style.background-color]="getEstadoColor(orden.estado)">
-              {{ getEstadoTexto(orden.estado) }}
-            </span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="fecha_entrega_esperada">
-          <th mat-header-cell *matHeaderCellDef>Entrega esperada</th>
-          <td mat-cell *matCellDef="let orden">{{ formatearFecha(orden.fecha_entrega_esperada) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let orden">
-            <div class="row-actions hide-mobile">
-              <button mat-icon-button type="button" color="primary" matTooltip="Recibir mercancía"
-                      *ngIf="puedeRecibir(orden)" (click)="recibirOrden(orden)">
-                <mat-icon>inventory</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Cancelar orden"
-                      *ngIf="puedeCancelar(orden)" (click)="cancelarOrden(orden)">
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </div>
-            <button mat-icon-button type="button" class="show-mobile-only" matTooltip="Acciones"
-                    [matMenuTriggerFor]="ordenMenu" (click)="menuContext = orden">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
-
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-            <app-admin-empty-state
-              icon="shopping_cart"
-              title="Aún no hay órdenes"
-              message="Elige un proveedor y los productos a pedir. Cuando llegue la mercancía, recíbela aquí."
-              actionLabel="Nueva orden"
-              (action)="nuevaOrden()">
-            </app-admin-empty-state>
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <mat-paginator
-      *ngIf="!loading"
-      #paginator
-      [pageSize]="pageSize"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      showFirstLastButtons>
-    </mat-paginator>
-  </app-admin-data-panel>
 
   <mat-menu #ordenMenu="matMenu">
     <button mat-menu-item *ngIf="menuContext && puedeRecibir(menuContext)" (click)="recibirOrden(menuContext!)">

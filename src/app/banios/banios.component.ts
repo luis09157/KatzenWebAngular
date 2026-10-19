@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -22,13 +22,22 @@ import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialo
 import { PeriodoPreset, fechaEnRango, formatMoneyMx, resolverPeriodo } from '../core/utils/periodo-filtro.util';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { fechaHoyLocal } from './banio-captura-rapida.util';
+import {
+  BanioListadoFila,
+  banioFechaIso,
+  filtrarBaniosListado,
+  metaBaniosListado,
+  partirBaniosHoyManana,
+} from './banio-listado-filtro.util';
+import { formatearFechaLocalEs } from '../shared/datepicker/datepicker.util';
 
 @Component({
   selector: 'app-banios',
   templateUrl: './banios.component.html',
   styleUrls: ['./banios.component.css'],
 })
-export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
+export class BaniosComponent implements OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = [
     'fecha_banio',
@@ -41,7 +50,11 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
     'acciones',
   ];
   menuContext: any = null;
+  /** Vista búsqueda: una sola tabla. Spec 085 B.1 */
   dataSource = new MatTableDataSource<any>([]);
+  /** Vista default: secciones Hoy / Mañana. */
+  dataSourceHoy = new MatTableDataSource<any>([]);
+  dataSourceManana = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   // Mapeos para nombres
@@ -53,6 +66,10 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = false;
   tablaInicializada = false;
   private baniosActivos: Banio[] = [];
+  /** Todas las filas hidratadas (histórico); default = Hoy+Mañana; búsqueda = historial. Spec 085 B.1 */
+  private todasFilas: BanioListadoFila[] = [];
+  /** Texto del buscador; vacío = Hoy + Mañana. */
+  buscarTexto = '';
   /** Spec 025 — mes actual default; opcional semana. */
   periodoKpi: PeriodoPreset = 'este_mes';
   estadisticas = {
@@ -69,6 +86,7 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
     tamanoPequeno: 0,
     tamanoMediano: 0,
     tamanoGrande: 0,
+    tamanoXl: 0,
     tamanoSinClasificar: 0,
   };
 
@@ -84,35 +102,57 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
     private visitasService: VisitasService
   ) {}
 
-  ngOnInit(): void {
-    // No cargar datos aquí, esperar a que la vista esté lista
-    // Definir un filtro explícito para evitar resultados parciales inesperados
-    this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const texto = (filter || '').trim().toLowerCase();
-      if (!texto) {
-        return true;
-      }
-      const campos = [
-        data.paciente,
-        data.cliente,
-        data.tipo_servicio,
-        data.estado,
-        data.peluquero,
-        data.fecha_banio,
-        data.hora_banio,
-      ];
-      return campos.some((v) => (v || '').toString().toLowerCase().includes(texto));
-    };
+  get modoBusqueda(): boolean {
+    return !!this.buscarTexto.trim();
+  }
+
+  /** Meta del panel: «Hoy · N · Mañana · M» o conteo de búsqueda. */
+  get listadoMeta(): string {
+    if (this.loading || !this.todasFilas.length) return '';
+    return metaBaniosListado({
+      visibles: this.dataSource?.data?.length || 0,
+      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
+      visiblesManana: this.dataSourceManana?.data?.length || 0,
+      totales: this.estadisticas.totalHistorico || this.todasFilas.length,
+      query: this.buscarTexto,
+    });
+  }
+
+  get todasFilasTieneDatos(): boolean {
+    return this.todasFilas.length > 0;
+  }
+
+  get seccionHoyVacia(): boolean {
+    return (
+      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceHoy?.data?.length || 0)
+    );
+  }
+
+  get seccionMananaVacia(): boolean {
+    return (
+      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceManana?.data?.length || 0)
+    );
+  }
+
+  /** Sin baños de hoy ni mañana (hay histórico). Alias usado en el template. */
+  get hayHistoricoSinHoy(): boolean {
+    return this.seccionHoyVacia && this.seccionMananaVacia;
+  }
+
+  get busquedaSinResultados(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !(this.dataSource?.data?.length || 0) && this.modoBusqueda;
+  }
+
+  /** Filas visibles para CSV (hoy+mañana o resultados). */
+  get filasVisiblesCsv(): BanioListadoFila[] {
+    if (this.modoBusqueda) {
+      return this.dataSource?.data || [];
+    }
+    return [...(this.dataSourceHoy?.data || []), ...(this.dataSourceManana?.data || [])];
   }
 
   ngAfterViewInit(): void {
-    // Configurar el paginador después de que la vista esté inicializada
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-
-    // Esperar un ciclo completo antes de cargar los datos
-    // Esto evita los errores de onDestroy de Angular Material
+    // Paginador solo en modo búsqueda; se enlaza en aplicarVistaListado.
     setTimeout(() => {
       this.cargarDatosIniciales();
     }, 100);
@@ -186,18 +226,23 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
         next: (banios) => {
           try {
             const baniosActivos = (banios || []).filter((b: { activo?: boolean }) => b.activo !== false);
-            const nuevosDatos = baniosActivos.map((banio: any) => ({
-              ...banio,
-              paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
-              cliente: this.clientesMap[banio.cliente_id] || 'N/P',
-              peluquero: banio.peluquero || this.usuariosMap[banio.peluquero_id] || 'N/P',
-              fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
-              hora_banio: this.formatearHora(banio.hora_banio),
-              tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
-              estado_texto: this.formatearTextoSeguro(banio.estado),
-            }));
+            const nuevosDatos: BanioListadoFila[] = baniosActivos.map((banio: any) => {
+              const fechaIso = banioFechaIso(banio.fecha_banio, banio.created_at);
+              return {
+                ...banio,
+                paciente: this.pacientesMap[banio.paciente_id] || 'N/P',
+                cliente: this.clientesMap[banio.cliente_id] || 'N/P',
+                peluquero: banio.peluquero || this.usuariosMap[banio.peluquero_id] || 'N/P',
+                fecha_banio_iso: fechaIso,
+                fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
+                hora_banio: this.formatearHora(banio.hora_banio),
+                tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
+                estado_texto: this.formatearTextoSeguro(banio.estado),
+              };
+            });
             this.baniosActivos = baniosActivos as Banio[];
-            this.actualizarTablaSegura(nuevosDatos);
+            this.todasFilas = nuevosDatos;
+            this.actualizarTablaSegura();
             this.calcularEstadisticas();
             this.loading = false;
           } catch (error) {
@@ -225,20 +270,58 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  private actualizarTablaSegura(nuevosDatos: any[]) {
+  /** Aplica vista Hoy+Mañana (default) o historial filtrado por búsqueda. Spec 085 B.1 */
+  private aplicarVistaListado(): void {
+    const hoyIso = fechaHoyLocal();
+    if (this.modoBusqueda) {
+      const visibles = filtrarBaniosListado(this.todasFilas, {
+        query: this.buscarTexto,
+        hoyIso,
+      });
+      this.dataSource.data = [...visibles];
+      this.dataSourceHoy.data = [];
+      this.dataSourceManana.data = [];
+      // El paginador aparece con *ngIf; enlazar en el siguiente tick.
+      setTimeout(() => {
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          this.paginator.firstPage();
+        }
+      });
+      return;
+    }
+
+    const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
+    this.dataSourceHoy.data = [...partes.hoy];
+    this.dataSourceManana.data = [...partes.manana];
+    // Una tabla: hoy primero, luego mañana (meta del panel separa conteos).
+    this.dataSource.data = [...partes.hoy, ...partes.manana];
+    if (this.paginator && this.dataSource.paginator !== this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+  }
+
+  private actualizarTablaSegura() {
     try {
-      this.dataSource.data = [...nuevosDatos];
-      this.dataSource.filter = '';
-      if (this.paginator && this.dataSource.paginator !== this.paginator) {
-        this.dataSource.paginator = this.paginator;
-      }
-      if (this.paginator) {
-        this.paginator.firstPage();
-      }
+      this.aplicarVistaListado();
       this.tablaInicializada = true;
     } catch (error) {
       this.logger.error('❌ Error al actualizar tabla:', error);
-      this.dataSource.data = nuevosDatos;
+      const hoyIso = fechaHoyLocal();
+      if (this.modoBusqueda) {
+        this.dataSource.data = filtrarBaniosListado(this.todasFilas, {
+          query: this.buscarTexto,
+          hoyIso,
+        });
+      } else {
+        const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
+        this.dataSourceHoy.data = [...partes.hoy];
+        this.dataSourceManana.data = [...partes.manana];
+        this.dataSource.data = [...partes.hoy, ...partes.manana];
+      }
       this.tablaInicializada = true;
     }
   }
@@ -260,8 +343,9 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
    * Fuente primaria: campos del baño (`precio_total`, `pagado`, estado).
    * - Valor estimado / ingresos brutos: suma `precio_total` de no cancelados (aunque no haya caja).
    * - Ingresos cobrados: pagado o vinculado a caja.
-   * - Ganancia (margen): ingresos brutos − costos del mismo set.
-   *   Si costo === precio_venta → margen 0 (esperado); el ingreso bruto igual sube.
+   * - Ganancia (margen): ingresos − `costoEstimado` automático (tarifas Finanzas / background).
+   *   Sin costo guardado → ese baño no suma a costos (margen ≈ ingreso; N/A parcial).
+   *   Staff no edita costo en el diálogo (085).
    */
   calcularEstadisticas(): void {
     const banios = this.baniosActivos || [];
@@ -292,44 +376,12 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
     this.estadisticas.tamanoPequeno = noCancelPeriodo.filter((b) => b.tamano_perro === 'pequeno').length;
     this.estadisticas.tamanoMediano = noCancelPeriodo.filter((b) => b.tamano_perro === 'mediano').length;
     this.estadisticas.tamanoGrande = noCancelPeriodo.filter((b) => b.tamano_perro === 'grande').length;
+    this.estadisticas.tamanoXl = noCancelPeriodo.filter((b) => b.tamano_perro === 'xl').length;
     this.estadisticas.tamanoSinClasificar = noCancelPeriodo.filter((b) => !b.tamano_perro).length;
   }
 
   formatearFecha(fecha: any): string {
-    if (!fecha) return 'N/P';
-
-    try {
-      if (fecha instanceof Date) {
-        return fecha.toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
-      }
-
-      if (typeof fecha === 'string') {
-        // Intentar ISO o 'YYYY-MM-DD HH:mm:ss'
-        let date = new Date(fecha);
-        if (isNaN(date.getTime())) {
-          const onlyDate = fecha.split(' ')[0];
-          const m = onlyDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-          if (m) {
-            date = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
-          }
-        }
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          });
-        }
-      }
-
-      return 'N/P';
-    } catch (error) {
-      return 'N/P';
-    }
+    return formatearFechaLocalEs(fecha) || 'N/P';
   }
 
   formatearHora(hora: any): string {
@@ -363,8 +415,8 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   aplicarFiltro(event: Event) {
-    const filtro = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filtro.trim().toLowerCase();
+    this.buscarTexto = (event.target as HTMLInputElement).value || '';
+    this.aplicarVistaListado();
   }
 
   abrirModalBanio(banio: any = null) {
@@ -759,20 +811,32 @@ export class BaniosComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe(() => {});
   }
 
+  /**
+   * Exporta lo visible (Hoy+Mañana o resultado de búsqueda), no el histórico completo.
+   * Para exportar historial: buscar primero (cliente/paciente/tipo/fecha) y luego CSV.
+   */
   exportarCsv(): void {
-    const rows = this.dataSource?.data || [];
+    const rows = this.filasVisiblesCsv;
     if (!rows.length) {
-      Swal.fire('Sin datos', 'No hay baños para exportar.', 'info');
+      Swal.fire(
+        'Sin datos',
+        this.modoBusqueda
+          ? 'No hay baños que coincidan con la búsqueda.'
+          : 'No hay baños de hoy ni de mañana para exportar. Busca en el historial si necesitas otras fechas.',
+        'info'
+      );
       return;
     }
-    exportToCsv(`banios_${Date.now()}`, rows, [
+    const sufijo = this.modoBusqueda ? 'busqueda' : 'hoy_manana';
+    exportToCsv(`banios_${sufijo}_${Date.now()}`, rows, [
       { header: 'Fecha', value: (row) => row.fecha_banio || '' },
       { header: 'Hora', value: (row) => row.hora_banio || '' },
       { header: 'Paciente', value: (row) => row.paciente || '' },
+      { header: 'Cliente', value: (row) => row.cliente || '' },
       { header: 'Tipo servicio', value: (row) => row.tipo_servicio || '' },
       { header: 'Estado', value: (row) => row.estado || '' },
       { header: 'Peluquero', value: (row) => row.peluquero || '' },
-      { header: 'Precio', value: (row) => row.precio_total || 0 },
+      { header: 'Precio', value: (row) => Number(row['precio_total']) || 0 },
     ]);
   }
 }

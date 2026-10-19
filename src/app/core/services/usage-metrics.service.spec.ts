@@ -80,7 +80,7 @@ describe('UsageMetricsService (spec 066)', () => {
 
     const filas = service.listar();
     expect(filas.map((f) => f.modulo)).toEqual(['finanzas', 'inventario', 'citas']);
-    expect(filas[0].label).toBe('Caja / finanzas');
+    expect(filas[0].label).toBe('Finanzas y corte');
 
     service.reiniciar();
     expect(service.listar()).toEqual([]);

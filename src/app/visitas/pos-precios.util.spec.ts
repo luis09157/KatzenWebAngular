@@ -2,7 +2,7 @@ import {
   MOCK_DEFAULTS_BANIO_TAMANO,
   MOCK_PLANTILLA_COSTO,
   MOCK_PRODUCTO_INVENTARIO,
-  MOCK_PRODUCTOS_POS
+  MOCK_PRODUCTOS_POS,
 } from '../core/testing/mock-data';
 import { emptyDefaultsBanio } from '../finanzas/defaults-banio.models';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
@@ -20,14 +20,14 @@ import {
   resolverAtajoConsulta,
   resolverLineaProductoInventario,
   resolverPrecioBanioPos,
-  valorInicialPromptBanio
+  valorInicialPromptBanio,
 } from './pos-precios.util';
 
 function prod(parcial: Partial<Producto> & Pick<Producto, 'categoria'>): Producto {
   return {
     ...MOCK_PRODUCTO_INVENTARIO,
     codigo_barras: 'X',
-    ...parcial
+    ...parcial,
   } as Producto;
 }
 
@@ -38,7 +38,7 @@ describe('pos-precios.util', () => {
       categoria: 'medicamento',
       nombre: 'Amoxi',
       precio_venta: 120,
-      precio_compra: 40
+      precio_compra: 40,
     });
     expect(atajoPideMonto('producto', [p])).toBe(false);
     expect(atajoPideMonto('medicamento', [p])).toBe(false);
@@ -84,18 +84,18 @@ describe('pos-precios.util', () => {
       categoria: 'diagnostico',
       nombre: 'Consulta general',
       subcategoria: 'consulta',
-      precio_venta: 0
+      precio_venta: 0,
     });
     expect(precioVentaInventario(sinPrecio)).toBeNull();
     expect(atajoPideMonto('consulta', [sinPrecio])).toBe(true);
     expect(resolverAtajoConsulta([sinPrecio])).toEqual({
       pedirMonto: true,
-      motivo: 'sin_precio_catalogo'
+      motivo: 'sin_precio_catalogo',
     });
     expect(atajoPideMonto('consulta', [])).toBe(true);
     expect(resolverAtajoConsulta([])).toEqual({
       pedirMonto: true,
-      motivo: 'sin_precio_catalogo'
+      motivo: 'sin_precio_catalogo',
     });
   });
 
@@ -104,7 +104,7 @@ describe('pos-precios.util', () => {
     const r = resolverPrecioBanioPos({
       tamano: 'mediano',
       defaults: MOCK_DEFAULTS_BANIO_TAMANO,
-      plantillas: []
+      plantillas: [],
     });
     expect(r.editable).toBe(true);
     expect(r.precio).toBe(350);
@@ -119,7 +119,7 @@ describe('pos-precios.util', () => {
     const r = resolverPrecioBanioPos({
       tamano: 'mediano',
       defaults: emptyDefaultsBanio(),
-      plantillas
+      plantillas,
     });
     expect(r.precio).toBe(350);
     expect(r.fuente).toBe('plantilla');
@@ -130,7 +130,7 @@ describe('pos-precios.util', () => {
     const desdeInventario = resolverPrecioBanioPos({
       defaults: emptyDefaultsBanio(),
       plantillas: [],
-      catalogoInventario: MOCK_PRODUCTOS_POS
+      catalogoInventario: MOCK_PRODUCTOS_POS,
     });
     expect(desdeInventario.precio).toBe(250);
     expect(desdeInventario.fuente).toBe('inventario');
@@ -138,7 +138,7 @@ describe('pos-precios.util', () => {
     const desdePeluqueria = resolverPrecioBanioPos({
       defaults: emptyDefaultsBanio(),
       plantillas: [],
-      productosPeluqueria: [{ nombre: 'Baño básico', precio: 220, activo: true }]
+      productosPeluqueria: [{ nombre: 'Baño básico', precio: 220, activo: true }],
     });
     expect(desdePeluqueria.precio).toBe(220);
     expect(desdePeluqueria.fuente).toBe('productos_peluqueria');
@@ -147,6 +147,25 @@ describe('pos-precios.util', () => {
   it('infiere tamaño de mascota para el default de baño', () => {
     expect(inferirTamanoBanio({ tamano_perro: 'chico' })).toBe('pequeno');
     expect(inferirTamanoBanio({ tamano: 'grande' })).toBe('grande');
+    expect(inferirTamanoBanio({ tamano_perro: 'xl' })).toBe('xl');
+    expect(inferirTamanoBanio({ tamano: 'gigante' })).toBe('xl');
     expect(inferirTamanoBanio({})).toBe('');
+  });
+
+  it('XL sin defaults usa fallback en código (no inventa precio en cascada sin tamaño)', () => {
+    const conXl = resolverPrecioBanioPos({
+      tamano: 'xl',
+      defaults: emptyDefaultsBanio(),
+      plantillas: [],
+    });
+    expect(conXl.precio).toBe(550);
+    expect(conXl.fuente).toBe('defaults');
+
+    const sinTamano = resolverPrecioBanioPos({
+      defaults: emptyDefaultsBanio(),
+      plantillas: [],
+      catalogoInventario: MOCK_PRODUCTOS_POS,
+    });
+    expect(sinTamano.fuente).toBe('inventario');
   });
 });

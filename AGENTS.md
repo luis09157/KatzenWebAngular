@@ -51,7 +51,7 @@ Hosting **no** es backup de UI (spec 063): tras deploy hosting autorizado, `reta
 
 ## UI Admin
 
-Layout `admin-page` + `app-admin-kpi-grid` + `app-admin-page-banner` + `app-admin-data-panel`; tablas `.table-scroll` + `mat-table` + `.row-actions`; diálogos `admin-dialog-shell` (**nunca** `mat-dialog-title`). Detalle: `docs/ADMIN-UI-ARCHITECTURE.md` · rule `.cursor/rules/admin-ui-architecture.mdc` (se activa al editar `src/app/**`) · referencia CRUD: `src/app/clientes/`.
+Layout `admin-page` + `.admin-list-shell` (`app-admin-page-banner` + hint opcional + `app-admin-data-panel` en una composición) + `app-admin-kpi-grid` **abajo** (CTA/lista primero); tablas `.table-scroll` + `mat-table` + `.row-actions`; diálogos `admin-dialog-shell` (**nunca** `mat-dialog-title`). Detalle: `docs/ADMIN-UI-ARCHITECTURE.md` · rule `.cursor/rules/admin-ui-architecture.mdc` (se activa al editar `src/app/**`) · referencia CRUD: `src/app/banios/` / `src/app/clientes/`.
 
 Roles staff: matriz en `src/app/core/config/staff-role.config.ts`; módulo admin nuevo → `.cursor/rules/new-admin-module.mdc`.
 

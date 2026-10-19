@@ -82,12 +82,241 @@
 
 .admin-content app-admin-page-banner + app-admin-data-panel,
 .admin-content app-admin-page-banner + .admin-toolbar,
-.admin-content app-admin-kpi-grid + app-admin-page-banner {
+.admin-content app-admin-page-banner + app-flow-hint {
   margin-top: 0;
 }
 
+/* ==========================================================================
+   Spec 061 — admin-list-shell: una composición (banner + hint + lista)
+   Evita apilar 2–3 cards sueltas. KPIs siguen fuera, debajo.
+   ========================================================================== */
+
+.admin-content .admin-list-shell {
+  display: block;
+  background: var(--admin-surface, #fff);
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: var(--admin-radius-lg, 16px);
+  box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06);
+  overflow: visible;
+  margin-bottom: 8px;
+  height: auto;
+  min-height: 0;
+  align-self: flex-start;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner {
+  display: block;
+  margin-bottom: 0;
+  height: auto;
+  flex: none;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner {
+  border: none;
+  border-top: 5px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 18px 24px 16px;
+  background: transparent;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--teal {
+  border-top-color: var(--katzen-verde, #0a969b);
+}
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--blue {
+  border-top-color: #1e88e5;
+}
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--purple {
+  border-top-color: #7b1fa2;
+}
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--pink {
+  border-top-color: #ad067e;
+}
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--green {
+  border-top-color: #00897b;
+}
+.admin-content .admin-list-shell > app-admin-page-banner .admin-banner--orange {
+  border-top-color: #f57c00;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner .banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner .banner-text h2 {
+  font-size: 1.1875rem;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner .banner-text p {
+  font-size: 0.875rem;
+  max-width: 52rem;
+}
+
+.admin-content .admin-list-shell > app-flow-hint {
+  display: block;
+  margin: 0;
+}
+
+.admin-content .admin-list-shell > app-flow-hint .flow-hint--inline {
+  margin: 0;
+  padding: 10px 24px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: 1px solid rgba(10, 150, 155, 0.18);
+  border-bottom: 1px solid rgba(10, 150, 155, 0.18);
+  background: var(--katzen-verde-soft, #e0f7f8);
+}
+
+.admin-content .admin-list-shell > app-flow-hint .flow-hint--warn.flow-hint--inline {
+  background: #fffbeb;
+  border-top-color: #fde68a;
+  border-bottom-color: #fde68a;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel {
+  display: block;
+  margin-bottom: 0;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel-header {
+  padding: 14px 24px 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.admin-content .admin-list-shell > app-admin-page-banner + app-admin-data-panel .data-panel-header,
+.admin-content .admin-list-shell > app-flow-hint + app-admin-data-panel .data-panel-header {
+  border-top: none;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel-header h3 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #374151;
+  letter-spacing: 0;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel-header p {
+  font-size: 0.8125rem;
+  max-width: 42rem;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel-body {
+  padding: 8px 0 16px;
+}
+
+.admin-content .admin-list-shell > app-admin-data-panel .data-panel-footer {
+  padding: 10px 24px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+@container admin-page (max-width: 720px) {
+  .admin-content .admin-list-shell {
+    border-radius: var(--admin-radius-md, 12px);
+  }
+
+  /* CTAs justo bajo título/copy — sin estirar el banner al alto del viewport */
+  .admin-content .admin-list-shell > app-admin-page-banner .admin-banner {
+    padding: 12px 12px 10px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 10px;
+  }
+
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-content {
+    flex: 0 0 auto;
+  }
+
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions > * {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions button,
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions > * > button {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+
+  .admin-content .admin-list-shell > app-flow-hint .flow-hint--inline {
+    padding: 8px 12px;
+  }
+
+  .admin-content .admin-list-shell > app-admin-data-panel .data-panel-header {
+    padding: 10px 12px 0;
+  }
+
+  .admin-content .admin-list-shell > app-admin-data-panel .data-panel-body {
+    padding: 6px 0 12px;
+  }
+
+  .admin-content .admin-list-shell > app-admin-data-panel .data-panel-footer {
+    padding: 8px 12px 12px;
+  }
+
+  .admin-content .listado-seccion {
+    margin: 0 8px 12px;
+    padding: 8px 8px 4px;
+  }
+}
+
+@container admin-page (max-width: 400px) {
+  .admin-content .admin-list-shell > app-admin-page-banner .admin-banner {
+    padding: 10px 10px 8px;
+    gap: 8px;
+  }
+
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions button,
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-actions > * > button {
+    flex: 1 1 100%;
+  }
+
+  .admin-content .admin-list-shell > app-flow-hint .flow-hint--inline {
+    padding: 8px 10px;
+  }
+
+  .admin-content .listado-seccion {
+    margin: 0 6px 10px;
+  }
+}
+
+/* KPIs van debajo del listado (orden canónico: shell → KPI) */
 .admin-content app-admin-kpi-grid {
-  margin-bottom: 24px;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.admin-content .admin-list-shell + .section-eyebrow,
+.admin-content .admin-list-shell + .kpi-periodo-bar,
+.admin-content .admin-list-shell + app-admin-kpi-grid {
+  margin-top: 24px;
+}
+
+.admin-content .section-eyebrow + app-admin-kpi-grid,
+.admin-content .kpi-periodo-bar + app-admin-kpi-grid {
+  margin-top: 0;
 }
 
 .admin-content .pendientes-badge {
@@ -98,6 +327,122 @@
   font-size: 0.8125rem;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Spec 085/061 — secciones Hoy / Mañana / Resultados (bloques internos, no cards) */
+.admin-content .listado-seccion {
+  margin: 0 12px 16px;
+  padding: 10px 10px 6px;
+  border-radius: var(--admin-radius-sm, 8px);
+  border: 1px solid #f1f5f9;
+  background: #fafcfc;
+  overflow: visible;
+  min-width: 0;
+}
+
+.admin-content .listado-seccion .table-scroll {
+  max-width: 100%;
+}
+
+.admin-content .listado-seccion:last-of-type {
+  margin-bottom: 4px;
+}
+
+.admin-content .listado-seccion__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid transparent;
+}
+
+.admin-content .listado-seccion__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.admin-content .listado-seccion__titles {
+  min-width: 0;
+}
+
+.admin-content .listado-seccion__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--admin-text, #1a2332);
+}
+
+.admin-content .listado-seccion__meta {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted, #5f6b7a);
+}
+
+.admin-content .listado-hint {
+  margin: 0 12px 12px;
+}
+
+.admin-content .listado-seccion--hoy {
+  border-color: color-mix(in srgb, var(--katzen-verde, #0a969b) 35%, var(--admin-border, #e2e8f0));
+  background: color-mix(in srgb, var(--katzen-verde, #0a969b) 4%, var(--admin-surface, #fff));
+}
+
+.admin-content .listado-seccion--hoy .listado-seccion__header {
+  border-bottom-color: color-mix(in srgb, var(--katzen-verde, #0a969b) 45%, transparent);
+}
+
+.admin-content .listado-seccion--hoy .listado-seccion__icon {
+  background: var(--katzen-verde-soft, #e0f7f8);
+  color: var(--katzen-verde-fuerte, #065d60);
+}
+
+.admin-content .listado-seccion--hoy .listado-seccion__title {
+  color: var(--katzen-verde-fuerte, #065d60);
+}
+
+.admin-content .listado-seccion--manana {
+  border-color: color-mix(in srgb, #2563eb 30%, var(--admin-border, #e2e8f0));
+  background: color-mix(in srgb, #2563eb 4%, var(--admin-surface, #fff));
+}
+
+.admin-content .listado-seccion--manana .listado-seccion__header {
+  border-bottom-color: color-mix(in srgb, #2563eb 40%, transparent);
+}
+
+.admin-content .listado-seccion--manana .listado-seccion__icon {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.admin-content .listado-seccion--manana .listado-seccion__title {
+  color: #1e3a8a;
+}
+
+.admin-content .listado-seccion--resultados {
+  border-color: color-mix(in srgb, #7c3aed 28%, var(--admin-border, #e2e8f0));
+  background: color-mix(in srgb, #7c3aed 3%, var(--admin-surface, #fff));
+}
+
+.admin-content .listado-seccion--resultados .listado-seccion__header {
+  border-bottom-color: color-mix(in srgb, #7c3aed 35%, transparent);
+}
+
+.admin-content .listado-seccion--resultados .listado-seccion__icon {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.admin-content .listado-seccion--resultados .listado-seccion__title {
+  color: #4c1d95;
 }
 
 /* Badges y estados */

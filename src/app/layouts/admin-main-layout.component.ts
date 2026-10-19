@@ -291,6 +291,16 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Personal, contactos, finanzas/corte y config (separados del catálogo clínico). */
+  get hasAdminNav(): boolean {
+    return (
+      this.canShow('usuarios') ||
+      this.canShow('contactos-web') ||
+      this.canShow('finanzas') ||
+      this.canShow('configuracion')
+    );
+  }
+
   abrirAyuda(): void {
     this.dialog.open(AyudaDialogComponent, { ...ADMIN_DIALOG_DETAIL });
     this.closeSidenav();

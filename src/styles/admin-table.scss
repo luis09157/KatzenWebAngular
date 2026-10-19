@@ -1,17 +1,20 @@
 /* KatzenVet Admin — Tablas premium (espaciado, badges, columnas) */
 
-/* ── Contenedor de tabla dentro del data panel ── */
+/* ── Contenedor de tabla dentro del data panel ──
+   Scroll horizontal SIEMPRE (no comprimir columnas a 0 en móvil).
+   Spec 061: min-width ~880px → el usuario desliza; headers/chips legibles. */
 .admin-content .table-scroll {
   margin: 0 28px 24px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow-x: auto;
   overflow-y: visible;
+  max-width: 100%;
   background: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
-  overscroll-behavior: auto;
+  overscroll-behavior-x: contain;
 }
 
 .admin-content .table-scroll table {
@@ -21,6 +24,7 @@
   border-collapse: separate;
   border-spacing: 0;
   background: #fff;
+  overflow: visible;
 }
 
 /* ── Celdas: padding generoso ── */
@@ -91,6 +95,9 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   border-bottom: 1px solid #e5e7eb !important;
+  white-space: nowrap;
+  overflow: visible !important;
+  text-overflow: clip;
 }
 
 .admin-content .table-scroll .mat-mdc-cell {
@@ -154,10 +161,29 @@
 .admin-content .mat-column-fecha_hora,
 .admin-content .mat-mdc-column-fecha_hora,
 .admin-content .mat-column-fecha,
-.admin-content .mat-mdc-column-fecha {
+.admin-content .mat-mdc-column-fecha,
+.admin-content .mat-column-fecha_banio,
+.admin-content .mat-mdc-column-fecha_banio {
   width: 118px;
   min-width: 108px;
   max-width: 140px;
+}
+
+.admin-content .mat-column-hora_banio,
+.admin-content .mat-mdc-column-hora_banio,
+.admin-content .mat-column-hora,
+.admin-content .mat-mdc-column-hora {
+  width: 96px;
+  min-width: 88px;
+  max-width: 110px;
+  white-space: nowrap;
+}
+
+.admin-content .mat-column-tipo_servicio,
+.admin-content .mat-mdc-column-tipo_servicio {
+  min-width: 140px;
+  width: 16%;
+  white-space: nowrap;
 }
 
 .admin-content .mat-column-paciente,
@@ -479,9 +505,10 @@
   border: 1px solid #bbf7d0;
 }
 
-/* ── Acciones en fila (horizontal, no apiladas) ── */
-.admin-content .row-actions,
-.admin-content .row-actions.hide-mobile {
+/* ── Acciones en fila (horizontal, no apiladas) ──
+   NO forzar display en `.row-actions.hide-mobile` aquí: en ≤900px debe
+   ganar `display: none` (antes la especificidad 0,3,0 dejaba iconos solapando chips). */
+.admin-content .row-actions {
   display: inline-flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -495,12 +522,8 @@
 .admin-content .mat-mdc-cell.mat-column-acciones {
   text-align: right;
   white-space: nowrap;
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 2px !important;
+  display: table-cell !important;
+  vertical-align: middle !important;
   padding-left: 6px !important;
   padding-right: 10px !important;
 }
@@ -528,7 +551,8 @@
 }
 
 @media (max-width: 900px) {
-  .admin-content .hide-mobile {
+  .admin-content .hide-mobile,
+  .admin-content .row-actions.hide-mobile {
     display: none !important;
   }
 
@@ -544,14 +568,15 @@
     margin: 0 12px 16px;
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
+    max-width: 100%;
   }
 
   .admin-content .table-scroll table {
-    min-width: 720px;
+    min-width: 800px;
   }
 }
 
-/* Celular en vertical: menos margen, tabla más usable, celdas compactas */
+/* Celular en vertical: scroll usable; NUNCA bajar min-width a ≤560 (comprimía chips) */
 @media (max-width: 600px) {
   .admin-content .panel-search,
   .admin-content .buscador.panel-search,
@@ -566,10 +591,38 @@
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
   }
 
   .admin-content .table-scroll table {
-    min-width: 560px;
+    min-width: 880px;
+  }
+
+  /* Acciones sticky a la derecha mientras se desplaza la tabla */
+  .admin-content .table-scroll th.mat-column-acciones,
+  .admin-content .table-scroll td.mat-column-acciones,
+  .admin-content .table-scroll .mat-mdc-header-cell.mat-column-acciones,
+  .admin-content .table-scroll .mat-mdc-cell.mat-column-acciones {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: #fff;
+    box-shadow: -6px 0 10px rgba(17, 24, 39, 0.08);
+  }
+
+  .admin-content .table-scroll .mat-mdc-header-cell.mat-column-acciones {
+    background: #f9fafb !important;
+    z-index: 3;
+  }
+
+  .admin-content .row-actions .mat-mdc-icon-button,
+  .admin-content .row-actions-icons .mat-mdc-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
   }
 
   .admin-content .table-scroll .mat-mdc-header-cell,

@@ -253,11 +253,12 @@ export const MOCK_PLANTILLA_COSTO = {
   createdBy: 'mock-staff',
 };
 
-/** Defaults baño por tamaño — mocks UI (spec 022). */
+/** Defaults baño por tamaño — mocks UI (spec 022 + XL). */
 export const MOCK_DEFAULTS_BANIO_TAMANO = {
   pequeno: { costoDefault: 40, precioSugerido: 250 },
   mediano: { costoDefault: 85, precioSugerido: 350 },
   grande: { costoDefault: 120, precioSugerido: 450 },
+  xl: { costoDefault: 160, precioSugerido: 550 },
   updatedAt: '2026-08-26T12:00:00.000Z',
   updatedBy: 'mock-staff',
 };
