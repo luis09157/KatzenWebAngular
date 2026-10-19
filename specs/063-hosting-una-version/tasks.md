@@ -141,3 +141,5 @@ Tras deploy `9d53615` (loading hide antes de Swal, sanitize RTDB, ticket PDF 092
 Tras deploy working tree CTA «Pagar ya» POS + pendientes locales (2026-10-03): PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`c0cab92a486c39c4`, `4128700604e7d5c2`, `6e6be6aad15604a4`); queda 1 FINALIZED `4b417c41a449b784`; sitio HTTP 200; `main.e2c3c60332b46508.js` (CTA confirmado en bundle).
 
 Tras deploy `ca45a12` (093 taxonomía servicios Fase 1+2 + CTA Pagar ya + script migración dry-run) 2026-10-04: PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`4b417c41a449b784`); queda 1 FINALIZED `9ef3f1921d94382f`; sitio HTTP 200; `main.7e6edffe3a9dad35.js`.
+
+Tras deploy `a5c05a5` (UX peluquería/listas móvil + agenda inicio + pickers + consentimientos PDF) 2026-10-19: PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`3cc72eb9fbecd996`, `f5b98eda705c2a77`, `9ef3f1921d94382f`); queda 1 FINALIZED `2ad9ba964b9f76fa`; sitio HTTP 200; `main.cf68e28da92ff20a.js`.
