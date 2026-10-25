@@ -4,6 +4,7 @@ import {
   folioCortoDesdeId,
   folioExpedientePaciente,
   resolverExpedienteParaPersistir,
+  siguienteExpedienteAnual,
 } from './folio-expediente-paciente.util';
 
 describe('folio-expediente-paciente.util (spec 068)', () => {
@@ -69,6 +70,16 @@ describe('folio-expediente-paciente.util (spec 068)', () => {
     expect(esFolioCapturadoValido(uuidPucca)).toBe(false);
     expect(esFolioCapturadoValido('')).toBe(false);
     expect(esFolioCapturadoValido('x'.repeat(21))).toBe(false);
+  });
+
+  it('alta nueva: dos dígitos de año + 0 fijo + consecutivo, como el Excel', () => {
+    expect(siguienteExpedienteAnual([], 2026)).toBe('260001');
+    expect(siguienteExpedienteAnual(['260001', '260002'], 2026)).toBe('260003');
+    expect(siguienteExpedienteAnual(['260009'], 2026)).toBe('260010');
+    expect(siguienteExpedienteAnual(['260115'], 2026)).toBe('260116');
+    expect(siguienteExpedienteAnual(['260000'], 2026)).toBe('260001');
+    expect(siguienteExpedienteAnual(['270001', '270002'], 2027)).toBe('270003');
+    expect(siguienteExpedienteAnual(['1847', 'KV-16C555', '250239', '240328', '202601'], 2026)).toBe('260001');
   });
 
   it('persistir: capturado se guarda; vacío genera KV estable del id', () => {

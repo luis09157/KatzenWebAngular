@@ -7,10 +7,6 @@
       subtitle="Agenda la consulta. Cuando termine, agrégala al ticket del día para cobrar."
     >
       <div bannerActions>
-        <button mat-stroked-button type="button" (click)="llegoUnPaciente()">
-          <mat-icon>pets</mat-icon>
-          Llegó un paciente
-        </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" (click)="abrirModalCita()">
           <mat-icon>add</mat-icon>
           Nueva cita
@@ -59,9 +55,9 @@
         *ngIf="!loading && !todasFilasTieneDatos"
         icon="event_busy"
         title="Aún no hay citas"
-        message="Si ya llegó alguien, usa «Llegó un paciente». También puedes agendar una cita desde el botón de arriba."
-        actionLabel="Llegó un paciente"
-        (action)="llegoUnPaciente()"
+        message="Agenda una cita con el botón de arriba."
+        actionLabel="Nueva cita"
+        (action)="abrirModalCita()"
       >
       </app-admin-empty-state>
 

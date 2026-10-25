@@ -63,6 +63,8 @@ Principios no negociables. Toda spec, plan e implementación debe respetarlos.
 ## 4. Calidad y testing
 
 - El agente valida de forma autónoma antes de entregar; Luis no es el QA por defecto. `npm run build` siempre; `npm run functions:build` si toca `functions/`.
+- **Antes de pedir a Luis que pruebe** (regla always-applied `.cursor/rules/qa-antes-de-entregar.mdc`): correr la QA del nivel y, si hay pantalla, entrar al módulo y recorrer **agregar, editar y borrar** con un registro de prueba. Borrarlo al terminar. Entregar el resultado. No cerrar con «pruébalo tú».
+- Ese recorrido es en localhost, con sesión de personal. No se modifican registros reales de la clínica. TestBed no reemplaza agregar/editar/borrar cuando el módulo tiene pantalla.
 - La validación es **proporcional al nivel del cambio** (L1 trivial / L2 feature / L3 datos-infra) definido en `.cursor/rules/sdd-workflow.mdc`.
 - La checklist completa vive **solo** en `specs/templates/qa-validation-guide.md` (fuente única); registrar resultados en `tasks.md` antes de marcar `[x]` en L2/L3.
 
@@ -81,9 +83,13 @@ Cuando corresponda deploy a producción:
 
 ## 6. Alcance de cambios
 
-- Diff mínimo: solo lo que pide la spec activa.
+- Diff mínimo: solo lo que pide la spec activa o el mensaje de Luis.
 - Reutilizar servicios y componentes shared antes de crear duplicados.
 - Comentarios solo para lógica de negocio no obvia.
+- **No tocar lo que ya funciona** (regla always-applied `.cursor/rules/no-romper-lo-que-funciona.mdc`):
+  - Cambiar únicamente lo pedido en ese mensaje. No reordenar, renombrar, extraer, reformatear ni corregir código adyacente que ya funciona.
+  - Antes de la primera edición: proponer en el chat el plan (archivos que se tocan, qué queda intacto, cómo se evita romper el flujo actual) y esperar el ok de Luis Alfonso Niño Martínez.
+  - Un arreglo extra que aparezca en el camino se propone aparte; no entra en el mismo diff.
 
 ## 7. Documentación viva
 

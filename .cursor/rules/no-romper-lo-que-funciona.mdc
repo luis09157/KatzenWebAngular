@@ -1,0 +1,25 @@
+---
+description: No alterar lo que ya funciona; proponer el plan y esperar ok antes de editar
+alwaysApply: true
+---
+
+# No tocar lo que ya funciona
+
+Lo que ya corre se queda. Mover, reordenar o “limpiar” código de al lado genera fallas nuevas.
+
+## Siempre
+
+- Cambiar **solo** lo que Luis pidió en ese mensaje.
+- No reordenar, renombrar, extraer, reformatear ni corregir código adyacente que ya funciona.
+- Un arreglo que aparezca en el camino se propone **aparte**. No entra en el mismo diff.
+- Diff mínimo. Reutilizar lo existente.
+
+## Antes de la primera edición
+
+Proponer el plan en el chat y **esperar el ok** de Luis Alfonso Niño Martínez:
+
+1. Archivos que sí se tocan.
+2. Qué se deja intacto (flujos, pantallas, contratos).
+3. Cómo el cambio evita romper lo que ya está hecho.
+
+Sin ese ok, no se edita. Fuente en specs: `specs/memory/constitution.md` §6 y `specs/memory/agent-guardrails.md`.

@@ -3,12 +3,13 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, firstValueFrom } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { omitUndefinedRtdb } from '../core/utils/omit-undefined-rtdb.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import {
   Consentimiento,
   ConsentimientoEstado,
   ConsentimientoFormData,
-  ConsentimientoTipo
+  ConsentimientoTipo,
 } from './consentimientos.models';
 import { hoyLocalIsoDate } from './consentimientos.util';
 
@@ -41,9 +42,7 @@ export class ConsentimientosService {
 
   getPorPaciente(pacienteId: string): Observable<Consentimiento[]> {
     return this.db
-      .list<Consentimiento>(this.path, (ref) =>
-        ref.orderByChild('paciente_id').equalTo(pacienteId)
-      )
+      .list<Consentimiento>(this.path, (ref) => ref.orderByChild('paciente_id').equalTo(pacienteId))
       .snapshotChanges()
       .pipe(
         map((changes) =>
@@ -56,9 +55,7 @@ export class ConsentimientosService {
   }
 
   async getById(id: string): Promise<Consentimiento | null> {
-    const val = await firstValueFrom(
-      this.db.object<Consentimiento>(`${this.path}/${id}`).valueChanges().pipe(take(1))
-    );
+    const val = await firstValueFrom(this.db.object<Consentimiento>(`${this.path}/${id}`).valueChanges().pipe(take(1)));
     if (!val) return null;
     return this.normalize(id, val);
   }
@@ -82,18 +79,22 @@ export class ConsentimientosService {
       activo: true,
       created_at: now,
       updated_at: now,
-      created_by: staffId || 'system'
+      created_by: staffId || 'system',
     };
-    const ref = await this.db.list<Consentimiento>(this.path).push(payload);
+    const ref = await this.db
+      .list<Consentimiento>(this.path)
+      .push(omitUndefinedRtdb(payload as unknown as Record<string, unknown>) as unknown as Consentimiento);
     await stampRtdbIdAfterPush(this.db, this.path, ref.key);
     return ref.key!;
   }
 
   async actualizar(id: string, patch: Partial<Consentimiento>): Promise<void> {
-    await this.db.object(`${this.path}/${id}`).update({
-      ...patch,
-      updated_at: new Date().toISOString()
-    });
+    await this.db.object(`${this.path}/${id}`).update(
+      omitUndefinedRtdb({
+        ...patch,
+        updated_at: new Date().toISOString(),
+      } as Record<string, unknown>)
+    );
   }
 
   async bajaLogica(id: string): Promise<void> {
@@ -112,7 +113,7 @@ export class ConsentimientosService {
       fecha: String(raw?.fecha || ''),
       firmado_por: String(raw?.firmado_por || ''),
       estado,
-      activo: raw?.activo !== false
+      activo: raw?.activo !== false,
     };
   }
 }

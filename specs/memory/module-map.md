@@ -28,7 +28,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 |------|-----------|-------|
 | `config/` | `staff-role.config.ts` | Matriz módulos / nav (**072**) |
 | `services/` | Auth profile, session, FCM portal, Functions, sucursal | Un solo camino a callables |
-| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run, `omitUndefinedRtdb`, `listado-hoy-manana.util` (agenda Hoy+Mañana)… | Barrel: `core/utils/index.ts` |
+| `utils/` | Búsqueda, hydrate, folios, precio/margen, claims, PDV dry-run, `omitUndefinedRtdb`, `listado-hoy-manana.util` (agenda Hoy+Mañana), `rtdb-read-timeout.util` (tope login si el socket RTDB no responde)… | Barrel: `core/utils/index.ts` |
 | `ui/` | `katzen-swal.ts` — SweetAlert2 mixin marca (**084**) | Preferir `KatzenSwal` vs `Swal` suelto en pantallas nuevas |
 | `models/` + `models.ts` | Tipos compartidos | RTDB aditivo |
 | `testing/` | `mock-data.ts` | Obligatorio para demos agente |
@@ -59,7 +59,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `historiales/` | `/admin/historiales` | `Historiales_Clinicos`, notas internas | 010, 016 | Historial clínico |
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
-| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / listado Hoy+Mañana + búsqueda (`banio-listado-filtro` → `listado-hoy-manana.util`); fechas UI/stamp vía `datepicker.util` (local MX); no módulo paralelo |
+| `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / listado Hoy+Mañana + búsqueda (`banio-listado-filtro` → `listado-hoy-manana.util`); tipos del diálogo en `banio-tipos-servicio.util` (Rápido ≠ Completo); fechas UI/stamp vía `datepicker.util` (local MX); no módulo paralelo |
 | `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload `pension-estancia-payload.util` → `omitUndefinedRtdb` en `core/utils` |
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` · líneas RTDB `visita-linea-rtdb.util` |
 | `inventario/` | `/admin/inventario` | `Inventario/*` | 007, 042–044, 064, **061** US-5 | Stock, OC, alertas (lista densa) |

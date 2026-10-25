@@ -30,6 +30,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="theme-color" content="#0A969B" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="KatzenVet" />
@@ -128,6 +129,9 @@
     <!-- Para obtenerlo: https://clarity.microsoft.com/ -> Nuevo proyecto -> Copiar código -->
     <script type="text/javascript">
       (function (c, l, a, r, i, t, y) {
+        if (!i || i === 'CLARITY_PROJECT_ID') {
+          return;
+        }
         c[a] =
           c[a] ||
           function () {

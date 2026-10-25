@@ -8,7 +8,18 @@ export interface Banio {
   // Información del servicio
   fecha_banio: string;
   hora_banio: string;
-  tipo_servicio: 'baño_básico' | 'baño_completo' | 'corte_pelo' | 'corte_uñas' | 'deslanado' | 'tratamiento_especial';
+  tipo_servicio:
+    | 'baño_básico'
+    | 'baño_completo'
+    | 'corte_pelo'
+    | 'corte_uñas'
+    | 'deslanado'
+    | 'tratamiento_especial'
+    | 'rasurado_higienico'
+    | 'baño_medicado'
+    | 'baño_con_corte'
+    | 'baño'
+    | 'baño_con_deslanado';
   estado: 'programado' | 'en_proceso' | 'completado' | 'cancelado';
   prioridad: 'baja' | 'media' | 'alta' | 'urgente';
 

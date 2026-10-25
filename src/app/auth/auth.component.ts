@@ -10,6 +10,7 @@ import { PwaInstallService } from '../core/services/pwa-install.service';
 import { PwaManifestService } from '../core/services/pwa-manifest.service';
 import { Router } from '@angular/router';
 import { mensajeErrorLoginStaff } from '../core/utils/login-error-copy.util';
+import { LOGIN_ROUTE_DEADLINE, rtdbUnavailableError, settleLoginRoute } from '../core/utils/rtdb-read-timeout.util';
 
 @Component({
   selector: 'app-auth',
@@ -43,7 +44,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.appCheck.ensureInitialized();
     this.pwaManifest.setKind('admin');
     this.pwaInstall.init();
     this.alreadyInstalled = this.pwaInstall.isStandalone();
@@ -53,9 +53,12 @@ export class AuthComponent implements OnInit, OnDestroy {
       this.installAvailable = v && !this.alreadyInstalled;
     });
     try {
-      await this.tryEnterIfActiveSession();
+      const entered = await settleLoginRoute((cancelled) => this.tryEnterIfActiveSession(cancelled));
+      if (entered === LOGIN_ROUTE_DEADLINE) {
+        this.loginError = mensajeErrorLoginStaff(rtdbUnavailableError());
+      }
     } catch {
-      // Fallback: formulario. El GuestGuard ya intentó el auto-redirect.
+      this.loginError = mensajeErrorLoginStaff(rtdbUnavailableError());
     } finally {
       this.checkingSession = false;
     }
@@ -70,9 +73,9 @@ export class AuthComponent implements OnInit, OnDestroy {
    * Sesión Firebase activa → /admin/inicio (staff y dual).
    * El selector de contexto solo aplica al login fresco, no al auto-enter.
    */
-  private async tryEnterIfActiveSession(): Promise<boolean> {
+  private async tryEnterIfActiveSession(cancelled: () => boolean = () => false): Promise<boolean> {
     const user = await this.authService.waitForAuthUser();
-    if (!user) {
+    if (cancelled() || !user) {
       return false;
     }
 
@@ -87,8 +90,15 @@ export class AuthComponent implements OnInit, OnDestroy {
     } catch {
       // Continuar con perfil RTDB / claims ya emitidos.
     }
+    this.appCheck.ensureInitialized();
+    if (cancelled()) {
+      return false;
+    }
 
     if (this.authSession.hasPendingContextChoice() && (await this.authProfileService.isDual())) {
+      if (cancelled()) {
+        return false;
+      }
       await this.router.navigate(['/auth/contexto']);
       return true;
     }
@@ -96,6 +106,9 @@ export class AuthComponent implements OnInit, OnDestroy {
     // Sesión abierta por portal: no saltar a admin desde /admin/login.
     if (this.authSession.isPortalEntryLocked()) {
       if (await this.authProfileService.hasClientAccess()) {
+        if (cancelled()) {
+          return false;
+        }
         await this.router.navigate(['/portal/mascotas']);
         return true;
       }
@@ -103,8 +116,14 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     const hasStaff = await this.authProfileService.hasStaffAccess();
+    if (cancelled()) {
+      return false;
+    }
     if (!hasStaff) {
       if (await this.authProfileService.hasClientAccess()) {
+        if (cancelled()) {
+          return false;
+        }
         await this.router.navigate(['/portal/mascotas']);
         return true;
       }
@@ -130,7 +149,9 @@ export class AuthComponent implements OnInit, OnDestroy {
       await this.authService.login(this.email, this.password, this.keepSessionActive);
       this.authSession.setPortalEntryLock(false);
       this.authSession.setStaffEntryIntent(true);
+      // Sync antes de App Check: si no, el preflight lleva X-Firebase-AppCheck y la función vieja responde 400 sin CORS.
       await this.firebaseFunctions.syncMyClaims();
+      this.appCheck.ensureInitialized();
       const hasStaff = await this.authProfileService.hasStaffAccess();
       if (!hasStaff) {
         await this.authService.signOutOnly();

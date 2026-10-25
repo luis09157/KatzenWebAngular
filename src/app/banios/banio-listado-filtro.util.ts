@@ -43,8 +43,12 @@ export interface FiltrarBaniosListadoOpts {
 export interface BaniosHoyManana<T extends BanioListadoFila = BanioListadoFila> {
   hoy: T[];
   manana: T[];
+  lunes: T[];
   hoyIso: string;
   mananaIso: string;
+  lunesIso: string;
+  /** Viernes y sábado: el lunes todavía no es «mañana». */
+  mostrarLunes: boolean;
 }
 
 export { fechaMananaLocal, metaListadoHoyManana as metaBaniosListado };
@@ -61,12 +65,36 @@ export function filtrarBaniosPorFechaIso<T extends BanioListadoFila>(
   return filtrarFilasPorFechaIso(filas, fechaIso, (f) => [f.fecha_banio_iso]);
 }
 
-/** Parte filas en Hoy y Mañana (ISO local). */
+/** Parte filas en Hoy, Mañana y, el viernes o sábado, el lunes que sigue. */
 export function partirBaniosHoyManana<T extends BanioListadoFila>(
   filas: T[] | null | undefined,
   opts: FiltrarBaniosListadoOpts = {}
 ): BaniosHoyManana<T> {
-  return partirListadoHoyManana(filas, (f) => [f.fecha_banio_iso], opts);
+  const now = opts.now || new Date();
+  const base = partirListadoHoyManana(filas, (f) => [f.fecha_banio_iso], opts);
+  const mostrarLunes = incluyeLunesEnAgendaBanios(now);
+  const lunesIso = fechaLunesListadoBanios(now);
+  const lunes = mostrarLunes
+    ? filtrarBaniosPorFechaIso(filas, lunesIso).filter(
+        (fila) => !base.hoy.includes(fila) && !base.manana.includes(fila)
+      )
+    : [];
+  return { ...base, lunes, lunesIso, mostrarLunes };
+}
+
+/** Viernes y sábado. El domingo el lunes ya entra en Mañana. */
+export function incluyeLunesEnAgendaBanios(ref: Date = new Date()): boolean {
+  const dia = ref.getDay();
+  return dia === 5 || dia === 6;
+}
+
+/** Próximo lunes en calendario local. Si hoy es lunes, el de la semana siguiente. */
+export function fechaLunesListadoBanios(ref: Date = new Date()): string {
+  const faltan = (8 - ref.getDay()) % 7 || 7;
+  const lunes = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() + faltan);
+  const mes = String(lunes.getMonth() + 1).padStart(2, '0');
+  const dia = String(lunes.getDate()).padStart(2, '0');
+  return `${lunes.getFullYear()}-${mes}-${dia}`;
 }
 
 /**
@@ -77,6 +105,11 @@ export function filtrarBaniosListado<T extends BanioListadoFila>(
   filas: T[] | null | undefined,
   opts: FiltrarBaniosListadoOpts = {}
 ): T[] {
+  const query = String(opts.query || '').trim();
+  if (!query) {
+    const partes = partirBaniosHoyManana(filas, opts);
+    return [...partes.hoy, ...partes.manana, ...partes.lunes];
+  }
   return filtrarListadoAgendaOBusqueda(filas, {
     ...opts,
     getFechasIso: (f) => [f.fecha_banio_iso],

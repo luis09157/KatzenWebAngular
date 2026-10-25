@@ -12,7 +12,7 @@
   <mat-dialog-content class="admin-dialog-body">
     <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded admin-form-layout">
       <app-cliente-paciente-picker
-        *ngIf="!esEdicion"
+        *ngIf="!esEdicion && !pacienteFijo"
         class="full-width"
         [formGroup]="form"
         [permitirCrear]="true"
@@ -21,7 +21,7 @@
         (crearPaciente)="crearMascotaRapida($event)"
       >
       </app-cliente-paciente-picker>
-      <div class="entity-summary entity-summary--compact full-width" *ngIf="esEdicion">
+      <div class="entity-summary entity-summary--compact full-width" *ngIf="esEdicion || pacienteFijo">
         <h3 class="entity-summary__name">{{ form.get('paciente')?.value || 'Paciente' }}</h3>
         <p class="entity-summary__meta">Cliente: {{ form.get('cliente')?.value || '—' }}</p>
       </div>

@@ -278,10 +278,6 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   get hasMasNav(): boolean {
     return (
-      this.canShow('clientes') ||
-      this.canShow('consentimientos') ||
-      this.canShow('historiales') ||
-      this.canShow('vacunas') ||
       this.canShow('inventario') ||
       this.canShow('finanzas') ||
       this.canShow('servicios-clinica') ||

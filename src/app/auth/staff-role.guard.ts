@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
-import { AuthProfileService } from '../core/services/auth-profile.service';
+import { AuthProfileService, AuthAccess } from '../core/services/auth-profile.service';
 import { StaffModule, mensajeAccesoDenegadoModulo } from '../core/config/staff-role.config';
 import { LoggerService } from '../core/logger.service';
+import { isRtdbUnavailableError } from '../core/utils/rtdb-read-timeout.util';
 import Swal from 'sweetalert2';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +20,17 @@ export class StaffRoleGuard implements CanActivate {
       return true;
     }
 
-    const access = await this.authProfile.resolveAccess();
+    let access: AuthAccess;
+    try {
+      access = await this.authProfile.resolveAccess();
+    } catch (error) {
+      if (isRtdbUnavailableError(error)) {
+        this.logger.warn('StaffRoleGuard: servidor de datos no respondió');
+        await this.router.navigate(['/admin/login']);
+        return false;
+      }
+      throw error;
+    }
     if (!access.staffAccess) {
       await this.router.navigate(['/admin/login']);
       return false;

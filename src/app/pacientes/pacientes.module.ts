@@ -49,6 +49,7 @@ import { CitaDialogModule } from '../citas/cita-dialog.module';
 import { PensionDialogModule } from '../pension/pension-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 import { BanioDialogModule } from '../banios/banio-dialog.module';
+import { ConsentimientoDialogModule } from '../consentimientos/consentimiento-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
@@ -66,6 +67,7 @@ import { SharedModule } from '../shared/shared.module';
     PensionDialogModule,
     VisitasDialogModule,
     BanioDialogModule,
+    ConsentimientoDialogModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

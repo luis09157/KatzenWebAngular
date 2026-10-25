@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { SharedModule } from '../shared/shared.module';
 import { ClienteDialogComponent } from './cliente-dialog.component';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 
 /** Diálogo de cliente reutilizable sin rutas del módulo Clientes. */
 @NgModule({
@@ -36,8 +37,9 @@ import { ClienteDialogComponent } from './cliente-dialog.component';
     MatCheckboxModule,
     MatTooltipModule,
     AngularFireStorageModule,
-    SharedModule
+    SharedModule,
+    PacienteAdminDialogModule,
   ],
-  exports: [ClienteDialogComponent]
+  exports: [ClienteDialogComponent],
 })
 export class ClientesDialogModule {}

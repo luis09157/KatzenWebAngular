@@ -16,7 +16,8 @@ Checklist **obligatoria** antes de implementar. Complementa `constitution.md` (p
 5. **Buscar en** `specs/INDEX.md` **y** `rg` / tabla anti-duplicación abajo — **antes** de reinventar o abrir carpeta nueva. No inventar segundo POS, segundo expediente, segundo wizard de alta, etc.
 6. Si hay spec activa (`specs/NNN-*/`): leer `spec.md` (+ `plan.md`/`tasks.md` si existen) y **no salirse del alcance**.
 7. Si el cambio cruza módulos → consultar `specs/memory/module-map.md` (límites Admin / Portal / Landing / Core).
-8. Solo entonces: implementar. Diff mínimo. Reutilizar `core/` y `shared/` antes de duplicar.
+8. **Proponer el plan a Luis y esperar su ok** antes de la primera edición: archivos que se tocan, qué se deja intacto, cómo el cambio no rompe el flujo que ya funciona. Regla `.cursor/rules/no-romper-lo-que-funciona.mdc`.
+9. Solo entonces: implementar. Diff mínimo. Reutilizar `core/` y `shared/` antes de duplicar. Lo que ya funciona no se mueve.
 
 ---
 
@@ -48,6 +49,8 @@ Checklist corta también en plantilla `specs/templates/module-tasks.template.md`
 | 8 | Usar `Cliente.expediente` como folio de mascota | Folio clínico = `Mascota.expediente` (spec **068**) |
 | 9 | Copy «Baja lógica» / «Dar de baja» en UI | UI siempre **«Borrar»**; técnicamente `activo: false` |
 | 10 | `mat-dialog-title` en diálogos admin | `admin-dialog-shell` + `h2.admin-dialog-title` |
+| 11 | Alterar, mover, renombrar o “limpiar” código que ya funciona sin que Luis lo haya pedido | Solo el diff del pedido. Plan en el chat y ok **antes** de editar (`.cursor/rules/no-romper-lo-que-funciona.mdc`, constitución §6) |
+| 12 | Entregar un cambio de módulo sin haber agregado, editado y borrado un registro de prueba en esa pantalla | Entrar al módulo en localhost, recorrer esas acciones y borrar el de prueba. No tocar registros reales. Registrar en `tasks.md`. Regla `qa-antes-de-entregar.mdc`, constitución §4 |
 
 ---
 
@@ -96,6 +99,10 @@ Lista corta. Detalle en la spec citada / `domain-context.md` §11.
 | Nuevo baño / precio | Rápido **y** Completo: **solo** «Precio a cobrar» (`precio_total`). Sin UI de costo/margen en el diálogo. Tarifas tamaño prefilling `precio_total` + `costoEstimado` en background (Finanzas **022**). | **085** / **022** 2026-10-18 |
 | Baño costo/margen | `costoEstimado` / margen = **KPIs internos automáticos** (tarifas). **NO** se cobran en POS; cobro = `precio_total`. Sin costo → KPI margen N/A parcial (no reabrir UI confusa). Edición de tarifas = Finanzas. | **022**, **085** 2026-10-18 |
 | Baño tamaño XL | `tamano_perro: 'xl'` aditivo (extra grande/gigante) + key `xl` en `DefaultsBanioPorTamano`; fallback código `TARIFAS_BANIO_FALLBACK` si RTDB 0/ausente (mismo patrón pensión gigante **089**). No romper P/M/G. | **022** / **085** 2026-10-18 |
+| Tipos baño Rápido / Completo | Alta de peluquería: un solo formulario con los seis servicios juntos. Precio opcional; sin precio el listado dice «Falta el precio» y no se manda a cobrar. «Ya lo pagaron» no depende del estado. La opción de mascota muestra raza y edad. Tipos viejos no se reescriben. | **085** 2026-10-24 |
+| Expediente nuevo | El folio del Excel está en el dueño (`260115`). Se copia a la mascota y el alta nueva sigue esa serie (`260116`): dos dígitos de año, 0 fijo, consecutivo. No reescribe un número que la mascota ya tenga. | **068** 2026-10-24 |
+| Llegó un paciente | Vive en Hoy. En Citas no va: ahí solo se agenda. La mascota se agrega en la ficha del cliente, con el dueño ya puesto. | 2026-10-24 |
+| Menú Clientes | Clientes va junto a Pacientes. Consentimientos, historiales y vacunas no van en el menú: se abren dentro del expediente. Inventario y administración se quedan en Más. | 2026-10-24 |
 
 ---
 
@@ -131,6 +138,7 @@ Antes de crear un util/diálogo/flujo nuevo, **reutilizar** lo existente. Detall
 | Recordatorio → `wa.me` | `recordatorios/recordatorio-whatsapp.util.ts` | **066** |
 | Alta «Llegó un paciente» | `alta-rapida/` (+ `alta-rapida-atencion.helper` + `alta-rapida-prefill.util`) — diálogos con `paciente_id` **no** vuelven a pedir dueño/mascota | **070**, **085** |
 | Login errors / FCM copy | `core/utils/login-error-copy` · `fcm-copy` | **076** |
+| Tope lectura RTDB en login | `core/utils/rtdb-read-timeout.util` (`settleLoginRoute`) + `AuthProfileService.resolveAccess`. Si el socket no responde: claims o el formulario, nunca outlet vacío. El splash de `app.component` se apaga después de ese tope | **051** follow-up 2026-10-21 |
 | Listas densas de notificaciones/alertas | `styles/admin-dense-list.scss` (`.admin-dense-list` / `.admin-dense-row`) + detalle Swal/info | **061** US-5 |
 | Auto-hide / toggle menú lateral admin | `layouts/admin-main-layout.component.ts` (`SIDENAV_AUTO_HIDE_MS`, hamburguesa) | **061** US-6 |
 | PWA dual (portal / clínica) | `pwa-manifest.util` + `PwaManifestService` + `PwaInstallService`; manifests en `src/manifest*.webmanifest`; CTA clínica en `/admin/login` | **087** |

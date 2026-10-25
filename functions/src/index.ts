@@ -18,9 +18,24 @@ import {
   type PhoneMatchCandidate
 } from './portal-phone-match.util';
 import * as crypto from 'crypto';
+import { CALLABLE_IO_TIMEOUT_MS, withDeadline } from './callable-deadline.util';
 
 admin.initializeApp();
 setGlobalOptions({ region: 'us-central1' });
+
+/**
+ * gen2 documenta `cors: true`: refleja el Origin del navegador
+ * (web.app, firebaseapp.com y `ng serve`).
+ * Un 504 del gateway no pasa por este middleware y llega sin ACAO;
+ * el navegador lo reporta como CORS. Las lecturas RTDB/Auth van con tope interno.
+ */
+const callableCors = {
+  cors: true,
+  invoker: 'public' as const
+};
+
+/** Por debajo del timeout de Cloud Run para alcanzar a responder nosotros. */
+const SYNC_MY_CLAIMS_TIMEOUT_SECONDS = 20;
 
 /** Spec 067: respaldo semanal RTDB → Storage (solo lectura RTDB). NO desplegada sin autorización Luis. */
 export { backupRtdbSemanal } from './backup-rtdb';
@@ -145,22 +160,32 @@ async function isCallerStaff(uid: string, token: admin.auth.DecodedIdToken): Pro
 }
 
 async function syncClaimsForUid(uid: string): Promise<StaffClaims> {
-  const snap = await db.ref(`Katzen/AuthPerfiles/${uid}`).once('value');
+  const snap = await withDeadline(
+    db.ref(`Katzen/AuthPerfiles/${uid}`).once('value'),
+    CALLABLE_IO_TIMEOUT_MS,
+    'La base de datos'
+  );
   const perfil = (snap.val() || null) as AuthPerfil | null;
   const claims = buildClaimsFromPerfil(perfil);
   // null explícito limpia claims al desvincular dual (Auth no borra keys omitidas).
-  await admin.auth().setCustomUserClaims(uid, {
-    role: claims.role,
-    staffRole: claims.staffRole ?? null,
-    clienteId: claims.clienteId ?? null,
-    dualAccess: claims.dualAccess === true,
-    mustChangePassword: claims.mustChangePassword === true
-  });
+  await withDeadline(
+    admin.auth().setCustomUserClaims(uid, {
+      role: claims.role,
+      staffRole: claims.staffRole ?? null,
+      clienteId: claims.clienteId ?? null,
+      dualAccess: claims.dualAccess === true,
+      mustChangePassword: claims.mustChangePassword === true
+    }),
+    CALLABLE_IO_TIMEOUT_MS,
+    'Auth'
+  );
   return claims;
 }
 
 /** Callable: sincroniza claims del usuario autenticado desde AuthPerfiles. */
-export const syncMyClaims = onCall(async (request) => {
+export const syncMyClaims = onCall(
+  { ...callableCors, timeoutSeconds: SYNC_MY_CLAIMS_TIMEOUT_SECONDS },
+  async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -193,7 +218,7 @@ interface ProvisionStaffInput {
 }
 
 /** Callable (solo admin): crea Auth + AuthPerfiles + Usuarios con el mismo uid. */
-export const provisionStaffUser = onCall(async (request) => {
+export const provisionStaffUser = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -281,7 +306,7 @@ interface UpdateStaffInput {
 }
 
 /** Callable (solo admin): actualiza Usuarios + AuthPerfiles y re-sincroniza claims. */
-export const updateStaffUser = onCall(async (request) => {
+export const updateStaffUser = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -411,7 +436,7 @@ interface LinkStaffPortalInput {
  * Callable (solo admin): vincula un Cliente existente a un staff (perfil dual).
  * Misma cuenta Auth → admin + portal. No crea Auth nuevo ni envía password.
  */
-export const linkStaffPortalCliente = onCall(async (request) => {
+export const linkStaffPortalCliente = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -524,7 +549,7 @@ interface UnlinkStaffPortalInput {
 }
 
 /** Admin: quita vínculo dual (staff vuelve a solo clínica; no borra Auth ni Cliente). Spec 015. */
-export const unlinkStaffPortalCliente = onCall(async (request) => {
+export const unlinkStaffPortalCliente = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -688,7 +713,7 @@ async function assertClienteProvisionable(
 }
 
 /** Callable (staff): crea acceso portal para un cliente existente. */
-export const provisionPortalClient = onCall(portalMailSecrets, async (request) => {
+export const provisionPortalClient = onCall({ ...callableCors, ...portalMailSecrets }, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -801,7 +826,7 @@ interface PortalClienteActionInput {
 }
 
 /** Callable (solo admin): desactiva acceso al portal sin borrar datos del cliente. */
-export const deactivatePortalClient = onCall(async (request) => {
+export const deactivatePortalClient = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -893,7 +918,7 @@ export const deactivatePortalClient = onCall(async (request) => {
 });
 
 /** Callable (solo admin): nueva contraseña temporal + correo. */
-export const resendPortalClientAccess = onCall(portalMailSecrets, async (request) => {
+export const resendPortalClientAccess = onCall({ ...callableCors, ...portalMailSecrets }, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -978,7 +1003,7 @@ export const resendPortalClientAccess = onCall(portalMailSecrets, async (request
 });
 
 /** Callable: quita obligación de cambio de contraseña tras actualizarla en el portal. */
-export const clearMustChangePassword = onCall(async (request) => {
+export const clearMustChangePassword = onCall(callableCors, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -1163,7 +1188,7 @@ async function assertRegisterRateLimit(ip: string, email: string): Promise<void>
  * Password nunca retornada; exige Resend.
  */
 export const registerPortalOwner = onCall(
-  { invoker: 'public', cors: true, ...portalMailSecrets },
+  { ...callableCors, ...portalMailSecrets },
   async (request) => {
   if (request.auth?.uid) {
     // Evitar que staff cree “self-reg” accidental; usar alta admin.

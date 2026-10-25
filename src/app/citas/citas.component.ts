@@ -27,7 +27,6 @@ import { promptMontoVisita } from '../visitas/visita-atalho.util';
 import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
-import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.component';
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from './cita-atender.util';
 import {
   coincidenciaTextoListado,
@@ -114,10 +113,6 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private visitaDiaFlujo: VisitaDiaFlujoService,
     private router: Router
   ) {}
-
-  llegoUnPaciente(): void {
-    abrirAltaRapidaDialog(this.dialog);
-  }
 
   puedeAtender(cita: { paciente_id?: string; idPaciente?: string } | null): boolean {
     return puedeAtenderCita(cita);

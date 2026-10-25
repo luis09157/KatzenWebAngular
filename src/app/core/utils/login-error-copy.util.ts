@@ -46,6 +46,10 @@ export function mensajeEstadoLoginPortal(estado: PortalLoginEstado): string {
 export function mensajeErrorLoginStaff(error: unknown): string {
   const code = authCode(error);
 
+  if (code === 'rtdb-unavailable') {
+    return 'No pudimos conectar con el servidor de la clínica. Revisa tu internet e inténtalo de nuevo.';
+  }
+
   switch (code) {
     case 'wrong-password':
     case 'invalid-credential':

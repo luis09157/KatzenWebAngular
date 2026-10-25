@@ -176,13 +176,10 @@ export const STAFF_NAV_AGENDA: StaffModule[] = ['citas', 'banios', 'pension'];
 
 /**
  * Ítems de Más (visibles según rol / nav).
- * Orden UX: clínica → inventario/catálogo → administración (finanzas/corte al final, lejos de Cobrar).
+ * Orden UX: inventario/catálogo → administración.
+ * Clientes va junto a Pacientes. Historial, vacunas y consentimientos se abren en el expediente.
  */
 export const STAFF_NAV_MAS: StaffModule[] = [
-  'clientes',
-  'consentimientos',
-  'historiales',
-  'vacunas',
   'inventario',
   'servicios-clinica',
   'usuarios',

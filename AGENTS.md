@@ -12,6 +12,14 @@ Proyecto privado de clínica veterinaria: **landing**, **panel admin** (`/admin`
 
 Sin esos pasos, no codear. Detalle del flujo: rule always-applied `sdd-workflow.mdc`.
 
+## No tocar lo que ya funciona
+
+Cambiar solo lo pedido en el mensaje. No mover, renombrar ni limpiar código que ya funciona: eso mete fallas nuevas. Antes de editar, proponer el plan (archivos, qué queda intacto, cómo no romper el flujo) y esperar el ok de Luis. Detalle: `specs/memory/constitution.md` §6, `specs/memory/agent-guardrails.md` y regla `.cursor/rules/no-romper-lo-que-funciona.mdc`.
+
+## QA antes de entregar
+
+Luis no prueba por el agente. Antes de entregar un módulo con pantalla: entrar y recorrer **agregar, editar y borrar** con un registro de prueba, y borrarlo al terminar. No se entregan solo tests de código. Registrar el resultado. Regla `.cursor/rules/qa-antes-de-entregar.mdc` y `constitution.md` §4.
+
 ## Al cerrar (obligatorio — specs vivas)
 
 Actualizar `tasks.md` de la spec activa (QA + qué se extrajo/dónde vive), `module-map` si hubo utils, decisiones en guardrails/`domain-context`, e INDEX si cambió estado. Ver `agent-guardrails.md` → **DESPUÉS DE CODEAR / AL CERRAR** y plan **078**.

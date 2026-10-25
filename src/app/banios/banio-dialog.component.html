@@ -2,7 +2,7 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">{{ esEdicion ? 'Editar baño' : 'Nuevo baño' }}</h2>
-      <p class="admin-dialog-subtitle">Registra el baño y el precio. El cobro se hace en Ticket del día (mostrador).</p>
+      <p class="admin-dialog-subtitle">Mascota, servicio y listo. El precio puede quedar para después.</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -11,29 +11,10 @@
 
   <form [formGroup]="banioForm" (ngSubmit)="onSubmit()">
     <mat-dialog-content class="admin-dialog-body">
-      <div class="banio-modo-toggle" *ngIf="!hidePatientInfo" role="group" aria-label="Modo del formulario">
-        <button
-          type="button"
-          class="banio-modo-toggle__btn"
-          [class.banio-modo-toggle__btn--on]="modoRapido"
-          (click)="setModoRapido(true)"
-        >
-          Rápido
-        </button>
-        <button
-          type="button"
-          class="banio-modo-toggle__btn"
-          [class.banio-modo-toggle__btn--on]="!modoRapido"
-          (click)="setModoRapido(false)"
-        >
-          Completo
-        </button>
-      </div>
-
       <app-flow-hint
         *ngIf="muestraPickerClientePaciente && !banioForm.get('cliente_id')?.value"
         icon="pets"
-        message="Busca por dueño o por nombre de la mascota. Altas nuevas van en Clientes / Pacientes."
+        message="Busca por el nombre de la mascota. Cada opción muestra raza y edad."
       >
       </app-flow-hint>
       <app-cliente-paciente-picker
@@ -42,373 +23,83 @@
         [formGroup]="banioForm"
         [permitirCrear]="false"
         [busquedaDual]="true"
+        etiquetaMascota="raza-edad"
         (selectionChange)="onClientePacienteSelected($event)"
       >
       </app-cliente-paciente-picker>
 
       <div class="entity-summary entity-summary--compact" *ngIf="!muestraPickerClientePaciente && !hidePatientInfo">
         <h3 class="entity-summary__name">
-          {{ banioForm.get('paciente')?.value || data?.paciente || data?.paciente_nombre || 'Paciente' }}
+          {{ nombrePacienteSeleccionado || 'Mascota' }}
+          <span class="entity-summary__meta" *ngIf="nombreClienteSeleccionado">· {{ nombreClienteSeleccionado }}</span>
         </h3>
-        <p class="entity-summary__meta">
-          Dueño:
-          {{ banioForm.get('cliente')?.value || data?.cliente || data?.cliente_nombre || '—' }}
-        </p>
+        <p class="entity-summary__meta" *ngIf="tamanoPaciente">Tamaño: {{ tamanoPaciente }}</p>
       </div>
 
-      <app-alergias-alerta [alergias]="alergiasPaciente"></app-alergias-alerta>
+      <div class="banio-alerta" *ngIf="alergiasPaciente.length" role="status">
+        <mat-icon>warning</mat-icon>
+        <span><strong>Alergias:</strong> {{ alergiasPaciente }}</span>
+      </div>
 
-      <!-- ── Vista rápida (085 A) ── -->
-      <ng-container *ngIf="modoRapido">
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Tipo de servicio
-            <span class="form-section__badge">Requerido</span>
-          </h3>
-          <div class="banio-chips" role="listbox" aria-label="Tipo de servicio">
-            <button
-              type="button"
-              class="banio-chip"
-              *ngFor="let tipo of tiposServicios"
-              [class.banio-chip--on]="banioForm.get('tipo_servicio')?.value === tipo.value"
-              (click)="elegirTipoServicio(tipo.value)"
-            >
-              <mat-icon>{{ tipo.icon }}</mat-icon>
-              {{ tipo.label }}
-            </button>
-          </div>
-        </section>
+      <section class="form-section">
+        <h3 class="form-section__title">Servicio</h3>
+        <div class="banio-chips" role="group" aria-label="Tipo de servicio">
+          <button
+            type="button"
+            class="banio-chip"
+            *ngFor="let tipo of tiposServicioVisibles"
+            [class.banio-chip--on]="banioForm.get('tipo_servicio')?.value === tipo.value"
+            (click)="elegirTipoServicio(tipo.value)"
+          >
+            <mat-icon>{{ tipo.icon }}</mat-icon>
+            {{ tipo.label }}
+          </button>
+        </div>
+      </section>
 
-        <section class="form-section">
-          <h3 class="form-section__title">Tamaño</h3>
-          <div class="banio-chips banio-chips--compact" role="listbox" aria-label="Tamaño">
-            <button
-              type="button"
-              class="banio-chip"
-              *ngFor="let t of tamanos"
-              [class.banio-chip--on]="banioForm.get('tamano_perro')?.value === t"
-              (click)="elegirTamano(t)"
-            >
-              {{ tamanoLabels[t] }}
-            </button>
-            <button
-              type="button"
-              class="banio-chip"
-              [class.banio-chip--on]="!banioForm.get('tamano_perro')?.value"
-              (click)="elegirTamano('')"
-            >
-              N/A
-            </button>
-          </div>
-          <p class="form-section__hint" *ngIf="prefillHint">{{ prefillHint }}</p>
-        </section>
+      <div class="form-grid form-grid--2">
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Fecha</mat-label>
+          <input
+            matInput
+            [matDatepicker]="pickerFecha"
+            formControlName="fecha_banio"
+            readonly
+            (click)="pickerFecha.open()"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerFecha"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFecha></mat-datepicker>
+          <mat-hint>Hoy. Cámbiala si el baño es otro día.</mat-hint>
+        </mat-form-field>
 
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Precio a cobrar
-            <span class="form-section__badge">Requerido</span>
-          </h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Precio a cobrar</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="precio_total"
-                min="0"
-                required
-                (input)="onPrecioTotalManual()"
-              />
-              <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
-            </mat-form-field>
-            <div class="form-section__checkbox banio-iniciar-ya">
-              <mat-checkbox [checked]="iniciarYa" (change)="onIniciarYaChange($event.checked)" color="primary">
-                Iniciar ya (en proceso)
-              </mat-checkbox>
-            </div>
-          </div>
-        </section>
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Precio (opcional)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="precio_total"
+            min="0"
+            step="1"
+            placeholder="Si aún no lo sabes, déjalo vacío"
+            (input)="onPrecioTotalManual()"
+          />
+          <span matTextPrefix>$&nbsp;</span>
+          <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
+        </mat-form-field>
 
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Nota para mostrador
-            <span class="form-section__badge form-section__badge--optional">Opcional</span>
-          </h3>
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Nota para mostrador</mat-label>
-            <textarea
-              matInput
-              formControlName="observaciones"
-              rows="2"
-              placeholder="Ej. irritación; sugerir shampoo medicado"
-            ></textarea>
-          </mat-form-field>
-        </section>
+        <div class="form-section__checkbox full-span">
+          <mat-checkbox formControlName="pagado" color="primary">Ya lo pagaron</mat-checkbox>
+        </div>
 
-        <button type="button" class="banio-mas-detalles-toggle" (click)="masDetallesAbiertos = !masDetallesAbiertos">
-          <mat-icon>{{ masDetallesAbiertos ? 'expand_less' : 'expand_more' }}</mat-icon>
-          {{ masDetallesAbiertos ? 'Ocultar más detalles' : 'Más detalles (hora, peluquero…)' }}
-        </button>
-      </ng-container>
-
-      <!-- ── Completo o «Más detalles» dentro de rápido ── -->
-      <div [hidden]="modoRapido && !masDetallesAbiertos">
-        <section class="form-section" *ngIf="!modoRapido">
-          <h3 class="form-section__title">
-            Servicio
-            <span class="form-section__badge">Requerido</span>
-          </h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Tipo de servicio</mat-label>
-              <mat-select formControlName="tipo_servicio" required>
-                <mat-option *ngFor="let tipo of tiposServicios" [value]="tipo.value">
-                  {{ tipo.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Estado</mat-label>
-              <mat-select formControlName="estado" required>
-                <mat-option *ngFor="let estado of estados" [value]="estado.value">
-                  {{ estado.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </section>
-
-        <section class="form-section" *ngIf="modoRapido">
-          <h3 class="form-section__title">Estado</h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Estado</mat-label>
-              <mat-select formControlName="estado" required>
-                <mat-option *ngFor="let estado of estados" [value]="estado.value">
-                  {{ estado.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Programación
-            <span class="form-section__badge">Requerido</span>
-          </h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Fecha del baño</mat-label>
-              <input
-                matInput
-                [matDatepicker]="fechaPicker"
-                formControlName="fecha_banio"
-                required
-                readonly
-                (click)="!esEdicion && fechaPicker.open()"
-              />
-              <mat-datepicker-toggle matIconSuffix [for]="fechaPicker" [disabled]="esEdicion"></mat-datepicker-toggle>
-              <mat-datepicker #fechaPicker [disabled]="esEdicion"></mat-datepicker>
-            </mat-form-field>
-
-            <app-timepicker-field
-              formControlName="hora_banio"
-              label="Hora del baño"
-              [required]="true"
-              dialogTitle="Hora del baño"
-            >
-            </app-timepicker-field>
-          </div>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">Detalles del paciente</h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Prioridad</mat-label>
-              <mat-select formControlName="prioridad" required>
-                <mat-option *ngFor="let prioridad of prioridades" [value]="prioridad.value">
-                  {{ prioridad.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Comportamiento</mat-label>
-              <mat-select formControlName="comportamiento" required>
-                <mat-option *ngFor="let comportamiento of comportamientos" [value]="comportamiento.value">
-                  {{ comportamiento.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">Personal</h3>
-          <div class="form-grid">
-            <app-staff-picker
-              [formGroup]="banioForm"
-              [fields]="staffPickerFields"
-              roleFilter="peluquero"
-              [fallbackAllIfEmpty]="true"
-              label="Peluquero"
-              [required]="true"
-              [prefillCurrentUser]="!esEdicion"
-              hint="Quién atendió el servicio."
-            >
-            </app-staff-picker>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Duración estimada (min)</mat-label>
-              <input matInput type="number" formControlName="duracion_estimada" min="15" required />
-            </mat-form-field>
-          </div>
-        </section>
-
-        <!-- Completo: solo precio a cobrar (+ tamaño para prefill). Costo interno = background desde tarifas Finanzas; sin UI. -->
-        <section class="form-section" *ngIf="!modoRapido">
-          <h3 class="form-section__title">
-            Precio a cobrar
-            <span class="form-section__badge">Requerido</span>
-          </h3>
-          <div class="form-grid">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Tamaño del perro</mat-label>
-              <mat-select formControlName="tamano_perro" (selectionChange)="onTamanoChange()">
-                <mat-option value="">Sin especificar</mat-option>
-                <mat-option *ngFor="let t of tamanos" [value]="t">{{ tamanoLabels[t] }}</mat-option>
-              </mat-select>
-              <mat-hint>{{ prefillHint || 'Tarifa por tamaño · sugiere el precio' }}</mat-hint>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Precio a cobrar</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="precio_total"
-                min="0"
-                required
-                (input)="onPrecioTotalManual()"
-              />
-              <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
-            </mat-form-field>
-          </div>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Servicios adicionales
-            <span class="form-section__badge form-section__badge--optional">Opcional</span>
-          </h3>
-          <div class="dynamic-list">
-            <div
-              class="dynamic-list__row"
-              *ngFor="let servicio of banioForm.get('servicios_adicionales')?.value; let i = index"
-            >
-              <div class="form-grid form-grid--compact">
-                <mat-form-field appearance="outline">
-                  <mat-label>Servicio</mat-label>
-                  <mat-select
-                    [(ngModel)]="servicio.servicio"
-                    [ngModelOptions]="{ standalone: true }"
-                    (selectionChange)="actualizarPrecioServicio(servicio, i)"
-                  >
-                    <mat-option *ngFor="let tipoServicio of serviciosAdicionales" [value]="tipoServicio.value">
-                      {{ tipoServicio.label }} — ${{ tipoServicio.precio }}
-                    </mat-option>
-                    <mat-option value="otro">Otro (especificar)</mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" *ngIf="servicio.servicio === 'otro'">
-                  <mat-label>Servicio personalizado</mat-label>
-                  <input
-                    matInput
-                    [(ngModel)]="servicio.servicioPersonalizado"
-                    [ngModelOptions]="{ standalone: true }"
-                    placeholder="Descripción"
-                  />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Precio</mat-label>
-                  <input
-                    matInput
-                    type="number"
-                    [(ngModel)]="servicio.precio"
-                    [ngModelOptions]="{ standalone: true }"
-                    min="0"
-                  />
-                </mat-form-field>
-              </div>
-              <button
-                mat-icon-button
-                type="button"
-                color="warn"
-                (click)="removerServicioAdicional(i)"
-                aria-label="Quitar servicio"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-            <button mat-stroked-button type="button" (click)="agregarServicioAdicional()" class="dynamic-list__add">
-              <mat-icon>add</mat-icon>
-              Agregar servicio
-            </button>
-          </div>
-        </section>
-
-        <section class="form-section" *ngIf="!modoRapido">
-          <h3 class="form-section__title">
-            Nota para mostrador
-            <span class="form-section__badge form-section__badge--optional">Opcional</span>
-          </h3>
-          <p class="form-section__hint">
-            Si el paciente tiene un problema (piel, herida, picazón…), escríbelo aquí para mostrador.
-          </p>
-          <mat-form-field appearance="outline" class="full-span">
-            <mat-label>Nota para mostrador</mat-label>
-            <textarea
-              matInput
-              formControlName="observaciones"
-              rows="3"
-              placeholder="Ej. irritación en panza; sugerir shampoo medicado"
-            ></textarea>
-          </mat-form-field>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">
-            Alergias del paciente
-            <span class="form-section__badge form-section__badge--optional">Expediente</span>
-          </h3>
-          <p class="form-section__hint">Se guardan en la mascota y como snapshot en el baño.</p>
-          <app-alergias-editor [alergias]="alergiasPaciente" (alergiasChange)="onAlergiasPacienteChange($event)">
-          </app-alergias-editor>
-        </section>
-
-        <section class="form-section">
-          <h3 class="form-section__title">Información de pago (legacy)</h3>
-          <p class="form-section__hint">Preferir cobrar en Ticket del día. Estos campos son opcionales.</p>
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Método de pago</mat-label>
-              <mat-select formControlName="metodo_pago">
-                <mat-option value="efectivo">Efectivo</mat-option>
-                <mat-option value="tarjeta">Tarjeta</mat-option>
-                <mat-option value="transferencia">Transferencia</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <div class="form-section__checkbox">
-              <mat-checkbox formControlName="pagado" color="primary"> ¿Ya está pagado? </mat-checkbox>
-            </div>
-          </div>
-        </section>
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Nota (opcional)</mat-label>
+          <textarea
+            matInput
+            formControlName="observaciones"
+            rows="2"
+            placeholder="Algo que deban saber al bañarlo"
+          ></textarea>
+        </mat-form-field>
       </div>
     </mat-dialog-content>
 
@@ -424,7 +115,7 @@
         >
           <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          {{ esEdicion ? 'Actualizar' : 'Crear' }}
+          {{ esEdicion ? 'Guardar' : 'Guardar' }}
         </button>
       </div>
     </mat-dialog-actions>

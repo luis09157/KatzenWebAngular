@@ -1,0 +1,20 @@
+---
+description: El agente hace la QA y recorre el flujo antes de pedir a Luis que pruebe
+alwaysApply: true
+---
+
+# QA antes de entregar
+
+Luis no es el QA. El agente prueba el cambio y solo entonces entrega.
+
+## Antes de decir «pruébalo»
+
+1. Correr la validación del nivel (L1 build, L2 tests del cambio + build, L3 guía QA).
+2. Si el cambio toca un módulo con pantalla, **entrar a ese módulo** en localhost (sesión de personal) y recorrer **agregar, editar y borrar** — las acciones que el módulo tenga — sobre un registro de prueba.
+3. Borrar ese registro antes de cerrar. No editar baños, citas ni pacientes reales. No dejar el de prueba en el listado.
+4. Registrar en `tasks.md` qué se hizo y el resultado.
+5. Entregar con ese resultado. No cerrar con «ábrelo y dime si se ve».
+
+Localhost de esta clínica usa la misma base. El recorrido es solo el registro de prueba, creado y borrado en la misma pasada. TestBed no sustituye ese recorrido cuando el módulo tiene pantalla.
+
+Si algo bloquea la prueba, decir qué se recorrió y qué quedó bloqueado. No pasar el QA a Luis.

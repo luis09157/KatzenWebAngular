@@ -25,6 +25,9 @@ import { CitasService } from '../citas/citas.service';
 import { PensionDialogComponent } from '../pension/pension-dialog.component';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { BaniosPacienteComponent } from './banios-paciente.component';
+import { ConsentimientoDialogComponent } from '../consentimientos/consentimiento-dialog.component';
+import { ConsentimientosService } from '../consentimientos/consentimientos.service';
+import { Consentimiento, CONSENTIMIENTO_TIPO_LABELS } from '../consentimientos/consentimientos.models';
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoggerService } from '../core/logger.service';
@@ -72,6 +75,8 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   // Propiedades para vacunas
   vacunas: any[] = [];
+  consentimientos: Consentimiento[] = [];
+  readonly tipoConsentimiento = CONSENTIMIENTO_TIPO_LABELS;
   logActividades: any[] = [];
 
   // Propiedades para baños
@@ -109,6 +114,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     private historialesService: HistorialesService,
     private recordatoriosService: RecordatoriosService,
     private vacunasService: VacunasService,
+    private consentimientosService: ConsentimientosService,
     private baniosPacienteService: BaniosPacienteService,
     private citasService: CitasService,
     private dialog: MatDialog,
@@ -241,6 +247,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.cargarHistorialClinico(paciente.id, extra);
     this.cargarRecordatorios(paciente.id, extra);
     this.cargarVacunas(paciente.id, extra);
+    this.cargarConsentimientos(paciente.id);
     this.cargarBanios(paciente.id, extra);
     this.cargarLogActividades(paciente.id);
   }
@@ -709,6 +716,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   limpiarSeleccion() {
     this.pacienteSeleccionado = null;
+    this.consentimientos = [];
     this.searchTerm = '';
     this.pacientesFiltrados = [];
     this.routePacienteId = null;
@@ -874,6 +882,114 @@ export class PacientesComponent implements OnInit, OnDestroy {
           this.cargarLogActividades(this.pacienteSeleccionado.id);
         }
       });
+  }
+
+  cargarConsentimientos(pacienteId: string): void {
+    if (!pacienteId) {
+      this.consentimientos = [];
+      return;
+    }
+    this.consentimientosService
+      .getPorPaciente(pacienteId)
+      .pipe(take(1))
+      .subscribe({
+        next: (rows) => {
+          this.consentimientos = rows || [];
+        },
+        error: (error) => {
+          this.consentimientos = [];
+          this.handleExpedienteSectionError('cargar consentimientos expediente', error);
+        },
+      });
+  }
+
+  private datosPacienteConsentimiento(): {
+    paciente_id: string;
+    paciente: string;
+    cliente_id: string;
+    cliente: string;
+  } | null {
+    const paciente = this.pacienteSeleccionado;
+    if (!paciente?.id) {
+      return null;
+    }
+    return {
+      paciente_id: paciente.id,
+      paciente: this.nombrePaciente(paciente),
+      cliente_id: this.getPacienteClienteId(paciente),
+      cliente: this.getClienteNombreFromPaciente(paciente),
+    };
+  }
+
+  agregarConsentimiento(): void {
+    const pref = this.datosPacienteConsentimiento();
+    if (!pref) {
+      Swal.fire('Error', 'Debes seleccionar un paciente primero', 'error');
+      return;
+    }
+    const dialogRef = this.dialog.open(ConsentimientoDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: { pacientePrefijado: pref },
+    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result) {
+          this.cargarConsentimientos(pref.paciente_id);
+        }
+      });
+  }
+
+  editarConsentimiento(item: Consentimiento): void {
+    const dialogRef = this.dialog.open(ConsentimientoDialogComponent, {
+      ...ADMIN_DIALOG_FORM,
+      data: { consentimiento: item },
+    });
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (result && this.pacienteSeleccionado?.id) {
+          this.cargarConsentimientos(this.pacienteSeleccionado.id);
+        }
+      });
+  }
+
+  eliminarConsentimiento(item: Consentimiento): void {
+    if (!item?.id) {
+      return;
+    }
+    Swal.fire({
+      title: '¿Borrar consentimiento?',
+      text: 'Se marca como revocado y deja de mostrarse en la lista.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Borrar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (!result.isConfirmed || !item.id) {
+        return;
+      }
+      this.loadingService.show(LOADING_MESSAGES.deleting);
+      this.consentimientosService
+        .bajaLogica(item.id)
+        .then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Consentimiento borrado',
+            timer: 1400,
+            showConfirmButton: false,
+          });
+          if (this.pacienteSeleccionado?.id) {
+            this.cargarConsentimientos(this.pacienteSeleccionado.id);
+          }
+        })
+        .catch((error) => {
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'borrar consentimiento'), 'error');
+        })
+        .finally(() => this.loadingService.hide());
+    });
   }
 
   editarVacuna(vacuna: any) {

@@ -10,6 +10,7 @@ import { FirebaseFunctionsService } from '../core/services/firebase-functions.se
 import { PwaInstallService } from '../core/services/pwa-install.service';
 import { PwaManifestService } from '../core/services/pwa-manifest.service';
 import { BehaviorSubject } from 'rxjs';
+import { rtdbUnavailableError } from '../core/utils/rtdb-read-timeout.util';
 
 describe('AuthComponent', () => {
   let component: AuthComponent;
@@ -162,5 +163,44 @@ describe('AuthComponent', () => {
 
     expect(component.checkingSession).toBeFalse();
     expect(router.navigate).toHaveBeenCalledWith(['/admin/inicio']);
+  });
+
+  it('si la sesión falla por un error de red, muestra el formulario', async () => {
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
+    authProfileService.hasStaffAccess.and.rejectWith(new Error('websocket'));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.checkingSession).toBeFalse();
+    expect(component.loginError).toContain('No pudimos conectar');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('si RTDB no responde al entrar, muestra el formulario con error de conexión', async () => {
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
+    authProfileService.hasStaffAccess.and.rejectWith(rtdbUnavailableError());
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.checkingSession).toBeFalse();
+    expect(component.loginError).toContain('No pudimos conectar');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('login con RTDB caído quita el spinner y no cierra la sesión', async () => {
+    authService.login.and.resolveTo({});
+    authProfileService.hasStaffAccess.and.rejectWith(rtdbUnavailableError());
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.email = 'staff@clinica.test';
+    component.password = 'secreta';
+    await component.login();
+
+    expect(component.loading).toBeFalse();
+    expect(component.loginError).toContain('No pudimos conectar');
+    expect(authService.signOutOnly).not.toHaveBeenCalled();
   });
 });

@@ -241,3 +241,40 @@ QA agente 2026-10-18 (L2 solo precio — sin opciones de costo):
 - Fix: writeValue con objeto Cliente/Paciente; `displayClienteAutocompleteValue` / `displayPacienteAutocompleteValue`; patch `cliente_id` + nombre.
 - Código: `cliente-paciente-picker.component` + utils display; tests en `cliente-search` / `paciente-search`.
 - Smoke: elegir mascota → dueño visible + form válido.
+
+### Follow-up 2026-10-24 — tipos distintos en Rápido y Completo (L2)
+
+- Rápido: Corte de Uñas, Rasurado higiénico, Baño medicado.
+- Completo: Baño con corte, Baño, Baño con deslanado.
+- Tipos viejos no se reescriben. Al editar, el tipo guardado sigue en la lista. Cambiar de modo limpia el tipo si no pertenece a ese modo.
+- Código: `banios/banio-tipos-servicio.util.ts` + diálogo. Portal: etiquetas nuevas en `portal-mapper.util`. Precio por tamaño igual.
+- Extras de Completo, dueño/mascota, tamaño y guardado: sin cambio.
+- QA 2026-10-24: `banio-dialog.component.spec` 3/3 sobre el template real. Util 6/6. `npm run build` exit 0.
+- QA en el módulo (localhost, sesión de personal), 2026-10-24: Nuevo baño en Rápido muestra solo Corte de Uñas, Rasurado higiénico y Baño medicado. Completo muestra solo Baño con corte, Baño y Baño con deslanado. Se creó un baño de prueba (Oreon, tipo Baño, nota QA), se editó el precio de $80 a $90 y se borró. Quedó fuera del listado de hoy. El baño de Frijol no se tocó.
+
+### Follow-up 2026-10-24 — alta en un solo paso (L2)
+
+- Sin Rápido/Completo. Un formulario: mascota (raza y edad), los seis servicios, precio opcional, «Ya lo pagaron» y nota.
+- Sin precio: el listado dice «Falta el precio» y no se manda a mostrador. Con precio y sin pago: «Por cobrar». Pagado: «Pagado».
+- «Ya lo pagaron» se puede marcar al registrar, aunque el baño siga programado. Si ya pagaron, no pregunta «¿Enviar a mostrador?».
+- La hora y el estado siguen internos. La fecha se elige: hoy por defecto, y también al editar. El peluquero ya no se pide en esta pantalla. Citas conserva el nombre del dueño en su buscador.
+- Código: `banio-dialog`, `banio-tipos-servicio.util` (`opcionesTipoServicioAlta`, `leyendaCobroBanio`), picker `etiquetaMascota="raza-edad"`, listado en `banios.component`.
+- QA 2026-10-24: util 9/9, diálogo 3/3, picker raza/edad en `paciente-search.util.spec`. `npm run build` exit 0.
+- QA en el módulo (localhost, sesión de personal): Nuevo baño sin Rápido/Completo. Oreon de Luis aparece como «Oreon — FELINO · ELECTRIKO · 3 años y 7 meses». Se guardó sin precio (tipo Baño, nota QA): el listado dijo «Falta el precio», no preguntó mostrador y los botones de cobro quedaron apagados. Se editó a $70 con «Ya lo pagaron»: la fila quedó «$70 Pagado» y no preguntó mostrador. Se borró. Quedó fuera del listado de hoy. Frijol ($300, corte de pelo) no se tocó.
+
+### Follow-up 2026-10-24 — fecha editable, default hoy (L2)
+
+- Alta: el campo Fecha abre en hoy y se puede cambiar.
+- Edición: la fecha ya no queda bloqueada. Se guarda la que elijan.
+- Hora sigue automática. Precio opcional, servicios, pago y borrar no cambian.
+- Código: `banio-dialog` (se quitó el `disable` de `fecha_banio`).
+- QA diálogo 3/3. `npm run build` exit 0.
+- QA en el módulo: Nuevo baño abrió en 24/10/2026. Se cambió al lunes 26/10, Oreon, sin precio. No apareció en Hoy (siguió solo Frijol). En la búsqueda quedó «26/10/2026 Oreon Baño». Se editó la fecha a 27/10 y se borró. Frijol no se tocó.
+
+### Follow-up 2026-10-24 — viernes y sábado ven el lunes (L2)
+
+- El viernes y el sábado el listado de peluquería muestra Hoy, Mañana y Lunes. El domingo el lunes ya es Mañana, no se duplica. De lunes a jueves no cambia.
+- Citas, vacunas, pensión y el util compartido no se tocaron.
+- Código: `banio-listado-filtro.util.ts` (`incluyeLunesEnAgendaBanios`, `fechaLunesListadoBanios`) y la sección Lunes en `banios.component`.
+- QA util 9/9. `npm run build` exit 0.
+- QA en el módulo (sábado 24/10): sección Lunes visible. Jack del 26/10 apareció ahí, no en Hoy. Se creó un baño de Oreon para el 26/10: Lunes quedó en 2. Se borró el de Oreon. Quedaron Jack en Lunes y Frijol en Hoy.

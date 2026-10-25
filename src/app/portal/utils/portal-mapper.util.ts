@@ -17,7 +17,7 @@ export function mapHistorial(id: string, raw: Record<string, unknown>) {
     raw['historia_clinica'],
     raw['hallazgos'],
     raw['estudios_solicitados'],
-    raw['medico_atendio']
+    raw['medico_atendio'],
   ].filter(Boolean);
   return {
     id,
@@ -29,7 +29,7 @@ export function mapHistorial(id: string, raw: Record<string, unknown>) {
     notas: raw['notas'] || notasParts.join('\n'),
     medico_atendio: raw['medico_atendio'] || '',
     historia_clinica: raw['historia_clinica'] || '',
-    hallazgos: raw['hallazgos'] || ''
+    hallazgos: raw['hallazgos'] || '',
   };
 }
 
@@ -46,13 +46,12 @@ export function mapCita(id: string, raw: Record<string, unknown>) {
     veterinario: raw['veterinario'] || raw['medico_atendio'] || '',
     observaciones: raw['observaciones'] || raw['notas'] || '',
     motivo_cancelacion: raw['motivo_cancelacion'] || '',
-    duracion_minutos: raw['duracion_minutos'] ?? null
+    duracion_minutos: raw['duracion_minutos'] ?? null,
   };
 }
 
 export function mapVacuna(id: string, raw: Record<string, unknown>) {
-  const proxima =
-    raw['proximaAplicacion'] || raw['proxima_aplicacion'] || raw['proxima_dosis'] || '';
+  const proxima = raw['proximaAplicacion'] || raw['proxima_aplicacion'] || raw['proxima_dosis'] || '';
   return {
     id,
     idPaciente: raw['idPaciente'] || raw['paciente_id'] || '',
@@ -63,7 +62,7 @@ export function mapVacuna(id: string, raw: Record<string, unknown>) {
     observaciones: raw['observaciones'] || raw['notas'] || '',
     proximaAplicacion: proxima,
     /** Spec 052 SC-026 — no suena a orden médica automática. */
-    proximaHint: proxima ? 'Fecha acordada en clínica' : ''
+    proximaHint: proxima ? 'Fecha acordada en clínica' : '',
   };
 }
 
@@ -76,17 +75,22 @@ export function mapNotificacion(id: string, raw: Record<string, unknown>) {
     fecha: raw['fecha'] || raw['created_at'] || '',
     leida: raw['leida'] === true,
     mascotaId: raw['mascotaId'] || raw['paciente_id'] || raw['idPaciente'] || '',
-    referenciaId: raw['referenciaId'] || ''
+    referenciaId: raw['referenciaId'] || '',
   };
 }
 
 const TIPO_SERVICIO_BANIO_LABELS: Record<string, string> = {
-  'baño_básico': 'Baño básico',
-  'baño_completo': 'Baño completo',
+  baño_básico: 'Baño básico',
+  baño_completo: 'Baño completo',
   corte_pelo: 'Corte de pelo',
   corte_uñas: 'Corte de uñas',
   deslanado: 'Deslanado',
-  tratamiento_especial: 'Tratamiento especial'
+  tratamiento_especial: 'Tratamiento especial',
+  rasurado_higienico: 'Rasurado higiénico',
+  baño_medicado: 'Baño medicado',
+  baño_con_corte: 'Baño con corte',
+  baño: 'Baño',
+  baño_con_deslanado: 'Baño con deslanado',
 };
 
 export function labelTipoServicioBanio(tipo: unknown): string {
@@ -106,7 +110,7 @@ export function mapBanio(id: string, raw: Record<string, unknown>) {
     tipo_servicio_label: labelTipoServicioBanio(raw['tipo_servicio']),
     estado: raw['estado'] || 'programado',
     peluquero: raw['peluquero'] || '',
-    observaciones: raw['observaciones'] || ''
+    observaciones: raw['observaciones'] || '',
   };
 }
 
@@ -114,7 +118,7 @@ const ESTADO_PENSION_LABELS: Record<string, string> = {
   reservada: 'Reservada',
   activa: 'Activa',
   finalizada: 'Finalizada',
-  cancelada: 'Cancelada'
+  cancelada: 'Cancelada',
 };
 
 /** Pensión — solo lectura portal (sin costos / caja). */
@@ -131,7 +135,7 @@ export function mapPension(id: string, raw: Record<string, unknown>) {
     estado_label: ESTADO_PENSION_LABELS[estado] || estado,
     notas: raw['notas'] || raw['observaciones'] || '',
     paciente: raw['paciente'] || '',
-    cliente: raw['cliente'] || ''
+    cliente: raw['cliente'] || '',
   };
 }
 
@@ -157,7 +161,7 @@ export function mapRecordatorio(id: string, raw: Record<string, unknown>) {
     origen,
     vacunaId: raw['vacunaId'] || raw['vacuna_relacionada_id'] || '',
     esVacuna,
-    acuerdoHint: esVacuna ? 'Refuerzo programado · fecha acordada en clínica' : ''
+    acuerdoHint: esVacuna ? 'Refuerzo programado · fecha acordada en clínica' : '',
   };
 }
 
@@ -165,7 +169,7 @@ const ESTADO_VISITA_LABELS: Record<string, string> = {
   abierta: 'Abierta',
   parcial: 'Pago parcial',
   cerrada: 'Cerrada',
-  cancelada: 'Cancelada'
+  cancelada: 'Cancelada',
 };
 
 /** Visita / ticket — portal read-only (montos de cuenta; sin IDs de caja). Spec 032. */
@@ -185,7 +189,7 @@ export function mapVisita(id: string, raw: Record<string, unknown>) {
     lineas_count: lineas.length,
     notas: raw['notas'] || '',
     paciente: raw['paciente'] || '',
-    cliente: raw['cliente'] || ''
+    cliente: raw['cliente'] || '',
   };
 }
 
@@ -196,12 +200,12 @@ const TIPO_CONSENTIMIENTO_LABELS: Record<string, string> = {
   hospitalizacion: 'Hospitalización',
   eutanasia: 'Eutanasia',
   tratamiento: 'Tratamiento',
-  otro: 'Otro'
+  otro: 'Otro',
 };
 
 const ESTADO_CONSENTIMIENTO_LABELS: Record<string, string> = {
   vigente: 'Vigente',
-  revocado: 'Revocado'
+  revocado: 'Revocado',
 };
 
 /** Consentimiento clínico — portal read-only. Spec 037. */
@@ -221,7 +225,7 @@ export function mapConsentimiento(id: string, raw: Record<string, unknown>) {
     parentesco: raw['parentesco'] || '',
     notas: raw['notas'] || '',
     paciente: raw['paciente'] || '',
-    cliente: raw['cliente'] || ''
+    cliente: raw['cliente'] || '',
   };
 }
 
@@ -229,9 +233,12 @@ export function mapMascota(id: string, raw: Record<string, unknown>) {
   const alergiasRaw = raw['alergias'] ?? raw['alergiasTexto'] ?? raw['alergias_texto'];
   let alergias: string[] = [];
   if (Array.isArray(alergiasRaw)) {
-    alergias = alergiasRaw.map(a => String(a ?? '').trim()).filter(Boolean);
+    alergias = alergiasRaw.map((a) => String(a ?? '').trim()).filter(Boolean);
   } else if (typeof alergiasRaw === 'string' && alergiasRaw.trim()) {
-    alergias = alergiasRaw.split(/[,;\n|]+/).map(s => s.trim()).filter(Boolean);
+    alergias = alergiasRaw
+      .split(/[,;\n|]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return {
     id,
@@ -244,6 +251,6 @@ export function mapMascota(id: string, raw: Record<string, unknown>) {
     imageUrl: raw['imageUrl'] || raw['rutaImagen'] || '',
     idCliente: raw['idCliente'] || raw['cliente_id'] || '',
     activo: raw['activo'] !== false,
-    alergias
+    alergias,
   };
 }

@@ -237,10 +237,22 @@
           </section>
 
           <section class="detail-section detail-section--mascotas">
-            <h4 class="detail-section__title">
-              <mat-icon>pets</mat-icon>
-              Mascotas vinculadas
-            </h4>
+            <div class="mascotas-section-head">
+              <h4 class="detail-section__title">
+                <mat-icon>pets</mat-icon>
+                Mascotas vinculadas
+              </h4>
+              <button
+                *ngIf="modoVer && data?.cliente?.id"
+                mat-stroked-button
+                type="button"
+                class="mascotas-agregar"
+                (click)="agregarMascota()"
+              >
+                <mat-icon>add</mat-icon>
+                Agregar mascota
+              </button>
+            </div>
             <p class="mascotas-hint" *ngIf="!cargandoPacientes && pacientesRelacionados.length > 0">
               Clic en Ver expediente, el icono de carpeta o doble clic abre el expediente
             </p>

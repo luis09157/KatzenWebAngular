@@ -6,6 +6,7 @@ import { LoadingService } from './core/loading.service';
 import { PwaInstallService } from './core/services/pwa-install.service';
 import { PwaManifestService } from './core/services/pwa-manifest.service';
 import { refreshFirebaseMessagingSw } from './core/utils/firebase-messaging-sw-register';
+import { RTDB_READ_TIMEOUT_MS } from './core/utils/rtdb-read-timeout.util';
 
 @Component({
   selector: 'app-root',
@@ -43,10 +44,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.bootReady = true;
       });
 
-    // Red de seguridad: no dejar el splash eterno si no hay evento de router.
+    // El login abre el formulario a los 8 s si RTDB no responde.
+    // Este respaldo va después: si se apaga antes, el outlet sigue vacío y la página queda en blanco.
     this.bootFallbackTimer = window.setTimeout(() => {
       this.bootReady = true;
-    }, 8000);
+    }, RTDB_READ_TIMEOUT_MS + 4000);
   }
 
   ngOnDestroy(): void {

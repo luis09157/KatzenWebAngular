@@ -5,6 +5,7 @@ import { Observable, firstValueFrom, lastValueFrom } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ClientesService } from '../clientes/clientes.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { finalize } from 'rxjs/operators';
 import { ErrorMessagesService } from '../core/error-messages.service';
@@ -107,6 +108,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<PacienteAdminDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private clientesService: ClientesService,
+    private pacientesService: PacientesService,
     private storage: AngularFireStorage,
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService
@@ -132,6 +134,12 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.cargarClientes();
     this.setupDateValidation();
     this.setupEstadoChangeListener();
+    if (!this.data?.paciente) {
+      this.prefillExpedienteNuevo();
+    }
+    if (!this.data?.paciente && this.data?.cliente?.id) {
+      this.aplicarDuenoPrefijado(this.data.cliente);
+    }
 
     if (this.data?.modo === 'rapido' && !this.data?.paciente) {
       this.configurarModoRapido();
@@ -225,6 +233,29 @@ export class PacienteAdminDialogComponent implements OnInit {
     }
   }
 
+  /** Dueño que ya viene de la ficha del cliente o del alta rápida. */
+  private aplicarDuenoPrefijado(dueno: { id?: string; nombre?: string }): void {
+    const idCliente = String(dueno?.id || '').trim();
+    if (!idCliente) {
+      return;
+    }
+    const nombre = getClienteNombreCompleto(dueno).trim() || String(dueno?.nombre || '').trim();
+    this.pacienteForm.patchValue({ idCliente, nombreCliente: nombre || 'Dueño' });
+  }
+
+  /** Alta nueva: año + 0 + consecutivo. No pisa un número que ya escribieron. */
+  private prefillExpedienteNuevo(): void {
+    this.pacientesService
+      .proximoExpediente()
+      .then((folio) => {
+        const actual = String(this.pacienteForm.get('expediente')?.value || '').trim();
+        if (!actual && !this.isEditMode && !this.isViewMode) {
+          this.pacienteForm.patchValue({ expediente: folio });
+        }
+      })
+      .catch(() => undefined);
+  }
+
   /** Spec 065 — relaja raza/sexo y prefija el dueño que viene del POS / picker. */
   private configurarModoRapido(): void {
     this.isRapido = true;
@@ -240,7 +271,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     if (idCliente) {
       const nombre = getClienteNombreCompleto(dueno).trim() || String(dueno?.nombre || '').trim();
       this.duenoPrefijado = nombre;
-      this.pacienteForm.patchValue({ idCliente, nombreCliente: nombre || 'Dueño' });
+      this.aplicarDuenoPrefijado(dueno);
     }
   }
 

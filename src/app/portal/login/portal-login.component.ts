@@ -31,7 +31,6 @@ export class PortalLoginComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.appCheck.ensureInitialized();
     try {
       if (await this.portalAuth.enterIfRememberedSession()) {
         return;
@@ -61,6 +60,7 @@ export class PortalLoginComponent implements OnInit {
     this.loading = true;
     try {
       const result = await this.portalAuth.login(email, this.password, this.keepSessionActive);
+      this.appCheck.ensureInitialized();
       if (result === 'inactive' || result === 'none' || result === 'staff') {
         this.loginError = mensajeEstadoLoginPortal(result);
         return;

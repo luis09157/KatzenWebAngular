@@ -1,10 +1,11 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { StaffLoginGuestGuard } from './staff-login-guest.guard';
 import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { RTDB_READ_TIMEOUT_MS, rtdbUnavailableError } from '../core/utils/rtdb-read-timeout.util';
 
 describe('StaffLoginGuestGuard', () => {
   let guard: StaffLoginGuestGuard;
@@ -88,4 +89,45 @@ describe('StaffLoginGuestGuard', () => {
     await expectAsync(guard.canActivate()).toBeResolvedTo(false);
     expect(router.navigate).toHaveBeenCalledWith(['/auth/contexto']);
   });
+
+  it('si RTDB no responde, deja ver el formulario', async () => {
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
+    authProfile.hasStaffAccess.and.rejectWith(rtdbUnavailableError());
+
+    await expectAsync(guard.canActivate()).toBeResolvedTo(true);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('si el perfil falla por otro error, deja ver el formulario', async () => {
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
+    authProfile.hasStaffAccess.and.rejectWith(new Error('websocket'));
+
+    await expectAsync(guard.canActivate()).toBeResolvedTo(true);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('si el perfil no termina, abre el formulario y no navega después', fakeAsync(() => {
+    authService.waitForAuthUser.and.resolveTo({ uid: 'staff-1' });
+    let resolveStaff!: (value: boolean) => void;
+    authProfile.hasStaffAccess.and.returnValue(
+      new Promise<boolean>((resolve) => {
+        resolveStaff = resolve;
+      })
+    );
+
+    let result: boolean | undefined;
+    void guard.canActivate().then((value) => {
+      result = value;
+    });
+
+    tick(0);
+    expect(result).toBeUndefined();
+
+    tick(RTDB_READ_TIMEOUT_MS);
+    expect(result).toBeTrue();
+
+    resolveStaff(true);
+    tick(0);
+    expect(router.navigate).not.toHaveBeenCalled();
+  }));
 });

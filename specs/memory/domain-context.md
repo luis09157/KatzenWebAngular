@@ -140,7 +140,7 @@ Cambios en nodos legacy deben ser **aditivos**; mejorar web sin romper móvil; m
 | `foto`, `imageUrl`, `rutaImagen` | string | Portal mapea varios alias |
 | `alergias?` | string[] | **034** fuente de verdad alergias (aditivo); UI chips + alerta cruzada |
 | `alergiasTexto?` | string | **034** legacy/texto libre; lectura normalizada junto a `alergias` |
-| `expediente?` | string | **068** folio de la **mascota** (Excel/clínica). Si falta, web persiste/deriva `KV-XXXXXX`. No usar `Cliente.expediente`. |
+| `expediente?` | string | **068** folio de la **mascota**. La carga Excel lo dejó en el dueño; se copia a la mascota. Formato `YY0NNN` (`260115`, siguiente `260116`). Un número ya guardado no se reescribe. Si al editar queda vacío, sigue el fallback `KV-`. |
 | `fecha_creacion`, `fechaBaja` | string | |
 | `sucursalId` | string | Stamp en altas |
 

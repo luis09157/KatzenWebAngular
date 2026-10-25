@@ -88,3 +88,7 @@
 - [x] Validación exhaustiva registrada
 - [x] `spec.md` estado → `done`
 - [x] Commit + push + deploy hosting (autorizado Luis) — `2e6c730`; https://katzen-a0e3e.web.app
+
+## Follow-up 2026-10-24
+
+Clientes sube junto a Pacientes. Consentimientos, historiales y vacunas salen del menú lateral. Inventario y el resto de Más se quedan. Rutas y acceso por rol no cambian.

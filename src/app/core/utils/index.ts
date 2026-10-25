@@ -35,6 +35,7 @@ export * from './recordatorio-canal-cliente.util';
 export * from './rtdb-date.util';
 export * from './rtdb-paciente-query.util';
 export * from './rtdb-push.util';
+export * from './rtdb-read-timeout.util';
 export * from './rtdb-row.util';
 export * from './sucursal-filter.util';
 export * from './text-search.util';

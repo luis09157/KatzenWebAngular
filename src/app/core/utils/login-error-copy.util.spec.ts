@@ -19,4 +19,10 @@ describe('login-error-copy.util (076)', () => {
     expect(mensajeErrorLoginStaff({ code: 'auth/user-not-found' })).toContain('No encontramos esa cuenta');
     expect(mensajeErrorLoginStaff({ code: 'auth/user-not-found' })).toContain('Soy cliente');
   });
+
+  it('staff: RTDB sin respuesta no parece contraseña mala', () => {
+    const msg = mensajeErrorLoginStaff({ code: 'rtdb-unavailable' });
+    expect(msg).toContain('No pudimos conectar');
+    expect(msg).not.toContain('contraseña');
+  });
 });

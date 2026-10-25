@@ -32,3 +32,7 @@
 
 - [x] Spec → `done`
 - [x] Resend **no** tocado
+
+## Follow-up 2026-10-24
+
+En el expediente hay pestaña Consentimientos (alta, edición y baja lógica) con el paciente ya puesto. El menú lateral ya no lo lista. QA localhost: alta «QA menu borrar» en Oreon de Luis, edición de la nota y baja; el consentimiento real de cirugía quedó. `npm run build` exit 0, hash `f205ae8507a0085b`. Sin deploy.

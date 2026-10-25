@@ -7,6 +7,7 @@ import {
   getPacienteDisplayLabel,
   getPacienteNombre,
   getPacientePickerOptionLabel,
+  getPacientePickerRazaEdadLabel,
 } from './paciente-search.util';
 import { getClienteNombreCompleto } from './cliente-search.util';
 import { hydrateCliente } from './cliente-hydrate.util';
@@ -55,6 +56,14 @@ describe('paciente-search.util picker dual (spec 085)', () => {
     const label = getPacientePickerOptionLabel(oreon, getClienteNombreCompleto(luis));
     expect(label).toContain('Oreon');
     expect(label).toContain(getClienteNombreCompleto(luis));
+  });
+
+  it('etiqueta de peluquería muestra raza y edad, sin el dueño', () => {
+    const label = getPacientePickerRazaEdadLabel(oreon);
+    expect(label).toContain('Oreon');
+    expect(label).toContain('Doméstico');
+    expect(label).toContain('Edad no registrada');
+    expect(label).not.toContain('Niño');
   });
 
   it('displayWith autocomplete: objeto Paciente o string de tipado', () => {

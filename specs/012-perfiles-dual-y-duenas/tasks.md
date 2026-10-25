@@ -113,3 +113,13 @@ npm run cy:admin → 23/23 PASS
 - [x] Commit + push (pedido por Luis)
 - [x] Hotfix layout contexto + hosting (2026-08-26)
 - [x] Hotfix aislamiento entrada portal (2026-08-27): login landing/`/portal/login` → solo portal; lock bloquea `/admin` y oculta atajo admin; selector dual solo tras `/admin/login`
+
+### Hotfix login — 504 que el navegador llama CORS (2026-10-21)
+
+- **Causa:** incidente de Firebase Realtime Database en us-central1 (500 y latencia; el WebSocket a firebaseio.com se cae). `syncMyClaims` esperaba esa lectura hasta el tope de Cloud Run (60s). El gateway responde **504 sin `Access-Control-Allow-Origin`** y Chrome lo muestra como CORS (`ERR_FAILED`). El preflight OPTIONS ya era 204.
+- **Qué provocamos:** el deploy con lista `cors` dejó pasar el POST (antes el preflight moría en 400). La lista no era el 504; el cuelgue contra RTDB sí.
+- **Código:** `cors: true` y tope interno de 5s en la lectura RTDB/Auth (`callable-deadline.util.ts`). Si la base no contesta, la función devuelve `unavailable` (503) con CORS. Timeout de la callable: 20s.
+- **Dónde vive:** `functions/src/index.ts` (`syncMyClaims`), `functions/src/callable-deadline.util.ts`.
+- **Deploy (2026-10-21, outage):** `firebase deploy --only functions:syncMyClaims`. Sin commit, sin rules, sin escritura RTDB.
+
+Luis: recarga forzada. El login no debe quedarse un minuto en un falso CORS. Los datos de la base siguen dependiendo de que Firebase restablezca RTDB (`https://status.firebase.google.com/`).

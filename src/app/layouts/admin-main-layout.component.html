@@ -35,6 +35,16 @@
             <mat-icon matListItemIcon>pets</mat-icon>
             <span matListItemTitle>Pacientes</span>
           </a>
+          <a
+            *ngIf="canShow('clientes')"
+            mat-list-item
+            routerLink="/admin/clientes"
+            routerLinkActive="active"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Clientes</span>
+          </a>
 
           <div class="admin-nav-group-label" *ngIf="hasAgendaNav">Agenda</div>
           <a
@@ -93,50 +103,6 @@
           </a>
 
           <div class="admin-nav-group-label" *ngIf="hasMasNav">Más</div>
-          <a
-            *ngIf="canShow('clientes')"
-            mat-list-item
-            routerLink="/admin/clientes"
-            routerLinkActive="active"
-            class="admin-nav-subitem"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Clientes</span>
-          </a>
-          <a
-            *ngIf="canShow('consentimientos')"
-            mat-list-item
-            routerLink="/admin/consentimientos"
-            routerLinkActive="active"
-            class="admin-nav-subitem"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>assignment_turned_in</mat-icon>
-            <span matListItemTitle>Consentimientos</span>
-          </a>
-          <a
-            *ngIf="canShow('historiales')"
-            mat-list-item
-            routerLink="/admin/historiales"
-            routerLinkActive="active"
-            class="admin-nav-subitem"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>medical_services</mat-icon>
-            <span matListItemTitle>Historiales</span>
-          </a>
-          <a
-            *ngIf="canShow('vacunas')"
-            mat-list-item
-            routerLink="/admin/vacunas"
-            routerLinkActive="active"
-            class="admin-nav-subitem"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>vaccines</mat-icon>
-            <span matListItemTitle>Vacunas</span>
-          </a>
           <a
             *ngIf="canShow('inventario')"
             mat-list-item

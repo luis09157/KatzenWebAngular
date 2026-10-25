@@ -80,3 +80,13 @@
 - [x] Botón «Cerrar sesión» como `button mat-list-item`
 - [x] Deploy hosting 2026-10-02 — live `ed89a5ec1cfa46b2` (con 086)
 - [x] Splash boot: `index.html` + `app.component` hasta NavigationEnd (sin blanco al cargar) · build exit 0
+
+---
+
+## Follow-up 2026-10-21 — spinner eterno si RTDB no conecta
+
+- [x] `AuthPerfiles` / `Usuarios` en login: tope 8 s (`rtdb-read-timeout.util`). Si el WebSocket no emite, se usan claims; si no hay claims, error `rtdb-unavailable` y se quita el spinner.
+- [x] GuestGuard / AuthGuard / login: ese error muestra el formulario, no cierra sesión ni deja la ruta colgada.
+- [x] Clarity: no carga el script si el id sigue siendo `CLARITY_PROJECT_ID` (el 400 del tag no bloqueaba el login).
+- [x] El HTTP 500 del handshake `wss://…firebaseio.com` es de Firebase (nginx), no un path/regla nuestra. La URL `katzen-a0e3e-default-rtdb` sí es la instancia (el host legacy responde 404).
+- [x] `firebase deploy --only hosting` 2026-10-21. Live `a4974b40af02740e`; `main.89bd501d707169d5.js`; build exit 0 (hash `0681639ef323c91d`). Spec 063: `retainedReleaseCount=1`; DELETE no live `8d5ff59d74f51ec8`. `/admin/login` pinta el formulario. El blanco era el splash a los 8 s con el guard aún colgado en RTDB (no un throw de bootstrap). Clarity placeholder ya no pide el tag.

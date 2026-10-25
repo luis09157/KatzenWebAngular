@@ -55,6 +55,7 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
   esEdicion = false;
   consentimientoId: string | null = null;
   alergiasPaciente: string[] = [];
+  pacienteFijo = false;
 
   readonly tipos = CONSENTIMIENTO_TIPOS;
   readonly tipoLabels = CONSENTIMIENTO_TIPO_LABELS;
@@ -72,7 +73,16 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ConsentimientoDialogComponent>,
     private dialog: MatDialog,
-    @Inject(MAT_DIALOG_DATA) public data: { consentimiento?: Consentimiento },
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      consentimiento?: Consentimiento;
+      pacientePrefijado?: {
+        paciente_id: string;
+        paciente: string;
+        cliente_id: string;
+        cliente: string;
+      };
+    },
     private service: ConsentimientosService,
     private clientesService: ClientesService,
     private pacientesService: PacientesService,
@@ -129,6 +139,21 @@ export class ConsentimientoDialogComponent implements OnInit, OnDestroy {
       }
       if (c.cliente_id) {
         void this.loadTelefonoCliente(c.cliente_id);
+      }
+    } else {
+      const pref = this.data?.pacientePrefijado;
+      if (pref?.paciente_id) {
+        this.pacienteFijo = true;
+        this.form.patchValue({
+          cliente_id: pref.cliente_id || '',
+          cliente: pref.cliente || '',
+          paciente_id: pref.paciente_id,
+          paciente: pref.paciente || '',
+        });
+        void this.loadAlergias(pref.paciente_id);
+        if (pref.cliente_id) {
+          void this.loadTelefonoCliente(pref.cliente_id);
+        }
       }
     }
 

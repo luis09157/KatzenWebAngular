@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { AuthService } from '../../auth/auth.service';
 import {
   mapUsuarioPerfilToStaffRole,
@@ -10,7 +8,15 @@ import {
   staffRoleCanAccessModule,
   StaffModule,
 } from '../config/staff-role.config';
+import { LoggerService } from '../logger.service';
 import { accessFromAuthClaims, ClaimsAccess } from '../utils/auth-claims-access.util';
+import {
+  firstRtdbValue,
+  isRtdbReadTimeout,
+  isRtdbUnavailableError,
+  RTDB_TIMEOUT_ACCESS_CACHE_MS,
+  rtdbUnavailableError,
+} from '../utils/rtdb-read-timeout.util';
 
 export interface AuthPerfil {
   authUid?: string;
@@ -54,21 +60,73 @@ export function isDual(perfil: AuthPerfil | null): boolean {
   return hasStaffAccess(perfil) && hasClientAccess(perfil);
 }
 
+/**
+ * Une perfil RTDB + claims.
+ * Si el socket no respondió y el token tampoco trae acceso, lanza `rtdb-unavailable`
+ * (el login no debe decir «sin perfil» ni quedarse en el spinner).
+ */
+export function resolveAccessFromSources(
+  perfil: AuthPerfil | null,
+  claims: ClaimsAccess,
+  rtdbTimedOut: boolean
+): AuthAccess {
+  if (perfil?.activo === false) {
+    return { staffAccess: false, clientAccess: false, perfil };
+  }
+
+  const staffAccess = hasStaffAccess(perfil) || claims.staffAccess;
+  const clientAccess = hasClientAccess(perfil) || claims.clientAccess;
+
+  if (rtdbTimedOut && !staffAccess && !clientAccess) {
+    throw rtdbUnavailableError();
+  }
+
+  return {
+    staffAccess,
+    clientAccess,
+    perfil,
+    clienteId: perfil?.clienteId || claims.clienteId,
+    staffRole: perfil?.staffRole || claims.staffRole,
+    mustChangePassword: perfil?.mustChangePassword === true || claims.mustChangePassword === true,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthProfileService {
+  /** Solo cuando el socket falló y los claims sí alcanzaron para decidir. */
+  private timeoutAccessCache: { uid: string; at: number; value: AuthAccess } | null = null;
+  /** El guard y el login preguntan seguido: no repetir el tope de 8 s en la misma pasada. */
+  private timeoutFailure: { uid: string; at: number; error: unknown } | null = null;
+  private accessInflight: { uid: string; promise: Promise<AuthAccess> } | null = null;
+  private readonly failureReuseMs = 3000;
+
   constructor(
     private db: AngularFireDatabase,
-    private authService: AuthService
+    private authService: AuthService,
+    private logger: LoggerService
   ) {}
 
   async getMyProfile(): Promise<AuthPerfil | null> {
     const user = await this.authService.waitForAuthUser();
     if (!user) return null;
 
-    const perfil = await firstValueFrom(
-      this.db.object<AuthPerfil>(`Katzen/AuthPerfiles/${user.uid}`).valueChanges().pipe(take(1))
-    );
-    return perfil || null;
+    const read = await this.readPerfil(user.uid);
+    return read.perfil;
+  }
+
+  private async readPerfil(uid: string): Promise<{ perfil: AuthPerfil | null; timedOut: boolean }> {
+    try {
+      const perfil = await firstRtdbValue(this.db.object<AuthPerfil>(`Katzen/AuthPerfiles/${uid}`).valueChanges());
+      return { perfil: perfil || null, timedOut: false };
+    } catch (error) {
+      // Timeout, websocket cerrado o 500 del handshake: mismo camino.
+      // Si relanzamos, el guard cancela la navegación y el login queda en blanco.
+      this.logger.warn(
+        isRtdbReadTimeout(error) ? 'AuthPerfiles no respondió a tiempo' : 'AuthPerfiles no se pudo leer',
+        error
+      );
+      return { perfil: null, timedOut: true };
+    }
   }
 
   /** Fallback desde custom claims (paridad AuthRoleHelper.kt sessionFromClaims). */
@@ -88,7 +146,51 @@ export class AuthProfileService {
    * siguen mostrando staff + dueño.
    */
   async resolveAccess(): Promise<AuthAccess> {
-    const perfil = await this.getMyProfile();
+    const user = await this.authService.waitForAuthUser();
+    const uid = user?.uid ?? '';
+    const cached = this.timeoutAccessCache;
+    if (uid && cached && cached.uid === uid && Date.now() - cached.at < RTDB_TIMEOUT_ACCESS_CACHE_MS) {
+      return cached.value;
+    }
+    if (uid && this.accessInflight?.uid === uid) {
+      return this.accessInflight.promise;
+    }
+    const recentFailure = this.timeoutFailure;
+    if (uid && recentFailure?.uid === uid && Date.now() - recentFailure.at < this.failureReuseMs) {
+      throw recentFailure.error;
+    }
+
+    const promise = this.resolveAccessUncached(user);
+    if (uid) {
+      this.accessInflight = { uid, promise };
+    }
+    try {
+      const access = await promise;
+      if (uid && this.timeoutFailure?.uid === uid) {
+        this.timeoutFailure = null;
+      }
+      return access;
+    } catch (error) {
+      if (uid && isRtdbUnavailableError(error)) {
+        this.timeoutFailure = { uid, at: Date.now(), error };
+      }
+      throw error;
+    } finally {
+      if (this.accessInflight?.promise === promise) {
+        this.accessInflight = null;
+      }
+    }
+  }
+
+  private async resolveAccessUncached(user: { uid: string } | null): Promise<AuthAccess> {
+    let perfil: AuthPerfil | null = null;
+    let rtdbTimedOut = false;
+    if (user?.uid) {
+      const read = await this.readPerfil(user.uid);
+      perfil = read.perfil;
+      rtdbTimedOut = read.timedOut;
+    }
+
     let claims: ClaimsAccess = { staffAccess: false, clientAccess: false };
     try {
       claims = await this.getAccessFromClaims();
@@ -96,21 +198,11 @@ export class AuthProfileService {
       // Token claims no disponibles (red / Auth); se usa solo el perfil RTDB.
     }
 
-    if (perfil?.activo === false) {
-      return { staffAccess: false, clientAccess: false, perfil };
+    const access = resolveAccessFromSources(perfil, claims, rtdbTimedOut);
+    if (rtdbTimedOut && user?.uid) {
+      this.timeoutAccessCache = { uid: user.uid, at: Date.now(), value: access };
     }
-
-    const staffAccess = hasStaffAccess(perfil) || claims.staffAccess;
-    const clientAccess = hasClientAccess(perfil) || claims.clientAccess;
-
-    return {
-      staffAccess,
-      clientAccess,
-      perfil,
-      clienteId: perfil?.clienteId || claims.clienteId,
-      staffRole: perfil?.staffRole || claims.staffRole,
-      mustChangePassword: perfil?.mustChangePassword === true || claims.mustChangePassword === true,
-    };
+    return access;
   }
 
   async hasStaffAccess(): Promise<boolean> {
@@ -164,10 +256,18 @@ export class AuthProfileService {
       return 'doctor';
     }
 
-    const usuario = await firstValueFrom(
-      this.db.object<{ perfil?: string }>(`Katzen/Usuarios/${user.uid}`).valueChanges().pipe(take(1))
-    );
-    return mapUsuarioPerfilToStaffRole(usuario?.perfil);
+    try {
+      const usuario = await firstRtdbValue(
+        this.db.object<{ perfil?: string }>(`Katzen/Usuarios/${user.uid}`).valueChanges()
+      );
+      return mapUsuarioPerfilToStaffRole(usuario?.perfil);
+    } catch (error) {
+      if (!isRtdbReadTimeout(error)) {
+        throw error;
+      }
+      this.logger.warn('Usuarios no respondió a tiempo; rol por defecto');
+      return mapUsuarioPerfilToStaffRole(undefined);
+    }
   }
 
   async canAccessModule(module: StaffModule): Promise<boolean> {

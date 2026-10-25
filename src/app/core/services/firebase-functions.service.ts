@@ -100,6 +100,21 @@ export interface LinkStaffPortalResult {
   message?: string;
 }
 
+/** El SDK espera 70s y getToken() de App Check no tiene tope: no bloquear el login. */
+const SYNC_MY_CLAIMS_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('syncMyClaims timeout')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+  });
+}
+
 @Injectable({ providedIn: 'root' })
 export class FirebaseFunctionsService {
   constructor(
@@ -114,9 +129,11 @@ export class FirebaseFunctionsService {
     if (!user) return null;
 
     try {
-      const callable = this.fns.httpsCallable<Record<string, never>, SyncClaimsResult>('syncMyClaims');
-      const result = await firstValueFrom(callable({}));
-      await user.getIdToken(true);
+      const callable = this.fns.httpsCallable<Record<string, never>, SyncClaimsResult>('syncMyClaims', {
+        timeout: SYNC_MY_CLAIMS_TIMEOUT_MS,
+      });
+      const result = await withTimeout(firstValueFrom(callable({})), SYNC_MY_CLAIMS_TIMEOUT_MS);
+      await withTimeout(user.getIdToken(true), SYNC_MY_CLAIMS_TIMEOUT_MS);
       return result ?? null;
     } catch (error) {
       this.logger.warn('syncMyClaims no disponible — usando perfil RTDB/claims existentes', error);

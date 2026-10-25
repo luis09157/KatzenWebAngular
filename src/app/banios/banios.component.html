@@ -4,7 +4,7 @@
       accent="teal"
       icon="spa"
       title="Peluquería / baños"
-      subtitle="Registra el servicio y el precio. Mostrador lo selecciona en Cobrar con ese mismo monto."
+      subtitle="Registra la mascota y el servicio. Si falta el precio, el listado lo recuerda."
     >
       <div bannerActions>
         <button mat-stroked-button (click)="exportarCsv()">
@@ -20,7 +20,7 @@
 
     <app-flow-hint
       icon="receipt_long"
-      message="1) Fija el precio y la nota. 2) «Listo para cobrar» → sale en Cobrar hoy. 3) Al cobrar desaparece de la cola; el historial sigue en esta lista."
+      message="Elige mascota y servicio. Si no hay precio, el listado dice «Falta el precio» y no se manda a cobrar hasta completarlo."
       variant="info"
     >
     </app-flow-hint>
@@ -43,13 +43,16 @@
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
       <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
-        Agenda del día y de mañana. Escribe en el buscador para consultar el historial ({{
-          estadisticas.totalHistorico
-        }}
-        registros).
+        {{ muestraSeccionLunes ? 'Agenda del día, de mañana y del lunes.' : 'Agenda del día y de mañana.' }}
+        Escribe en el buscador para consultar el historial ({{ estadisticas.totalHistorico }} registros).
       </p>
       <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
         Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      </p>
+      <p class="listado-hint cell-sub" *ngIf="!loading && sinPrecioVisibles > 0">
+        {{ sinPrecioVisibles }}
+        {{ sinPrecioVisibles === 1 ? 'baño de hoy sin precio' : 'baños de hoy sin precio' }}. Ábrelo y completa el costo
+        antes de cobrar.
       </p>
 
       <div *ngIf="loading" class="loading-container">
@@ -118,6 +121,36 @@
             *ngIf="dataSourceManana.data.length"
             [ngTemplateOutlet]="banioTablaTpl"
             [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+          ></ng-container>
+        </section>
+
+        <section
+          class="listado-seccion listado-seccion--lunes"
+          *ngIf="muestraSeccionLunes"
+          aria-labelledby="banios-lunes-titulo"
+        >
+          <header class="listado-seccion__header">
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">event_available</mat-icon>
+            <div class="listado-seccion__titles">
+              <h3 id="banios-lunes-titulo" class="listado-seccion__title">Lunes</h3>
+              <p class="listado-seccion__meta">
+                {{ dataSourceLunes.data.length }} baño{{ dataSourceLunes.data.length === 1 ? '' : 's' }}
+              </p>
+            </div>
+          </header>
+          <app-admin-empty-state
+            *ngIf="seccionLunesVacia"
+            icon="event_available"
+            title="No hay baños el lunes"
+            message="Programa uno con fecha del lunes o revisa el historial con el buscador."
+            actionLabel="Nuevo baño"
+            (action)="abrirModalBanio()"
+          >
+          </app-admin-empty-state>
+          <ng-container
+            *ngIf="dataSourceLunes.data.length"
+            [ngTemplateOutlet]="banioTablaTpl"
+            [ngTemplateOutletContext]="{ $implicit: dataSourceLunes }"
           ></ng-container>
         </section>
       </ng-container>
@@ -321,7 +354,13 @@
         <ng-container matColumnDef="precio_total">
           <th mat-header-cell *matHeaderCellDef>Precio</th>
           <td mat-cell *matCellDef="let banio">
-            <span class="cell-primary">${{ banio.precio_total | number: '1.0-0' }}</span>
+            <ng-container *ngIf="faltaPrecio(banio); else conPrecio">
+              <span class="leyenda-cobro leyenda-cobro--falta">Falta el precio</span>
+            </ng-container>
+            <ng-template #conPrecio>
+              <span class="cell-primary">${{ banio.precio_total | number: '1.0-0' }}</span>
+              <span class="cell-sub leyenda-cobro">{{ leyendaCobro(banio) }}</span>
+            </ng-template>
           </td>
         </ng-container>
 
@@ -346,6 +385,7 @@
                   banio.cajaMovimientoId ||
                   banio.pagado ||
                   banio.visitaId ||
+                  faltaPrecio(banio) ||
                   banio.estado === 'completado' ||
                   banio.estado === 'cancelado'
                 "
@@ -358,7 +398,7 @@
                 color="primary"
                 matTooltip="Agregar al ticket ahora"
                 (click)="agregarAVisita(banio)"
-                [disabled]="banio.cajaMovimientoId || banio.pagado || banio.visitaId"
+                [disabled]="banio.cajaMovimientoId || banio.pagado || banio.visitaId || faltaPrecio(banio)"
               >
                 <mat-icon>point_of_sale</mat-icon>
               </button>
@@ -416,7 +456,13 @@
       mat-menu-item
       *ngIf="menuContext?.estado === 'en_proceso' || menuContext?.estado === 'programado'"
       (click)="marcarListoParaCobrar(menuContext)"
-      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId"
+      [disabled]="
+        !menuContext ||
+        menuContext?.cajaMovimientoId ||
+        menuContext?.pagado ||
+        menuContext?.visitaId ||
+        faltaPrecio(menuContext)
+      "
     >
       <mat-icon>storefront</mat-icon> Listo para cobrar (mostrador)
     </button>
@@ -437,7 +483,13 @@
     <button
       mat-menu-item
       (click)="agregarAVisita(menuContext)"
-      [disabled]="!menuContext || menuContext?.cajaMovimientoId || menuContext?.pagado || menuContext?.visitaId"
+      [disabled]="
+        !menuContext ||
+        menuContext?.cajaMovimientoId ||
+        menuContext?.pagado ||
+        menuContext?.visitaId ||
+        faltaPrecio(menuContext)
+      "
     >
       <mat-icon>receipt_long</mat-icon>
       {{ menuContext?.visitaId ? 'Ya en ticket' : 'Enviar a mostrador (Cobrar)' }}

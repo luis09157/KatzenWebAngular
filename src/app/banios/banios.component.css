@@ -27,6 +27,15 @@
   color: var(--admin-text-muted, #5f6b7a);
 }
 
+.leyenda-cobro {
+  display: block;
+}
+
+.leyenda-cobro--falta {
+  color: #9a3412;
+  font-weight: 600;
+}
+
 /* Secciones Hoy / Mañana / Resultados — bloques internos (no cards sueltas).
    overflow visible: el scroll-x vive en `.table-scroll` (no clippear la tabla). */
 .listado-seccion {

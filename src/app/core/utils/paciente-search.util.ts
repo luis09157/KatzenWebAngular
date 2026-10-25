@@ -1,4 +1,5 @@
 import { Paciente } from '../models';
+import { calcularEdadPaciente } from '../../pacientes/paciente-fecha.util';
 import { pacientePerteneceACliente } from './paciente-cliente.util';
 import { pickLegacyString } from './rtdb-row.util';
 import { textoCoincide } from './text-search.util';
@@ -85,6 +86,15 @@ export function getPacientePickerOptionLabel(paciente: Paciente | null | undefin
   if (!base) return '';
   const dueno = String(nombreDueno || '').trim();
   return dueno ? `${base} · ${dueno}` : base;
+}
+
+/** Peluquería: raza y edad, sin el nombre del dueño. */
+export function getPacientePickerRazaEdadLabel(paciente: Paciente | null | undefined): string {
+  const base = getPacienteDisplayLabel(paciente);
+  if (!base || !paciente) return '';
+  const raza = String(paciente.raza || '').trim() || 'Sin raza';
+  const edad = calcularEdadPaciente(paciente.edad);
+  return `${base} · ${raza} · ${edad}`;
 }
 
 /**

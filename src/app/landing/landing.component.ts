@@ -776,10 +776,10 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.portalLoginError = 'Escribe el correo y la contraseña que te dimos en la clínica o por correo.';
       return;
     }
-    this.appCheck.ensureInitialized();
     this.portalLoading = true;
     try {
       const result = await this.portalAuth.login(this.portalEmail, this.portalPassword, this.portalKeepSessionActive);
+      this.appCheck.ensureInitialized();
       if (result === 'inactive' || result === 'none' || result === 'staff') {
         this.portalLoginError = mensajeEstadoLoginPortal(result);
         return;

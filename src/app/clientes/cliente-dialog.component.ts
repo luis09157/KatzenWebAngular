@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
@@ -16,6 +16,8 @@ import { LoggerService } from '../core/logger.service';
 import { LOADING_MESSAGES } from '../core/loading.service';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { CanalRecordatorioVista, evaluarCanalRecordatorioCliente } from '../core/utils/recordatorio-canal-cliente.util';
+import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
+import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -64,7 +66,8 @@ export class ClienteDialogComponent implements OnInit {
     private firebaseFunctions: FirebaseFunctionsService,
     private logger: LoggerService,
     private router: Router,
-    private db: AngularFireDatabase
+    private db: AngularFireDatabase,
+    private dialog: MatDialog
   ) {
     this.modoVer = data.modoVer;
     this.modoRapido = data?.modo === 'rapido' && !data?.cliente?.id;
@@ -949,6 +952,39 @@ export class ClienteDialogComponent implements OnInit {
         console.error('❌ Error al cargar clientes:', error);
         this.todosLosClientes = [];
       },
+    });
+  }
+
+  agregarMascota(): void {
+    const cliente = this.data?.cliente;
+    if (!cliente?.id || !this.modoVer) {
+      return;
+    }
+    const ref = this.dialog.open(PacienteAdminDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      data: { modo: 'crear', cliente },
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
+      this.loadingService.show('Guardando mascota…');
+      this.pacientesService
+        .crearPaciente(result)
+        .then(() => {
+          this.loadingService.hide();
+          this.cargarPacientesRelacionados();
+          Swal.fire({
+            icon: 'success',
+            title: 'Mascota agregada',
+            timer: 1600,
+            showConfirmButton: false,
+          });
+        })
+        .catch((error) => {
+          this.loadingService.hide();
+          Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar paciente'), 'error');
+        });
     });
   }
 

@@ -125,6 +125,23 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.admin-dialog-panel app-cliente-dialog .mascotas-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  .detail-section__title {
+    margin: 0 !important;
+  }
+}
+
+.admin-dialog-panel app-cliente-dialog .mascotas-agregar {
+  flex: 0 0 auto;
+  text-transform: none;
+}
+
 .admin-dialog-panel app-cliente-dialog .detail-section__title {
   display: flex !important;
   align-items: center !important;

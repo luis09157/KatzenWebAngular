@@ -124,6 +124,17 @@
         <button
           mat-stroked-button
           type="button"
+          matTooltip="Nuevo consentimiento"
+          matTooltipPosition="below"
+          matTooltipShowDelay="400"
+          (click)="agregarConsentimiento()"
+        >
+          <mat-icon>assignment_turned_in</mat-icon>
+          Consentimiento
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
           matTooltip="Registrar desparasitación"
           matTooltipPosition="below"
           matTooltipShowDelay="400"
@@ -212,7 +223,7 @@
         <app-admin-data-panel
           accent="teal"
           title="Registros clínicos"
-          description="Historial, recordatorios, vacunas, desparasitación y baños del paciente."
+          description="Historial, recordatorios, vacunas, consentimientos, desparasitación y baños del paciente."
           [meta]="logActividades.length + ' actividades registradas'"
           [showLegend]="false"
         >
@@ -480,6 +491,72 @@
                       message="No hay vacunas registradas."
                       actionLabel="Agregar vacuna"
                       (action)="agregarVacuna()"
+                    >
+                    </app-admin-empty-state>
+                  </ng-template>
+                </div>
+              </ng-template>
+            </mat-tab>
+
+            <mat-tab label="Consentimientos">
+              <ng-template matTabContent>
+                <div class="tab-panel">
+                  <div class="tab-panel__toolbar">
+                    <button
+                      mat-raised-button
+                      color="primary"
+                      class="btn-primary-teal"
+                      type="button"
+                      (click)="agregarConsentimiento()"
+                    >
+                      <mat-icon>add</mat-icon>
+                      Nuevo consentimiento
+                    </button>
+                  </div>
+
+                  <div class="clinical-list" *ngIf="consentimientos.length; else emptyConsentimientos">
+                    <article *ngFor="let item of consentimientos" class="clinical-list__item">
+                      <div class="clinical-list__icon clinical-list__icon--teal">
+                        <mat-icon>assignment_turned_in</mat-icon>
+                      </div>
+                      <div class="clinical-list__body">
+                        <div class="clinical-list__title">{{ tipoConsentimiento[item.tipo] || item.tipo }}</div>
+                        <div class="clinical-list__meta">
+                          {{ item.fecha || 'Sin fecha' }}
+                          <span *ngIf="item.firmado_por"> · {{ item.firmado_por }}</span>
+                        </div>
+                        <div class="clinical-list__tags">
+                          <span
+                            class="estado-badge"
+                            [ngClass]="(item.estado === 'vigente' ? 'activo' : 'inactivo') | adminEstadoClass"
+                          >
+                            {{ item.estado === 'vigente' ? 'Vigente' : 'Revocado' }}
+                          </span>
+                        </div>
+                        <p class="clinical-list__note" *ngIf="item.notas">{{ item.notas }}</p>
+                      </div>
+                      <div class="row-actions hide-mobile" (click)="$event.stopPropagation()">
+                        <button mat-icon-button type="button" matTooltip="Editar" (click)="editarConsentimiento(item)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Borrar"
+                          (click)="eliminarConsentimiento(item)"
+                        >
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                  <ng-template #emptyConsentimientos>
+                    <app-admin-empty-state
+                      icon="assignment_turned_in"
+                      title="Sin consentimientos"
+                      message="No hay consentimientos para este paciente."
+                      actionLabel="Nuevo consentimiento"
+                      (action)="agregarConsentimiento()"
                     >
                     </app-admin-empty-state>
                   </ng-template>

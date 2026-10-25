@@ -78,3 +78,29 @@ export function resolverExpedienteParaPersistir(capturado: unknown, id: string |
 export function etiquetaExpedientePaciente(paciente: FolioExpedienteFuente | null | undefined): string {
   return `Expediente ${folioExpedientePaciente(paciente)}`;
 }
+
+/**
+ * Siguiente folio, igual que la carga Excel: dos dígitos de año + 0 fijo + consecutivo.
+ * 260001, 260115, siguiente 260116. El 0 del medio no se quita.
+ * Solo cuenta los de ese año. 1847, KV-, teléfonos y 250239 no mueven la serie de 2026.
+ */
+export function siguienteExpedienteAnual(existentes: Iterable<unknown>, anio: number): string {
+  const yy = String(anio).slice(-2);
+  const prefijo = `${yy}0`;
+  let maximo = 0;
+  for (const raw of existentes) {
+    const texto = String(raw ?? '').trim();
+    if (!texto.startsWith(prefijo) || texto.length <= prefijo.length) {
+      continue;
+    }
+    const cola = texto.slice(prefijo.length);
+    if (!/^\d+$/.test(cola)) {
+      continue;
+    }
+    const n = Number(cola);
+    if (Number.isSafeInteger(n) && n > maximo) {
+      maximo = n;
+    }
+  }
+  return `${prefijo}${String(maximo + 1).padStart(3, '0')}`;
+}

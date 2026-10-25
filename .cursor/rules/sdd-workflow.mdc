@@ -11,6 +11,7 @@ alwaysApply: true
 - **Nunca** conectar, leer ni escribir producción (`katzen-a0e3e`): solo localhost, emuladores Firebase o mocks (`src/app/core/testing/mock-data.ts`).
 - RTDB: cambios **aditivos** (nodos/campos opcionales); no romper contratos con la app móvil.
 - Solo cambios dentro del alcance pedido; refactors grandes requieren spec y confirmación.
+- **No tocar lo que ya funciona.** Solo lo pedido en el mensaje. Antes de editar: plan en el chat (archivos, qué queda intacto, cómo no romper el flujo) y ok de Luis. Regla: `no-romper-lo-que-funciona.mdc`.
 
 ## Antes de codear (obligatorio)
 
@@ -18,6 +19,7 @@ alwaysApply: true
 2. Si toca entidades o flujos clínicos → `specs/memory/domain-context.md`. Módulos/límites → `specs/memory/module-map.md`.
 3. Clasificar el cambio en **L1 / L2 / L3** (abajo) y aplicar solo lo que ese nivel exige.
 4. Buscar en `specs/INDEX.md` antes de reinventar. L2/L3 con spec: leer `specs/NNN-*/spec.md` (+ `plan.md`/`tasks.md` si existen). Sin spec en L3: crear desde `specs/templates/` y confirmar alcance.
+5. **Antes de la primera edición:** proponer el plan a Luis y esperar su ok. Regla `no-romper-lo-que-funciona.mdc`.
 
 La checklist QA de muchas filas vive **solo** en `specs/templates/qa-validation-guide.md` — no duplicarla aquí.
 
@@ -34,6 +36,7 @@ Ante duda entre niveles, elegir el superior. Un cambio L1 no requiere abrir task
 ## Durante y al entregar
 
 - Mantener vivo `npm start` (http://localhost:4200) para que Luis vea el cambio; reiniciar si murió.
+- **QA antes de entregar.** En el módulo tocado: agregar, editar y borrar un registro de prueba, y borrarlo al terminar. Reportar el resultado. No pedir a Luis que lo pruebe. Regla `qa-antes-de-entregar.mdc`.
 - Reportar siempre el resultado de `npm run build` (exit code).
 - UI admin: patrones en `docs/ADMIN-UI-ARCHITECTURE.md` (rule `admin-ui-architecture.mdc` se activa al editar `src/app/**`).
 - Loading con `LoadingService` contextual y `hide()` en success **y** error; copy destructivo «Borrar».

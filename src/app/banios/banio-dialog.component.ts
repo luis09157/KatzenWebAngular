@@ -24,6 +24,11 @@ import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
+import {
+  buscarOpcionTipoServicioBanio,
+  opcionesTipoServicioAlta,
+  tipoServicioPerteneceAlModo,
+} from './banio-tipos-servicio.util';
 import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
 import { formatLocalDateToIso, parseIsoDateToLocalDate } from '../shared/datepicker/datepicker.util';
 
@@ -78,18 +83,13 @@ export class BanioDialogComponent implements OnInit {
       const base = Number(this.banioForm.get('precio_base')?.value) || 0;
       return `Incluye $${adicionales} en extras · base baño: $${base}`;
     }
-    return 'Único monto · lo que cobra mostrador';
+    return 'Si aún no lo sabes, déjalo vacío. El listado dirá «Falta el precio».';
   }
 
-  // Opciones para los selects
-  tiposServicios = [
-    { value: 'baño_básico', label: 'Baño Básico', icon: 'shower' },
-    { value: 'baño_completo', label: 'Baño Completo', icon: 'spa' },
-    { value: 'corte_pelo', label: 'Corte de Pelo', icon: 'content_cut' },
-    { value: 'corte_uñas', label: 'Corte de Uñas', icon: 'scissors' },
-    { value: 'deslanado', label: 'Deslanado', icon: 'brush' },
-    { value: 'tratamiento_especial', label: 'Tratamiento Especial', icon: 'healing' },
-  ];
+  /** Los seis servicios. Un baño viejo conserva su tipo al final. */
+  get tiposServicioVisibles() {
+    return opcionesTipoServicioAlta(this.banioForm.get('tipo_servicio')?.value);
+  }
 
   estados = [
     { value: 'programado', label: 'Programado', color: '#2196f3' },
@@ -147,11 +147,11 @@ export class BanioDialogComponent implements OnInit {
       observaciones: [''],
       alergias_conocidas: [[]],
       comportamiento: ['tranquilo'],
-      peluquero_id: ['', Validators.required],
+      peluquero_id: [''],
       peluquero: [''],
       precio_base: [0, [Validators.min(0)]],
       servicios_adicionales: [[]],
-      precio_total: [0, [Validators.required, Validators.min(0)]],
+      precio_total: [null as number | null, [Validators.min(0)]],
       tamano_perro: [''],
       /** KPI interno (background desde tarifas Finanzas); sin UI en el diálogo. */
       costoEstimado: [null as number | null],
@@ -190,9 +190,6 @@ export class BanioDialogComponent implements OnInit {
         this.banioForm.get('paciente_id')?.updateValueAndValidity({ emitEvent: false });
         this.banioForm.get('cliente_id')?.updateValueAndValidity({ emitEvent: false });
       }
-
-      // Mantener la fecha original de alta (solo lectura en edición)
-      this.banioForm.get('fecha_banio')?.disable({ emitEvent: false });
     } else if (this.data) {
       this.aplicarPrefillCapturaRapida();
       // Pre-selección (Llegó un paciente / expediente) — ids duales como vacuna (070)
@@ -233,32 +230,17 @@ export class BanioDialogComponent implements OnInit {
     }
 
     this.configurarCalculoPrecio();
-
-    // Reglas de negocio: si el estado no es 'completado', no se puede marcar pagado
-    const estadoCtrl = this.banioForm.get('estado');
-    const pagadoCtrl = this.banioForm.get('pagado');
-    if (estadoCtrl && pagadoCtrl) {
-      estadoCtrl.valueChanges.subscribe((estado) => {
-        if (estado !== 'completado') {
-          pagadoCtrl.patchValue(false, { emitEvent: false });
-          pagadoCtrl.disable({ emitEvent: false });
-        } else {
-          pagadoCtrl.enable({ emitEvent: false });
-        }
-      });
-      // Aplicar regla al iniciar
-      const estadoInicial = estadoCtrl.value;
-      if (estadoInicial !== 'completado') {
-        pagadoCtrl.patchValue(false, { emitEvent: false });
-        pagadoCtrl.disable({ emitEvent: false });
-      }
-    }
   }
 
   setModoRapido(rapido: boolean): void {
+    if (this.modoRapido === rapido) return;
     this.modoRapido = rapido;
     if (!rapido) {
       this.masDetallesAbiertos = true;
+    }
+    const actual = String(this.banioForm.get('tipo_servicio')?.value || '');
+    if (actual && !tipoServicioPerteneceAlModo(actual, rapido)) {
+      this.banioForm.patchValue({ tipo_servicio: '' });
     }
   }
 
@@ -621,6 +603,10 @@ export class BanioDialogComponent implements OnInit {
     const precioTotal = precioBase + totalAdicionales;
 
     if (!this.precioTotalManual) {
+      const actual = this.banioForm.get('precio_total')?.value;
+      if (precioTotal === 0 && (actual === null || actual === '')) {
+        return 0;
+      }
       this.banioForm.patchValue({ precio_total: precioTotal }, { emitEvent: false });
     }
 
@@ -654,9 +640,10 @@ export class BanioDialogComponent implements OnInit {
       Swal.fire('Falta el servicio', 'Elige el tipo de baño o corte.', 'warning');
       return;
     }
-    if (!(Number(this.banioForm.get('precio_total')?.value) > 0)) {
-      Swal.fire('Falta el precio', 'Indica el precio a cobrar (mostrador / Ticket del día).', 'warning');
-      return;
+
+    const precioIngresado = this.banioForm.get('precio_total')?.value;
+    if (precioIngresado === '' || precioIngresado == null) {
+      this.banioForm.patchValue({ precio_total: 0 }, { emitEvent: false });
     }
 
     if (this.banioForm.valid) {
@@ -767,10 +754,6 @@ export class BanioDialogComponent implements OnInit {
         if (!datosLimpios['plantillaCostoId']) {
           delete payload.plantillaCostoId;
         }
-        // Si el estado no es 'completado', asegurar que pagado sea false para reflejar ingresos
-        if (payload.estado && payload.estado !== 'completado') {
-          payload.pagado = false;
-        }
 
         // Usar el servicio correcto dependiendo del contexto
         const servicioAUsar = this.hidePatientInfo ? this.baniosPacienteService : this.baniosService;
@@ -822,12 +805,10 @@ export class BanioDialogComponent implements OnInit {
   }
 
   getTipoServicioIcon(tipo: string): string {
-    const tipoEncontrado = this.tiposServicios.find((t) => t.value === tipo);
-    return tipoEncontrado ? tipoEncontrado.icon : 'pets';
+    return buscarOpcionTipoServicioBanio(tipo)?.icon || 'pets';
   }
 
   getTipoServicioLabel(tipo: string): string {
-    const tipoEncontrado = this.tiposServicios.find((t) => t.value === tipo);
-    return tipoEncontrado ? tipoEncontrado.label : tipo;
+    return buscarOpcionTipoServicioBanio(tipo)?.label || tipo;
   }
 }

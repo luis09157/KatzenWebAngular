@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
+import { LOGIN_ROUTE_DEADLINE, settleLoginRoute } from '../core/utils/rtdb-read-timeout.util';
 
 /**
  * Rutas de login staff (`/admin/login`, `/auth`).
@@ -20,8 +21,18 @@ export class StaffLoginGuestGuard implements CanActivate {
   ) {}
 
   async canActivate(): Promise<boolean> {
+    try {
+      const outcome = await settleLoginRoute((cancelled) => this.decide(cancelled));
+      return outcome === LOGIN_ROUTE_DEADLINE ? true : outcome;
+    } catch {
+      // Un throw aquí cancela la navegación inicial y deja /admin/login en blanco.
+      return true;
+    }
+  }
+
+  private async decide(cancelled: () => boolean): Promise<boolean> {
     const user = await this.authService.waitForAuthUser();
-    if (!user) {
+    if (cancelled() || !user) {
       return true;
     }
 
@@ -31,35 +42,57 @@ export class StaffLoginGuestGuard implements CanActivate {
     if (!(await this.authService.ensureActiveSession({ bootstrapIfMissing: true }))) {
       return true;
     }
+    if (cancelled()) {
+      return true;
+    }
 
     try {
       await this.firebaseFunctions.syncMyClaims();
     } catch {
       // Perfil RTDB / claims locales siguen siendo suficientes para decidir.
     }
-
-    if (this.authSession.hasPendingContextChoice() && (await this.authProfile.isDual())) {
-      await this.router.navigate(['/auth/contexto']);
-      return false;
-    }
-
-    if (this.authSession.isPortalEntryLocked()) {
-      if (await this.authProfile.hasClientAccess()) {
-        await this.router.navigate(['/portal/mascotas']);
-        return false;
-      }
+    if (cancelled()) {
       return true;
     }
 
-    if (await this.authProfile.hasStaffAccess()) {
-      this.authSession.setStaffEntryIntent(true);
-      await this.router.navigate(['/admin/inicio']);
-      return false;
-    }
+    try {
+      if (this.authSession.hasPendingContextChoice() && (await this.authProfile.isDual())) {
+        if (cancelled()) {
+          return true;
+        }
+        await this.router.navigate(['/auth/contexto']);
+        return false;
+      }
 
-    if (await this.authProfile.hasClientAccess()) {
-      await this.router.navigate(['/portal/mascotas']);
-      return false;
+      if (this.authSession.isPortalEntryLocked()) {
+        if (await this.authProfile.hasClientAccess()) {
+          if (cancelled()) {
+            return true;
+          }
+          await this.router.navigate(['/portal/mascotas']);
+          return false;
+        }
+        return true;
+      }
+
+      if (await this.authProfile.hasStaffAccess()) {
+        if (cancelled()) {
+          return true;
+        }
+        this.authSession.setStaffEntryIntent(true);
+        await this.router.navigate(['/admin/inicio']);
+        return false;
+      }
+
+      if (await this.authProfile.hasClientAccess()) {
+        if (cancelled()) {
+          return true;
+        }
+        await this.router.navigate(['/portal/mascotas']);
+        return false;
+      }
+    } catch {
+      return true;
     }
 
     return true;

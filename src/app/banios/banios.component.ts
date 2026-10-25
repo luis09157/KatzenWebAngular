@@ -23,10 +23,12 @@ import { PeriodoPreset, fechaEnRango, formatMoneyMx, resolverPeriodo } from '../
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { fechaHoyLocal } from './banio-captura-rapida.util';
+import { etiquetaTipoServicioBanioNuevo, leyendaCobroBanio, textoLeyendaCobroBanio } from './banio-tipos-servicio.util';
 import {
   BanioListadoFila,
   banioFechaIso,
   filtrarBaniosListado,
+  incluyeLunesEnAgendaBanios,
   metaBaniosListado,
   partirBaniosHoyManana,
 } from './banio-listado-filtro.util';
@@ -55,6 +57,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   /** Vista default: secciones Hoy / Mañana. */
   dataSourceHoy = new MatTableDataSource<any>([]);
   dataSourceManana = new MatTableDataSource<any>([]);
+  dataSourceLunes = new MatTableDataSource<any>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   // Mapeos para nombres
@@ -109,13 +112,15 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   /** Meta del panel: «Hoy · N · Mañana · M» o conteo de búsqueda. */
   get listadoMeta(): string {
     if (this.loading || !this.todasFilas.length) return '';
-    return metaBaniosListado({
+    const meta = metaBaniosListado({
       visibles: this.dataSource?.data?.length || 0,
       visiblesHoy: this.dataSourceHoy?.data?.length || 0,
       visiblesManana: this.dataSourceManana?.data?.length || 0,
       totales: this.estadisticas.totalHistorico || this.todasFilas.length,
       query: this.buscarTexto,
     });
+    if (!this.muestraSeccionLunes || this.modoBusqueda || !meta) return meta;
+    return `${meta} · Lunes · ${this.dataSourceLunes?.data?.length || 0}`;
   }
 
   get todasFilasTieneDatos(): boolean {
@@ -134,6 +139,35 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     );
   }
 
+  /** Viernes y sábado: el lunes se ve junto a hoy y mañana. */
+  get muestraSeccionLunes(): boolean {
+    return incluyeLunesEnAgendaBanios();
+  }
+
+  get seccionLunesVacia(): boolean {
+    return (
+      !this.loading &&
+      !this.modoBusqueda &&
+      this.muestraSeccionLunes &&
+      this.todasFilas.length > 0 &&
+      !(this.dataSourceLunes?.data?.length || 0)
+    );
+  }
+
+  /** Baños de hoy (y de la búsqueda) que siguen sin costo. */
+  get sinPrecioVisibles(): number {
+    const filas = this.modoBusqueda ? this.dataSource?.data || [] : this.dataSourceHoy?.data || [];
+    return filas.filter((banio) => leyendaCobroBanio(banio) === 'falta_precio' && banio?.estado !== 'cancelado').length;
+  }
+
+  leyendaCobro(banio: { precio_total?: number | null; pagado?: boolean }): string {
+    return textoLeyendaCobroBanio(leyendaCobroBanio(banio));
+  }
+
+  faltaPrecio(banio: { precio_total?: number | null }): boolean {
+    return leyendaCobroBanio(banio) === 'falta_precio';
+  }
+
   /** Sin baños de hoy ni mañana (hay histórico). Alias usado en el template. */
   get hayHistoricoSinHoy(): boolean {
     return this.seccionHoyVacia && this.seccionMananaVacia;
@@ -148,7 +182,11 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     if (this.modoBusqueda) {
       return this.dataSource?.data || [];
     }
-    return [...(this.dataSourceHoy?.data || []), ...(this.dataSourceManana?.data || [])];
+    return [
+      ...(this.dataSourceHoy?.data || []),
+      ...(this.dataSourceManana?.data || []),
+      ...(this.dataSourceLunes?.data || []),
+    ];
   }
 
   ngAfterViewInit(): void {
@@ -236,7 +274,8 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
                 fecha_banio_iso: fechaIso,
                 fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
                 hora_banio: this.formatearHora(banio.hora_banio),
-                tipo_servicio_texto: this.formatearTextoSeguro(banio.tipo_servicio),
+                tipo_servicio_texto:
+                  etiquetaTipoServicioBanioNuevo(banio.tipo_servicio) || this.formatearTextoSeguro(banio.tipo_servicio),
                 estado_texto: this.formatearTextoSeguro(banio.estado),
               };
             });
@@ -281,6 +320,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       this.dataSource.data = [...visibles];
       this.dataSourceHoy.data = [];
       this.dataSourceManana.data = [];
+      this.dataSourceLunes.data = [];
       // El paginador aparece con *ngIf; enlazar en el siguiente tick.
       setTimeout(() => {
         if (this.paginator) {
@@ -294,8 +334,8 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
     this.dataSourceHoy.data = [...partes.hoy];
     this.dataSourceManana.data = [...partes.manana];
-    // Una tabla: hoy primero, luego mañana (meta del panel separa conteos).
-    this.dataSource.data = [...partes.hoy, ...partes.manana];
+    this.dataSourceLunes.data = [...partes.lunes];
+    this.dataSource.data = [...partes.hoy, ...partes.manana, ...partes.lunes];
     if (this.paginator && this.dataSource.paginator !== this.paginator) {
       this.dataSource.paginator = this.paginator;
     }
@@ -320,7 +360,8 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
         const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
         this.dataSourceHoy.data = [...partes.hoy];
         this.dataSourceManana.data = [...partes.manana];
-        this.dataSource.data = [...partes.hoy, ...partes.manana];
+        this.dataSourceLunes.data = [...partes.lunes];
+        this.dataSource.data = [...partes.hoy, ...partes.manana, ...partes.lunes];
       }
       this.tablaInicializada = true;
     }
@@ -665,8 +706,9 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
         banio = undefined;
       }
     }
-    const nota = String(banio?.observaciones || '').trim();
     const precio = Number(banio?.precio_total) || 0;
+    if (!(precio > 0) || banio?.pagado) return;
+    const nota = String(banio?.observaciones || '').trim();
     const ask = await Swal.fire({
       icon: 'question',
       title: '¿Enviar a mostrador?',
@@ -692,6 +734,10 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   /** Spec 032: baño sin cobro → ticket de visita. */
   async agregarAVisita(banio: Banio): Promise<void> {
     if (!banio?.id) return;
+    if (!(Number(banio.precio_total) > 0)) {
+      Swal.fire('Falta el precio', 'Agrega el costo en el baño antes de mandarlo a cobrar.', 'warning');
+      return;
+    }
     if (banio.cajaMovimientoId || banio.pagado) {
       Swal.fire({
         icon: 'info',

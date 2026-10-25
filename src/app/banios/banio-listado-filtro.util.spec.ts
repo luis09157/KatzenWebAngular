@@ -2,8 +2,10 @@ import {
   banioFechaIso,
   banioListadoCoincideBusqueda,
   fechaMananaLocal,
+  fechaLunesListadoBanios,
   filtrarBaniosListado,
   filtrarBaniosPorFechaIso,
+  incluyeLunesEnAgendaBanios,
   metaBaniosListado,
   partirBaniosHoyManana,
 } from './banio-listado-filtro.util';
@@ -73,8 +75,34 @@ describe('banio-listado-filtro.util (spec 085 B.1)', () => {
     const partes = partirBaniosHoyManana(filas, { now: hoy });
     expect(partes.hoyIso).toBe('2026-10-18');
     expect(partes.mananaIso).toBe('2026-10-19');
+    expect(partes.mostrarLunes).toBeFalse();
+    expect(partes.lunes).toEqual([]);
     expect(partes.hoy.map((f) => f.paciente)).toEqual(['Luna']);
     expect(partes.manana.map((f) => f.paciente)).toEqual(['Max']);
+  });
+
+  it('viernes y sábado muestran el lunes; el domingo ya va en mañana', () => {
+    const viernes = new Date(2026, 9, 16, 12, 0, 0);
+    const sabado = new Date(2026, 9, 17, 12, 0, 0);
+    const domingo = new Date(2026, 9, 18, 12, 0, 0);
+    const jueves = new Date(2026, 9, 15, 12, 0, 0);
+
+    expect(incluyeLunesEnAgendaBanios(viernes)).toBeTrue();
+    expect(incluyeLunesEnAgendaBanios(sabado)).toBeTrue();
+    expect(incluyeLunesEnAgendaBanios(domingo)).toBeFalse();
+    expect(incluyeLunesEnAgendaBanios(jueves)).toBeFalse();
+    expect(fechaLunesListadoBanios(viernes)).toBe('2026-10-19');
+    expect(fechaLunesListadoBanios(sabado)).toBe('2026-10-19');
+    expect(fechaLunesListadoBanios(domingo)).toBe('2026-10-19');
+
+    const delViernes = partirBaniosHoyManana(filas, { now: viernes });
+    expect(delViernes.manana.map((f) => f.paciente)).toEqual(['Scooby']);
+    expect(delViernes.lunes.map((f) => f.paciente)).toEqual(['Max']);
+    expect(filtrarBaniosListado(filas, { now: viernes }).map((f) => f.paciente)).toEqual(['Scooby', 'Max']);
+
+    const delDomingo = partirBaniosHoyManana(filas, { now: domingo });
+    expect(delDomingo.manana.map((f) => f.paciente)).toEqual(['Max']);
+    expect(delDomingo.lunes).toEqual([]);
   });
 
   it('filtrarBaniosPorFechaIso filtra por ISO exacta', () => {

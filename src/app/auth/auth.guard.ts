@@ -5,6 +5,7 @@ import { AuthProfileService } from '../core/services/auth-profile.service';
 import { AuthSessionService } from '../core/services/auth-session.service';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { LoggerService } from '../core/logger.service';
+import { isRtdbUnavailableError } from '../core/utils/rtdb-read-timeout.util';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -39,7 +40,17 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
-    const hasStaff = await this.authProfileService.hasStaffAccess();
+    let hasStaff = false;
+    try {
+      hasStaff = await this.authProfileService.hasStaffAccess();
+    } catch (error) {
+      if (isRtdbUnavailableError(error)) {
+        this.logger.warn('AuthGuard: servidor de datos no respondió');
+        await this.router.navigate(['/admin/login']);
+        return false;
+      }
+      throw error;
+    }
     if (!hasStaff) {
       this.logger.log('AuthGuard: sin acceso staff');
       // Dual/client-only: no cerrar sesión a la fuerza si puede ir al portal

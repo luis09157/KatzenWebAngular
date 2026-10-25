@@ -29,6 +29,7 @@ import {
   filtrarPacientesPickerDual,
   getPacienteDisplayLabel,
   getPacientePickerOptionLabel,
+  getPacientePickerRazaEdadLabel,
   isPacienteActivo,
 } from '../../core/utils/paciente-search.util';
 import { getPacienteClienteId, pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
@@ -68,6 +69,8 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   @Input() pacienteRequerido = true;
   /** Enfoca el campo de teléfono/nombre al montar (POS táctil). */
   @Input() autofocus = false;
+  /** Peluquería: la opción muestra raza y edad. El resto de módulos sigue con el dueño. */
+  @Input() etiquetaMascota: 'dueno' | 'raza-edad' = 'dueno';
 
   @Output() selectionChange = new EventEmitter<ClientePacienteSelection>();
   /** Texto escrito en la búsqueda (teléfono o nombre) para prellenar el alta. */
@@ -169,7 +172,12 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
 
   /** displayWith: objeto en writeValue; string solo al tipear. */
   displayCliente = displayClienteAutocompleteValue;
-  displayPaciente = displayPacienteAutocompleteValue;
+  displayPaciente = (value: Paciente | string | null | undefined): string => {
+    if (this.etiquetaMascota === 'raza-edad' && value && typeof value !== 'string') {
+      return getPacientePickerRazaEdadLabel(value);
+    }
+    return displayPacienteAutocompleteValue(value);
+  };
 
   private nombreDuenoDePaciente(paciente: Paciente): string {
     const id = getPacienteClienteId(paciente);
@@ -179,6 +187,9 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   }
 
   labelOpcionPaciente(paciente: Paciente): string {
+    if (this.etiquetaMascota === 'raza-edad') {
+      return getPacientePickerRazaEdadLabel(paciente);
+    }
     if (!this.busquedaDualEfectiva || this.clienteSeleccionado) {
       return getPacienteDisplayLabel(paciente);
     }
