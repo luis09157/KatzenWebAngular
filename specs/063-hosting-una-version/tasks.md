@@ -145,3 +145,5 @@ Tras deploy `ca45a12` (093 taxonomía servicios Fase 1+2 + CTA Pagar ya + script
 Tras deploy `a5c05a5` (UX peluquería/listas móvil + agenda inicio + pickers + consentimientos PDF) 2026-10-19: PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`3cc72eb9fbecd996`, `f5b98eda705c2a77`, `9ef3f1921d94382f`); queda 1 FINALIZED `2ad9ba964b9f76fa`; sitio HTTP 200; `main.cf68e28da92ff20a.js`.
 
 Tras deploy login RTDB 8 s + formulario si el socket falla (051, 2026-10-21): PATCH `retainedReleaseCount=1` OK; DELETE 1 no live (`8d5ff59d74f51ec8`); queda 1 FINALIZED `a4974b40af02740e`; sitio HTTP 200; `main.89bd501d707169d5.js`.
+
+Tras deploy `4b5466c` (mostrador: peluquería simple, folio, menú y expediente) 2026-10-24: PATCH `retainedReleaseCount=1` OK; la versión anterior `a4974b40af02740e` quedó EXPIRED; queda 1 FINALIZED `d16c96041b78b702`; sitio HTTP 200; `main.f4e9793b5e00cd5f.js`. Functions no se desplegaron.
