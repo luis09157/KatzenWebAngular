@@ -151,3 +151,5 @@ Tras deploy `4b5466c` (mostrador: peluquería simple, folio, menú y expediente)
 Tras deploy `b2b5e0a` (menú Pacientes = tabla, Buscar paciente = expediente) 2026-10-24: PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`320f5b50816d46c8`, `8851ca8e7bc64834`, `d16c96041b78b702`); queda 1 FINALIZED `8663915e175bad21`; sitio HTTP 200; `main.fafc7bd9e100857b.js`.
 
 Tras deploy `67ae49e` (expediente automático y baja de cliente con mascotas) 2026-10-24: PATCH `retainedReleaseCount=1` OK; DELETE 3 no live (`d1d70ee63ef402e4`, `167b33fbae3e88f1`, `8663915e175bad21`); queda 1 FINALIZED `7b20207887493390`; sitio HTTP 200; `main.48ea837c48ef93bf.js`. Functions no se desplegaron.
+
+Tras republicar `f468021` (misma app, sin caché en `/`) 2026-10-25: la página de inicio ya responde `no-cache`. Versión live `b0ccc58196b92cf9`. Sitio HTTP 200. `main.48ea837c48ef93bf.js`. No quedaron otras versiones FINALIZED.
