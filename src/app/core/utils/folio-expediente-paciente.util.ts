@@ -104,3 +104,59 @@ export function siguienteExpedienteAnual(existentes: Iterable<unknown>, anio: nu
   }
   return `${prefijo}${String(maximo + 1).padStart(3, '0')}`;
 }
+
+/** Parte consecutiva de un folio `260116` (116). Null si no es de ese año. */
+export function consecutivoDeFolioAnual(folio: unknown, anio: number): number | null {
+  const texto = String(folio ?? '').trim();
+  const yy = String(anio).slice(-2);
+  const prefijo = `${yy}0`;
+  if (!texto.startsWith(prefijo) || texto.length <= prefijo.length) {
+    return null;
+  }
+  const cola = texto.slice(prefijo.length);
+  if (!/^\d+$/.test(cola)) {
+    return null;
+  }
+  const n = Number(cola);
+  return Number.isSafeInteger(n) ? n : null;
+}
+
+export function folioDesdeConsecutivo(anio: number, consecutivo: number): string {
+  const yy = String(anio).slice(-2);
+  const n = Number.isSafeInteger(consecutivo) && consecutivo > 0 ? consecutivo : 1;
+  return `${yy}0${String(n).padStart(3, '0')}`;
+}
+
+export function maxConsecutivoAnual(existentes: Iterable<unknown>, anio: number): number {
+  const siguiente = siguienteExpedienteAnual(existentes, anio);
+  const n = consecutivoDeFolioAnual(siguiente, anio);
+  return n == null ? 0 : Math.max(0, n - 1);
+}
+
+/**
+ * Cuerpo de la transacción del contador. Dos altas a la vez avanzan el mismo nodo:
+ * la segunda reintenta y toma el siguiente.
+ */
+export function siguienteConsecutivoReservado(
+  actual: { anio?: number; ultimo?: number } | null | undefined,
+  anio: number,
+  semilla: number
+): { anio: number; ultimo: number } {
+  const piso = Number.isSafeInteger(semilla) && semilla > 0 ? semilla : 0;
+  const ultimoActual =
+    actual && actual.anio === anio && Number.isSafeInteger(actual.ultimo) && (actual.ultimo as number) >= 0
+      ? (actual.ultimo as number)
+      : 0;
+  return { anio, ultimo: Math.max(ultimoActual, piso) + 1 };
+}
+
+/** El id menor se queda con el folio. El otro lo cede y pide otro número. */
+export function debeCederFolio(miId: string, otrosIds: Iterable<string>): boolean {
+  const propio = String(miId || '');
+  for (const otro of otrosIds) {
+    if (otro && otro < propio) {
+      return true;
+    }
+  }
+  return false;
+}

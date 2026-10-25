@@ -33,3 +33,9 @@
 - El alta nueva sigue esa serie: el más alto de 2026 es `260115`, el siguiente es `260116`.
 - Dos mascotas del mismo dueño quedan con el mismo número, porque la carga solo guardó uno por dueño.
 - Hecho: 1,253 mascotas recibieron el folio del dueño. 123 se dejaron vacías (no tenían folio clínico, sobre todo RG23/RG24). El más alto de 2026 sigue en `260115`. Alta nueva en local abre con `260116`. Tests 8/8.
+
+### Follow-up 2026-10-24 — el usuario no captura el expediente
+
+- En alta de cliente y de mascota el campo queda de solo lectura y muestra la propuesta del siguiente (ahora `260117`). El número se reserva al guardar.
+- Contador `Katzen/Config/Vacunacion/folioExpediente`. Si dos altas salen juntas, la transacción da el siguiente y, si aún así coinciden, el id mayor cede el número. La pantalla ya enseñó la propuesta; el ajuste queda al guardar.
+- No reescribe folios viejos. Tests 9/9 del util.

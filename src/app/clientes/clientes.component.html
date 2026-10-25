@@ -25,7 +25,7 @@
             [disabled]="saving"
             (click)="encontrarClientesSinPacientes()"
           >
-            Sin pacientes
+            {{ soloSinPacientes ? 'Quitar filtro' : 'Sin pacientes' }}
           </button>
           <button
             mat-raised-button
@@ -44,7 +44,11 @@
       <app-admin-data-panel
         accent="blue"
         title="Listado de clientes"
-        description="Busca por nombre, teléfono, correo o número de expediente. Doble clic o Enter abre la ficha."
+        [description]="
+          soloSinPacientes
+            ? 'Estos clientes no tienen mascotas. En la fila puedes ver, editar, borrar o agregar una mascota.'
+            : 'Busca por nombre, teléfono, correo o número de expediente. Doble clic o Enter abre la ficha.'
+        "
         [meta]="
           dataSource.data.length ? dataSource.filteredData.length + ' en pantalla · ' + totalClientes + ' totales' : ''
         "
@@ -179,6 +183,14 @@
                   <button
                     mat-icon-button
                     type="button"
+                    matTooltip="Agregar mascota"
+                    (click)="agregarMascotaDesdeLista(c); $event.stopPropagation()"
+                  >
+                    <mat-icon>pets</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
                     matTooltip="Editar"
                     (click)="editarCliente(c); $event.stopPropagation()"
                   >
@@ -277,6 +289,9 @@
     </button>
     <button mat-menu-item (click)="nuevaVisitaCliente(clienteMenuContext)" [disabled]="!clienteMenuContext">
       <mat-icon>receipt_long</mat-icon> Nueva cuenta del día
+    </button>
+    <button mat-menu-item (click)="agregarMascotaDesdeLista(clienteMenuContext)" [disabled]="!clienteMenuContext">
+      <mat-icon>pets</mat-icon> Agregar mascota
     </button>
     <button mat-menu-item (click)="editarCliente(clienteMenuContext)" [disabled]="!clienteMenuContext">
       <mat-icon>edit</mat-icon> Editar

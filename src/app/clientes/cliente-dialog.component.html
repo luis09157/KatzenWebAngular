@@ -479,7 +479,7 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Expediente</mat-label>
-                <input matInput formControlName="expediente" placeholder="Número de expediente" />
+                <input matInput formControlName="expediente" readonly />
                 <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
               </mat-form-field>
             </div>

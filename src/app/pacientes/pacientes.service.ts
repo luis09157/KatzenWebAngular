@@ -8,11 +8,8 @@ import { RtdbPagedListService, RtdbPageResult } from '../core/services/rtdb-page
 import { rtdbFechaAhora } from '../core/utils/rtdb-date.util';
 import { calcularPacienteEstadisticas, PacienteEstadisticas } from '../core/utils/entity-stats.util';
 import { hydratePaciente } from '../core/utils/paciente-hydrate.util';
-import {
-  esFolioCapturadoValido,
-  resolverExpedienteParaPersistir,
-  siguienteExpedienteAnual,
-} from '../core/utils/folio-expediente-paciente.util';
+import { resolverExpedienteParaPersistir } from '../core/utils/folio-expediente-paciente.util';
+import { FolioExpedienteService } from '../core/services/folio-expediente.service';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +21,8 @@ export class PacientesService {
     private db: AngularFireDatabase,
     private logger: LoggerService,
     private sucursalContext: SucursalContextService,
-    private pagedList: RtdbPagedListService
+    private pagedList: RtdbPagedListService,
+    private folios: FolioExpedienteService
   ) {}
 
   getPacientesPage(
@@ -86,36 +84,31 @@ export class PacientesService {
     return this.db.object(`Katzen/Mascota/${paciente.id}`).set(paciente);
   }
 
-  /** Siguiente `260116` según los expedientes ya guardados, activos o no. */
-  async proximoExpediente(anio = new Date().getFullYear()): Promise<string> {
-    const snap = await this.db.database.ref('Katzen/Mascota').once('value');
-    const val = snap.val() as Record<string, { expediente?: unknown }> | null;
-    const expedientes = val ? Object.values(val).map((row) => row?.expediente) : [];
-    return siguienteExpedienteAnual(expedientes, anio);
-  }
-
   crearPaciente(paciente: Paciente): Promise<string> {
+    const original = paciente;
     paciente = this.sucursalContext.stamp(paciente as Record<string, unknown>) as Paciente;
     paciente.activo = true;
     paciente.fecha_creacion = new Date().toISOString();
-    const asignar = esFolioCapturadoValido(paciente.expediente)
-      ? Promise.resolve()
-      : this.proximoExpediente().then((folio) => {
-          paciente.expediente = folio;
-        });
-    return asignar.then(() =>
-      this.db
+    return this.folios.reservarSiguiente().then((folio) => {
+      paciente.expediente = folio;
+      original.expediente = folio;
+      return this.db
         .list('Katzen/Mascota')
         .push(paciente)
         .then(async (ref) => {
           if (!ref.key) {
             throw new Error('No se pudo crear el paciente');
           }
-          const expediente = resolverExpedienteParaPersistir(paciente.expediente, ref.key);
-          await this.db.object(`Katzen/Mascota/${ref.key}`).update({ id: ref.key, expediente });
-          return ref.key;
-        })
-    );
+          const id = ref.key;
+          await this.db.object(`Katzen/Mascota/${id}`).update({ id, expediente: folio });
+          const unico = await this.folios.asegurarUnico(id, folio, async (nuevo) => {
+            await this.db.object(`Katzen/Mascota/${id}`).update({ expediente: nuevo });
+          });
+          paciente.expediente = unico;
+          original.expediente = unico;
+          return id;
+        });
+    });
   }
 
   /** @deprecated Usar bajaLogicaPaciente — preserva datos en RTDB */

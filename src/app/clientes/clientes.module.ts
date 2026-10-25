@@ -20,20 +20,20 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { ClientesDialogModule } from './clientes-dialog.module';
+import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dialog.module';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 
 @NgModule({
-  declarations: [
-    ClientesComponent
-  ],
+  declarations: [ClientesComponent],
   imports: [
     CommonModule,
     HttpClientModule,
     ClientesRoutingModule,
     ClientesDialogModule,
+    PacienteAdminDialogModule,
     VisitasDialogModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -52,7 +52,7 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     AngularFireStorageModule,
     MatTooltipModule,
     MatMenuModule,
-    SharedModule
-  ]
+    SharedModule,
+  ],
 })
-export class ClientesModule { }
+export class ClientesModule {}

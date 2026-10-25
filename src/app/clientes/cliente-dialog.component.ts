@@ -18,6 +18,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { CanalRecordatorioVista, evaluarCanalRecordatorioCliente } from '../core/utils/recordatorio-canal-cliente.util';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
+import { FolioExpedienteService } from '../core/services/folio-expediente.service';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -43,6 +44,7 @@ export class ClienteDialogComponent implements OnInit {
   portalActionBusy = false;
   tieneAvisosPush = false;
   canalRecordatorios: CanalRecordatorioVista | null = null;
+  private propuestaExpediente = '';
 
   // Propiedades para carga de imágenes
   selectedFile: File | null = null;
@@ -67,7 +69,8 @@ export class ClienteDialogComponent implements OnInit {
     private logger: LoggerService,
     private router: Router,
     private db: AngularFireDatabase,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private folios: FolioExpedienteService
   ) {
     this.modoVer = data.modoVer;
     this.modoRapido = data?.modo === 'rapido' && !data?.cliente?.id;
@@ -330,6 +333,31 @@ export class ClienteDialogComponent implements OnInit {
       this.cargarPacientesRelacionados();
     }
     void this.refrescarCanalRecordatorios();
+    if (!this.data?.cliente?.id) {
+      this.mostrarPropuestaExpediente();
+    }
+  }
+
+  private mostrarPropuestaExpediente(): void {
+    const aplicar = (folio: string) => {
+      if (this.data?.cliente?.id || !folio) {
+        return;
+      }
+      const actual = String(this.clienteForm.get('expediente')?.value || '').trim();
+      if (actual && actual !== this.propuestaExpediente) {
+        return;
+      }
+      this.propuestaExpediente = folio;
+      this.clienteForm.patchValue({ expediente: folio });
+    };
+    this.folios
+      .propuestaRapida()
+      .then((folio) => folio && aplicar(folio))
+      .catch(() => undefined);
+    this.folios
+      .proponerSiguiente()
+      .then((folio) => aplicar(folio))
+      .catch(() => undefined);
   }
 
   get muestraCanalRecordatorios(): boolean {

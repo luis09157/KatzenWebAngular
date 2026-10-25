@@ -1,9 +1,12 @@
 import {
+  debeCederFolio,
   esFolioCapturadoValido,
   etiquetaExpedientePaciente,
   folioCortoDesdeId,
+  folioDesdeConsecutivo,
   folioExpedientePaciente,
   resolverExpedienteParaPersistir,
+  siguienteConsecutivoReservado,
   siguienteExpedienteAnual,
 } from './folio-expediente-paciente.util';
 
@@ -80,6 +83,22 @@ describe('folio-expediente-paciente.util (spec 068)', () => {
     expect(siguienteExpedienteAnual(['260000'], 2026)).toBe('260001');
     expect(siguienteExpedienteAnual(['270001', '270002'], 2027)).toBe('270003');
     expect(siguienteExpedienteAnual(['1847', 'KV-16C555', '250239', '240328', '202601'], 2026)).toBe('260001');
+  });
+
+  it('dos altas a la vez: el contador avanza y el id mayor cede el número', () => {
+    expect(folioDesdeConsecutivo(2026, 116)).toBe('260116');
+    expect(siguienteConsecutivoReservado(null, 2026, 115)).toEqual({ anio: 2026, ultimo: 116 });
+    expect(siguienteConsecutivoReservado({ anio: 2026, ultimo: 116 }, 2026, 115)).toEqual({
+      anio: 2026,
+      ultimo: 117,
+    });
+    expect(siguienteConsecutivoReservado({ anio: 2025, ultimo: 400 }, 2026, 115)).toEqual({
+      anio: 2026,
+      ultimo: 116,
+    });
+    expect(debeCederFolio('b', ['a'])).toBeTrue();
+    expect(debeCederFolio('a', ['b'])).toBeFalse();
+    expect(debeCederFolio('a', [])).toBeFalse();
   });
 
   it('persistir: capturado se guarda; vacío genera KV estable del id', () => {

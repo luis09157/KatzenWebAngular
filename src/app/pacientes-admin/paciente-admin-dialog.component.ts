@@ -13,6 +13,7 @@ import { LoadingService } from '../core/loading.service';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import { filtrarClientes, getClienteDisplayLabel, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { folioExpedientePaciente } from '../core/utils/folio-expediente-paciente.util';
+import { FolioExpedienteService } from '../core/services/folio-expediente.service';
 
 @Component({
   selector: 'app-paciente-admin-dialog',
@@ -49,6 +50,7 @@ export class PacienteAdminDialogComponent implements OnInit {
   imagePreview: string | null = null;
   uploadProgress: number = 0;
   isUploading = false;
+  private propuestaExpediente = '';
   defaultImageUrl =
     'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik03NSA0MEM2NS4wNTc2IDQwIDU3IDQ4LjA1NzYgNTcgNThDNTcgNjcuOTQyNCA2NS4wNTc2IDc2IDc1IDc2Qzg0Ljk0MjQgNzYgOTMgNjcuOTQyNCA5MyA1OEM5MyA0OC4wNTc2IDg0Ljk0MjQgNDAgNzUgNDBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSA4MEM2NS4wNTc2IDgwIDU3IDg4LjA1NzYgNTcgOThDNTcgMTA3Ljk0MiA2NS4wNTc2IDExNiA3NSAxMTZDODQuOTQyNCAxMTYgOTMgMTA3Ljk0MiA5MyA5OEM5MyA4OC4wNTc2IDg0Ljk0MjQgODAgNzUgODBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik03NSAxMjBDNjUuMDU3NiAxMjAgNTcgMTI4LjA1OCA1NyAxMzhDNTcgMTQ3Ljk0MiA2NS4wNTc2IDE1NiA3NSAxNTZDODQuOTQyNCAxNTYgOTMgMTQ3Ljk0MiA5MyAxMzhDOTMgMTI4LjA1OCA4NC45NDI0IDEyMCA3NSAxMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+Cjwvc3ZnPgo=';
 
@@ -111,7 +113,8 @@ export class PacienteAdminDialogComponent implements OnInit {
     private pacientesService: PacientesService,
     private storage: AngularFireStorage,
     private errorMessages: ErrorMessagesService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private folios: FolioExpedienteService
   ) {
     this.pacienteForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -135,7 +138,7 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.setupDateValidation();
     this.setupEstadoChangeListener();
     if (!this.data?.paciente) {
-      this.prefillExpedienteNuevo();
+      this.mostrarPropuestaExpediente();
     }
     if (!this.data?.paciente && this.data?.cliente?.id) {
       this.aplicarDuenoPrefijado(this.data.cliente);
@@ -243,16 +246,25 @@ export class PacienteAdminDialogComponent implements OnInit {
     this.pacienteForm.patchValue({ idCliente, nombreCliente: nombre || 'Dueño' });
   }
 
-  /** Alta nueva: año + 0 + consecutivo. No pisa un número que ya escribieron. */
-  private prefillExpedienteNuevo(): void {
-    this.pacientesService
-      .proximoExpediente()
-      .then((folio) => {
-        const actual = String(this.pacienteForm.get('expediente')?.value || '').trim();
-        if (!actual && !this.isEditMode && !this.isViewMode) {
-          this.pacienteForm.patchValue({ expediente: folio });
-        }
-      })
+  private mostrarPropuestaExpediente(): void {
+    const aplicar = (folio: string) => {
+      if (this.data?.paciente || !folio) {
+        return;
+      }
+      const actual = String(this.pacienteForm.get('expediente')?.value || '').trim();
+      if (actual && actual !== this.propuestaExpediente) {
+        return;
+      }
+      this.propuestaExpediente = folio;
+      this.pacienteForm.patchValue({ expediente: folio });
+    };
+    this.folios
+      .propuestaRapida()
+      .then((folio) => folio && aplicar(folio))
+      .catch(() => undefined);
+    this.folios
+      .proponerSiguiente()
+      .then((folio) => aplicar(folio))
       .catch(() => undefined);
   }
 

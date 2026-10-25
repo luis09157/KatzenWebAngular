@@ -135,8 +135,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>N° de expediente</mat-label>
-            <input matInput formControlName="expediente" placeholder="Opcional" maxlength="20" />
-            <mat-hint>Dos dígitos del año, un 0 y el consecutivo. Ej. 260116.</mat-hint>
+            <input matInput formControlName="expediente" maxlength="20" readonly />
             <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
           </mat-form-field>
         </div>
@@ -230,8 +229,7 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>N° de expediente</mat-label>
-                <input matInput formControlName="expediente" placeholder="Ej. 260116" maxlength="20" />
-                <mat-hint>Dos dígitos del año, un 0 y el consecutivo. Ej. 260116.</mat-hint>
+                <input matInput formControlName="expediente" maxlength="20" readonly />
                 <mat-error *ngIf="isFieldInvalid('expediente')">{{ getErrorMessage('expediente') }}</mat-error>
               </mat-form-field>
             </div>

@@ -26,6 +26,7 @@ import { FirebaseFunctionsService } from '../core/services/firebase-functions.se
 import { LOADING_MESSAGES } from '../core/loading.service';
 import { ClienteCuentaDialogComponent } from '../visitas/cliente-cuenta-dialog.component';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 
 interface ClienteKpi {
   label: string;
@@ -67,6 +68,8 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesFiltrados: any[] = [];
   filtroActual: string = '';
   soloConDeuda = false;
+  soloSinPacientes = false;
+  private idsSinPacientes = new Set<string>();
   clienteMenuContext: any = null;
   filaSeleccionadaId: string | null = null;
 
@@ -144,6 +147,9 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     let base = [...this.clientesBase];
     if (this.soloConDeuda) {
       base = base.filter((c) => (Number(c?.saldoPendiente) || 0) > 0);
+    }
+    if (this.soloSinPacientes) {
+      base = base.filter((c) => c?.id && this.idsSinPacientes.has(c.id));
     }
     this.clientesFiltrados = filtrarClientes(base, this.filtroActual);
     this.dataSource.data = this.clientesFiltrados;
@@ -632,15 +638,33 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   bajaLogicaCliente(id: string) {
-    Swal.fire({
-      title: '¿Borrar este cliente?',
-      text: 'Se ocultará el cliente, sus mascotas y citas futuras; también se desactivará el portal del dueño. Los datos se conservan.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, borrar',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
+    if (!id) {
+      return;
+    }
+    this.loadingService.show('Revisando mascotas…');
+    this.clientesService
+      .mascotasActivasDeCliente(id)
+      .then((mascotas) => {
+        this.loadingService.hide();
+        const nombres = mascotas.map((m) => this.escapeHtml(m.nombre));
+        const lista = nombres.length
+          ? `<p>Tiene ${nombres.length} mascota${nombres.length === 1 ? '' : 's'}:</p><ul style="text-align:left;max-height:220px;overflow:auto">${nombres
+              .map((nombre) => `<li>${nombre}</li>`)
+              .join('')}</ul>`
+          : '<p>No tiene mascotas registradas.</p>';
+        return Swal.fire({
+          title: '¿Borrar este cliente?',
+          html: `${lista}<p>Se ocultan el cliente, sus mascotas, citas y lo ligado a su ficha: baños, historial, vacunas, recordatorios, consentimientos, pensión y cuentas. También se desactiva el portal. Los datos se conservan.</p>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, borrar',
+          cancelButtonText: 'Cancelar',
+        });
+      })
+      .then((result) => {
+        if (!result?.isConfirmed) {
+          return;
+        }
         this.saving = true;
         this.loadingService.show(LOADING_MESSAGES.deleting);
         this.clientesService
@@ -648,19 +672,16 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           .then((res) => {
             this.loadingService.hide();
             this.todosLosClientes = this.todosLosClientes.filter((c) => c.id !== id);
+            this.idsSinPacientes.delete(id);
             this.aplicarFiltroSucursal();
             this.cargarEstadisticas();
-            const detalle = [
-              `${res.mascotasDesactivadas} mascota(s)`,
-              `${res.citasCanceladas} cita(s)`,
-              res.portalRevocado
-                ? 'portal revocado'
-                : res.portalRevokeError
-                  ? 'portal desactivado (revocación Auth pendiente)'
-                  : 'sin portal',
-            ].join(', ');
+            const mascotasTxt = res.mascotas.length ? res.mascotas.join(', ') : 'ninguna';
             setTimeout(() => {
-              Swal.fire('Borrado', `Cliente borrado en cascada (${detalle}).`, 'success');
+              Swal.fire(
+                'Borrado',
+                `Cliente oculto. Mascotas: ${mascotasTxt}. Citas: ${res.citasCanceladas}. Otros registros: ${res.relacionadosDesactivados}. Los datos se conservan.`,
+                'success'
+              );
             }, 0);
           })
           .catch((err) => {
@@ -671,56 +692,46 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           .finally(() => {
             this.saving = false;
           });
-      }
-    });
+      })
+      .catch((err) => {
+        this.loadingService.hide();
+        Swal.fire('Error', this.errorMessages.getUserMessage(err, 'cargar mascotas del cliente'), 'error');
+      });
   }
 
-  encontrarClientesSinPacientes() {
+  private escapeHtml(valor: string): string {
+    return valor.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  encontrarClientesSinPacientes(): void {
+    if (this.soloSinPacientes) {
+      this.soloSinPacientes = false;
+      this.refrescarFiltroTexto();
+      return;
+    }
     this.saving = true;
-    this.loadingService.show();
+    this.loadingService.show('Buscando clientes sin mascotas…');
     this.pacientesService
       .getPacientes()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(take(1), takeUntil(this.destroy$))
       .subscribe({
         next: (pacientes) => {
-          const pacientesData = pacientes || [];
-
-          // Crear un Set de IDs de clientes que tienen pacientes
-          const clientesConPacientesSet = new Set(
-            pacientesData.map((paciente) => paciente.cliente_id || paciente.idCliente).filter((id) => id)
+          const conMascota = new Set(
+            (pacientes || []).map((paciente) => paciente.cliente_id || paciente.idCliente).filter((id) => id)
           );
-
-          // Encontrar clientes que NO tienen pacientes
-          const clientesSinPacientes = this.todosLosClientes.filter(
-            (cliente) => !clientesConPacientesSet.has(cliente.id)
+          this.idsSinPacientes = new Set(
+            this.todosLosClientes
+              .filter((cliente) => cliente?.id && !conMascota.has(cliente.id))
+              .map((cliente) => cliente.id)
           );
-
           this.loadingService.hide();
-          if (clientesSinPacientes.length === 0) {
-            setTimeout(() => Swal.fire('Información', 'Todos los clientes tienen pacientes registrados.', 'info'), 0);
-          } else {
-            const nombres = clientesSinPacientes.map((cliente) => {
-              const nombreCompleto =
-                `${cliente.nombre || ''} ${cliente.apellidoPaterno || ''} ${cliente.apellidoMaterno || ''}`.trim();
-              return nombreCompleto || 'Sin nombre';
-            });
-            setTimeout(
-              () =>
-                Swal.fire({
-                  title: 'Clientes Sin Pacientes',
-                  html: `
-            <p><strong>Total: ${clientesSinPacientes.length} cliente(s)</strong></p>
-            <ul style="text-align: left; max-height: 200px; overflow-y: auto;">
-              ${nombres.map((nombre) => `<li>${nombre}</li>`).join('')}
-            </ul>
-          `,
-                  icon: 'info',
-                  confirmButtonText: 'Entendido',
-                }),
-              0
-            );
-          }
           this.saving = false;
+          if (this.idsSinPacientes.size === 0) {
+            setTimeout(() => Swal.fire('Información', 'Todos los clientes tienen mascotas registradas.', 'info'), 0);
+            return;
+          }
+          this.soloSinPacientes = true;
+          this.refrescarFiltroTexto();
         },
         error: (error) => {
           this.logger.error('Error al buscar clientes sin pacientes:', error);
@@ -728,6 +739,44 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           this.saving = false;
           Swal.fire('Error', this.errorMessages.getUserMessage(error, 'cargar datos'), 'error');
         },
+      });
+  }
+
+  agregarMascotaDesdeLista(cliente: any): void {
+    if (!cliente?.id) {
+      return;
+    }
+    const ref = this.dialog.open(PacienteAdminDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      data: { modo: 'crear', cliente },
+    });
+    ref
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        this.loadingService.show('Guardando mascota…');
+        this.pacientesService
+          .crearPaciente(result)
+          .then(() => {
+            this.loadingService.hide();
+            this.idsSinPacientes.delete(cliente.id);
+            if (this.soloSinPacientes) {
+              this.refrescarFiltroTexto();
+            }
+            Swal.fire({
+              icon: 'success',
+              title: 'Mascota agregada',
+              timer: 1600,
+              showConfirmButton: false,
+            });
+          })
+          .catch((error) => {
+            this.loadingService.hide();
+            Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar paciente'), 'error');
+          });
       });
   }
 }
