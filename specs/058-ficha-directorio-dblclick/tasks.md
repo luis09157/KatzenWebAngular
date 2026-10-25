@@ -138,3 +138,7 @@ Advertencia previa: budget initial 2.36 MB (ya existía; no introducida por esta
 - [x] Validación exhaustiva completada y registrada (sección anterior)
 - [x] `spec.md` estado → `done`
 - [ ] Commit / deploy — solo si el usuario lo pidió
+
+## Follow-up 2026-10-24
+
+Menú: **Pacientes** abre la tabla (`/admin/pacientes-admin`). **Buscar paciente** abre la búsqueda del expediente. El banner de la tabla dice Pacientes. Recepción, doctor y peluquería no ven la tabla. QA localhost: menú en ese orden, tabla con 1370 filas y Nuevo paciente, búsqueda con el título Buscar paciente. Sin alta de prueba.

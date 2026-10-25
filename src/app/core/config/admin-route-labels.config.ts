@@ -1,8 +1,8 @@
 /** Labels de toolbar admin por segmento de ruta (spec 049). */
 export const ADMIN_ROUTE_LABELS: Record<string, string> = {
   inicio: 'Inicio',
-  paciente: 'Pacientes',
-  'pacientes-admin': 'Directorio de pacientes',
+  paciente: 'Buscar paciente',
+  'pacientes-admin': 'Pacientes',
   clientes: 'Clientes',
   'contactos-web': 'Contactos web',
   citas: 'Citas',
