@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,7 +32,7 @@ import { PacienteAdminDialogComponent } from './paciente-admin-dialog.component'
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatProgressBarModule,
     MatTooltipModule,
     SharedModule,

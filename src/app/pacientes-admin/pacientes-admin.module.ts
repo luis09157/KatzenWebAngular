@@ -18,7 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -66,7 +66,7 @@ const routes: Routes = [{ path: '', component: PacientesAdminComponent }];
     MatSelectModule,
     MatAutocompleteModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatProgressBarModule,
     MatMenuModule,
     MatTabsModule,

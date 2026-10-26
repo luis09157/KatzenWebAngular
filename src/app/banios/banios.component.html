@@ -474,9 +474,9 @@
     <button
       mat-menu-item
       *ngIf="!menuContext?.pagado && menuContext?.estado === 'completado' && !menuContext?.visitaId"
-      (click)="marcarComoPagado(menuContext)"
+      (click)="registrarEnCaja(menuContext)"
     >
-      <mat-icon>payment</mat-icon> Marcar pagado
+      <mat-icon>payment</mat-icon> Cobrar (queda en caja)
     </button>
     <button
       mat-menu-item

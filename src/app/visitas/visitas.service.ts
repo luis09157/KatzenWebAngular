@@ -343,7 +343,8 @@ export class VisitasService {
       metodoPago: opts.metodoPago,
       ivaDeclarado: !!opts.ivaDeclarado,
       concepto: `Visita ${visita.fecha} — ${visita.cliente || visita.cliente_id}`.slice(0, 120),
-      fecha: visita.fecha || hoyLocalIsoDate(),
+      // Día en que entra el dinero, no el del ticket (2026-10-26).
+      fecha: hoyLocalIsoDate(),
       clienteId: visita.cliente_id,
       visitaId,
       notas: opts.notas,
@@ -408,7 +409,8 @@ export class VisitasService {
       metodoPago,
       ivaDeclarado: false,
       concepto: `Devolución ticket ${visita.fecha} — ${visita.cliente || visita.cliente_id}`.slice(0, 120),
-      fecha: visita.fecha || hoyLocalIsoDate(),
+      // Día en que sale el dinero (2026-10-26).
+      fecha: hoyLocalIsoDate(),
       clienteId: visita.cliente_id,
       visitaId,
       categoria: 'otro',

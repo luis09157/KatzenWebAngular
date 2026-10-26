@@ -121,6 +121,14 @@ export interface CajaCorte {
   diferencia: number;
   cuadrado: boolean;
   notas?: string;
+  /** 2026-10-26 — efectivo que se saca de la caja al cerrar (depósito / dueño). */
+  retiroEfectivo?: number;
+  /** 2026-10-26 — lo que queda en caja = contado − retiro; es el fondo del siguiente corte. */
+  fondoSiguiente?: number;
+  /** 2026-10-26 — corte de lo cobrado después de un corte del mismo día. */
+  complementario?: boolean;
+  /** `createdAt` del corte anterior del mismo día (solo complementario). */
+  desdeCreatedAt?: string;
   sucursalId?: string;
   activo: boolean;
   createdAt: string;

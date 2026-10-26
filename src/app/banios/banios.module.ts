@@ -14,7 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -63,7 +63,7 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatDialogModule,
     MatTooltipModule,
     MatProgressSpinnerModule,

@@ -430,10 +430,23 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async borrar(row: Visita): Promise<void> {
     if (!row.id) return;
+    // 2026-10-26: un ticket con cobros dejaba el dinero en caja aunque se borrara; el corte no cuadraba.
+    if ((Number(row.pagado) || 0) > 0.009) {
+      await KatzenSwal.fire({
+        icon: 'info',
+        title: 'Este ticket ya tiene cobros',
+        html:
+          `Se cobraron <strong>$${(Number(row.pagado) || 0).toFixed(2)}</strong>. ` +
+          'Para que el corte cuadre, ábrelo y usa <strong>Devolver</strong> en cada línea (registra la salida de dinero). ' +
+          'Cuando ya no tenga cobros, lo puedes borrar.',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
     const conf = await KatzenSwal.fire({
       icon: 'warning',
       title: '¿Borrar visita?',
-      text: 'Se cancela el ticket. El historial de caja no se elimina.',
+      text: 'Se cancela el ticket. No tiene cobros registrados.',
       showCancelButton: true,
       confirmButtonColor: KATZEN_SWAL_DANGER,
       confirmButtonText: 'Borrar',

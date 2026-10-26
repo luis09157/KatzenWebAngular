@@ -669,7 +669,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
       width: '640px',
       disableClose: true,
       data: {
-        fechaDefault: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
+        // Sin fechaDefault: el cobro va al día en que entra el dinero (hoy), no al del servicio (2026-10-26).
         citaId: cita.id,
         clienteId: cita.cliente_id || undefined,
         concepto: `Consulta · ${paciente}${cliente ? ` · ${cliente}` : ''} · ${cita.motivo || 'cita'}`,

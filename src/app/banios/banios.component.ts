@@ -587,6 +587,10 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     this.cambiarEstado(banio, 'completado');
   }
 
+  /**
+   * @deprecated 2026-10-26 — marcaba «pagado» sin registrar el dinero en caja (el corte no lo veía).
+   * El menú usa `registrarEnCaja`, que crea el movimiento y luego marca pagado.
+   */
   marcarComoPagado(banio: any) {
     if (banio?.visitaId) {
       Swal.fire({
@@ -640,7 +644,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       width: '640px',
       disableClose: true,
       data: {
-        fechaDefault: banio.fecha_banio || undefined,
+        // Sin fechaDefault: el cobro va al día en que entra el dinero (hoy), no al del servicio (2026-10-26).
         banioId: banio.id,
         concepto: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
         monto: Number(banio.precio_total) || 0,

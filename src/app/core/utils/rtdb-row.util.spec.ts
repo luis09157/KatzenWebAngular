@@ -1,4 +1,4 @@
-import { mapRtdbRow, collectRelatedIds, registroPerteneceAPaciente } from './rtdb-row.util';
+import { mapRtdbRow, collectRelatedIds, registroPerteneceAPaciente, sinUndefined } from './rtdb-row.util';
 
 describe('rtdb-row.util', () => {
   it('la key RTDB gana sobre un id interno distinto', () => {
@@ -23,5 +23,11 @@ describe('rtdb-row.util', () => {
     expect(registroPerteneceAPaciente({ paciente_id: 'p1' }, 'p1')).toBeTrue();
     expect(registroPerteneceAPaciente({ idPaciente: 'p1' }, ['p1', 'p2'])).toBeTrue();
     expect(registroPerteneceAPaciente({ paciente_id: 'x' }, 'p1')).toBeFalse();
+  });
+});
+
+describe('sinUndefined', () => {
+  it('quita propiedades undefined y deja 0, false, null y texto vacío', () => {
+    expect(sinUndefined({ a: 0, b: false, c: null, d: '', notas: undefined })).toEqual({ a: 0, b: false, c: null, d: '' });
   });
 });

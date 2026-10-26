@@ -11,7 +11,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -46,7 +46,7 @@ import { HistorialDialogModule } from './historial-dialog.module';
     MatPaginatorModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,

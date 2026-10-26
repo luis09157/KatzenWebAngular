@@ -1599,6 +1599,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
           saldoAntes: t.saldo,
           lineas: this.lineas,
           fecha: raw.fecha,
+          fechaPago: hoyLocalIsoDate(),
           cliente: String(raw.cliente || ''),
           clienteId: String(raw.cliente_id || ''),
           modoMostrador: this.modoMostrador,

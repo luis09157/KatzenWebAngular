@@ -3,6 +3,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, firstValueFrom, map, catchError, throwError } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
+import { sinUndefined } from '../core/utils/rtdb-row.util';
 import { debeExcluirRefuerzoIngresoServicio } from '../core/utils/cobro-integridad.util';
 import { CurrentStaffService } from '../core/services/current-staff.service';
 import {
@@ -108,7 +109,7 @@ export class CajaService {
       movimiento.movimientoInventarioIds = [...data.movimientoInventarioIds];
     }
 
-    const ref = await this.db.list<CajaMovimiento>(this.movimientosPath).push(movimiento);
+    const ref = await this.db.list<CajaMovimiento>(this.movimientosPath).push(sinUndefined(movimiento));
     await stampRtdbIdAfterPush(this.db, this.movimientosPath, ref.key);
     if (data.tipo === 'ingreso') {
       try {
@@ -434,21 +435,25 @@ export class CajaService {
     await this.db.object(`${this.turnosPath}/${key}`).update({ corteId });
   }
 
+  /**
+   * Guarda el corte. Si el día ya tiene corte, solo se acepta un corte complementario
+   * (lo cobrado después del último corte) — 2026-10-26.
+   */
   async guardarCorte(corte: Omit<CajaCorte, 'id' | 'createdAt' | 'createdBy' | 'activo'>): Promise<string> {
     const fecha = String(corte.fecha || this.hoyLocalIsoDate()).slice(0, 10);
     const cortes = await this.getCortesOnce();
-    if (yaHayCorteDelDia(cortes, fecha)) {
-      throw new Error('Ya hay un corte de este día. No se guarda un segundo corte.');
+    if (yaHayCorteDelDia(cortes, fecha) && !corte.complementario) {
+      throw new Error('Ya hay un corte de este día. Haz un corte complementario para lo cobrado después.');
     }
     const now = new Date().toISOString();
     const createdBy = await this.currentStaff.getStaffId();
-    const row: CajaCorte = {
+    const row: CajaCorte = sinUndefined({
       ...corte,
       fecha,
       activo: true,
       createdAt: now,
       createdBy,
-    };
+    });
     const ref = await this.db.list(this.cortesPath).push(row);
     const id = ref.key;
     if (!id) {

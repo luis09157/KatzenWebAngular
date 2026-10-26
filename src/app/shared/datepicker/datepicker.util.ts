@@ -103,3 +103,35 @@ export function formatearFechaLocalEs(value: unknown): string {
 function toDisplayEs(y: number, m: number, d: number): string {
   return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
 }
+
+/**
+ * Fecha tecleada en un campo de fecha → Date local (12:00) o null (2026-10-26).
+ * Acepta `dd/mm/aaaa`, `d/m/aa`, `dd-mm-aaaa`, `dd.mm.aaaa` y `aaaa-mm-dd`.
+ * Antes el adaptador nativo usaba `Date.parse`: «02/10/2026» se guardaba como 10 de febrero.
+ */
+export function parseFechaTecleada(value: unknown): Date | null {
+  const s = String(value ?? '').trim();
+  if (!s) return null;
+  let y: number;
+  let m: number;
+  let d: number;
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ].*)?$/.exec(s);
+  const dmy = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})$/.exec(s);
+  if (iso) {
+    y = Number(iso[1]);
+    m = Number(iso[2]);
+    d = Number(iso[3]);
+  } else if (dmy) {
+    d = Number(dmy[1]);
+    m = Number(dmy[2]);
+    y = Number(dmy[3]);
+    if (dmy[3].length === 2) y += 2000;
+  } else {
+    return null;
+  }
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const date = new Date(y, m - 1, d, 12, 0, 0, 0);
+  // 31/02 → no existe (Date lo pasaría a marzo).
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return null;
+  return date;
+}

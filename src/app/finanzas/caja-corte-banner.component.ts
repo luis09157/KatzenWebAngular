@@ -7,6 +7,7 @@ import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
 import { CajaService } from './caja.service';
 import { CajaMovimiento } from './caja.models';
 import { debeMostrarBannerCorte, turnoEstaAbierto, yaHayCorteDelDia } from './caja-turno.util';
+import { movimientosPendientesDeCorte } from './caja-corte.util';
 
 @Component({
   selector: 'app-caja-corte-banner',
@@ -16,6 +17,8 @@ import { debeMostrarBannerCorte, turnoEstaAbierto, yaHayCorteDelDia } from './ca
 export class CajaCorteBannerComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   visible = false;
+  /** Ya hubo corte hoy pero entraron cobros después → corte complementario. */
+  complementario = false;
   private movimientos: CajaMovimiento[] = [];
   private fecha = '';
 
@@ -35,12 +38,18 @@ export class CajaCorteBannerComponent implements OnInit, OnDestroy {
           const huboVentasHoy = (movs || []).some(
             (m) => m.activo !== false && m.tipo === 'ingreso' && String(m.fecha || '') === this.fecha
           );
-          this.visible = debeMostrarBannerCorte({
-            turnoAbierto: turnoEstaAbierto(turno),
-            hayCorteHoy,
-            huboVentasHoy,
-            horaLocal: new Date().getHours(),
-          });
+          const pendientesTrasCorte = hayCorteHoy
+            ? movimientosPendientesDeCorte(movs || [], cortes || [], this.fecha).length
+            : 0;
+          this.complementario = hayCorteHoy && pendientesTrasCorte > 0;
+          this.visible =
+            this.complementario ||
+            debeMostrarBannerCorte({
+              turnoAbierto: turnoEstaAbierto(turno),
+              hayCorteHoy,
+              huboVentasHoy,
+              horaLocal: new Date().getHours(),
+            });
         },
         error: () => {
           this.visible = false;

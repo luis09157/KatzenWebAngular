@@ -202,6 +202,11 @@ export interface FlujoCobroContexto {
   saldoAntes: number;
   lineas: ReadonlyArray<Pick<VisitaLinea, 'categoria' | 'movimientoInventarioId'>>;
   fecha: string;
+  /**
+   * Día en que entra el dinero (2026-10-26). Si se cobra hoy un ticket de otro día,
+   * el movimiento de caja va a hoy para que lo cuente el corte de hoy. Default: `fecha`.
+   */
+  fechaPago?: string;
   cliente: string;
   clienteId: string;
   modoMostrador: boolean;
@@ -242,7 +247,7 @@ export async function ejecutarFlujoCobro(ctx: FlujoCobroContexto, deps: FlujoCob
       monto: parte.monto,
       metodoPago: parte.metodo,
       ivaDeclarado: false,
-      fecha: ctx.fecha,
+      fecha: ctx.fechaPago || ctx.fecha,
       visitaId,
       clienteId: clienteIdCaja,
       categoria: VISITA_LINEA_A_CAJA[cat] || 'otro',
