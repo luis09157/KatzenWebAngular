@@ -287,7 +287,7 @@
         </div>
         <h4 class="pension-card__paciente">{{ row.paciente || '—' }}</h4>
         <p class="pension-card__meta">{{ row.cliente || '—' }}<ng-container *ngIf="row.tamano_mascota"> · {{ tamanoLabels[row.tamano_mascota] || row.tamano_mascota }}</ng-container></p>
-        <p class="pension-card__meta pension-card__meta--sub">Ingreso {{ row.fecha_ingreso }}<ng-container *ngIf="row.fecha_salida_real || row.fecha_salida_prevista"> · Salida {{ row.fecha_salida_real || row.fecha_salida_prevista }}</ng-container> · {{ formatMoney(row.precio_total) }}</p>
+        <p class="pension-card__meta pension-card__meta--sub">Ingreso {{ fechaCorta(row.fecha_ingreso) }}<ng-container *ngIf="row.fecha_salida_real || row.fecha_salida_prevista"> · Salida {{ fechaCorta(row.fecha_salida_real || row.fecha_salida_prevista) }}</ng-container> · {{ formatMoney(row.precio_total) }}</p>
         <div class="pension-card__acciones">
           <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="ejecutarAccionPension(row, $event)">
             <mat-icon>{{ accionPrincipalPension(row).icon }}</mat-icon>

@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { formatearFechaLocalEs } from '../shared/datepicker/datepicker.util';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -237,6 +238,11 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       default:
         this.editar(row);
     }
+  }
+
+  /** Fecha legible en tarjetas (dd/mm/aaaa) sin voltear día/mes. */
+  fechaCorta(valor: unknown): string {
+    return formatearFechaLocalEs(valor) || String(valor || '');
   }
 
   puedeCheckIn(row: PensionEstancia): boolean {

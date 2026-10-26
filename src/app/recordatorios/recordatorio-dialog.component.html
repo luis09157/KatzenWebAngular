@@ -1,7 +1,9 @@
 <div class="admin-dialog-shell recordatorio-dialog">
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">{{ isEditMode ? 'Editar recordatorio' : 'Nuevo recordatorio' }}</h2>
+      <h2 class="admin-dialog-title">
+        {{ isEditMode ? 'Editar recordatorio' : esDesparasitacion ? 'Registrar desparasitación' : 'Nuevo recordatorio' }}
+      </h2>
       <p class="admin-dialog-subtitle">
         {{
           data?.registrarDesparasitacion
