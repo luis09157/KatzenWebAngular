@@ -325,7 +325,13 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       ...this.chartEgresos.map((e) => e.total)
     );
     this.serieMax = Math.max(1, ...this.chartSerie.flatMap((d) => [d.ingresos, d.egresos, Math.abs(d.ganancia)]));
-    if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+    // El paginador aparece con *ngIf cuando hay datos: enlazarlo en el siguiente tick (antes mostraba «0 of 0»).
+    setTimeout(() => {
+      if (this.paginator && this.dataSource.paginator !== this.paginator) {
+        this.dataSource.paginator = this.paginator;
+      }
+      this.dataSource.paginator?.firstPage();
+    });
   }
 
   onPeriodoModoChange(modo: CajaPeriodoModo): void {

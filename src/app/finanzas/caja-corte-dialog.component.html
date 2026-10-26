@@ -10,35 +10,74 @@
   </header>
 
   <mat-dialog-content class="admin-dialog-body">
-    <p class="corte-ya-hecho" *ngIf="yaHayCorte">Ya hay un corte de este día. No se puede guardar otro.</p>
+    <p class="corte-ya-hecho" *ngIf="complementario">
+      Ya se hizo un corte este día{{ horaCorte(ultimoCortePrevio) ? ' a las ' + horaCorte(ultimoCortePrevio) : '' }}.
+      Este es un <strong>corte complementario</strong>: solo cuenta lo cobrado después.
+    </p>
     <form [formGroup]="form" class="admin-dialog-form admin-dialog-form--padded">
-      <app-datepicker-field class="full-width" formControlName="fecha" label="Fecha"></app-datepicker-field>
+      <app-datepicker-field class="full-width" formControlName="fecha" label="Fecha del corte"></app-datepicker-field>
+
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width corte-campo-principal">
         <mat-label>Efectivo contado</mat-label>
-        <input matInput type="number" min="0" step="0.01" formControlName="efectivoContado" />
+        <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="efectivoContado" />
         <span matTextPrefix>$&nbsp;</span>
-        <mat-error>Indica cuánto efectivo hay en caja</mat-error>
+        <mat-hint>Cuenta todos los billetes y monedas de la caja. Si no hubo ventas, escribe lo que hay (puede ser 0).</mat-hint>
+        <mat-error>Indica cuánto efectivo hay en caja (puede ser 0)</mat-error>
       </mat-form-field>
-      <p>
-        Fondo inicial: <strong>{{ formatMoney(form.get('fondoInicial')?.value) }}</strong>
+
+      <dl class="corte-resumen">
+        <div>
+          <dt>Fondo inicial</dt>
+          <dd>{{ formatMoney(form.get('fondoInicial')?.value) }}</dd>
+        </div>
+        <div>
+          <dt>Ingresos en efectivo</dt>
+          <dd>+ {{ formatMoney(ingresosEfectivo) }}</dd>
+        </div>
+        <div>
+          <dt>Egresos en efectivo</dt>
+          <dd>− {{ formatMoney(egresosEfectivo) }}</dd>
+        </div>
+        <div class="corte-resumen__total">
+          <dt>Efectivo esperado</dt>
+          <dd>{{ formatMoney(esperado) }}</dd>
+        </div>
+        <div
+          class="corte-resumen__dif"
+          [class.corte-resumen__dif--ok]="contadoCapturado && cuadrado"
+          [class.corte-resumen__dif--mal]="contadoCapturado && !cuadrado"
+        >
+          <dt>Diferencia</dt>
+          <dd *ngIf="contadoCapturado">
+            {{ formatMoney(diferencia) }}
+            {{ cuadrado ? '· cuadrada' : diferencia > 0 ? '· sobra' : '· falta' }}
+          </dd>
+          <dd *ngIf="!contadoCapturado" class="corte-resumen__pend">Escribe el efectivo contado</dd>
+        </div>
+      </dl>
+      <p class="corte-nota" *ngIf="!cargandoDia">
+        {{ movimientosDelCorte }} cobro{{ movimientosDelCorte === 1 ? '' : 's' }}/gasto{{ movimientosDelCorte === 1 ? '' : 's' }}
+        {{ complementario ? 'después del corte anterior' : 'del día' }}. Tarjeta y transferencia no entran al arqueo.
       </p>
+      <p class="corte-ya-hecho" *ngIf="sinNadaQueCortar">No hay cobros después del último corte de este día.</p>
+
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
         <mat-label>Fondo inicial</mat-label>
-        <input matInput type="number" min="0" step="0.01" formControlName="fondoInicial" />
+        <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="fondoInicial" />
         <span matTextPrefix>$&nbsp;</span>
+        <mat-hint>Lo que había en caja al empezar. Se llena solo con lo que quedó en el último corte.</mat-hint>
       </mat-form-field>
-      <p>
-        Ingresos en efectivo: <strong>{{ formatMoney(ingresosEfectivo) }}</strong>
-      </p>
-      <p>
-        Egresos en efectivo: <strong>{{ formatMoney(egresosEfectivo) }}</strong>
-      </p>
-      <p>
-        Efectivo esperado: <strong>{{ formatMoney(esperado) }}</strong>
-      </p>
-      <p>
-        Diferencia: <strong>{{ formatMoney(diferencia) }}</strong> {{ cuadrado ? '(cuadrada)' : '' }}
-      </p>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Retiro de efectivo (opcional)</mat-label>
+        <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="retiroEfectivo" />
+        <span matTextPrefix>$&nbsp;</span>
+        <mat-hint *ngIf="!retiroMayorQueContado"
+          >Lo que sacas de la caja al cerrar. Quedan {{ formatMoney(fondoSiguiente) }} para el siguiente turno.</mat-hint
+        >
+      </mat-form-field>
+      <p class="corte-error" *ngIf="retiroMayorQueContado">El retiro no puede ser mayor que el efectivo contado.</p>
+
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
         <mat-label>Notas (opcional)</mat-label>
         <textarea matInput rows="2" formControlName="notas"></textarea>
@@ -53,10 +92,10 @@
       color="primary"
       class="btn-primary-teal"
       type="button"
-      [disabled]="loading || yaHayCorte"
+      [disabled]="loading || cargandoDia || sinNadaQueCortar"
       (click)="guardar()"
     >
-      Guardar corte
+      {{ complementario ? 'Guardar corte complementario' : 'Guardar corte' }}
     </button>
   </div>
 </div>

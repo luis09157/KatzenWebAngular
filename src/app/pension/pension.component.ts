@@ -425,7 +425,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
       width: '640px',
       disableClose: true,
       data: {
-        fechaDefault: estancia.fecha_ingreso,
+        // Sin fechaDefault: el cobro va al día en que entra el dinero (hoy), no al del servicio (2026-10-26).
         concepto: conceptoCajaPension(estancia),
         monto: Number(estancia.precio_total) || Number(estancia.precio_dia) || 0,
         metodoPago: 'efectivo' as const,

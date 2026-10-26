@@ -13,7 +13,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -80,7 +80,7 @@ import { SharedModule } from '../shared/shared.module';
     MatCardModule,
     MatTabsModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatMenuModule,
     MatDividerModule,
     MatToolbarModule,

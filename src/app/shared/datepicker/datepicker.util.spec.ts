@@ -3,6 +3,7 @@ import {
   formatLocalDateTimeStamp,
   formatLocalDateToIso,
   formatearFechaLocalEs,
+  parseFechaTecleada,
   parseIsoDateToLocalDate,
 } from './datepicker.util';
 
@@ -46,5 +47,26 @@ describe('datepicker.util (090)', () => {
     expect(formatearFechaLocalEs('01/10/2026')).toBe('01/10/2026');
     expect(formatearFechaLocalEs('10/01/2026')).toBe('10/01/2026');
     expect(formatearFechaLocalEs('26/10/2026')).toBe('26/10/2026');
+  });
+});
+
+describe('parseFechaTecleada (2026-10-26)', () => {
+  const iso = (d: Date | null) => (d ? formatLocalDateToIso(d) : null);
+
+  it('dd/mm/aaaa es día/mes (no mes/día)', () => {
+    expect(iso(parseFechaTecleada('02/10/2026'))).toBe('2026-10-02');
+    expect(iso(parseFechaTecleada('2/10/26'))).toBe('2026-10-02');
+    expect(iso(parseFechaTecleada('25-10-2026'))).toBe('2026-10-25');
+  });
+
+  it('aaaa-mm-dd no se recorre un día por la zona horaria', () => {
+    expect(iso(parseFechaTecleada('2026-10-02'))).toBe('2026-10-02');
+  });
+
+  it('fechas imposibles o texto → null', () => {
+    expect(parseFechaTecleada('31/02/2026')).toBeNull();
+    expect(parseFechaTecleada('13/13/2026')).toBeNull();
+    expect(parseFechaTecleada('mañana')).toBeNull();
+    expect(parseFechaTecleada('')).toBeNull();
   });
 });

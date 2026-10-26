@@ -15,7 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
@@ -46,7 +46,7 @@ import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
     MatDialogModule,
     MatPaginatorModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     AngularFireStorageModule,

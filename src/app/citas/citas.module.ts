@@ -15,7 +15,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { SharedModule } from '../shared/shared.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CitaDialogModule } from './cita-dialog.module';
@@ -42,7 +42,7 @@ import { AltaRapidaDialogModule } from '../alta-rapida/alta-rapida-dialog.module
     MatSelectModule,
     MatAutocompleteModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatTooltipModule,
     SharedModule,
     CitaDialogModule,

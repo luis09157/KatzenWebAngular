@@ -30,10 +30,18 @@ export function yaHayCorteDelDia(
   return (cortes || []).some((c) => !!c && c.activo !== false && String(c.fecha || '').slice(0, 10) === f);
 }
 
-/** Fondo del siguiente turno = efectivo que quedó en el último corte (o 0). */
+/**
+ * Fondo del siguiente turno = lo que quedó en caja en el último corte (o 0).
+ * Si el corte registró retiro, usa `fondoSiguiente` (contado − retiro).
+ */
 export function fondoInicialDesdeUltimoCorte(
   cortes:
-    | Array<Pick<CajaCorte, 'fecha' | 'createdAt' | 'activo' | 'efectivoContado' | 'esperado'> | null | undefined>
+    | Array<
+        | (Pick<CajaCorte, 'fecha' | 'createdAt' | 'activo' | 'efectivoContado' | 'esperado'> &
+            Partial<Pick<CajaCorte, 'fondoSiguiente'>>)
+        | null
+        | undefined
+      >
     | null
     | undefined
 ): number {
@@ -46,6 +54,8 @@ export function fondoInicialDesdeUltimoCorte(
     return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
   });
   const last = activos[0];
+  const queda = Number(last.fondoSiguiente);
+  if (last.fondoSiguiente != null && Number.isFinite(queda) && queda >= 0) return Math.round(queda * 100) / 100;
   const n = Number(last.efectivoContado);
   if (Number.isFinite(n) && n >= 0) return Math.round(n * 100) / 100;
   const esp = Number(last.esperado);

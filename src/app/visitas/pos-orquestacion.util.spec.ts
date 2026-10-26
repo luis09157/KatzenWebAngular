@@ -205,6 +205,37 @@ describe('pos-orquestacion (spec 079)', () => {
       expect(r.pagadoAcc).toBe(100);
     });
 
+    it('cobro: el movimiento de caja usa el día del pago, no el del ticket', async () => {
+      const fechas: string[] = [];
+      const conceptos: string[] = [];
+      await ejecutarFlujoCobro(
+        {
+          partes: [{ metodo: 'efectivo', monto: 10 }],
+          montoPago: 10,
+          saldoAntes: 10,
+          lineas: [{ categoria: 'consulta' }],
+          fecha: '2026-10-24',
+          fechaPago: '2026-10-26',
+          cliente: 'Ana',
+          clienteId: 'c1',
+          modoMostrador: false,
+        },
+        {
+          persistir: async () => 'v1',
+          getVisita: async () => ({ cajaMovimientoIds: [], pagado: 0 }),
+          crearMovimiento: async (data) => {
+            fechas.push(data.fecha);
+            conceptos.push(data.concepto);
+            return 'm1';
+          },
+          actualizarVisita: async () => undefined,
+          asignarFolioSiFalta: async () => '',
+        }
+      );
+      expect(fechas).toEqual(['2026-10-26']);
+      expect(conceptos[0]).toContain('Ticket 2026-10-24');
+    });
+
     it('cobro: falla si visita desaparece tras persistir', async () => {
       await expectAsync(
         ejecutarFlujoCobro(

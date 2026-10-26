@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -32,7 +32,7 @@ import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dia
     MatIconModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
     MatTooltipModule,

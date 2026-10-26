@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from './datepicker/katzen-date-adapter';
 
 import { DiagnosticosService } from './diagnosticos.service';
 import { TratamientosService } from './tratamientos.service';
@@ -78,7 +78,7 @@ import { RouterModule } from '@angular/router';
     MatButtonToggleModule,
     MatAutocompleteModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatCardModule,
     MatMenuModule,
     RouterModule,
@@ -123,7 +123,7 @@ import { RouterModule } from '@angular/router';
     MatCardModule,
     MatMenuModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     RouterModule,
   ],
 })

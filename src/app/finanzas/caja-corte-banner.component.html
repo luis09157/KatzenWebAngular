@@ -1,7 +1,13 @@
 <aside class="caja-corte-banner" *ngIf="visible" role="status">
   <div class="caja-corte-banner__text">
-    <strong>Hacer corte de caja</strong>
-    <p>Hay un turno abierto. Cuenta el efectivo y cierra el día.</p>
+    <strong>{{ complementario ? 'Hay cobros después del corte' : 'Hacer corte de caja' }}</strong>
+    <p>
+      {{
+        complementario
+          ? 'Entró dinero después del corte de hoy. Haz un corte complementario para que cuadre.'
+          : 'Hay un turno abierto. Cuenta el efectivo y cierra el día.'
+      }}
+    </p>
   </div>
   <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirCorte()">
     <mat-icon>point_of_sale</mat-icon>

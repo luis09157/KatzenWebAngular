@@ -27,7 +27,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { KatzenDateModule } from '../shared/datepicker/katzen-date-adapter';
 
 // Componentes
 import { ProductosComponent } from './productos/productos.component';
@@ -91,7 +91,7 @@ import { SalidaDialogModule } from './movimientos/salida-dialog.module';
     AngularFireStorageModule,
     MatBadgeModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    KatzenDateModule,
     MatAutocompleteModule,
     MatMenuModule,
     MatDividerModule,

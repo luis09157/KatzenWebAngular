@@ -82,3 +82,16 @@ export function dedupeRowsById<T extends { id?: string }>(rows: T[]): T[] {
   }
   return [...map.values()];
 }
+
+/**
+ * Quita propiedades `undefined` (primer nivel) antes de `push`/`set`/`update` en RTDB.
+ * Firebase rechaza el objeto completo si una propiedad es `undefined`
+ * (bug 2026-10-26: «Guardar corte» fallaba con Notas vacías).
+ */
+export function sinUndefined<T extends object>(row: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return out as T;
+}
