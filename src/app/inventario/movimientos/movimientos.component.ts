@@ -17,8 +17,15 @@ import { MovimientoDetalleDialogComponent } from './movimiento-detalle-dialog.co
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
-import { UsuariosService } from '../../usuarios/usuarios.service';
-import { cantidadConUnidad, motivoMovimientoTexto, nombreResponsable } from '../inventario-textos.util';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import {
+  cantidadConUnidad,
+  mapaNombresStaff,
+  motivoMovimientoTexto,
+  nombreResponsable,
+  stockAntesDespuesTexto,
+} from '../inventario-textos.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -87,7 +94,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     private logger: LoggerService,
     private authProfile: AuthProfileService,
     private router: Router,
-    private usuariosService: UsuariosService
+    private db: AngularFireDatabase,
+    private afAuth: AngularFireAuth
   ) {
     this.dataSource = new MatTableDataSource<Movimiento>([]);
   }
@@ -116,21 +124,36 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * uid → nombre. Datos reales: el registro de staff puede estar bajo su push-id con
+   * `authUid`, y se incluyen los inactivos (alguien que ya no está pudo mover stock).
+   */
   private cargarNombresStaff(): void {
-    this.usuariosService
-      .getUsuarios()
+    this.db
+      .object<Record<string, { nombre?: string; correo?: string; authUid?: string; id?: string }>>('Katzen/Usuarios')
+      .valueChanges()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (usuarios: Array<{ id?: string; nombre?: string; correo?: string }>) => {
-          const m = new Map<string, string>();
-          (usuarios || []).forEach((u) => {
-            const nombre = String(u?.nombre || u?.correo || '').trim();
-            if (u?.id && nombre) m.set(u.id, nombre);
-          });
-          this.nombresStaff = m;
+        next: (usuarios) => {
+          this.nombresStaff = mapaNombresStaff(usuarios);
+          void this.agregarUsuarioActual();
         },
-        error: () => (this.nombresStaff = new Map()),
+        error: () => void this.agregarUsuarioActual(),
       });
+  }
+
+  /** El dueño (super admin) no siempre está en Usuarios: se muestra «Tú». */
+  private async agregarUsuarioActual(): Promise<void> {
+    try {
+      const user = await this.afAuth.currentUser;
+      if (user?.uid && !this.nombresStaff.has(user.uid)) {
+        const m = new Map(this.nombresStaff);
+        m.set(user.uid, 'Tú');
+        this.nombresStaff = m;
+      }
+    } catch {
+      /* sin sesión: se queda «Otro usuario» */
+    }
   }
 
   getResponsable(m: Movimiento): string {
@@ -144,13 +167,13 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   /** «−2 unidades» / «+10 cajas» (ajuste muestra el stock final). */
   getCantidadTexto(m: Movimiento): string {
     const unidad = this.getProductoUnidad(m.producto_id);
-    if (m.tipo === 'ajuste') return `Quedó en ${cantidadConUnidad(m.cantidad_nueva, unidad)}`;
+    if (m.tipo === 'ajuste') return `Quedó en ${cantidadConUnidad(m.cantidad_nueva ?? m.cantidad, unidad)}`;
     const signo = m.tipo === 'entrada' ? '+' : '−';
     return `${signo}${cantidadConUnidad(m.cantidad, unidad)}`;
   }
 
   getStockTexto(m: Movimiento): string {
-    return `Había ${m.cantidad_anterior ?? '—'} → quedan ${m.cantidad_nueva ?? '—'}`;
+    return stockAntesDespuesTexto(m.cantidad_anterior, m.cantidad_nueva);
   }
 
   cargarDatos(): void {

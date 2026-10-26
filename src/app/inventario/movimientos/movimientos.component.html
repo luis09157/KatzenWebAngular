@@ -134,7 +134,7 @@
                 <strong [style.color]="getTipoColor(movimiento.tipo)">
                   {{ getTipoTexto(movimiento.tipo) }}: {{ getCantidadTexto(movimiento) }}
                 </strong>
-                <span class="cell-sub">{{ getStockTexto(movimiento) }}</span>
+                <span class="cell-sub" *ngIf="getStockTexto(movimiento)">{{ getStockTexto(movimiento) }}</span>
               </div>
             </td>
           </ng-container>

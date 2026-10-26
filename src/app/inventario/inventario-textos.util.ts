@@ -24,6 +24,7 @@ export function motivoMovimientoTexto(motivo: string | null | undefined): string
   if (!t) return '—';
   const key = t.toLowerCase();
   if (MOTIVOS[key]) return MOTIVOS[key];
+  if (/^migraci[oó]n eleventa/.test(key)) return 'Carga inicial desde Eleventa';
   if (/^[a-z0-9]+(_[a-z0-9]+)+$/.test(key)) {
     const s = key.replace(/_/g, ' ');
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -61,4 +62,31 @@ export function nombreResponsable(uid: string | null | undefined, usuarios: Read
   const id = String(uid || '').trim();
   if (!id) return 'Sistema';
   return usuarios.get(id) || (id.includes('@') ? id : 'Otro usuario');
+}
+
+/**
+ * Mapa uid → nombre desde `Katzen/Usuarios` (incluye inactivos). Indexa por la llave,
+ * `authUid` e `id`, porque en datos reales el registro puede estar bajo un push-id.
+ */
+export function mapaNombresStaff(
+  usuarios: Record<string, { nombre?: string; correo?: string; authUid?: string; id?: string } | null> | null | undefined
+): Map<string, string> {
+  const m = new Map<string, string>();
+  Object.entries(usuarios || {}).forEach(([key, u]) => {
+    const nombre = String(u?.nombre || u?.correo || '').trim();
+    if (!nombre) return;
+    [key, u?.authUid, u?.id].forEach((id) => {
+      const k = String(id || '').trim();
+      if (k && !m.has(k)) m.set(k, nombre);
+    });
+  });
+  return m;
+}
+
+/** «Había 3 → quedan 2»; vacío si el movimiento no guardó el stock (ej. carga de Eleventa). */
+export function stockAntesDespuesTexto(antes: number | null | undefined, despues: number | null | undefined): string {
+  const a = antes === null || antes === undefined || antes === ('' as unknown) ? null : Number(antes);
+  const d = despues === null || despues === undefined || despues === ('' as unknown) ? null : Number(despues);
+  if (a === null && d === null) return '';
+  return `Había ${a ?? '—'} → quedan ${d ?? '—'}`;
 }
