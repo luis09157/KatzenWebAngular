@@ -90,3 +90,10 @@ export function stockAntesDespuesTexto(antes: number | null | undefined, despues
   if (a === null && d === null) return '';
   return `Había ${a ?? '—'} → quedan ${d ?? '—'}`;
 }
+
+/** Corrige cantidades dentro de un texto ya guardado: «(0 unidad)» → «(0 unidades)». */
+export function pluralizarCantidadesEnTexto(texto: string | null | undefined): string {
+  return String(texto || '').replace(/\((\d+(?:\.\d+)?) ([a-záéíóú]+)\)/gi, (_m, n: string, u: string) =>
+    `(${cantidadConUnidad(Number(n), u)})`
+  );
+}

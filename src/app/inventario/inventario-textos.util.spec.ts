@@ -3,6 +3,7 @@ import {
   mapaNombresStaff,
   motivoMovimientoTexto,
   nombreResponsable,
+  pluralizarCantidadesEnTexto,
   stockAntesDespuesTexto,
 } from './inventario-textos.util';
 
@@ -48,5 +49,10 @@ describe('inventario-textos.util', () => {
   it('stock antes/después: vacío si no se guardó', () => {
     expect(stockAntesDespuesTexto(3, 2)).toBe('Había 3 → quedan 2');
     expect(stockAntesDespuesTexto(undefined, undefined)).toBe('');
+  });
+
+  it('pluraliza cantidades en mensajes guardados', () => {
+    expect(pluralizarCantidadesEnTexto('Stock bajo: Biberon (0 unidad)')).toBe('Stock bajo: Biberon (0 unidades)');
+    expect(pluralizarCantidadesEnTexto('Stock bajo: X (1 caja)')).toBe('Stock bajo: X (1 caja)');
   });
 });

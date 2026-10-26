@@ -82,6 +82,10 @@ export class CajaMovimientoDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  get esGasto(): boolean {
+    return this.form.get('tipo')?.value === 'egreso';
+  }
+
   get categoriasDisponibles(): CajaCategoria[] {
     const tipo = this.form.get('tipo')?.value as CajaTipoMovimiento;
     return tipo === 'egreso' ? CAJA_CATEGORIAS_EGRESO : CAJA_CATEGORIAS_INGRESO;

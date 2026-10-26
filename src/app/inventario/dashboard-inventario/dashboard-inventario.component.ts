@@ -16,6 +16,7 @@ import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 import { ServiciosEnInventarioService } from '../servicios-en-inventario.service';
 import { etiquetaCategoriaProducto } from '../productos/producto-identificacion.util';
+import { pluralizarCantidadesEnTexto } from '../inventario-textos.util';
 import { ServiciosEnInventarioDialogComponent } from '../servicios-en-inventario/servicios-en-inventario-dialog.component';
 
 @Component({
@@ -52,6 +53,11 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
 
   get alertasPreview(): Alerta[] {
     return this.alertas.slice(0, this.alertasPreviewLimit);
+  }
+
+  /** Mensajes guardados como «(0 unidad)» → «(0 unidades)». */
+  mensajeAlerta(alerta: Alerta): string {
+    return pluralizarCantidadesEnTexto(alerta?.mensaje);
   }
 
   etiquetaCategoria(categoria: string): string {

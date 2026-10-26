@@ -101,11 +101,11 @@
               {{ alertasActivasCount }} aviso{{ alertasActivasCount === 1 ? '' : 's' }} de inventario
             </p>
             <p class="alertas-resumen__hint">
-              <span *ngIf="alertasStockBajoCount">{{ alertasStockBajoCount }} stock bajo</span>
+              <span *ngIf="alertasStockBajoCount">{{ alertasStockBajoCount }} se están acabando</span>
               <span *ngIf="alertasStockBajoCount && alertasCaducarCount"> · </span>
-              <span *ngIf="alertasCaducarCount">{{ alertasCaducarCount }} caducidad</span>
-              <span *ngIf="!alertasStockBajoCount && !alertasCaducarCount">Requieren revisión</span>
-              . Ábrelas en Alertas para ver la lista completa.
+              <span *ngIf="alertasCaducarCount">{{ alertasCaducarCount }} por caducar</span>
+              <span *ngIf="!alertasStockBajoCount && !alertasCaducarCount">Requieren revisión</span>.
+              La lista completa está en Alertas.
             </p>
           </div>
         </div>
@@ -129,7 +129,7 @@
           [class.admin-dense-row--alta]="alerta.prioridad === 'alta'"
         >
           <div class="admin-dense-row__body">
-            <p class="admin-dense-row__title" [attr.title]="alerta.mensaje">{{ alerta.mensaje }}</p>
+            <p class="admin-dense-row__title" [attr.title]="mensajeAlerta(alerta)">{{ mensajeAlerta(alerta) }}</p>
             <p class="admin-dense-row__meta">{{ alerta.fecha_alerta | date: 'short' }}</p>
           </div>
         </li>
@@ -162,28 +162,28 @@
         accent="orange"
         [value]="estadisticas?.total_productos || 0"
         label="Total productos"
-        hint="Catálogo activo"
+        hint="En el catálogo"
       >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="blue"
         [value]="formatMoney(estadisticas?.invertido_costo ?? estadisticas?.valor_total_inventario)"
-        label="Invertido (a costo)"
-        hint="Stock × precio compra"
+        label="Lo que te costó"
+        hint="Lo que hay × precio de compra"
       >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="green"
         [value]="formatMoney(estadisticas?.valor_precio_venta)"
-        label="Valor a precio venta"
-        hint="Stock × precio venta"
+        label="Si vendes todo"
+        hint="Lo que hay × precio de venta"
       >
       </app-admin-stat-card>
       <app-admin-stat-card
         accent="teal"
         [value]="formatMoney(estadisticas?.margen_potencial)"
-        label="Margen potencial"
-        hint="Venta − costo (no es caja)"
+        label="Ganancia posible"
+        hint="Si vendes todo (no es dinero en caja)"
       >
       </app-admin-stat-card>
     </app-admin-kpi-grid>

@@ -699,31 +699,31 @@
       </mat-tab>
     </mat-tab-group>
 
-    <p class="section-eyebrow">Finanzas de la clínica</p>
+    <p class="section-eyebrow">Resumen del periodo</p>
     <app-admin-kpi-grid>
       <app-admin-stat-card
         accent="green"
         [value]="formatMoney(kpis.neto)"
-        label="Neto caja"
-        hint="Ingresos − egresos"
+        label="Te quedó"
+        hint="Lo que entró menos los gastos"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="teal"
         [value]="formatMoney(kpis.totalIngresos)"
-        label="Ingresos"
-        hint="Cobros del período"
+        label="Entró"
+        hint="Todo lo cobrado"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="blue"
         [value]="formatMoney(kpis.margenEstimado)"
-        label="Margen estimado"
-        hint="Solo cobros con costo · sin costo → no entra aquí"
+        label="Ganancia aproximada"
+        hint="Solo de lo que tiene costo capturado"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="orange"
         [value]="formatMoney(kpis.totalEgresos)"
         label="Gastos"
-        hint="Egresos del período"
+        hint="Gastos registrados"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
   </ng-container>
