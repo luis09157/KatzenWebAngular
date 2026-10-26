@@ -12,10 +12,6 @@
       subtitle="Catálogo, entradas, movimientos y compras. Las alertas se revisan aparte."
     >
       <div bannerActions>
-        <button mat-stroked-button type="button" (click)="irAProductos()">
-          <mat-icon>list</mat-icon>
-          Ver productos
-        </button>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="registrarEntrada()">
           <mat-icon>add_circle</mat-icon>
           Nueva entrada
@@ -146,10 +142,9 @@
           </div>
         </div>
       </div>
-      <div class="panel-footer-actions" *ngIf="productosBajoStock.length > productosBajoStockPreview.length">
-        <button mat-stroked-button type="button" (click)="irAProductos()">Ver productos</button>
-        <button mat-button color="primary" type="button" (click)="verAlertas()">Ir a alertas</button>
-      </div>
+      <p class="panel-footer-hint cell-sub" *ngIf="productosBajoStock.length > productosBajoStockPreview.length">
+        Hay {{ productosBajoStock.length - productosBajoStockPreview.length }} más. Ábrelos en Alertas.
+      </p>
     </app-admin-data-panel>
 
     <app-admin-data-panel
