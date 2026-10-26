@@ -22,6 +22,19 @@ export interface PrecioAnteriorBanio {
   mismoServicio: boolean;
 }
 
+/** Tipos viejos que equivalen a los nuevos (baños de 2024 usan los nombres anteriores). */
+const EQUIVALENTES: Record<string, string> = {
+  'baño_básico': 'baño',
+  'baño_completo': 'baño_con_corte',
+  corte_pelo: 'baño_con_corte',
+  deslanado: 'baño_con_deslanado',
+};
+
+function tipoCanonico(t: string | null | undefined): string {
+  const v = String(t || '');
+  return EQUIVALENTES[v] || v;
+}
+
 function fechaDe(b: BanioConPrecio): string {
   return normalizeFechaIso(b.fecha_banio || '') || normalizeFechaIso(b.created_at || '') || '';
 }
@@ -41,8 +54,8 @@ export function precioAnteriorBanio(
     )
     .sort((a, b) => fechaDe(b).localeCompare(fechaDe(a)));
   if (!validos.length) return null;
-  const tipo = String(opts.tipoServicio || '');
-  const mismo = tipo ? validos.find((b) => String(b.tipo_servicio || '') === tipo) : undefined;
+  const tipo = tipoCanonico(opts.tipoServicio);
+  const mismo = tipo ? validos.find((b) => tipoCanonico(b.tipo_servicio) === tipo) : undefined;
   const elegido = mismo || validos[0];
   return {
     precio: Math.round(Number(elegido.precio_total) * 100) / 100,

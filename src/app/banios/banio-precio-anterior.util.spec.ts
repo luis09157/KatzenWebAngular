@@ -28,4 +28,13 @@ describe('precioAnteriorBanio (2026-10-26)', () => {
     expect(precioAnteriorBanio([{ precio_total: 0 }])).toBeNull();
     expect(precioAnteriorBanio(banios, { tipoServicio: 'baño_con_corte', excluirId: 'b' })?.precio).toBe(300);
   });
+
+  it('los tipos viejos cuentan como el mismo servicio', () => {
+    const viejos = [
+      { tipo_servicio: 'baño_básico', precio_total: 230, fecha_banio: '2024-07-02' },
+      { tipo_servicio: 'baño_completo', precio_total: 300, fecha_banio: '2024-07-23' },
+    ];
+    expect(precioAnteriorBanio(viejos, { tipoServicio: 'baño' })?.precio).toBe(230);
+    expect(precioAnteriorBanio(viejos, { tipoServicio: 'baño_con_corte' })?.precio).toBe(300);
+  });
 });
