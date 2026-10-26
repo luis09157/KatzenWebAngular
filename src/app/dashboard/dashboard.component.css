@@ -154,9 +154,41 @@ button.calendar-day {
   color: inherit;
 }
 
-.calendario-cita-row:hover .cell-primary strong {
+.calendario-cita-row:hover .agenda-nombre {
   color: #0a969b;
   text-decoration: underline;
+}
+
+.agenda-tipo {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  vertical-align: middle;
+  text-decoration: none;
+}
+
+.calendario-cita-row:hover .agenda-tipo {
+  text-decoration: none;
+}
+
+.agenda-tipo--cita {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.agenda-tipo--peluqueria {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.agenda-tipo--pension {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .day-number {

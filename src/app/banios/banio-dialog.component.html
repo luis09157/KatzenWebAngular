@@ -66,6 +66,7 @@
             formControlName="fecha_banio"
             readonly
             (click)="pickerFecha.open()"
+            (dateChange)="fijarFechaBanio($event)"
           />
           <mat-datepicker-toggle matIconSuffix [for]="pickerFecha"></mat-datepicker-toggle>
           <mat-datepicker #pickerFecha></mat-datepicker>

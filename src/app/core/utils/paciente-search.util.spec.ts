@@ -4,6 +4,7 @@ import {
   displayPacienteAutocompleteValue,
   filtrarPacientesPickerDual,
   filtrarPacientesPorTexto,
+  getPacienteBusquedaExpedienteLabel,
   getPacienteDisplayLabel,
   getPacienteNombre,
   getPacientePickerOptionLabel,
@@ -64,6 +65,33 @@ describe('paciente-search.util picker dual (spec 085)', () => {
     expect(label).toContain('Doméstico');
     expect(label).toContain('Edad no registrada');
     expect(label).not.toContain('Niño');
+  });
+
+  it('búsqueda de expediente agrega el dueño al texto de raza y edad', () => {
+    const dueno = getClienteNombreCompleto(luis);
+    const label = getPacienteBusquedaExpedienteLabel(oreon, dueno);
+    expect(label).toBe(`${getPacientePickerRazaEdadLabel(oreon)} · ${dueno}`);
+    expect(label).toContain('Oreon');
+    expect(label).toContain('Felino');
+    expect(label).toContain('Doméstico');
+    expect(label).not.toContain('undefined');
+  });
+
+  it('sin raza, sin edad o sin dueño no escribe undefined', () => {
+    const incompleto = hydratePaciente('sin-datos', {
+      ...MOCK_MASCOTA_OREON,
+      raza: '',
+      edad: '',
+      especie: '',
+    });
+    const conDueno = getPacienteBusquedaExpedienteLabel(incompleto, 'Enrique Oría Venegas');
+    expect(conDueno).toContain('Oreon');
+    expect(conDueno).toContain('Sin especie');
+    expect(conDueno).toContain('Sin raza');
+    expect(conDueno).toContain('Edad no registrada');
+    expect(conDueno).toContain('Enrique Oría Venegas');
+    expect(conDueno).not.toContain('undefined');
+    expect(getPacienteBusquedaExpedienteLabel(oreon, '   ')).toBe(getPacientePickerRazaEdadLabel(oreon));
   });
 
   it('displayWith autocomplete: objeto Paciente o string de tipado', () => {

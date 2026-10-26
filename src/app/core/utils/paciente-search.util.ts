@@ -98,6 +98,20 @@ export function getPacientePickerRazaEdadLabel(paciente: Paciente | null | undef
 }
 
 /**
+ * Buscar paciente: el mismo texto de peluquería (nombre — especie · raza · edad)
+ * y, si hay, el dueño al final. Sin dueño deja solo raza y edad.
+ */
+export function getPacienteBusquedaExpedienteLabel(
+  paciente: Paciente | null | undefined,
+  nombreDueno?: string
+): string {
+  const detalle = getPacientePickerRazaEdadLabel(paciente);
+  if (!detalle) return '';
+  const dueno = String(nombreDueno || '').trim();
+  return dueno ? `${detalle} · ${dueno}` : detalle;
+}
+
+/**
  * Filtro del picker con búsqueda dual:
  * - Con dueño elegido → mascotas de ese cliente (texto opcional).
  * - Sin dueño → busca en todas las activas por nombre/dueño (query vacío → []).

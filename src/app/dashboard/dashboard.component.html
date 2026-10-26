@@ -81,7 +81,7 @@
         id="calendario-citas"
         accent="teal"
         title="Agenda del mes"
-        description="Clic en un día para ver sus citas. Clic en una cita para abrir el detalle."
+        description="Clic en un día para ver citas, peluquería y pensión."
         [showLegend]="false"
       >
         <div class="calendar-toolbar">
@@ -106,7 +106,7 @@
             <div class="weekday">Sáb</div>
           </div>
 
-          <div class="calendar-grid" role="grid" aria-label="Calendario de citas">
+          <div class="calendar-grid" role="grid" aria-label="Agenda del mes">
             <button
               type="button"
               *ngFor="let day of calendarDays"
@@ -119,15 +119,17 @@
               (click)="selectCalendarDay(day)"
               (dblclick)="showCitasForDay(day)"
               [attr.aria-label]="
-                day.isCurrentMonth ? 'Día ' + day.day + (day.hasCitas ? ', ' + day.citas.length + ' citas' : '') : null
+                day.isCurrentMonth
+                  ? 'Día ' + day.day + (day.eventos.length ? ', ' + day.eventos.length + ' en agenda' : '')
+                  : null
               "
-              [matTooltip]="day.hasCitas ? day.citas.length + ' cita(s) — clic para ver' : ''"
+              [matTooltip]="day.eventos.length ? day.eventos.length + ' en agenda — clic para ver' : ''"
               matTooltipPosition="above"
             >
               <span class="day-number">{{ day.day }}</span>
-              <span *ngIf="day.hasCitas" class="citas-indicator" aria-hidden="true">
+              <span *ngIf="day.eventos.length" class="citas-indicator" aria-hidden="true">
                 <span class="citas-dot"></span>
-                <span class="citas-count">{{ day.citas.length }}</span>
+                <span class="citas-count">{{ day.eventos.length }}</span>
               </span>
             </button>
           </div>
@@ -142,24 +144,28 @@
             <a mat-stroked-button routerLink="/admin/citas">Abrir citas</a>
           </div>
 
-          <ul class="citas-hoy-list" *ngIf="selectedDayCitas.length">
-            <li *ngFor="let cita of selectedDayCitas">
-              <button type="button" class="calendario-cita-row" (click)="verDetalleCita(cita)">
+          <ul class="citas-hoy-list" *ngIf="selectedDayEventos.length">
+            <li *ngFor="let ev of selectedDayEventos">
+              <button type="button" class="calendario-cita-row" (click)="abrirEventoAgenda(ev)">
                 <div class="cell-primary">
-                  <strong>{{ pacientesMap[cita.paciente_id || ''] || cita.paciente || 'Mascota' }}</strong>
+                  <strong>
+                    <span class="agenda-tipo" [ngClass]="'agenda-tipo--' + ev.tipo">{{ etiquetaAgenda(ev.tipo) }}</span>
+                    <span class="agenda-nombre">{{ mascotaAgenda(ev) }}</span>
+                  </strong>
                   <span class="cell-sub"
-                    >{{ clientesMap[cita.cliente_id || ''] || cita.cliente || 'Dueño' }} · {{ horaCita(cita) }}</span
+                    >{{ duenoAgenda(ev) }}<ng-container *ngIf="horaAgenda(ev) as hora"> · {{ hora }}</ng-container></span
                   >
                 </div>
               </button>
               <button
+                *ngIf="ev.tipo === 'cita'"
                 mat-raised-button
                 color="primary"
                 class="btn-primary-teal hoy-atender-btn"
                 type="button"
-                [disabled]="!puedeAtender(cita)"
-                [matTooltip]="puedeAtender(cita) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
-                (click)="atenderCita(cita)"
+                [disabled]="!puedeAtender(ev.cita || null)"
+                [matTooltip]="puedeAtender(ev.cita || null) ? 'Abrir expediente' : tooltipAtenderSinPaciente"
+                (click)="atenderCita(ev.cita || null)"
               >
                 Atender
               </button>
@@ -167,9 +173,9 @@
           </ul>
 
           <app-admin-empty-state
-            *ngIf="!loading && !selectedDayCitas.length"
+            *ngIf="!loading && !selectedDayEventos.length"
             icon="event_available"
-            title="Sin citas este día"
+            title="Sin agenda este día"
             message="Si acaba de llegar alguien, regístralo aquí. También puedes agendar desde Citas."
             actionLabel="Llegó un paciente"
             (action)="llegoUnPaciente()"

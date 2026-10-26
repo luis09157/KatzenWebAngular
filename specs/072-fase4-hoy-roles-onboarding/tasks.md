@@ -128,3 +128,14 @@ Luis: debajo de Clínica / POS / Inventario, ver agenda del mes (antes solo «Ci
 - [x] Unit `dashboard-calendario.util.spec.ts` — **4/4** SUCCESS
 - [x] `npm run build` — exit 0 · Hash `4e5305744db4abe2` (2026-10-18)
 - [ ] Smoke 375 / 1280 en `/admin/inicio` — pendiente Luis (sesión local)
+
+---
+
+## Follow-up 2026-10-25 — Agenda del mes: citas, peluquería y pensión (L2)
+
+Luis: en el calendario de Hoy, cada día también muestra baños de esa `fecha_banio` y estancias cuyo rango ingreso–salida cubre el día. El contador del punto suma los tres. Clic cita → `verDetalleCita` (Atender intacto). Peluquería → `/admin/banios` (`BanioDetalle` no está en el módulo Hoy). Pensión → `/admin/pension`. No se tocaron listados ni rieles de cobro.
+
+- **Código:** `dashboard-calendario.util.ts` (`buildBaniosMapByDate`, `estanciaCubreDia`, `eventosAgendaDelDia`); `dashboard.component` panel `#calendario-citas`.
+- [ ] Unit `dashboard-calendario.util.spec.ts` — pendiente de corrida
+- [ ] `npm run build` — pendiente
+- [ ] QA Hoy en localhost: día con baño y estancia, cita abre detalle — pendiente

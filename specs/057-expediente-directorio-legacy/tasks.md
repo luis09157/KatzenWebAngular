@@ -140,3 +140,11 @@ ng test 057 utils: TOTAL 12 SUCCESS
 - [x] Validación exhaustiva completada y registrada (sección anterior)
 - [x] `spec.md` estado → `done`
 - [ ] Commit / deploy — solo si el usuario lo pidió
+
+### Follow-up 2026-10-25 — raza y edad en el autocomplete (L2)
+
+- Solo el texto de la opción en Buscar paciente (`/admin/paciente`). Citas y peluquería no cambian.
+- Formato: `Nombre — especie · raza · edad · Dueño`, reutilizando `getPacientePickerRazaEdadLabel`.
+- Código: `getPacienteBusquedaExpedienteLabel` en `paciente-search.util.ts`; la opción en `pacientes.component`.
+- Si falta raza o edad: «Sin raza» / «Edad no registrada». Nunca `undefined`.
+- QA 2026-10-25: util 9/9. `npm run build` exit 0. Localhost, sin guardar: «Oreon — FELINO · ELECTRIKO · 3 años y 7 meses · LUIS NIÑO MARTINEZ». Luna sin fecha: «Edad no registrada».

@@ -82,6 +82,17 @@ export function formatearFechaLocalEs(value: unknown): string {
     }
   }
 
+  // Ya viene en dd/mm/aaaa (listado). `new Date('01/10/2026')` lo lee como mes/día y lo voltea.
+  const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmy) {
+    const day = +dmy[1];
+    const month = +dmy[2];
+    const year = +dmy[3];
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      return toDisplayEs(year, month, day);
+    }
+  }
+
   const parsed = new Date(s);
   if (!Number.isNaN(parsed.getTime())) {
     return toDisplayEs(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());

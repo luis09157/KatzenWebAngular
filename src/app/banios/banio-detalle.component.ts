@@ -112,7 +112,8 @@ export class BanioDetalleComponent {
   getFechaBanio(): string {
     const banio = this.banio;
     // Prioridad: fecha_banio > created_at > updated_at
-    const fechaParaUsar = banio.fecha_banio || banio.created_at || banio.updated_at;
+    const fechaParaUsar =
+      banio.fecha_banio_iso || banio.fecha_banio || banio.created_at || banio.updated_at;
     return this.formatearFecha(fechaParaUsar);
   }
 

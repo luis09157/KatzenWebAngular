@@ -41,4 +41,10 @@ describe('datepicker.util (090)', () => {
     expect(formatearFechaLocalEs('2026-10-18 20:35:42')).toBe('18/10/2026');
     expect(formatearFechaLocalEs(new Date(2026, 9, 19))).toBe('19/10/2026');
   });
+
+  it('formatearFechaLocalEs no voltea un dd/mm/aaaa que ya está armado', () => {
+    expect(formatearFechaLocalEs('01/10/2026')).toBe('01/10/2026');
+    expect(formatearFechaLocalEs('10/01/2026')).toBe('10/01/2026');
+    expect(formatearFechaLocalEs('26/10/2026')).toBe('26/10/2026');
+  });
 });
