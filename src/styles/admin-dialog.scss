@@ -227,6 +227,20 @@
   max-height: none !important;
 }
 
+/*
+ * Bloques del cuerpo: no encogerse (2026-10-26).
+ * Si el cuerpo es flex en columna y la pantalla es baja, el navegador encogía los
+ * bloques con `overflow: hidden` (p. ej. «Expediente clínico» en la ficha) y cortaba
+ * su contenido en vez de dejar hacer scroll. Así el cuerpo es el que hace scroll.
+ * Un bloque que quiera su propio scroll interno puede declarar `flex: 1 1 auto` + `min-height: 0`.
+ */
+.admin-dialog-panel mat-dialog-content > *,
+.admin-dialog-panel .mat-mdc-dialog-content > *,
+.admin-dialog-panel .admin-dialog-body > *,
+.admin-dialog-panel .dialog-content > * {
+  flex-shrink: 0;
+}
+
 .admin-dialog-panel .dialog-content:not(.admin-dialog-body),
 .admin-dialog-panel mat-dialog-content:not(.admin-dialog-body) {
   padding: 24px 28px 28px !important;

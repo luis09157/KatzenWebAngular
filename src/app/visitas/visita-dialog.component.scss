@@ -1532,3 +1532,21 @@
     margin: 2px 0;
   }
 }
+
+/*
+ * Pantallas bajas (laptop, celular acostado) — 2026-10-26.
+ * La rejilla de productos se encogía a ~40px y casi no se veían productos.
+ * En pantallas de 760px de alto o menos, todo el cuerpo hace scroll
+ * (el buscador sigue fijo arriba) en vez de apretar la rejilla.
+ */
+@media (max-height: 760px) {
+  .visita-dialog.visita-dialog--pos .pos-body {
+    overflow-y: auto !important;
+  }
+
+  .visita-dialog.visita-dialog--pos .visita-print-sheet,
+  .visita-dialog.visita-dialog--pos .pos-stage--caja,
+  .visita-dialog.visita-dialog--pos .pos-catalog {
+    min-height: auto;
+  }
+}
