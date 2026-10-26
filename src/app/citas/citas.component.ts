@@ -114,6 +114,21 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     private router: Router
   ) {}
 
+  /** Tarjeta de celular (spec 096): «Atender» si se puede; si no, «Ver detalle». */
+  citaSePuedeAtenderAhora(cita: any): boolean {
+    const estado = String(cita?.estado || '').toLowerCase();
+    return this.puedeAtender(cita) && estado !== 'completada' && estado !== 'cancelada';
+  }
+
+  accionPrincipalCita(cita: any, event?: Event): void {
+    event?.stopPropagation();
+    if (this.citaSePuedeAtenderAhora(cita)) {
+      this.atenderCita(cita);
+      return;
+    }
+    this.verCita(cita);
+  }
+
   puedeAtender(cita: { paciente_id?: string; idPaciente?: string } | null): boolean {
     return puedeAtenderCita(cita);
   }

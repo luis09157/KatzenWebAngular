@@ -44,8 +44,11 @@ Análisis estático de `src/app/**/*.html` (botones agrupados por la acción que
 
 ### F2 — Listados
 
-- [ ] Un «Nuevo …» arriba; secciones vacías solo con texto (Citas, Peluquería, Pensión, Productos, Historiales, Vacunas, Recordatorios).
-- [ ] Fila: máximo 1 acción visible con texto + ⋮ rotulado. Celular: tarjetas (patrón Clientes, spec 095).
+- [x] Un «Nuevo …» arriba; estados vacíos sin el botón repetido (2026-10-25): 28 botones en 19 pantallas. Script: se quitó solo donde la misma acción tiene botón visible en la pantalla.
+- [x] Peluquería (celular): tarjetas con hora, estado, paciente, servicio, dueño, peluquero, precio; **una** acción visible según el momento (Poner precio → Iniciar baño → Listo para cobrar → Ver detalle) + ⋮.
+- [x] Citas (celular): tarjetas; acción visible «Atender» (si tiene paciente y no está completada/cancelada) o «Ver detalle» + ⋮.
+- [ ] Pensión, Historiales, Vacunas, Recordatorios, Productos: tarjetas en celular.
+- [ ] Escritorio: fila con máximo 1 ícono + ⋮ (hoy 4–6 íconos).
 
 ### F3 — Cobrar
 

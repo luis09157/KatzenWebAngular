@@ -65,8 +65,6 @@
         icon="shower"
         title="Aún no hay baños"
         message="Registra un baño con dueño y mascota. Al terminar puedes incluirlo en la cuenta del día para cobrar."
-        actionLabel="Nuevo baño"
-        (action)="abrirModalBanio()"
       >
       </app-admin-empty-state>
 
@@ -87,8 +85,6 @@
             icon="today"
             title="No hay baños de hoy"
             message="Los de mañana se ven abajo. Busca en el historial para otras fechas."
-            actionLabel="Nuevo baño"
-            (action)="abrirModalBanio()"
           >
           </app-admin-empty-state>
           <ng-container
@@ -113,8 +109,6 @@
             icon="event"
             title="No hay baños de mañana"
             message="Programa uno con fecha de mañana o revisa el historial con el buscador."
-            actionLabel="Nuevo baño"
-            (action)="abrirModalBanio()"
           >
           </app-admin-empty-state>
           <ng-container
@@ -143,8 +137,6 @@
             icon="event_available"
             title="No hay baños el lunes"
             message="Programa uno con fecha del lunes o revisa el historial con el buscador."
-            actionLabel="Nuevo baño"
-            (action)="abrirModalBanio()"
           >
           </app-admin-empty-state>
           <ng-container
@@ -432,6 +424,56 @@
           (dblclick)="verBanio(row)"
         ></tr>
       </table>
+    </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="banio-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let banio of ds.connect() | async"
+        class="banio-card"
+        tabindex="0"
+        [attr.aria-label]="'Ver baño de ' + banio.paciente"
+        (click)="verBanio(banio)"
+        (keydown.enter)="verBanio(banio)"
+      >
+        <div class="banio-card__top">
+          <span class="banio-card__hora">{{ banio.hora_banio || '—' }}</span>
+          <span class="estado-badge" [ngClass]="banio.estado | adminEstadoClass">{{ banio.estado_texto }}</span>
+        </div>
+        <h4 class="banio-card__paciente">{{ banio.paciente }}</h4>
+        <p class="banio-card__meta">
+          {{ banio.tipo_servicio_texto }}
+          <ng-container *ngIf="banio.cliente && banio.cliente !== 'N/P'"> · {{ banio.cliente }}</ng-container>
+        </p>
+        <p class="banio-card__meta banio-card__meta--sub">
+          <span *ngIf="banio.peluquero && banio.peluquero !== 'N/P'">{{ banio.peluquero }} · </span>
+          <span *ngIf="faltaPrecio(banio); else precioCard" class="leyenda-cobro leyenda-cobro--falta">Falta el precio</span>
+          <ng-template #precioCard>${{ banio.precio_total | number: '1.0-0' }} · {{ leyendaCobro(banio) }}</ng-template>
+          <span class="banio-card__fecha"> · {{ banio.fecha_banio }}</span>
+        </p>
+        <div class="banio-card__acciones">
+          <button
+            mat-flat-button
+            color="primary"
+            class="btn-primary-teal"
+            type="button"
+            (click)="ejecutarAccionPrincipalBanio(banio, $event)"
+          >
+            <mat-icon>{{ accionPrincipalBanio(banio).icon }}</mat-icon>
+            {{ accionPrincipalBanio(banio).label }}
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            class="banio-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="banioMenu"
+            (click)="menuContext = banio; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
     </div>
   </ng-template>
 
