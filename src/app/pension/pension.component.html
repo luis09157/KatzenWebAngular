@@ -23,7 +23,7 @@
       <app-admin-data-panel
         accent="teal"
         title="Estancias"
-        description="Hoy: activas e ingresos del día. Mañana: ingresos/salidas previstas. Busca para ver el historial."
+        description="Pendientes por defecto: atrasadas, hospedadas hoy, ingresos de mañana y de los próximos días. Usa los botones para ver finalizadas, por cobrar o pagadas."
         [meta]="listadoMeta"
         [showLegend]="todasFilasTieneDatos"
       >
@@ -37,11 +37,17 @@
             placeholder="Paciente, cliente, fecha…"
           />
         </mat-form-field>
-        <p class="listado-hint cell-sub" *ngIf="!modoBusqueda">
-          Activas e ingresos de hoy / mañana. Escribe para consultar el historial.
-        </p>
-        <p class="listado-hint cell-sub" *ngIf="modoBusqueda">
-          Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+        <div class="agenda-filtros-wrap" *ngIf="todasFilasTieneDatos">
+          <app-agenda-filtros
+            [filtro]="agenda.filtro"
+            [cuentas]="agenda.cuentas"
+            [atrasados]="agenda.atrasados"
+            [etiquetas]="agenda.etiquetas"
+            (filtroChange)="cambiarFiltroAgenda($event)"
+          ></app-agenda-filtros>
+        </div>
+        <p class="listado-hint cell-sub" *ngIf="modoBusqueda && agenda.filtro === 'pendientes'">
+          Buscando en todo el historial. Borra el buscador para volver a Pendientes.
         </p>
 
         <app-admin-empty-state
@@ -52,72 +58,57 @@
         >
         </app-admin-empty-state>
 
-        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
-          <section class="listado-seccion listado-seccion--hoy" aria-labelledby="pension-hoy-titulo">
+        <!-- Pendientes: Atrasadas → Hoy → Mañana → Próximos días (2026-10-26) -->
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && vistaSecciones">
+          <section
+            *ngFor="let s of agenda.secciones; trackBy: trackSeccion"
+            class="listado-seccion"
+            [ngClass]="'listado-seccion--' + s.tono"
+            [attr.data-seccion]="s.id"
+          >
             <header class="listado-seccion__header">
-              <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ s.icono }}</mat-icon>
               <div class="listado-seccion__titles">
-                <h3 id="pension-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+                <h3 class="listado-seccion__title">{{ s.tono === 'atrasado' ? 'Atrasadas' : s.titulo }}</h3>
                 <p class="listado-seccion__meta">
-                  {{ dataSourceHoy.data.length }} estancia{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
+                  {{ s.filas.length }} estancia{{ s.filas.length === 1 ? '' : 's' }}
+                  <ng-container *ngIf="s.tono === 'atrasado'"> · ya pasó la fecha de ingreso o de salida</ng-container>
+                  <ng-container *ngIf="s.id === 'hoy'"> · hospedadas e ingresos de hoy</ng-container>
                 </p>
               </div>
             </header>
             <app-admin-empty-state
-              *ngIf="seccionHoyVacia"
-              icon="today"
-              title="Nada activo ni con ingreso hoy"
-              message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
+              *ngIf="!s.filas.length"
+              [icon]="s.icono"
+              [title]="s.id === 'hoy' ? 'Nadie hospedado ni con ingreso hoy' : 'Sin ingresos ni salidas mañana'"
+              message="Las de los próximos días aparecen abajo."
             >
             </app-admin-empty-state>
             <ng-container
-              *ngIf="dataSourceHoy.data.length"
+              *ngIf="s.filas.length"
               [ngTemplateOutlet]="pensionTablaTpl"
-              [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
-            ></ng-container>
-          </section>
-
-          <section class="listado-seccion listado-seccion--manana" aria-labelledby="pension-manana-titulo">
-            <header class="listado-seccion__header">
-              <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
-              <div class="listado-seccion__titles">
-                <h3 id="pension-manana-titulo" class="listado-seccion__title">Mañana</h3>
-                <p class="listado-seccion__meta">
-                  {{ dataSourceManana.data.length }} estancia{{ dataSourceManana.data.length === 1 ? '' : 's' }}
-                </p>
-              </div>
-            </header>
-            <app-admin-empty-state
-              *ngIf="seccionMananaVacia"
-              icon="event"
-              title="Sin ingresos ni salidas de mañana"
-              message="Programa una estancia o revisa el historial con el buscador."
-            >
-            </app-admin-empty-state>
-            <ng-container
-              *ngIf="dataSourceManana.data.length"
-              [ngTemplateOutlet]="pensionTablaTpl"
-              [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+              [ngTemplateOutletContext]="{ $implicit: s.ds }"
             ></ng-container>
           </section>
         </ng-container>
 
-        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && modoBusqueda">
-          <section class="listado-seccion listado-seccion--resultados" aria-labelledby="pension-resultados-titulo">
+        <!-- Finalizadas / Por cobrar / Pagadas / Todas / búsqueda: una sola lista -->
+        <ng-container *ngIf="tablaInicializada && todasFilasTieneDatos && !vistaSecciones">
+          <section class="listado-seccion" [ngClass]="modoBusqueda ? 'listado-seccion--resultados' : 'listado-seccion--filtro'">
             <header class="listado-seccion__header">
-              <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+              <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ modoBusqueda ? 'search' : 'filter_list' }}</mat-icon>
               <div class="listado-seccion__titles">
-                <h3 id="pension-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+                <h3 class="listado-seccion__title">{{ tituloListaPlana }}</h3>
                 <p class="listado-seccion__meta">
-                  {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+                  {{ dataSource.data.length }} estancia{{ dataSource.data.length === 1 ? '' : 's' }}
                 </p>
               </div>
             </header>
             <app-admin-empty-state
-              *ngIf="busquedaSinResultados"
-              icon="search_off"
-              title="Sin coincidencias"
-              message="Prueba otro paciente, cliente o fecha."
+              *ngIf="listaPlanaVacia"
+              [icon]="modoBusqueda ? 'search_off' : 'inbox'"
+              [title]="modoBusqueda ? 'Sin coincidencias' : 'No hay estancias aquí'"
+              [message]="modoBusqueda ? 'Prueba otro paciente, cliente o fecha.' : 'Prueba otro botón de arriba.'"
             >
             </app-admin-empty-state>
             <ng-container
@@ -141,13 +132,27 @@
         accent="teal"
         [value]="ocupacionVisible"
         label="Ocupación"
-        hint="Mascotas en alojamiento activo"
+        hint="Hospedadas ahora · toca para ver"
+        [clickable]="true"
+        (seleccionar)="cambiarFiltroAgenda('pendientes', true)"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="blue"
         [value]="totalReservadas"
         label="Reservadas"
-        hint="Pendientes de check-in"
+        hint="Pendientes de check-in · toca para ver"
+        [clickable]="true"
+        [activo]="agenda.filtro === 'pendientes'"
+        (seleccionar)="cambiarFiltroAgenda('pendientes', true)"
+      ></app-admin-stat-card>
+      <app-admin-stat-card
+        accent="red"
+        [value]="agenda.cuentas.por_cobrar || 0"
+        label="Por cobrar"
+        hint="Finalizadas sin pagar · toca para ver"
+        [clickable]="true"
+        [activo]="agenda.filtro === 'por_cobrar'"
+        (seleccionar)="cambiarFiltroAgenda('por_cobrar', true)"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="green"
@@ -159,7 +164,10 @@
         accent="purple"
         [value]="totalFinalizadas"
         label="Finalizadas"
-        hint="Check-out / cobradas"
+        hint="Check-out hecho · toca para ver"
+        [clickable]="true"
+        [activo]="agenda.filtro === 'hechos'"
+        (seleccionar)="cambiarFiltroAgenda('hechos', true)"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
   </ng-container>

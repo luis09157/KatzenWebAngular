@@ -25,7 +25,7 @@
     <app-admin-data-panel
       accent="purple"
       title="Listado de citas"
-      description="Hoy y mañana por defecto. Busca cliente, paciente, motivo o fecha para ver el historial."
+      description="Pendientes por defecto: atrasadas, hoy, mañana y los próximos días. Usa los botones para ver hechas, por cobrar o pagadas."
       [meta]="listadoMeta"
       [showLegend]="!loading && todasFilasTieneDatos"
     >
@@ -39,11 +39,17 @@
         />
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
-      <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
-        Agenda del día y de mañana. Escribe en el buscador para consultar el historial.
-      </p>
-      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
-        Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      <div class="agenda-filtros-wrap" *ngIf="!loading && todasFilasTieneDatos">
+        <app-agenda-filtros
+          [filtro]="agenda.filtro"
+          [cuentas]="agenda.cuentas"
+          [atrasados]="agenda.atrasados"
+          [etiquetas]="agenda.etiquetas"
+          (filtroChange)="cambiarFiltroAgenda($event)"
+        ></app-agenda-filtros>
+      </div>
+      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda && agenda.filtro === 'pendientes'">
+        Buscando en todo el historial. Borra el buscador para volver a Pendientes.
       </p>
 
       <div *ngIf="loading" class="loading-container">
@@ -59,72 +65,56 @@
       >
       </app-admin-empty-state>
 
-      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
-        <section class="listado-seccion listado-seccion--hoy" aria-labelledby="citas-hoy-titulo">
+      <!-- Pendientes: Atrasados → Hoy → Mañana → Próximos días (2026-10-26) -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && vistaSecciones">
+        <section
+          *ngFor="let s of agenda.secciones; trackBy: trackSeccion"
+          class="listado-seccion"
+          [ngClass]="'listado-seccion--' + s.tono"
+          [attr.data-seccion]="s.id"
+        >
           <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ s.icono }}</mat-icon>
             <div class="listado-seccion__titles">
-              <h3 id="citas-hoy-titulo" class="listado-seccion__title">Hoy</h3>
+              <h3 class="listado-seccion__title">{{ s.titulo }}</h3>
               <p class="listado-seccion__meta">
-                {{ dataSourceHoy.data.length }} cita{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
+                {{ s.filas.length }} cita{{ s.filas.length === 1 ? '' : 's' }}
+                <ng-container *ngIf="s.tono === 'atrasado'"> · ya pasó la fecha: márcalas completadas o canceladas</ng-container>
               </p>
             </div>
           </header>
           <app-admin-empty-state
-            *ngIf="seccionHoyVacia"
-            icon="today"
-            title="No hay citas de hoy"
-            message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
+            *ngIf="!s.filas.length"
+            [icon]="s.icono"
+            [title]="s.id === 'hoy' ? 'No hay citas pendientes hoy' : 'No hay citas pendientes mañana'"
+            message="Las de los próximos días aparecen abajo."
           >
           </app-admin-empty-state>
           <ng-container
-            *ngIf="dataSourceHoy.data.length"
+            *ngIf="s.filas.length"
             [ngTemplateOutlet]="citaTablaTpl"
-            [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
-          ></ng-container>
-        </section>
-
-        <section class="listado-seccion listado-seccion--manana" aria-labelledby="citas-manana-titulo">
-          <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
-            <div class="listado-seccion__titles">
-              <h3 id="citas-manana-titulo" class="listado-seccion__title">Mañana</h3>
-              <p class="listado-seccion__meta">
-                {{ dataSourceManana.data.length }} cita{{ dataSourceManana.data.length === 1 ? '' : 's' }}
-              </p>
-            </div>
-          </header>
-          <app-admin-empty-state
-            *ngIf="seccionMananaVacia"
-            icon="event"
-            title="No hay citas de mañana"
-            message="Agenda una con fecha de mañana o revisa el historial con el buscador."
-          >
-          </app-admin-empty-state>
-          <ng-container
-            *ngIf="dataSourceManana.data.length"
-            [ngTemplateOutlet]="citaTablaTpl"
-            [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
+            [ngTemplateOutletContext]="{ $implicit: s.ds }"
           ></ng-container>
         </section>
       </ng-container>
 
-      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && modoBusqueda">
-        <section class="listado-seccion listado-seccion--resultados" aria-labelledby="citas-resultados-titulo">
+      <!-- Hechos / Por cobrar / Pagados / Todos / búsqueda: una sola lista -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !vistaSecciones">
+        <section class="listado-seccion" [ngClass]="modoBusqueda ? 'listado-seccion--resultados' : 'listado-seccion--filtro'">
           <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ modoBusqueda ? 'search' : 'filter_list' }}</mat-icon>
             <div class="listado-seccion__titles">
-              <h3 id="citas-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+              <h3 class="listado-seccion__title">{{ tituloListaPlana }}</h3>
               <p class="listado-seccion__meta">
-                {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+                {{ dataSource.data.length }} cita{{ dataSource.data.length === 1 ? '' : 's' }}
               </p>
             </div>
           </header>
           <app-admin-empty-state
-            *ngIf="busquedaSinResultados"
-            icon="search_off"
-            title="Sin coincidencias"
-            message="Prueba otro cliente, paciente, motivo o fecha."
+            *ngIf="listaPlanaVacia"
+            [icon]="modoBusqueda ? 'search_off' : 'inbox'"
+            [title]="modoBusqueda ? 'Sin coincidencias' : 'No hay citas aquí'"
+            [message]="modoBusqueda ? 'Prueba otro cliente, paciente, motivo o fecha.' : 'Prueba otro botón de arriba.'"
           >
           </app-admin-empty-state>
           <ng-container
@@ -297,32 +287,39 @@
   <p class="section-eyebrow">Resumen del módulo</p>
   <app-admin-kpi-grid>
     <app-admin-stat-card
+      accent="orange"
+      [value]="agenda.cuentas.pendientes || 0"
+      label="Pendientes"
+      [hint]="agenda.atrasados ? agenda.atrasados + ' atrasadas · toca para ver' : 'Por atender · toca para ver'"
+      [clickable]="true"
+      [activo]="agenda.filtro === 'pendientes'"
+      (seleccionar)="cambiarFiltroAgenda('pendientes', true)"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
       accent="teal"
-      icon="today"
       [value]="getCitasHoy()"
       label="Citas hoy"
       hint="Agenda del día"
+      [clickable]="true"
+      (seleccionar)="cambiarFiltroAgenda('pendientes', true)"
     ></app-admin-stat-card>
     <app-admin-stat-card
-      accent="orange"
-      icon="schedule"
-      [value]="getCitasPendientes()"
-      label="Pendientes"
-      hint="Por confirmar"
-    ></app-admin-stat-card>
-    <app-admin-stat-card
-      accent="blue"
-      icon="check_circle"
-      [value]="getCitasConfirmadas()"
-      label="Confirmadas"
-      hint="Agendadas"
+      accent="red"
+      [value]="agenda.cuentas.por_cobrar || 0"
+      label="Por cobrar"
+      hint="Completadas sin pagar"
+      [clickable]="true"
+      [activo]="agenda.filtro === 'por_cobrar'"
+      (seleccionar)="cambiarFiltroAgenda('por_cobrar', true)"
     ></app-admin-stat-card>
     <app-admin-stat-card
       accent="green"
-      icon="done_all"
-      [value]="getCitasCompletadas()"
+      [value]="agenda.cuentas.hechos || 0"
       label="Completadas"
       hint="Atendidas"
+      [clickable]="true"
+      [activo]="agenda.filtro === 'hechos'"
+      (seleccionar)="cambiarFiltroAgenda('hechos', true)"
     ></app-admin-stat-card>
   </app-admin-kpi-grid>
 
