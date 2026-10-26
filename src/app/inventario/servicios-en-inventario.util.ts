@@ -53,7 +53,8 @@ export interface CandidatoServicioInventario {
 
 const PALABRAS_SERVICIO =
   /ba[ñn]o|consulta|castraci|esteriliz|eutanasia|hospitaliz|profilaxis|ultrasonido|ecograf|radiograf|pensi[oó]n|desparasitaci|aplicaci[oó]n|cirug|curaci|sutura|biometr|ex[aá]men|snap|citolog|hisopado|an[aá]lisis|domicilio|anticipo|vacunaci[oó]n|corte de u[ñn]as|cremaci|servicio|honorario/i;
-const PARECE_PRODUCTO = /espuma|deslanador|shampoo|champ[uú]|cepillo|perfume|collar|correa|\b\d+(\.\d+)?\s?(g|gr|ml|kg|lt|l)\b/i;
+// Gramos/mililitros = presentación de producto. Los kg NO: «(0-10 kg)» es el tamaño de la mascota.
+const PARECE_PRODUCTO = /espuma|deslanador|shampoo|champ[uú]|cepillo|perfume|collar|correa|\b\d+(\.\d+)?\s?(g|gr|ml|lt)\b/i;
 const PRUEBA_O_REVISAR = /^\d+\s*-/;
 const DIAGNOSTICO = /radiograf|ultrason|ecograf|snap|ex[aá]men|biometr|citolog|hisopado|an[aá]lisis|prueba|test/i;
 

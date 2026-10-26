@@ -40,5 +40,6 @@ describe('detectarServiciosEnInventario (2026-10-26)', () => {
     expect(por('Espuma Essentials Baño En Seco 300g')?.sugeridoMover).toBeFalse();
     expect(por('1-Baño')?.sugeridoMover).toBeFalse();
     expect(por('Castración Chica (-10kg)')?.sugeridoMover).toBeTrue();
+    expect(por('Desparasitacion Perro Chico O Gato (0-10 Kg)')?.sugeridoMover).toBeTrue();
   });
 });
