@@ -55,6 +55,9 @@ export const STAFF_MODULES_CLINICO_POS: StaffModule[] = [
   'consentimientos',
 ];
 
+/** Veterinario: lo clínico + POS y el directorio de pacientes (Luis, 2026-10-25). */
+export const STAFF_MODULES_DOCTOR: StaffModule[] = [...STAFF_MODULES_CLINICO_POS, 'pacientes-admin'];
+
 export const STAFF_MODULES_PELUQUERO: StaffModule[] = [
   'inicio',
   'paciente',
@@ -72,7 +75,7 @@ export const STAFF_MODULES_PELUQUERO: StaffModule[] = [
 export const STAFF_MODULE_ACCESS: Record<string, StaffModule[] | '*'> = {
   administrador: '*',
   admin: '*',
-  doctor: STAFF_MODULES_CLINICO_POS,
+  doctor: STAFF_MODULES_DOCTOR,
   recepcionista: STAFF_MODULES_CLINICO_POS,
   peluquero: STAFF_MODULES_PELUQUERO,
   super_admin: '*',
@@ -153,6 +156,7 @@ export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
   peluquero: ['inicio', 'paciente', 'clientes', 'citas', 'banios', 'visitas', 'recordatorios'],
   doctor: [
     'inicio',
+    'pacientes-admin',
     'paciente',
     'citas',
     'visitas',
