@@ -1,8 +1,8 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Subject, combineLatest } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, combineLatest, of } from 'rxjs';
+import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
 import { PortalFcmService } from '../../core/services/portal-fcm.service';
 import { PersonaAvisos, TokenAvisosRow, estadoAvisosPorPersona } from '../../core/utils/avisos-estado.util';
 
@@ -37,15 +37,32 @@ export class AvisosDialogComponent implements OnInit, OnDestroy {
     this.dispositivo = this.fcm.etiquetaDispositivo();
     if (this.data?.verEquipo) {
       this.cargandoEquipo = true;
-      combineLatest([
-        this.db.list<{ nombre?: string; email?: string; activo?: boolean }>('Katzen/Usuarios').snapshotChanges(),
-        this.db.object<Record<string, Record<string, TokenAvisosRow>>>('Katzen/FcmTokens').valueChanges(),
-      ])
-        .pipe(takeUntil(this.destroy$))
+      // Las reglas de RTDB permiten leer `FcmTokens/{uid}` de cada persona, no el nodo completo.
+      this.db
+        .list<{ nombre?: string; email?: string; activo?: boolean }>('Katzen/Usuarios')
+        .snapshotChanges()
+        .pipe(
+          map((rows) => (rows || []).map((c) => ({ id: c.payload.key || '', ...(c.payload.val() || {}) }))),
+          switchMap((usuarios) => {
+            const activos = usuarios.filter((u) => u.id && u.activo !== false);
+            if (!activos.length) return of({ usuarios, tokens: {} as Record<string, Record<string, TokenAvisosRow>> });
+            return combineLatest(
+              activos.map((u) =>
+                this.db
+                  .object<Record<string, TokenAvisosRow>>(`Katzen/FcmTokens/${u.id}`)
+                  .valueChanges()
+                  .pipe(
+                    map((t) => [u.id, t || {}] as const),
+                    catchError(() => of([u.id, {}] as const))
+                  )
+              )
+            ).pipe(map((pares) => ({ usuarios, tokens: Object.fromEntries(pares) })));
+          }),
+          takeUntil(this.destroy$)
+        )
         .subscribe({
-          next: ([usuarios, tokens]) => {
-            const lista = (usuarios || []).map((c) => ({ id: c.payload.key || '', ...(c.payload.val() || {}) }));
-            this.equipo = estadoAvisosPorPersona(lista, tokens || {});
+          next: ({ usuarios, tokens }) => {
+            this.equipo = estadoAvisosPorPersona(usuarios, tokens);
             this.cargandoEquipo = false;
           },
           error: () => {
