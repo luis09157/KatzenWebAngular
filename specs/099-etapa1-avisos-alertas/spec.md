@@ -31,3 +31,16 @@ Revisado: todos los campos de fecha son `readonly` (solo calendario). Nadie pudo
 ## Impacto en RTDB
 
 Aditivo: `Katzen/FcmTokens/{uid}/{key}.dispositivo`. Nada más.
+
+## QA 2026-10-26 (vista previa QA, sin cambiar datos)
+
+- Inventario: «avisos de inventario» 288 → 122 (solo mercancía con mínimo); ya no salen 1-Baño, 2-Baño Y Corte, etc.
+- Menú «Avisos: bloqueados» en el navegador de prueba (permiso denegado) → diálogo explica cómo permitirlos.
+- «Quién recibe avisos»: 1 de 3 (Nancy activo; Brisaida y Verónica sin avisos). Primer intento leía `Katzen/FcmTokens` completo (negado por reglas) → corregido a lectura por persona.
+- Celular 412: diálogo a 400 px, sin scroll horizontal.
+- CI: lint, unit tests (avisos-estado, inventario-alertas, sw-register) y build OK.
+- Pendiente con celular real (Luis/personal): permitir avisos, «Enviar prueba», y confirmar que no llegan duplicados.
+
+## Servicios en inventario (para mover, falta OK de Luis sobre la lista)
+
+66 artículos con stock 0 que son servicios: 31 en Peluquería/Diagnóstico (menos «Espuma Essentials Baño En Seco 300g», que es producto) y 35 en Accesorio/Vacuna (Consulta, Castración, Eutanasia, Hospitalización, Profilaxis, Ultrasonido, Pensión, Desparasitación…). Lista en el plan. No se ha movido nada.
