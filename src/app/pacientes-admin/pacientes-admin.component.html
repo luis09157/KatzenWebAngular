@@ -4,7 +4,7 @@
       accent="teal"
       icon="pets"
       title="Pacientes"
-      subtitle="Alta y ficha de mascotas. Doble clic abre la ficha; el icono de carpeta abre el expediente completo."
+      subtitle="Alta y ficha de mascotas. Toca un paciente (o doble clic en computadora) para ver su ficha; «Ver expediente» abre el expediente completo."
     >
       <div bannerActions>
         <button mat-raised-button color="primary" class="btn-primary-teal" (click)="nuevoPaciente()">
@@ -17,7 +17,7 @@
     <app-admin-data-panel
       accent="teal"
       title="Listado de pacientes"
-      description="Busca por nombre, especie, raza o dueño. Doble clic o Enter abre la ficha. El icono de carpeta abre el expediente clínico completo."
+      description="Busca por nombre, especie, raza o dueño. Toca un paciente para ver su ficha."
       [meta]="
         !loading && dataSource?.data?.length
           ? dataSource.filteredData.length + ' en pantalla · ' + stats.total + ' totales'
@@ -158,6 +158,62 @@
             (keydown)="onFilaKeydown(row, $event)"
           ></tr>
         </table>
+      </div>
+
+      <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096). Misma página y filtro. -->
+      <div class="paciente-cards" *ngIf="!loading && dataSource && dataSource.data.length > 0">
+        <article
+          *ngFor="let paciente of filasPagina$ | async"
+          class="paciente-card"
+          tabindex="0"
+          [attr.aria-label]="'Ficha de ' + (paciente.nombre || 'paciente')"
+          (click)="abrirFicha(paciente, $event)"
+          (keydown.enter)="abrirFicha(paciente, $event)"
+        >
+          <div class="paciente-card__top">
+            <img
+              [src]="paciente.imageUrl || paciente.foto || 'assets/katzen-logo.jpg'"
+              alt=""
+              class="paciente-card__foto"
+              loading="lazy"
+            />
+            <div class="paciente-card__titulo">
+              <h4 class="paciente-card__nombre">{{ paciente.nombre || 'Sin nombre' }}</h4>
+              <p class="paciente-card__meta">{{ paciente.especie || 'N/P' }} · {{ paciente.raza || 'Raza N/P' }}</p>
+            </div>
+            <span class="estado-badge" [ngClass]="paciente.estado | adminEstadoClass">{{
+              paciente.estado || 'Vivo' | titlecase
+            }}</span>
+          </div>
+          <p class="paciente-card__meta">
+            <mat-icon class="paciente-card__icono" aria-hidden="true">person</mat-icon>{{ paciente.nombreCliente || 'Sin dueño' }}
+          </p>
+          <p class="paciente-card__meta paciente-card__meta--sub">
+            {{ edadTexto(paciente.edad) }}<ng-container *ngIf="paciente.peso"> · {{ paciente.peso }} kg</ng-container><ng-container *ngIf="paciente.sexo"> · {{ paciente.sexo }}</ng-container>
+          </p>
+          <div class="paciente-card__acciones">
+            <button
+              mat-flat-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              (click)="abrirExpediente(paciente, $event)"
+            >
+              <mat-icon>folder_shared</mat-icon>
+              Ver expediente
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="paciente-card__mas"
+              aria-label="Más acciones"
+              [matMenuTriggerFor]="rowMenu"
+              (click)="pacienteMenuContext = paciente; $event.stopPropagation()"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </div>
+        </article>
       </div>
 
       <mat-paginator

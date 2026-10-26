@@ -39,6 +39,8 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   ];
   
   dataSource = new MatTableDataSource<any>([]);
+  /** Página actual (mismo filtro y paginador que la tabla) para las tarjetas de celular. */
+  readonly filasPagina$ = this.dataSource.connect();
   pacientes: any[] = [];
   clientes: any[] = [];
   loading = false;
@@ -194,6 +196,12 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  /** Tarjeta de celular: «Edad no registrada» en vez de «N/P». */
+  edadTexto(edad: unknown): string {
+    const e = String(this.calcularEdad(String(edad ?? '')) || '').trim();
+    return !e || /^n\/?[ap]$/i.test(e) ? 'Edad no registrada' : e;
   }
 
   abrirExpediente(paciente: { id?: string }, event?: Event): void {

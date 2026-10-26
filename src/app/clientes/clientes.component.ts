@@ -21,7 +21,11 @@ import {
   ADMIN_DIALOG_FORM,
 } from '../core/config/admin-ui.config';
 import { filtrarClientes, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
-import { calcularClienteEstadisticas, calcularClientesConPacientes } from '../core/utils/entity-stats.util';
+import {
+  calcularClienteEstadisticas,
+  calcularClientesConPacientes,
+  calcularPacienteEstadisticas,
+} from '../core/utils/entity-stats.util';
 import { FirebaseFunctionsService } from '../core/services/firebase-functions.service';
 import { LOADING_MESSAGES } from '../core/loading.service';
 import { ClienteCuentaDialogComponent } from '../visitas/cliente-cuenta-dialog.component';
@@ -172,11 +176,14 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     const sucursalId = this.sucursalContext.getSelectedId();
     forkJoin({
       clientes: this.clientesService.getClientes().pipe(take(1)),
-      pacientes: this.pacientesService.getEstadisticas(sucursalId).pipe(take(1)),
+      listaPacientes: this.pacientesService.getPacientes().pipe(take(1)),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ clientes, pacientes }) => {
+        next: ({ clientes, listaPacientes }) => {
+          // Una sola lectura de mascotas: estadísticas + nombres por cliente (tarjeta de celular).
+          const pacientes = calcularPacienteEstadisticas(listaPacientes || [], sucursalId);
+          this.mascotasPorCliente = agruparMascotasPorCliente(listaPacientes || []);
           const stats = calcularClienteEstadisticas(clientes, sucursalId);
           this.totalClientes = stats.total;
           this.clientesConCorreo = stats.conCorreo;
@@ -323,6 +330,13 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
       return 'estado-badge--neutral';
     }
     return 'estado-badge--info';
+  }
+
+  /** clienteId → nombres de sus mascotas activas (tarjeta de celular). */
+  mascotasPorCliente: Record<string, string[]> = {};
+
+  mascotasDeCliente(cliente: { id?: string }): string[] {
+    return (cliente?.id && this.mascotasPorCliente[cliente.id]) || [];
   }
 
   /** Enlace para llamar desde el celular; vacío si no hay un número usable. */
@@ -791,4 +805,19 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
           });
       });
   }
+}
+
+/** Agrupa nombres de mascotas activas por dueño (`cliente_id` o legado `idCliente`). */
+export function agruparMascotasPorCliente(
+  pacientes: Array<{ cliente_id?: string; idCliente?: string; nombre?: string; activo?: boolean }>
+): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  for (const p of pacientes || []) {
+    if (!p || p.activo === false) continue;
+    const id = p.cliente_id || p.idCliente;
+    if (!id) continue;
+    (map[id] ||= []).push(String(p.nombre || 'Sin nombre').trim());
+  }
+  for (const id of Object.keys(map)) map[id].sort((a, b) => a.localeCompare(b, 'es'));
+  return map;
 }

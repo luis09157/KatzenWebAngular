@@ -153,6 +153,24 @@
     }
   }
 
+  .cliente-card__dato {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    font-size: 0.875rem;
+    color: #374151;
+    overflow-wrap: anywhere;
+
+    mat-icon {
+      flex: 0 0 auto;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #6b7280;
+    }
+  }
+
   .cliente-card__exp {
     font-size: 0.8125rem;
     color: #6b7280;
@@ -174,11 +192,6 @@
       padding: 0 10px;
       white-space: nowrap;
       letter-spacing: 0.01em;
-    }
-
-    /* «Cuenta del día» cabe en una línea sin el ícono en pantallas de ~400px. */
-    .cliente-card__cuenta mat-icon {
-      display: none;
     }
 
     .cliente-card__mas {
