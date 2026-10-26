@@ -11,6 +11,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { CajaMovimientoDialogComponent } from './caja-movimiento-dialog.component';
 import { CajaCorteDialogComponent } from './caja-corte-dialog.component';
 import { CajaCorteBannerComponent } from './caja-corte-banner.component';
+// Trae app-datepicker-field (sin esto la Fecha no se veía en Corte ni en Registrar cobro — 2026-10-26).
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [CajaMovimientoDialogComponent, CajaCorteDialogComponent, CajaCorteBannerComponent],
@@ -24,6 +26,7 @@ import { CajaCorteBannerComponent } from './caja-corte-banner.component';
     MatCheckboxModule,
     MatButtonModule,
     MatIconModule,
+    SharedModule,
   ],
   exports: [CajaMovimientoDialogComponent, CajaCorteDialogComponent, CajaCorteBannerComponent],
 })
