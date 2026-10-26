@@ -49,8 +49,6 @@
           icon="hotel"
           title="Sin estancias de pensión"
           message="Registra check-in y check-out aquí. Al finalizar, agrega la estancia al ticket del día para cobrar."
-          actionLabel="Nueva estancia"
-          (action)="nueva()"
         >
         </app-admin-empty-state>
 
@@ -70,8 +68,6 @@
               icon="today"
               title="Nada activo ni con ingreso hoy"
               message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
-              actionLabel="Nueva estancia"
-              (action)="nueva()"
             >
             </app-admin-empty-state>
             <ng-container
@@ -96,8 +92,6 @@
               icon="event"
               title="Sin ingresos ni salidas de mañana"
               message="Programa una estancia o revisa el historial con el buscador."
-              actionLabel="Nueva estancia"
-              (action)="nueva()"
             >
             </app-admin-empty-state>
             <ng-container

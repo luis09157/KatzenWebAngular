@@ -56,8 +56,6 @@
         icon="event_busy"
         title="Aún no hay citas"
         message="Agenda una cita con el botón de arriba."
-        actionLabel="Nueva cita"
-        (action)="abrirModalCita()"
       >
       </app-admin-empty-state>
 
@@ -77,8 +75,6 @@
             icon="today"
             title="No hay citas de hoy"
             message="Las de mañana se ven abajo. Busca en el historial para otras fechas."
-            actionLabel="Nueva cita"
-            (action)="abrirModalCita()"
           >
           </app-admin-empty-state>
           <ng-container
@@ -103,8 +99,6 @@
             icon="event"
             title="No hay citas de mañana"
             message="Agenda una con fecha de mañana o revisa el historial con el buscador."
-            actionLabel="Nueva cita"
-            (action)="abrirModalCita()"
           >
           </app-admin-empty-state>
           <ng-container
