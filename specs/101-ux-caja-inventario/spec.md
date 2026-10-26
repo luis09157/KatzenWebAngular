@@ -1,6 +1,6 @@
 # 101 — Caja e Inventario más fáciles de entender (parte 1)
 
-**Estado:** in_progress (2026-10-26) · **Nivel:** L2 (solo UI/lógica de lectura, sin cambios en RTDB) · **Pidió:** Luis («siento que está un poco complicada o confusa»)
+**Estado:** done (2026-10-26) · **Nivel:** L2 (solo UI/lógica de lectura, sin cambios en RTDB) · **Pidió:** Luis («siento que está un poco complicada o confusa»)
 
 ## Hallazgos con datos reales (solo lectura)
 

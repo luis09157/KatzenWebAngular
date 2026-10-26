@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **100** specs · `done`: 79 · `in_progress`: 18 · `superseded`: 3
+Total: **100** specs · `done`: 80 · `in_progress`: 17 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -107,4 +107,4 @@ Total: **100** specs · `done`: 79 · `in_progress`: 18 · `superseded`: 3
 | 098 | [corte-caja-fechas](098-corte-caja-fechas/spec.md) | 098 — Corte de caja y fechas tecleadas | done (2026-10-26) · **Nivel:** L2/L3 (escrituras de caja aditivas) · **Pidió/autorizó:** Luis |
 | 099 | [etapa1-avisos-alertas](099-etapa1-avisos-alertas/spec.md) | 099 — Etapa 1: avisos push confiables y alertas de inventario sin ruido | in_progress (2026-10-26) · **Nivel:** L2 (sin cambios de datos; SW + UI) · **Pidió:** Luis («va hazlo y arranca») |
 | 100 | [tarifas-peluqueria-servicios](100-tarifas-peluqueria-servicios/spec.md) | 100 — Tarifas de peluquería y servicios fuera del inventario | in_progress (2026-10-26) · **Nivel:** L2 código + L3 datos (migración con OK de Luis) · **Pidió:** Luis |
-| 101 | [ux-caja-inventario](101-ux-caja-inventario/spec.md) | 101 — Caja e Inventario más fáciles de entender (parte 1) | in_progress (2026-10-26) · **Nivel:** L2 (solo UI/lógica de lectura, sin cambios en RTDB) · **Pidió:** Luis («siento que está un poco complicada o confusa») |
+| 101 | [ux-caja-inventario](101-ux-caja-inventario/spec.md) | 101 — Caja e Inventario más fáciles de entender (parte 1) | done (2026-10-26) · **Nivel:** L2 (solo UI/lógica de lectura, sin cambios en RTDB) · **Pidió:** Luis («siento que está un poco complicada o confusa») |
