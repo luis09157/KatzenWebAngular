@@ -11,9 +11,11 @@ import { AjusteDialogComponent } from '../movimientos/ajuste-dialog.component';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
 import { LoggerService } from '../../core/logger.service';
-import { ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
+import { ServiciosEnInventarioService } from '../servicios-en-inventario.service';
+import { ServiciosEnInventarioDialogComponent } from '../servicios-en-inventario/servicios-en-inventario-dialog.component';
 
 @Component({
   selector: 'app-dashboard-inventario',
@@ -28,6 +30,8 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   productosPorCaducar: Producto[] = [];
   loading = true;
   puedeAjustar = false;
+  /** Servicios guardados como producto, marcados para mover (spec 100). */
+  serviciosEnInventario = 0;
 
   /** Máximo de alertas de ejemplo en el hub (el resto vive en /alertas). */
   private readonly alertasPreviewLimit = 3;
@@ -59,13 +63,37 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private authProfile: AuthProfileService
+    private authProfile: AuthProfileService,
+    private serviciosEnInventarioService: ServiciosEnInventarioService
   ) {}
 
   ngOnInit(): void {
     this.logger.log('Dashboard de Inventario cargado');
     void this.cargarPermisoAjuste();
     this.cargarDatos();
+    void this.contarServiciosEnInventario();
+  }
+
+  private async contarServiciosEnInventario(): Promise<void> {
+    try {
+      const c = await this.serviciosEnInventarioService.detectar();
+      this.serviciosEnInventario = c.filter((x) => x.sugeridoMover).length;
+    } catch {
+      this.serviciosEnInventario = 0;
+    }
+  }
+
+  abrirServiciosEnInventario(): void {
+    this.dialog
+      .open(ServiciosEnInventarioDialogComponent, { ...ADMIN_DIALOG_CONFIG, width: '720px' })
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) {
+          void this.contarServiciosEnInventario();
+          void this.cargarDatos();
+        }
+      });
   }
 
   private async cargarPermisoAjuste(): Promise<void> {
