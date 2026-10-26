@@ -52,3 +52,137 @@
   outline: 2px solid var(--katzen-verde, #0a969b);
   outline-offset: -2px;
 }
+
+/* ── Celular (spec 096 F2): tarjetas en lugar de tabla ── */
+.paciente-cards {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  /* Con encapsulación, `.admin-content` (del layout) no aplica aquí: basta el selector local. */
+  .table-scroll {
+    display: none;
+  }
+
+  .paciente-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0 8px;
+  }
+
+  .paciente-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--admin-border, #e5e7eb);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .paciente-card:active {
+    background: #f8fafc;
+  }
+
+  .paciente-card:focus-visible {
+    outline: 2px solid var(--katzen-verde, #0a969b);
+    outline-offset: 2px;
+  }
+
+  .paciente-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .paciente-card__hora {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--katzen-verde-fuerte, #065d60);
+  }
+
+  .paciente-card__paciente {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #032d60;
+    overflow-wrap: anywhere;
+  }
+
+  .paciente-card__meta {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #374151;
+  }
+
+  .paciente-card__meta--sub {
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .paciente-card__acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .paciente-card__acciones .mat-mdc-button-base:not(.mat-mdc-icon-button) {
+    flex: 1 1 auto;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .paciente-card__mas {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .paciente-card__top {
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .paciente-card__foto {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f1f5f9;
+  }
+
+  .paciente-card__titulo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .paciente-card__nombre {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #032d60;
+    overflow-wrap: anywhere;
+  }
+
+  .paciente-card__titulo .paciente-card__meta {
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .paciente-card__icono {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: -3px;
+    color: #6b7280;
+  }
+}

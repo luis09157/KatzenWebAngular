@@ -39,6 +39,8 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
   ];
   
   dataSource = new MatTableDataSource<any>([]);
+  /** Página actual (mismo filtro y paginador que la tabla) para las tarjetas de celular. */
+  readonly filasPagina$ = this.dataSource.connect();
   pacientes: any[] = [];
   clientes: any[] = [];
   loading = false;
