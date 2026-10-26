@@ -176,6 +176,11 @@
       letter-spacing: 0.01em;
     }
 
+    /* «Cuenta del día» cabe en una línea sin el ícono en pantallas de ~400px. */
+    .cliente-card__cuenta mat-icon {
+      display: none;
+    }
+
     .cliente-card__mas {
       flex: 0 0 auto;
       width: 44px;
