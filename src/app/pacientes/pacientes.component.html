@@ -50,7 +50,7 @@
             >
               <mat-option *ngFor="let paciente of pacientesFiltrados" [value]="paciente">
                 <span class="search-option__pet">{{ nombrePaciente(paciente) }}</span>
-                <span class="search-option__owner">— {{ getClienteNombre(getPacienteClienteId(paciente)) }}</span>
+                <span class="search-option__owner">{{ sufijoOpcionBusqueda(paciente) }}</span>
               </mat-option>
               <mat-option *ngIf="pacientesFiltrados.length === 0 && searchTerm" disabled>
                 No se encontró ningún paciente con ese criterio.

@@ -34,7 +34,11 @@ import { LoggerService } from '../core/logger.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { getPacienteClienteId as resolvePacienteClienteId } from '../core/utils/paciente-cliente.util';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
-import { filtrarPacientesPorTexto, getPacienteNombre } from '../core/utils/paciente-search.util';
+import {
+  filtrarPacientesPorTexto,
+  getPacienteBusquedaExpedienteLabel,
+  getPacienteNombre,
+} from '../core/utils/paciente-search.util';
 import { collectRelatedIds } from '../core/utils/rtdb-row.util';
 import { etiquetaExpedientePaciente } from '../core/utils/folio-expediente-paciente.util';
 import {
@@ -750,6 +754,17 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
   nombrePaciente(paciente: any): string {
     return getPacienteNombre(paciente) || 'Mascota';
+  }
+
+  /** Opción del buscador: «— especie · raza · edad · dueño». El nombre va aparte. */
+  sufijoOpcionBusqueda(paciente: any): string {
+    const dueno = this.getClienteNombre(this.getPacienteClienteId(paciente));
+    const full = getPacienteBusquedaExpedienteLabel(paciente, dueno);
+    const nombre = getPacienteNombre(paciente) || 'Sin nombre';
+    if (full.startsWith(`${nombre} `)) {
+      return full.slice(nombre.length).trim();
+    }
+    return full;
   }
 
   etiquetaExpediente(paciente: { id?: string; expediente?: string; numeroExpediente?: string } | null): string {

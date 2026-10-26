@@ -1,5 +1,7 @@
 import { Component, OnInit, Inject, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
@@ -37,6 +39,7 @@ import { formatLocalDateToIso, parseIsoDateToLocalDate } from '../shared/datepic
   templateUrl: './banio-dialog.component.html',
   styleUrls: ['./banio-dialog.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'es-MX' }],
 })
 export class BanioDialogComponent implements OnInit {
   banioForm: FormGroup;
@@ -132,8 +135,10 @@ export class BanioDialogComponent implements OnInit {
     private loadingService: LoadingService,
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
-    private pacientesService: PacientesService
+    private pacientesService: PacientesService,
+    dateAdapter: DateAdapter<Date>
   ) {
+    dateAdapter.setLocale('es-MX');
     this.banioForm = this.fb.group({
       paciente_id: ['', Validators.required],
       paciente: [''],
@@ -306,6 +311,7 @@ export class BanioDialogComponent implements OnInit {
           if (typeof normalizado.fecha_banio === 'string') {
             const local =
               parseIsoDateToLocalDate(normalizado.fecha_banio) ||
+              this.parseFechaLista(normalizado.fecha_banio) ||
               (() => {
                 const d = new Date(normalizado.fecha_banio);
                 return Number.isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -325,6 +331,13 @@ export class BanioDialogComponent implements OnInit {
             if (f) normalizado.fecha_banio = f;
           }
 
+          if (this.precioTotalManual) {
+            delete normalizado.precio_total;
+            delete normalizado.precio_base;
+          }
+          if (this.banioForm.get('fecha_banio')?.dirty) {
+            delete normalizado.fecha_banio;
+          }
           this.banioForm.patchValue(normalizado);
           this.precioTotalManual = true;
           // Recalcular precio por si faltaba precio_total
@@ -360,6 +373,15 @@ export class BanioDialogComponent implements OnInit {
         return formatLocalDateToIso(fecha);
       }
       if (typeof fecha === 'string') {
+        const dmy = fecha.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (dmy) {
+          const day = +dmy[1];
+          const month = +dmy[2];
+          const year = +dmy[3];
+          if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+            return formatLocalDateToIso(new Date(year, month - 1, day));
+          }
+        }
         if (fecha.includes('T') || fecha.includes(' ')) {
           const datePart = fecha.split(/[T ]/)[0];
           if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
@@ -554,8 +576,7 @@ export class BanioDialogComponent implements OnInit {
       costoEstimado: prefill.costoEstimado,
       plantillaCostoId: prefill.plantillaCostoId || '',
     };
-    if (prefill.precioSugerido != null) {
-      this.precioTotalManual = false;
+    if (prefill.precioSugerido != null && !this.precioTotalManual) {
       patch['precio_base'] = prefill.precioSugerido;
       patch['precio_total'] = prefill.precioSugerido;
     }
@@ -566,6 +587,16 @@ export class BanioDialogComponent implements OnInit {
   onPrecioTotalManual(): void {
     this.precioTotalManual = true;
     this.sincronizarPrecioBaseDesdeTotal();
+  }
+
+  /** El día del calendario es el que se guarda, en hora local (sin voltear día y mes). */
+  fijarFechaBanio(event: MatDatepickerInputEvent<Date>): void {
+    const fecha = event.value;
+    if (!(fecha instanceof Date) || Number.isNaN(fecha.getTime())) return;
+    this.banioForm.patchValue({
+      fecha_banio: new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()),
+    });
+    this.banioForm.get('fecha_banio')?.markAsDirty();
   }
 
   /** RTDB legacy: precio_base = precio_total − servicios adicionales. */

@@ -128,3 +128,21 @@ Luis: debajo de Clínica / POS / Inventario, ver agenda del mes (antes solo «Ci
 - [x] Unit `dashboard-calendario.util.spec.ts` — **4/4** SUCCESS
 - [x] `npm run build` — exit 0 · Hash `4e5305744db4abe2` (2026-10-18)
 - [ ] Smoke 375 / 1280 en `/admin/inicio` — pendiente Luis (sesión local)
+
+---
+
+## Follow-up 2026-10-25 — Agenda del mes: citas, peluquería y pensión (L2)
+
+Luis: en el calendario de Hoy, cada día también muestra baños de esa `fecha_banio` y estancias cuyo rango ingreso–salida cubre el día. El contador del punto suma los tres. Clic cita → `verDetalleCita` (Atender intacto). Peluquería → `/admin/banios` (`BanioDetalle` no está en el módulo Hoy). Pensión → `/admin/pension`. No se tocaron listados ni rieles de cobro.
+
+- **Código:** `dashboard-calendario.util.ts` (`buildBaniosMapByDate`, `estanciaCubreDia`, `eventosAgendaDelDia`); `dashboard.component` panel `#calendario-citas`.
+- [ ] Unit `dashboard-calendario.util.spec.ts` — pendiente de corrida
+- [ ] `npm run build` — pendiente
+- [ ] QA Hoy en localhost: día con baño y estancia, cita abre detalle — pendiente
+
+### Follow-up 2026-10-25 (Claude) — modal del día con peluquería y pensión
+
+Luis: «me muestra los eventos abajo de la agenda pero en el modal no». Causa: `showCitasForDay` solo pasaba `day.citas` a `CitasDiaDialogComponent`.
+
+- **Código:** `dashboard.component.ts` pasa `eventos`; `citas-dia-dialog` muestra filas de peluquería (servicio · hora · estado) y pensión (rango ingreso–salida o «sin salida registrada») con «Ver en Peluquería / Pensión»; citas con su detalle y Atender igual que antes. Título «Agenda del …» + resumen «2 citas · 1 peluquería · 1 en pensión». `resumenAgendaDia` en el util.
+- **Validación:** unit (util + `citas-dia-dialog.component.spec.ts`) y build en CI del PR; preview de Firebase revisado a 375 y escritorio; `check:mobile` 0 nuevos.

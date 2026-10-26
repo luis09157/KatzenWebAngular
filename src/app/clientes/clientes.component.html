@@ -12,7 +12,7 @@
         accent="blue"
         icon="people"
         title="Administración de Clientes"
-        subtitle="Administra fichas, contacto y expedientes. Doble clic abre la ficha y las mascotas. Al borrar se conserva el historial clínico vinculado."
+        subtitle="Administra fichas, contacto y expedientes. Toca un cliente (o doble clic en computadora) para abrir su ficha y mascotas. Al borrar se conserva el historial clínico vinculado."
       >
         <div bannerActions>
           <button mat-stroked-button color="primary" type="button" [disabled]="saving" (click)="toggleSoloConDeuda()">
@@ -47,7 +47,7 @@
         [description]="
           soloSinPacientes
             ? 'Estos clientes no tienen mascotas. En la fila puedes ver, editar, borrar o agregar una mascota.'
-            : 'Busca por nombre, teléfono, correo o número de expediente. Doble clic o Enter abre la ficha.'
+            : 'Busca por nombre, teléfono, correo o expediente. Toca un cliente para abrir su ficha.'
         "
         [meta]="
           dataSource.data.length ? dataSource.filteredData.length + ' en pantalla · ' + totalClientes + ' totales' : ''
@@ -234,6 +234,69 @@
               (keydown)="onFilaKeydown(row, $event)"
             ></tr>
           </table>
+        </div>
+
+        <!-- Celular (≤600px): tarjetas en lugar de tabla. Misma página/filtro que la tabla (spec 095 US-3). -->
+        <div class="clientes-cards" *ngIf="dataSource.data.length > 0" aria-label="Clientes">
+          <article
+            *ngFor="let c of filasPagina$ | async; trackBy: trackById"
+            class="cliente-card"
+            [class.cliente-card--selected]="filaSeleccionadaId === c.id"
+            tabindex="0"
+            [attr.aria-label]="'Abrir ficha de ' + getNombreCompleto(c)"
+            (click)="abrirFichaCliente(c, $event)"
+            (keydown)="onFilaKeydown(c, $event)"
+          >
+            <div class="cliente-card__top">
+              <h4 class="cliente-card__nombre">{{ getNombreCompleto(c) }}</h4>
+              <span class="estado-badge warning cliente-card__deuda" *ngIf="getSaldo(c) > 0"
+                >Debe {{ formatMoney(getSaldo(c)) }}</span
+              >
+            </div>
+
+            <div class="cliente-card__meta">
+              <a
+                *ngIf="telHref(c) as tel; else sinTel"
+                class="cliente-card__tel"
+                [href]="tel"
+                (click)="$event.stopPropagation()"
+                [attr.aria-label]="'Llamar a ' + getNombreCompleto(c)"
+              >
+                <mat-icon>call</mat-icon>{{ getTelefono(c) }}
+              </a>
+              <ng-template #sinTel><span class="text-muted">Sin teléfono</span></ng-template>
+              <span class="cliente-card__exp" *ngIf="c.expediente">{{ c.expediente }}</span>
+              <span class="estado-badge portal-chip" [class]="portalChipClass(c)" *ngIf="c.id">{{
+                portalChipLabel(c)
+              }}</span>
+            </div>
+
+            <div class="cliente-card__acciones">
+              <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="verCliente(c, $event)">
+                <mat-icon>visibility</mat-icon>
+                Ver ficha
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="cliente-card__cuenta"
+                (click)="nuevaVisitaCliente(c); $event.stopPropagation()"
+              >
+                <mat-icon>receipt_long</mat-icon>
+                Cuenta del día
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="cliente-card__mas"
+                aria-label="Más acciones"
+                [matMenuTriggerFor]="rowMenu"
+                (click)="clienteMenuContext = c; $event.stopPropagation()"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+            </div>
+          </article>
         </div>
 
         <mat-paginator

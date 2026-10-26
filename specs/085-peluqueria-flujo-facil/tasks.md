@@ -278,3 +278,10 @@ QA agente 2026-10-18 (L2 solo precio — sin opciones de costo):
 - Código: `banio-listado-filtro.util.ts` (`incluyeLunesEnAgendaBanios`, `fechaLunesListadoBanios`) y la sección Lunes en `banios.component`.
 - QA util 9/9. `npm run build` exit 0.
 - QA en el módulo (sábado 24/10): sección Lunes visible. Jack del 26/10 apareció ahí, no en Hoy. Se creó un baño de Oreon para el 26/10: Lunes quedó en 2. Se borró el de Oreon. Quedaron Jack en Lunes y Frijol en Hoy.
+
+### Follow-up 2026-10-25 — fecha del detalle y precio escrito (L2)
+
+- El detalle ya no voltea el día y el mes de una fecha `dd/mm/aaaa`. Un precio escrito a mano no se sustituye por la tarifa del tamaño.
+- Código: `datepicker.util.ts`, `banio-detalle` (`fecha_banio_iso`), `banio-dialog` (`onTamanoChange`, `fijarFechaBanio`).
+- Tests: datepicker 7/7 y diálogo 3/3 (10/10). `npm run build` exit 0.
+- QA en el módulo (domingo 25/10): Oreon, fecha 28/10, precio $100. El detalle mostró 28/10/2026 y $100. Se editó a 29/10 y $120; el detalle coincidió. Se borró. Jack de mañana no se tocó.

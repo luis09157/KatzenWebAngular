@@ -1,7 +1,7 @@
 # Spec: Panel admin usable en celular
 
 **ID:** 095-movil-usable
-**Estado:** draft
+**Estado:** in_progress
 **Fecha:** 2026-10-25
 **Autor:** Claude (auditoría a 375×812 sobre producción, solo lectura) — pendiente OK de Luis
 
@@ -41,8 +41,9 @@ Como **recepción en el teléfono**, quiero ver registros sin bajar, para atende
 ### US-3 — Tarjetas en lugar de tablas (reemplaza la decisión «Tablas admin móvil» de 061)
 
 - [ ] SC-005: Componente compartido `app-admin-mobile-list` (o `*ngIf` con `BreakpointObserver` en ≤600): tarjeta con título, 2 líneas de meta, chip de estado, menú ⋮. Clase `.admin-mobile-card`.
-- [ ] SC-006: Piloto Clientes → luego Pacientes, Peluquería, Citas, Vacunas, Recordatorios, Productos (lista).
-- [ ] SC-007: Un toque en la tarjeta abre el detalle; copy «Toca para ver la ficha».
+- [x] SC-006a: **Piloto Clientes (2026-10-25):** ≤600px tarjetas con nombre completo, deuda, teléfono (toque = llamar), expediente, portal; «Ver ficha», «Cuenta del día» y ⋮. Mismo filtro/paginador que la tabla (`dataSource.connect()`). Escritorio sin cambios. Pedido de Luis con captura del S25 Ultra (íconos encimados sobre el nombre).
+- [ ] SC-006b: luego Pacientes, Peluquería, Citas, Vacunas, Recordatorios, Productos (lista).
+- [x] SC-007 (Clientes): un toque en la tarjeta abre la ficha; copy «Toca un cliente…».
 
 ### US-4 — Listas largas
 

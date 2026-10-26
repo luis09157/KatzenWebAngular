@@ -42,10 +42,17 @@ import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { esEstanciaPensionHoy, esRecordatorioHoyOVencido } from './hoy-operacion.util';
 import {
+  AgendaEventoDia,
+  AgendaEventoTipo,
+  BanioCalendarioLike,
   CalendarioDiaCell,
   CitaCalendarioLike,
+  PensionCalendarioLike,
+  buildBaniosMapByDate,
   buildCalendarioMesDays,
   buildCitasMapByDate,
+  etiquetaAgendaTipo,
+  eventosAgendaDelDia,
   isoKeyFromLocalDate,
   labelDiaSeleccionado,
 } from './dashboard-calendario.util';
@@ -76,8 +83,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   calendarDays: CalendarioDiaCell[] = [];
   citas: CitaCalendarioLike[] = [];
   citasMap: Record<string, CitaCalendarioLike[]> = {};
+  baniosMap: Record<string, BanioCalendarioLike[]> = {};
+  estanciasCalendario: PensionCalendarioLike[] = [];
   selectedDayIso = hoyLocalIsoDate();
   selectedDayCitas: CitaCalendarioLike[] = [];
+  selectedDayEventos: AgendaEventoDia[] = [];
   selectedDayDate: Date | null = new Date();
   clientesMap: { [id: string]: string } = {};
   pacientesMap: { [id: string]: string } = {};
@@ -103,9 +113,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get calendarioDiaDesc(): string {
-    const n = this.selectedDayCitas.length;
+    const n = this.selectedDayEventos.length;
     if (!n) return 'Nadie en agenda este día';
-    return `${n} cita${n === 1 ? '' : 's'} en agenda`;
+    return n === 1 ? '1 en la agenda' : `${n} en la agenda`;
   }
 
   /** Spec 025 — filtros dashboard dueño */
@@ -214,6 +224,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
     this.loadClientesYPacientes();
     this.loadCitas();
+    this.loadAgendaPeluqueriaYPension();
     this.generateCalendar();
     this.cargarPorCobrarHoy();
     this.cargarRecordatoriosHoy();
@@ -581,7 +592,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   generateCalendar(): void {
-    this.calendarDays = buildCalendarioMesDays(this.selectedDate, this.citasMap);
+    this.calendarDays = buildCalendarioMesDays(this.selectedDate, this.citasMap, new Date(), {
+      baniosMap: this.baniosMap,
+      estancias: this.estanciasCalendario,
+    });
   }
 
   previousMonth(): void {
@@ -598,15 +612,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const hoy = new Date();
     this.selectedDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     this.generateCalendar();
-    this.selectCalendarDay({
-      day: hoy.getDate(),
-      date: hoy,
-      isoKey: isoKeyFromLocalDate(hoy),
-      isCurrentMonth: true,
-      isToday: true,
-      hasCitas: (this.citasMap[isoKeyFromLocalDate(hoy)] || []).length > 0,
-      citas: this.citasMap[isoKeyFromLocalDate(hoy)] || [],
-    });
+    const iso = isoKeyFromLocalDate(hoy);
+    const cell = this.calendarDays.find((d) => d.isoKey === iso);
+    if (cell) this.selectCalendarDay(cell);
   }
 
   getMonthYearString(): string {
@@ -618,14 +626,84 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.selectedDayIso = day.isoKey;
     this.selectedDayDate = day.date;
     this.selectedDayCitas = day.citas || this.citasMap[day.isoKey] || [];
+    this.selectedDayEventos = day.eventos?.length
+      ? day.eventos
+      : this.eventosDeIso(day.isoKey);
   }
 
   private syncSelectedDayFromMap(): void {
     const key = this.selectedDayIso || hoyLocalIsoDate();
     this.selectedDayIso = key;
     this.selectedDayCitas = this.citasMap[key] || [];
+    this.selectedDayEventos = this.eventosDeIso(key);
     const [y, m, d] = key.split('-').map(Number);
     if (y && m && d) this.selectedDayDate = new Date(y, m - 1, d);
+  }
+
+  private eventosDeIso(isoKey: string): AgendaEventoDia[] {
+    return eventosAgendaDelDia(
+      isoKey,
+      this.citasMap[isoKey] || [],
+      this.baniosMap[isoKey] || [],
+      this.estanciasCalendario
+    );
+  }
+
+  private loadAgendaPeluqueriaYPension(): void {
+    this.baniosService
+      .getBanios()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (banios) => {
+          this.baniosMap = buildBaniosMapByDate(banios as BanioCalendarioLike[]);
+          this.generateCalendar();
+          this.syncSelectedDayFromMap();
+        },
+        error: (err) => this.logger.error('Agenda peluquería:', err),
+      });
+    this.pensionService
+      .getEstancias()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.estanciasCalendario = (rows || []) as PensionCalendarioLike[];
+          this.generateCalendar();
+          this.syncSelectedDayFromMap();
+        },
+        error: (err) => this.logger.error('Agenda pensión:', err),
+      });
+  }
+
+  etiquetaAgenda(tipo: AgendaEventoTipo): string {
+    return etiquetaAgendaTipo(tipo);
+  }
+
+  mascotaAgenda(ev: AgendaEventoDia): string {
+    return this.pacientesMap[ev.paciente_id || ''] || ev.paciente || 'Mascota';
+  }
+
+  duenoAgenda(ev: AgendaEventoDia): string {
+    return this.clientesMap[ev.cliente_id || ''] || ev.cliente || 'Dueño';
+  }
+
+  horaAgenda(ev: AgendaEventoDia): string {
+    if (ev.tipo === 'cita' && ev.cita) {
+      const hora = this.horaCita(ev.cita);
+      return hora === '—' ? '' : hora;
+    }
+    return ev.hora || '';
+  }
+
+  abrirEventoAgenda(ev: AgendaEventoDia): void {
+    if (ev.tipo === 'cita' && ev.cita) {
+      this.verDetalleCita(ev.cita);
+      return;
+    }
+    if (ev.tipo === 'peluqueria') {
+      void this.router.navigate(['/admin/banios']);
+      return;
+    }
+    void this.router.navigate(['/admin/pension']);
   }
 
   /** Lista del día en diálogo (accesibilidad / móvil). */
@@ -637,6 +715,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       data: {
         fecha: day.date,
         citas: day.citas || [],
+        // Citas + peluquería + pensión del día (antes solo llegaban las citas al modal).
+        eventos: day.isoKey ? this.eventosDeIso(day.isoKey) : day.eventos || [],
         clientesMap: this.clientesMap,
         pacientesMap: this.pacientesMap,
       },

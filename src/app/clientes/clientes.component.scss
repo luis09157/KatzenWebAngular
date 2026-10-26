@@ -48,3 +48,143 @@
 }
 
 /* Layout de columnas de la tabla: `src/styles/admin-table.scss` (.clientes-table) */
+
+/* ── Celular (spec 095 US-3): tarjetas en lugar de tabla ── */
+.clientes-cards {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .table-scroll {
+    display: none;
+  }
+
+  /* Filtros lado a lado y «Nuevo cliente» a todo el ancho. Selector más específico que el
+     de admin-page-layout (@container ≤400 los apila al 100%). */
+  :host ::ng-deep .admin-list-shell > app-admin-page-banner .banner-actions > [bannerActions] > button {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  :host ::ng-deep .admin-list-shell > app-admin-page-banner .banner-actions > [bannerActions] > button.btn-primary-teal {
+    flex-basis: 100%;
+  }
+
+  /* Encabezado corto: que los clientes salgan en la primera pantalla (095 US-2). */
+  :host ::ng-deep app-admin-page-banner .banner-text p,
+  :host ::ng-deep app-admin-data-panel .data-panel-header p {
+    display: none;
+  }
+
+  .clientes-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 12px 12px;
+  }
+
+  .cliente-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--admin-border, #e5e7eb);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      background: #f8fafc;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--katzen-verde, #0a969b);
+      outline-offset: 2px;
+    }
+  }
+
+  .cliente-card--selected {
+    border-color: var(--katzen-verde, #0a969b);
+  }
+
+  .cliente-card__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 10px;
+  }
+
+  .cliente-card__nombre {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #032d60;
+    overflow-wrap: anywhere;
+  }
+
+  .cliente-card__deuda {
+    flex: 0 0 auto;
+  }
+
+  .cliente-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    font-size: 0.9375rem;
+    color: #374151;
+  }
+
+  .cliente-card__tel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    color: var(--katzen-verde-fuerte, #065d60);
+    font-weight: 600;
+    text-decoration: none;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .cliente-card__exp {
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .cliente-card .portal-chip {
+    margin-top: 0;
+  }
+
+  .cliente-card__acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .mat-mdc-button-base:not(.mat-mdc-icon-button) {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 44px;
+      padding: 0 10px;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+
+    /* «Cuenta del día» cabe en una línea sin el ícono en pantallas de ~400px. */
+    .cliente-card__cuenta mat-icon {
+      display: none;
+    }
+
+    .cliente-card__mas {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+    }
+  }
+}

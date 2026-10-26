@@ -51,7 +51,7 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 
 | Carpeta | Ruta | RTDB principal | Specs clave | Responsabilidad |
 |---------|------|----------------|-------------|-----------------|
-| `dashboard/` | `/admin/inicio` | agregados varios | 025, 072 | Hoy / KPIs por rol; calendario mes + lista día (`dashboard-calendario.util`) |
+| `dashboard/` | `/admin/inicio` | agregados varios | 025, 072 | Hoy / KPIs por rol; calendario mes + lista día con citas, peluquería y pensión (`dashboard-calendario.util`) |
 | `clientes/` | `/admin/clientes` | `Cliente` | 001, 009, 047 | Dueños CRUD + portal flags |
 | `pacientes/` | `/admin/paciente` | `Mascota`, logs | 057, 062, 068 | Expediente clínico (mascota) |
 | `pacientes-admin/` | `/admin/pacientes-admin` | `Mascota`, `Cliente` | 057, 058, 069 | Directorio / ficha rápida |
