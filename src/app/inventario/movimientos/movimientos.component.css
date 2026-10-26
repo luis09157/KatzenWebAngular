@@ -273,3 +273,14 @@ mat-paginator {
   }
 }
 
+
+/* Celular: 3 columnas que caben en la pantalla (sin scroll horizontal). */
+table.movimientos-table.movimientos-table--movil {
+  min-width: 0 !important;
+  width: 100%;
+}
+table.movimientos-table.movimientos-table--movil td.mat-column-acciones,
+table.movimientos-table.movimientos-table--movil th.mat-column-acciones {
+  width: 48px;
+  padding: 0 4px;
+}
