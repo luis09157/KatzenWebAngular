@@ -49,6 +49,7 @@ import { SharedModule } from '../shared/shared.module';
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { SalidaDialogModule } from './movimientos/salida-dialog.module';
 
+import { ServiciosEnInventarioDialogComponent } from './servicios-en-inventario/servicios-en-inventario-dialog.component';
 @NgModule({
   declarations: [
     ProductosComponent,
@@ -65,7 +66,8 @@ import { SalidaDialogModule } from './movimientos/salida-dialog.module';
     OrdenDialogComponent,
     RecibirOrdenDialogComponent,
     AlertasComponent,
-    ReportesComponent
+    ReportesComponent,
+    ServiciosEnInventarioDialogComponent
   ],
   imports: [
     CommonModule,

@@ -68,6 +68,24 @@
       </div>
     </section>
 
+    <!-- Spec 100: servicios guardados como producto -->
+    <section class="dashboard-modules" *ngIf="serviciosEnInventario > 0">
+      <div class="alertas-resumen sei-aviso" role="status">
+        <div class="alertas-resumen__main">
+          <mat-icon class="alertas-resumen__icon" aria-hidden="true">move_down</mat-icon>
+          <div class="alertas-resumen__text">
+            <p class="alertas-resumen__title">{{ serviciosEnInventario }} servicios guardados como producto</p>
+            <p class="alertas-resumen__hint">Consultas, cirugías, baños y estudios no llevan stock. Revisa la lista y pásalos al Catálogo de servicios.</p>
+          </div>
+        </div>
+        <div class="alertas-resumen__actions">
+          <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirServiciosEnInventario()">
+            Revisar y mover
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- Resumen compacto: no listar cientos de alertas aquí -->
     <section class="dashboard-modules" *ngIf="alertasActivasCount > 0">
       <h2 class="dashboard-modules__heading">Atención de stock</h2>

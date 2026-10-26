@@ -25,3 +25,18 @@
 - Tarifas de peluquería con los precios del inventario (con o sin IVA según Luis).
 - 33 servicios nuevos al Catálogo de servicios; «Consulta» se une a «Consulta General».
 - 70 productos → `activo: false` + `movidoA` (no se borran). Rollback: `activo: true`.
+
+## Cambio de decisión (Luis, 2026-10-26 15:56)
+
+- Peluquería **no** usa tarifa fija: el precio lo decide la veterinaria al momento. Las tarifas quedan opcionales (vacías → los chips no salen).
+- **Precio anterior:** en «Nuevo baño», si la mascota ya tiene baños con precio, se sugiere lo que se cobró la última vez (mismo servicio primero) y se dice de cuándo; se puede cambiar. `banio-precio-anterior.util.ts` (+ spec).
+- Puntos 2 y 3 aprobados. Sin respuesta sobre IVA: **cada servicio conserva el precio que ya tiene en el sistema** (no cambia lo que se cobra hoy).
+
+## Mover servicios: botón en Inventario (2026-10-26)
+
+El agente no puede escribir en la base de producción (bloqueado, correcto). En su lugar:
+**Inventario → «N servicios guardados como producto» → Revisar y mover**. Lista por destino con casillas
+(Espuma, Deslanador, «1-Baño» y «2-Baño y Corte» salen sin marcar), confirmación y una sola actualización
+atómica hecha por la persona. `servicios-en-inventario.util.ts` (+ spec), `servicios-en-inventario.service.ts`,
+`ServiciosEnInventarioDialogComponent`.
+Simulación con datos reales (solo lectura): 32 servicios nuevos, 70 artículos ocultos, sin conflictos.
