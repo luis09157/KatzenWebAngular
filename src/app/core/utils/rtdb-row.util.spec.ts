@@ -28,6 +28,8 @@ describe('rtdb-row.util', () => {
 
 describe('sinUndefined', () => {
   it('quita propiedades undefined y deja 0, false, null y texto vacío', () => {
-    expect(sinUndefined({ a: 0, b: false, c: null, d: '', notas: undefined })).toEqual({ a: 0, b: false, c: null, d: '' });
+    const limpio: Record<string, unknown> = sinUndefined({ a: 0, b: false, c: null, d: '', notas: undefined });
+    expect(limpio).toEqual({ a: 0, b: false, c: null, d: '' });
+    expect('notas' in limpio).toBeFalse();
   });
 });
