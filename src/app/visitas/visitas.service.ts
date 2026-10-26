@@ -1,3 +1,4 @@
+import { normalizeFechaIso } from '../core/utils/periodo-filtro.util';
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, firstValueFrom } from 'rxjs';
@@ -76,7 +77,7 @@ export class VisitasService {
       cliente: data.cliente || '',
       paciente_id: data.paciente_id || undefined,
       paciente: data.paciente || '',
-      fecha: data.fecha || hoyLocalIsoDate(),
+      fecha: normalizeFechaIso(data.fecha) || hoyLocalIsoDate(),
       estado: calc.estado,
       lineas,
       total: calc.total,
@@ -117,6 +118,7 @@ export class VisitasService {
     await this.db.object(`${this.path}/${id}`).update(
       omitUndefinedRtdb({
         ...patch,
+        ...(patch.fecha != null ? { fecha: normalizeFechaIso(patch.fecha) || patch.fecha } : {}),
         lineas: mergedLineas,
         total: calc.total,
         pagado: calc.pagado,
@@ -506,6 +508,8 @@ export class VisitasService {
     return {
       ...raw,
       id,
+      // Siempre ISO aunque se haya guardado dd/mm/aaaa (2026-10-26).
+      fecha: normalizeFechaIso(raw?.fecha) || raw?.fecha,
       lineas,
       total: calc.total,
       pagado: calc.pagado,
