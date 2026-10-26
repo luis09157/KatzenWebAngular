@@ -189,7 +189,7 @@
             <mat-icon class="paciente-card__icono" aria-hidden="true">person</mat-icon>{{ paciente.nombreCliente || 'Sin dueño' }}
           </p>
           <p class="paciente-card__meta paciente-card__meta--sub">
-            {{ calcularEdad(paciente.edad) || 'Edad N/P' }}<ng-container *ngIf="paciente.peso"> · {{ paciente.peso }} kg</ng-container><ng-container *ngIf="paciente.sexo"> · {{ paciente.sexo }}</ng-container>
+            {{ edadTexto(paciente.edad) }}<ng-container *ngIf="paciente.peso"> · {{ paciente.peso }} kg</ng-container><ng-container *ngIf="paciente.sexo"> · {{ paciente.sexo }}</ng-container>
           </p>
           <div class="paciente-card__acciones">
             <button

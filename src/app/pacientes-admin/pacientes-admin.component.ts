@@ -198,6 +198,12 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Tarjeta de celular: «Edad no registrada» en vez de «N/P». */
+  edadTexto(edad: unknown): string {
+    const e = String(this.calcularEdad(String(edad ?? '')) || '').trim();
+    return !e || /^n\/?[ap]$/i.test(e) ? 'Edad no registrada' : e;
+  }
+
   abrirExpediente(paciente: { id?: string }, event?: Event): void {
     event?.stopPropagation();
     if (!paciente?.id) {
