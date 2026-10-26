@@ -292,6 +292,42 @@
         ></tr>
       </table>
     </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="pension-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let row of ds.connect() | async"
+        class="pension-card"
+        tabindex="0"
+        [attr.aria-label]="'Estancia de ' + (row.paciente || 'mascota')"
+        (click)="editar(row)"
+        (keydown.enter)="editar(row)"
+      >
+        <div class="pension-card__top">
+          <span class="pension-card__hora">{{ diasEstancia(row) }} día(s)</span>
+          <span class="estado-badge" [ngClass]="estadoClass(row.estado)">{{ estadoLabels[row.estado] || row.estado }}</span>
+        </div>
+        <h4 class="pension-card__paciente">{{ row.paciente || '—' }}</h4>
+        <p class="pension-card__meta">{{ row.cliente || '—' }}<ng-container *ngIf="row.tamano_mascota"> · {{ tamanoLabels[row.tamano_mascota] || row.tamano_mascota }}</ng-container></p>
+        <p class="pension-card__meta pension-card__meta--sub">Ingreso {{ row.fecha_ingreso }}<ng-container *ngIf="row.fecha_salida_real || row.fecha_salida_prevista"> · Salida {{ row.fecha_salida_real || row.fecha_salida_prevista }}</ng-container> · {{ formatMoney(row.precio_total) }}</p>
+        <div class="pension-card__acciones">
+          <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="ejecutarAccionPension(row, $event)">
+            <mat-icon>{{ accionPrincipalPension(row).icon }}</mat-icon>
+            {{ accionPrincipalPension(row).label }}
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            class="pension-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="pensionMenu"
+            (click)="menuContext = row; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
+    </div>
   </ng-template>
 
   <mat-menu #pensionMenu="matMenu">

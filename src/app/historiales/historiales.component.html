@@ -249,6 +249,42 @@
         ></tr>
       </table>
     </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="hist-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let historial of ds.connect() | async"
+        class="hist-card"
+        tabindex="0"
+        [attr.aria-label]="'Historial de ' + (historial.paciente || 'paciente')"
+        (click)="verHistorialDetalle(historial)"
+        (keydown.enter)="verHistorialDetalle(historial)"
+      >
+        <div class="hist-card__top">
+          <span class="hist-card__hora">{{ formatearFecha(historial.fecha_registro) }}</span>
+          <span class="estado-badge" [ngClass]="(historial.activo !== false ? 'activo' : 'inactivo') | adminEstadoClass">{{ historial.activo !== false ? 'Activo' : 'Inactivo' }}</span>
+        </div>
+        <h4 class="hist-card__paciente">{{ historial.paciente || 'N/P' }}</h4>
+        <p class="hist-card__meta">{{ historial.diagnostico_presuntivo || 'Sin diagnóstico' }}</p>
+        <p class="hist-card__meta hist-card__meta--sub"><ng-container *ngIf="historial.medico_atendio">Atendió {{ historial.medico_atendio }}</ng-container></p>
+        <div class="hist-card__acciones">
+          <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="verHistorialDetalle(historial); $event.stopPropagation()">
+            <mat-icon>visibility</mat-icon>
+            Ver detalle
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            class="hist-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="historialMenu"
+            (click)="menuContext = historial; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
+    </div>
   </ng-template>
 
   <p class="section-eyebrow">Resumen del módulo · Este mes</p>

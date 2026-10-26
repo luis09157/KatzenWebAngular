@@ -47,7 +47,10 @@ Análisis estático de `src/app/**/*.html` (botones agrupados por la acción que
 - [x] Un «Nuevo …» arriba; estados vacíos sin el botón repetido (2026-10-25): 28 botones en 19 pantallas. Script: se quitó solo donde la misma acción tiene botón visible en la pantalla.
 - [x] Peluquería (celular): tarjetas con hora, estado, paciente, servicio, dueño, peluquero, precio; **una** acción visible según el momento (Poner precio → Iniciar baño → Listo para cobrar → Ver detalle) + ⋮.
 - [x] Citas (celular): tarjetas; acción visible «Atender» (si tiene paciente y no está completada/cancelada) o «Ver detalle» + ⋮.
-- [ ] Pensión, Historiales, Vacunas, Recordatorios, Productos: tarjetas en celular.
+- [x] Pensión (Registrar ingreso / salida / Agregar al ticket / Editar), Historiales y Vacunas (Ver detalle), Recordatorios (WhatsApp si está pendiente, si no Ver detalle): tarjetas en celular. Productos ya tenía cuadrícula.
+- [x] Celular: encabezado corto en todos los listados (sin descripciones largas) — `admin-page-layout.scss`.
+- [x] Peluquería ⋮: «Listo para cobrar (lo cobra mostrador)» y «Agregar al ticket del cliente ahora» (antes «… (mostrador)» y «Enviar a mostrador (Cobrar)», que se confundían).
+- [x] Previews de PR en una sola dirección fija (`channelId: qa`).
 - [ ] Escritorio: fila con máximo 1 ícono + ⋮ (hoy 4–6 íconos).
 
 ### F3 — Cobrar

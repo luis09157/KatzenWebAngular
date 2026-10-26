@@ -264,6 +264,42 @@
         ></tr>
       </table>
     </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="vac-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let vacuna of ds.connect() | async"
+        class="vac-card"
+        tabindex="0"
+        [attr.aria-label]="'Vacuna de ' + (vacuna.paciente || 'paciente')"
+        (click)="verVacuna(vacuna)"
+        (keydown.enter)="verVacuna(vacuna)"
+      >
+        <div class="vac-card__top">
+          <span class="vac-card__hora">{{ vacuna.fecha_vacuna }}</span>
+          <span class="estado-badge" [ngClass]="vacuna.estado | adminEstadoClass">{{ vacuna.estado | titlecase }}</span>
+        </div>
+        <h4 class="vac-card__paciente">{{ vacuna.paciente }}</h4>
+        <p class="vac-card__meta">{{ vacuna.tipo_vacuna }}</p>
+        <p class="vac-card__meta vac-card__meta--sub"><ng-container *ngIf="vacuna.proxima_dosis">Próxima dosis {{ vacuna.proxima_dosis }}</ng-container><ng-container *ngIf="vacuna.veterinario"> · {{ vacuna.veterinario }}</ng-container></p>
+        <div class="vac-card__acciones">
+          <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="verVacuna(vacuna); $event.stopPropagation()">
+            <mat-icon>visibility</mat-icon>
+            Ver detalle
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            class="vac-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="vacunaMenu"
+            (click)="menuContext = vacuna; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
+    </div>
   </ng-template>
 
   <p class="section-eyebrow">Resumen del módulo</p>

@@ -214,6 +214,31 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /** Tarjeta de celular (spec 096): una acción visible según el estado de la estancia. */
+  accionPrincipalPension(row: PensionEstancia): { tipo: 'ingreso' | 'salida' | 'cobrar' | 'editar'; label: string; icon: string } {
+    if (this.puedeCheckIn(row)) return { tipo: 'ingreso', label: 'Registrar ingreso', icon: 'login' };
+    if (this.puedeCheckOut(row)) return { tipo: 'salida', label: 'Registrar salida', icon: 'logout' };
+    if (this.puedeCobrar(row)) return { tipo: 'cobrar', label: 'Agregar al ticket', icon: 'receipt_long' };
+    return { tipo: 'editar', label: 'Editar', icon: 'edit' };
+  }
+
+  ejecutarAccionPension(row: PensionEstancia, event?: Event): void {
+    event?.stopPropagation();
+    switch (this.accionPrincipalPension(row).tipo) {
+      case 'ingreso':
+        void this.checkIn(row);
+        return;
+      case 'salida':
+        void this.checkOut(row);
+        return;
+      case 'cobrar':
+        void this.agregarAVisita(row);
+        return;
+      default:
+        this.editar(row);
+    }
+  }
+
   puedeCheckIn(row: PensionEstancia): boolean {
     return row.estado === 'reservada';
   }
