@@ -15,6 +15,7 @@ import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 import { ServiciosEnInventarioService } from '../servicios-en-inventario.service';
+import { etiquetaCategoriaProducto } from '../productos/producto-identificacion.util';
 import { ServiciosEnInventarioDialogComponent } from '../servicios-en-inventario/servicios-en-inventario-dialog.component';
 
 @Component({
@@ -51,6 +52,10 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
 
   get alertasPreview(): Alerta[] {
     return this.alertas.slice(0, this.alertasPreviewLimit);
+  }
+
+  etiquetaCategoria(categoria: string): string {
+    return etiquetaCategoriaProducto(categoria);
   }
 
   get productosBajoStockPreview(): Producto[] {

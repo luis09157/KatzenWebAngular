@@ -180,6 +180,8 @@ export interface CajaIngresoDesglose {
 /** Baño mínimo para refuerzo de ingresos sin caja (patrón owner-dashboard). */
 export interface BanioIngresoRefuerzo {
   precio_total?: number;
+  /** Marcado «Ya lo pagaron» sin movimiento de caja (2026-10-26). */
+  pagado?: boolean;
   fecha_banio?: string;
   created_at?: string;
   estado?: string;
@@ -196,4 +198,12 @@ export interface PensionIngresoRefuerzo {
   cajaMovimientoId?: string;
   cobradaEnVisitaId?: string;
   activo?: boolean;
+}
+
+/** Servicios del periodo que NO pasaron por caja (2026-10-26): se muestran aparte, no como ingreso. */
+export interface ServiciosSinCajaResumen {
+  /** Marcados como pagados pero sin cobro en caja (el dinero no está en el corte). */
+  pagadosFueraDeCaja: { total: number; count: number };
+  /** Aún sin cobrar (programados, en proceso o terminados sin pago). */
+  porCobrar: { total: number; count: number };
 }

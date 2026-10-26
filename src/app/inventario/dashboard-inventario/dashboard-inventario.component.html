@@ -9,12 +9,16 @@
       accent="orange"
       icon="inventory"
       title="Inventario"
-      subtitle="Catálogo, entradas, movimientos y compras. Las alertas se revisan aparte."
+      subtitle="Lo que tienes, lo que llega y lo que sale."
     >
       <div bannerActions>
         <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="registrarEntrada()">
           <mat-icon>add_circle</mat-icon>
-          Nueva entrada
+          Llegó mercancía
+        </button>
+        <button mat-stroked-button type="button" (click)="registrarSalida()">
+          <mat-icon>remove_circle</mat-icon>
+          Sacar producto
         </button>
       </div>
     </app-admin-page-banner>
@@ -25,35 +29,35 @@
       <div class="admin-feature-grid">
         <app-admin-module-card
           title="Productos"
-          description="Catálogo, códigos de barras, stock y precios."
+          description="Lo que vendes o usas: cuánto hay y a qué precio."
           route="inventario/productos"
           accent="orange"
           ctaLabel="Abrir"
         ></app-admin-module-card>
         <app-admin-module-card
           title="Movimientos"
-          description="Entradas, salidas, mermas, ajustes e historial."
+          description="Qué entró, qué salió y quién lo hizo."
           route="inventario/movimientos"
           accent="teal"
           ctaLabel="Abrir"
         ></app-admin-module-card>
         <app-admin-module-card
           title="Proveedores"
-          description="Contactos y datos de compra."
+          description="A quién le compras."
           route="inventario/proveedores"
           accent="blue"
           ctaLabel="Abrir"
         ></app-admin-module-card>
         <app-admin-module-card
           title="Órdenes de compra"
-          description="Pedidos pendientes y recepción."
+          description="Lo que pediste y falta que llegue."
           route="inventario/ordenes"
           accent="purple"
           ctaLabel="Abrir"
         ></app-admin-module-card>
         <app-admin-module-card
           title="Alertas"
-          description="Stock bajo y caducidad — listado completo con filtros."
+          description="Lo que se está acabando o va a caducar."
           route="inventario/alertas"
           accent="pink"
           ctaLabel="Revisar"
@@ -101,7 +105,7 @@
               <span *ngIf="alertasStockBajoCount && alertasCaducarCount"> · </span>
               <span *ngIf="alertasCaducarCount">{{ alertasCaducarCount }} caducidad</span>
               <span *ngIf="!alertasStockBajoCount && !alertasCaducarCount">Requieren revisión</span>
-              . No saturan esta pantalla: ábrelas en Alertas.
+              . Ábrelas en Alertas para ver la lista completa.
             </p>
           </div>
         </div>
@@ -135,35 +139,6 @@
       </p>
     </section>
 
-    <app-admin-data-panel
-      *ngIf="productosBajoStockPreview.length > 0"
-      accent="orange"
-      title="Muestra de stock bajo"
-      [description]="
-        'Hasta ' +
-        productosBajoStockPreview.length +
-        ' de ' +
-        productosBajoStock.length +
-        ' — el listado completo está en Productos o Alertas'
-      "
-      [showLegend]="false"
-    >
-      <div class="productos-lista">
-        <div class="producto-item" *ngFor="let producto of productosBajoStockPreview">
-          <div class="producto-info">
-            <span class="producto-nombre">{{ producto.nombre }}</span>
-            <span class="producto-categoria">{{ producto.categoria }}</span>
-          </div>
-          <div class="producto-stock">
-            <span class="tag tag-muted">Stock: {{ producto.stock_actual }} {{ producto.unidad_medida }}</span>
-            <span class="tag tag-accent">Mín: {{ producto.stock_minimo }}</span>
-          </div>
-        </div>
-      </div>
-      <p class="panel-footer-hint cell-sub" *ngIf="productosBajoStock.length > productosBajoStockPreview.length">
-        Hay {{ productosBajoStock.length - productosBajoStockPreview.length }} más. Ábrelos en Alertas.
-      </p>
-    </app-admin-data-panel>
 
     <app-admin-data-panel
       *ngIf="estadisticas?.categorias_resumen?.length"
@@ -174,7 +149,7 @@
     >
       <div class="categorias-grid">
         <div class="categoria-item" *ngFor="let cat of estadisticas.categorias_resumen">
-          <h3>{{ cat.categoria }}</h3>
+          <h3>{{ etiquetaCategoria(cat.categoria) }}</h3>
           <p>Productos: {{ cat.cantidad_productos }}</p>
           <p>Valor: ${{ cat.valor_total | number: '1.2-2' }}</p>
         </div>

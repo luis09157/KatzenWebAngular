@@ -493,3 +493,25 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Lo pagado/pendiente fuera de caja: aparte del ingreso (2026-10-26) */
+.sin-caja-nota {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 0.875rem;
+}
+
+.sin-caja-nota p {
+  margin: 0;
+}
+
+.sin-caja-nota p + p {
+  margin-top: 6px;
+}

@@ -679,7 +679,7 @@ export class BanioDialogComponent implements OnInit {
     const prefill = resolverPrefillBanioPorTamano(tamano, this.defaultsBanio, this.plantillasCosto);
     if (prefill.fuente === 'ninguno') {
       this.prefillHint =
-        'Sin tarifa para este tamaño. Configura defaults o una plantilla en Finanzas → Costos de servicio.';
+        'Escribe el precio. Si quieres que se sugiera, llena «Tarifas de peluquería» en Finanzas → Precios y costos.';
       return;
     }
     this.prefillHint =

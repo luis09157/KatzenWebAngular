@@ -40,6 +40,8 @@ import {
   CajaIngresoDesglose,
   CajaMovimiento,
   CajaPeriodoModo,
+  BanioIngresoRefuerzo,
+  ServiciosSinCajaResumen,
 } from './caja.models';
 import { PlantillaCosto, PLANTILLA_TIPO_LABELS } from './plantilla-costo.models';
 import { BaniosService } from '../banios/banios.service';
@@ -113,6 +115,11 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private todos: CajaMovimiento[] = [];
   private todosBanios: Banio[] = [];
+  /** Baños/pensiones del periodo que no pasaron por caja (se muestran aparte, no como ingreso). */
+  serviciosSinCaja: ServiciosSinCajaResumen = {
+    pagadosFueraDeCaja: { total: 0, count: 0 },
+    porCobrar: { total: 0, count: 0 },
+  };
   private plantillas: PlantillaCosto[] = [];
   private todosPension: Array<{
     precio_total?: number;
@@ -309,13 +316,34 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.fechaFiltro;
   }
 
+  /** Periodo en palabras: «Hoy, lunes 26 de octubre», «Semana del 19 al 25 de octubre», «Octubre 2026». */
   get periodoLabel(): string {
-    if (this.periodoModo === 'mes') return `Mes ${this.mesFiltro}`;
+    const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const parse = (iso: string) => {
+      const [y, m, d] = String(iso || '').split('-').map(Number);
+      return y && m && d ? new Date(y, m - 1, d) : null;
+    };
+    if (this.periodoModo === 'mes') {
+      const [y, m] = String(this.mesFiltro || '').split('-').map(Number);
+      const mes = MESES.at((m || 1) - 1) || '';
+      return y ? `${mes.charAt(0).toUpperCase()}${mes.slice(1)} ${y}` : `Mes ${this.mesFiltro}`;
+    }
     if (this.periodoModo === 'semana') {
       const r = this.cajaService.rangoPeriodo('semana', this.fechaFiltro);
-      return r ? `Semana ${r.desde} → ${r.hasta}` : `Semana ${this.fechaFiltro}`;
+      const a = r ? parse(r.desde) : null;
+      const b = r ? parse(r.hasta) : null;
+      if (a && b) {
+        return a.getMonth() === b.getMonth()
+          ? `Semana del ${a.getDate()} al ${b.getDate()} de ${MESES.at(b.getMonth())}`
+          : `Semana del ${a.getDate()} de ${MESES.at(a.getMonth())} al ${b.getDate()} de ${MESES.at(b.getMonth())}`;
+      }
+      return `Semana ${this.fechaFiltro}`;
     }
-    return `Día ${this.fechaFiltro}`;
+    const d = parse(this.fechaFiltro);
+    if (!d) return `Día ${this.fechaFiltro}`;
+    const texto = `${DIAS.at(d.getDay())} ${d.getDate()} de ${MESES.at(d.getMonth())}`;
+    return this.fechaFiltro === this.cajaService.hoyLocalIsoDate() ? `Hoy, ${texto}` : texto.charAt(0).toUpperCase() + texto.slice(1);
   }
 
   aplicarFiltroPeriodo(): void {
@@ -325,11 +353,12 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.kpis = this.cajaService.calcularKpisPeriodo(this.todos, this.periodoModo, valor);
     this.chartResumen = this.cajaService.chartResumen(this.kpis);
     this.chartEgresos = this.cajaService.desgloseEgresos(this.todos, this.periodoModo, valor);
-    this.chartIngresosServicio = this.cajaService.desgloseIngresosPorServicio(
-      this.todos,
+    // Solo lo que entró por caja (2026-10-26). Baños/pensiones sin caja van aparte en `serviciosSinCaja`.
+    this.chartIngresosServicio = this.cajaService.desgloseIngresosPorServicio(this.todos, this.periodoModo, valor);
+    this.serviciosSinCaja = this.cajaService.serviciosSinCajaDelPeriodo(
       this.periodoModo,
       valor,
-      this.todosBanios,
+      this.todosBanios as unknown as BanioIngresoRefuerzo[],
       this.todosPension
     );
     this.totalIngresosServicio = this.chartIngresosServicio.reduce((acc, row) => acc + (Number(row.total) || 0), 0);
@@ -394,7 +423,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       ...ADMIN_DIALOG_CONFIG,
       width: '640px',
       disableClose: true,
-      data: { fechaDefault: this.fechaFiltro },
+      // Aquí se registran gastos; los cobros van en Cobrar (2026-10-26). El tipo se puede cambiar en el diálogo.
+      data: { fechaDefault: this.fechaFiltro, tipo: 'egreso' },
     });
     ref
       .afterClosed()

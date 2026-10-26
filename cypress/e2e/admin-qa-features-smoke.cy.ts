@@ -55,7 +55,7 @@ describe('Admin QA features smoke (003/004/005/007)', () => {
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.contains('Historial de movimientos', { timeout: 20000 });
 
-    cy.contains('button', 'Salida').click();
+    cy.contains('button', 'Sacar producto').click();
     cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
     cy.get('mat-dialog-container').contains(/Registrar salida|Registrar merma/);
 

@@ -16,6 +16,7 @@ import {
   CajaEgresoDesglose,
   CajaIngresoDesglose,
   BanioIngresoRefuerzo,
+  ServiciosSinCajaResumen,
   PensionIngresoRefuerzo,
   CajaMetodoPago,
   CajaCorte,
@@ -249,6 +250,45 @@ export class CajaService {
   /**
    * Ingresos por categoría/servicio. Refuerza baños y pensión sin movimiento de caja (028 / 031).
    */
+  /**
+   * Baños y pensiones del periodo que no pasaron por caja (2026-10-26).
+   * Antes se sumaban a «Ingresos por servicio» como si fuera dinero que entró
+   * (p. ej. un baño solo programado). Ahora van aparte: pagados fuera de caja vs. por cobrar.
+   */
+  serviciosSinCajaDelPeriodo(
+    modo: CajaPeriodoModo,
+    valor: string,
+    banios: BanioIngresoRefuerzo[] = [],
+    pensiones: PensionIngresoRefuerzo[] = []
+  ): ServiciosSinCajaResumen {
+    const out: ServiciosSinCajaResumen = {
+      pagadosFueraDeCaja: { total: 0, count: 0 },
+      porCobrar: { total: 0, count: 0 },
+    };
+    const rango = this.rangoPeriodo(modo, valor);
+    if (!rango) return out;
+    const sumar = (bucket: { total: number; count: number }, monto: unknown) => {
+      const n = Number(monto) || 0;
+      if (n <= 0) return;
+      bucket.total = Math.round((bucket.total + n) * 100) / 100;
+      bucket.count += 1;
+    };
+    for (const b of banios || []) {
+      if (!b || b.activo === false || b.estado === 'cancelado' || debeExcluirRefuerzoIngresoServicio(b)) continue;
+      const f = normalizeFechaIso(b.fecha_banio || b.created_at || '') || '';
+      if (f < rango.desde || f > rango.hasta) continue;
+      sumar(b.pagado ? out.pagadosFueraDeCaja : out.porCobrar, b.precio_total);
+    }
+    for (const e of pensiones || []) {
+      if (!e || e.activo === false || e.estado === 'cancelada' || e.cajaMovimientoId || e.cobradaEnVisitaId) continue;
+      if (e.estado !== 'activa' && e.estado !== 'finalizada') continue;
+      const f = normalizeFechaIso(e.fecha_ingreso || '') || '';
+      if (f < rango.desde || f > rango.hasta) continue;
+      sumar(out.porCobrar, e.precio_total);
+    }
+    return out;
+  }
+
   desgloseIngresosPorServicio(
     movimientos: CajaMovimiento[],
     modo: CajaPeriodoModo,
