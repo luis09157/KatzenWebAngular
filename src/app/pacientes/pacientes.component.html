@@ -88,93 +88,6 @@
           <mat-icon>arrow_back</mat-icon>
           Volver a buscar
         </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nueva cita"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarCitaDesdeExpediente()"
-        >
-          <mat-icon>event</mat-icon>
-          Cita
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nuevo historial"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarHistorialClinico()"
-        >
-          <mat-icon>medical_services</mat-icon>
-          Historial
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nueva vacuna"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarVacuna()"
-        >
-          <mat-icon>vaccines</mat-icon>
-          Vacuna
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nuevo consentimiento"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarConsentimiento()"
-        >
-          <mat-icon>assignment_turned_in</mat-icon>
-          Consentimiento
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Registrar desparasitación"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarDesparasitacion()"
-        >
-          <mat-icon>medication</mat-icon>
-          Desparasitar
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nuevo baño"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarBanioDesdeExpediente()"
-        >
-          <mat-icon>shower</mat-icon>
-          Baño
-        </button>
-        <button
-          mat-raised-button
-          color="primary"
-          class="btn-primary-teal"
-          type="button"
-          (click)="agregarPensionDesdeExpediente()"
-        >
-          <mat-icon>hotel</mat-icon>
-          Pensión
-        </button>
-        <button
-          mat-stroked-button
-          type="button"
-          matTooltip="Nueva cuenta del día"
-          matTooltipPosition="below"
-          matTooltipShowDelay="400"
-          (click)="agregarVisitaDesdeExpediente()"
-        >
-          <mat-icon>receipt_long</mat-icon>
-          Cuenta del día
-        </button>
       </div>
     </app-admin-page-banner>
 
@@ -227,22 +140,10 @@
           [meta]="logActividades.length + ' actividades registradas'"
           [showLegend]="false"
         >
-          <mat-tab-group class="expediente-tabs" animationDuration="200ms" dynamicHeight>
+          <mat-tab-group #expedienteTabs class="expediente-tabs" animationDuration="200ms" dynamicHeight>
             <mat-tab label="Historial">
               <ng-template matTabContent>
                 <div class="tab-panel">
-                  <div class="tab-panel__toolbar">
-                    <button
-                      mat-raised-button
-                      color="primary"
-                      class="btn-primary-teal"
-                      type="button"
-                      (click)="agregarHistorialClinico()"
-                    >
-                      <mat-icon>add</mat-icon>
-                      Nuevo historial
-                    </button>
-                  </div>
 
                   <div class="clinical-list" *ngIf="historialClinico.length; else emptyHistorial">
                     <article
@@ -301,9 +202,7 @@
                     <app-admin-empty-state
                       icon="medical_services"
                       title="Sin historial clínico"
-                      message="Aún no hay entradas en el expediente."
-                      actionLabel="Crear primer historial"
-                      (action)="agregarHistorialClinico()"
+                      message="Aún no hay entradas. Usa «+ Agregar» para registrar la primera."
                     >
                     </app-admin-empty-state>
                   </ng-template>
@@ -314,18 +213,6 @@
             <mat-tab label="Recordatorios">
               <ng-template matTabContent>
                 <div class="tab-panel">
-                  <div class="tab-panel__toolbar">
-                    <button
-                      mat-raised-button
-                      color="primary"
-                      class="btn-primary-teal"
-                      type="button"
-                      (click)="agregarRecordatorio()"
-                    >
-                      <mat-icon>add</mat-icon>
-                      Nuevo recordatorio
-                    </button>
-                  </div>
 
                   <div class="clinical-list" *ngIf="recordatorios.length; else emptyRecordatorios">
                     <article
@@ -394,9 +281,7 @@
                     <app-admin-empty-state
                       icon="notifications_off"
                       title="Sin recordatorios"
-                      message="No hay recordatorios para este paciente."
-                      actionLabel="Agregar recordatorio"
-                      (action)="agregarRecordatorio()"
+                      message="No hay recordatorios. Usa «+ Agregar» para crear uno."
                     >
                     </app-admin-empty-state>
                   </ng-template>
@@ -407,18 +292,6 @@
             <mat-tab label="Vacunas">
               <ng-template matTabContent>
                 <div class="tab-panel">
-                  <div class="tab-panel__toolbar">
-                    <button
-                      mat-raised-button
-                      color="primary"
-                      class="btn-primary-teal"
-                      type="button"
-                      (click)="agregarVacuna()"
-                    >
-                      <mat-icon>add</mat-icon>
-                      Nueva vacuna
-                    </button>
-                  </div>
 
                   <div class="clinical-list" *ngIf="vacunas.length; else emptyVacunas">
                     <article
@@ -488,9 +361,7 @@
                     <app-admin-empty-state
                       icon="vaccines"
                       title="Sin vacunas"
-                      message="No hay vacunas registradas."
-                      actionLabel="Agregar vacuna"
-                      (action)="agregarVacuna()"
+                      message="No hay vacunas. Usa «+ Agregar» para registrar una."
                     >
                     </app-admin-empty-state>
                   </ng-template>
@@ -501,18 +372,6 @@
             <mat-tab label="Consentimientos">
               <ng-template matTabContent>
                 <div class="tab-panel">
-                  <div class="tab-panel__toolbar">
-                    <button
-                      mat-raised-button
-                      color="primary"
-                      class="btn-primary-teal"
-                      type="button"
-                      (click)="agregarConsentimiento()"
-                    >
-                      <mat-icon>add</mat-icon>
-                      Nuevo consentimiento
-                    </button>
-                  </div>
 
                   <div class="clinical-list" *ngIf="consentimientos.length; else emptyConsentimientos">
                     <article *ngFor="let item of consentimientos" class="clinical-list__item">
@@ -554,9 +413,7 @@
                     <app-admin-empty-state
                       icon="assignment_turned_in"
                       title="Sin consentimientos"
-                      message="No hay consentimientos para este paciente."
-                      actionLabel="Nuevo consentimiento"
-                      (action)="agregarConsentimiento()"
+                      message="No hay consentimientos. Usa «+ Agregar» para crear uno."
                     >
                     </app-admin-empty-state>
                   </ng-template>
@@ -657,5 +514,54 @@
         hint="Peluquería"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
+
+    <!-- Un solo botón para registrar todo en el expediente; siempre visible (spec 096). -->
+    <div class="expediente-fab">
+      <button
+        mat-fab
+        extended
+        class="expediente-fab__btn"
+        type="button"
+        aria-label="Agregar al expediente"
+        [matMenuTriggerFor]="menuAgregar"
+      >
+        <mat-icon>add</mat-icon>
+        Agregar
+      </button>
+    </div>
+
+    <mat-menu #menuAgregar="matMenu" xPosition="before" yPosition="above" class="expediente-agregar-menu">
+      <div class="expediente-agregar-menu__label" aria-hidden="true">Clínico</div>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('historial')">
+        <mat-icon>medical_services</mat-icon><span>Historial clínico</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('vacuna')">
+        <mat-icon>vaccines</mat-icon><span>Vacuna</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('desparasitacion')">
+        <mat-icon>medication</mat-icon><span>Desparasitación</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('recordatorio')">
+        <mat-icon>notifications</mat-icon><span>Recordatorio</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('consentimiento')">
+        <mat-icon>assignment_turned_in</mat-icon><span>Consentimiento</span>
+      </button>
+      <mat-divider></mat-divider>
+      <div class="expediente-agregar-menu__label" aria-hidden="true">Agenda y servicios</div>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('cita')">
+        <mat-icon>event</mat-icon><span>Cita</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('banio')">
+        <mat-icon>shower</mat-icon><span>Baño / peluquería</span>
+      </button>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('pension')">
+        <mat-icon>hotel</mat-icon><span>Pensión</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item type="button" (click)="agregarDesdeMenu('cuenta')">
+        <mat-icon>receipt_long</mat-icon><span>Cuenta del día (cobrar)</span>
+      </button>
+    </mat-menu>
   </ng-container>
 </div>

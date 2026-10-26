@@ -18,7 +18,7 @@ describe('Paciente - Historial y Recordatorios smoke', () => {
   it('abre tab Recordatorios y diálogo nuevo', () => {
     cy.contains('[role="tab"]', 'Recordatorios').click();
     cy.get('.clinical-list, app-admin-empty-state').should('exist');
-    cy.contains('button', /Nuevo recordatorio/i).click();
+    cy.agregarEnExpediente('Recordatorio');
     cy.get('mat-dialog-container').should('be.visible');
     cy.contains('button', /Cancelar/i).click({ force: true });
   });

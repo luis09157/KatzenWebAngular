@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **94** specs · `done`: 77 · `in_progress`: 14 · `superseded`: 3
+Total: **95** specs · `done`: 77 · `in_progress`: 15 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -102,3 +102,4 @@ Total: **94** specs · `done`: 77 · `in_progress`: 14 · `superseded`: 3
 | 093 | [taxonomia-servicios-clinica](093-taxonomia-servicios-clinica/spec.md) | Taxonomía de servicios de clínica (tipo + domicilio) | done |
 | 094 | [consentimientos-pdf-plantillas-whatsapp](094-consentimientos-pdf-plantillas-whatsapp/spec.md) | Consentimientos — PDF, plantillas y WhatsApp | in_progress |
 | 095 | [movil-usable](095-movil-usable/spec.md) | Panel admin usable en celular | in_progress |
+| 096 | [simplificar-acciones](096-simplificar-acciones/spec.md) | Menos botones, una acción principal por pantalla | in_progress |

@@ -683,3 +683,56 @@
     justify-content: flex-end;
   }
 }
+
+/* ── «+ Agregar» del expediente (spec 096): un solo botón, siempre visible ── */
+.expediente-fab {
+  position: sticky;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  pointer-events: none; /* solo el botón recibe toques; el resto deja pasar */
+}
+
+/* Más específico que `html .mat-mdc-fab.mat-accent` del tema (que lo dejaba azul claro). */
+.expediente-fab .expediente-fab__btn.mat-mdc-fab {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px 0 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  --mdc-fab-container-color: var(--katzen-verde, #0a969b);
+  --mat-fab-foreground-color: #fff;
+  --mdc-extended-fab-container-color: var(--katzen-verde, #0a969b);
+  box-shadow: 0 6px 18px rgba(10, 150, 155, 0.35);
+}
+
+::ng-deep .expediente-agregar-menu {
+  min-width: 248px;
+
+  .mat-mdc-menu-item {
+    min-height: 48px;
+  }
+}
+
+::ng-deep .expediente-agregar-menu__label {
+  padding: 10px 16px 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+@media (max-width: 600px) {
+  .expediente-fab {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .expediente-fab .expediente-fab__btn.mat-mdc-fab {
+    width: 100%;
+    justify-content: center;
+  }
+}
