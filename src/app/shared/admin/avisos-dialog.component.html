@@ -1,0 +1,87 @@
+<div class="admin-dialog-shell avisos-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Avisos</h2>
+      <p class="admin-dialog-subtitle">Vacunas del día, recordatorios y pendientes de la clínica.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <section class="avisos-seccion">
+      <h3 class="avisos-titulo">Este celular</h3>
+      <p class="avisos-dispositivo">{{ dispositivo }}</p>
+
+      <div class="avisos-estado avisos-estado--ok" *ngIf="permiso === 'granted'">
+        <mat-icon>notifications_active</mat-icon>
+        <span>Los avisos están activados. Se renuevan solos cada vez que entras al sistema.</span>
+      </div>
+      <div class="avisos-estado avisos-estado--pend" *ngIf="permiso === 'default'">
+        <mat-icon>notifications_none</mat-icon>
+        <span>Todavía no activas los avisos en este celular.</span>
+      </div>
+      <div class="avisos-estado avisos-estado--mal" *ngIf="permiso === 'denied'">
+        <mat-icon>notifications_off</mat-icon>
+        <span
+          >Los avisos están bloqueados en el navegador. Ábrelos en la configuración del navegador (candado junto a la
+          dirección → Notificaciones → Permitir) y vuelve a entrar.</span
+        >
+      </div>
+      <div class="avisos-estado avisos-estado--mal" *ngIf="permiso === 'unsupported'">
+        <mat-icon>info</mat-icon>
+        <span
+          >Este navegador no recibe avisos. En iPhone: abre el sistema en Safari, toca Compartir → «Agregar a pantalla de
+          inicio» y entra desde ese ícono.</span
+        >
+      </div>
+
+      <div class="avisos-acciones">
+        <button
+          mat-flat-button
+          color="primary"
+          class="btn-primary-teal"
+          type="button"
+          *ngIf="permiso !== 'denied' && permiso !== 'unsupported'"
+          [disabled]="trabajando"
+          (click)="activar()"
+        >
+          <mat-icon>notifications_active</mat-icon>
+          {{ permiso === 'granted' ? 'Renovar ahora' : 'Activar avisos' }}
+        </button>
+        <button mat-stroked-button type="button" *ngIf="permiso === 'granted'" [disabled]="trabajando" (click)="probar()">
+          <mat-icon>campaign</mat-icon>
+          Enviar prueba
+        </button>
+      </div>
+      <p class="avisos-mensaje" *ngIf="mensaje" [class.avisos-mensaje--ok]="mensajeOk">{{ mensaje }}</p>
+    </section>
+
+    <section class="avisos-seccion" *ngIf="data?.verEquipo">
+      <h3 class="avisos-titulo">Quién recibe avisos</h3>
+      <p class="avisos-resumen" *ngIf="!cargandoEquipo">
+        {{ conAvisos }} de {{ equipo.length }} personas tienen avisos funcionando.
+      </p>
+      <p class="avisos-resumen" *ngIf="cargandoEquipo">Cargando…</p>
+      <ul class="avisos-equipo">
+        <li *ngFor="let p of equipo" [class]="'avisos-persona avisos-persona--' + p.estado">
+          <div class="avisos-persona__top">
+            <strong>{{ p.nombre }}</strong>
+            <span class="avisos-chip">{{ textoEstadoPersona(p) }}</span>
+          </div>
+          <p class="avisos-persona__cel" *ngFor="let c of p.celulares">
+            {{ c.dispositivo }} · última vez {{ fechaCorta(c.actualizado) }}{{ c.estado === 'apagado' ? ' · apagado' : '' }}
+          </p>
+          <p class="avisos-persona__cel" *ngIf="!p.celulares.length">
+            Pídele que entre al sistema en su celular y toque «Avisos» → «Activar avisos».
+          </p>
+        </li>
+      </ul>
+    </section>
+  </mat-dialog-content>
+
+  <div class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+  </div>
+</div>

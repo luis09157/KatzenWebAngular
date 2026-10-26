@@ -88,7 +88,7 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
       this.estadisticas = await this.inventarioService.getEstadisticas();
 
       this.inventarioService
-        .getAlertas()
+        .getAlertasVigentes()
         .pipe(takeUntil(this.destroy$))
         .subscribe((alertas) => {
           this.alertas = alertas;

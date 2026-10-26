@@ -16,32 +16,20 @@ firebase.initializeApp({
   appId: '1:262209452533:web:ba8966a907d98bc2d3c8bc'
 });
 
-const messaging = firebase.messaging();
-const PORTAL_CACHE = 'katzen-portal-v5';
-const PRECACHE_URLS = [
-  '/manifest.webmanifest',
-  '/manifest-admin.webmanifest',
-  '/assets/katzen-logo.png',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png'
-];
-
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'KatzenVet';
-  const options = {
-    body: payload.notification?.body || 'Tienes un nuevo aviso.',
-    icon: '/assets/icons/icon-192.png',
-    badge: '/assets/icons/icon-192.png',
-    data: payload.data || {}
-  };
-  self.registration.showNotification(title, options);
-});
-
+/**
+ * 2026-10-26 — registrado ANTES de firebase.messaging(): así atiende también los avisos que
+ * muestra el SDK solo (llevan los datos en `FCM_MSG`) y abre la pantalla correcta.
+ */
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const data = event.notification.data || {};
+  const raw = event.notification.data || {};
+  const data = (raw.FCM_MSG && raw.FCM_MSG.data) || raw;
+  event.stopImmediatePropagation();
+  const tipo = String(data.tipo || '');
   const target =
-    data.tipo === 'vacuna_resumen_clinica' ? '/admin/vacunas' : '/portal/notificaciones';
+    tipo === 'vacuna_resumen_clinica' || tipo.startsWith('clinica_') || tipo === 'prueba'
+      ? data.link || (tipo === 'vacuna_resumen_clinica' ? '/admin/vacunas' : '/admin/inicio')
+      : data.link || '/portal/notificaciones';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
@@ -60,6 +48,32 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+const messaging = firebase.messaging();
+const PORTAL_CACHE = 'katzen-portal-v6';
+const PRECACHE_URLS = [
+  '/manifest.webmanifest',
+  '/manifest-admin.webmanifest',
+  '/assets/katzen-logo.png',
+  '/assets/icons/icon-192.png',
+  '/assets/icons/icon-512.png'
+];
+
+messaging.onBackgroundMessage((payload) => {
+  // 2026-10-26: si el mensaje trae `notification`, el SDK ya lo muestra solo; mostrarlo aquí
+  // también salían DOS avisos iguales. Solo mostramos los mensajes de datos.
+  if (payload && payload.notification) return;
+  const d = payload.data || {};
+  const title = d.title || 'KatzenVet';
+  const options = {
+    body: d.body || 'Tienes un nuevo aviso.',
+    icon: '/assets/icons/icon-192.png',
+    badge: '/assets/icons/icon-192.png',
+    data: payload.data || {}
+  };
+  self.registration.showNotification(title, options);
+});
+
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

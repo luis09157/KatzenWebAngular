@@ -19,6 +19,7 @@ import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { AyudaDialogComponent } from '../ayuda/ayuda-dialog.component';
 import Swal from 'sweetalert2';
 
+import { AvisosDialogComponent } from '../shared/admin/avisos-dialog.component';
 @Component({
   selector: 'app-admin-main-layout',
   templateUrl: './admin-main-layout.component.html',
@@ -54,6 +55,10 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   /** URL actual para marcar «Pacientes» activo en directorio y expediente. */
   currentUrl = '';
   registeringStaffPush = false;
+  /** 2026-10-26 — permiso de avisos en este celular (para el menú y el aviso de arriba). */
+  permisoAvisos: NotificationPermission | 'unsupported' = 'default';
+  /** Se oculta el aviso «Activa los avisos» por esta sesión si la persona lo cierra. */
+  avisoAvisosCerrado = false;
   /** Spec 064: ng serve apuntando al emulador RTDB. */
   readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
   /** Spec 069 — alertas de stock activas para badge del menú. */
@@ -110,6 +115,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
             if (this.canShow('inventario')) {
               this.suscribirAlertasStock();
             }
+            void this.iniciarAvisos();
             return null;
           });
         })
@@ -280,7 +286,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
 
   private suscribirAlertasStock(): void {
     this.inventarioService
-      .getAlertas()
+      .getAlertasVigentes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (alertas) => {
@@ -327,31 +333,73 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     this.closeSidenav();
   }
 
+  /**
+   * 2026-10-26 — al entrar: si ya hay permiso, registra/renueva el celular sin preguntar y
+   * escucha avisos con el sistema abierto. Si no hay permiso, el menú y el aviso de arriba lo piden.
+   */
+  private async iniciarAvisos(): Promise<void> {
+    this.permisoAvisos = this.portalFcm.currentPermission();
+    try {
+      await this.portalFcm.refrescarSiYaAutorizado('admin_web');
+    } catch {
+      /* best-effort: nunca bloquea el panel */
+    }
+    try {
+      this.avisoAvisosCerrado = sessionStorage.getItem('kv-aviso-avisos-cerrado') === '1';
+    } catch {
+      this.avisoAvisosCerrado = false;
+    }
+  }
+
+  get mostrarAvisoActivarAvisos(): boolean {
+    return this.permisoAvisos === 'default' && !this.avisoAvisosCerrado;
+  }
+
+  get etiquetaMenuAvisos(): string {
+    if (this.permisoAvisos === 'granted') return 'Avisos: activados';
+    if (this.permisoAvisos === 'denied') return 'Avisos: bloqueados';
+    return 'Avisos: activar';
+  }
+
+  cerrarAvisoActivarAvisos(): void {
+    this.avisoAvisosCerrado = true;
+    try {
+      sessionStorage.setItem('kv-aviso-avisos-cerrado', '1');
+    } catch {
+      /* sin storage: solo se oculta ahora */
+    }
+  }
+
+  /** Panel «Avisos»: este celular + (admin/super admin) quién del personal los recibe. */
+  abrirAvisos(): void {
+    this.closeSidenav();
+    const ref = this.dialog.open(AvisosDialogComponent, {
+      ...ADMIN_DIALOG_DETAIL,
+      data: { verEquipo: this.isAdmin },
+    });
+    ref.afterClosed().subscribe(() => {
+      this.permisoAvisos = this.portalFcm.currentPermission();
+    });
+  }
+
+  /** Atajo del aviso de arriba: pide el permiso con un toque (el navegador exige un toque). */
   async activarAvisosClinica(): Promise<void> {
     if (this.registeringStaffPush) return;
     this.registeringStaffPush = true;
     try {
       const result = await this.portalFcm.registerStaffToken();
+      this.permisoAvisos = this.portalFcm.currentPermission();
       if (result.status === 'registered') {
+        this.portalFcm.escucharEnPrimerPlano();
         await Swal.fire({
           icon: 'success',
-          title: 'Avisos de clínica activados',
-          text: 'Recibirás un resumen (Hoy N vacunas) cerca de la fecha, no al registrar un refuerzo lejano.',
-        });
-      } else if (result.status === 'denied') {
-        await Swal.fire({
-          icon: 'warning',
-          title: 'Permiso denegado',
-          text: 'Habilita notificaciones en el navegador para avisos de vacunas.',
+          title: 'Avisos activados',
+          text: 'Te llegarán los avisos de la clínica en este celular. Se renuevan solos cada vez que entras.',
+          timer: 2600,
+          showConfirmButton: false,
         });
       } else {
-        await Swal.fire({
-          icon: 'info',
-          title: 'No se activaron los avisos',
-          text:
-            result.detail ||
-            this.errorMessages.getUserMessage(new Error(result.detail || 'push'), 'activar avisos clínica'),
-        });
+        this.abrirAvisos();
       }
     } catch (error) {
       await Swal.fire({

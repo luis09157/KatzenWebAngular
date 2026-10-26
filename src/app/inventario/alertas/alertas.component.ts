@@ -81,7 +81,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
             if (p.id) this.productos.set(p.id, p);
           });
           this.inventarioService
-            .getAlertas()
+            .getAlertasVigentes()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (alertas) => {

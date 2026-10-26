@@ -98,3 +98,27 @@
     display: inline-flex !important;
   }
 }
+
+/* 2026-10-26 — aviso para activar avisos push en este celular */
+.admin-avisos-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 12px 8px 16px;
+  background: #fff7ed;
+  color: #9a3412;
+  border-bottom: 1px solid #fed7aa;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.admin-avisos-banner__txt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-avisos-banner button[mat-flat-button] {
+  flex-shrink: 0;
+  min-height: 40px;
+}
