@@ -39,3 +39,7 @@ Ninguno (solo lectura).
 - Celular 412px: botones se deslizan; página sin scroll horizontal; tarjetas por sección.
 - CI: lint, unit tests y build OK. `check:mobile`: 0 errores nuevos.
 - No se agregaron, editaron ni borraron registros (cambio solo de lectura).
+
+## Anexo — Motivos de cita (2026-10-26)
+
+Lista agrupada en `citas/cita-motivos.util.ts`: Consulta · Prevención · Cirugía (esterilización/castración, enucleación, otohematoma, retiro de tumores, tejido blando) · Estudios (análisis de sangre, radiografía, ecografía) · Otro. Se quitaron «Grooming (Peluquería)» (tiene su menú), «Emergencia» (no se agenda) y especialidades que la clínica no hace. Citas viejas conservan su motivo (grupo «Motivo anterior»). Sin migración: `motivo` sigue siendo texto.

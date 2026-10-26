@@ -128,7 +128,9 @@
             <mat-label>Motivo</mat-label>
             <mat-select formControlName="motivo" required>
               <mat-option value="">Seleccionar motivo</mat-option>
-              <mat-option *ngFor="let motivo of motivos" [value]="motivo">{{ motivo }}</mat-option>
+              <mat-optgroup *ngFor="let grupo of gruposMotivo" [label]="grupo.nombre">
+                <mat-option *ngFor="let motivo of grupo.motivos" [value]="motivo">{{ motivo }}</mat-option>
+              </mat-optgroup>
             </mat-select>
             <mat-error *ngIf="citaForm.get('motivo')?.hasError('required')">El motivo es requerido</mat-error>
           </mat-form-field>

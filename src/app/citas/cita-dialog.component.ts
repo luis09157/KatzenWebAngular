@@ -13,6 +13,7 @@ import { CITA_DURACION_DEFAULT_MIN, CITA_DURACION_MINIMA_MIN } from './cita-agen
 import { ClientePacientePickerFields } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 
+import { GrupoMotivoCita, gruposMotivoCita } from './cita-motivos.util';
 @Component({
   selector: 'app-cita-dialog',
   templateUrl: './cita-dialog.component.html',
@@ -42,32 +43,8 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   modoVer = false;
   clientes: any[] = [];
   pacientes: any[] = [];
-  motivos: string[] = [
-    'Consulta General',
-    'Vacunación',
-    'Desparasitación',
-    'Esterilización/Castración',
-    'Cirugía',
-    'Emergencia',
-    'Control Post-operatorio',
-    'Revisión de Heridas',
-    'Tratamiento Dental',
-    'Análisis de Sangre',
-    'Radiografía',
-    'Ecografía',
-    'Dermatología',
-    'Oftalmología',
-    'Cardiología',
-    'Neurología',
-    'Oncología',
-    'Fisioterapia',
-    'Rehabilitación',
-    'Control de Peso',
-    'Nutrición',
-    'Comportamiento',
-    'Grooming (Peluquería)',
-    'Otro',
-  ];
+  /** Motivos agrupados (Consulta, Prevención, Cirugía, Estudios, Otro) — `cita-motivos.util`. */
+  gruposMotivo: GrupoMotivoCita[] = gruposMotivoCita();
   /** Campos del picker alineados al FormGroup de citas (nombreCliente legacy). */
   readonly pickerFields: ClientePacientePickerFields = {
     clienteId: 'cliente_id',
@@ -144,6 +121,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
         ? Number(data.cita.duracion_minutos)
         : CITA_DURACION_DEFAULT_MIN;
 
+    this.gruposMotivo = gruposMotivoCita(data.cita?.motivo);
     this.citaForm = this.fb.group({
       id: [data.cita?.id || ''],
       cliente_id: [data.cita?.cliente_id || '', Validators.required],
@@ -394,6 +372,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     const cita = this.data.cita;
     if (!cita) return;
 
+    this.gruposMotivo = gruposMotivoCita(cita.motivo);
     this.citaForm.patchValue({
       cliente_id: cita.cliente_id || '',
       paciente_id: cita.paciente_id || '',
