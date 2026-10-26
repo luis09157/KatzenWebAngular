@@ -1055,9 +1055,11 @@
       </button>
     </div>
     <div class="pos-footer__group pos-footer__group--tools">
+      <!-- Imprimir / PDF / WhatsApp ya están en «Ticket digital» del paso Cobrar: no repetir abajo. -->
       <button
         mat-stroked-button
         type="button"
+        *ngIf="!bloqueTicketDigitalVisible"
         (click)="imprimirDigital()"
         [disabled]="loading || !lineas.length"
         matTooltip="Comprobante con formato Katzen (impresora normal)"
@@ -1078,6 +1080,7 @@
       <button
         mat-stroked-button
         type="button"
+        *ngIf="!bloqueTicketDigitalVisible"
         (click)="descargarTicketPdf()"
         [disabled]="loading || !lineas.length"
         matTooltip="Descargar PDF del ticket"
@@ -1089,7 +1092,7 @@
         mat-stroked-button
         color="primary"
         type="button"
-        *ngIf="puedeEnviarWhatsApp"
+        *ngIf="puedeEnviarWhatsApp && !bloqueTicketDigitalVisible"
         [disabled]="!whatsappTelefonoValido"
         (click)="enviarTicketWhatsApp()"
         matTooltip="PDF + WhatsApp (adjunto manual en Web)"

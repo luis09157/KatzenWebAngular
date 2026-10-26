@@ -8,11 +8,7 @@
     <header class="pos-home__header">
       <p class="pos-home__eyebrow">Mostrador</p>
       <h1 class="pos-home__title">Punto de venta</h1>
-      <p class="pos-home__lead">
-        Vende y cobra aquí.
-        <a routerLink="/admin/inventario/productos" class="pos-home__lead-link">Abrir catálogo de productos</a>
-        si falta un artículo.
-      </p>
+      <p class="pos-home__lead">Vende y cobra aquí. Si falta un artículo, búscalo en Catálogo.</p>
     </header>
 
     <app-caja-corte-banner></app-caja-corte-banner>
@@ -69,8 +65,7 @@
       </div>
 
       <p class="pos-home__empty" *ngIf="!ticketsCompactos.length">
-        No hay tickets {{ listaTickets === 'hoy' ? 'hoy' : 'abiertos' }}.
-        <button type="button" class="pos-home__link" (click)="nueva()">Nueva venta</button>
+        No hay tickets {{ listaTickets === 'hoy' ? 'hoy' : 'abiertos' }}. Empieza con «Nueva venta».
       </p>
 
       <ul class="pos-ticket-list" *ngIf="ticketsCompactos.length">

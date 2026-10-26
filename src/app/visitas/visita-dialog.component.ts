@@ -367,6 +367,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
   }
 
   /** Bloque WhatsApp visible tras cobrar (o en ticket cerrado con pagos). */
+  /** Bloque «Ticket digital» del paso Cobrar (PDF / Imprimir / WhatsApp). El pie no los repite (spec 096). */
+  get bloqueTicketDigitalVisible(): boolean {
+    return (this.pasoWizard === 3 || this.soloLectura) && this.puedeEnviarWhatsApp;
+  }
+
   get puedeEnviarWhatsApp(): boolean {
     return !!this.visitaId && (!!this.resultadoCobro || (this.soloLectura && this.totales.pagado > 0));
   }
