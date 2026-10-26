@@ -41,7 +41,7 @@ Como **recepción en el teléfono**, quiero ver registros sin bajar, para atende
 ### US-3 — Tarjetas en lugar de tablas (reemplaza la decisión «Tablas admin móvil» de 061)
 
 - [ ] SC-005: Componente compartido `app-admin-mobile-list` (o `*ngIf` con `BreakpointObserver` en ≤600): tarjeta con título, 2 líneas de meta, chip de estado, menú ⋮. Clase `.admin-mobile-card`.
-- [x] SC-006a: **Piloto Clientes (2026-10-25):** ≤600px tarjetas con nombre completo, deuda, teléfono (toque = llamar), expediente, portal; «Ver ficha», «Cuenta del día» y ⋮. Mismo filtro/paginador que la tabla (`dataSource.connect()`). Escritorio sin cambios. Pedido de Luis con captura del S25 Ultra (íconos encimados sobre el nombre).
+- [x] SC-006a: **Piloto Clientes (2026-10-25):** ≤600px tarjetas con nombre completo, deuda, teléfono (toque = llamar), expediente, portal; «Ver ficha» y ⋮ (Cuenta del día pasó al ⋮ por pedido de Luis 2026-10-26: la tarjeta muestra datos del cliente — correo y nombres de sus mascotas, no acciones de cobro). Mismo filtro/paginador que la tabla (`dataSource.connect()`). Escritorio sin cambios. Pedido de Luis con captura del S25 Ultra (íconos encimados sobre el nombre).
 - [ ] SC-006b: luego Pacientes, Peluquería, Citas, Vacunas, Recordatorios, Productos (lista).
 - [x] SC-007 (Clientes): un toque en la tarjeta abre la ficha; copy «Toca un cliente…».
 

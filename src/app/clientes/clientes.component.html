@@ -237,19 +237,21 @@
               }}</span>
             </div>
 
+            <p class="cliente-card__dato" *ngIf="!isCorreoFaltante(c.correo)">
+              <mat-icon aria-hidden="true">mail</mat-icon>{{ getCorreo(c) }}
+            </p>
+            <p class="cliente-card__dato">
+              <mat-icon aria-hidden="true">pets</mat-icon>
+              <ng-container *ngIf="mascotasDeCliente(c).length; else sinMascotas">{{
+                mascotasDeCliente(c).join(', ')
+              }}</ng-container>
+              <ng-template #sinMascotas><span class="text-muted">Sin mascotas registradas</span></ng-template>
+            </p>
+
             <div class="cliente-card__acciones">
               <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="verCliente(c, $event)">
                 <mat-icon>visibility</mat-icon>
                 Ver ficha
-              </button>
-              <button
-                mat-stroked-button
-                type="button"
-                class="cliente-card__cuenta"
-                (click)="nuevaVisitaCliente(c); $event.stopPropagation()"
-              >
-                <mat-icon>receipt_long</mat-icon>
-                Cuenta del día
               </button>
               <button
                 mat-icon-button
