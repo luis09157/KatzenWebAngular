@@ -21,11 +21,11 @@ describe('Paciente - Smoke', () => {
     cy.get('.clinical-list, app-admin-empty-state').should('exist');
   });
 
-  it('estado vacío en Baños muestra CTA o lista clínica', () => {
+  it('estado vacío en Baños remite a «+ Agregar» o muestra lista', () => {
     cy.contains('[role="tab"]', 'Baños').click();
     cy.get('body').then(($body) => {
-      if ($body.text().includes('Agregar primer baño')) {
-        cy.contains('Agregar primer baño').should('be.visible');
+      if ($body.text().includes('Aún no hay baños')) {
+        cy.contains('Usa «+ Agregar»').should('be.visible');
       } else {
         cy.get('.clinical-list__item').should('have.length.at.least', 1);
       }

@@ -12,7 +12,7 @@ describe('Paciente - Historial smoke', () => {
   });
 
   it('abre diálogo de nuevo historial y lo cierra', () => {
-    cy.contains('button', /Nuevo historial/i).click();
+    cy.agregarEnExpediente('Historial clínico');
     cy.get('mat-dialog-container').should('be.visible');
     cy.contains('button', /Cancelar/i).click({ force: true });
     cy.get('mat-dialog-container').should('not.exist');

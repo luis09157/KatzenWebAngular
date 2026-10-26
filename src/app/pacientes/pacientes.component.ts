@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatTabGroup } from '@angular/material/tabs';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -60,6 +61,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(BaniosPacienteComponent) baniosPacienteCmp?: BaniosPacienteComponent;
+  @ViewChild('expedienteTabs') expedienteTabs?: MatTabGroup;
 
   // Propiedades para la nueva vista
   searchTerm: string = '';
@@ -1199,11 +1201,68 @@ export class PacientesComponent implements OnInit, OnDestroy {
       this.baniosPacienteCmp.agregarBanio();
       return;
     }
-    Swal.fire({
-      icon: 'info',
-      title: 'Abre la pestaña Baños',
-      text: 'Usa «Nuevo baño» en la pestaña Baños del expediente.',
-    });
+    // La pestaña Baños se carga al abrirla: se abre y se espera a que exista el componente.
+    this.irAPestanaExpediente(PESTANA_EXPEDIENTE.banios);
+    let intentos = 0;
+    const esperar = () => {
+      if (this.baniosPacienteCmp) {
+        this.baniosPacienteCmp.agregarBanio();
+        return;
+      }
+      if (++intentos < 40) {
+        setTimeout(esperar, 50);
+        return;
+      }
+      Swal.fire({
+        icon: 'info',
+        title: 'Abre la pestaña Baños',
+        text: 'No se pudo abrir el formulario. Entra a la pestaña Baños y vuelve a intentar.',
+      });
+    };
+    setTimeout(esperar, 0);
+  }
+
+  /** «+ Agregar» del expediente (spec 096): un solo botón, siempre visible, con todo rotulado. */
+  agregarDesdeMenu(tipo: AgregarExpedienteTipo): void {
+    switch (tipo) {
+      case 'historial':
+        this.irAPestanaExpediente(PESTANA_EXPEDIENTE.historial);
+        this.agregarHistorialClinico();
+        return;
+      case 'recordatorio':
+        this.irAPestanaExpediente(PESTANA_EXPEDIENTE.recordatorios);
+        this.agregarRecordatorio();
+        return;
+      case 'vacuna':
+        this.irAPestanaExpediente(PESTANA_EXPEDIENTE.vacunas);
+        this.agregarVacuna();
+        return;
+      case 'consentimiento':
+        this.irAPestanaExpediente(PESTANA_EXPEDIENTE.consentimientos);
+        this.agregarConsentimiento();
+        return;
+      case 'desparasitacion':
+        this.agregarDesparasitacion();
+        return;
+      case 'banio':
+        this.agregarBanioDesdeExpediente();
+        return;
+      case 'cita':
+        this.agregarCitaDesdeExpediente();
+        return;
+      case 'pension':
+        this.agregarPensionDesdeExpediente();
+        return;
+      case 'cuenta':
+        this.agregarVisitaDesdeExpediente();
+        return;
+    }
+  }
+
+  private irAPestanaExpediente(indice: number): void {
+    if (this.expedienteTabs && this.expedienteTabs.selectedIndex !== indice) {
+      this.expedienteTabs.selectedIndex = indice;
+    }
   }
 
   agregarPensionDesdeExpediente(): void {
@@ -1285,3 +1344,24 @@ export class PacientesComponent implements OnInit, OnDestroy {
     this.cargarLogActividades(this.pacienteSeleccionado.id);
   }
 }
+
+/** Opciones del menú «+ Agregar» del expediente. */
+export type AgregarExpedienteTipo =
+  | 'historial'
+  | 'vacuna'
+  | 'desparasitacion'
+  | 'recordatorio'
+  | 'consentimiento'
+  | 'cita'
+  | 'banio'
+  | 'pension'
+  | 'cuenta';
+
+/** Orden de las pestañas en `pacientes.component.html`. */
+const PESTANA_EXPEDIENTE = {
+  historial: 0,
+  recordatorios: 1,
+  vacunas: 2,
+  consentimientos: 3,
+  banios: 4,
+} as const;

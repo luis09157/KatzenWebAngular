@@ -19,6 +19,8 @@ declare global {
       /** Cierra Swal con confirm o espera timer (showConfirmButton: false). */
       dismissSwalAny(): Chainable<void>;
       openPacienteExpediente(searchTerm?: string): Chainable<void>;
+      /** Expediente: abre «+ Agregar» y elige la opción del menú (spec 096). */
+      agregarEnExpediente(opcion: string | RegExp): Chainable<void>;
       fillClienteFormBasico(options: {
         nombre: string;
         apellidoPaterno: string;
@@ -153,6 +155,11 @@ Cypress.Commands.add('visitAdminModule', (path: string) => {
   }
 
   cy.navigateAdmin(path);
+});
+
+Cypress.Commands.add('agregarEnExpediente', (opcion: string | RegExp) => {
+  cy.get('.expediente-fab__btn', { timeout: 15000 }).should('be.visible').click();
+  cy.contains('.mat-mdc-menu-panel button[mat-menu-item]', opcion).click();
 });
 
 Cypress.Commands.add('openPacienteExpediente', (searchTerm?: string) => {

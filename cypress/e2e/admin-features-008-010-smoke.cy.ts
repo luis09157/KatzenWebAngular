@@ -31,7 +31,7 @@ describe('Admin features smoke 009/010', () => {
   it('010: expediente → Nuevo historial muestra notas_internas', () => {
     cy.openPacienteExpediente();
     cy.contains('[role="tab"]', 'Historial').click();
-    cy.contains('button', /Nuevo historial/i).click();
+    cy.agregarEnExpediente('Historial clínico');
     cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
     cy.get('mat-dialog-container textarea[formControlName="notas_internas"]')
       .scrollIntoView()

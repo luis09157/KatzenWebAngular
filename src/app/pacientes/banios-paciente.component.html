@@ -11,10 +11,6 @@
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
 
-    <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="agregarBanio()">
-      <mat-icon>add</mat-icon>
-      Nuevo baño
-    </button>
   </div>
 
   <div *ngIf="isLoading" class="loading-container">
@@ -122,10 +118,8 @@
     [message]="
       searchTerm
         ? 'No hay baños que coincidan con la búsqueda.'
-        : 'Aún no hay servicios de peluquería para este paciente.'
+        : 'Aún no hay baños. Usa «+ Agregar» para registrar uno.'
     "
-    [actionLabel]="searchTerm ? '' : 'Agregar primer baño'"
-    (action)="agregarBanio()"
   >
   </app-admin-empty-state>
 </div>
