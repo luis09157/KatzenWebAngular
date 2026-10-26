@@ -52,6 +52,8 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
     'acciones',
   ];
   dataSource = new MatTableDataSource<any>([]);
+  /** Filas de la página actual (mismo filtro y paginador que la tabla) para las tarjetas de celular. */
+  readonly filasPagina$ = this.dataSource.connect();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
 
@@ -321,6 +323,16 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
       return 'estado-badge--neutral';
     }
     return 'estado-badge--info';
+  }
+
+  /** Enlace para llamar desde el celular; vacío si no hay un número usable. */
+  telHref(cliente: any): string {
+    const digitos = String(cliente?.telefono ?? '').replace(/[^\d+]/g, '');
+    return digitos.length >= 7 ? `tel:${digitos}` : '';
+  }
+
+  trackById(index: number, cliente: { id?: string }): string | number {
+    return cliente?.id || index;
   }
 
   getTelefono(cliente: any): string {
