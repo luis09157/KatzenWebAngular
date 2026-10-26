@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -44,6 +44,19 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     'usuario',
     'acciones'
   ];
+  /** Celular: 3 columnas (fecha, motivo y quién van dentro de la fila). */
+  readonly columnasMovil = ['producto', 'cantidad', 'acciones'];
+  esAngosto = typeof window !== 'undefined' && window.innerWidth < 700;
+
+  get columnas(): string[] {
+    return this.esAngosto ? this.columnasMovil : this.displayedColumns;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.esAngosto = window.innerWidth < 700;
+  }
+
   /** uid → nombre del staff (para no mostrar códigos). */
   private nombresStaff = new Map<string, string>();
 

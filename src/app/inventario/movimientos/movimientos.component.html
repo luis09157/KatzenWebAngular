@@ -114,6 +114,7 @@
               <div class="cell-primary">
                 <strong>{{ getProductoNombre(movimiento.producto_id) }}</strong>
                 <span class="cell-sub">{{ getProductoPresentacion(movimiento.producto_id) }}</span>
+                <span class="cell-sub" *ngIf="esAngosto">{{ formatearFecha(movimiento.created_at) }}</span>
               </div>
             </td>
           </ng-container>
@@ -135,6 +136,7 @@
                   {{ getTipoTexto(movimiento.tipo) }}: {{ getCantidadTexto(movimiento) }}
                 </strong>
                 <span class="cell-sub" *ngIf="getStockTexto(movimiento)">{{ getStockTexto(movimiento) }}</span>
+                <span class="cell-sub" *ngIf="esAngosto">{{ getMotivo(movimiento) }} · {{ getResponsable(movimiento) }}</span>
               </div>
             </td>
           </ng-container>
@@ -226,17 +228,17 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-header-row *matHeaderRowDef="columnas; sticky: true"></tr>
           <tr
             mat-row
-            *matRowDef="let row; columns: displayedColumns"
+            *matRowDef="let row; columns: columnas"
             class="data-row data-row--interactive"
             title="Doble clic para ver detalle"
             (dblclick)="verDetalle(row)"
           ></tr>
 
           <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            <td class="mat-cell" [attr.colspan]="columnas.length">
               <app-admin-empty-state
                 icon="history"
                 title="No hay movimientos registrados"
@@ -297,6 +299,9 @@
   <mat-menu #movimientoMenu="matMenu">
     <button mat-menu-item (click)="verDetalle(menuContext!)" [disabled]="!menuContext">
       <mat-icon>visibility</mat-icon> Ver detalle
+    </button>
+    <button mat-menu-item *ngIf="menuContext?.visitaId" (click)="verTicket(menuContext!.visitaId!)">
+      <mat-icon>receipt_long</mat-icon> Ver ticket
     </button>
   </mat-menu>
 </div>
