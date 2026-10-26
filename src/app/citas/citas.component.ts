@@ -28,14 +28,21 @@ import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from './cita-atender.util';
-import {
-  coincidenciaTextoListado,
-  fechaHoyListadoLocal,
-  filtrarListadoAgendaOBusqueda,
-  listadoFechaIso,
-  metaListadoHoyManana,
-  partirListadoHoyManana,
-} from '../core/utils/listado-hoy-manana.util';
+import { coincidenciaTextoListado, fechaHoyListadoLocal, listadoFechaIso } from '../core/utils/listado-hoy-manana.util';
+import { ClasificadorAgenda, FiltroAgenda } from '../core/utils/agenda-filtros.util';
+import { AgendaListadoState } from '../shared/admin/agenda-listado.state';
+
+/** Cita en la agenda (2026-10-26): pendiente/confirmada por hacer; completada = hecha; cobrada o en caja = pagada. */
+export const CLASIFICADOR_CITAS: ClasificadorAgenda<any> = {
+  fechaIso: (c) => c?.fecha_cita_iso || '',
+  horaOrden: (c) => String(c?.hora || c?.fecha_hora || '').replace(/^.*T/, '').slice(0, 5),
+  esPendiente: (c) => {
+    const e = String(c?.estado || '').toLowerCase();
+    return e !== 'completada' && e !== 'cancelada';
+  },
+  esHecho: (c) => String(c?.estado || '').toLowerCase() === 'completada',
+  esPagado: (c) => !!c?.cobrada || !!c?.cajaMovimientoId,
+};
 
 @Component({
   selector: 'app-citas',
@@ -46,10 +53,17 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly destroy$ = new Subject<void>();
   displayedColumns: string[] = ['fecha_hora', 'consulta', 'motivo', 'estado', 'veterinario', 'acciones'];
   menuContext: any = null;
-  /** Vista búsqueda: una sola tabla. Spec 085/061 */
-  dataSource = new MatTableDataSource<any>([]);
-  dataSourceHoy = new MatTableDataSource<any>([]);
-  dataSourceManana = new MatTableDataSource<any>([]);
+  /** Filtros de agenda: Pendientes (secciones) · Hechos · Por cobrar · Pagados · Todos (2026-10-26). */
+  readonly agenda = new AgendaListadoState<any>(CLASIFICADOR_CITAS, (f, q) => this.citaCoincideBusqueda(f, q), {
+    hechos: 'Completadas',
+    pagados: 'Pagadas',
+    pendientes: 'Pendientes',
+  });
+
+  /** Lista plana (Hechos, Por cobrar, Pagados, Todos o búsqueda). */
+  get dataSource(): MatTableDataSource<any> {
+    return this.agenda.plana;
+  }
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   readonly pageSize = 50;
@@ -68,35 +82,42 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     return !!this.buscarTexto.trim();
   }
 
+  /** Pendientes sin búsqueda → secciones; lo demás → una sola lista. */
+  get vistaSecciones(): boolean {
+    return this.agenda.vistaSecciones(this.buscarTexto);
+  }
+
+  get tituloListaPlana(): string {
+    return this.agenda.tituloPlana(this.buscarTexto);
+  }
+
   get listadoMeta(): string {
     if (this.loading || !this.todasFilas.length) return '';
-    return metaListadoHoyManana({
-      visibles: this.dataSource?.data?.length || 0,
-      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
-      visiblesManana: this.dataSourceManana?.data?.length || 0,
-      totales: this.todasFilas.length,
-      query: this.buscarTexto,
-    });
+    if (this.vistaSecciones) {
+      return `Pendientes · ${this.agenda.cuentas.pendientes || 0}`;
+    }
+    return `${this.tituloListaPlana} · ${this.dataSource.data.length}`;
   }
 
   get todasFilasTieneDatos(): boolean {
     return this.todasFilas.length > 0;
   }
 
-  get seccionHoyVacia(): boolean {
-    return (
-      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceHoy?.data?.length || 0)
-    );
+  get listaPlanaVacia(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !(this.dataSource?.data?.length || 0);
   }
 
-  get seccionMananaVacia(): boolean {
-    return (
-      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceManana?.data?.length || 0)
-    );
+  trackSeccion(_: number, s: { id: string }): string {
+    return s.id;
   }
 
-  get busquedaSinResultados(): boolean {
-    return !this.loading && this.todasFilas.length > 0 && !(this.dataSource?.data?.length || 0) && this.modoBusqueda;
+  /** `irALista`: desde una tarjeta de números (abajo), sube a la lista. */
+  cambiarFiltroAgenda(filtro: FiltroAgenda, irALista = false): void {
+    this.agenda.filtro = filtro;
+    this.aplicarVistaListado();
+    if (irALista) {
+      setTimeout(() => document.querySelector('.agenda-filtros-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
   }
 
   constructor(
@@ -355,8 +376,6 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     this.aplicarVistaListado();
   }
 
-  private citaFechasIso = (c: { fecha_cita_iso?: string }) => [c.fecha_cita_iso];
-
   private citaCoincideBusqueda(cita: Record<string, unknown>, q: string): boolean {
     return coincidenciaTextoListado(
       [
@@ -373,30 +392,19 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  /** Default Hoy+Mañana; con texto → historial. Spec 085/061 */
+  /**
+   * Pendientes (por defecto) en secciones; los demás filtros en una lista.
+   * Buscar estando en «Pendientes» busca en todo el historial (como antes).
+   */
   private aplicarVistaListado(): void {
-    const hoyIso = fechaHoyListadoLocal();
-    if (this.modoBusqueda) {
-      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
-        query: this.buscarTexto,
-        hoyIso,
-        getFechasIso: this.citaFechasIso,
-        coincideBusqueda: (f, q) => this.citaCoincideBusqueda(f, q),
-      });
-      this.dataSourceHoy.data = [];
-      this.dataSourceManana.data = [];
-      setTimeout(() => {
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-          this.paginator.firstPage();
-        }
-      });
-      return;
-    }
-    const partes = partirListadoHoyManana(this.todasFilas, this.citaFechasIso, { hoyIso });
-    this.dataSourceHoy.data = [...partes.hoy];
-    this.dataSourceManana.data = [...partes.manana];
-    this.dataSource.data = [...partes.hoy, ...partes.manana];
+    this.agenda.aplicar(this.todasFilas, this.buscarTexto);
+    if (this.vistaSecciones) return;
+    setTimeout(() => {
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+        this.paginator.firstPage();
+      }
+    });
   }
 
   getEstadoColor(estado: string): string {

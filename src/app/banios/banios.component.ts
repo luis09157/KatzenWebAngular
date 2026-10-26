@@ -22,16 +22,22 @@ import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialo
 import { PeriodoPreset, fechaEnRango, formatMoneyMx, resolverPeriodo } from '../core/utils/periodo-filtro.util';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
-import { fechaHoyLocal } from './banio-captura-rapida.util';
 import { etiquetaTipoServicioBanioNuevo, leyendaCobroBanio, textoLeyendaCobroBanio } from './banio-tipos-servicio.util';
-import {
-  BanioListadoFila,
-  banioFechaIso,
-  filtrarBaniosListado,
-  incluyeLunesEnAgendaBanios,
-  metaBaniosListado,
-  partirBaniosHoyManana,
-} from './banio-listado-filtro.util';
+import { BanioListadoFila, banioFechaIso, banioListadoCoincideBusqueda } from './banio-listado-filtro.util';
+import { ClasificadorAgenda, FiltroAgenda } from '../core/utils/agenda-filtros.util';
+import { AgendaListadoState } from '../shared/admin/agenda-listado.state';
+
+/** Baño en la agenda (2026-10-26): programado/en proceso por hacer; completado = hecho; pagado o en caja = pagado. */
+export const CLASIFICADOR_BANIOS: ClasificadorAgenda<BanioListadoFila> = {
+  fechaIso: (b) => String(b?.fecha_banio_iso || ''),
+  horaOrden: (b) => String(b?.['hora_orden'] || ''),
+  esPendiente: (b) => {
+    const e = String(b?.estado || '').toLowerCase();
+    return e !== 'completado' && e !== 'cancelado';
+  },
+  esHecho: (b) => String(b?.estado || '').toLowerCase() === 'completado',
+  esPagado: (b) => !!b?.['pagado'] || !!b?.['cajaMovimientoId'],
+};
 import { formatearFechaLocalEs } from '../shared/datepicker/datepicker.util';
 
 @Component({
@@ -53,11 +59,13 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   ];
   menuContext: any = null;
   /** Vista búsqueda: una sola tabla. Spec 085 B.1 */
-  dataSource = new MatTableDataSource<any>([]);
-  /** Vista default: secciones Hoy / Mañana. */
-  dataSourceHoy = new MatTableDataSource<any>([]);
-  dataSourceManana = new MatTableDataSource<any>([]);
-  dataSourceLunes = new MatTableDataSource<any>([]);
+  /** Filtros de agenda: Pendientes (secciones) · Hechos · Por cobrar · Pagados · Todos (2026-10-26). */
+  readonly agenda = new AgendaListadoState<BanioListadoFila>(CLASIFICADOR_BANIOS, banioListadoCoincideBusqueda);
+
+  /** Lista plana (Hechos, Por cobrar, Pagados, Todos o búsqueda). */
+  get dataSource(): MatTableDataSource<any> {
+    return this.agenda.plana as MatTableDataSource<any>;
+  }
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   readonly pageSize = 50;
   // Mapeos para nombres
@@ -109,54 +117,48 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     return !!this.buscarTexto.trim();
   }
 
-  /** Meta del panel: «Hoy · N · Mañana · M» o conteo de búsqueda. */
+  get vistaSecciones(): boolean {
+    return this.agenda.vistaSecciones(this.buscarTexto);
+  }
+
+  get tituloListaPlana(): string {
+    return this.agenda.tituloPlana(this.buscarTexto);
+  }
+
   get listadoMeta(): string {
     if (this.loading || !this.todasFilas.length) return '';
-    const meta = metaBaniosListado({
-      visibles: this.dataSource?.data?.length || 0,
-      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
-      visiblesManana: this.dataSourceManana?.data?.length || 0,
-      totales: this.estadisticas.totalHistorico || this.todasFilas.length,
-      query: this.buscarTexto,
-    });
-    if (!this.muestraSeccionLunes || this.modoBusqueda || !meta) return meta;
-    return `${meta} · Lunes · ${this.dataSourceLunes?.data?.length || 0}`;
+    if (this.vistaSecciones) {
+      return `Pendientes · ${this.agenda.cuentas.pendientes || 0}`;
+    }
+    return `${this.tituloListaPlana} · ${this.dataSource.data.length}`;
   }
 
   get todasFilasTieneDatos(): boolean {
     return this.todasFilas.length > 0;
   }
 
-  get seccionHoyVacia(): boolean {
-    return (
-      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceHoy?.data?.length || 0)
-    );
+  get listaPlanaVacia(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length;
   }
 
-  get seccionMananaVacia(): boolean {
-    return (
-      !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !(this.dataSourceManana?.data?.length || 0)
-    );
+  trackSeccion(_: number, s: { id: string }): string {
+    return s.id;
   }
 
-  /** Viernes y sábado: el lunes se ve junto a hoy y mañana. */
-  get muestraSeccionLunes(): boolean {
-    return incluyeLunesEnAgendaBanios();
+  /** `irALista`: desde una tarjeta de números (abajo), sube a la lista. */
+  cambiarFiltroAgenda(filtro: FiltroAgenda, irALista = false): void {
+    this.agenda.filtro = filtro;
+    this.aplicarVistaListado();
+    if (irALista) {
+      setTimeout(() => document.querySelector('.agenda-filtros-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
   }
 
-  get seccionLunesVacia(): boolean {
-    return (
-      !this.loading &&
-      !this.modoBusqueda &&
-      this.muestraSeccionLunes &&
-      this.todasFilas.length > 0 &&
-      !(this.dataSourceLunes?.data?.length || 0)
-    );
-  }
-
-  /** Baños de hoy (y de la búsqueda) que siguen sin costo. */
+  /** Baños de hoy/atrasados (o de la lista filtrada) que siguen sin costo. */
   get sinPrecioVisibles(): number {
-    const filas = this.modoBusqueda ? this.dataSource?.data || [] : this.dataSourceHoy?.data || [];
+    const filas = this.vistaSecciones
+      ? this.agenda.secciones.filter((x) => x.id === 'hoy' || x.id === 'atrasados').flatMap((x) => x.filas)
+      : this.dataSource.data;
     return filas.filter((banio) => leyendaCobroBanio(banio) === 'falta_precio' && banio?.estado !== 'cancelado').length;
   }
 
@@ -203,25 +205,9 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     }
   }
 
-  /** Sin baños de hoy ni mañana (hay histórico). Alias usado en el template. */
-  get hayHistoricoSinHoy(): boolean {
-    return this.seccionHoyVacia && this.seccionMananaVacia;
-  }
-
-  get busquedaSinResultados(): boolean {
-    return !this.loading && this.todasFilas.length > 0 && !(this.dataSource?.data?.length || 0) && this.modoBusqueda;
-  }
-
-  /** Filas visibles para CSV (hoy+mañana o resultados). */
+  /** Filas visibles para CSV (lo que se ve con el filtro o la búsqueda actual). */
   get filasVisiblesCsv(): BanioListadoFila[] {
-    if (this.modoBusqueda) {
-      return this.dataSource?.data || [];
-    }
-    return [
-      ...(this.dataSourceHoy?.data || []),
-      ...(this.dataSourceManana?.data || []),
-      ...(this.dataSourceLunes?.data || []),
-    ];
+    return this.agenda.visibles;
   }
 
   ngAfterViewInit(): void {
@@ -309,6 +295,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
                 fecha_banio_iso: fechaIso,
                 fecha_banio: this.formatearFecha(banio.fecha_banio || banio.created_at),
                 hora_banio: this.formatearHora(banio.hora_banio),
+                hora_orden: String(banio.hora_banio || ''),
                 tipo_servicio_texto:
                   etiquetaTipoServicioBanioNuevo(banio.tipo_servicio) || this.formatearTextoSeguro(banio.tipo_servicio),
                 estado_texto: this.formatearTextoSeguro(banio.estado),
@@ -344,62 +331,26 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       });
   }
 
-  /** Aplica vista Hoy+Mañana (default) o historial filtrado por búsqueda. Spec 085 B.1 */
+  /** Pendientes por secciones (default) o lista filtrada / búsqueda (2026-10-26). */
   private aplicarVistaListado(): void {
-    const hoyIso = fechaHoyLocal();
-    if (this.modoBusqueda) {
-      const visibles = filtrarBaniosListado(this.todasFilas, {
-        query: this.buscarTexto,
-        hoyIso,
-      });
-      this.dataSource.data = [...visibles];
-      this.dataSourceHoy.data = [];
-      this.dataSourceManana.data = [];
-      this.dataSourceLunes.data = [];
-      // El paginador aparece con *ngIf; enlazar en el siguiente tick.
-      setTimeout(() => {
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-          this.paginator.firstPage();
-        }
-      });
-      return;
-    }
-
-    const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
-    this.dataSourceHoy.data = [...partes.hoy];
-    this.dataSourceManana.data = [...partes.manana];
-    this.dataSourceLunes.data = [...partes.lunes];
-    this.dataSource.data = [...partes.hoy, ...partes.manana, ...partes.lunes];
-    if (this.paginator && this.dataSource.paginator !== this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
-    if (this.paginator) {
-      this.paginator.firstPage();
-    }
+    this.agenda.aplicar(this.todasFilas, this.buscarTexto);
+    if (this.vistaSecciones) return;
+    // El paginador aparece con *ngIf; enlazar en el siguiente tick.
+    setTimeout(() => {
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+        this.paginator.firstPage();
+      }
+    });
   }
 
   private actualizarTablaSegura() {
     try {
       this.aplicarVistaListado();
-      this.tablaInicializada = true;
     } catch (error) {
       this.logger.error('❌ Error al actualizar tabla:', error);
-      const hoyIso = fechaHoyLocal();
-      if (this.modoBusqueda) {
-        this.dataSource.data = filtrarBaniosListado(this.todasFilas, {
-          query: this.buscarTexto,
-          hoyIso,
-        });
-      } else {
-        const partes = partirBaniosHoyManana(this.todasFilas, { hoyIso });
-        this.dataSourceHoy.data = [...partes.hoy];
-        this.dataSourceManana.data = [...partes.manana];
-        this.dataSourceLunes.data = [...partes.lunes];
-        this.dataSource.data = [...partes.hoy, ...partes.manana, ...partes.lunes];
-      }
-      this.tablaInicializada = true;
     }
+    this.tablaInicializada = true;
   }
 
   setPeriodoKpi(preset: 'este_mes' | '30d'): void {
@@ -892,10 +843,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       .subscribe(() => {});
   }
 
-  /**
-   * Exporta lo visible (Hoy+Mañana o resultado de búsqueda), no el histórico completo.
-   * Para exportar historial: buscar primero (cliente/paciente/tipo/fecha) y luego CSV.
-   */
+  /** Exporta lo visible con el filtro o la búsqueda actual; «Todos» exporta el historial. */
   exportarCsv(): void {
     const rows = this.filasVisiblesCsv;
     if (!rows.length) {
@@ -903,12 +851,12 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
         'Sin datos',
         this.modoBusqueda
           ? 'No hay baños que coincidan con la búsqueda.'
-          : 'No hay baños de hoy ni de mañana para exportar. Busca en el historial si necesitas otras fechas.',
+          : 'No hay baños en esta lista para exportar. Cambia el filtro o busca en el historial.',
         'info'
       );
       return;
     }
-    const sufijo = this.modoBusqueda ? 'busqueda' : 'hoy_manana';
+    const sufijo = this.modoBusqueda ? 'busqueda' : this.agenda.filtro;
     exportToCsv(`banios_${sufijo}_${Date.now()}`, rows, [
       { header: 'Fecha', value: (row) => row.fecha_banio || '' },
       { header: 'Hora', value: (row) => row.hora_banio || '' },

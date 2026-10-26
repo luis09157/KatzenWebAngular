@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export type AdminStatAccent = 'teal' | 'blue' | 'purple' | 'pink' | 'green' | 'orange' | 'red';
 
@@ -18,6 +18,11 @@ export class AdminStatCardComponent {
   @Input() accent: AdminStatAccent = 'teal';
   /** Ruta admin opcional (spec 031 — KPIs clickables). */
   @Input() link: string | null = null;
+  /** Tarjeta que filtra la lista al tocarla (2026-10-26, filtros de agenda). */
+  @Input() clickable = false;
+  /** Marca la tarjeta cuyo filtro está activo. */
+  @Input() activo = false;
+  @Output() seleccionar = new EventEmitter<void>();
 
   /** Números con separador; strings (p. ej. $1,200.00) se muestran tal cual. */
   get displayValue(): string {

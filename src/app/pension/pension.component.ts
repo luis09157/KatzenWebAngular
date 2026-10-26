@@ -21,14 +21,34 @@ import { PensionService } from './pension.service';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
 import { promptMontoVisita } from '../visitas/visita-atalho.util';
-import {
-  coincidenciaTextoListado,
-  fechaHoyListadoLocal,
-  filtrarListadoAgendaOBusqueda,
-  listadoFechaIso,
-  metaListadoHoyManana,
-  partirListadoHoyManana,
-} from '../core/utils/listado-hoy-manana.util';
+import { coincidenciaTextoListado, listadoFechaIso } from '../core/utils/listado-hoy-manana.util';
+import { ClasificadorAgenda, FiltroAgenda } from '../core/utils/agenda-filtros.util';
+import { AgendaListadoState } from '../shared/admin/agenda-listado.state';
+
+/**
+ * Estancia en la agenda (2026-10-26):
+ * - Reservada → fecha de ingreso; si ya pasó sin check-in, va en Atrasados.
+ * - Activa → fecha de salida prevista; si ya pasó, Atrasados (falta check-out); si no, Hoy (está hospedada).
+ * - Finalizada = hecha; pagada = en caja o cobrada en ticket.
+ */
+export const CLASIFICADOR_PENSION: ClasificadorAgenda<PensionEstancia> = {
+  fechaIso: (r) => {
+    if (r?.estado === 'reservada') return listadoFechaIso(r.fecha_ingreso);
+    if (r?.estado === 'activa') return listadoFechaIso(r.fecha_salida_prevista);
+    return listadoFechaIso(r?.fecha_salida_real || r?.fecha_salida_prevista, r?.fecha_ingreso);
+  },
+  esPendiente: (r) => r?.estado === 'reservada' || r?.estado === 'activa',
+  esHecho: (r) => r?.estado === 'finalizada',
+  esPagado: (r) => !!r?.cajaMovimientoId || !!r?.cobradaEnVisitaId,
+  vaEnHoy: (r) => r?.estado === 'activa',
+};
+
+function pensionCoincideBusqueda(r: PensionEstancia, q: string): boolean {
+  return coincidenciaTextoListado(
+    [r.paciente, r.cliente, r.estado, r.fecha_ingreso, r.fecha_salida_prevista, r.fecha_salida_real, r.tamano_mascota],
+    q
+  );
+}
 
 @Component({
   selector: 'app-pension',
@@ -41,9 +61,17 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly pageSize = 50;
 
   displayedColumns = ['paciente', 'fechas', 'tamano', 'precio', 'estado', 'acciones'];
-  dataSource = new MatTableDataSource<PensionEstancia>([]);
-  dataSourceHoy = new MatTableDataSource<PensionEstancia>([]);
-  dataSourceManana = new MatTableDataSource<PensionEstancia>([]);
+  /** Filtros de agenda: Pendientes (secciones) · Finalizadas · Por cobrar · Pagadas · Todas (2026-10-26). */
+  readonly agenda = new AgendaListadoState<PensionEstancia>(CLASIFICADOR_PENSION, pensionCoincideBusqueda, {
+    hechos: 'Finalizadas',
+    pagados: 'Pagadas',
+    todos: 'Todas',
+  });
+
+  /** Lista plana (Finalizadas, Por cobrar, Pagadas, Todas o búsqueda). */
+  get dataSource(): MatTableDataSource<PensionEstancia> {
+    return this.agenda.plana;
+  }
   private todasFilas: PensionEstancia[] = [];
   buscarTexto = '';
   tablaInicializada = false;
@@ -54,31 +82,41 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     return !!this.buscarTexto.trim();
   }
 
+  get vistaSecciones(): boolean {
+    return this.agenda.vistaSecciones(this.buscarTexto);
+  }
+
+  get tituloListaPlana(): string {
+    return this.agenda.tituloPlana(this.buscarTexto);
+  }
+
   get listadoMeta(): string {
     if (this.loading || !this.todasFilas.length) return '';
-    return metaListadoHoyManana({
-      visibles: this.dataSource?.data?.length || 0,
-      visiblesHoy: this.dataSourceHoy?.data?.length || 0,
-      visiblesManana: this.dataSourceManana?.data?.length || 0,
-      totales: this.todasFilas.length,
-      query: this.buscarTexto,
-    });
+    if (this.vistaSecciones) {
+      return `Pendientes · ${this.agenda.cuentas.pendientes || 0}`;
+    }
+    return `${this.tituloListaPlana} · ${this.dataSource.data.length}`;
   }
 
   get todasFilasTieneDatos(): boolean {
     return this.todasFilas.length > 0;
   }
 
-  get seccionHoyVacia(): boolean {
-    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceHoy.data.length;
+  get listaPlanaVacia(): boolean {
+    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length;
   }
 
-  get seccionMananaVacia(): boolean {
-    return !this.loading && !this.modoBusqueda && this.todasFilas.length > 0 && !this.dataSourceManana.data.length;
+  trackSeccion(_: number, s: { id: string }): string {
+    return s.id;
   }
 
-  get busquedaSinResultados(): boolean {
-    return !this.loading && this.todasFilas.length > 0 && !this.dataSource.data.length && this.modoBusqueda;
+  /** `irALista`: desde una tarjeta de números (abajo), sube a la lista. */
+  cambiarFiltroAgenda(filtro: FiltroAgenda, irALista = false): void {
+    this.agenda.filtro = filtro;
+    this.aplicarVistaListado();
+    if (irALista) {
+      setTimeout(() => document.querySelector('.agenda-filtros-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
   }
 
   readonly estadoLabels = ESTADO_PENSION_LABELS;
@@ -146,54 +184,16 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aplicarVistaListado();
   }
 
-  /** Agenda: ingreso hoy/mañana; activas siempre en Hoy. */
-  private pensionFechasIso = (r: PensionEstancia) => [
-    listadoFechaIso(r.fecha_ingreso),
-    listadoFechaIso(r.fecha_salida_prevista),
-  ];
-
+  /** Pendientes por secciones (default) o lista filtrada / búsqueda (2026-10-26). */
   private aplicarVistaListado(): void {
-    const hoyIso = fechaHoyListadoLocal();
-    const opts = {
-      hoyIso,
-      getFechasIso: this.pensionFechasIso,
-      extraHoy: (row: unknown) => (row as PensionEstancia).estado === 'activa',
-      coincideBusqueda: (r: PensionEstancia, q: string) =>
-        coincidenciaTextoListado(
-          [
-            r.paciente,
-            r.cliente,
-            r.estado,
-            r.fecha_ingreso,
-            r.fecha_salida_prevista,
-            r.fecha_salida_real,
-            r.tamano_mascota,
-          ],
-          q
-        ),
-    };
-    if (this.modoBusqueda) {
-      this.dataSource.data = filtrarListadoAgendaOBusqueda(this.todasFilas, {
-        ...opts,
-        query: this.buscarTexto,
-      });
-      this.dataSourceHoy.data = [];
-      this.dataSourceManana.data = [];
-      setTimeout(() => {
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-          this.paginator.firstPage();
-        }
-      });
-      return;
-    }
-    const partes = partirListadoHoyManana(this.todasFilas, this.pensionFechasIso, {
-      hoyIso,
-      extraHoy: opts.extraHoy,
+    this.agenda.aplicar(this.todasFilas, this.buscarTexto);
+    if (this.vistaSecciones) return;
+    setTimeout(() => {
+      if (this.paginator) {
+        this.dataSource.paginator = this.paginator;
+        this.paginator.firstPage();
+      }
     });
-    this.dataSourceHoy.data = [...partes.hoy];
-    this.dataSourceManana.data = [...partes.manana];
-    this.dataSource.data = [...partes.hoy, ...partes.manana];
   }
 
   diasEstancia(row: PensionEstancia): number {

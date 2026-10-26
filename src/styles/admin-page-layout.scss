@@ -445,6 +445,43 @@
   color: #4c1d95;
 }
 
+/* Filtros de agenda (2026-10-26): Atrasados (naranja), Próximos días y Sin fecha (neutro). */
+.admin-content .listado-seccion--atrasado {
+  border-color: color-mix(in srgb, #ea580c 40%, var(--admin-border, #e2e8f0));
+  background: color-mix(in srgb, #ea580c 5%, var(--admin-surface, #fff));
+}
+
+.admin-content .listado-seccion--atrasado .listado-seccion__header {
+  border-bottom-color: color-mix(in srgb, #ea580c 45%, transparent);
+}
+
+.admin-content .listado-seccion--atrasado .listado-seccion__icon {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-content .listado-seccion--atrasado .listado-seccion__title {
+  color: #9a3412;
+}
+
+.admin-content .listado-seccion--proximo .listado-seccion__icon,
+.admin-content .listado-seccion--sin_fecha .listado-seccion__icon,
+.admin-content .listado-seccion--filtro .listado-seccion__icon {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.admin-content .listado-seccion--proximo .listado-seccion__header,
+.admin-content .listado-seccion--sin_fecha .listado-seccion__header,
+.admin-content .listado-seccion--filtro .listado-seccion__header {
+  border-bottom-color: var(--admin-border, #e2e8f0);
+}
+
+.admin-content .agenda-filtros-wrap {
+  margin: 4px 0 12px;
+}
+
+
 /* Badges y estados */
 .admin-content .badge-expediente {
   display: inline-flex;

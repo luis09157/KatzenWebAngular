@@ -28,7 +28,7 @@
     <app-admin-data-panel
       accent="teal"
       title="Listado de baños"
-      description="Hoy y mañana por defecto. Busca cliente, paciente, tipo o fecha para ver el historial."
+      description="Pendientes por defecto: atrasados, hoy, mañana y los próximos días. Usa los botones para ver hechos, por cobrar o pagados."
       [meta]="listadoMeta"
       [showLegend]="!loading && filasVisiblesCsv.length > 0"
     >
@@ -42,16 +42,22 @@
         />
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
-      <p class="listado-hint cell-sub" *ngIf="!loading && !modoBusqueda">
-        {{ muestraSeccionLunes ? 'Agenda del día, de mañana y del lunes.' : 'Agenda del día y de mañana.' }}
-        Escribe en el buscador para consultar el historial ({{ estadisticas.totalHistorico }} registros).
-      </p>
-      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda">
-        Resultados del historial. Borra el buscador para volver a Hoy y Mañana.
+      <div class="agenda-filtros-wrap" *ngIf="!loading && todasFilasTieneDatos">
+        <app-agenda-filtros
+          [filtro]="agenda.filtro"
+          [cuentas]="agenda.cuentas"
+          [atrasados]="agenda.atrasados"
+          [etiquetas]="agenda.etiquetas"
+          (filtroChange)="cambiarFiltroAgenda($event)"
+        ></app-agenda-filtros>
+      </div>
+      <p class="listado-hint cell-sub" *ngIf="!loading && modoBusqueda && agenda.filtro === 'pendientes'">
+        Buscando en todo el historial ({{ estadisticas.totalHistorico }} registros). Borra el buscador para volver a
+        Pendientes.
       </p>
       <p class="listado-hint cell-sub" *ngIf="!loading && sinPrecioVisibles > 0">
         {{ sinPrecioVisibles }}
-        {{ sinPrecioVisibles === 1 ? 'baño de hoy sin precio' : 'baños de hoy sin precio' }}. Ábrelo y completa el costo
+        {{ sinPrecioVisibles === 1 ? 'baño sin precio' : 'baños sin precio' }} en esta lista. Ábrelo y completa el costo
         antes de cobrar.
       </p>
 
@@ -68,102 +74,56 @@
       >
       </app-admin-empty-state>
 
-      <!-- Vista default: dos secciones Hoy / Mañana -->
-      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !modoBusqueda">
-        <section class="listado-seccion listado-seccion--hoy" aria-labelledby="banios-hoy-titulo">
-          <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">today</mat-icon>
-            <div class="listado-seccion__titles">
-              <h3 id="banios-hoy-titulo" class="listado-seccion__title">Hoy</h3>
-              <p class="listado-seccion__meta">
-                {{ dataSourceHoy.data.length }} baño{{ dataSourceHoy.data.length === 1 ? '' : 's' }}
-              </p>
-            </div>
-          </header>
-          <app-admin-empty-state
-            *ngIf="seccionHoyVacia"
-            icon="today"
-            title="No hay baños de hoy"
-            message="Los de mañana se ven abajo. Busca en el historial para otras fechas."
-          >
-          </app-admin-empty-state>
-          <ng-container
-            *ngIf="dataSourceHoy.data.length"
-            [ngTemplateOutlet]="banioTablaTpl"
-            [ngTemplateOutletContext]="{ $implicit: dataSourceHoy }"
-          ></ng-container>
-        </section>
-
-        <section class="listado-seccion listado-seccion--manana" aria-labelledby="banios-manana-titulo">
-          <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">event</mat-icon>
-            <div class="listado-seccion__titles">
-              <h3 id="banios-manana-titulo" class="listado-seccion__title">Mañana</h3>
-              <p class="listado-seccion__meta">
-                {{ dataSourceManana.data.length }} baño{{ dataSourceManana.data.length === 1 ? '' : 's' }}
-              </p>
-            </div>
-          </header>
-          <app-admin-empty-state
-            *ngIf="seccionMananaVacia"
-            icon="event"
-            title="No hay baños de mañana"
-            message="Programa uno con fecha de mañana o revisa el historial con el buscador."
-          >
-          </app-admin-empty-state>
-          <ng-container
-            *ngIf="dataSourceManana.data.length"
-            [ngTemplateOutlet]="banioTablaTpl"
-            [ngTemplateOutletContext]="{ $implicit: dataSourceManana }"
-          ></ng-container>
-        </section>
-
+      <!-- Pendientes: Atrasados → Hoy → Mañana → Próximos días (2026-10-26) -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && vistaSecciones">
         <section
-          class="listado-seccion listado-seccion--lunes"
-          *ngIf="muestraSeccionLunes"
-          aria-labelledby="banios-lunes-titulo"
+          *ngFor="let s of agenda.secciones; trackBy: trackSeccion"
+          class="listado-seccion"
+          [ngClass]="'listado-seccion--' + s.tono"
+          [attr.data-seccion]="s.id"
         >
           <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">event_available</mat-icon>
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ s.icono }}</mat-icon>
             <div class="listado-seccion__titles">
-              <h3 id="banios-lunes-titulo" class="listado-seccion__title">Lunes</h3>
+              <h3 class="listado-seccion__title">{{ s.titulo }}</h3>
               <p class="listado-seccion__meta">
-                {{ dataSourceLunes.data.length }} baño{{ dataSourceLunes.data.length === 1 ? '' : 's' }}
+                {{ s.filas.length }} baño{{ s.filas.length === 1 ? '' : 's' }}
+                <ng-container *ngIf="s.tono === 'atrasado'"> · ya pasó la fecha: márcalos completados o cancelados</ng-container>
               </p>
             </div>
           </header>
           <app-admin-empty-state
-            *ngIf="seccionLunesVacia"
-            icon="event_available"
-            title="No hay baños el lunes"
-            message="Programa uno con fecha del lunes o revisa el historial con el buscador."
+            *ngIf="!s.filas.length"
+            [icon]="s.icono"
+            [title]="s.id === 'hoy' ? 'No hay baños pendientes hoy' : 'No hay baños pendientes mañana'"
+            message="Los de los próximos días aparecen abajo."
           >
           </app-admin-empty-state>
           <ng-container
-            *ngIf="dataSourceLunes.data.length"
+            *ngIf="s.filas.length"
             [ngTemplateOutlet]="banioTablaTpl"
-            [ngTemplateOutletContext]="{ $implicit: dataSourceLunes }"
+            [ngTemplateOutletContext]="{ $implicit: s.ds }"
           ></ng-container>
         </section>
       </ng-container>
 
-      <!-- Vista búsqueda: una sección Resultados -->
-      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && modoBusqueda">
-        <section class="listado-seccion listado-seccion--resultados" aria-labelledby="banios-resultados-titulo">
+      <!-- Hechos / Por cobrar / Pagados / Todos / búsqueda: una sola lista -->
+      <ng-container *ngIf="!loading && tablaInicializada && todasFilasTieneDatos && !vistaSecciones">
+        <section class="listado-seccion" [ngClass]="modoBusqueda ? 'listado-seccion--resultados' : 'listado-seccion--filtro'">
           <header class="listado-seccion__header">
-            <mat-icon class="listado-seccion__icon" aria-hidden="true">search</mat-icon>
+            <mat-icon class="listado-seccion__icon" aria-hidden="true">{{ modoBusqueda ? 'search' : 'filter_list' }}</mat-icon>
             <div class="listado-seccion__titles">
-              <h3 id="banios-resultados-titulo" class="listado-seccion__title">Resultados</h3>
+              <h3 class="listado-seccion__title">{{ tituloListaPlana }}</h3>
               <p class="listado-seccion__meta">
-                {{ dataSource.data.length }} coincidencia{{ dataSource.data.length === 1 ? '' : 's' }}
+                {{ dataSource.data.length }} baño{{ dataSource.data.length === 1 ? '' : 's' }}
               </p>
             </div>
           </header>
           <app-admin-empty-state
-            *ngIf="busquedaSinResultados"
-            icon="search_off"
-            title="Sin coincidencias"
-            message="Prueba otro cliente, paciente, tipo de baño o fecha (ej. 18/10/2026)."
+            *ngIf="listaPlanaVacia"
+            [icon]="modoBusqueda ? 'search_off' : 'inbox'"
+            [title]="modoBusqueda ? 'Sin coincidencias' : 'No hay baños aquí'"
+            [message]="modoBusqueda ? 'Prueba otro cliente, paciente, tipo de baño o fecha (ej. 18/10/2026).' : 'Prueba otro botón de arriba.'"
           >
           </app-admin-empty-state>
           <ng-container
@@ -231,9 +191,21 @@
   <app-admin-kpi-grid class="kpi-secondary">
     <app-admin-stat-card
       accent="purple"
-      [value]="estadisticas.programados"
-      label="Programados"
-      hint="Por realizar"
+      [value]="agenda.cuentas.pendientes || 0"
+      label="Pendientes"
+      [hint]="(agenda.atrasados ? agenda.atrasados + ' atrasados · ' : '') + 'todas las fechas · toca para ver'"
+      [clickable]="true"
+      [activo]="agenda.filtro === 'pendientes'"
+      (seleccionar)="cambiarFiltroAgenda('pendientes', true)"
+    ></app-admin-stat-card>
+    <app-admin-stat-card
+      accent="red"
+      [value]="agenda.cuentas.por_cobrar || 0"
+      label="Por cobrar"
+      hint="Completados sin pagar · toca para ver"
+      [clickable]="true"
+      [activo]="agenda.filtro === 'por_cobrar'"
+      (seleccionar)="cambiarFiltroAgenda('por_cobrar', true)"
     ></app-admin-stat-card>
     <app-admin-stat-card
       accent="pink"

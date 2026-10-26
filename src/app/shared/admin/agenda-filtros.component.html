@@ -1,0 +1,21 @@
+<div class="agenda-filtros" role="tablist" aria-label="Filtrar la lista">
+  <button
+    *ngFor="let op of opciones"
+    type="button"
+    role="tab"
+    class="agenda-filtros__btn"
+    [class.agenda-filtros__btn--activo]="op.id === filtro"
+    [attr.aria-selected]="op.id === filtro"
+    [attr.data-filtro]="op.id"
+    (click)="elegir(op.id)"
+  >
+    <span class="agenda-filtros__label">{{ etiqueta(op.id, op.label) }}</span>
+    <span class="agenda-filtros__num">{{ cuentas[op.id] ?? 0 }}</span>
+    <span
+      *ngIf="op.id === 'pendientes' && atrasados > 0"
+      class="agenda-filtros__alerta"
+      [attr.aria-label]="atrasados + ' atrasados'"
+      >{{ atrasados }} atrasado{{ atrasados === 1 ? '' : 's' }}</span
+    >
+  </button>
+</div>
