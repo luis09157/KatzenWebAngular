@@ -146,3 +146,9 @@ Luis: «me muestra los eventos abajo de la agenda pero en el modal no». Causa: 
 
 - **Código:** `dashboard.component.ts` pasa `eventos`; `citas-dia-dialog` muestra filas de peluquería (servicio · hora · estado) y pensión (rango ingreso–salida o «sin salida registrada») con «Ver en Peluquería / Pensión»; citas con su detalle y Atender igual que antes. Título «Agenda del …» + resumen «2 citas · 1 peluquería · 1 en pensión». `resumenAgendaDia` en el util.
 - **Validación:** unit (util + `citas-dia-dialog.component.spec.ts`) y build en CI del PR; preview de Firebase revisado a 375 y escritorio; `check:mobile` 0 nuevos.
+
+### Follow-up 2026-10-25 — Veterinario ve «Pacientes» (directorio)
+
+Luis: con la cuenta de una veterinaria no aparece el menú Pacientes (sí en super admin). Causa: al separar «Pacientes» (`pacientes-admin`) de «Buscar paciente» (`paciente`), el directorio quedó fuera de `STAFF_MODULES_CLINICO_POS` y del menú compacto de `doctor`.
+- `STAFF_MODULES_DOCTOR` = clínico+POS + `pacientes-admin`; menú compacto de `doctor` lo incluye. Recepción/peluquero sin cambio.
+- Unit `staff-role.config.spec.ts` actualizado (doctor sí, recepción no).

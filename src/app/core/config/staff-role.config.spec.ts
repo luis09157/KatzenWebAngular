@@ -37,6 +37,7 @@ describe('STAFF_NAV_COMPACT + ACCESS (072)', () => {
     expect(nav).toContain('citas');
     expect(nav).toContain('visitas');
     expect(nav).toContain('recordatorios');
+    expect(nav).toContain('pacientes-admin');
     expect(nav).not.toContain('finanzas');
     expect(nav).not.toContain('usuarios');
     expect(nav).not.toContain('inventario');
@@ -66,6 +67,9 @@ describe('STAFF_NAV_COMPACT + ACCESS (072)', () => {
     expect(staffRoleCanAccessModule('doctor', 'usuarios')).toBeFalse();
     expect(staffRoleCanAccessModule('doctor', 'historiales')).toBeTrue();
     expect(staffRoleCanAccessModule('doctor', 'visitas')).toBeTrue();
+    // Directorio de pacientes: veterinario sí (2026-10-25); recepción sigue sin él (072).
+    expect(staffRoleCanAccessModule('doctor', 'pacientes-admin')).toBeTrue();
+    expect(staffRoleCanAccessModule('recepcionista', 'pacientes-admin')).toBeFalse();
   });
 
   it('URL: peluquero no entra a finanzas, personal ni inventario', () => {
