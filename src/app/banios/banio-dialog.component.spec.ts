@@ -20,6 +20,8 @@ import { DefaultsBanioService } from '../finanzas/defaults-banio.service';
 import { emptyDefaultsBanio } from '../finanzas/defaults-banio.models';
 import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { TarifasPeluqueriaService } from '../finanzas/tarifas-peluqueria.service';
+import { tarifasPeluqueriaVacias } from '../finanzas/tarifas-peluqueria.util';
 
 @Component({
   selector: 'app-timepicker-field',
@@ -80,6 +82,7 @@ describe('BanioDialogComponent alta simple (spec 085)', () => {
         { provide: DefaultsBanioService, useValue: { getDefaultsOnce: () => Promise.resolve(emptyDefaultsBanio()) } },
         { provide: PlantillaCostoService, useValue: { getPlantillas: () => of([]) } },
         { provide: PacientesService, useValue: {} },
+        { provide: TarifasPeluqueriaService, useValue: { getOnce: () => Promise.resolve(tarifasPeluqueriaVacias()) } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
