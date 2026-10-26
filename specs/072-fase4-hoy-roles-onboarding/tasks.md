@@ -139,3 +139,10 @@ Luis: en el calendario de Hoy, cada día también muestra baños de esa `fecha_b
 - [ ] Unit `dashboard-calendario.util.spec.ts` — pendiente de corrida
 - [ ] `npm run build` — pendiente
 - [ ] QA Hoy en localhost: día con baño y estancia, cita abre detalle — pendiente
+
+### Follow-up 2026-10-25 (Claude) — modal del día con peluquería y pensión
+
+Luis: «me muestra los eventos abajo de la agenda pero en el modal no». Causa: `showCitasForDay` solo pasaba `day.citas` a `CitasDiaDialogComponent`.
+
+- **Código:** `dashboard.component.ts` pasa `eventos`; `citas-dia-dialog` muestra filas de peluquería (servicio · hora · estado) y pensión (rango ingreso–salida o «sin salida registrada») con «Ver en Peluquería / Pensión»; citas con su detalle y Atender igual que antes. Título «Agenda del …» + resumen «2 citas · 1 peluquería · 1 en pensión». `resumenAgendaDia` en el util.
+- **Validación:** unit (util + `citas-dia-dialog.component.spec.ts`) y build en CI del PR; preview de Firebase revisado a 375 y escritorio; `check:mobile` 0 nuevos.

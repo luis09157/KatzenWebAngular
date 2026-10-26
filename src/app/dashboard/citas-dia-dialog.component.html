@@ -2,13 +2,9 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">
-        Citas del {{ data.fecha | date: "EEEE, d 'de' MMMM 'de' yyyy" : '' : 'es-ES' }}
+        Agenda del {{ data.fecha | date: "EEEE, d 'de' MMMM 'de' yyyy" : '' : 'es-ES' }}
       </h2>
-      <p class="admin-dialog-subtitle">
-        {{ data.citas.length }} cita{{ data.citas.length !== 1 ? 's' : '' }} programada{{
-          data.citas.length !== 1 ? 's' : ''
-        }}
-      </p>
+      <p class="admin-dialog-subtitle">{{ resumen }}</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -17,15 +13,32 @@
 
   <mat-dialog-content class="admin-dialog-body">
     <div class="admin-dialog-form admin-dialog-form--padded">
-      <div *ngIf="data.citas.length === 0" class="citas-dia-empty">
+      <div *ngIf="eventos.length === 0" class="citas-dia-empty">
         <mat-icon>event_busy</mat-icon>
-        <h3>No hay citas programadas</h3>
-        <p>No se encontraron citas para este día.</p>
+        <h3>Nada en agenda</h3>
+        <p>No hay citas, peluquería ni pensión para este día.</p>
       </div>
 
-      <div *ngIf="data.citas.length > 0" class="citas-dia-list">
+      <!-- Peluquería y pensión: filas compactas arriba (se ven sin bajar) -->
+      <ul *ngIf="otros.length > 0" class="agenda-dia-otros" aria-label="Peluquería y pensión">
+        <li *ngFor="let ev of otros; trackBy: trackByEvento" class="agenda-dia-otro">
+          <div class="agenda-dia-otro__text">
+            <span class="agenda-dia-chip" [ngClass]="'agenda-dia-chip--' + ev.tipo">{{ etiquetaTipo(ev.tipo) }}</span>
+            <strong class="agenda-dia-otro__mascota">{{ mascota(ev) }}</strong>
+            <span class="agenda-dia-otro__meta">{{ dueno(ev) }} · {{ detalle(ev) }}</span>
+            <span *ngIf="estado(ev)" class="agenda-dia-otro__estado">{{ estado(ev) }}</span>
+          </div>
+          <button mat-stroked-button type="button" class="agenda-dia-otro__btn" (click)="irAModulo(ev)">
+            {{ ev.tipo === 'peluqueria' ? 'Ver en Peluquería' : 'Ver en Pensión' }}
+          </button>
+        </li>
+      </ul>
+
+      <h4 *ngIf="citas.length > 0 && otros.length > 0" class="detail-section__title agenda-dia-citas-title">Citas</h4>
+
+      <div *ngIf="citas.length > 0" class="citas-dia-list">
         <article
-          *ngFor="let cita of data.citas; trackBy: trackByCita; let i = index"
+          *ngFor="let cita of citas; trackBy: trackByCita; let i = index"
           class="citas-dia-item"
           [class.citas-dia-item--divider]="i > 0"
         >

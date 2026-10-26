@@ -31,6 +31,7 @@ export interface BanioCalendarioLike {
   paciente?: string;
   cliente_id?: string;
   cliente?: string;
+  tipo_servicio?: string;
 }
 
 export interface PensionCalendarioLike {
@@ -56,6 +57,13 @@ export interface AgendaEventoDia {
   cliente_id?: string;
   cliente?: string;
   hora?: string;
+  /** Estado tal como viene de RTDB (pendiente, activa, reservada…). */
+  estado?: string;
+  /** Peluquería: tipo de servicio (`baño_con_corte`…). */
+  servicio?: string;
+  /** Pensión: rango que cubre la estancia (ISO). `hasta` vacío = sin salida registrada. */
+  desde?: string;
+  hasta?: string;
   /** Cita original: detalle y Atender siguen usando este objeto. */
   cita?: CitaCalendarioLike;
 }
@@ -127,6 +135,9 @@ export function buildBaniosMapByDate(
   return map;
 }
 
+/** Estancia activa/reservada sin fecha de salida: cubre todos los días desde el ingreso. */
+const SIN_SALIDA = '9999-12-31';
+
 /**
  * Rango inclusivo de la estancia. Sin salida y activa/reservada queda abierta.
  * Canceladas o inactivas no entran.
@@ -143,7 +154,7 @@ export function rangoEstanciaPension(
     fechaIsoLocalDeValor(estancia.fecha_salida_real) || fechaIsoLocalDeValor(estancia.fecha_salida_prevista);
   let hasta = salida;
   if (!hasta) {
-    hasta = estado === 'activa' || estado === 'reservada' ? '9999-12-31' : desde;
+    hasta = estado === 'activa' || estado === 'reservada' ? SIN_SALIDA : desde;
   }
   if (hasta < desde) hasta = desde;
   return { desde, hasta };
@@ -153,6 +164,17 @@ export function estanciaCubreDia(estancia: PensionCalendarioLike | null | undefi
   const rango = rangoEstanciaPension(estancia);
   if (!rango || !isoKey) return false;
   return isoKey >= rango.desde && isoKey <= rango.hasta;
+}
+
+/** «2 citas · 1 peluquería · 1 pensión» para el encabezado del día. */
+export function resumenAgendaDia(eventos: AgendaEventoDia[] | null | undefined): string {
+  const n = { cita: 0, peluqueria: 0, pension: 0 } as Record<AgendaEventoTipo, number>;
+  for (const ev of eventos || []) n[ev.tipo]++;
+  const partes: string[] = [];
+  if (n.cita) partes.push(`${n.cita} cita${n.cita === 1 ? '' : 's'}`);
+  if (n.peluqueria) partes.push(`${n.peluqueria} peluquería`);
+  if (n.pension) partes.push(`${n.pension} en pensión`);
+  return partes.length ? partes.join(' · ') : 'Nada en agenda este día';
 }
 
 export function etiquetaAgendaTipo(tipo: AgendaEventoTipo): string {
@@ -190,6 +212,8 @@ export function eventosAgendaDelDia(
       cliente_id: banio.cliente_id,
       cliente: banio.cliente,
       hora: banio.hora_banio ? String(banio.hora_banio) : undefined,
+      estado: banio.estado,
+      servicio: banio.tipo_servicio,
     });
   }
   const pensionVistas = new Set<string>();
@@ -198,6 +222,7 @@ export function eventosAgendaDelDia(
     const clave = estancia.id || `${estancia.paciente_id}|${estancia.fecha_ingreso}`;
     if (pensionVistas.has(clave)) continue;
     pensionVistas.add(clave);
+    const rango = rangoEstanciaPension(estancia);
     eventos.push({
       tipo: 'pension',
       id: estancia.id,
@@ -205,6 +230,9 @@ export function eventosAgendaDelDia(
       paciente: estancia.paciente,
       cliente_id: estancia.cliente_id,
       cliente: estancia.cliente,
+      estado: estancia.estado,
+      desde: rango?.desde,
+      hasta: rango && rango.hasta !== SIN_SALIDA ? rango.hasta : undefined,
     });
   }
   const ordenTipo: Record<AgendaEventoTipo, number> = { cita: 0, peluqueria: 1, pension: 2 };

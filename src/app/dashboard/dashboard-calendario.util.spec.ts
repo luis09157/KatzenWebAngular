@@ -7,6 +7,7 @@ import {
   eventosAgendaDelDia,
   isoKeyFromLocalDate,
   labelDiaSeleccionado,
+  resumenAgendaDia,
 } from './dashboard-calendario.util';
 
 describe('dashboard-calendario.util (072)', () => {
@@ -110,5 +111,33 @@ describe('dashboard-calendario.util (072)', () => {
     expect(fuera?.hasCitas).toBe(false);
     const solo = eventosAgendaDelDia('2026-10-18', [], [], estancias);
     expect(solo.length).toBe(1);
+  });
+
+  it('el evento trae servicio, estado y rango para el modal del día', () => {
+    const [banio] = eventosAgendaDelDia('2026-10-18', [], [
+      { id: 'b1', fecha_banio: '2026-10-18', hora_banio: '09:00', tipo_servicio: 'baño_con_corte', estado: 'pendiente' },
+    ], []);
+    expect(banio.servicio).toBe('baño_con_corte');
+    expect(banio.estado).toBe('pendiente');
+
+    const [conSalida] = eventosAgendaDelDia('2026-10-19', [], [], [
+      { id: 'e1', estado: 'activa', fecha_ingreso: '2026-10-18', fecha_salida_prevista: '2026-10-20' },
+    ]);
+    expect(conSalida.desde).toBe('2026-10-18');
+    expect(conSalida.hasta).toBe('2026-10-20');
+
+    const [sinSalida] = eventosAgendaDelDia('2026-11-02', [], [], [
+      { id: 'e2', estado: 'activa', fecha_ingreso: '2026-10-18' },
+    ]);
+    expect(sinSalida.desde).toBe('2026-10-18');
+    expect(sinSalida.hasta).toBeUndefined();
+  });
+
+  it('resumenAgendaDia cuenta por tipo', () => {
+    expect(resumenAgendaDia([])).toBe('Nada en agenda este día');
+    expect(
+      resumenAgendaDia([{ tipo: 'cita' }, { tipo: 'cita' }, { tipo: 'peluqueria' }, { tipo: 'pension' }])
+    ).toBe('2 citas · 1 peluquería · 1 en pensión');
+    expect(resumenAgendaDia([{ tipo: 'cita' }])).toBe('1 cita');
   });
 });

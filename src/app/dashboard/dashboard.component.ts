@@ -715,6 +715,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       data: {
         fecha: day.date,
         citas: day.citas || [],
+        // Citas + peluquería + pensión del día (antes solo llegaban las citas al modal).
+        eventos: day.isoKey ? this.eventosDeIso(day.isoKey) : day.eventos || [],
         clientesMap: this.clientesMap,
         pacientesMap: this.pacientesMap,
       },
