@@ -50,6 +50,14 @@ import { VisitasService } from '../visitas/visitas.service';
 import { ClientesService } from '../clientes/clientes.service';
 import { agruparVentasPorVeterinaria, resumenCxcClientes, VentaPorVeterinaria } from './ventas-por-veterinaria.util';
 
+import { TarifasPeluqueriaService } from './tarifas-peluqueria.service';
+import {
+  FILAS_TARIFA_PELUQUERIA,
+  FILA_TARIFA_PELUQUERIA_LABELS,
+  FilaTarifaPeluqueria,
+  TarifasPeluqueria,
+  tarifasPeluqueriaVacias,
+} from './tarifas-peluqueria.util';
 @Component({
   selector: 'app-finanzas',
   templateUrl: './finanzas.component.html',
@@ -79,6 +87,11 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   loadingPlantillas = true;
   savingDefaults = false;
+  /** Tarifas de peluquería (2026-10-26). */
+  tarifasPeluForm!: FormGroup;
+  savingTarifasPelu = false;
+  readonly filasTarifaPelu = FILAS_TARIFA_PELUQUERIA;
+  readonly filaTarifaPeluLabels = FILA_TARIFA_PELUQUERIA_LABELS;
   savingDefaultsPension = false;
   isAdmin = false;
   kpis: CajaDiaKpis = this.emptyKpis();
@@ -123,6 +136,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     private plantillaService: PlantillaCostoService,
     private defaultsBanioService: DefaultsBanioService,
     private defaultsPensionService: DefaultsPensionService,
+    private tarifasPeluqueriaService: TarifasPeluqueriaService,
     private baniosService: BaniosService,
     private pensionService: PensionService,
     private fb: FormBuilder,
@@ -137,6 +151,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fechaFiltro = this.cajaService.hoyLocalIsoDate();
     this.mesFiltro = this.cajaService.mesLocalIso();
     this.defaultsForm = this.buildDefaultsForm(emptyDefaultsBanio());
+    this.tarifasPeluForm = this.buildTarifasPeluForm(tarifasPeluqueriaVacias());
     this.defaultsPensionForm = this.buildDefaultsPensionForm(emptyDefaultsPension());
   }
 
@@ -150,6 +165,7 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarPlantillas();
     this.cargarDefaultsBanio();
     this.cargarDefaultsPension();
+    void this.cargarTarifasPelu();
     this.cargarVentasHoy();
     this.cargarCxc();
   }
@@ -583,6 +599,47 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
       grande: row('grande'),
       gigante: row('gigante'),
     });
+  }
+
+  private buildTarifasPeluForm(t: TarifasPeluqueria): FormGroup {
+    const grupo: Record<string, FormGroup> = {};
+    for (const f of FILAS_TARIFA_PELUQUERIA) {
+      const fila = t.filas[f] || {};
+      grupo[f] = this.fb.group({
+        corto: [fila.corto ?? null, [Validators.min(0)]],
+        largo: [fila.largo ?? null, [Validators.min(0)]],
+        conCorte: [f === 'gato' ? null : (fila.conCorte ?? null), [Validators.min(0)]],
+      });
+    }
+    return this.fb.group(grupo);
+  }
+
+  async cargarTarifasPelu(): Promise<void> {
+    try {
+      this.tarifasPeluForm = this.buildTarifasPeluForm(await this.tarifasPeluqueriaService.getOnce());
+    } catch (err) {
+      this.logger.error('Error tarifas peluquería:', err);
+    }
+  }
+
+  async guardarTarifasPelu(): Promise<void> {
+    if (this.tarifasPeluForm.invalid) {
+      this.tarifasPeluForm.markAllAsTouched();
+      return;
+    }
+    this.savingTarifasPelu = true;
+    this.loadingService.show(LOADING_MESSAGES.saving);
+    try {
+      const raw = this.tarifasPeluForm.getRawValue() as Record<FilaTarifaPeluqueria, Record<string, unknown>>;
+      await this.tarifasPeluqueriaService.guardar({ filas: raw as TarifasPeluqueria['filas'] });
+      Swal.fire({ icon: 'success', title: 'Tarifas de peluquería guardadas', timer: 1600, showConfirmButton: false });
+    } catch (error) {
+      this.logger.error('Error al guardar tarifas peluquería:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar tarifas de peluquería'), 'error');
+    } finally {
+      this.loadingService.hide();
+      this.savingTarifasPelu = false;
+    }
   }
 
   cargarDefaultsBanio(): void {

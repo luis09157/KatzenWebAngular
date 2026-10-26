@@ -361,6 +361,51 @@
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
+          title="Tarifas de peluquería"
+          description="Precio al cliente por tamaño y tipo de pelo. «Nuevo baño» lo sugiere solo al elegir tamaño y pelo; se puede cambiar en cada baño."
+          meta="5 tamaños"
+          [showLegend]="false"
+        >
+          <div class="tarifas-pelu" [formGroup]="tarifasPeluForm">
+            <div class="tarifas-pelu__head" aria-hidden="true">
+              <span></span><span>Baño pelo corto</span><span>Baño pelo largo</span><span>Baño con corte</span>
+            </div>
+            <div class="tarifas-pelu__row" *ngFor="let f of filasTarifaPelu" [formGroupName]="f">
+              <strong class="tarifas-pelu__label">{{ filaTarifaPeluLabels[f] }}</strong>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Pelo corto</mat-label>
+                <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="corto" />
+                <span matTextPrefix>$&nbsp;</span>
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Pelo largo</mat-label>
+                <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="largo" />
+                <span matTextPrefix>$&nbsp;</span>
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" *ngIf="f !== 'gato'; else sinCorte">
+                <mat-label>Con corte</mat-label>
+                <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="conCorte" />
+                <span matTextPrefix>$&nbsp;</span>
+              </mat-form-field>
+              <ng-template #sinCorte><span class="tarifas-pelu__na">—</span></ng-template>
+            </div>
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              [disabled]="savingTarifasPelu"
+              (click)="guardarTarifasPelu()"
+            >
+              <mat-icon>save</mat-icon>
+              Guardar tarifas
+            </button>
+          </div>
+        </app-admin-data-panel>
+
+        <app-admin-data-panel
+          *ngIf="!loadingPlantillas"
+          accent="teal"
           title="Defaults baño por tamaño"
           description="Costo (KPI interno) y precio sugerido al cliente (P/M/G/XL). El modal prellena al elegir tamaño; XL sin tarifa usa fallback en código."
           meta="4 tamaños"

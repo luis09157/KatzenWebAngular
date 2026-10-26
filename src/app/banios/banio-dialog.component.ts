@@ -19,6 +19,18 @@ import {
 import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
 import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
+import { TarifasPeluqueriaService } from '../finanzas/tarifas-peluqueria.service';
+import {
+  FILAS_TARIFA_PELUQUERIA,
+  FILA_TARIFA_PELUQUERIA_LABELS,
+  FilaTarifaPeluqueria,
+  PeloMascota,
+  TarifasPeluqueria,
+  filaTarifaPara,
+  hayTarifasPeluqueria,
+  precioTarifaPeluqueria,
+  tarifasPeluqueriaVacias,
+} from '../finanzas/tarifas-peluqueria.util';
 import { ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { normalizeAlergias } from '../shared/alergias/alergias.util';
@@ -65,6 +77,24 @@ export class BanioDialogComponent implements OnInit {
   };
   /** Si el usuario editó precio_total manualmente, no pisarlo al cambiar tamaño. */
   private precioTotalManual = false;
+
+  /** Tarifas de peluquería (Finanzas) — tamaño × pelo × con corte, y gato (2026-10-26). */
+  tarifasPelu: TarifasPeluqueria = tarifasPeluqueriaVacias();
+  readonly filasTarifa = FILAS_TARIFA_PELUQUERIA;
+  readonly filaTarifaLabels = FILA_TARIFA_PELUQUERIA_LABELS;
+  /** Tamaño elegido en los chips (Gato incluido). */
+  filaTarifa: FilaTarifaPeluqueria | null = null;
+  pelo: PeloMascota = 'corto';
+  private especiePaciente = '';
+
+  get hayTarifas(): boolean {
+    return hayTarifasPeluqueria(this.tarifasPelu);
+  }
+
+  /** Pelo corto/largo solo cambia el precio del «Baño». */
+  get muestraPelo(): boolean {
+    return this.banioForm.get('tipo_servicio')?.value === 'baño';
+  }
 
   /**
    * Si ya vienen dueño/mascota (Llegó un paciente / expediente), no pedirlos otra vez:
@@ -136,6 +166,7 @@ export class BanioDialogComponent implements OnInit {
     private defaultsBanioService: DefaultsBanioService,
     private plantillaCostoService: PlantillaCostoService,
     private pacientesService: PacientesService,
+    private tarifasPeluqueriaService: TarifasPeluqueriaService,
     dateAdapter: DateAdapter<Date>
   ) {
     dateAdapter.setLocale('es-MX');
@@ -251,9 +282,8 @@ export class BanioDialogComponent implements OnInit {
 
   elegirTipoServicio(value: string): void {
     this.banioForm.patchValue({ tipo_servicio: value });
-    // Recalcular base si el tipo tiene precio implícito vía tamaño ya elegido
-    const tamano = this.banioForm.get('tamano_perro')?.value;
-    if (tamano) {
+    // Recalcular con la tarifa (tipo + tamaño + pelo) o, si no hay, con los defaults por tamaño.
+    if (this.banioForm.get('tamano_perro')?.value || this.filaTarifa) {
       this.onTamanoChange();
     }
   }
@@ -261,6 +291,30 @@ export class BanioDialogComponent implements OnInit {
   elegirTamano(t: TamanoPerroBanio | ''): void {
     this.banioForm.patchValue({ tamano_perro: t });
     this.onTamanoChange();
+  }
+
+  /** Chip de tamaño (Chico…Extragrande, Gato). Gato no cambia el tamaño guardado del perro. */
+  elegirFilaTarifa(fila: FilaTarifaPeluqueria): void {
+    this.filaTarifa = fila;
+    if (fila !== 'gato') {
+      this.banioForm.patchValue({ tamano_perro: fila });
+    }
+    this.onTamanoChange();
+  }
+
+  elegirPelo(pelo: PeloMascota): void {
+    this.pelo = pelo;
+    this.onTamanoChange();
+  }
+
+  /** Precio de la tarifa de peluquería para lo elegido; null si no aplica. */
+  private precioPorTarifa(): number | null {
+    const fila = this.filaTarifa || filaTarifaPara(this.banioForm.get('tamano_perro')?.value, this.especiePaciente);
+    return precioTarifaPeluqueria(this.tarifasPelu, {
+      fila,
+      tipoServicio: this.banioForm.get('tipo_servicio')?.value,
+      pelo: this.pelo,
+    });
   }
 
   onIniciarYaChange(checked: boolean): void {
@@ -479,11 +533,13 @@ export class BanioDialogComponent implements OnInit {
 
   private async cargarDefaultsBanio(): Promise<void> {
     try {
-      const [defaults, plantillas] = await Promise.all([
+      const [defaults, plantillas, tarifas] = await Promise.all([
         this.defaultsBanioService.getDefaultsOnce(),
         firstValueFrom(this.plantillaCostoService.getPlantillas().pipe(take(1))).catch(() => []),
+        this.tarifasPeluqueriaService.getOnce().catch(() => tarifasPeluqueriaVacias()),
       ]);
       this.defaultsBanio = defaults;
+      this.tarifasPelu = tarifas;
       this.plantillasCosto = plantillas || [];
     } catch {
       this.defaultsBanio = emptyDefaultsBanio();
@@ -491,13 +547,18 @@ export class BanioDialogComponent implements OnInit {
     } finally {
       this.defaultsListos = true;
       const tamano = this.banioForm.get('tamano_perro')?.value as TamanoPerroBanio | '';
-      if (tamano && !this.esEdicion) {
+      if ((tamano || this.filaTarifa) && !this.esEdicion) {
         this.onTamanoChange();
       }
     }
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    this.especiePaciente = String(sel.pacienteData?.['especie'] || '');
+    this.filaTarifa = filaTarifaPara(
+      String(sel.pacienteData?.['tamano_perro'] || sel.pacienteData?.['tamano'] || ''),
+      this.especiePaciente
+    );
     const raw = String(sel.pacienteData?.['tamano_perro'] || sel.pacienteData?.['tamano'] || '').toLowerCase();
     let tamano: TamanoPerroBanio | '' = '';
     if (raw === 'pequeno' || raw === 'chico') tamano = 'pequeno';
@@ -551,6 +612,15 @@ export class BanioDialogComponent implements OnInit {
   }
 
   onTamanoChange(): void {
+    const precioTarifa = this.defaultsListos ? this.precioPorTarifa() : null;
+    if (precioTarifa != null) {
+      this.prefillHint = 'Precio de la tarifa de peluquería (Finanzas). Puedes cambiarlo.';
+      if (!this.precioTotalManual) {
+        this.banioForm.patchValue({ precio_base: precioTarifa, precio_total: precioTarifa });
+        this.calcularPrecioTotal();
+      }
+      return;
+    }
     const tamano = this.banioForm.get('tamano_perro')?.value as TamanoPerroBanio | '';
     if (!tamano) {
       this.prefillHint = '';
