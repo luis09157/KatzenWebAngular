@@ -19,3 +19,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KATZEN_A0E3E }}
           projectId: katzen-a0e3e
+          # Una sola dirección de pruebas fija (katzen-a0e3e--qa-….web.app): se inicia sesión
+          # una vez y sirve para todos los PR. El último PR publicado es el que se ve.
+          channelId: qa
+          expires: 30d

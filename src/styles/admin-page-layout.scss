@@ -663,3 +663,14 @@
   flex-direction: column;
   gap: var(--admin-gap-timeline, 10px);
 }
+
+/* ── Celular (spec 095 US-2 / 096): encabezado corto en todos los listados ──
+   Se esconden las descripciones largas (banner, panel y ayuda bajo el buscador) para que
+   los registros salgan en la primera pantalla. Título, botón principal y buscador se quedan. */
+@media (max-width: 600px) {
+  .admin-content .admin-list-shell > app-admin-page-banner .banner-text p,
+  .admin-content .admin-list-shell > app-admin-data-panel .data-panel-header p,
+  .admin-content .listado-hint {
+    display: none;
+  }
+}

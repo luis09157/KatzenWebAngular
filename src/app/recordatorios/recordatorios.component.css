@@ -41,3 +41,94 @@
     max-width: 52px !important;
   }
 }
+
+/* ── Celular (spec 096 F2): tarjetas en lugar de tabla ── */
+.rec-cards {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  /* Con encapsulación, `.admin-content` (del layout) no aplica aquí: basta el selector local. */
+  .table-scroll {
+    display: none;
+  }
+
+  .rec-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0 8px;
+  }
+
+  .rec-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--admin-border, #e5e7eb);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rec-card:active {
+    background: #f8fafc;
+  }
+
+  .rec-card:focus-visible {
+    outline: 2px solid var(--katzen-verde, #0a969b);
+    outline-offset: 2px;
+  }
+
+  .rec-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .rec-card__hora {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--katzen-verde-fuerte, #065d60);
+  }
+
+  .rec-card__paciente {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #032d60;
+    overflow-wrap: anywhere;
+  }
+
+  .rec-card__meta {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #374151;
+  }
+
+  .rec-card__meta--sub {
+    font-size: 0.8125rem;
+    color: #6b7280;
+  }
+
+  .rec-card__acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .rec-card__acciones .mat-mdc-button-base:not(.mat-mdc-icon-button) {
+    flex: 1 1 auto;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .rec-card__mas {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+  }
+}

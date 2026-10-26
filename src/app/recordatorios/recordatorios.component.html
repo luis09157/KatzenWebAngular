@@ -278,6 +278,57 @@
         ></tr>
       </table>
     </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="rec-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let recordatorio of ds.connect() | async"
+        class="rec-card"
+        tabindex="0"
+        [attr.aria-label]="'Recordatorio: ' + recordatorio.titulo"
+        (click)="verRecordatorio(recordatorio)"
+        (keydown.enter)="verRecordatorio(recordatorio)"
+      >
+        <div class="rec-card__top">
+          <span class="rec-card__hora">{{ recordatorio.fecha_recordatorio }}</span>
+          <span class="estado-badge" [ngClass]="recordatorio.estado | adminEstadoClass">{{ recordatorio.estado | titlecase }}</span>
+        </div>
+        <h4 class="rec-card__paciente">{{ recordatorio.titulo }}</h4>
+        <p class="rec-card__meta">{{ recordatorio.paciente }} · {{ recordatorio.tipo | titlecase }}</p>
+        <p class="rec-card__meta rec-card__meta--sub">Prioridad {{ recordatorio.prioridad }}<ng-container *ngIf="recordatorio.whatsappChip"> · WhatsApp ✓ {{ recordatorio.whatsappChip }}</ng-container></p>
+        <div class="rec-card__acciones">
+          <a
+            *ngIf="recordatorio.whatsappTel && recordatorio.estado === 'pendiente'; else recVer"
+            mat-flat-button
+            color="primary"
+            class="btn-primary-teal"
+            [href]="recordatorio.whatsappUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            (click)="marcarWhatsappEnviado(recordatorio); $event.stopPropagation()"
+          >
+            <mat-icon>chat</mat-icon>
+            WhatsApp
+          </a>
+          <ng-template #recVer>
+          <button mat-flat-button color="primary" class="btn-primary-teal" type="button" (click)="verRecordatorio(recordatorio); $event.stopPropagation()">
+            <mat-icon>visibility</mat-icon>
+            Ver detalle
+          </button>
+          </ng-template>
+          <button
+            mat-icon-button
+            type="button"
+            class="rec-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="recordatorioMenu"
+            (click)="menuContext = recordatorio; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
+    </div>
   </ng-template>
 
   <p class="section-eyebrow">Resumen del módulo</p>

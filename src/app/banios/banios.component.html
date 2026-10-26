@@ -371,7 +371,7 @@
                 mat-icon-button
                 type="button"
                 color="accent"
-                matTooltip="Listo para cobrar (cola mostrador)"
+                matTooltip="Listo para cobrar (lo cobra mostrador)"
                 (click)="marcarListoParaCobrar(banio)"
                 [disabled]="
                   banio.cajaMovimientoId ||
@@ -388,7 +388,7 @@
                 mat-icon-button
                 type="button"
                 color="primary"
-                matTooltip="Agregar al ticket ahora"
+                matTooltip="Agregar al ticket del cliente ahora"
                 (click)="agregarAVisita(banio)"
                 [disabled]="banio.cajaMovimientoId || banio.pagado || banio.visitaId || faltaPrecio(banio)"
               >
@@ -506,7 +506,7 @@
         faltaPrecio(menuContext)
       "
     >
-      <mat-icon>storefront</mat-icon> Listo para cobrar (mostrador)
+      <mat-icon>storefront</mat-icon> Listo para cobrar (lo cobra mostrador)
     </button>
     <button
       mat-menu-item
@@ -534,7 +534,7 @@
       "
     >
       <mat-icon>receipt_long</mat-icon>
-      {{ menuContext?.visitaId ? 'Ya en ticket' : 'Enviar a mostrador (Cobrar)' }}
+      {{ menuContext?.visitaId ? 'Ya está en un ticket' : 'Agregar al ticket del cliente ahora' }}
     </button>
   </mat-menu>
 </div>
