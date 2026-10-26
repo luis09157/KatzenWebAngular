@@ -239,14 +239,15 @@
                 >
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button type="button" matTooltip="Ver historial" (click)="verHistorial(producto)">
-                  <mat-icon>history</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Imprimir QR" (click)="imprimirQr(producto)">
-                  <mat-icon>qr_code_2</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarProducto(producto)">
-                  <mat-icon>delete_outline</mat-icon>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Más acciones"
+                  aria-label="Más acciones"
+                  [matMenuTriggerFor]="productoMenu"
+                  (click)="menuContext = producto; $event.stopPropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
                 </button>
               </div>
               <button

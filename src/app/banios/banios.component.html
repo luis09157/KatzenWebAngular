@@ -364,41 +364,25 @@
               (click)="$event.stopPropagation()"
               (dblclick)="$event.stopPropagation()"
             >
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verBanio(banio)">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                color="accent"
-                matTooltip="Listo para cobrar (lo cobra mostrador)"
-                (click)="marcarListoParaCobrar(banio)"
-                [disabled]="
-                  banio.cajaMovimientoId ||
-                  banio.pagado ||
-                  banio.visitaId ||
-                  faltaPrecio(banio) ||
-                  banio.estado === 'completado' ||
-                  banio.estado === 'cancelado'
-                "
-              >
-                <mat-icon>storefront</mat-icon>
-              </button>
               <button
                 mat-icon-button
                 type="button"
                 color="primary"
-                matTooltip="Agregar al ticket del cliente ahora"
-                (click)="agregarAVisita(banio)"
-                [disabled]="banio.cajaMovimientoId || banio.pagado || banio.visitaId || faltaPrecio(banio)"
+                [matTooltip]="accionPrincipalBanio(banio).label"
+                [attr.aria-label]="accionPrincipalBanio(banio).label"
+                (click)="ejecutarAccionPrincipalBanio(banio, $event)"
               >
-                <mat-icon>point_of_sale</mat-icon>
+                <mat-icon>{{ accionPrincipalBanio(banio).icon }}</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarBanio(banio)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarBanio(banio)">
-                <mat-icon>delete_outline</mat-icon>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Más acciones"
+                aria-label="Más acciones"
+                [matMenuTriggerFor]="banioMenu"
+                (click)="menuContext = banio; $event.stopPropagation()"
+              >
+                <mat-icon>more_vert</mat-icon>
               </button>
             </div>
             <button

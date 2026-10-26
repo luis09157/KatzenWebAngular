@@ -211,18 +211,13 @@
               >
                 <mat-icon>medical_services</mat-icon>
               </button>
-              <button mat-icon-button type="button" color="primary" matTooltip="Ver detalle" (click)="verCita(cita)">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarCita(cita)">
-                <mat-icon>edit</mat-icon>
-              </button>
               <button
+                aria-label="Más acciones"
                 mat-icon-button
                 type="button"
                 matTooltip="Más acciones"
                 [matMenuTriggerFor]="citaMenu"
-                (click)="menuContext = cita"
+                (click)="menuContext = cita; $event.stopPropagation()"
               >
                 <mat-icon>more_vert</mat-icon>
               </button>

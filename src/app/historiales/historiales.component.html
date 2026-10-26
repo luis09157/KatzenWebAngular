@@ -204,25 +204,12 @@
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Consumir inventario"
-                (click)="consumirInventario(historial)"
+                matTooltip="Más acciones"
+                aria-label="Más acciones"
+                [matMenuTriggerFor]="historialMenu"
+                (click)="menuContext = historial; $event.stopPropagation()"
               >
-                <mat-icon>inventory_2</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                matTooltip="Enviar a cobrar"
-                (click)="agregarAVisita(historial)"
-                *ngIf="!historial.visitaId && !historial.cobradaEnVisitaId"
-              >
-                <mat-icon>receipt_long</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarHistorial(historial)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="bajaLogicaHistorial(historial.id)">
-                <mat-icon>delete_outline</mat-icon>
+                <mat-icon>more_vert</mat-icon>
               </button>
             </div>
             <button

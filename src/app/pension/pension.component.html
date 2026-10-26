@@ -228,44 +228,22 @@
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Check-in"
-                *ngIf="puedeCheckIn(row)"
-                (click)="checkIn(row)"
+                color="primary"
+                [matTooltip]="accionPrincipalPension(row).label"
+                [attr.aria-label]="accionPrincipalPension(row).label"
+                (click)="ejecutarAccionPension(row, $event)"
               >
-                <mat-icon>login</mat-icon>
+                <mat-icon>{{ accionPrincipalPension(row).icon }}</mat-icon>
               </button>
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Check-out"
-                *ngIf="puedeCheckOut(row)"
-                (click)="checkOut(row)"
+                matTooltip="Más acciones"
+                aria-label="Más acciones"
+                [matMenuTriggerFor]="pensionMenu"
+                (click)="menuContext = row; $event.stopPropagation()"
               >
-                <mat-icon>logout</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editar(row)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                matTooltip="Agregar al ticket del día"
-                *ngIf="puedeCobrar(row)"
-                (click)="agregarAVisita(row)"
-              >
-                <mat-icon>receipt_long</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                matTooltip="Ya cobrado"
-                *ngIf="row.cajaMovimientoId || row.visitaId"
-                disabled
-              >
-                <mat-icon>check_circle</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="borrar(row)">
-                <mat-icon>delete</mat-icon>
+                <mat-icon>more_vert</mat-icon>
               </button>
             </div>
             <button
