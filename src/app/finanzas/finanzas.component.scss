@@ -450,3 +450,46 @@
     }
   }
 }
+
+/* Tarifas de peluquería (2026-10-26) */
+.tarifas-pelu {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.tarifas-pelu__head,
+.tarifas-pelu__row {
+  display: grid;
+  grid-template-columns: 110px repeat(3, minmax(120px, 1fr));
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+
+.tarifas-pelu__head {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tarifas-pelu__na {
+  color: #9ca3af;
+  padding-left: 12px;
+}
+
+@media (max-width: 600px) {
+  .tarifas-pelu__head {
+    display: none;
+  }
+
+  .tarifas-pelu__row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tarifas-pelu__label {
+    grid-column: 1 / -1;
+  }
+}

@@ -57,6 +57,35 @@
         </div>
       </section>
 
+      <!-- Tarifa de peluquería (2026-10-26): tamaño (o gato) y pelo → precio sugerido -->
+      <section class="form-section" *ngIf="hayTarifas">
+        <h3 class="form-section__title">Tamaño</h3>
+        <div class="banio-chips" role="group" aria-label="Tamaño de la mascota">
+          <button
+            type="button"
+            class="banio-chip"
+            *ngFor="let fila of filasTarifa"
+            [class.banio-chip--on]="filaTarifa === fila"
+            [attr.data-fila]="fila"
+            (click)="elegirFilaTarifa(fila)"
+          >
+            {{ filaTarifaLabels[fila] }}
+          </button>
+        </div>
+        <ng-container *ngIf="muestraPelo">
+          <h3 class="form-section__title form-section__title--sub">Pelo</h3>
+          <div class="banio-chips" role="group" aria-label="Tipo de pelo">
+            <button type="button" class="banio-chip" [class.banio-chip--on]="pelo === 'corto'" data-pelo="corto" (click)="elegirPelo('corto')">
+              Corto
+            </button>
+            <button type="button" class="banio-chip" [class.banio-chip--on]="pelo === 'largo'" data-pelo="largo" (click)="elegirPelo('largo')">
+              Largo
+            </button>
+          </div>
+        </ng-container>
+        <p class="banio-tarifa-hint" *ngIf="prefillHint">{{ prefillHint }}</p>
+      </section>
+
       <div class="form-grid form-grid--2">
         <mat-form-field appearance="outline" class="full-span">
           <mat-label>Fecha</mat-label>
