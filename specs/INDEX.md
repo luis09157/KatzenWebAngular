@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **95** specs · `done`: 77 · `in_progress`: 15 · `superseded`: 3
+Total: **96** specs · `done`: 78 · `in_progress`: 15 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -103,3 +103,4 @@ Total: **95** specs · `done`: 77 · `in_progress`: 15 · `superseded`: 3
 | 094 | [consentimientos-pdf-plantillas-whatsapp](094-consentimientos-pdf-plantillas-whatsapp/spec.md) | Consentimientos — PDF, plantillas y WhatsApp | in_progress |
 | 095 | [movil-usable](095-movil-usable/spec.md) | Panel admin usable en celular | in_progress |
 | 096 | [simplificar-acciones](096-simplificar-acciones/spec.md) | Menos botones, una acción principal por pantalla | in_progress (F1–F4 hechas salvo lo marcado) |
+| 097 | [filtros-agenda](097-filtros-agenda/spec.md) | 097 — Filtros de agenda en Citas, Peluquería y Pensión | done (2026-10-26) · **Nivel:** L2 (UI + util, solo lectura) · **Pidió:** Luis |
