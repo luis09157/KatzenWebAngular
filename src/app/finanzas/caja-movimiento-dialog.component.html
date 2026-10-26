@@ -1,9 +1,13 @@
 <div class="admin-dialog-shell">
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
-      <h2 class="admin-dialog-title">Registrar movimiento</h2>
+      <h2 class="admin-dialog-title">{{ esGasto ? 'Registrar gasto' : 'Registrar ingreso' }}</h2>
       <p class="admin-dialog-subtitle">
-        Cobro o gasto con categoría, método de pago e IVA. Opcional: costo para ver margen.
+        {{
+          esGasto
+            ? 'Gasolina, proveedor, publicidad… Si lo pagas en efectivo, sale de la caja.'
+            : 'Solo para dinero que no se cobró en Cobrar. Opcional: costo para ver ganancia.'
+        }}
       </p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
@@ -45,12 +49,12 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-span">
-          <mat-label>Concepto *</mat-label>
-          <input matInput formControlName="concepto" placeholder="Ej. Baño completo Oreon" />
+          <mat-label>{{ esGasto ? '¿En qué se gastó? *' : 'Concepto *' }}</mat-label>
+          <input matInput formControlName="concepto" [placeholder]="esGasto ? 'Ej. Gasolina moto' : 'Ej. Baño completo Oreon'" />
           <mat-error *ngIf="form.get('concepto')?.hasError('required')">Requerido</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
           <mat-label>Monto (MXN) *</mat-label>
           <input matInput type="number" formControlName="monto" min="0.01" step="0.01" />
           <span matPrefix>$&nbsp;</span>
@@ -68,6 +72,7 @@
           appearance="outline"
           subscriptSizing="dynamic"
           class="full-span"
+          floatLabel="always"
           *ngIf="form.get('tipo')?.value === 'ingreso'"
         >
           <mat-label>Costo asociado (opcional)</mat-label>

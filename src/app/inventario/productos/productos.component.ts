@@ -14,6 +14,7 @@ import {
   generarQrDataUrl,
   imprimirEtiquetaProducto
 } from './producto-identificacion.util';
+import { cantidadConUnidad } from '../inventario-textos.util';
 import { OrdenDialogComponent } from '../ordenes/orden-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
@@ -313,6 +314,11 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
       ...ADMIN_DIALOG_FORM,
       data: { producto }
     });
+  }
+
+  /** «0 unidades», «3 cajas». */
+  stockTexto(p: Producto): string {
+    return cantidadConUnidad(p.stock_actual, p.unidad_medida);
   }
 
   etiquetaCategoria(categoria: string): string {

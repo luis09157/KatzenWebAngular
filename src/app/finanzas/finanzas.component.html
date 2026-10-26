@@ -10,15 +10,15 @@
         hintId="finanzas-caja"
         icon="receipt_long"
         variant="warn"
-        message="Para cobrar consultas, baños y servicios clínicos usa Ticket del día — no registres aquí el cobro del servicio. Esta pantalla es para gastos, egresos y ajustes de caja (solo admin)."
+        message="Los cobros se hacen en Cobrar. Aquí ves lo que entró y registras los gastos (gasolina, proveedores, publicidad…)."
       >
       </app-flow-hint>
 
       <app-admin-page-banner
         accent="teal"
         icon="account_balance_wallet"
-        title="Caja / costos / rentabilidad"
-        subtitle="Gastos operativos, egresos y reportes. Los cobros clínicos van en Ticket del día."
+        title="Dinero de la clínica"
+        subtitle="Lo que entró, lo que salió y lo que te quedó."
       >
         <div bannerActions>
           <button mat-stroked-button type="button" *ngIf="isAdmin" (click)="abrirCorteCaja()">
@@ -33,8 +33,8 @@
             *ngIf="isAdmin"
             (click)="nuevoMovimiento()"
           >
-            <mat-icon>add</mat-icon>
-            Registrar cobro
+            <mat-icon>remove_circle_outline</mat-icon>
+            Registrar gasto
           </button>
         </div>
       </app-admin-page-banner>
@@ -99,8 +99,8 @@
       <mat-tab label="Caja">
         <app-admin-data-panel
           accent="teal"
-          title="Movimientos"
-          [description]="'Listado · ' + periodoLabel"
+          title="Cobros y gastos"
+          [description]="periodoLabel"
           [meta]="kpis.movimientosActivos + ' movimientos'"
           [showLegend]="!!dataSource.data.length"
         >
@@ -213,11 +213,11 @@
         </app-admin-data-panel>
       </mat-tab>
 
-      <mat-tab label="Ventas hoy">
+      <mat-tab label="Por veterinaria">
         <app-admin-data-panel
           accent="teal"
-          title="Ventas por veterinaria hoy"
-          description="Tickets del día agrupados por quién atendió. Sin filtros."
+          title="Ventas de hoy por veterinaria"
+          description="Lo cobrado hoy, por quién atendió."
           [meta]="ventasVetHoy.length + ' veterinarias'"
           [showLegend]="!!ventasVetHoy.length"
         >
@@ -260,7 +260,7 @@
         <app-admin-data-panel
           accent="orange"
           title="Cuentas por cobrar"
-          description="Saldo pendiente de clientes. El detalle vive en Clientes — no se duplica aquí."
+          description="Lo que deben los clientes. El detalle está en Clientes."
           [meta]="cxcDeudores + ' con deuda'"
           [showLegend]="false"
         >
@@ -283,21 +283,41 @@
       </mat-tab>
 
       <!-- TAB INGRESOS POR SERVICIO -->
-      <mat-tab label="Ingresos por servicio">
+      <mat-tab label="Por servicio">
         <app-admin-data-panel
           accent="teal"
-          title="Ingresos por categoría"
-          [description]="'Desglose de cobros · ' + periodoLabel"
-          [meta]="formatMoney(totalIngresosServicio) + ' total'"
+          title="Lo que entró por servicio"
+          [description]="'Solo lo cobrado en caja · ' + periodoLabel"
+          [meta]="formatMoney(totalIngresosServicio) + ' en total'"
           [showLegend]="!!chartIngresosServicio.length"
         >
           <app-admin-empty-state
             *ngIf="chartIngresosServicio.length === 0"
             icon="bar_chart"
-            title="Sin ingresos en el período"
-            message="Registra cobros categorizados o completa baños para ver el desglose."
+            title="No entró dinero en este periodo"
+            message="Aquí aparece lo que se cobra en Cobrar (ticket del día)."
           >
           </app-admin-empty-state>
+          <div
+            class="sin-caja-nota"
+            role="status"
+            *ngIf="serviciosSinCaja.pagadosFueraDeCaja.count || serviciosSinCaja.porCobrar.count"
+          >
+            <mat-icon aria-hidden="true">info</mat-icon>
+            <div>
+              <p *ngIf="serviciosSinCaja.porCobrar.count">
+                <strong>{{ formatMoney(serviciosSinCaja.porCobrar.total) }}</strong> en
+                {{ serviciosSinCaja.porCobrar.count }} servicio{{ serviciosSinCaja.porCobrar.count === 1 ? '' : 's' }}
+                (baños o pensión) <strong>aún sin cobrar</strong>. No cuenta como ingreso.
+              </p>
+              <p *ngIf="serviciosSinCaja.pagadosFueraDeCaja.count">
+                <strong>{{ formatMoney(serviciosSinCaja.pagadosFueraDeCaja.total) }}</strong> en
+                {{ serviciosSinCaja.pagadosFueraDeCaja.count }} baño{{ serviciosSinCaja.pagadosFueraDeCaja.count === 1 ? '' : 's' }}
+                marcado{{ serviciosSinCaja.pagadosFueraDeCaja.count === 1 ? '' : 's' }} como pagado sin pasar por caja: ese dinero no
+                está en el corte.
+              </p>
+            </div>
+          </div>
 
           <div class="rent-charts" *ngIf="chartIngresosServicio.length > 0">
             <section class="rent-chart-block" aria-label="Barras ingresos por servicio">
@@ -352,17 +372,17 @@
       </mat-tab>
 
       <!-- TAB COSTOS -->
-      <mat-tab label="Costos de servicio">
+      <mat-tab label="Precios y costos">
         <div *ngIf="loadingPlantillas" class="loading-container tab-loading">
           <mat-spinner diameter="40"></mat-spinner>
-          <p>Cargando plantillas…</p>
+          <p>Cargando precios y costos…</p>
         </div>
 
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
           title="Tarifas de peluquería"
-          description="Precio al cliente por tamaño y tipo de pelo. «Nuevo baño» lo sugiere solo al elegir tamaño y pelo; se puede cambiar en cada baño."
+          description="Opcional. Si la llenas, «Nuevo baño» sugiere el precio por tamaño y pelo cuando la mascota no tiene baños anteriores."
           meta="5 tamaños"
           [showLegend]="false"
         >
@@ -406,8 +426,8 @@
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
-          title="Defaults baño por tamaño"
-          description="Costo (KPI interno) y precio sugerido al cliente (P/M/G/XL). El modal prellena al elegir tamaño; XL sin tarifa usa fallback en código."
+          title="Cuánto le cuesta a la clínica cada baño"
+          description="Champú, agua, tiempo… según el tamaño. Solo sirve para calcular la ganancia; no cambia lo que se cobra."
           meta="4 tamaños"
           [showLegend]="false"
         >
@@ -415,13 +435,10 @@
             <div class="defaults-banio-row" *ngFor="let t of tamanosBanio" [formGroupName]="t">
               <strong class="defaults-banio-label">{{ tamanoLabels[t] }}</strong>
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Costo default</mat-label>
+                <mat-label>Costo</mat-label>
                 <input matInput type="number" min="0" step="0.01" formControlName="costoDefault" />
               </mat-form-field>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Precio sugerido</mat-label>
-                <input matInput type="number" min="0" step="0.01" formControlName="precioSugerido" />
-              </mat-form-field>
+              <!-- Precio sugerido oculto (2026-10-26): el precio de peluquería se decide al momento / precio anterior. -->
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="defaults-plantilla">
                 <mat-label>Plantilla (opcional)</mat-label>
                 <mat-select formControlName="plantillaCostoId">
@@ -441,7 +458,7 @@
               (click)="guardarDefaultsBanio()"
             >
               <mat-icon>save</mat-icon>
-              Guardar defaults
+              Guardar costos
             </button>
           </div>
         </app-admin-data-panel>
@@ -449,8 +466,8 @@
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
-          title="Defaults pensión por tamaño"
-          description="Precio/día y costo/día (tarifas oficiales 089). Opcional: ID de producto de comida y cantidad/día."
+          title="Pensión: precio y costo por día"
+          description="Lo que se cobra por día según el tamaño y lo que le cuesta a la clínica."
           meta="4 paquetes"
           [showLegend]="false"
         >
@@ -465,14 +482,7 @@
                 <mat-label>Costo / día</mat-label>
                 <input matInput type="number" min="0" step="0.01" formControlName="costoDia" />
               </mat-form-field>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Producto comida (ID)</mat-label>
-                <input matInput formControlName="productoComidaId" placeholder="Opcional" />
-              </mat-form-field>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Cant. comida / día</mat-label>
-                <input matInput type="number" min="0" step="0.01" formControlName="cantidadComidaPorDia" />
-              </mat-form-field>
+              <!-- Comida por ID oculta (2026-10-26): pedía un código interno; los datos guardados no se tocan. -->
             </div>
             <button
               mat-raised-button
@@ -483,7 +493,7 @@
               (click)="guardarDefaultsPension()"
             >
               <mat-icon>save</mat-icon>
-              Guardar defaults pensión
+              Guardar pensión
             </button>
           </div>
         </app-admin-data-panel>
@@ -491,8 +501,8 @@
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
           accent="teal"
-          title="Plantillas de costo"
-          description="Baño, corte, cirugía… con ítems de inventario o gastos libres. Úsalas al cobrar para ver margen."
+          title="Recetas de costo (opcional)"
+          description="Lo que gasta la clínica en un servicio (material e insumos). Al cobrar con una receta se calcula la ganancia."
           [meta]="plantillasDataSource.data.length + ' plantillas'"
           [showLegend]="!!plantillasDataSource.data.length"
         >
@@ -572,12 +582,12 @@
       </mat-tab>
 
       <!-- TAB RENTABILIDAD -->
-      <mat-tab label="Rentabilidad">
+      <mat-tab label="Ganancia">
         <app-admin-data-panel
           accent="teal"
-          title="Resumen fácil de leer"
-          [description]="'Qué entró y qué salió · ' + periodoLabel"
-          meta="P&amp;L simple (sin factura SAT)"
+          title="¿Cuánto te quedó?"
+          [description]="periodoLabel"
+          meta="Sin contar impuestos"
         >
           <div class="rentabilidad-grid">
             <div class="rent-card">
@@ -615,9 +625,9 @@
 
         <app-admin-data-panel
           accent="teal"
-          title="Gráficas del período"
+          title="Gráfica del periodo"
           [description]="'Ingresos, egresos y ganancia · ' + periodoLabel"
-          meta="Vista rápida para doctoras"
+          meta="Entró, salió y quedó"
           [showLegend]="false"
         >
           <div class="rent-charts">
@@ -689,31 +699,31 @@
       </mat-tab>
     </mat-tab-group>
 
-    <p class="section-eyebrow">Finanzas de la clínica</p>
+    <p class="section-eyebrow">Resumen del periodo</p>
     <app-admin-kpi-grid>
       <app-admin-stat-card
         accent="green"
         [value]="formatMoney(kpis.neto)"
-        label="Neto caja"
-        hint="Ingresos − egresos"
+        label="Te quedó"
+        hint="Lo que entró menos los gastos"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="teal"
         [value]="formatMoney(kpis.totalIngresos)"
-        label="Ingresos"
-        hint="Cobros del período"
+        label="Entró"
+        hint="Todo lo cobrado"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="blue"
         [value]="formatMoney(kpis.margenEstimado)"
-        label="Margen estimado"
-        hint="Solo cobros con costo · sin costo → no entra aquí"
+        label="Ganancia aproximada"
+        hint="Solo de lo que tiene costo capturado"
       ></app-admin-stat-card>
       <app-admin-stat-card
         accent="orange"
         [value]="formatMoney(kpis.totalEgresos)"
         label="Gastos"
-        hint="Egresos del período"
+        hint="Gastos registrados"
       ></app-admin-stat-card>
     </app-admin-kpi-grid>
   </ng-container>

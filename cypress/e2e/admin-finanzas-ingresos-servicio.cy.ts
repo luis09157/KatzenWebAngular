@@ -12,7 +12,7 @@ describe('Admin — Finanzas ingresos por servicio', () => {
     cy.get('.finanzas-contenedor', { timeout: 20000 }).should('exist');
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
 
-    cy.contains('.mat-mdc-tab, .mdc-tab', /Ingresos por servicio/i).click({ force: true });
-    cy.contains(/Ingresos por servicio|Sin ingresos|categoría/i, { timeout: 15000 });
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Por servicio/i).click({ force: true });
+    cy.contains(/Lo que entró por servicio|No entró dinero/i, { timeout: 15000 });
   });
 });

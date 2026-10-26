@@ -368,7 +368,7 @@
 
 /* 2 cols: la 3.ª card de catálogo / resumen no queda huérfana. */
 @container admin-page (min-width: 720px) and (max-width: 1099px) {
-  .visitas-contenedor.pos-home .pos-home__tiles .pos-home-tile:not(.pos-home-tile--primary):last-child,
+  /* Tiles: 4 secundarias (con Corte de caja, 2026-10-26) → 2×2, sin huérfana. */
   .visitas-contenedor.pos-home .pos-home__summary .pos-summary-card:last-child {
     grid-column: 1 / -1;
   }
@@ -376,7 +376,7 @@
 
 @container admin-page (min-width: 1100px) {
   .visitas-contenedor.pos-home .pos-home__tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .visitas-contenedor.pos-home .pos-home__summary {
@@ -428,4 +428,15 @@
       }
     }
   }
+}
+
+/* Corte de caja en Cobrar (2026-10-26): estado visible */
+.pos-home-tile--corte-pendiente .pos-home-tile__hint {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.pos-home-tile--corte-hecho .pos-home-tile__hint {
+  color: #047857;
+  font-weight: 600;
 }

@@ -6,7 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import KatzenSwal, { KATZEN_SWAL_DANGER } from '../core/ui/katzen-swal';
-import { ADMIN_DIALOG_POS } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_POS } from '../core/config/admin-ui.config';
 import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService, LOADING_MESSAGES } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
@@ -25,6 +25,10 @@ import { PorCobrarItem } from './por-cobrar-hoy.models';
 import { buildPorCobrarHoy, totalPorCobrarHoy } from './por-cobrar-hoy.util';
 import { promptMontoVisita } from './visita-atalho.util';
 import { esVisitaMostrador } from './visita-mostrador.util';
+import { CajaService } from '../finanzas/caja.service';
+import { CajaCorte, CajaMovimiento } from '../finanzas/caja.models';
+import { CajaCorteDialogComponent } from '../finanzas/caja-corte-dialog.component';
+import { cortesDelDia, movimientosPendientesDeCorte } from '../finanzas/caja-corte.util';
 
 export type PosHomeSeccion = 'caja' | 'tickets';
 export type PosListaTickets = 'abiertos' | 'hoy';
@@ -81,8 +85,55 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
     private loadingService: LoadingService,
     private logger: LoggerService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cajaService: CajaService
   ) {}
+
+  /** Corte de caja en Cobrar (2026-10-26): estado del día y botón para todos los que cobran. */
+  private movimientosCaja: CajaMovimiento[] = [];
+  private cortesCaja: CajaCorte[] = [];
+  corteEstado: { texto: string; tono: 'pendiente' | 'hecho' | 'neutro' } = { texto: 'Cuenta el efectivo', tono: 'neutro' };
+
+  private actualizarEstadoCorte(): void {
+    const hoy = this.cajaService.hoyLocalIsoDate();
+    const cortes = cortesDelDia(this.cortesCaja, hoy);
+    const pendientes = movimientosPendientesDeCorte(this.movimientosCaja, this.cortesCaja, hoy);
+    if (cortes.length && pendientes.length) {
+      this.corteEstado = { texto: 'Entró dinero después del corte', tono: 'pendiente' };
+    } else if (cortes.length) {
+      const ultimo = cortes[cortes.length - 1];
+      const d = new Date(ultimo.createdAt);
+      const hora = Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      this.corteEstado = { texto: hora ? `Hecho hoy a las ${hora}` : 'Hecho hoy', tono: 'hecho' };
+    } else if (pendientes.length) {
+      this.corteEstado = { texto: 'Pendiente de hoy', tono: 'pendiente' };
+    } else {
+      this.corteEstado = { texto: 'Sin cobros hoy', tono: 'neutro' };
+    }
+  }
+
+  private escucharCaja(): void {
+    combineLatest([this.cajaService.getMovimientos(), this.cajaService.getCortes()])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([movs, cortes]) => {
+          this.movimientosCaja = movs || [];
+          this.cortesCaja = cortes || [];
+          this.actualizarEstadoCorte();
+        },
+        error: () => {
+          this.corteEstado = { texto: 'Cuenta el efectivo', tono: 'neutro' };
+        },
+      });
+  }
+
+  abrirCorteCaja(): void {
+    this.dialog.open(CajaCorteDialogComponent, {
+      ...ADMIN_DIALOG_CONFIG,
+      width: '520px',
+      data: { fecha: this.cajaService.hoyLocalIsoDate(), movimientos: this.movimientosCaja },
+    });
+  }
 
   get ticketsCompactos(): Visita[] {
     const hoy = hoyLocalIsoDate();
@@ -93,6 +144,7 @@ export class VisitasComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.escucharCaja();
     this.dataSource.filterPredicate = (row, filter) => {
       const q = filter.trim().toLowerCase();
       if (!q) return true;

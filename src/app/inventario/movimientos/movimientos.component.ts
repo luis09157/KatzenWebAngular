@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -17,6 +17,15 @@ import { MovimientoDetalleDialogComponent } from './movimiento-detalle-dialog.co
 import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../../core/config/admin-ui.config';
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import {
+  cantidadConUnidad,
+  mapaNombresStaff,
+  motivoMovimientoTexto,
+  nombreResponsable,
+  stockAntesDespuesTexto,
+} from '../inventario-textos.util';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -30,15 +39,26 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = [
     'fecha',
     'producto',
-    'tipo',
     'cantidad',
-    'stock_anterior',
-    'stock_nuevo',
     'motivo',
-    'ticket',
     'usuario',
     'acciones'
   ];
+  /** Celular: 3 columnas (fecha, motivo y quién van dentro de la fila). */
+  readonly columnasMovil = ['producto', 'cantidad', 'acciones'];
+  esAngosto = typeof window !== 'undefined' && window.innerWidth < 700;
+
+  get columnas(): string[] {
+    return this.esAngosto ? this.columnasMovil : this.displayedColumns;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.esAngosto = window.innerWidth < 700;
+  }
+
+  /** uid → nombre del staff (para no mostrar códigos). */
+  private nombresStaff = new Map<string, string>();
 
   dataSource: MatTableDataSource<Movimiento>;
   movimientos: Movimiento[] = [];
@@ -72,10 +92,10 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   tiposMovimiento = [
     { valor: 'todos', etiqueta: 'Todos' },
-    { valor: 'entrada', etiqueta: 'Entradas' },
-    { valor: 'salida', etiqueta: 'Salidas' },
+    { valor: 'entrada', etiqueta: 'Lo que entró' },
+    { valor: 'salida', etiqueta: 'Lo que salió' },
     { valor: 'merma', etiqueta: 'Mermas' },
-    { valor: 'ajuste', etiqueta: 'Ajustes' }
+    { valor: 'ajuste', etiqueta: 'Correcciones de conteo' }
   ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -86,13 +106,16 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private logger: LoggerService,
     private authProfile: AuthProfileService,
-    private router: Router
+    private router: Router,
+    private db: AngularFireDatabase,
+    private afAuth: AngularFireAuth
   ) {
     this.dataSource = new MatTableDataSource<Movimiento>([]);
   }
 
   ngOnInit(): void {
     void this.cargarPermisoAjuste();
+    this.cargarNombresStaff();
     this.cargarDatos();
   }
 
@@ -112,6 +135,58 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch {
       this.puedeAjustar = false;
     }
+  }
+
+  /**
+   * uid → nombre. Datos reales: el registro de staff puede estar bajo su push-id con
+   * `authUid`, y se incluyen los inactivos (alguien que ya no está pudo mover stock).
+   */
+  private cargarNombresStaff(): void {
+    this.db
+      .object<Record<string, { nombre?: string; correo?: string; authUid?: string; id?: string }>>('Katzen/Usuarios')
+      .valueChanges()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (usuarios) => {
+          this.nombresStaff = mapaNombresStaff(usuarios);
+          void this.agregarUsuarioActual();
+        },
+        error: () => void this.agregarUsuarioActual(),
+      });
+  }
+
+  /** El dueño (super admin) no siempre está en Usuarios: se muestra «Tú». */
+  private async agregarUsuarioActual(): Promise<void> {
+    try {
+      const user = await this.afAuth.currentUser;
+      if (user?.uid && !this.nombresStaff.has(user.uid)) {
+        const m = new Map(this.nombresStaff);
+        m.set(user.uid, 'Tú');
+        this.nombresStaff = m;
+      }
+    } catch {
+      /* sin sesión: se queda «Otro usuario» */
+    }
+  }
+
+  getResponsable(m: Movimiento): string {
+    return nombreResponsable(m.usuario_responsable_id, this.nombresStaff);
+  }
+
+  getMotivo(m: Movimiento): string {
+    return motivoMovimientoTexto(m.motivo);
+  }
+
+  /** «−2 unidades» / «+10 cajas» (ajuste muestra el stock final). */
+  getCantidadTexto(m: Movimiento): string {
+    const unidad = this.getProductoUnidad(m.producto_id);
+    if (m.tipo === 'ajuste') return `Quedó en ${cantidadConUnidad(m.cantidad_nueva ?? m.cantidad, unidad)}`;
+    const signo = m.tipo === 'entrada' ? '+' : '−';
+    return `${signo}${cantidadConUnidad(m.cantidad, unidad)}`;
+  }
+
+  getStockTexto(m: Movimiento): string {
+    return stockAntesDespuesTexto(m.cantidad_anterior, m.cantidad_nueva);
   }
 
   cargarDatos(): void {
@@ -150,10 +225,11 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
       movimientosFiltrados = movimientosFiltrados.filter(m => {
         const producto = this.productos.get(m.producto_id);
         return (
-          producto?.nombre.toLowerCase().includes(texto) ||
-          producto?.codigo_barras.toLowerCase().includes(texto) ||
-          m.motivo.toLowerCase().includes(texto) ||
-          m.usuario_responsable_id?.toLowerCase().includes(texto)
+          String(producto?.nombre || '').toLowerCase().includes(texto) ||
+          String(producto?.codigo_barras || '').toLowerCase().includes(texto) ||
+          String(m.motivo || '').toLowerCase().includes(texto) ||
+          this.getMotivo(m).toLowerCase().includes(texto) ||
+          this.getResponsable(m).toLowerCase().includes(texto)
         );
       });
     }
@@ -230,10 +306,10 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getTipoTexto(tipo: string): string {
     const textos: {[key: string]: string} = {
-      'entrada': 'Entrada',
-      'salida': 'Salida',
+      'entrada': 'Entró',
+      'salida': 'Salió',
       'merma': 'Merma',
-      'ajuste': 'Ajuste'
+      'ajuste': 'Corrección'
     };
     return textos[tipo] || tipo;
   }
@@ -295,8 +371,8 @@ export class MovimientosComponent implements OnInit, AfterViewInit, OnDestroy {
       { header: 'Cantidad', value: row => row.cantidad },
       { header: 'Stock anterior', value: row => row.cantidad_anterior },
       { header: 'Stock nuevo', value: row => row.cantidad_nueva },
-      { header: 'Motivo', value: row => row.motivo },
-      { header: 'Usuario', value: row => row.usuario_responsable_id || '' }
+      { header: 'Motivo', value: row => this.getMotivo(row) },
+      { header: 'Usuario', value: row => this.getResponsable(row) }
     ]);
   }
 

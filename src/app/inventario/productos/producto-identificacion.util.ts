@@ -142,8 +142,12 @@ export function presetProductoPorCategoria(categoria: CategoriaProducto | string
 }
 
 export function etiquetaCategoriaProducto(categoria: string | null | undefined): string {
-  const key = String(categoria || '') as CategoriaProducto;
-  return ETIQUETA_CATEGORIA_PRODUCTO[key] || String(categoria || '—');
+  const raw = String(categoria || '').trim();
+  const key = raw.toLowerCase() as CategoriaProducto;
+  if (ETIQUETA_CATEGORIA_PRODUCTO[key]) return ETIQUETA_CATEGORIA_PRODUCTO[key];
+  if (!raw) return '—';
+  // Categorías importadas (ej. «MEDICAMENTOS», «otros»): primera letra en mayúscula.
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 export function etiquetaUnidadMedida(unidad: string | null | undefined): string {

@@ -11,8 +11,7 @@
       <p class="pos-home__lead">Vende y cobra aquí. Si falta un artículo, búscalo en Catálogo.</p>
     </header>
 
-    <app-caja-corte-banner></app-caja-corte-banner>
-
+    <!-- El corte vive en la tarjeta «Corte de caja» (estado + botón); el aviso grande queda en Inicio. -->
     <section class="pos-home__tiles" aria-label="Acciones del punto de venta">
       <button type="button" class="pos-home-tile pos-home-tile--primary" (click)="nueva()">
         <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>point_of_sale</mat-icon></span>
@@ -28,6 +27,18 @@
         <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>receipt_long</mat-icon></span>
         <span class="pos-home-tile__title">Tickets</span>
         <span class="pos-home-tile__hint">{{ visitasHoy }} hoy</span>
+      </button>
+      <button
+        type="button"
+        class="pos-home-tile"
+        [class.pos-home-tile--corte-pendiente]="corteEstado.tono === 'pendiente'"
+        [class.pos-home-tile--corte-hecho]="corteEstado.tono === 'hecho'"
+        data-tile="corte"
+        (click)="abrirCorteCaja()"
+      >
+        <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>lock_clock</mat-icon></span>
+        <span class="pos-home-tile__title">Corte de caja</span>
+        <span class="pos-home-tile__hint">{{ corteEstado.texto }}</span>
       </button>
       <button type="button" class="pos-home-tile" (click)="irAProductos()">
         <span class="pos-home-tile__icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></span>

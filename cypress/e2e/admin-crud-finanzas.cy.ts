@@ -18,8 +18,8 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.url({ timeout: 15000 }).should('include', '/admin/finanzas');
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.get('.finanzas-contenedor', { timeout: 20000 }).should('exist');
-    cy.contains('Caja / costos / rentabilidad', { matchCase: false });
-    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Ingresos por servicio|Costos|Rentabilidad/i).should('exist');
+    cy.contains('Dinero de la clínica');
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Por servicio|Precios y costos|Ganancia/i).should('exist');
     // Si rules recién desplegadas o error de lectura previo, cierra Swal residual.
     cy.get('body').then(($b) => {
       if ($b.find('.swal2-confirm:visible').length) {
@@ -28,13 +28,13 @@ describe('Admin CRUD — Finanzas caja', () => {
     });
     cy.get('body', { timeout: 10000 }).should('not.have.class', 'swal2-shown');
 
-    cy.contains('button', /Registrar cobro/i).click({ force: true });
+    cy.contains('button', /Registrar gasto/i).click({ force: true });
     cy.get('mat-dialog-container', { timeout: 15000 }).should('be.visible');
-    cy.contains('mat-dialog-container', 'Registrar movimiento');
+    cy.contains('mat-dialog-container', 'Registrar gasto');
     cy.fillMatInput('concepto', concepto);
     cy.fillMatInput('monto', '125.50');
     cy.get('mat-select[formControlName="categoria"]').click({ force: true });
-    cy.get('.cdk-overlay-container mat-option').contains('Consulta').click({ force: true });
+    cy.get('.cdk-overlay-container mat-option').contains('Gasolina').click({ force: true });
     cy.get('mat-select[formControlName="metodoPago"]').click({ force: true });
     cy.get('.cdk-overlay-container mat-option').contains('Tarjeta').click({ force: true });
     cy.get('mat-checkbox[formControlName="ivaDeclarado"] input').check({ force: true });
@@ -46,7 +46,7 @@ describe('Admin CRUD — Finanzas caja', () => {
 
     cy.get('.buscador input').clear().type(concepto);
     cy.contains('td', concepto, { timeout: 20000 }).should('be.visible');
-    cy.contains('td', 'Consulta').should('be.visible');
+    cy.contains('td', 'Gasolina').should('be.visible');
     cy.contains('td', 'Tarjeta').should('be.visible');
     cy.contains('td', 'Declarado').should('be.visible');
 
