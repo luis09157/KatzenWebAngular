@@ -1,0 +1,38 @@
+---
+description: Celular primero — criterios medibles; ningún cambio de UI se entrega sin pasar check:mobile
+alwaysApply: true
+---
+
+# Celular usable (medible, no «se ve bien»)
+
+El personal usa el sistema en el teléfono. «Smoke 375 OK» ya no vale como evidencia: se entrega con **números**.
+
+## Antes de entregar cualquier cambio de UI (L1 incluido: el CSS es global)
+
+1. `npm run check:mobile` → 0 errores nuevos. Si corregiste uno de la línea base: `npm run check:mobile -- --update-baseline` (la lista solo baja).
+2. Cambio en pantalla o diálogo → `npm run cy:mobile` (o la ruta tocada) y pegar en `tasks.md` el resumen de `cypress/reports/mobile-audit.json`.
+
+## Umbrales a 375×812 (los mide `cy:mobile`)
+
+| Qué | Pasa si |
+|-----|---------|
+| Página | sin scroll horizontal |
+| Tabla | no más ancha que la pantalla → en celular se muestra como tarjetas |
+| Primer registro | arriba de y=490 (60% de la pantalla); nunca abajo de 812 |
+| Diálogo | ≥ 90% del ancho; campos ≥ 200px; sin desborde interno |
+| Botones | ≥ 40×40px (ideal 44) |
+| Inputs | letra ≥ 16px (si no, iPhone hace zoom) |
+| Largo | ≤ 20 pantallas → si no, paginar |
+
+## CSS: cómo no repetir el bug de «Nuevo paciente»
+
+- Una regla de celular **debe tener la misma o mayor especificidad** que la de escritorio que corrige. Copiar el selector completo, no una versión corta.
+- No agregar `!important` nuevo para ganarle a otro `!important`: subir el selector o quitar el original. (Hoy hay ~2,400; cada uno nuevo hace más frágil el siguiente arreglo.)
+- Diálogos: no usar `var(--mat-dialog-container-max-width)` para el ancho (Material lo deja en 80vw).
+- `100vh` siempre con respaldo `100dvh`.
+- Breakpoints: usar solo **600 / 900 / 1200** (`max-width`) en código nuevo.
+
+## Interacción
+
+- Un **toque** abre el detalle. `(dblclick)` puede quedarse para escritorio, pero siempre con `(click)` o botón visible equivalente.
+- No escribir «doble clic» en textos de ayuda; decir «Toca la fila».

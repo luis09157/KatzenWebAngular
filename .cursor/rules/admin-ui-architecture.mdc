@@ -25,7 +25,7 @@ Dashboard corporativo premium (Stripe/Linear). Spec completa, tokens y detalle d
 - Página: `admin-page` + **`.admin-list-shell`** (`app-admin-page-banner` + `app-flow-hint` opcional + `app-admin-data-panel` en **una** composición) + `app-admin-kpi-grid` **abajo**. No apilar banner y panel como cards sueltas. CSS: `admin-page-layout.scss`. Grid fluido 3→2→1; desktop usa todo `.admin-content`.
 - Shell: `admin-main-layout` — auto-hide sidenav + toggle hamburguesa (no reimplementar en módulos).
 - Tabla: `.table-scroll` + `mat-table`; acciones `mat-column-acciones` 120px con `mat-icon-button` + `matTooltip` en `.row-actions`; nombres de persona completos en desktop.
-- **MUST (spec 073):** filas de listado `(dblclick)` al mismo handler que Ver detalle; `.row-actions` con `$event.stopPropagation()`.
+- **MUST (spec 073):** filas de listado `(dblclick)` al mismo handler que Ver detalle; `.row-actions` con `$event.stopPropagation()`. **En celular un toque debe abrir el detalle** (doble clic no existe ahí) — regla `movil-usable.mdc`.
 - Avisos: `.admin-dense-list` (ver `docs/ADMIN-UI-ARCHITECTURE.md` § Listas densas).
 - Diálogo: `admin-dialog-shell` + `.admin-dialog-layout`; tabs `dynamicHeight`, `overflow: visible`; `.entity-summary` compacto.
 - Primarias: `.btn-primary-teal` en `mat-raised-button`. Tokens CSS: `--katzen-verde`, `--admin-bg`, `--admin-surface`, `--admin-border`, `--admin-radius-*`.

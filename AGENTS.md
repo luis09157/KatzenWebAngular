@@ -67,8 +67,9 @@ Roles staff: matriz en `src/app/core/config/staff-role.config.ts`; módulo admin
 
 Detalle en `.cursor/rules/sdd-workflow.mdc`; checklist QA completa **solo** en `specs/templates/qa-validation-guide.md`.
 
-- **L1 trivial** (CSS, copy, tooltip): `npm run build` + 1 screenshot local. Sin plan/tasks.
-- **L2 feature UI/lógica**: unit tests del util + build + smoke 375/1280 + registro ≤10 líneas en `tasks.md`.
+- **L1 trivial** (CSS, copy, tooltip): `npm run build` + `npm run check:mobile` + 1 screenshot local a 375. Sin plan/tasks.
+- **L2 feature UI/lógica**: unit tests del util + build + `check:mobile` + `cy:mobile` (números de la auditoría) + smoke 1280 + registro ≤10 líneas en `tasks.md`.
+- **Celular:** criterios medibles en `.cursor/rules/movil-usable.mdc` (diálogo ≥90% ancho, campos ≥200px, sin tablas más anchas que la pantalla, primer registro en la primera pantalla).
 - **L3 datos/infra** (rules, functions, scripts a prod, modelos compartidos con móvil, imports): guía QA completa + `plan.md` (Contratos de Datos / Rollback) + emulador + autorización explícita de Luis.
 
 Índice specs: `specs/INDEX.md` (autogenerado) · dominio: `specs/memory/domain-context.md` · principios: `specs/memory/constitution.md` · guardrails agentes: `specs/memory/agent-guardrails.md` · mapa módulos: `specs/memory/module-map.md` · plan maestro: `specs/ROADMAP.md`.

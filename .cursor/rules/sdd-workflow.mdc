@@ -27,8 +27,8 @@ La checklist QA de muchas filas vive **solo** en `specs/templates/qa-validation-
 
 | Nivel | Qué es | Validación exigida | Docs |
 |-------|--------|--------------------|------|
-| **L1 trivial** | CSS, copy, tooltip, padding, orden de columnas | `npm run build` + **1 screenshot** local (`:4200`) | Sin `plan.md`/`tasks.md`. Nota de una línea en la spec afectada si existe |
-| **L2 feature UI/lógica** | Componente, diálogo, util, servicio Angular, ruta admin | Unit tests del util + `npm run build` + smoke **375 / 1280** + registro **≤10 líneas** en `tasks.md`. Cypress **solo** si hay ruta nueva | `spec.md`; Contratos de Datos / Rollback en `spec.md` **si aplica**. Sin `plan.md` |
+| **L1 trivial** | CSS, copy, tooltip, padding, orden de columnas | `npm run build` + `npm run check:mobile` + **1 screenshot** local (`:4200`) a **375** (el CSS es global: un ajuste de escritorio puede romper el celular) | Sin `plan.md`/`tasks.md`. Nota de una línea en la spec afectada si existe |
+| **L2 feature UI/lógica** | Componente, diálogo, util, servicio Angular, ruta admin | Unit tests del util + `npm run build` + `check:mobile` + **`cy:mobile`** (números, no «se ve bien») + smoke 1280 + registro **≤10 líneas** en `tasks.md`. Cypress **solo** si hay ruta nueva | `spec.md`; Contratos de Datos / Rollback en `spec.md` **si aplica**. Sin `plan.md` |
 | **L3 datos/infra** | `database.rules.json`, functions, scripts hacia prod, modelos compartidos con app móvil, imports/migraciones | **Guía QA completa** (`specs/templates/qa-validation-guide.md`) + emulador + **autorización explícita de Luis** | `plan.md` obligatorio con **Contratos de Datos y UI** + **Plan de Mitigación y Rollback**; `tasks.md` con registro QA |
 
 Ante duda entre niveles, elegir el superior. Un cambio L1 no requiere abrir tasks/plan ni tablas QA.

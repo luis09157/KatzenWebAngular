@@ -183,6 +183,9 @@
 }
 
 @media (max-width: 640px) {
+  /* Misma especificidad que la regla de escritorio de arriba; si no, gana 132px + 1fr
+     y los campos quedan de ~43px en celular. */
+  .admin-dialog-panel app-paciente-admin-dialog .admin-dialog-layout,
   .admin-dialog-panel .admin-dialog-layout {
     grid-template-columns: 1fr !important;
   }

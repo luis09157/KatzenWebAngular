@@ -214,3 +214,6 @@ firestore-debug.log
 pubsub-debug.log 
 .nx/cache
 .nx/workspace-data
+
+# Reportes de auditoría móvil (npm run cy:mobile)
+/cypress/reports
