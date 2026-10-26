@@ -20,6 +20,8 @@ import { PlantillaCostoService } from '../finanzas/plantilla-costo.service';
 import { PlantillaCosto } from '../finanzas/plantilla-costo.models';
 import { resolverPrefillBanioPorTamano } from '../finanzas/banio-prefill.util';
 import { TarifasPeluqueriaService } from '../finanzas/tarifas-peluqueria.service';
+import { BanioConPrecio, PrecioAnteriorBanio, precioAnteriorBanio } from './banio-precio-anterior.util';
+import { formatearFechaLocalEs } from '../shared/datepicker/datepicker.util';
 import {
   FILAS_TARIFA_PELUQUERIA,
   FILA_TARIFA_PELUQUERIA_LABELS,
@@ -86,6 +88,9 @@ export class BanioDialogComponent implements OnInit {
   filaTarifa: FilaTarifaPeluqueria | null = null;
   pelo: PeloMascota = 'corto';
   private especiePaciente = '';
+  /** Baños anteriores de la mascota para sugerir el último precio (2026-10-26). */
+  private baniosMascota: BanioConPrecio[] = [];
+  precioAnterior: PrecioAnteriorBanio | null = null;
 
   get hayTarifas(): boolean {
     return hayTarifasPeluqueria(this.tarifasPelu);
@@ -111,6 +116,11 @@ export class BanioDialogComponent implements OnInit {
 
   /** Hint bajo el único campo de dinero: precio a cobrar. */
   get hintPrecioAlCliente(): string {
+    if (this.precioAnterior) {
+      const fecha = formatearFechaLocalEs(this.precioAnterior.fechaIso);
+      const servicio = this.precioAnterior.mismoServicio ? 'este servicio' : 'su último baño';
+      return `La última vez (${fecha}) se cobró $${this.precioAnterior.precio} por ${servicio}. Cámbialo si hoy es distinto.`;
+    }
     const adicionales = this.totalServiciosAdicionales();
     if (adicionales > 0) {
       const base = Number(this.banioForm.get('precio_base')?.value) || 0;
@@ -240,6 +250,7 @@ export class BanioDialogComponent implements OnInit {
           created_by: 'system',
         });
         void this.cargarAlergiasDesdeMascota(pacienteId);
+        void this.cargarHistorialPrecios(pacienteId);
       } else {
         this.banioForm.patchValue({ created_by: 'system' });
       }
@@ -282,7 +293,8 @@ export class BanioDialogComponent implements OnInit {
 
   elegirTipoServicio(value: string): void {
     this.banioForm.patchValue({ tipo_servicio: value });
-    // Recalcular con la tarifa (tipo + tamaño + pelo) o, si no hay, con los defaults por tamaño.
+    // Primero el precio que se le cobró antes a esta mascota; si no hay, tarifa / defaults por tamaño.
+    if (this.aplicarPrecioAnterior()) return;
     if (this.banioForm.get('tamano_perro')?.value || this.filaTarifa) {
       this.onTamanoChange();
     }
@@ -305,6 +317,33 @@ export class BanioDialogComponent implements OnInit {
   elegirPelo(pelo: PeloMascota): void {
     this.pelo = pelo;
     this.onTamanoChange();
+  }
+
+  /** Carga los baños de la mascota (una vez) y sugiere el último precio. */
+  private async cargarHistorialPrecios(pacienteId: string): Promise<void> {
+    const id = String(pacienteId || '').trim();
+    if (!id || this.esEdicion) return;
+    try {
+      const rows = await firstValueFrom(this.baniosPacienteService.getBaniosPorPaciente(id).pipe(take(1)));
+      this.baniosMascota = (rows || []) as BanioConPrecio[];
+    } catch {
+      this.baniosMascota = [];
+    }
+    this.aplicarPrecioAnterior();
+  }
+
+  /** Pone el último precio cobrado a esta mascota si el precio sigue vacío. true si hubo sugerencia. */
+  private aplicarPrecioAnterior(): boolean {
+    this.precioAnterior = precioAnteriorBanio(this.baniosMascota, {
+      tipoServicio: this.banioForm.get('tipo_servicio')?.value,
+      excluirId: this.data?.id,
+    });
+    if (!this.precioAnterior) return false;
+    if (!this.precioTotalManual && !this.esEdicion) {
+      this.banioForm.patchValue({ precio_base: this.precioAnterior.precio, precio_total: this.precioAnterior.precio });
+      this.calcularPrecioTotal();
+    }
+    return true;
   }
 
   /** Precio de la tarifa de peluquería para lo elegido; null si no aplica. */
@@ -555,6 +594,11 @@ export class BanioDialogComponent implements OnInit {
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
     this.especiePaciente = String(sel.pacienteData?.['especie'] || '');
+    this.baniosMascota = [];
+    this.precioAnterior = null;
+    if (sel.paciente_id) {
+      void this.cargarHistorialPrecios(sel.paciente_id);
+    }
     this.filaTarifa = filaTarifaPara(
       String(sel.pacienteData?.['tamano_perro'] || sel.pacienteData?.['tamano'] || ''),
       this.especiePaciente
@@ -612,6 +656,8 @@ export class BanioDialogComponent implements OnInit {
   }
 
   onTamanoChange(): void {
+    // El precio que se le cobró antes a esta mascota manda sobre tarifas y defaults.
+    if (this.precioAnterior && !this.esEdicion) return;
     const precioTarifa = this.defaultsListos ? this.precioPorTarifa() : null;
     if (precioTarifa != null) {
       this.prefillHint = 'Precio de la tarifa de peluquería (Finanzas). Puedes cambiarlo.';
