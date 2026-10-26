@@ -168,6 +168,41 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     return leyendaCobroBanio(banio) === 'falta_precio';
   }
 
+  /**
+   * Tarjeta de celular (spec 096): una sola acción visible según el momento del baño.
+   * Lo demás queda en ⋮ con texto.
+   */
+  accionPrincipalBanio(banio: any): { tipo: 'precio' | 'iniciar' | 'listo' | 'ver'; label: string; icon: string } {
+    const estado = String(banio?.estado || '');
+    if (estado !== 'cancelado' && this.faltaPrecio(banio)) {
+      return { tipo: 'precio', label: 'Poner precio', icon: 'sell' };
+    }
+    if (estado === 'programado') {
+      return { tipo: 'iniciar', label: 'Iniciar baño', icon: 'play_arrow' };
+    }
+    if (estado === 'en_proceso' && !banio?.visitaId && !banio?.pagado && !banio?.cajaMovimientoId) {
+      return { tipo: 'listo', label: 'Listo para cobrar', icon: 'storefront' };
+    }
+    return { tipo: 'ver', label: 'Ver detalle', icon: 'visibility' };
+  }
+
+  ejecutarAccionPrincipalBanio(banio: any, event?: Event): void {
+    event?.stopPropagation();
+    switch (this.accionPrincipalBanio(banio).tipo) {
+      case 'precio':
+        this.editarBanio(banio);
+        return;
+      case 'iniciar':
+        this.cambiarEstado(banio, 'en_proceso');
+        return;
+      case 'listo':
+        this.marcarListoParaCobrar(banio);
+        return;
+      default:
+        this.verBanio(banio);
+    }
+  }
+
   /** Sin baños de hoy ni mañana (hay histórico). Alias usado en el template. */
   get hayHistoricoSinHoy(): boolean {
     return this.seccionHoyVacia && this.seccionMananaVacia;

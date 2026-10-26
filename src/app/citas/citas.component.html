@@ -251,6 +251,52 @@
         ></tr>
       </table>
     </div>
+
+    <!-- Celular (≤600px): tarjetas en lugar de tabla (spec 096 F2). -->
+    <div class="cita-cards" *ngIf="ds && ds.data && ds.data.length > 0">
+      <article
+        *ngFor="let cita of ds.connect() | async"
+        class="cita-card"
+        tabindex="0"
+        [attr.aria-label]="'Ver cita de ' + (cita.paciente || 'paciente')"
+        (click)="verCita(cita)"
+        (keydown.enter)="verCita(cita)"
+      >
+        <div class="cita-card__top">
+          <span class="cita-card__hora">{{ getHoraParte(cita) || '—' }}</span>
+          <span class="estado-badge" [ngClass]="cita.estado | adminEstadoClass">{{
+            cita.estado || 'N/P' | titlecase
+          }}</span>
+        </div>
+        <h4 class="cita-card__paciente">{{ cita.paciente || 'Paciente N/P' }}</h4>
+        <p class="cita-card__meta">{{ cita.cliente || 'Cliente N/P' }}<ng-container *ngIf="cita.motivo"> · {{ cita.motivo }}</ng-container></p>
+        <p class="cita-card__meta cita-card__meta--sub">
+          {{ getFechaParte(cita) }}<ng-container *ngIf="cita.veterinario"> · {{ cita.veterinario }}</ng-container>
+        </p>
+        <div class="cita-card__acciones">
+          <button
+            mat-flat-button
+            color="primary"
+            class="btn-primary-teal"
+            type="button"
+            (click)="accionPrincipalCita(cita, $event)"
+          >
+            <mat-icon>{{ citaSePuedeAtenderAhora(cita) ? 'medical_services' : 'visibility' }}</mat-icon>
+            {{ citaSePuedeAtenderAhora(cita) ? 'Atender' : 'Ver detalle' }}
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            class="cita-card__mas"
+            aria-label="Más acciones"
+            [matMenuTriggerFor]="citaMenu"
+            (click)="menuContext = cita; $event.stopPropagation()"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </article>
+    </div>
   </ng-template>
 
   <p class="section-eyebrow">Resumen del módulo</p>
