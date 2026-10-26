@@ -58,6 +58,9 @@ export const STAFF_MODULES_CLINICO_POS: StaffModule[] = [
 /** Veterinario: lo clínico + POS y el directorio de pacientes (Luis, 2026-10-25). */
 export const STAFF_MODULES_DOCTOR: StaffModule[] = [...STAFF_MODULES_CLINICO_POS, 'pacientes-admin'];
 
+/** Recepción: lo clínico + POS y el directorio, que ahora es la única entrada «Pacientes» (Luis, 2026-10-26). */
+export const STAFF_MODULES_RECEPCION: StaffModule[] = [...STAFF_MODULES_CLINICO_POS, 'pacientes-admin'];
+
 export const STAFF_MODULES_PELUQUERO: StaffModule[] = [
   'inicio',
   'paciente',
@@ -76,7 +79,7 @@ export const STAFF_MODULE_ACCESS: Record<string, StaffModule[] | '*'> = {
   administrador: '*',
   admin: '*',
   doctor: STAFF_MODULES_DOCTOR,
-  recepcionista: STAFF_MODULES_CLINICO_POS,
+  recepcionista: STAFF_MODULES_RECEPCION,
   peluquero: STAFF_MODULES_PELUQUERO,
   super_admin: '*',
   dueno: '*',
@@ -142,6 +145,7 @@ export function staffRoleCanAccessModule(staffRole: string, module: StaffModule)
 export const STAFF_NAV_COMPACT: Record<string, StaffModule[] | '*'> = {
   recepcionista: [
     'inicio',
+    'pacientes-admin',
     'paciente',
     'citas',
     'clientes',

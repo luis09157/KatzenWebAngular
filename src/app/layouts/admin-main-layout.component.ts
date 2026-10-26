@@ -51,6 +51,8 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   sucursales: { id: string; nombre: string }[] = [];
   sucursalSeleccionada = 'principal';
   toolbarLabel = 'Admin';
+  /** URL actual para marcar «Pacientes» activo en directorio y expediente. */
+  currentUrl = '';
   registeringStaffPush = false;
   /** Spec 064: ng serve apuntando al emulador RTDB. */
   readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
@@ -77,6 +79,7 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     this.sucursales = this.sucursalContext.sucursales;
     this.sucursalSeleccionada = this.sucursalContext.getSelectedId();
     window.addEventListener('resize', this.resizeHandler);
+    this.currentUrl = this.router.url;
     this.toolbarLabel = resolveAdminRouteLabel(this.router.url);
     this.router.events
       .pipe(
@@ -85,7 +88,8 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe((event) => {
         const nav = event as NavigationEnd;
-        this.toolbarLabel = resolveAdminRouteLabel(nav.urlAfterRedirects || nav.url);
+        this.currentUrl = nav.urlAfterRedirects || nav.url;
+        this.toolbarLabel = resolveAdminRouteLabel(this.currentUrl);
       });
     this.authService.user$
       .pipe(
@@ -256,6 +260,22 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       return this.navModules.has(module);
     }
     return this.accessibleModules.has(module);
+  }
+
+  /**
+   * Menú único «Pacientes» (2026-10-26): abre el directorio si el rol lo tiene;
+   * si no (peluquero), abre la búsqueda de expediente.
+   */
+  get rutaPacientes(): string | null {
+    if (this.canShow('pacientes-admin')) return '/admin/pacientes-admin';
+    if (this.canShow('paciente')) return '/admin/paciente';
+    return null;
+  }
+
+  /** «Pacientes» queda marcado en el directorio y dentro del expediente. */
+  get rutaPacientesActiva(): boolean {
+    const path = (this.currentUrl || '').split(/[?#]/)[0];
+    return path.startsWith('/admin/pacientes-admin') || path === '/admin/paciente' || path.startsWith('/admin/paciente/');
   }
 
   private suscribirAlertasStock(): void {

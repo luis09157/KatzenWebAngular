@@ -40,7 +40,7 @@ export const ADMIN_MODULE_PAGES: Record<string, AdminModulePageCopy> = {
       'Busca por nombre, especie, raza o dueño. Doble clic o Enter abre la ficha. El icono de carpeta abre el expediente clínico.',
     emptyTitle: 'No hay mascotas en el directorio',
     emptyMessage:
-      'Registra la primera mascota aquí. El expediente (historial, vacunas, desparasitación) está en Buscar paciente.',
+      'Registra la primera mascota aquí. El expediente (historial, vacunas, desparasitación) se abre con el icono de carpeta de cada mascota.',
     searchLabel: 'Buscar paciente',
     searchPlaceholder: 'Nombre, especie, raza, dueño…',
     newButtonLabel: nuevo('paciente', 'm'),

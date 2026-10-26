@@ -25,25 +25,16 @@
             <mat-icon matListItemIcon>today</mat-icon>
             <span matListItemTitle>Hoy</span>
           </a>
+          <!-- Menú único «Pacientes»: directorio + expediente (2026-10-26) -->
           <a
-            *ngIf="canShow('pacientes-admin')"
+            *ngIf="rutaPacientes as ruta"
             mat-list-item
-            routerLink="/admin/pacientes-admin"
-            routerLinkActive="active"
+            [routerLink]="ruta"
+            [class.active]="rutaPacientesActiva"
             (click)="closeSidenav()"
           >
             <mat-icon matListItemIcon>pets</mat-icon>
             <span matListItemTitle>Pacientes</span>
-          </a>
-          <a
-            *ngIf="canShow('paciente')"
-            mat-list-item
-            routerLink="/admin/paciente"
-            routerLinkActive="active"
-            (click)="closeSidenav()"
-          >
-            <mat-icon matListItemIcon>manage_search</mat-icon>
-            <span matListItemTitle>Buscar paciente</span>
           </a>
           <a
             *ngIf="canShow('clientes')"
