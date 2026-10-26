@@ -122,18 +122,12 @@
                 <button
                   mat-icon-button
                   type="button"
-                  matTooltip="Editar ficha"
-                  (click)="editarPaciente(paciente); $event.stopPropagation()"
+                  matTooltip="Más acciones"
+                  aria-label="Más acciones"
+                  [matMenuTriggerFor]="rowMenu"
+                  (click)="pacienteMenuContext = paciente; $event.stopPropagation()"
                 >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  matTooltip="Borrar"
-                  (click)="eliminarPaciente(paciente); $event.stopPropagation()"
-                >
-                  <mat-icon>delete_outline</mat-icon>
+                  <mat-icon>more_vert</mat-icon>
                 </button>
               </div>
               <button

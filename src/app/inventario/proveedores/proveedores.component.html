@@ -110,11 +110,15 @@
                 <button mat-icon-button type="button" matTooltip="Editar" (click)="editarProveedor(proveedor)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button type="button" matTooltip="Ver productos" (click)="verProductos(proveedor)">
-                  <mat-icon>inventory_2</mat-icon>
-                </button>
-                <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarProveedor(proveedor)">
-                  <mat-icon>delete_outline</mat-icon>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Más acciones"
+                  aria-label="Más acciones"
+                  [matMenuTriggerFor]="proveedorMenu"
+                  (click)="menuContext = proveedor; $event.stopPropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
                 </button>
               </div>
               <button

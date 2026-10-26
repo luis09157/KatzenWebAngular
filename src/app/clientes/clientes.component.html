@@ -164,43 +164,12 @@
                   <button
                     mat-icon-button
                     type="button"
-                    matTooltip="Cuenta corriente"
-                    (click)="verCuentaCorriente(c); $event.stopPropagation()"
+                    matTooltip="Más acciones"
+                    aria-label="Más acciones"
+                    [matMenuTriggerFor]="rowMenu"
+                    (click)="clienteMenuContext = c; $event.stopPropagation()"
                   >
-                    <mat-icon>account_balance</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Nueva cuenta del día"
-                    (click)="nuevaVisitaCliente(c); $event.stopPropagation()"
-                  >
-                    <mat-icon>receipt_long</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Agregar mascota"
-                    (click)="agregarMascotaDesdeLista(c); $event.stopPropagation()"
-                  >
-                    <mat-icon>pets</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Editar"
-                    (click)="editarCliente(c); $event.stopPropagation()"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    matTooltip="Borrar"
-                    (click)="bajaLogicaCliente(c.id); $event.stopPropagation()"
-                    [disabled]="saving"
-                  >
-                    <mat-icon>delete_outline</mat-icon>
+                    <mat-icon>more_vert</mat-icon>
                   </button>
                 </div>
                 <button

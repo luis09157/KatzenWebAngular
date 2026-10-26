@@ -216,28 +216,12 @@
               <button
                 mat-icon-button
                 type="button"
-                matTooltip="Consumir inventario"
-                (click)="consumirInventario(vacuna)"
+                matTooltip="Más acciones"
+                aria-label="Más acciones"
+                [matMenuTriggerFor]="vacunaMenu"
+                (click)="menuContext = vacuna; $event.stopPropagation()"
               >
-                <mat-icon>inventory_2</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                matTooltip="Enviar a cobrar"
-                (click)="agregarAVisita(vacuna)"
-                *ngIf="
-                  !vacuna.visitaId &&
-                  (vacuna.estado === 'aplicada' || vacuna.estado === 'completada' || vacuna.aplicada === true)
-                "
-              >
-                <mat-icon>receipt_long</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarVacuna(vacuna)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button type="button" matTooltip="Borrar" (click)="eliminarVacuna(vacuna)">
-                <mat-icon>delete_outline</mat-icon>
+                <mat-icon>more_vert</mat-icon>
               </button>
             </div>
             <button

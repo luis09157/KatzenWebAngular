@@ -205,51 +205,13 @@
               >
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button mat-icon-button type="button" matTooltip="Editar" (click)="editarRecordatorio(recordatorio)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <a
-                *ngIf="recordatorio.whatsappTel"
-                mat-icon-button
-                class="recordatorio-wa-btn"
-                matTooltip="Enviar por WhatsApp"
-                [href]="recordatorio.whatsappUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                (click)="marcarWhatsappEnviado(recordatorio)"
-              >
-                <mat-icon>chat</mat-icon>
-              </a>
-              <span
-                *ngIf="!recordatorio.whatsappTel && recordatorio.telefonoCapturado"
-                class="recordatorio-wa-disabled"
-                matTooltip="Teléfono incompleto"
-              >
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="recordatorio-wa-btn"
-                  disabled
-                  aria-label="Enviar por WhatsApp (teléfono incompleto)"
-                >
-                  <mat-icon>chat</mat-icon>
-                </button>
-              </span>
-              <a
-                *ngIf="recordatorio.whatsappTel"
-                mat-icon-button
-                class="recordatorio-tel-btn"
-                matTooltip="Llamar"
-                [href]="recordatorio.telUrl"
-              >
-                <mat-icon>call</mat-icon>
-              </a>
               <button
+                aria-label="Más acciones"
                 mat-icon-button
                 type="button"
                 matTooltip="Más acciones"
                 [matMenuTriggerFor]="recordatorioMenu"
-                (click)="menuContext = recordatorio"
+                (click)="menuContext = recordatorio; $event.stopPropagation()"
               >
                 <mat-icon>more_vert</mat-icon>
               </button>

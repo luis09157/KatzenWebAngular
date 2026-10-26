@@ -1,7 +1,7 @@
 # Spec: Menos botones, una acción principal por pantalla
 
 **ID:** 096-simplificar-acciones
-**Estado:** in_progress
+**Estado:** in_progress (F1–F4 hechas salvo lo marcado)
 **Fecha:** 2026-10-25
 **Autor:** Claude — pedido de Luis («hay ventanas con muchísimos botones que no sabemos para qué son y muchos se repiten»)
 
@@ -51,15 +51,16 @@ Análisis estático de `src/app/**/*.html` (botones agrupados por la acción que
 - [x] Celular: encabezado corto en todos los listados (sin descripciones largas) — `admin-page-layout.scss`.
 - [x] Peluquería ⋮: «Listo para cobrar (lo cobra mostrador)» y «Agregar al ticket del cliente ahora» (antes «… (mostrador)» y «Enviar a mostrador (Cobrar)», que se confundían).
 - [x] Previews de PR en una sola dirección fija (`channelId: qa`).
-- [ ] Escritorio: fila con máximo 1 ícono + ⋮ (hoy 4–6 íconos).
+- [x] Escritorio: fila con 1 ícono principal + ⋮ en Peluquería, Pensión, Citas, Clientes, Historiales, Vacunas, Recordatorios, Pacientes, Productos y Proveedores (antes 3–6 íconos). Pendiente (sin ⋮ todavía): Personal, Consentimientos, Alertas y listas del expediente.
 
 ### F3 — Cobrar
 
-- [ ] Quitar duplicados («Pagar ya», PDF / Imprimir / WhatsApp) y dejar un solo paso claro para pagar.
+- [x] Paso Cobrar: Imprimir / PDF / WhatsApp no se repiten en el pie cuando está «Ticket digital». Inicio: sin «Nueva venta» ni «Abrir catálogo» repetidos. «Pagar ya» computadora/celular son uno por pantalla (se quedan). La barra inferior del celular (Caja / Tickets / Productos) se queda (055).
 
 ### F4 — Navegación
 
-- [ ] Unir Pacientes + Buscar paciente; Inventario una entrada con pestañas; Hoy e Inventario sin enlaces duplicados.
+- [x] Inventario: una sola entrada en el menú (con contador de alertas); secciones en tarjetas de su pantalla. Hoy sin «Abrir citas»; Inventario sin «Ver productos / Ir a alertas» repetidos.
+- [ ] Pacientes + Buscar paciente: **no se unieron** — Luis los separó el 2026-10-24 (b2b5e0a); además el directorio no tiene tarjetas en celular. Decidir con Luis.
 
 ---
 
