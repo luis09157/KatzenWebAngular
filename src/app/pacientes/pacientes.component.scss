@@ -695,7 +695,8 @@
   pointer-events: none; /* solo el botón recibe toques; el resto deja pasar */
 }
 
-.expediente-fab__btn {
+/* Más específico que `html .mat-mdc-fab.mat-accent` del tema (que lo dejaba azul claro). */
+.expediente-fab .expediente-fab__btn.mat-mdc-fab {
   pointer-events: auto;
   min-height: 56px;
   padding: 0 22px 0 18px;
@@ -730,7 +731,7 @@
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
-  .expediente-fab__btn {
+  .expediente-fab .expediente-fab__btn.mat-mdc-fab {
     width: 100%;
     justify-content: center;
   }
