@@ -60,7 +60,7 @@ Análisis estático de `src/app/**/*.html` (botones agrupados por la acción que
 ### F4 — Navegación
 
 - [x] Inventario: una sola entrada en el menú (con contador de alertas); secciones en tarjetas de su pantalla. Hoy sin «Abrir citas»; Inventario sin «Ver productos / Ir a alertas» repetidos.
-- [ ] Pacientes + Buscar paciente: **no se unieron** — Luis los separó el 2026-10-24 (b2b5e0a); además el directorio no tiene tarjetas en celular. Decidir con Luis.
+- [x] Pacientes + Buscar paciente: **una sola entrada «Pacientes»** (Luis, 2026-10-26). Abre el directorio (admin, veterinario y recepción); peluquero, que no tiene directorio, abre la búsqueda de expediente con el mismo nombre. Queda marcada dentro del expediente; el botón del expediente dice «Volver a Pacientes» y regresa al directorio. Los atajos directos al expediente (`/admin/paciente?id=…`) siguen igual. Cypress: `admin-pacientes-sidenav.cy.ts`.
 
 ---
 

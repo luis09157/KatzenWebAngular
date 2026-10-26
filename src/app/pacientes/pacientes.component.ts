@@ -50,6 +50,7 @@ import {
   getTiempoTranscurrido as tiempoTranscurridoExpediente,
 } from './paciente-fecha.util';
 import { getColorActividadExpediente, getIconoActividadExpediente } from './paciente-timeline.util';
+import { AuthProfileService } from '../core/services/auth-profile.service';
 
 @Component({
   selector: 'app-pacientes',
@@ -128,10 +129,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private errorMessages: ErrorMessagesService,
     private logger: LoggerService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private authProfileService: AuthProfileService
   ) {}
 
   ngOnInit() {
+    this.verificarAccesoDirectorio();
     this.loading = true;
     this.initialLoadPending = 2;
     this.initialLoadFailed = false;
@@ -718,6 +721,27 @@ export class PacientesComponent implements OnInit, OnDestroy {
           });
       }
     });
+  }
+
+  /**
+   * Menú único «Pacientes» (2026-10-26): si el rol tiene directorio, «Volver a Pacientes»
+   * regresa ahí; si no (peluquero), regresa a la búsqueda de esta misma pantalla.
+   */
+  puedeVerDirectorio = false;
+
+  private verificarAccesoDirectorio(): void {
+    this.authProfileService
+      .canAccessModule('pacientes-admin')
+      .then((ok) => (this.puedeVerDirectorio = ok))
+      .catch(() => (this.puedeVerDirectorio = false));
+  }
+
+  volverAPacientes(): void {
+    if (this.puedeVerDirectorio) {
+      this.router.navigate(['/admin/pacientes-admin']);
+      return;
+    }
+    this.limpiarSeleccion();
   }
 
   limpiarSeleccion() {

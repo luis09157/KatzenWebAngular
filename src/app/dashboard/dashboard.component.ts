@@ -37,7 +37,7 @@ import { abrirAltaRapidaDialog } from '../alta-rapida/alta-rapida-dialog.compone
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from '../citas/cita-atender.util';
 import { CitaDialogComponent } from '../citas/cita-dialog.component';
 import { AuthProfileService } from '../core/services/auth-profile.service';
-import { staffRoleSeesOwnerDashboard } from '../core/config/staff-role.config';
+import { staffRoleCanAccessModule, staffRoleSeesOwnerDashboard } from '../core/config/staff-role.config';
 import { RecordatoriosService } from '../recordatorios/recordatorios.service';
 import { InventarioService } from '../inventario/inventario.service';
 import { esEstanciaPensionHoy, esRecordatorioHoyOVencido } from './hoy-operacion.util';
@@ -139,6 +139,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   citasHoy: CitaCalendarioLike[] = [];
   readonly tooltipAtenderSinPaciente = TOOLTIP_ATENDER_SIN_PACIENTE;
   verOwnerDash = false;
+  /** Botón rápido «Pacientes»: directorio si el rol lo tiene; si no, búsqueda de expediente. */
+  rutaPacientes = '/admin/paciente';
   verStockBajo = false;
   recordatoriosHoy: Array<{
     id: string;
@@ -207,6 +209,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loading = true;
     void this.authProfile.getEffectiveStaffRole().then((role) => {
       this.verOwnerDash = staffRoleSeesOwnerDashboard(role);
+      this.rutaPacientes = staffRoleCanAccessModule(role, 'pacientes-admin')
+        ? '/admin/pacientes-admin'
+        : '/admin/paciente';
       this.verStockBajo = this.verOwnerDash;
       if (this.verOwnerDash) {
         this.cargarOwnerDashboard();
