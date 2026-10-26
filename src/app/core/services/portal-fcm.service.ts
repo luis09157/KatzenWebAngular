@@ -103,7 +103,10 @@ export class PortalFcmService {
         platform,
         updatedAt: new Date().toISOString(),
         activo: true,
+        /** 2026-10-26 — para el panel de avisos: qué celular/navegador es. */
+        dispositivo: this.etiquetaDispositivo(),
       });
+      this.ultimoToken = token;
 
       return { status: 'registered', detail: mensajeFcmHumano('registered') };
     } catch (error) {
@@ -113,6 +116,96 @@ export class PortalFcmService {
         detail: mensajeFcmHumano('error', { iosSafari, standalone }),
       };
     }
+  }
+
+  private ultimoToken: string | null = null;
+  private escuchandoPrimerPlano = false;
+
+  /**
+   * 2026-10-26 — se llama al entrar al sistema. Si el permiso ya está dado, registra o renueva
+   * el celular sin preguntar nada (Google cambia el código del celular cada cierto tiempo y el
+   * viejo deja de servir). Si no hay permiso, no hace nada: el permiso se pide con un botón.
+   */
+  async refrescarSiYaAutorizado(platform: FcmPlatform): Promise<PortalFcmStatus | 'sin_permiso'> {
+    if (this.currentPermission() !== 'granted') return 'sin_permiso';
+    const r = await this.registerToken(platform);
+    if (r.status === 'registered') this.escucharEnPrimerPlano();
+    return r.status;
+  }
+
+  /**
+   * 2026-10-26 — con el sistema abierto en pantalla el navegador no muestra el aviso solo;
+   * lo mostramos nosotros con el mismo service worker.
+   */
+  escucharEnPrimerPlano(): void {
+    if (this.escuchandoPrimerPlano || typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    try {
+      this.messaging = this.messaging ?? firebase.messaging();
+      this.messaging.onMessage((payload) => {
+        const title = payload?.notification?.title || payload?.data?.['title'] || 'KatzenVet';
+        const body = payload?.notification?.body || payload?.data?.['body'] || 'Tienes un nuevo aviso.';
+        void navigator.serviceWorker.getRegistration().then((reg) =>
+          reg?.showNotification(title, {
+            body,
+            icon: '/assets/icons/icon-192.png',
+            badge: '/assets/icons/icon-192.png',
+            data: payload?.data || {},
+          })
+        );
+      });
+      this.escuchandoPrimerPlano = true;
+    } catch (error) {
+      this.logger.error('No se pudo escuchar avisos en primer plano:', error);
+    }
+  }
+
+  /** 2026-10-26 — prueba local: confirma permiso + service worker en ESTE celular. */
+  async probarEnEsteDispositivo(): Promise<{ ok: boolean; detail: string }> {
+    const iosSafari = this.isIosSafari();
+    const standalone = this.isStandalone();
+    if (this.currentPermission() !== 'granted') {
+      return { ok: false, detail: mensajeFcmHumano('denied', { iosSafari, standalone }) };
+    }
+    try {
+      const reg = (await navigator.serviceWorker.getRegistration()) || (await registerFirebaseMessagingSw());
+      await reg.showNotification('Prueba de avisos KatzenVet', {
+        body: 'Si ves esto, los avisos funcionan en este celular.',
+        icon: '/assets/icons/icon-192.png',
+        badge: '/assets/icons/icon-192.png',
+        data: { tipo: 'prueba' },
+      });
+      return { ok: true, detail: 'Se envió un aviso de prueba a este celular.' };
+    } catch (error) {
+      this.logger.error('Prueba de aviso falló:', error);
+      return { ok: false, detail: mensajeFcmHumano('error', { iosSafari, standalone }) };
+    }
+  }
+
+  /** «Android · Chrome», «iPhone · Safari (app)», «Mac · Chrome»… sin datos personales. */
+  etiquetaDispositivo(): string {
+    if (typeof window === 'undefined') return '';
+    const ua = window.navigator.userAgent;
+    const so = /Android/i.test(ua)
+      ? 'Android'
+      : /iPhone|iPod/i.test(ua)
+        ? 'iPhone'
+        : /iPad/i.test(ua) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)
+          ? 'iPad'
+          : /Mac/i.test(ua)
+            ? 'Mac'
+            : /Windows/i.test(ua)
+              ? 'Windows'
+              : 'Otro';
+    const nav = /Edg\//.test(ua)
+      ? 'Edge'
+      : /CriOS|Chrome/.test(ua)
+        ? 'Chrome'
+        : /FxiOS|Firefox/.test(ua)
+          ? 'Firefox'
+          : /Safari/.test(ua)
+            ? 'Safari'
+            : 'Navegador';
+    return `${so} · ${nav}${this.isStandalone() ? ' (app)' : ''}`;
   }
 
   private isStandalone(): boolean {

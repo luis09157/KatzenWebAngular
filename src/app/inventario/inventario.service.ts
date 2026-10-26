@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { Observable, map, catchError, throwError, firstValueFrom, of } from 'rxjs';
+import { Observable, map, catchError, throwError, firstValueFrom, of, combineLatest } from 'rxjs';
 import {
   Producto,
   ProductoFormData,
@@ -17,6 +17,7 @@ import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.confi
 import { stampRtdbIdAfterPush } from '../core/utils/rtdb-push.util';
 import { calcularNuevoStock, validarMotivoMovimiento } from './inventario-stock.util';
 
+import { alertaSigueVigente, requiereAlertaReorden, requiereAlertaStockBajo } from './inventario-alertas.util';
 @Injectable({
   providedIn: 'root',
 })
@@ -63,7 +64,7 @@ export class InventarioService {
   }
 
   getProductosBajoStock(): Observable<Producto[]> {
-    return this.getProductos().pipe(map((productos) => productos.filter((p) => p.stock_actual <= p.stock_minimo)));
+    return this.getProductos().pipe(map((productos) => productos.filter((p) => requiereAlertaStockBajo(p))));
   }
 
   getProductosPorCaducar(dias: number = 30): Observable<Producto[]> {
@@ -464,8 +465,8 @@ export class InventarioService {
 
       console.log('🔔 Verificando alertas para:', producto.nombre);
 
-      // Alerta de stock bajo
-      if (producto.stock_actual <= producto.stock_minimo) {
+      // Alerta de stock bajo (2026-10-26: solo mercancía con mínimo definido)
+      if (requiereAlertaStockBajo(producto)) {
         await this.crearAlerta({
           tipo: 'stock_bajo',
           prioridad: producto.stock_actual === 0 ? 'critica' : 'alta',
@@ -480,7 +481,7 @@ export class InventarioService {
       }
 
       // Alerta de punto de reorden
-      if (producto.stock_actual <= producto.punto_reorden && producto.stock_actual > producto.stock_minimo) {
+      if (requiereAlertaReorden(producto)) {
         await this.crearAlerta({
           tipo: 'punto_reorden',
           prioridad: 'media',
@@ -537,6 +538,20 @@ export class InventarioService {
       );
   }
 
+  /**
+   * 2026-10-26 — alertas que todavía cuentan: el producto sigue cumpliendo la regla
+   * (mercancía con mínimo definido; caducidad con stock). Las guardadas que ya no aplican
+   * se quedan en la base, pero no se muestran ni cuentan.
+   */
+  getAlertasVigentes(): Observable<Alerta[]> {
+    return combineLatest([this.getAlertas(), this.getProductos()]).pipe(
+      map(([alertas, productos]) => {
+        const porId = new Map(productos.filter((p) => !!p.id).map((p) => [p.id as string, p]));
+        return alertas.filter((a) => alertaSigueVigente(a, porId.get(a.producto_id)));
+      })
+    );
+  }
+
   resolverAlerta(alertaId: string): Promise<void> {
     return this.db.object(`${this.alertasPath}/${alertaId}`).update({
       estado: 'resuelta',
@@ -566,7 +581,7 @@ export class InventarioService {
         invertido_costo: invertido,
         valor_precio_venta: valorVenta,
         margen_potencial: valorVenta - invertido,
-        productos_bajo_stock: productos.filter((p) => p.activo !== false && p.stock_actual <= p.stock_minimo).length,
+        productos_bajo_stock: productos.filter((p) => requiereAlertaStockBajo(p)).length,
         productos_por_caducar: 0,
         productos_caducados: 0,
         productos_sin_movimiento_30dias: 0,
@@ -712,7 +727,7 @@ export class InventarioService {
     for (const producto of productos) {
       if (!producto.id) continue;
 
-      if (producto.stock_actual <= producto.stock_minimo) {
+      if (requiereAlertaStockBajo(producto)) {
         const prioridad =
           producto.stock_actual === 0
             ? 'critica'
@@ -732,7 +747,7 @@ export class InventarioService {
         });
       }
 
-      if (producto.stock_actual <= producto.punto_reorden && producto.stock_actual > producto.stock_minimo) {
+      if (requiereAlertaReorden(producto)) {
         await this.crearAlerta({
           tipo: 'punto_reorden',
           prioridad: 'media',
@@ -745,7 +760,7 @@ export class InventarioService {
         });
       }
 
-      if (producto.fecha_caducidad) {
+      if (producto.fecha_caducidad && producto.activo !== false && (Number(producto.stock_actual) || 0) > 0) {
         const fechaCaducidad = new Date(producto.fecha_caducidad);
         const hoy = new Date();
         const diasRestantes = Math.floor((fechaCaducidad.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));

@@ -5,7 +5,7 @@
 ## Errores encontrados
 
 1. **«Guardar corte» fallaba con Notas vacías** (lo vio Luis en un día sin ventas): se mandaba `notas: undefined` y Firebase rechaza el objeto («value argument contains undefined in property 'notas'»). Reproducido contra una base local de prueba.
-2. **Fechas tecleadas al revés:** el adaptador nativo usaba `Date.parse`; «02/10/2026» se guardaba como 10 de febrero (día ≤ 12). Afectaba a todos los campos de fecha.
+2. **Fechas tecleadas al revés:** el adaptador nativo usaba `Date.parse`; «02/10/2026» se leía como 10 de febrero (día ≤ 12). Nota (099): los campos son de solo calendario, así que en la práctica nadie podía teclear; queda como protección.
 3. **Cobros con la fecha del ticket/servicio**, no la del pago: cobrar hoy un ticket de ayer metía el dinero en ayer (fuera del corte de hoy).
 4. **«Marcar pagado» en Peluquería** no registraba el dinero en caja.
 5. **Un solo corte por día**: lo cobrado después del corte no entraba en ningún corte.

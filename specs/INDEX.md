@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **97** specs · `done`: 79 · `in_progress`: 15 · `superseded`: 3
+Total: **98** specs · `done`: 79 · `in_progress`: 16 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -105,3 +105,4 @@ Total: **97** specs · `done`: 79 · `in_progress`: 15 · `superseded`: 3
 | 096 | [simplificar-acciones](096-simplificar-acciones/spec.md) | Menos botones, una acción principal por pantalla | in_progress (F1–F4 hechas salvo lo marcado) |
 | 097 | [filtros-agenda](097-filtros-agenda/spec.md) | 097 — Filtros de agenda en Citas, Peluquería y Pensión | done (2026-10-26) · **Nivel:** L2 (UI + util, solo lectura) · **Pidió:** Luis |
 | 098 | [corte-caja-fechas](098-corte-caja-fechas/spec.md) | 098 — Corte de caja y fechas tecleadas | done (2026-10-26) · **Nivel:** L2/L3 (escrituras de caja aditivas) · **Pidió/autorizó:** Luis |
+| 099 | [etapa1-avisos-alertas](099-etapa1-avisos-alertas/spec.md) | 099 — Etapa 1: avisos push confiables y alertas de inventario sin ruido | in_progress (2026-10-26) · **Nivel:** L2 (sin cambios de datos; SW + UI) · **Pidió:** Luis («va hazlo y arranca») |

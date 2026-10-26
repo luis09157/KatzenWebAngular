@@ -26,6 +26,7 @@ import { DatepickerFieldComponent } from './datepicker/datepicker-field.componen
 import { AdminPageBannerComponent } from './admin/admin-page-banner.component';
 import { AdminStatCardComponent } from './admin/admin-stat-card.component';
 import { AgendaFiltrosComponent } from './admin/agenda-filtros.component';
+import { AvisosDialogComponent } from './admin/avisos-dialog.component';
 import { AdminEmptyStateComponent } from './admin/admin-empty-state.component';
 import { AdminKpiGridComponent } from './admin/admin-kpi-grid.component';
 import { AdminDataPanelComponent } from './admin/admin-data-panel.component';
@@ -51,6 +52,7 @@ import { RouterModule } from '@angular/router';
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AgendaFiltrosComponent,
+    AvisosDialogComponent,
     AdminEmptyStateComponent,
     AdminKpiGridComponent,
     AdminDataPanelComponent,
@@ -107,6 +109,7 @@ import { RouterModule } from '@angular/router';
     AdminPageBannerComponent,
     AdminStatCardComponent,
     AgendaFiltrosComponent,
+    AvisosDialogComponent,
     AdminEmptyStateComponent,
     AdminKpiGridComponent,
     AdminDataPanelComponent,

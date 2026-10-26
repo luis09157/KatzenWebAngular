@@ -9,6 +9,7 @@ import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { AuthSessionService } from '../../core/services/auth-session.service';
 import { PortalPwaService } from '../services/portal-pwa.service';
 
+import { PortalFcmService } from '../../core/services/portal-fcm.service';
 @Component({
   selector: 'app-portal-layout',
   templateUrl: './portal-layout.component.html',
@@ -32,12 +33,15 @@ export class PortalLayoutComponent implements OnInit, OnDestroy {
     private portalData: PortalDataService,
     private authProfileService: AuthProfileService,
     private authSession: AuthSessionService,
-    private portalPwa: PortalPwaService
+    private portalPwa: PortalPwaService,
+    private portalFcm: PortalFcmService
   ) {}
 
   ngOnInit(): void {
     this.portalPwa.init();
     void this.loadUserHeader();
+    // 2026-10-26: si el dueño ya dio permiso, renueva su celular sin preguntar (los avisos dejaban de llegar).
+    setTimeout(() => void this.portalFcm.refrescarSiYaAutorizado('portal_web').catch(() => undefined), 1500);
     this.updateFromUrl(this.router.url);
     this.router.events
       .pipe(

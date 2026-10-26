@@ -1,5 +1,5 @@
 /** Debe coincidir con `PORTAL_CACHE` en `src/firebase-messaging-sw.js`. */
-export const FCM_SW_CACHE_VERSION = 4;
+export const FCM_SW_CACHE_VERSION = 6;
 export const PORTAL_CACHE_NAME = `katzen-portal-v${FCM_SW_CACHE_VERSION}`;
 export const FCM_SW_URL = `/firebase-messaging-sw.js?v=${FCM_SW_CACHE_VERSION}`;
 

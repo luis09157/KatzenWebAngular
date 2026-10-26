@@ -401,7 +401,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private cargarStockBajo(): void {
     this.inventarioService
-      .getAlertas()
+      .getAlertasVigentes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (alertas) => {
