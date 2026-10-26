@@ -1,3 +1,4 @@
+import { normalizeFechaIso } from '../core/utils/periodo-filtro.util';
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Observable, firstValueFrom, map, catchError, throwError } from 'rxjs';
@@ -43,7 +44,11 @@ export class CajaService {
       .pipe(
         map((changes) =>
           changes
-            .map((c) => ({ id: c.payload.key!, ...(c.payload.val() as CajaMovimiento) }))
+            .map((c) => {
+              const m = { id: c.payload.key!, ...(c.payload.val() as CajaMovimiento) };
+              // Fecha siempre ISO aunque se haya guardado dd/mm/aaaa (2026-10-26).
+              return { ...m, fecha: normalizeFechaIso(m.fecha) || m.fecha };
+            })
             .filter((m) => m.activo !== false)
             .sort(
               (a, b) =>
@@ -71,7 +76,7 @@ export class CajaService {
       metodoPago: data.metodoPago,
       ivaDeclarado: !!data.ivaDeclarado,
       concepto: String(data.concepto || '').trim(),
-      fecha: data.fecha,
+      fecha: normalizeFechaIso(data.fecha) || this.hoyLocalIsoDate(),
       activo: true,
       createdAt: now,
       updatedAt: now,

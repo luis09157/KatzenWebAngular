@@ -86,6 +86,16 @@ export function normalizeFechaIso(fechaRaw: string | undefined | null): string |
   if (!fechaRaw) return null;
   const s = String(fechaRaw).trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // dd/mm/aaaa (algunos tickets y cobros se guardaron así; `new Date` lo lee al revés o inválido) — 2026-10-26.
+  const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s);
+  if (dmy) {
+    const dd = Number(dmy[1]);
+    const mm = Number(dmy[2]);
+    if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+      return `${dmy[3]}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+    return null;
+  }
   const d = new Date(s);
   if (!isNaN(d.getTime())) return formatLocalDate(d);
   return null;

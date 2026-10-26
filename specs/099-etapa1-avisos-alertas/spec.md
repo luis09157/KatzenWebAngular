@@ -28,6 +28,11 @@ Pendiente (requiere deploy de functions, no se hizo): avisos nuevos (cita 24 h a
 
 Revisado: todos los campos de fecha son `readonly` (solo calendario). Nadie pudo teclear fechas, así que no hay registros viejos que corregir. El `KatzenDateAdapter` queda como protección.
 
+## Fechas guardadas como dd/mm/aaaa (2026-10-26, revisión de datos solo lectura)
+
+Revisión en producción (solo lectura): 0 registros con día y mes volteados, pero **3 registros con la fecha en formato dd/mm/aaaa** en vez de ISO: 2 tickets (`Katzen/Visitas`: 18/10/2026 Raquel Nayely, abierto $450; 23/10/2026 Osvaldo, cerrado $300) y 1 cobro en caja (`Katzen/Caja/Movimientos`: 23/10/2026, efectivo $300). Por eso no contaban en los reportes de su día ni recibieron folio. No vienen de los campos de fecha (son de solo calendario); el origen probable es otra app/cliente que escribe la fecha formateada.
+Arreglo de código: `normalizeFechaIso` acepta dd/mm/aaaa; `VisitasService` y `CajaService` normalizan al leer y al escribir. Los 3 registros **no se tocaron** (corregirlos en RTDB requiere OK de Luis).
+
 ## Impacto en RTDB
 
 Aditivo: `Katzen/FcmTokens/{uid}/{key}.dispositivo`. Nada más.
