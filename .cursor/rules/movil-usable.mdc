@@ -30,6 +30,8 @@ El personal usa el sistema en el teléfono. «Smoke 375 OK» ya no vale como evi
 - No agregar `!important` nuevo para ganarle a otro `!important`: subir el selector o quitar el original. (Hoy hay ~2,400; cada uno nuevo hace más frágil el siguiente arreglo.)
 - Diálogos: no usar `var(--mat-dialog-container-max-width)` para el ancho (Material lo deja en 80vw).
 - `100vh` siempre con respaldo `100dvh`.
+- **Scroll en diálogos:** el cuerpo del diálogo es el único que hace scroll. Dentro de un cuerpo flex en columna, un bloque con `overflow: hidden` se encoge y corta su contenido (pasó con «Expediente clínico» en la ficha, 2026-10-26). `admin-dialog.scss` ya pone `flex-shrink: 0` a los hijos del cuerpo; no lo quites. Un bloque con scroll propio debe declarar `flex: 1 1 auto` + `min-height: 0` **y** tener un alto mínimo útil.
+- Probar diálogos también en **pantalla baja** (laptop ~1000×520): que se pueda llegar al final con scroll y que ninguna lista quede de unos cuantos píxeles.
 - Breakpoints: usar solo **600 / 900 / 1200** (`max-width`) en código nuevo.
 
 ## Interacción

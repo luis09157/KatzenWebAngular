@@ -56,6 +56,12 @@ Como **recepción en el teléfono**, quiero ver registros sin bajar, para atende
 
 ---
 
+### US-6 — Scroll en diálogos (HECHO 2026-10-26)
+
+Reporte de Luis: en la ficha del paciente no se podía bajar; «Expediente clínico» salía cortado. Causa: el cuerpo del diálogo es flex en columna y el bloque con `overflow: hidden` se encogía en pantallas bajas. Arreglo global en `admin-dialog.scss` (`flex-shrink: 0` a los hijos del cuerpo). Además, en «Nueva venta» la rejilla de productos quedaba de ~40px en laptop: con alto ≤760px ahora hace scroll todo el cuerpo (`visita-dialog.component.scss`).
+
+Revisado a 1000×520 con un detector en el navegador (bloques cortados dentro del diálogo): nuevos de Pacientes, Clientes, Citas, Peluquería, Pensión, Historiales, Vacunas, Recordatorios, Consentimientos, Productos, Proveedores, Servicios y Personal; detalle de Cliente; ficha de Paciente; Nueva venta. Solo la ficha y Nueva venta fallaban.
+
 ## Fuera de alcance
 
 - Rediseño de escritorio; branding; portal y landing (ya pasan a 375).
