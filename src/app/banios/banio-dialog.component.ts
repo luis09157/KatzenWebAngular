@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewEncapsulation, inject, Injector } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation, inject, Injector, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
@@ -44,6 +44,8 @@ import { Cliente } from '../core/models';
 import { DomicilioDatos } from '../domicilios/domicilio.models';
 import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
+import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
+import { MascotaDelDueno, datosBanioMascotaExtra, otrasMascotasDelDueno } from './banio-varias-mascotas.util';
 import {
   buscarOpcionTipoServicioBanio,
   opcionesTipoServicioAlta,
@@ -95,6 +97,37 @@ export class BanioDialogComponent implements OnInit {
   /** Baños anteriores de la mascota para sugerir el último precio (2026-10-26). */
   private baniosMascota: BanioConPrecio[] = [];
   precioAnterior: PrecioAnteriorBanio | null = null;
+
+  /** 2026-10-27 — mismo dueño trae varias mascotas: un baño por cada una. */
+  @ViewChild(ClientePacientePickerComponent) private picker?: ClientePacientePickerComponent;
+  mascotasExtra = new Set<string>();
+  private clienteDeExtras = '';
+
+  /** Las demás mascotas del dueño elegido (solo al crear). */
+  get otrasMascotas(): MascotaDelDueno[] {
+    if (this.esEdicion || !this.muestraPickerClientePaciente || !this.picker) return [];
+    const clienteId = String(this.banioForm.get('cliente_id')?.value || '');
+    const pacienteId = String(this.banioForm.get('paciente_id')?.value || '');
+    if (!clienteId || !pacienteId) return [];
+    return otrasMascotasDelDueno(this.picker.pacientesDelCliente as any[], pacienteId);
+  }
+
+  toggleMascotaExtra(id: string): void {
+    if (this.mascotasExtra.has(id)) this.mascotasExtra.delete(id);
+    else this.mascotasExtra.add(id);
+  }
+
+  get totalBaniosAGuardar(): number {
+    return 1 + this.extrasElegidas().length;
+  }
+
+  private extrasElegidas(): MascotaDelDueno[] {
+    return this.otrasMascotas.filter((m) => this.mascotasExtra.has(m.id));
+  }
+
+  trackMascota(_: number, m: MascotaDelDueno): string {
+    return m.id;
+  }
 
   get hayTarifas(): boolean {
     return hayTarifasPeluqueria(this.tarifasPelu);
@@ -649,6 +682,12 @@ export class BanioDialogComponent implements OnInit {
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    const clienteId = String(sel.cliente_id || '');
+    if (clienteId !== this.clienteDeExtras) {
+      this.mascotasExtra.clear();
+      this.clienteDeExtras = clienteId;
+    }
+    if (sel.paciente_id) this.mascotasExtra.delete(String(sel.paciente_id));
     this.clienteDomicilio = (sel.clienteData as Cliente) || null;
     this.especiePaciente = String(sel.pacienteData?.['especie'] || '');
     this.baniosMascota = [];
@@ -1003,7 +1042,14 @@ export class BanioDialogComponent implements OnInit {
           .then(async (nuevoId: string) => {
             const pid = String(datosLimpios.paciente_id || this.banioForm.get('paciente_id')?.value || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
-            this.dialogRef.close({ created: true, id: nuevoId });
+            const ids = [nuevoId];
+            if (!this.hidePatientInfo) {
+              for (const mascota of this.extrasElegidas()) {
+                const extra = datosBanioMascotaExtra(datosLimpios, mascota, normalizeAlergias(mascota.raw));
+                ids.push(await this.baniosService.crearBanio(extra as any));
+              }
+            }
+            this.dialogRef.close({ created: true, id: nuevoId, ids });
           })
           .catch((error) => {
             console.error('❌ Error al crear baño:', error);

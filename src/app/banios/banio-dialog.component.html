@@ -36,6 +36,26 @@
         <p class="entity-summary__meta" *ngIf="tamanoPaciente">Tamaño: {{ tamanoPaciente }}</p>
       </div>
 
+      <section class="form-section banio-extras" *ngIf="otrasMascotas.length" data-cy="banio-otras-mascotas">
+        <h3 class="form-section__title">¿Trae más mascotas?</h3>
+        <div class="banio-chips" role="group" aria-label="Otras mascotas del dueño">
+          <button
+            type="button"
+            class="banio-chip"
+            *ngFor="let m of otrasMascotas; trackBy: trackMascota"
+            [class.banio-chip--on]="mascotasExtra.has(m.id)"
+            [attr.aria-pressed]="mascotasExtra.has(m.id)"
+            (click)="toggleMascotaExtra(m.id)"
+          >
+            <mat-icon>{{ mascotasExtra.has(m.id) ? 'check' : 'add' }}</mat-icon>
+            {{ m.nombre }}
+          </button>
+        </div>
+        <p class="banio-tarifa-hint">
+          Tócalas para agregarlas. Se hace un baño por cada una, con el mismo servicio, fecha y hora. El precio de cada una se pone al terminar.
+        </p>
+      </section>
+
       <div class="banio-alerta" *ngIf="alergiasPaciente.length" role="status">
         <mat-icon>warning</mat-icon>
         <span><strong>Alergias:</strong> {{ alergiasPaciente }}</span>
@@ -87,7 +107,7 @@
       </section>
 
       <div class="form-grid form-grid--2">
-        <mat-form-field appearance="outline" class="full-span">
+        <mat-form-field appearance="outline">
           <mat-label>Fecha</mat-label>
           <input
             matInput
@@ -101,6 +121,15 @@
           <mat-datepicker #pickerFecha></mat-datepicker>
           <mat-hint>Hoy. Cámbiala si el baño es otro día.</mat-hint>
         </mat-form-field>
+
+        <app-timepicker-field
+          formControlName="hora_banio"
+          label="Hora"
+          [required]="true"
+          dialogTitle="Hora del baño"
+          data-cy="banio-hora"
+        >
+        </app-timepicker-field>
 
         <mat-form-field appearance="outline" class="full-span">
           <mat-label>Precio (opcional)</mat-label>
@@ -165,7 +194,7 @@
         >
           <mat-icon *ngIf="!loading">{{ esEdicion ? 'save' : 'add' }}</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          {{ esEdicion ? 'Guardar' : 'Guardar' }}
+          {{ !esEdicion && totalBaniosAGuardar > 1 ? 'Guardar ' + totalBaniosAGuardar + ' baños' : 'Guardar' }}
         </button>
       </div>
     </mat-dialog-actions>
