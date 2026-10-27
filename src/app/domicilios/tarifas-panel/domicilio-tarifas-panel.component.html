@@ -1,7 +1,7 @@
 <app-admin-data-panel
   accent="teal"
-  title="Domicilios"
-  description="Con estos datos se sugiere el precio de un domicilio: gasolina × cuántas veces se recorre la distancia + lo que quieres ganar. La veterinaria siempre puede cambiar el precio."
+  title="Cuánto cobrar por domicilio"
+  description="Fórmula: km × veces que se recorre ÷ km por litro × precio del litro = gasolina. Lo que se cobra = gasolina × tu múltiplo. La veterinaria siempre puede cambiar el precio."
   meta="Igual que la app"
   [showLegend]="false"
 >
@@ -43,9 +43,10 @@
           <mat-hint>Ida y vuelta = 2</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-          <mat-label>Ganancia</mat-label>
-          <input matInput type="number" min="0" step="1" inputmode="decimal" formControlName="margenPct" />
-          <span matTextSuffix>&nbsp;%</span>
+          <mat-label>Cobrar la gasolina ×</mat-label>
+          <span matTextPrefix>×&nbsp;</span>
+          <input matInput type="number" min="1" step="0.01" inputmode="decimal" formControlName="multiplo" />
+          <mat-hint>{{ hintMultiplo(i) }}</mat-hint>
         </mat-form-field>
         <mat-checkbox formControlName="activo">Se usa</mat-checkbox>
         <p class="dom-tarifas__ejemplo">{{ ejemplo(i) }}</p>

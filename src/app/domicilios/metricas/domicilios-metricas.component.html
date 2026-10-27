@@ -36,8 +36,8 @@
     <div class="dm-kpis">
       <div class="dm-kpi"><span>Domicilios</span><strong>{{ resumen.total }}</strong></div>
       <div class="dm-kpi"><span>Km (distancia a casa)</span><strong>{{ resumen.km | number: '1.0-1' }}</strong></div>
-      <div class="dm-kpi"><span>Gasolina</span><strong>{{ dinero(resumen.costo) }}</strong></div>
-      <div class="dm-kpi"><span>Cobrado</span><strong>{{ dinero(resumen.precio) }}</strong></div>
+      <div class="dm-kpi"><span>Se cobró (generó)</span><strong>{{ dinero(resumen.precio) }}</strong></div>
+      <div class="dm-kpi"><span>Gasolina (invertido)</span><strong>{{ dinero(resumen.costo) }}</strong></div>
       <div class="dm-kpi dm-kpi--ok"><span>Ganancia</span><strong>{{ dinero(resumen.ganancia) }}</strong></div>
     </div>
 

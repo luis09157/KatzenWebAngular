@@ -67,7 +67,8 @@ export class DomicilioTarifasPanelComponent implements OnInit {
             nombreApp: [x.nombreApp || ''],
             nombre: [x.nombre, [Validators.required, Validators.maxLength(60)]],
             recorridos: [x.recorridos, [Validators.required, Validators.min(1), Validators.max(20)]],
-            margenPct: [x.margenPct, [Validators.required, Validators.min(0), Validators.max(1000)]],
+            // Se muestra como múltiplo («cobrar la gasolina ×1.66»); se guarda como % (66).
+            multiplo: [this.aMultiplo(x.margenPct), [Validators.required, Validators.min(1), Validators.max(11)]],
             activo: [x.activo !== false],
           })
         )
@@ -81,13 +82,24 @@ export class DomicilioTarifasPanelComponent implements OnInit {
       precioLitro: Number(v.precioLitro) || 0,
       kmPorLitro: Number(v.kmPorLitro) || 0,
       redondeo: v.redondeo,
-      tipos: (v.tipos as TipoDomicilio[]).map((x) => ({
+      tipos: (v.tipos as Array<TipoDomicilio & { multiplo: number }>).map(({ multiplo, ...x }) => ({
         ...x,
         recorridos: Number(x.recorridos) || 1,
-        margenPct: Number(x.margenPct) || 0,
+        margenPct: this.aPct(multiplo),
         nombreApp: x.nombreApp || undefined,
       })),
     };
+  }
+
+  /** 66 % → 1.66 */
+  private aMultiplo(pct: number): number {
+    return Math.round((1 + (Number(pct) || 0) / 100) * 100) / 100;
+  }
+
+  /** 1.66 → 66 % */
+  private aPct(multiplo: unknown): number {
+    const m = Number(multiplo);
+    return Number.isFinite(m) && m >= 1 ? Math.round((m - 1) * 10000) / 100 : 0;
   }
 
   /** «3 km → gasolina $14.70 → cobras $25» para cada tipo. */
@@ -99,6 +111,13 @@ export class DomicilioTarifasPanelComponent implements OnInit {
     return `${this.kmEjemplo} km → gasolina $${c.costoGasolina.toFixed(2)} → sugiere $${c.precioSugerido.toFixed(2)}`;
   }
 
+  /** «1.66 = ganas 66 % sobre la gasolina». */
+  hintMultiplo(i: number): string {
+    const m = Number(this.tiposArray.at(i)?.get('multiplo')?.value);
+    if (!Number.isFinite(m) || m < 1) return 'Mínimo ×1 (sin ganancia)';
+    return m === 1 ? 'Sin ganancia: solo la gasolina' : `Ganas ${this.aPct(m)} % sobre la gasolina`;
+  }
+
   agregarTipo(): void {
     this.tiposArray.push(
       this.fb.group({
@@ -106,7 +125,7 @@ export class DomicilioTarifasPanelComponent implements OnInit {
         nombreApp: [''],
         nombre: ['', [Validators.required, Validators.maxLength(60)]],
         recorridos: [2, [Validators.required, Validators.min(1), Validators.max(20)]],
-        margenPct: [66, [Validators.required, Validators.min(0), Validators.max(1000)]],
+        multiplo: [1.66, [Validators.required, Validators.min(1), Validators.max(11)]],
         activo: [true],
       })
     );
