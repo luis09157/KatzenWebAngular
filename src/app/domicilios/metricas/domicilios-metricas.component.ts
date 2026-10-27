@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 import { TarifasDomicilioService } from '../tarifas-domicilio.service';
@@ -28,6 +28,8 @@ type Obj = Record<string, unknown>;
   styleUrls: ['./domicilios-metricas.component.scss'],
 })
 export class DomiciliosMetricasComponent implements OnInit {
+  /** Pantalla de Domicilios: abre en el mes actual («así rápido y pronto»). */
+  @Input() mesActual = false;
   cargando = true;
   error = '';
   private todas: FilaDomicilio[] = [];
@@ -90,7 +92,11 @@ export class DomiciliosMetricasComponent implements OnInit {
       const anios = new Set(this.todas.map((f) => f.fecha.slice(0, 4)));
       anios.add(this.anio);
       this.anios = [...anios].sort().reverse();
-      if (!this.todas.some((f) => f.fecha.startsWith(this.anio)) && this.todas.length) {
+      if (this.mesActual) {
+        const hoy = new Date();
+        this.anio = String(hoy.getFullYear());
+        this.mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      } else if (!this.todas.some((f) => f.fecha.startsWith(this.anio)) && this.todas.length) {
         this.anio = this.todas[0].fecha.slice(0, 4);
       }
       this.aplicar();

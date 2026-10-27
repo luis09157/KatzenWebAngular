@@ -497,12 +497,6 @@
       </mat-tab>
 
       <!-- Spec 107 — historial y métricas de domicilios (se carga al abrir la pestaña). -->
-      <mat-tab label="Domicilios">
-        <ng-template matTabContent>
-          <app-domicilios-metricas></app-domicilios-metricas>
-        </ng-template>
-      </mat-tab>
-
       <!-- TAB COSTOS -->
       <mat-tab label="Precios y costos">
         <div *ngIf="loadingPlantillas" class="loading-container tab-loading">
@@ -556,7 +550,16 @@
         </app-admin-data-panel>
 
         <!-- Spec 107 — tarifas de domicilio (gasolina, km/L, ganancia por tipo de viaje). -->
-        <app-domicilio-tarifas-panel *ngIf="!loadingPlantillas" [puedeEditar]="isAdmin"></app-domicilio-tarifas-panel>
+        <div class="sin-caja-nota" *ngIf="!loadingPlantillas">
+          <mat-icon aria-hidden="true">local_shipping</mat-icon>
+          <div>
+            <p>
+              El precio de la gasolina y cuánto ganar por domicilio ahora están en su propia pantalla, junto con los
+              números de los domicilios.
+            </p>
+            <a mat-stroked-button color="primary" routerLink="/admin/finanzas/domicilios">Abrir Domicilios</a>
+          </div>
+        </div>
 
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"

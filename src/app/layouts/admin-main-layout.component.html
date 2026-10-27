@@ -157,11 +157,23 @@
             mat-list-item
             routerLink="/admin/finanzas"
             routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
             class="admin-nav-subitem"
             (click)="closeSidenav()"
           >
             <mat-icon matListItemIcon>analytics</mat-icon>
             <span matListItemTitle title="Reportes, costos y corte de caja (no es el POS)">Finanzas y corte</span>
+          </a>
+          <a
+            *ngIf="canShow('finanzas')"
+            mat-list-item
+            routerLink="/admin/finanzas/domicilios"
+            routerLinkActive="active"
+            class="admin-nav-subitem"
+            (click)="closeSidenav()"
+          >
+            <mat-icon matListItemIcon>local_shipping</mat-icon>
+            <span matListItemTitle>Domicilios</span>
           </a>
           <a
             *ngIf="canShow('configuracion')"
