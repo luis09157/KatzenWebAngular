@@ -414,8 +414,12 @@
     /* 3 pestañas caben sin flechas. */
     ::ng-deep .finanzas-tabs .mat-mdc-tab {
       min-width: 0;
-      padding: 0 10px;
-      flex: 1 1 0;
+      padding: 0 8px;
+    }
+
+    ::ng-deep .finanzas-tabs .mdc-tab__text-label {
+      letter-spacing: 0;
+      font-size: 14px;
     }
   }
 
@@ -570,4 +574,12 @@ table.caja-table.caja-table--movil td {
   overflow-wrap: anywhere;
   padding-left: 8px;
   padding-right: 8px;
+}
+
+table.caja-table.caja-table--movil th.mat-column-acciones,
+table.caja-table.caja-table--movil td.mat-column-acciones {
+  width: 44px;
+  min-width: 44px;
+  padding: 0 2px;
+  font-size: 0; /* sin «ACCIONES» en el encabezado angosto */
 }
