@@ -59,3 +59,10 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Celular: un campo por renglón (mínimo 200 px por campo). */
+@media (max-width: 480px) {
+  .dom-tarifas__tipo {
+    grid-template-columns: 1fr;
+  }
+}

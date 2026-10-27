@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **106** specs · `done`: 85 · `in_progress`: 18 · `superseded`: 3
+Total: **106** specs · `done`: 86 · `in_progress`: 17 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -113,4 +113,4 @@ Total: **106** specs · `done`: 85 · `in_progress`: 18 · `superseded`: 3
 | 104 | [buscar-por-mascota](104-buscar-por-mascota/spec.md) | 104 — Buscar siempre por la mascota (el dueño se llena solo) | done (2026-10-26) · **Nivel:** L2 (componente compartido `app-cliente-paciente-picker`; sin cambios en RTDB) · **Pidió:** Luis («las veterinarias conocen al paciente pero no al dueño») |
 | 105 | [buscador-mascota-estandar](105-buscador-mascota-estandar/spec.md) | 105 — Buscador de mascota igual en todos los módulos | done (2026-10-26) · **Nivel:** L1/L2 (solo cómo se muestra; sin cambios en RTDB) · **Pidió:** Luis («que todo esté estandarizado») |
 | 107 | [domicilios](107-domicilios/spec.md) | 107 — Domicilios: cotizador, configuración e historial con métricas | done (2026-10-27) · **Nivel:** L3 (campos aditivos en Baño/Cita/Visita + `Katzen/Finanzas/TarifasDomicilio`) · **Pidió:** Luis · **OK de Luis: 2026-10-27 00:04 («si va»)** |
-| 108 | [domicilios-pantalla](108-domicilios-pantalla/spec.md) | 108 — Pantalla propia de Domicilios | in_progress (2026-10-27) · **Nivel:** L2 (UI; mismos datos de la spec 107) · **Pidió:** Luis («algo así como lo de peluquería… rápido y pronto, y ahí mismo poner el costo de la gasolina») |
+| 108 | [domicilios-pantalla](108-domicilios-pantalla/spec.md) | 108 — Pantalla propia de Domicilios | done (2026-10-27) · **Nivel:** L2 (UI; mismos datos de la spec 107) · **Pidió:** Luis («algo así como lo de peluquería… rápido y pronto, y ahí mismo poner el costo de la gasolina») |

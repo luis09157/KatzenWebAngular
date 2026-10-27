@@ -1,6 +1,6 @@
 # 108 — Pantalla propia de Domicilios
 
-**Estado:** in_progress (2026-10-27) · **Nivel:** L2 (UI; mismos datos de la spec 107) · **Pidió:** Luis («algo así como lo de peluquería… rápido y pronto, y ahí mismo poner el costo de la gasolina»)
+**Estado:** done (2026-10-27) · **Nivel:** L2 (UI; mismos datos de la spec 107) · **Pidió:** Luis («algo así como lo de peluquería… rápido y pronto, y ahí mismo poner el costo de la gasolina»)
 
 ## Cambios
 
