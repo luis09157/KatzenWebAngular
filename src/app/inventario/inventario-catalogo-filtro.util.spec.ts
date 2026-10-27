@@ -21,7 +21,7 @@ describe('inventario-catalogo-filtro.util', () => {
   });
 
   it('filtra por categoría sin importar mayúsculas', () => {
-    const x = p({ nombre: 'X', categoria: 'MEDICAMENTO' });
+    const x = p({ nombre: 'X', categoria: 'MEDICAMENTO' as Producto['categoria'] });
     expect(coincideCatalogo(x, { texto: '', categoria: 'medicamento', porPedir: false })).toBeTrue();
     expect(coincideCatalogo(x, { texto: '', categoria: 'vacuna', porPedir: false })).toBeFalse();
   });
