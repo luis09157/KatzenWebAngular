@@ -57,7 +57,8 @@
   gap: 8px;
   flex-wrap: wrap;
 
-  button {
-    min-height: 44px;
+  button.mat-mdc-button-base {
+    height: 44px;
+    min-width: 96px;
   }
 }

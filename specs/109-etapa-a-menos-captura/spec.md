@@ -1,6 +1,6 @@
 # 109 — Etapa A: menos captura doble
 
-**Estado:** in_progress (2026-10-27) · **Nivel:** L2 (UI; usa los mismos guardados de siempre) · **Pidió:** Luis (análisis UX → «empiezas con la Etapa A»)
+**Estado:** done (2026-10-27) · **Nivel:** L2 (UI; usa los mismos guardados de siempre) · **Pidió:** Luis (análisis UX → «empiezas con la Etapa A»)
 
 Origen: documento «KatzenVet — Análisis de experiencia y automatización» (2026-10-27).
 
