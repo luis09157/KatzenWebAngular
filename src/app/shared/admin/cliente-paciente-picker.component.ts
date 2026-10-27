@@ -29,8 +29,11 @@ import {
   filtrarPacientesPickerDual,
   getPacienteDisplayLabel,
   getPacientePickerOptionLabel,
+  getPacienteBusquedaExpedienteLabel,
+  getPacienteNombre,
   getPacientePickerRazaEdadLabel,
   isPacienteActivo,
+  ordenarPacientesPorNombre,
 } from '../../core/utils/paciente-search.util';
 import { getPacienteClienteId, pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
 import {
@@ -63,8 +66,10 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   /**
    * Spec 085 — buscar por mascota sin dueño previo; al elegir mascota se rellena el dueño.
    * Activa autocomplete de paciente si aún no estaba.
+   * 2026-10-26 (Luis): activo por defecto en todos los módulos y la mascota va primero,
+   * porque las veterinarias conocen al paciente, no siempre al dueño.
    */
-  @Input() busquedaDual = false;
+  @Input() busquedaDual = true;
   /** `false` = la mascota es opcional: se emite `selectionChange` al elegir solo el dueño. */
   @Input() pacienteRequerido = true;
   /** Enfoca el campo de teléfono/nombre al montar (POS táctil). */
@@ -79,6 +84,7 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   @Output() crearPaciente = new EventEmitter<Cliente>();
 
   @ViewChild('clienteInput') clienteInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('pacienteInput') pacienteInput?: ElementRef<HTMLInputElement>;
 
   readonly clienteSearch = new FormControl<string | Cliente>('');
   /** Objeto Paciente cuando hay selección (displayWith); string solo al tipear. */
@@ -109,7 +115,11 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
 
   ngAfterViewInit(): void {
     if (!this.autofocus || this.disabled) return;
-    setTimeout(() => this.clienteInput?.nativeElement?.focus(), 80);
+    // Con búsqueda por mascota, el cursor empieza en la mascota (va primero).
+    setTimeout(() => {
+      const el = this.busquedaDualEfectiva ? this.pacienteInput?.nativeElement : this.clienteInput?.nativeElement;
+      (el || this.clienteInput?.nativeElement)?.focus();
+    }, 80);
   }
 
   ngOnDestroy(): void {
@@ -163,9 +173,10 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   private filtrarPacientesSugeridos(value: string | Paciente | null): Paciente[] {
     const query = typeof value === 'string' ? value : '';
     if (this.busquedaDualEfectiva) {
-      return filtrarPacientesPickerDual(this.pacientes, this.clienteSeleccionado?.id, query, (p) =>
-        this.nombreDuenoDePaciente(p)
-      );
+      return ordenarPacientesPorNombre(
+        filtrarPacientesPickerDual(this.pacientes, this.clienteSeleccionado?.id, query, (p) => this.duenoParaBuscar(p)),
+        query
+      ).slice(0, 50);
     }
     return filtrarPacientesDelCliente(this.pacientes, this.clienteSeleccionado?.id, query);
   }
@@ -184,6 +195,29 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     if (!id) return '';
     const cliente = this.clientes.find((c) => String(c.id) === id);
     return cliente ? getClienteNombreCompleto(cliente) : '';
+  }
+
+  /** Nombre y teléfono del dueño: se puede buscar la mascota por cualquiera de los dos. */
+  private duenoParaBuscar(paciente: Paciente): string {
+    const id = getPacienteClienteId(paciente);
+    if (!id) return '';
+    const cliente = this.clientes.find((c) => String(c.id) === id);
+    if (!cliente) return '';
+    return `${getClienteNombreCompleto(cliente)} ${String(cliente.telefono || '')}`.trim();
+  }
+
+  /** Opción como en el buscador de Pacientes: nombre en negritas… */
+  nombreOpcionPaciente(paciente: Paciente): string {
+    return getPacienteNombre(paciente) || 'Sin nombre';
+  }
+
+  /** …y «— especie · raza · edad · dueño» (peluquería sin dueño, como ya estaba). */
+  detalleOpcionPaciente(paciente: Paciente): string {
+    const dueno =
+      this.etiquetaMascota === 'raza-edad' || this.clienteSeleccionado ? '' : this.nombreDuenoDePaciente(paciente);
+    const full = getPacienteBusquedaExpedienteLabel(paciente, dueno);
+    const nombre = this.nombreOpcionPaciente(paciente);
+    return full.startsWith(`${nombre} `) ? full.slice(nombre.length).trim() : full;
   }
 
   labelOpcionPaciente(paciente: Paciente): string {

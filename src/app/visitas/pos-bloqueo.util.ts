@@ -65,7 +65,7 @@ export function subtituloPos(ctx: PosSubtituloCtx): string {
   }
   if (ctx.modoMostrador) return 'Venta rápida · sin cliente (opcional)';
   if (cliente) return paciente ? `${cliente} · ${paciente}` : cliente;
-  return 'Elige al dueño o sigue sin cliente';
+  return 'Busca la mascota o sigue sin cliente';
 }
 
 export function chipClienteLabel(ctx: PosChipClienteCtx): string {
@@ -96,7 +96,7 @@ export function accionBloqueoHint(ctx: PosBloqueoCtx): string {
   if (ctx.soloLectura) return '';
   if (ctx.mensajeRequiereCliente) return ctx.mensajeRequiereCliente;
   if (!ctx.modoMostrador && !ctx.tieneClienteId) {
-    return 'Elige al dueño, o sigue sin cliente para vender solo productos.';
+    return 'Busca la mascota, o sigue sin cliente para vender solo productos.';
   }
   if (ctx.formInvalid && !ctx.modoMostrador) {
     return 'Completa la fecha y el dueño para continuar.';
@@ -116,7 +116,7 @@ export function accionBloqueoHint(ctx: PosBloqueoCtx): string {
 export function guardarBloqueoHint(ctx: PosBloqueoCtx): string {
   if (ctx.soloLectura) return 'Ticket cerrado o cancelado';
   if (!ctx.modoMostrador && !ctx.tieneClienteId) {
-    return 'Elige al dueño o sigue sin cliente';
+    return 'Busca la mascota o sigue sin cliente';
   }
   if (!ctx.modoMostrador && ctx.formInvalid) return 'Completa los datos requeridos';
   if (!ctx.tieneFecha) return 'Indica la fecha';
@@ -126,7 +126,7 @@ export function guardarBloqueoHint(ctx: PosBloqueoCtx): string {
 export function cobrarBloqueoHint(ctx: PosBloqueoCtx): string {
   if (ctx.soloLectura) return 'Ticket cerrado o cancelado';
   if (!ctx.modoMostrador && !ctx.tieneClienteId) {
-    return 'Elige al dueño o sigue sin cliente';
+    return 'Busca la mascota o sigue sin cliente';
   }
   if (!ctx.modoMostrador && ctx.formInvalid) return 'Completa los datos requeridos';
   if (!ctx.lineasCount) return 'Agrega líneas al ticket';

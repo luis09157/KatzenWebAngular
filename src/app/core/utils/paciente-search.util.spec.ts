@@ -9,6 +9,7 @@ import {
   getPacienteNombre,
   getPacientePickerOptionLabel,
   getPacientePickerRazaEdadLabel,
+  ordenarPacientesPorNombre,
 } from './paciente-search.util';
 import { getClienteNombreCompleto } from './cliente-search.util';
 import { hydrateCliente } from './cliente-hydrate.util';
@@ -98,5 +99,16 @@ describe('paciente-search.util picker dual (spec 085)', () => {
     expect(displayPacienteAutocompleteValue(oreon)).toBe(getPacienteDisplayLabel(oreon));
     expect(displayPacienteAutocompleteValue('Firulais — Perro')).toBe('Firulais — Perro');
     expect(displayPacienteAutocompleteValue(null)).toBe('');
+  });
+
+  it('ordena primero por nombre de la mascota (no por raza o dueño)', () => {
+    const lista = [
+      { id: '1', nombre: 'Tommy', raza: 'Jack Russell' },
+      { id: '2', nombre: 'Jack' },
+      { id: '3', nombre: 'Blackjack' },
+      { id: '4', nombre: 'Jackie' },
+    ] as never[];
+    expect(ordenarPacientesPorNombre(lista, 'jack').map((p: { id: string }) => p.id)).toEqual(['2', '4', '3', '1']);
+    expect(ordenarPacientesPorNombre(lista, '').length).toBe(4);
   });
 });

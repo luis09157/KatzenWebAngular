@@ -19,16 +19,16 @@ export function mensajeRequiereClientePara(riel: PosRiel, ctx: MensajeClienteCtx
   if (riel === 'peluqueria') {
     return faltaMascota
       ? `Elige o agrega la mascota de ${dueno} para registrar el baño.`
-      : 'Para registrar un baño necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
+      : 'Para registrar un baño necesito saber de qué mascota es. Busca la mascota (el dueño se llena solo) o créalos aquí.';
   }
   if (riel === 'pension') {
     return faltaMascota
       ? `Elige o agrega la mascota de ${dueno} para cobrar la pensión.`
-      : 'Para cobrar una pensión necesito saber de qué mascota es. Elige al dueño y la mascota, o créalos aquí.';
+      : 'Para cobrar una pensión necesito saber de qué mascota es. Busca la mascota (el dueño se llena solo) o créalos aquí.';
   }
   return faltaMascota
     ? `Elige o agrega la mascota de ${dueno} para registrar la consulta.`
-    : 'Para registrar una consulta necesito saber de qué paciente es. Elige al dueño y la mascota, o créalos aquí.';
+    : 'Para registrar una consulta necesito saber de qué paciente es. Busca la mascota (el dueño se llena solo) o créalos aquí.';
 }
 
 /** Hint de origen de una línea del ticket (solo lectura UI). */
