@@ -70,11 +70,13 @@ export class DomiciliosMetricasComponent implements OnInit {
         this.tarifas.getOnce(),
       ]);
       // Nombres claros para los tipos viejos de la app («Semana X2» → «Ida y vuelta»).
-      const nombreTipo = new Map(t.tipos.filter((x) => x.nombreApp).map((x) => [x.nombreApp!, x.nombre]));
-      const colonias = new Map(
+      const nombreTipo = new Map<string, string>(
+        t.tipos.filter((x) => x.nombreApp).map((x) => [x.nombreApp as string, x.nombre] as [string, string])
+      );
+      const colonias = new Map<string, string>(
         lista(clientes)
           .filter((c) => String(c['colonia'] || '').trim())
-          .map((c) => [String(c['id']), String(c['colonia']).trim()])
+          .map((c) => [String(c['id']), String(c['colonia']).trim()] as [string, string])
       );
       this.todas = completarColonias(
         [

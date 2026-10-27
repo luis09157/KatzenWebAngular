@@ -212,7 +212,9 @@ const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'O
 /** Los 12 meses del año (aunque estén en cero) para la gráfica. */
 export function porMes(filas: FilaDomicilio[], anio: string): GrupoDomicilios[] {
   const delAnio = filas.filter((f) => f.fecha.startsWith(`${anio}-`));
-  const grupos = new Map(agrupar(delAnio, (f) => f.fecha.slice(5, 7)).map((g) => [g.clave, g]));
+  const grupos = new Map<string, GrupoDomicilios>(
+    agrupar(delAnio, (f) => f.fecha.slice(5, 7)).map((g) => [g.clave, g] as [string, GrupoDomicilios])
+  );
   return MESES.map((m, i) => {
     const k = String(i + 1).padStart(2, '0');
     return grupos.get(k) || { clave: k, etiqueta: m, total: 0, km: 0, costo: 0, precio: 0, ganancia: 0 };
