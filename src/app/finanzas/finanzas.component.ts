@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -82,6 +82,40 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ingresosServicioColumns = ['label', 'count', 'total', 'pct'];
   displayedColumns = ['fecha', 'concepto', 'categoria', 'tipo', 'metodo', 'iva', 'monto', 'margen', 'acciones'];
+  /** Celular: concepto (con fecha, categoría y método) · monto · acciones. */
+  readonly columnasCajaMovil = ['concepto', 'monto', 'acciones'];
+  esAngosto = typeof window !== 'undefined' && window.innerWidth < 700;
+  /** Pestaña «Cobros y gastos»: qué mostrar (2026-10-26, fase 2). */
+  filtroTipoCaja: 'todos' | 'ingreso' | 'egreso' = 'todos';
+  readonly tiposCaja: ReadonlyArray<{ id: 'todos' | 'ingreso' | 'egreso'; label: string }> = [
+    { id: 'todos', label: 'Todo' },
+    { id: 'ingreso', label: 'Lo que entró' },
+    { id: 'egreso', label: 'Gastos' },
+  ];
+  private cajaPeriodo: CajaMovimiento[] = [];
+
+  get columnasCaja(): string[] {
+    return this.esAngosto ? this.columnasCajaMovil : this.displayedColumns;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.esAngosto = window.innerWidth < 700;
+  }
+
+  cuentaTipoCaja(tipo: 'todos' | 'ingreso' | 'egreso'): number {
+    return tipo === 'todos' ? this.cajaPeriodo.length : this.cajaPeriodo.filter((m) => m.tipo === tipo).length;
+  }
+
+  setFiltroTipoCaja(tipo: 'todos' | 'ingreso' | 'egreso'): void {
+    this.filtroTipoCaja = tipo;
+    this.dataSource.data = this.filtrarTipoCaja(this.cajaPeriodo);
+    this.dataSource.paginator?.firstPage();
+  }
+
+  private filtrarTipoCaja(rows: CajaMovimiento[]): CajaMovimiento[] {
+    return this.filtroTipoCaja === 'todos' ? rows : rows.filter((m) => m.tipo === this.filtroTipoCaja);
+  }
   dataSource = new MatTableDataSource<CajaMovimiento>([]);
   plantillasColumns = ['nombre', 'tipo', 'costo', 'precio', 'margen', 'acciones'];
   plantillasDataSource = new MatTableDataSource<PlantillaCosto>([]);
@@ -349,7 +383,8 @@ export class FinanzasComponent implements OnInit, AfterViewInit, OnDestroy {
   aplicarFiltroPeriodo(): void {
     const valor = this.periodoValor || this.cajaService.hoyLocalIsoDate();
     const filtrados = this.cajaService.filtrarPorPeriodo(this.todos, this.periodoModo, valor);
-    this.dataSource.data = filtrados;
+    this.cajaPeriodo = filtrados;
+    this.dataSource.data = this.filtrarTipoCaja(filtrados);
     this.kpis = this.cajaService.calcularKpisPeriodo(this.todos, this.periodoModo, valor);
     this.chartResumen = this.cajaService.chartResumen(this.kpis);
     this.chartEgresos = this.cajaService.desgloseEgresos(this.todos, this.periodoModo, valor);

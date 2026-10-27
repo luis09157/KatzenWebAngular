@@ -15,6 +15,7 @@ import {
   imprimirEtiquetaProducto
 } from './producto-identificacion.util';
 import { cantidadConUnidad } from '../inventario-textos.util';
+import { FiltroCatalogo, categoriasDelCatalogo, coincideCatalogo, esPorPedir } from '../inventario-catalogo-filtro.util';
 import { OrdenDialogComponent } from '../ordenes/orden-dialog.component';
 import { ProductoMovimientosDialogComponent } from './producto-movimientos-dialog.component';
 import Swal from 'sweetalert2';
@@ -62,6 +63,47 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   get productosFiltrados(): Producto[] {
     if (!this.dataSource) return this.productos;
     return this.dataSource.filteredData;
+  }
+
+  /** Fase 2: búsqueda + categoría + «Por pedir» (sin cargar 529 tarjetas de golpe). */
+  filtro: FiltroCatalogo = { texto: '', categoria: '', porPedir: false };
+  categorias: Array<{ valor: string; etiqueta: string; total: number }> = [];
+  readonly pasoCuadricula = 24;
+  limiteCuadricula = this.pasoCuadricula;
+
+  get productosCuadricula(): Producto[] {
+    return this.productosFiltrados.slice(0, this.limiteCuadricula);
+  }
+
+  get quedanCuadricula(): number {
+    return Math.max(0, this.productosFiltrados.length - this.limiteCuadricula);
+  }
+
+  get totalPorPedir(): number {
+    return this.productos.filter((p) => esPorPedir(p)).length;
+  }
+
+  verMasCuadricula(): void {
+    this.limiteCuadricula += this.pasoCuadricula;
+  }
+
+  setCategoria(valor: string): void {
+    this.filtro = { ...this.filtro, categoria: this.filtro.categoria === valor ? '' : valor };
+    this.refiltrar();
+  }
+
+  togglePorPedir(): void {
+    this.filtro = { ...this.filtro, porPedir: !this.filtro.porPedir };
+    this.refiltrar();
+  }
+
+  private refiltrar(): void {
+    if (!this.dataSource) return;
+    this.dataSource.filterPredicate = (p: Producto) => coincideCatalogo(p, this.filtro);
+    // Cambia el texto del filtro para que la tabla vuelva a evaluar.
+    this.dataSource.filter = JSON.stringify(this.filtro);
+    this.limiteCuadricula = this.pasoCuadricula;
+    this.dataSource.paginator?.firstPage();
   }
 
   get kpiTotal(): number {
@@ -113,6 +155,8 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.filtroProveedorId = params.get('proveedorId') || '';
+      // Desde el inicio de Inventario: ?q=texto · ?porPedir=1
+      this.filtro = { ...this.filtro, texto: params.get('q') || this.filtro.texto, porPedir: params.get('porPedir') === '1' || this.filtro.porPedir };
       const productoId = params.get('productoId');
       this.cargarProductos(productoId);
     });
@@ -142,6 +186,8 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
         this.productos = filtrados;
         this.dataSource = new MatTableDataSource(filtrados);
         this.dataSource.sort = this.sort;
+        this.categorias = categoriasDelCatalogo(filtrados);
+        this.refiltrar();
         this.loading = false;
         setTimeout(() => {
           if (this.paginator) this.dataSource.paginator = this.paginator;
@@ -162,12 +208,8 @@ export class ProductosComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   aplicarFiltro(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+    this.filtro = { ...this.filtro, texto: (event.target as HTMLInputElement).value || '' };
+    this.refiltrar();
   }
 
   abrirDialogoNuevoProducto(): void {

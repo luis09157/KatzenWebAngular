@@ -262,3 +262,43 @@
     max-height: 112px;
   }
 }
+
+/* Fase 2 UX: filtros rápidos y cuadrícula por partes. */
+.catalogo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.catalogo-chip {
+  min-height: 40px;
+  border-radius: 10px;
+}
+
+.catalogo-chip--activo {
+  background: var(--katzen-verde-soft, #e0f7f8) !important;
+  border-color: var(--katzen-verde, #0a969b) !important;
+  color: var(--katzen-verde-fuerte, #065d60) !important;
+}
+
+.catalogo-chip--pedir mat-icon {
+  margin-right: 4px;
+}
+
+.catalogo-chip__n {
+  margin-left: 4px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.catalogo-conteo {
+  margin: 0 0 12px;
+}
+
+.catalogo-ver-mas {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}

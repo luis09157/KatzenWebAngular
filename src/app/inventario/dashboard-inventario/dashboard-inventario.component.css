@@ -158,3 +158,38 @@
     font-size: 1rem;
   }
 }
+
+/* Fase 2 UX: buscador y «Por pedir». */
+.inv-buscar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 16px;
+}
+
+.inv-buscar__campo {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inv-buscar__btn {
+  min-height: 48px;
+}
+
+.por-pedir {
+  margin-top: 12px;
+}
+
+.por-pedir__titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.por-pedir__todos {
+  margin-top: 8px;
+  min-height: 42px;
+}

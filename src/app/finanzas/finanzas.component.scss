@@ -405,6 +405,22 @@
       width: 100%;
       max-width: none;
     }
+
+    /* En columna, el «flex-basis: 280px» global se volvía 280 px de alto vacío. */
+    .finanzas-toolbar .admin-toolbar__actions {
+      flex: 0 0 auto;
+    }
+
+    /* 3 pestañas caben sin flechas. */
+    ::ng-deep .finanzas-tabs .mat-mdc-tab {
+      min-width: 0;
+      padding: 0 8px;
+    }
+
+    ::ng-deep .finanzas-tabs .mdc-tab__text-label {
+      letter-spacing: 0;
+      font-size: 14px;
+    }
   }
 
   @media (max-width: 720px) {
@@ -514,4 +530,56 @@
 
 .sin-caja-nota p + p {
   margin-top: 6px;
+}
+
+/* Fase 2: «Todo / Lo que entró / Gastos» arriba de la lista de caja. */
+.caja-tipo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  button {
+    min-height: 42px;
+    border-radius: 10px;
+  }
+
+  .periodo-activo {
+    background: var(--katzen-verde-soft, #e0f7f8);
+    border-color: var(--katzen-verde, #0a969b);
+    color: var(--katzen-verde-fuerte, #065d60);
+  }
+}
+
+.caja-tipo-chips__n {
+  margin-left: 4px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* Celular: 3 columnas sin scroll lateral. */
+table.caja-table.caja-table--movil {
+  min-width: 0 !important;
+  width: 100%;
+}
+
+table.caja-table.caja-table--movil .cell-sub {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+table.caja-table.caja-table--movil td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+:host-context(.admin-content) table.caja-table.caja-table--movil th.mat-column-acciones,
+:host-context(.admin-content) table.caja-table.caja-table--movil td.mat-column-acciones {
+  width: 44px;
+  min-width: 44px;
+  padding: 0 2px;
+  font-size: 0; /* sin «ACCIONES» en el encabezado angosto */
 }
