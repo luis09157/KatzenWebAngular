@@ -2002,3 +2002,20 @@ app-visita-dialog {
 body.admin-dialog-ignore-trailing-click .cdk-overlay-backdrop {
   pointer-events: none !important;
 }
+
+/* Spec 107 — resumen del domicilio dentro de Nuevo baño / Cita. */
+.dom-resumen {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--katzen-verde-soft, #e0f7f8);
+  color: var(--katzen-verde-fuerte, #065d60);
+
+  .dom-resumen__texto {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}

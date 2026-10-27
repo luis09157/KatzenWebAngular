@@ -1,3 +1,4 @@
+import { ClientesService } from '../clientes/clientes.service';
 import { Component, forwardRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
@@ -83,6 +84,7 @@ describe('BanioDialogComponent alta simple (spec 085)', () => {
         { provide: PlantillaCostoService, useValue: { getPlantillas: () => of([]) } },
         { provide: PacientesService, useValue: {} },
         { provide: TarifasPeluqueriaService, useValue: { getOnce: () => Promise.resolve(tarifasPeluqueriaVacias()) } },
+        { provide: ClientesService, useValue: { getCliente: () => of(null) } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();

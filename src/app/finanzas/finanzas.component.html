@@ -496,6 +496,13 @@
         </app-admin-data-panel>
       </mat-tab>
 
+      <!-- Spec 107 — historial y métricas de domicilios (se carga al abrir la pestaña). -->
+      <mat-tab label="Domicilios">
+        <ng-template matTabContent>
+          <app-domicilios-metricas></app-domicilios-metricas>
+        </ng-template>
+      </mat-tab>
+
       <!-- TAB COSTOS -->
       <mat-tab label="Precios y costos">
         <div *ngIf="loadingPlantillas" class="loading-container tab-loading">
@@ -547,6 +554,9 @@
             </button>
           </div>
         </app-admin-data-panel>
+
+        <!-- Spec 107 — tarifas de domicilio (gasolina, km/L, ganancia por tipo de viaje). -->
+        <app-domicilio-tarifas-panel *ngIf="!loadingPlantillas" [puedeEditar]="isAdmin"></app-domicilio-tarifas-panel>
 
         <app-admin-data-panel
           *ngIf="!loadingPlantillas"
@@ -708,8 +718,8 @@
     </mat-tab-group>
 
     <!-- En «Resumen» estos números ya están arriba; no se repiten. -->
-    <p class="section-eyebrow" *ngIf="selectedTab !== 0">Resumen del periodo</p>
-    <app-admin-kpi-grid *ngIf="selectedTab !== 0">
+    <p class="section-eyebrow" *ngIf="selectedTab === 1">Resumen del periodo</p>
+    <app-admin-kpi-grid *ngIf="selectedTab === 1">
       <app-admin-stat-card
         accent="green"
         [value]="formatMoney(kpis.neto)"

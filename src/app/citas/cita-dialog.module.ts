@@ -15,10 +15,13 @@ import { SharedModule } from '../shared/shared.module';
 import { CitaDialogComponent } from './cita-dialog.component';
 
 /** Diálogo de cita sin routing — usable desde expediente (spec 031). */
+import { MatCheckboxModule } from '@angular/material/checkbox';
+
 @NgModule({
   declarations: [CitaDialogComponent],
   imports: [
     CommonModule,
+    MatCheckboxModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,

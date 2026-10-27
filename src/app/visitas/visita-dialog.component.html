@@ -399,6 +399,17 @@
                   <span class="pos-card__meta" *ngIf="atajoConsultaPrecio != null">{{ copyPrecioInventario }}</span>
                 </button>
               </article>
+              <!-- Spec 107 — domicilio suelto -->
+              <article class="pos-card pos-card--svc">
+                <button type="button" class="pos-card__hit" (click)="agregarDomicilioEnTicket()" aria-label="Domicilio" data-cy="pos-domicilio">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                    <mat-icon>local_shipping</mat-icon>
+                  </div>
+                  <span class="pos-card__name">Domicilio</span>
+                  <span class="pos-card__price">Cotizar</span>
+                  <span class="pos-card__meta">Con los km de su ficha</span>
+                </button>
+              </article>
               <article
                 class="pos-card"
                 *ngFor="let p of medicamentosFiltrados"
@@ -584,6 +595,17 @@
                   }}</span>
                   <span class="pos-card__price" *ngIf="precioBanioDefault == null">Ajustar precio</span>
                   <span class="pos-card__meta">{{ copyBanioAjustable }}</span>
+                </button>
+              </article>
+              <!-- Spec 107 — domicilio suelto -->
+              <article class="pos-card pos-card--svc">
+                <button type="button" class="pos-card__hit" (click)="agregarDomicilioEnTicket()" aria-label="Domicilio" data-cy="pos-domicilio">
+                  <div class="pos-card__foto pos-card__foto--ph" aria-hidden="true">
+                    <mat-icon>local_shipping</mat-icon>
+                  </div>
+                  <span class="pos-card__name">Domicilio</span>
+                  <span class="pos-card__price">Cotizar</span>
+                  <span class="pos-card__meta">Con los km de su ficha</span>
                 </button>
               </article>
               <article

@@ -11,6 +11,8 @@ export type CajaCategoria =
   | 'consulta'
   | 'vacuna'
   | 'pension'
+  /** Spec 107 — domicilios cobrados solos en el ticket. */
+  | 'domicilio'
   | 'publicidad'
   | 'proveedores'
   | 'gasolina'
@@ -25,6 +27,7 @@ export const CAJA_CATEGORIA_LABELS: Record<CajaCategoria, string> = {
   consulta: 'Consulta',
   vacuna: 'Vacuna',
   pension: 'Pensión / alojamiento',
+  domicilio: 'Domicilio',
   publicidad: 'Publicidad',
   proveedores: 'Proveedores',
   gasolina: 'Gasolina',
@@ -41,6 +44,7 @@ export const CAJA_CATEGORIAS_INGRESO: CajaCategoria[] = [
   'consulta',
   'vacuna',
   'pension',
+  'domicilio',
   'otro',
 ];
 

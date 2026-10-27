@@ -17,6 +17,9 @@ import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { Cliente, Paciente } from '../core/models';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { ClientesService } from '../clientes/clientes.service';
+import { domicilioYaEnLineas, lineaDomicilio } from '../domicilios/domicilio-linea.util';
+import type { DomicilioDialogData } from '../domicilios/dialog/domicilio-dialog.component';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { ClienteDialogComponent } from '../clientes/cliente-dialog.component';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
@@ -891,6 +894,27 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         cantidad: 1,
       },
     ];
+  }
+
+  /** Spec 107 — cotizar y agregar un domicilio suelto al ticket (necesita dueño). */
+  async agregarDomicilioEnTicket(): Promise<void> {
+    if (this.soloLectura) return;
+    const clienteId = String(this.form.get('cliente_id')?.value || '').trim();
+    if (!clienteId || this.modoMostrador || esClienteMostrador(clienteId)) {
+      this.pedirClientePara(this.posTab);
+      return;
+    }
+    let cliente: Cliente | null = null;
+    try {
+      cliente = await firstValueFrom(this.clientesService.getCliente(clienteId).pipe(take(1)));
+    } catch {
+      cliente = null;
+    }
+    const paciente = String(this.form.get('paciente')?.value || '').trim();
+    const data: DomicilioDialogData = { cliente, paciente };
+    const dom = await abrirDomicilioDialog(this.dialog, data);
+    if (!dom) return;
+    this.lineas = [...this.lineas, lineaDomicilio(nuevaLineaId(), dom, { paciente })];
   }
 
   elegirClienteClinica(): void {
@@ -2065,6 +2089,11 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
         }),
       },
     ];
+    // Spec 107 — baño a domicilio: su línea «Domicilio» aparte (una vez).
+    const origenDom = { tipo: 'banio' as const, id: p.id };
+    if (p.domicilio && !domicilioYaEnLineas(this.lineas, origenDom)) {
+      this.lineas = [...this.lineas, lineaDomicilio(nuevaLineaId(), p.domicilio, { paciente: p.paciente, origen: origenDom })];
+    }
     this.pendientesBanio = this.pendientesBanio.filter((x) => x.id !== p.id);
     const nota = String(p.observaciones || '').trim();
     if (nota) {

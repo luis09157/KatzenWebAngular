@@ -22,6 +22,7 @@ import { PosSheetScannerComponent } from './pos-sheet-scanner.component';
 import { PosSheetCarritoComponent } from './pos-sheet-carrito.component';
 
 /** Diálogos de visitas — usable desde clientes, citas, baños, expediente. */
+
 @NgModule({
   declarations: [
     VisitaDialogComponent,

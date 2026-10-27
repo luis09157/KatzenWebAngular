@@ -121,6 +121,26 @@
           <mat-checkbox formControlName="pagado" color="primary">Ya lo pagaron</mat-checkbox>
         </div>
 
+        <!-- Spec 107 — domicilio: se cobra aparte como línea «Domicilio» en el ticket. -->
+        <div class="form-section__checkbox full-span">
+          <mat-checkbox
+            color="primary"
+            [checked]="esDomicilio"
+            (change)="onDomicilioToggle($event.checked)"
+            data-cy="banio-es-domicilio"
+          >
+            Es a domicilio (lo recogemos o lo llevamos)
+          </mat-checkbox>
+        </div>
+        <div class="dom-resumen full-span" *ngIf="esDomicilio && domicilio">
+          <mat-icon aria-hidden="true">home</mat-icon>
+          <span class="dom-resumen__texto">
+            <strong>Domicilio ${{ domicilio.precio | number: '1.0-2' }}</strong>
+            · {{ domicilio.tipoNombre }} · {{ domicilio.km }} km
+          </span>
+          <button mat-button type="button" color="primary" (click)="abrirCotizadorDomicilio()">Cambiar</button>
+        </div>
+
         <mat-form-field appearance="outline" class="full-span">
           <mat-label>Nota (opcional)</mat-label>
           <textarea

@@ -1,11 +1,14 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation, inject, Injector } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
 import { PacientesService } from '../pacientes/pacientes.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, take, takeUntil } from 'rxjs/operators';
+import { Cliente } from '../core/models';
+import { DomicilioDatos } from '../domicilios/domicilio.models';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { LoggerService } from '../core/logger.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
@@ -74,6 +77,54 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       return 'Indica fecha, hora y veterinario para la cita.';
     }
     return '';
+  }
+
+  /** Spec 107 — cita a domicilio (se cobra aparte como línea «Domicilio»). */
+  esDomicilio = false;
+  domicilio: DomicilioDatos | null = null;
+  clienteDomicilio: Cliente | null = null;
+
+  private async cargarClienteDomicilio(clienteId: string): Promise<void> {
+    const id = String(clienteId || '').trim();
+    if (!id) {
+      this.clienteDomicilio = null;
+      return;
+    }
+    try {
+      this.clienteDomicilio = await firstValueFrom(this.clientesService.getCliente(id).pipe(take(1)));
+    } catch {
+      this.clienteDomicilio = null;
+    }
+  }
+
+  private readonly injector = inject(Injector);
+
+  /**
+   * Spec 107 — el cotizador se abre en su propia ventana y se carga al momento
+   * (así no pesa en la carga inicial de la app).
+   */
+  async onDomicilioToggle(on: boolean): Promise<void> {
+    if (!on) {
+      this.esDomicilio = false;
+      this.domicilio = null;
+      return;
+    }
+    this.esDomicilio = true;
+    await this.abrirCotizadorDomicilio();
+    if (!this.domicilio) this.esDomicilio = false;
+  }
+
+  async abrirCotizadorDomicilio(): Promise<void> {
+    if (!this.clienteDomicilio) {
+      await this.cargarClienteDomicilio(String(this.citaForm.get('cliente_id')?.value || ''));
+    }
+    const dom = await abrirDomicilioDialog(this.injector.get(MatDialog), {
+      cliente: this.clienteDomicilio,
+      paciente: String(this.citaForm.get('paciente')?.value || ''),
+      valor: this.domicilio,
+      accion: 'Usar este domicilio',
+    });
+    if (dom) this.domicilio = dom;
   }
 
   constructor(
@@ -236,6 +287,18 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     if (this.data.cita) {
       this.establecerValoresEdicion();
     }
+
+    // Spec 107 — domicilio guardado + datos del cliente (km, dirección).
+    const dom = this.data?.cita?.domicilio;
+    if (dom && typeof dom === 'object') {
+      this.esDomicilio = true;
+      this.domicilio = dom as DomicilioDatos;
+    }
+    void this.cargarClienteDomicilio(String(this.citaForm.get('cliente_id')?.value || ''));
+    this.citaForm
+      .get('cliente_id')!
+      .valueChanges.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((id) => void this.cargarClienteDomicilio(String(id || '')));
   }
 
   ngOnDestroy(): void {
@@ -291,7 +354,16 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.esDomicilio && !this.domicilio) {
+      return;
+    }
+
     const formValue = { ...this.citaForm.value };
+    if (this.esDomicilio && this.domicilio) {
+      formValue.domicilio = this.domicilio;
+    } else {
+      delete formValue.domicilio;
+    }
 
     if (formValue.fecha && formValue.hora) {
       const fecha = new Date(formValue.fecha);
@@ -359,6 +431,7 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       !!this.citaForm.get('fecha')?.value &&
       !!this.citaForm.get('hora')?.value &&
       !!this.citaForm.get('motivo')?.value &&
+      (!this.esDomicilio || !!this.domicilio) &&
       (!!this.citaForm.get('veterinario_id')?.value || !!this.citaForm.get('veterinario')?.value) &&
       Number(this.citaForm.get('duracion_minutos')?.value) >= CITA_DURACION_MINIMA_MIN
     );

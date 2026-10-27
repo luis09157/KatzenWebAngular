@@ -20,9 +20,12 @@ import { FinanzasComponent } from './finanzas.component';
 import { CajaDialogModule } from './caja-dialog.module';
 import { PlantillaCostoDialogComponent } from './plantilla-costo-dialog.component';
 
+import { DomiciliosAdminModule } from '../domicilios/domicilios-admin.module';
+
 @NgModule({
   declarations: [FinanzasComponent, PlantillaCostoDialogComponent],
   imports: [
+    DomiciliosAdminModule,
     CommonModule,
     ReactiveFormsModule,
     FinanzasRoutingModule,

@@ -1,8 +1,8 @@
-import { Component, OnInit, Inject, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation, inject, Injector } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { Banio } from '../shared/banio.model';
@@ -39,6 +39,10 @@ import { normalizeAlergias } from '../shared/alergias/alergias.util';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { ClientesService } from '../clientes/clientes.service';
+import { Cliente } from '../core/models';
+import { DomicilioDatos } from '../domicilios/domicilio.models';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
 import {
   buscarOpcionTipoServicioBanio,
@@ -166,6 +170,51 @@ export class BanioDialogComponent implements OnInit {
     { value: 'mascarilla_hidratante', label: 'Mascarilla Hidratante', precio: 90 },
   ];
 
+  /** Spec 107 — baño a domicilio (se cobra aparte como línea «Domicilio»). */
+  esDomicilio = false;
+  domicilio: DomicilioDatos | null = null;
+  clienteDomicilio: Cliente | null = null;
+
+  async cargarClienteDomicilio(clienteId: string): Promise<void> {
+    const id = String(clienteId || '').trim();
+    if (!id) return;
+    try {
+      this.clienteDomicilio = await firstValueFrom(this.clientesService.getCliente(id).pipe(take(1)));
+    } catch {
+      this.clienteDomicilio = null;
+    }
+  }
+
+  private readonly injector = inject(Injector);
+
+  /**
+   * Spec 107 — el cotizador se abre en su propia ventana y se carga al momento
+   * (así no pesa en la carga inicial de la app).
+   */
+  async onDomicilioToggle(on: boolean): Promise<void> {
+    if (!on) {
+      this.esDomicilio = false;
+      this.domicilio = null;
+      return;
+    }
+    this.esDomicilio = true;
+    await this.abrirCotizadorDomicilio();
+    if (!this.domicilio) this.esDomicilio = false;
+  }
+
+  async abrirCotizadorDomicilio(): Promise<void> {
+    if (!this.clienteDomicilio) {
+      await this.cargarClienteDomicilio(String(this.banioForm.get('cliente_id')?.value || ''));
+    }
+    const dom = await abrirDomicilioDialog(this.injector.get(MatDialog), {
+      cliente: this.clienteDomicilio,
+      paciente: String(this.banioForm.get('paciente')?.value || ''),
+      valor: this.domicilio,
+      accion: 'Usar este domicilio',
+    });
+    if (dom) this.domicilio = dom;
+  }
+
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<BanioDialogComponent>,
@@ -177,6 +226,7 @@ export class BanioDialogComponent implements OnInit {
     private plantillaCostoService: PlantillaCostoService,
     private pacientesService: PacientesService,
     private tarifasPeluqueriaService: TarifasPeluqueriaService,
+    private clientesService: ClientesService,
     dateAdapter: DateAdapter<Date>
   ) {
     dateAdapter.setLocale('es-MX');
@@ -251,6 +301,7 @@ export class BanioDialogComponent implements OnInit {
         });
         void this.cargarAlergiasDesdeMascota(pacienteId);
         void this.cargarHistorialPrecios(pacienteId);
+        void this.cargarClienteDomicilio(clienteId);
       } else {
         this.banioForm.patchValue({ created_by: 'system' });
       }
@@ -381,6 +432,11 @@ export class BanioDialogComponent implements OnInit {
         if (banio) {
           // Normalizar datos para cumplir validaciones requeridas
           const normalizado: any = { ...banio };
+          if (banio.domicilio && typeof banio.domicilio === 'object') {
+            this.esDomicilio = true;
+            this.domicilio = banio.domicilio as DomicilioDatos;
+          }
+          void this.cargarClienteDomicilio(String(banio.cliente_id || ''));
           if (!normalizado.created_by) normalizado.created_by = 'system';
           if (normalizado.precio_base === undefined || normalizado.precio_base === null) {
             normalizado.precio_base = 0;
@@ -593,6 +649,7 @@ export class BanioDialogComponent implements OnInit {
   }
 
   onClientePacienteSelected(sel: ClientePacienteSelection): void {
+    this.clienteDomicilio = (sel.clienteData as Cliente) || null;
     this.especiePaciente = String(sel.pacienteData?.['especie'] || '');
     this.baniosMascota = [];
     this.precioAnterior = null;
@@ -793,6 +850,11 @@ export class BanioDialogComponent implements OnInit {
       this.banioForm.patchValue({ precio_total: 0 }, { emitEvent: false });
     }
 
+    if (this.esDomicilio && !this.domicilio) {
+      Swal.fire('Falta el domicilio', 'Escribe los km a su casa para calcular el domicilio, o quita «Es a domicilio».', 'warning');
+      return;
+    }
+
     if (this.banioForm.valid) {
       this.loading = true;
 
@@ -853,6 +915,15 @@ export class BanioDialogComponent implements OnInit {
         delete datosLimpios.plantillaCostoId;
       }
 
+      // Spec 107 — domicilio aparte del precio del baño. En edición, null lo quita.
+      if (this.esDomicilio && this.domicilio) {
+        datosLimpios.domicilio = this.domicilio;
+      } else if (this.esEdicion) {
+        datosLimpios.domicilio = null;
+      } else {
+        delete datosLimpios.domicilio;
+      }
+
       // Remover campos undefined para evitar errores de Firebase
       Object.keys(datosLimpios).forEach((key) => {
         if (datosLimpios[key] === undefined) {
@@ -887,6 +958,7 @@ export class BanioDialogComponent implements OnInit {
           'tamano_perro',
           'costoEstimado',
           'plantillaCostoId',
+          'domicilio',
         ];
         const payload: any = {};
         permitidos.forEach((k) => {

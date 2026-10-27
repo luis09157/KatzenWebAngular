@@ -1,0 +1,69 @@
+<section class="dom-cot" aria-label="Domicilio">
+  <p class="dom-cot__dir" *ngIf="direccion || linkMaps">
+    <mat-icon aria-hidden="true">place</mat-icon>
+    <span>{{ direccion || 'Sin dirección en su ficha' }}</span>
+    <a *ngIf="linkMaps" [href]="linkMaps" target="_blank" rel="noopener">Ver en Maps</a>
+  </p>
+  <p class="dom-cot__dir dom-cot__dir--falta" *ngIf="!direccion && !linkMaps && cliente">
+    <mat-icon aria-hidden="true">info</mat-icon>
+    <span>Este cliente no tiene dirección capturada. Puedes agregarla en Clientes.</span>
+  </p>
+
+  <div class="dom-cot__grid">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Km de la clínica a su casa</mat-label>
+      <input matInput type="number" min="0" step="0.1" inputmode="decimal" [formControl]="km" />
+      <span matTextSuffix>&nbsp;km</span>
+      <mat-hint *ngIf="kmFicha && !kmDistintoDeFicha">De su ficha</mat-hint>
+      <mat-hint *ngIf="!kmFicha">No tiene km en su ficha: escríbelos</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Tipo de viaje</mat-label>
+      <mat-select [formControl]="tipoId">
+        <mat-option *ngFor="let t of tiposActivos" [value]="t.id">{{ t.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Precio del domicilio</mat-label>
+      <input
+        matInput
+        type="number"
+        min="0"
+        step="1"
+        inputmode="decimal"
+        [formControl]="precio"
+        (input)="onPrecioTecleado()"
+      />
+      <span matTextPrefix>$&nbsp;</span>
+      <mat-hint *ngIf="cotizacion && !precioManual">Sugerido</mat-hint>
+      <mat-hint *ngIf="precioManual">Precio puesto a mano</mat-hint>
+    </mat-form-field>
+  </div>
+
+  <div class="dom-cot__resumen" *ngIf="cotizacion as c" role="status">
+    <span>{{ c.kmRecorridos }} km recorridos</span>
+    <span>Gasolina ${{ c.costoGasolina | number: '1.2-2' }}</span>
+    <span>Sugerido <strong>${{ c.precioSugerido | number: '1.2-2' }}</strong></span>
+    <span [class.dom-cot__neg]="ganancia < 0">Ganancia ${{ ganancia | number: '1.2-2' }}</span>
+  </div>
+  <p class="dom-cot__falta" *ngIf="!cotizacion">Escribe los km para calcular el precio.</p>
+
+  <div class="dom-cot__acciones" *ngIf="!disabled">
+    <button mat-stroked-button type="button" *ngIf="precioManual && cotizacion" (click)="usarSugerido()">
+      <mat-icon>restart_alt</mat-icon>
+      Usar el sugerido
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      *ngIf="kmDistintoDeFicha"
+      [disabled]="guardandoKm"
+      (click)="guardarKmEnFicha()"
+    >
+      <mat-icon>save</mat-icon>
+      Guardar {{ km.value }} km en su ficha
+    </button>
+  </div>
+</section>
