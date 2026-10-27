@@ -405,6 +405,18 @@
       width: 100%;
       max-width: none;
     }
+
+    /* En columna, el «flex-basis: 280px» global se volvía 280 px de alto vacío. */
+    .finanzas-toolbar .admin-toolbar__actions {
+      flex: 0 0 auto;
+    }
+
+    /* 3 pestañas caben sin flechas. */
+    ::ng-deep .finanzas-tabs .mat-mdc-tab {
+      min-width: 0;
+      padding: 0 10px;
+      flex: 1 1 0;
+    }
   }
 
   @media (max-width: 720px) {
@@ -551,4 +563,11 @@ table.caja-table.caja-table--movil .cell-sub {
   display: block;
   font-size: 12px;
   color: #6b7280;
+}
+
+table.caja-table.caja-table--movil td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding-left: 8px;
+  padding-right: 8px;
 }
