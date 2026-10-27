@@ -10,6 +10,7 @@ import { BaniosService } from '../banios/banios.service';
 import { CitasService } from '../citas/citas.service';
 import { VisitasService } from '../visitas/visitas.service';
 import { PacientesService } from '../pacientes/pacientes.service';
+import { ClientesService } from '../clientes/clientes.service';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { hoyLocalIsoDate } from '../core/utils/periodo-filtro.util';
 import { PendienteCierre, TIPO_CIERRE_LABELS, pendientesDeDiasPasados } from './cierre-dia.util';
@@ -43,7 +44,8 @@ export class CierreDiaDialogComponent implements OnInit {
     private banios: BaniosService,
     private citas: CitasService,
     private visitas: VisitasService,
-    private pacientes: PacientesService
+    private pacientes: PacientesService,
+    private clientesService: ClientesService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -53,7 +55,7 @@ export class CierreDiaDialogComponent implements OnInit {
         firstValueFrom(this.citas.getCitas().pipe(take(1))),
         firstValueFrom(this.visitas.getVisitas().pipe(take(1))),
         firstValueFrom(this.pacientes.getPacientes().pipe(take(1))),
-        firstValueFrom(this.pacientes.getClientes().pipe(take(1))),
+        firstValueFrom(this.clientesService.getClientes().pipe(take(1))),
       ]);
       // Las citas guardan solo ids: se les pone nombre de mascota y dueño para mostrarlas.
       const nombreMascota = new Map((mascotas || []).map((m) => [String(m.id), String(m.nombre || '')] as [string, string]));
