@@ -19,6 +19,9 @@ import { LandingModule } from './landing/landing.module';
 import { PrivacidadModule } from './landing/privacidad/privacidad.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { PaginatorEs } from './core/paginator-es';
+
 @NgModule({
   declarations: [
     AppComponent
@@ -44,7 +47,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       multi: true,
       useFactory: () => () => connectRtdbEmulatorIfEnabled()
     },
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    // Paginador en español en todas las tablas (Etapa A, 2026-10-27).
+    { provide: MatPaginatorIntl, useClass: PaginatorEs },
   ],
   bootstrap: [AppComponent]
 })

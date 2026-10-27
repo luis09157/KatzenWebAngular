@@ -1,0 +1,63 @@
+.cierre {
+  padding: 8px 4px;
+}
+
+.cierre__vacio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 8px;
+  color: #065d60;
+}
+
+.cierre__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cierre__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cierre__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.cierre__tipo {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #065d60;
+}
+
+.cierre__tipo--ticket {
+  color: #b45309;
+}
+
+.cierre__detalle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.cierre__acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  button {
+    min-height: 44px;
+  }
+}

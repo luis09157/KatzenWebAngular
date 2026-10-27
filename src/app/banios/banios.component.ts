@@ -182,8 +182,18 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     if (estado === 'programado') {
       return { tipo: 'iniciar', label: 'Iniciar baño', icon: 'play_arrow' };
     }
-    if (estado === 'en_proceso' && !banio?.visitaId && !banio?.pagado && !banio?.cajaMovimientoId) {
-      return { tipo: 'listo', label: 'Listo para cobrar', icon: 'storefront' };
+    // Etapa A (2026-10-27): un toque termina el baño y abre Cobrar con el baño (y su domicilio) ya en el ticket.
+    if (
+      (estado === 'en_proceso' || estado === 'completado') &&
+      !banio?.visitaId &&
+      !banio?.pagado &&
+      !banio?.cajaMovimientoId
+    ) {
+      return {
+        tipo: 'listo',
+        label: estado === 'completado' ? 'Cobrar' : 'Terminar y cobrar',
+        icon: 'point_of_sale',
+      };
     }
     return { tipo: 'ver', label: 'Ver detalle', icon: 'visibility' };
   }
@@ -198,7 +208,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
         this.cambiarEstado(banio, 'en_proceso');
         return;
       case 'listo':
-        this.marcarListoParaCobrar(banio);
+        void this.terminarYCobrar(banio);
         return;
       default:
         this.verBanio(banio);
@@ -567,6 +577,32 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
           0
         );
       });
+  }
+
+  /**
+   * Etapa A (2026-10-27) — «Terminar y cobrar»: marca el baño como completado y lo pasa al
+   * ticket del día (con su línea de domicilio si tiene), abriendo Cobrar. Antes eran 2 pantallas.
+   */
+  async terminarYCobrar(banio: Banio): Promise<void> {
+    if (!banio?.id) return;
+    if (banio.visitaId || banio.pagado || banio.cajaMovimientoId) {
+      Swal.fire({ icon: 'info', title: 'Ya en cobro', text: 'Este baño ya está en un ticket o pagado. Revisa Cobrar.' });
+      return;
+    }
+    if (!(Number(banio.precio_total) > 0)) {
+      Swal.fire('Falta precio', 'Pon el precio antes de cobrar.', 'warning');
+      return;
+    }
+    if (banio.estado !== 'completado') {
+      try {
+        await this.baniosService.cambiarEstadoBanio(banio.id, 'completado');
+      } catch (error) {
+        this.logger.error('Error al terminar baño:', error);
+        Swal.fire('Error', this.errorMessages.getUserMessage(error, 'terminar baño'), 'error');
+        return;
+      }
+    }
+    await this.agregarAVisita({ ...banio, estado: 'completado' });
   }
 
   /** Spec 085 — marca completado para que entre a la cola de mostrador (sin cobrar aún). */
