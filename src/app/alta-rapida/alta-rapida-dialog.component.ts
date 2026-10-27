@@ -13,7 +13,10 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { Cliente, Paciente } from '../core/models';
 import { getClienteDisplayLabel, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
-import { filtrarPacientesDelCliente, getPacienteDisplayLabel } from '../core/utils/paciente-search.util';
+import {
+  filtrarPacientesDelCliente,
+  getPacientePickerRazaEdadLabel,
+} from '../core/utils/paciente-search.util';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { filtrarClientesTelefonoPrimero } from '../shared/admin/cliente-picker-search.util';
@@ -107,8 +110,9 @@ export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
     return getClienteNombreCompleto(c);
   }
 
+  /** Igual que en los buscadores: «Jack — Canino · Criollo · 3 años». */
   etiquetaMascota(p: Paciente): string {
-    return getPacienteDisplayLabel(p);
+    return getPacientePickerRazaEdadLabel(p);
   }
 
   elegirCliente(c: Cliente): void {
