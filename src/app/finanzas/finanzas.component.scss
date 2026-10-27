@@ -576,8 +576,8 @@ table.caja-table.caja-table--movil td {
   padding-right: 8px;
 }
 
-table.caja-table.caja-table--movil th.mat-column-acciones,
-table.caja-table.caja-table--movil td.mat-column-acciones {
+:host-context(.admin-content) table.caja-table.caja-table--movil th.mat-column-acciones,
+:host-context(.admin-content) table.caja-table.caja-table--movil td.mat-column-acciones {
   width: 44px;
   min-width: 44px;
   padding: 0 2px;
