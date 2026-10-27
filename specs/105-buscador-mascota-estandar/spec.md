@@ -1,6 +1,6 @@
 # 105 — Buscador de mascota igual en todos los módulos
 
-**Estado:** in_progress (2026-10-26) · **Nivel:** L1/L2 (solo cómo se muestra; sin cambios en RTDB) · **Pidió:** Luis («que todo esté estandarizado»)
+**Estado:** done (2026-10-26) · **Nivel:** L1/L2 (solo cómo se muestra; sin cambios en RTDB) · **Pidió:** Luis («que todo esté estandarizado»)
 
 ## Cambios
 
