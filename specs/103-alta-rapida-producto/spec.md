@@ -1,6 +1,6 @@
 # 103 — Alta rápida de producto (5 campos)
 
-**Estado:** in_progress (2026-10-26) · **Nivel:** L1/L2 (solo UI; mismo guardado que antes) · **Pidió:** Luis («sí, haz la fase 2»)
+**Estado:** done (2026-10-26) · **Nivel:** L1/L2 (solo UI; mismo guardado que antes) · **Pidió:** Luis («sí, haz la fase 2»)
 
 ## Cambios
 
