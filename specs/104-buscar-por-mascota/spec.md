@@ -1,6 +1,6 @@
 # 104 — Buscar siempre por la mascota (el dueño se llena solo)
 
-**Estado:** in_progress (2026-10-26) · **Nivel:** L2 (componente compartido `app-cliente-paciente-picker`; sin cambios en RTDB) · **Pidió:** Luis («las veterinarias conocen al paciente pero no al dueño»)
+**Estado:** done (2026-10-26) · **Nivel:** L2 (componente compartido `app-cliente-paciente-picker`; sin cambios en RTDB) · **Pidió:** Luis («las veterinarias conocen al paciente pero no al dueño»)
 
 ## Cambios
 
