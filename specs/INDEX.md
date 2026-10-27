@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **103** specs · `done`: 83 · `in_progress`: 17 · `superseded`: 3
+Total: **104** specs · `done`: 83 · `in_progress`: 18 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -111,3 +111,4 @@ Total: **103** specs · `done`: 83 · `in_progress`: 17 · `superseded`: 3
 | 102 | [ux-fase2-finanzas-inventario](102-ux-fase2-finanzas-inventario/spec.md) | 102 — Finanzas en 3 pestañas e Inventario con buscador y «Por pedir» (fase 2) | done (2026-10-26) · **Nivel:** L2 (solo UI/lectura; sin cambios en RTDB) · **Pidió:** Luis («haz el siguiente, continúa con lo pendiente») |
 | 103 | [alta-rapida-producto](103-alta-rapida-producto/spec.md) | 103 — Alta rápida de producto (5 campos) | done (2026-10-26) · **Nivel:** L1/L2 (solo UI; mismo guardado que antes) · **Pidió:** Luis («sí, haz la fase 2») |
 | 104 | [buscar-por-mascota](104-buscar-por-mascota/spec.md) | 104 — Buscar siempre por la mascota (el dueño se llena solo) | done (2026-10-26) · **Nivel:** L2 (componente compartido `app-cliente-paciente-picker`; sin cambios en RTDB) · **Pidió:** Luis («las veterinarias conocen al paciente pero no al dueño») |
+| 105 | [buscador-mascota-estandar](105-buscador-mascota-estandar/spec.md) | 105 — Buscador de mascota igual en todos los módulos | in_progress (2026-10-26) · **Nivel:** L1/L2 (solo cómo se muestra; sin cambios en RTDB) · **Pidió:** Luis («que todo esté estandarizado») |

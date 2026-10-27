@@ -111,4 +111,8 @@ describe('paciente-search.util picker dual (spec 085)', () => {
     expect(ordenarPacientesPorNombre(lista, 'jack').map((p: { id: string }) => p.id)).toEqual(['2', '4', '3', '1']);
     expect(ordenarPacientesPorNombre(lista, '').length).toBe(4);
   });
+
+  it('especie con mayúscula inicial al mostrar («CANINO» → «Canino»)', () => {
+    expect(getPacienteDisplayLabel({ nombre: 'Jack', especie: 'CANINO' } as never)).toBe('Jack — Canino');
+  });
 });

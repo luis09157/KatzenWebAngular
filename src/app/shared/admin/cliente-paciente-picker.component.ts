@@ -28,7 +28,6 @@ import {
   filtrarPacientesDelCliente,
   filtrarPacientesPickerDual,
   getPacienteDisplayLabel,
-  getPacientePickerOptionLabel,
   getPacienteBusquedaExpedienteLabel,
   getPacienteNombre,
   getPacientePickerRazaEdadLabel,
@@ -74,7 +73,7 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   @Input() pacienteRequerido = true;
   /** Enfoca el campo de teléfono/nombre al montar (POS táctil). */
   @Input() autofocus = false;
-  /** Peluquería: la opción muestra raza y edad. El resto de módulos sigue con el dueño. */
+  /** @deprecated Desde 2026-10-26 todas las opciones se ven igual (especie · raza · edad · dueño). */
   @Input() etiquetaMascota: 'dueno' | 'raza-edad' = 'dueno';
 
   @Output() selectionChange = new EventEmitter<ClientePacienteSelection>();
@@ -183,8 +182,9 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
 
   /** displayWith: objeto en writeValue; string solo al tipear. */
   displayCliente = displayClienteAutocompleteValue;
+  /** Igual en todos los módulos (2026-10-26): «Jack — Canino · Criollo · 3 años». */
   displayPaciente = (value: Paciente | string | null | undefined): string => {
-    if (this.etiquetaMascota === 'raza-edad' && value && typeof value !== 'string') {
+    if (value && typeof value !== 'string') {
       return getPacientePickerRazaEdadLabel(value);
     }
     return displayPacienteAutocompleteValue(value);
@@ -211,23 +211,23 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     return getPacienteNombre(paciente) || 'Sin nombre';
   }
 
-  /** …y «— especie · raza · edad · dueño» (peluquería sin dueño, como ya estaba). */
+  /**
+   * …y «— especie · raza · edad · dueño», igual en todos los módulos (Luis, 2026-10-26).
+   * Si el dueño ya está elegido no se repite.
+   */
   detalleOpcionPaciente(paciente: Paciente): string {
-    const dueno =
-      this.etiquetaMascota === 'raza-edad' || this.clienteSeleccionado ? '' : this.nombreDuenoDePaciente(paciente);
+    const dueno = this.clienteSeleccionado ? '' : this.nombreDuenoDePaciente(paciente);
     const full = getPacienteBusquedaExpedienteLabel(paciente, dueno);
     const nombre = this.nombreOpcionPaciente(paciente);
     return full.startsWith(`${nombre} `) ? full.slice(nombre.length).trim() : full;
   }
 
+  /** Texto completo de la opción (mismo formato en todos los módulos). */
   labelOpcionPaciente(paciente: Paciente): string {
-    if (this.etiquetaMascota === 'raza-edad') {
-      return getPacientePickerRazaEdadLabel(paciente);
-    }
-    if (!this.busquedaDualEfectiva || this.clienteSeleccionado) {
-      return getPacienteDisplayLabel(paciente);
-    }
-    return getPacientePickerOptionLabel(paciente, this.nombreDuenoDePaciente(paciente));
+    return getPacienteBusquedaExpedienteLabel(
+      paciente,
+      this.clienteSeleccionado ? '' : this.nombreDuenoDePaciente(paciente)
+    );
   }
 
   private valorBusquedaCliente(value: string | Cliente | null): string {

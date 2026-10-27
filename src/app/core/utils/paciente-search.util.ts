@@ -19,7 +19,9 @@ export function getPacienteNombre(paciente: Paciente | null | undefined): string
 export function getPacienteDisplayLabel(paciente: Paciente | null | undefined): string {
   if (!paciente) return '';
   const nombre = getPacienteNombre(paciente) || 'Sin nombre';
-  const especie = paciente.especie || 'Sin especie';
+  // «CANINO» → «Canino» (solo para mostrar; el dato guardado no cambia).
+  const raw = String(paciente.especie || '').trim();
+  const especie = raw ? raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase() : 'Sin especie';
   return `${nombre} — ${especie}`;
 }
 
