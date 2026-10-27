@@ -13,6 +13,7 @@ import { InventarioService } from '../inventario/inventario.service';
 import { lineasADevolver, marcarLineasDevueltas, montoDevolucion, reintegrosInventario } from './pos-devolucion.util';
 import { sanitizeVisitaLineaForRtdb, sanitizeVisitaLineasForRtdb } from './visita-linea-rtdb.util';
 import { Visita, VisitaFormData, VisitaLinea, VisitaLineaCategoria, VISITA_LINEA_A_CAJA } from './visitas.models';
+import { domicilioDeOrigen, domicilioYaEnLineas, lineaDomicilio } from '../domicilios/domicilio-linea.util';
 import { agregarSaldoCliente, hoyLocalIsoDate, nuevaLineaId, recalcularVisita, roundMoney } from './visitas.util';
 import { esClienteMostrador } from './visita-mostrador.util';
 import { siguienteFolioTicketDia } from './folio-ticket-visita.util';
@@ -178,6 +179,8 @@ export class VisitasService {
       ganancia: linea.ganancia,
       aplicaIva: linea.aplicaIva,
       tasaIva: linea.tasaIva,
+      domicilio: linea.domicilio,
+      domicilioDe: linea.domicilioDe,
     });
     await this.setLineas(id, [...(visita.lineas || []), next]);
   }
@@ -263,7 +266,34 @@ export class VisitasService {
       });
     }
     await this.marcarVisitaIdEnOrigen(visita.id!, opts);
+    await this.agregarDomicilioDeOrigen(visita.id!, opts);
     return { visitaId: visita.id!, lineaId };
+  }
+
+  /**
+   * Spec 107 — si el baño o la cita es a domicilio, agrega su línea «Domicilio»
+   * (una sola vez). Si falla, no rompe el alta del servicio.
+   */
+  private async agregarDomicilioDeOrigen(
+    visitaId: string,
+    opts: { banioId?: string; citaId?: string; paciente?: string }
+  ): Promise<void> {
+    const origen = opts.banioId
+      ? { tipo: 'banio' as const, id: opts.banioId, path: `Katzen/Banios/${opts.banioId}/domicilio` }
+      : opts.citaId
+        ? { tipo: 'cita' as const, id: opts.citaId, path: `Katzen/Citas/${opts.citaId}/domicilio` }
+        : null;
+    if (!origen) return;
+    try {
+      const snap = await this.db.database.ref(origen.path).once('value');
+      const dom = domicilioDeOrigen(snap.val());
+      if (!dom) return;
+      const visita = await this.getVisita(visitaId);
+      if (!visita || domicilioYaEnLineas(visita.lineas, origen)) return;
+      await this.agregarLinea(visitaId, lineaDomicilio(nuevaLineaId(), dom, { paciente: opts.paciente, origen }));
+    } catch {
+      /* el servicio ya quedó en el ticket; el domicilio se puede agregar a mano */
+    }
   }
 
   /** Spec 045 — marca visitaId en baños/citas/etc. referenciados en líneas. */

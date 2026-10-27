@@ -1,3 +1,5 @@
+import { DomicilioDatos } from '../domicilios/domicilio.models';
+
 export interface Banio {
   id?: string;
   paciente_id: string;
@@ -42,6 +44,8 @@ export interface Banio {
   precio_total: number;
   pagado: boolean;
   metodo_pago?: 'efectivo' | 'tarjeta' | 'transferencia';
+  /** Spec 107 — baño a domicilio (aditivo; la app lo ignora). null al quitarlo. */
+  domicilio?: DomicilioDatos | null;
   /** Link opcional a `Katzen/Caja/Movimientos/{id}` (spec 014). */
   cajaMovimientoId?: string;
   /** Spec 032 — ticket de visita unificado. */

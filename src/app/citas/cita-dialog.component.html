@@ -59,6 +59,14 @@
           <div class="detail-text-block">{{ getDisplayValue('motivo_cancelacion') }}</div>
         </section>
 
+        <section class="detail-section" *ngIf="data?.cita?.domicilio as d">
+          <h4 class="detail-section__title">Domicilio</h4>
+          <div class="detail-text-block">
+            {{ d.tipoNombre }} · {{ d.km }} km · ${{ d.precio | number: '1.2-2' }}
+            <span *ngIf="d.direccion"> · {{ d.direccion }}</span>
+          </div>
+        </section>
+
         <section class="detail-section" *ngIf="getDisplayValue('observaciones') !== '—'">
           <h4 class="detail-section__title">Observaciones</h4>
           <div class="detail-text-block">{{ getDisplayValue('observaciones') }}</div>
@@ -168,6 +176,26 @@
             </mat-error>
           </mat-form-field>
         </div>
+      </section>
+
+      <!-- Spec 107 — domicilio -->
+      <section class="form-section">
+        <h3 class="form-section__title">Domicilio</h3>
+        <mat-checkbox
+          color="primary"
+          [checked]="esDomicilio"
+          (change)="onDomicilioToggle($event.checked)"
+          data-cy="cita-es-domicilio"
+        >
+          Es a domicilio (vamos a su casa o lo recogemos)
+        </mat-checkbox>
+        <app-domicilio-cotizador
+          *ngIf="esDomicilio"
+          [cliente]="clienteDomicilio"
+          [valor]="domicilio"
+          (cambio)="domicilio = $event"
+        ></app-domicilio-cotizador>
+        <p class="cita-dom-falta" *ngIf="esDomicilio && !domicilio">Escribe los km para calcular el domicilio.</p>
       </section>
 
       <section class="form-section">

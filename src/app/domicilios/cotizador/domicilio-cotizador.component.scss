@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.dom-cot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--admin-border, #e5e7eb);
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.dom-cot__dir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #0a969b;
+  }
+
+  a {
+    font-weight: 600;
+    color: #065d60;
+  }
+}
+
+.dom-cot__dir--falta {
+  color: #92400e;
+
+  mat-icon {
+    color: #d97706;
+  }
+}
+
+.dom-cot__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.dom-cot__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 14px;
+  color: #065d60;
+}
+
+.dom-cot__neg {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.dom-cot__falta {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.dom-cot__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    min-height: 42px;
+  }
+}

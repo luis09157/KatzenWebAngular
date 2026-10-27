@@ -1,0 +1,126 @@
+<div *ngIf="cargando" class="loading-container tab-loading">
+  <mat-spinner diameter="40"></mat-spinner>
+  <p>Cargando domicilios…</p>
+</div>
+
+<app-admin-empty-state *ngIf="!cargando && error" icon="error_outline" title="Sin datos" [message]="error"></app-admin-empty-state>
+
+<ng-container *ngIf="!cargando && !error">
+  <app-admin-data-panel
+    accent="teal"
+    title="Domicilios"
+    [description]="'Cuántos, a dónde, para qué y cuánto dejaron · ' + periodoLabel"
+    [meta]="resumen.total + ' domicilios'"
+    [showLegend]="false"
+  >
+    <div class="dm-filtros">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Año</mat-label>
+        <mat-select [(ngModel)]="anio" (selectionChange)="mes = ''; aplicar()">
+          <mat-option *ngFor="let a of anios" [value]="a">{{ a }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Mes</mat-label>
+        <mat-select [(ngModel)]="mes" (selectionChange)="aplicar()">
+          <mat-option value="">Todo el año</mat-option>
+          <mat-option *ngFor="let m of meses" [value]="m[0]">{{ m[1] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button type="button" (click)="exportar()" [disabled]="!filas.length">
+        <mat-icon>file_download</mat-icon>
+        Exportar CSV
+      </button>
+    </div>
+
+    <div class="dm-kpis">
+      <div class="dm-kpi"><span>Domicilios</span><strong>{{ resumen.total }}</strong></div>
+      <div class="dm-kpi"><span>Km (distancia a casa)</span><strong>{{ resumen.km | number: '1.0-1' }}</strong></div>
+      <div class="dm-kpi"><span>Gasolina</span><strong>{{ dinero(resumen.costo) }}</strong></div>
+      <div class="dm-kpi"><span>Cobrado</span><strong>{{ dinero(resumen.precio) }}</strong></div>
+      <div class="dm-kpi dm-kpi--ok"><span>Ganancia</span><strong>{{ dinero(resumen.ganancia) }}</strong></div>
+    </div>
+
+    <h4 class="dm-titulo">Por mes · {{ anio }} <small>(toca un mes para verlo)</small></h4>
+    <div class="dm-meses" role="list">
+      <button
+        type="button"
+        class="dm-mes"
+        role="listitem"
+        *ngFor="let g of grafica"
+        [class.dm-mes--on]="mes === g.clave"
+        (click)="elegirMes(g.clave)"
+        [attr.aria-label]="g.etiqueta + ': ' + g.total + ' domicilios'"
+      >
+        <span class="dm-mes__n">{{ g.total || '' }}</span>
+        <span class="dm-mes__bar"><span [style.height.%]="pct(g.total)"></span></span>
+        <span class="dm-mes__label">{{ g.etiqueta }}</span>
+      </button>
+    </div>
+
+    <app-admin-empty-state
+      *ngIf="!filas.length"
+      icon="local_shipping"
+      title="Sin domicilios en este periodo"
+      message="Marca «Es a domicilio» en Nuevo baño o en Citas, o usa «Domicilio» en Cobrar."
+    ></app-admin-empty-state>
+
+    <div class="dm-tops" *ngIf="filas.length">
+      <section>
+        <h4 class="dm-titulo">Colonias</h4>
+        <ol class="dm-lista">
+          <li *ngFor="let g of colonias"><span>{{ g.etiqueta }}</span><strong>{{ g.total }}</strong></li>
+        </ol>
+      </section>
+      <section>
+        <h4 class="dm-titulo">Clientes</h4>
+        <ol class="dm-lista">
+          <li *ngFor="let g of clientes"><span>{{ g.etiqueta }}</span><strong>{{ g.total }}</strong></li>
+        </ol>
+      </section>
+      <section>
+        <h4 class="dm-titulo">Para qué</h4>
+        <ol class="dm-lista">
+          <li *ngFor="let g of fuentes">
+            <span>{{ g.etiqueta }}</span><strong>{{ g.total }} · {{ dinero(g.ganancia) }}</strong>
+          </li>
+        </ol>
+      </section>
+      <section>
+        <h4 class="dm-titulo">Tipo de viaje</h4>
+        <ol class="dm-lista">
+          <li *ngFor="let g of tipos"><span>{{ g.etiqueta }}</span><strong>{{ g.total }}</strong></li>
+        </ol>
+      </section>
+    </div>
+  </app-admin-data-panel>
+
+  <app-admin-data-panel
+    *ngIf="filas.length"
+    accent="teal"
+    title="Historial"
+    [description]="periodoLabel"
+    [meta]="filas.length + ' registros'"
+    [showLegend]="false"
+  >
+    <ul class="dm-hist">
+      <li *ngFor="let f of filasVisibles" class="dm-hist__fila">
+        <div class="dm-hist__main">
+          <strong>{{ f.cliente || 'Sin nombre' }}</strong>
+          <span *ngIf="f.paciente"> · {{ f.paciente }}</span>
+          <span class="dm-hist__meta">
+            {{ f.fecha | date: 'd MMM y' : '' : 'es' }} · {{ fuenteLabel(f.fuente) }} · {{ f.tipo }} ·
+            {{ f.km }} km<span *ngIf="f.colonia"> · {{ f.colonia }}</span><span *ngIf="f.quien"> · {{ f.quien }}</span>
+          </span>
+        </div>
+        <div class="dm-hist__num">
+          <strong>{{ dinero(f.precio) }}</strong>
+          <span>gasolina {{ dinero(f.costo) }}</span>
+        </div>
+      </li>
+    </ul>
+    <button mat-button type="button" *ngIf="filas.length > 20" (click)="verTodas = !verTodas">
+      {{ verTodas ? 'Ver menos' : 'Ver los ' + filas.length }}
+    </button>
+  </app-admin-data-panel>
+</ng-container>

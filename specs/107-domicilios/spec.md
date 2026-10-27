@@ -1,6 +1,6 @@
 # 107 — Domicilios: cotizador, configuración e historial con métricas
 
-**Estado:** draft (2026-10-27) · **Nivel:** L3 (nodo RTDB nuevo + campos aditivos en Baño/Cita) · **Pidió:** Luis · **Esperando OK de Luis para codear**
+**Estado:** in_progress (2026-10-27) · **Nivel:** L3 (campos aditivos en Baño/Cita/Visita + `Katzen/Finanzas/TarifasDomicilio`) · **Pidió:** Luis · **OK de Luis: 2026-10-27 00:04 («si va»)**
 
 ## Origen (KatzenApp)
 
@@ -23,14 +23,16 @@ Verificado contra 474 viajes reales en `Katzen/Gasolina` (2024–2025, solo «Se
 - Guardar **historial de domicilios** para métricas: cuántos por mes, a dónde, con quién, para qué, km, costo, ganancia.
 - Redondeo y renglón en Finanzas: sin preferencia → configurable (default: al peso); renglón propio «Domicilio».
 
-## Contratos de datos (todo aditivo)
+## Contratos de datos (todo aditivo) — versión implementada
 
-- `Katzen/Finanzas/TarifasDomicilio` — `{ precioLitro, kmPorLitro, redondeo: 'centavos'|'peso'|'cinco', tipos: { [id]: { nombre, recorridos, margenPct, activo } }, updated_at, updated_by }`.
-- `Katzen/Domicilios/{id}` — historial: `{ fecha (ISO), cliente_id, cliente, paciente_id?, paciente?, direccion, linkMaps?, km, tipo, tipoNombre, recorridos, precioLitro, kmPorLitro, costoGasolina, precioSugerido, precio, ganancia, origen: 'banio'|'cita'|'caja', origenId?, visitaId?, staff_uid, staff_nombre, estado: 'cotizado'|'cobrado'|'cancelado', created_at }`.
-- `Banio.domicilio?` y `Cita.domicilio?` — `{ domicilioId, km, tipo, precioSugerido, precio }` (opcional; la app ignora el campo).
-- `VisitaLinea.categoria` admite `'domicilio'` + `domicilioId?` (la app no lee Visitas).
-- Reglas: `Katzen/Finanzas` y `Katzen/*` staff ya cubren; `Katzen/Domicilios` necesita entrada explícita (staff lee/escribe, cliente no).
-- **No se escribe** en `Katzen/Gasolina` (estructura de la app con totales por mes que recalcula la app). Las métricas **leen** ese historial (474 viajes) en solo lectura y lo suman al nuevo.
+- `Katzen/Finanzas/TarifasDomicilio` — `{ precioLitro, kmPorLitro, redondeo: 'centavos'|'peso'|'cinco', tipos: { [id]: { nombre, recorridos, margenPct, activo, orden, nombreApp? } }, updated_at, updated_by }`. Reglas existentes de `Katzen/Finanzas` (staff) la cubren.
+- `DomicilioDatos` (km, tipo, recorridos, precioLitro, kmPorLitro, margenPct, costoGasolina, precioSugerido, precio, ganancia, dirección/colonia/municipio/linkMaps, cotizadoEn/Por) guardado en:
+  - `Katzen/Banios/{id}/domicilio` (al editar sin domicilio → `null`).
+  - `Katzen/Citas/{id}/domicilio`.
+  - Línea del ticket `categoria: 'domicilio'` + `domicilio` + `domicilioDe: { tipo: 'banio'|'cita', id }` (no usa `banioId`, para no tocar el cobro del baño).
+- `CajaCategoria` y `VisitaLineaCategoria` admiten `'domicilio'` (la app no lee Visitas).
+- `Katzen/Cliente/{id}/kilometrosCasa` — solo si la veterinaria toca «Guardar N km en su ficha» (número, como la app).
+- **Sin nodo `Katzen/Domicilios` ni reglas nuevas:** el historial vive en cada baño, cita y ticket; las métricas lo juntan en solo lectura junto con `Katzen/Gasolina` (474 viajes de la app). Así no hay dos lugares que se desincronicen y no hay que publicar reglas.
 
 ## Fases
 

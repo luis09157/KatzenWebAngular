@@ -1,10 +1,20 @@
 /** Ticket unificado por visita + CxC. Spec 032. */
 import { CajaCategoria } from '../finanzas/caja.models';
+import { DomicilioDatos } from '../domicilios/domicilio.models';
 
 export type VisitaEstado = 'abierta' | 'parcial' | 'cerrada' | 'cancelada';
 
 export type VisitaLineaCategoria =
-  'consulta' | 'vacuna' | 'banio' | 'corte' | 'venta_producto' | 'pension' | 'cirugia' | 'otro';
+  | 'consulta'
+  | 'vacuna'
+  | 'banio'
+  | 'corte'
+  | 'venta_producto'
+  | 'pension'
+  | 'cirugia'
+  /** Spec 107 — traslado a domicilio (línea propia). */
+  | 'domicilio'
+  | 'otro';
 
 export const VISITA_ESTADO_LABELS: Record<VisitaEstado, string> = {
   abierta: 'Abierta',
@@ -21,6 +31,7 @@ export const VISITA_LINEA_CATEGORIA_LABELS: Record<VisitaLineaCategoria, string>
   venta_producto: 'Producto',
   pension: 'Pensión',
   cirugia: 'Cirugía',
+  domicilio: 'Domicilio',
   otro: 'Otro',
 };
 
@@ -33,6 +44,7 @@ export const VISITA_LINEA_A_CAJA: Record<VisitaLineaCategoria, CajaCategoria> = 
   venta_producto: 'venta_producto',
   pension: 'pension',
   cirugia: 'cirugia',
+  domicilio: 'domicilio',
   otro: 'otro',
 };
 
@@ -59,6 +71,10 @@ export interface VisitaLinea {
   ganancia?: number;
   aplicaIva?: boolean;
   tasaIva?: number;
+  /** Spec 107 — datos del domicilio (km, tipo, gasolina, sugerido, precio). */
+  domicilio?: DomicilioDatos;
+  /** Spec 107 — de qué baño/cita viene el domicilio (no usa banioId para no confundir el cobro del baño). */
+  domicilioDe?: { tipo: 'banio' | 'cita'; id: string };
   /** Spec 064 — línea devuelta (aditivo). */
   fueDevuelto?: boolean;
   devueltaEn?: string;

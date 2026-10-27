@@ -1,3 +1,5 @@
+import { DomicilioDatos } from '../domicilios/domicilio.models';
+import { domicilioDeOrigen } from '../domicilios/domicilio-linea.util';
 import { Banio } from '../shared/banio.model';
 import { VisitaLinea } from './visitas.models';
 
@@ -14,6 +16,8 @@ export interface BanioPendienteTicket {
   categoria: 'banio' | 'corte';
   /** Spec 085 — nota de la peluquera para mostrador. */
   observaciones?: string;
+  /** Spec 107 — si es a domicilio, se agrega su línea aparte. */
+  domicilio?: DomicilioDatos;
 }
 
 function fechaBanioIso(banio: Banio): string {
@@ -66,6 +70,7 @@ export function filtrarBaniosPendientesTicket(
           b.costoEstimado != null && !Number.isNaN(Number(b.costoEstimado)) ? Number(b.costoEstimado) : undefined,
         categoria: tipo.includes('corte') ? ('corte' as const) : ('banio' as const),
         observaciones: String(b.observaciones || '').trim() || undefined,
+        domicilio: domicilioDeOrigen(b.domicilio) || undefined,
       };
     });
 }
