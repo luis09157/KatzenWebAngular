@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **102** specs · `done`: 82 · `in_progress`: 17 · `superseded`: 3
+Total: **103** specs · `done`: 82 · `in_progress`: 18 · `superseded`: 3
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -110,3 +110,4 @@ Total: **102** specs · `done`: 82 · `in_progress`: 17 · `superseded`: 3
 | 101 | [ux-caja-inventario](101-ux-caja-inventario/spec.md) | 101 — Caja e Inventario más fáciles de entender (parte 1) | done (2026-10-26) · **Nivel:** L2 (solo UI/lógica de lectura, sin cambios en RTDB) · **Pidió:** Luis («siento que está un poco complicada o confusa») |
 | 102 | [ux-fase2-finanzas-inventario](102-ux-fase2-finanzas-inventario/spec.md) | 102 — Finanzas en 3 pestañas e Inventario con buscador y «Por pedir» (fase 2) | done (2026-10-26) · **Nivel:** L2 (solo UI/lectura; sin cambios en RTDB) · **Pidió:** Luis («haz el siguiente, continúa con lo pendiente») |
 | 103 | [alta-rapida-producto](103-alta-rapida-producto/spec.md) | 103 — Alta rápida de producto (5 campos) | done (2026-10-26) · **Nivel:** L1/L2 (solo UI; mismo guardado que antes) · **Pidió:** Luis («sí, haz la fase 2») |
+| 104 | [buscar-por-mascota](104-buscar-por-mascota/spec.md) | 104 — Buscar siempre por la mascota (el dueño se llena solo) | in_progress (2026-10-26) · **Nivel:** L2 (componente compartido `app-cliente-paciente-picker`; sin cambios en RTDB) · **Pidió:** Luis («las veterinarias conocen al paciente pero no al dueño») |

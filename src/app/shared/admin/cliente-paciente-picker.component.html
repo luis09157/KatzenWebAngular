@@ -42,13 +42,13 @@
         </mat-option>
       </mat-autocomplete>
       <mat-hint *ngIf="!clienteSeleccionado && permitirCrear">
-        Teléfono o nombre. Si no aparece, «Cliente nuevo».
+        {{ busquedaDualEfectiva ? 'Se llena al elegir la mascota. Si es nuevo, «Cliente nuevo».' : 'Teléfono o nombre. Si no aparece, «Cliente nuevo».' }}
       </mat-hint>
       <mat-hint *ngIf="!clienteSeleccionado && !permitirCrear && busquedaDualEfectiva">
-        Dueño aquí o mascota abajo.
+        Se llena al elegir la mascota.
       </mat-hint>
       <mat-error *ngIf="clienteIdControl?.hasError('required') && clienteIdControl?.touched">
-        Selecciona un cliente del catálogo
+        Elige la mascota o al dueño
       </mat-error>
     </mat-form-field>
     <button
@@ -66,7 +66,7 @@
   </div>
 
   <div
-    class="cliente-paciente-picker__row full-span"
+    class="cliente-paciente-picker__row cliente-paciente-picker__row--mascota full-span"
     [class.cliente-paciente-picker__row--crear]="permitirCrear && !disabled"
   >
     <mat-form-field appearance="outline" class="cliente-paciente-picker__field" subscriptSizing="dynamic">
@@ -110,21 +110,26 @@
           [displayWith]="displayPaciente"
           (optionSelected)="onPacienteAutocompleteSelected($event.option.value)"
         >
-          <mat-option *ngFor="let paciente of filteredPacientes | async" [value]="paciente">
-            {{ labelOpcionPaciente(paciente) }}
+          <mat-option
+            *ngFor="let paciente of filteredPacientes | async"
+            [value]="paciente"
+            class="cpp-opcion-paciente"
+          >
+            <span class="cpp-opcion-paciente__nombre">{{ nombreOpcionPaciente(paciente) }}</span>
+            <span class="cpp-opcion-paciente__detalle">{{ detalleOpcionPaciente(paciente) }}</span>
           </mat-option>
         </mat-autocomplete>
       </ng-container>
 
       <mat-hint *ngIf="!clienteSeleccionado && !busquedaDualEfectiva">Primero elige al dueño</mat-hint>
       <mat-hint *ngIf="!clienteSeleccionado && busquedaDualEfectiva">
-        Nombre de mascota; al elegirla rellena el dueño.
+        Escribe el nombre de la mascota (o del dueño o su teléfono). El dueño se llena solo.
       </mat-hint>
       <mat-hint *ngIf="clienteSeleccionado && pacientesDelCliente.length === 0">
         {{ permitirCrear ? 'Sin mascotas. Usa «Agregar mascota».' : 'Sin mascotas activas. Regístrala en Pacientes.' }}
       </mat-hint>
       <mat-error *ngIf="pacienteIdControl?.hasError('required') && pacienteIdControl?.touched">
-        Selecciona una mascota del cliente
+        Elige la mascota
       </mat-error>
     </mat-form-field>
     <button

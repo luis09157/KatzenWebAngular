@@ -93,3 +93,26 @@ app-cliente-paciente-picker {
     width: 100%;
   }
 }
+
+/* 2026-10-26: con búsqueda por mascota, la mascota va primero. */
+.cliente-paciente-picker--dual .cliente-paciente-picker__row--mascota {
+  order: -1;
+}
+
+/* Opción como en el buscador de Pacientes: nombre + especie · raza · edad · dueño. */
+.mat-mdc-option.cpp-opcion-paciente .mdc-list-item__primary-text {
+  white-space: normal;
+  line-height: 1.3;
+  padding: 4px 0;
+}
+
+.cpp-opcion-paciente__nombre {
+  font-weight: 600;
+  color: #032d60;
+}
+
+.cpp-opcion-paciente__detalle {
+  margin-left: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
