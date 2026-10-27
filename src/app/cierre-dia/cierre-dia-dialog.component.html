@@ -1,0 +1,73 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Cierre del día</h2>
+      <p class="admin-dialog-subtitle">Lo que quedó abierto de días anteriores. Toca «Hecho» o «No vino» en cada uno.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="cierre">
+      <div *ngIf="cargando" class="loading-container">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Buscando pendientes…</p>
+      </div>
+
+      <div *ngIf="!cargando && !pendientes.length" class="cierre__vacio">
+        <mat-icon aria-hidden="true">task_alt</mat-icon>
+        <p>Todo al día. No quedó nada abierto de días anteriores.</p>
+      </div>
+
+      <ul class="cierre__lista" *ngIf="!cargando && pendientes.length">
+        <li class="cierre__fila" *ngFor="let p of pendientes">
+          <div class="cierre__info">
+            <span class="cierre__tipo" [class.cierre__tipo--ticket]="p.tipo === 'ticket'">{{ etiquetas[p.tipo] }}</span>
+            <strong>{{ p.titulo }}</strong>
+            <span class="cierre__detalle">{{ fechaCorta(p.fecha) }}<span *ngIf="p.detalle"> · {{ p.detalle }}</span></span>
+          </div>
+          <div class="cierre__acciones">
+            <ng-container *ngIf="p.tipo !== 'ticket'; else ticket">
+              <button mat-stroked-button type="button" [disabled]="ocupado.has(clave(p))" (click)="resolver(p, false)">
+                No vino
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                class="btn-primary-teal"
+                type="button"
+                [disabled]="ocupado.has(clave(p))"
+                (click)="resolver(p, true)"
+              >
+                <mat-icon>check</mat-icon>
+                Hecho
+              </button>
+            </ng-container>
+            <ng-template #ticket>
+              <button mat-stroked-button color="primary" type="button" (click)="abrirTicket(p)">
+                <mat-icon>point_of_sale</mat-icon>
+                Abrir en Cobrar
+              </button>
+            </ng-template>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      type="button"
+      *ngIf="serviciosAbiertos.length > 1"
+      (click)="todosHechos()"
+    >
+      <mat-icon>done_all</mat-icon>
+      Todos los baños y citas: hechos
+    </button>
+  </mat-dialog-actions>
+</div>

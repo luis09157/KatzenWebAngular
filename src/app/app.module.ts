@@ -13,11 +13,13 @@ import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
 import { connectRtdbEmulatorIfEnabled } from './core/firebase-emulator';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { LandingModule } from './landing/landing.module';
 import { PrivacidadModule } from './landing/privacidad/privacidad.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { PaginatorEs } from './core/paginator-es';
 
 @NgModule({
   declarations: [
@@ -33,7 +35,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     AngularFireStorageModule,
     AngularFireDatabaseModule,
     AngularFireFunctionsModule,
-    DashboardModule,
+    // DashboardModule ya no se importa aquí: Hoy se carga por ruta (antes iba entero en la carga inicial).
     LayoutsModule,
     LandingModule,
     PrivacidadModule
@@ -44,7 +46,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       multi: true,
       useFactory: () => () => connectRtdbEmulatorIfEnabled()
     },
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    // Paginador en español en todas las tablas (Etapa A, 2026-10-27).
+    { provide: MatPaginatorIntl, useClass: PaginatorEs },
   ],
   bootstrap: [AppComponent]
 })

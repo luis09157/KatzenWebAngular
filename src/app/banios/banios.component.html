@@ -452,6 +452,20 @@
     </button>
     <button
       mat-menu-item
+      *ngIf="menuContext?.estado !== 'cancelado'"
+      (click)="terminarYCobrar(menuContext)"
+      [disabled]="
+        !menuContext ||
+        menuContext?.cajaMovimientoId ||
+        menuContext?.pagado ||
+        menuContext?.visitaId ||
+        faltaPrecio(menuContext)
+      "
+    >
+      <mat-icon>point_of_sale</mat-icon> Terminar y cobrar ahora
+    </button>
+    <button
+      mat-menu-item
       *ngIf="menuContext?.estado === 'en_proceso' || menuContext?.estado === 'programado'"
       (click)="marcarListoParaCobrar(menuContext)"
       [disabled]="
@@ -462,7 +476,7 @@
         faltaPrecio(menuContext)
       "
     >
-      <mat-icon>storefront</mat-icon> Listo para cobrar (lo cobra mostrador)
+      <mat-icon>storefront</mat-icon> Terminar (lo cobra mostrador después)
     </button>
     <button
       mat-menu-item

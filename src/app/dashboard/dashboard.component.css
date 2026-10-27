@@ -705,3 +705,26 @@ button.calendar-day {
     min-width: 340px;
   }
 }
+
+/* Etapa A — aviso de cierre del día */
+.cierre-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
+}
+
+.cierre-aviso p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.cierre-aviso button {
+  min-height: 44px;
+}

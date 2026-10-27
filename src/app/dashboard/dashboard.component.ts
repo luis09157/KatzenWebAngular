@@ -64,6 +64,8 @@ import {
 } from '../recordatorios/recordatorio-whatsapp.util';
 import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
 import KatzenSwal from '../core/ui/katzen-swal';
+import { pendientesDeDiasPasados } from '../cierre-dia/cierre-dia.util';
+import { abrirCierreDia } from '../cierre-dia/cierre-dia.launcher';
 
 @Component({
   selector: 'app-dashboard',
@@ -134,6 +136,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   /** Hub recepción (spec 049) */
   porCobrarItems: PorCobrarItem[] = [];
   porCobrarTotal = 0;
+  /** Etapa A — baños, citas y tickets de días pasados que siguen abiertos. */
+  pendientesPasados = 0;
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   citasHoyCount = 0;
   citasHoy: CitaCalendarioLike[] = [];
@@ -481,9 +485,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
             pacientesClienteMap: this.pacientesClienteMapHub,
           });
           this.porCobrarTotal = totalPorCobrarHoy(this.porCobrarItems);
+          this.pendientesPasados = pendientesDeDiasPasados(
+            {
+              banios: (banios || []) as unknown as Record<string, unknown>[],
+              citas: (citas || []) as Record<string, unknown>[],
+              tickets: (visitas || []) as unknown as Record<string, unknown>[],
+            },
+            hoy
+          ).length;
         },
         error: (err) => this.logger.error('Por cobrar hoy (hub):', err),
       });
+  }
+
+  /** Etapa A — «Cierre del día»: resolver lo que quedó abierto de días anteriores. */
+  async abrirCierreDia(): Promise<void> {
+    const r = await abrirCierreDia(this.dialog);
+    if (r?.abrirVisitaId) {
+      const visita = await this.visitasService.getVisita(r.abrirVisitaId);
+      if (visita) this.dialog.open(VisitaDialogComponent, { ...ADMIN_DIALOG_FORM, data: { visita } });
+    }
+    if (r?.cambios) this.cargarPorCobrarHoy();
   }
 
   async accionPorCobrar(item: PorCobrarItem): Promise<void> {

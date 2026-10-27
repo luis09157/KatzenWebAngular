@@ -91,6 +91,30 @@
       </div>
     </app-admin-page-banner>
 
+    <!-- Etapa A (2026-10-27): lo más usado a la vista, con la mascota ya puesta. El resto sigue en «Agregar». -->
+    <nav class="expediente-acciones" aria-label="Acciones rápidas">
+      <button mat-stroked-button type="button" (click)="agregarDesdeMenu('historial')">
+        <mat-icon>medical_services</mat-icon>
+        Consulta
+      </button>
+      <button mat-stroked-button type="button" (click)="agregarDesdeMenu('vacuna')">
+        <mat-icon>vaccines</mat-icon>
+        Vacuna
+      </button>
+      <button mat-stroked-button type="button" (click)="agregarDesdeMenu('banio')">
+        <mat-icon>shower</mat-icon>
+        Baño
+      </button>
+      <button mat-stroked-button type="button" (click)="agregarDesdeMenu('cita')">
+        <mat-icon>event</mat-icon>
+        Agendar cita
+      </button>
+      <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="agregarDesdeMenu('cuenta')">
+        <mat-icon>point_of_sale</mat-icon>
+        Cobrar
+      </button>
+    </nav>
+
     <div class="expediente-layout">
       <aside class="expediente-sidebar">
         <div class="patient-card">

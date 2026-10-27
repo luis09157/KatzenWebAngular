@@ -736,3 +736,22 @@
     justify-content: center;
   }
 }
+
+/* Etapa A — acciones rápidas del expediente */
+:host-context(.admin-content) .expediente-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+:host-context(.admin-content) .expediente-acciones button {
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+  :host-context(.admin-content) .expediente-acciones button {
+    flex: 1 1 calc(50% - 8px);
+  }
+}

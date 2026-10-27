@@ -49,6 +49,19 @@
 
       <app-caja-corte-banner></app-caja-corte-banner>
 
+      <!-- Etapa A — cierre del día -->
+      <div class="cierre-aviso" *ngIf="pendientesPasados > 0" role="status">
+        <mat-icon aria-hidden="true">event_busy</mat-icon>
+        <p>
+          <strong>{{ pendientesPasados }}</strong>
+          {{ pendientesPasados === 1 ? 'cosa quedó abierta' : 'cosas quedaron abiertas' }} de días anteriores (baños,
+          citas o tickets).
+        </p>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirCierreDia()">
+          Cierre del día
+        </button>
+      </div>
+
       <div class="operacion-hub__tiles">
         <app-admin-module-card
           title="Clínica"
