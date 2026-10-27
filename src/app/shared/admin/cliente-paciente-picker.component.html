@@ -99,6 +99,7 @@
 
       <ng-container *ngIf="usaPacienteAutocomplete">
         <input
+          #pacienteInput
           matInput
           [formControl]="pacienteSearch"
           [placeholder]="placeholderPaciente"

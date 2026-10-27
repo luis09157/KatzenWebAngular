@@ -33,6 +33,7 @@ import {
   getPacienteNombre,
   getPacientePickerRazaEdadLabel,
   isPacienteActivo,
+  ordenarPacientesPorNombre,
 } from '../../core/utils/paciente-search.util';
 import { getPacienteClienteId, pacientePerteneceACliente } from '../../core/utils/paciente-cliente.util';
 import {
@@ -83,6 +84,7 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   @Output() crearPaciente = new EventEmitter<Cliente>();
 
   @ViewChild('clienteInput') clienteInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('pacienteInput') pacienteInput?: ElementRef<HTMLInputElement>;
 
   readonly clienteSearch = new FormControl<string | Cliente>('');
   /** Objeto Paciente cuando hay selección (displayWith); string solo al tipear. */
@@ -113,7 +115,11 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
 
   ngAfterViewInit(): void {
     if (!this.autofocus || this.disabled) return;
-    setTimeout(() => this.clienteInput?.nativeElement?.focus(), 80);
+    // Con búsqueda por mascota, el cursor empieza en la mascota (va primero).
+    setTimeout(() => {
+      const el = this.busquedaDualEfectiva ? this.pacienteInput?.nativeElement : this.clienteInput?.nativeElement;
+      (el || this.clienteInput?.nativeElement)?.focus();
+    }, 80);
   }
 
   ngOnDestroy(): void {
@@ -167,8 +173,9 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
   private filtrarPacientesSugeridos(value: string | Paciente | null): Paciente[] {
     const query = typeof value === 'string' ? value : '';
     if (this.busquedaDualEfectiva) {
-      return filtrarPacientesPickerDual(this.pacientes, this.clienteSeleccionado?.id, query, (p) =>
-        this.duenoParaBuscar(p)
+      return ordenarPacientesPorNombre(
+        filtrarPacientesPickerDual(this.pacientes, this.clienteSeleccionado?.id, query, (p) => this.duenoParaBuscar(p)),
+        query
       ).slice(0, 50);
     }
     return filtrarPacientesDelCliente(this.pacientes, this.clienteSeleccionado?.id, query);

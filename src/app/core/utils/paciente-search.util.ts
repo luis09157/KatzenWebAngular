@@ -131,3 +131,31 @@ export function filtrarPacientesPickerDual(
     nombreDueno
   );
 }
+
+function sinAcentos(t: unknown): string {
+  return String(t ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim();
+}
+
+/**
+ * Ordena resultados para que primero salgan las mascotas cuyo **nombre** coincide
+ * (empieza con lo escrito → contiene lo escrito → el resto: dueño, raza…). 2026-10-26.
+ * Estable: dentro de cada grupo respeta el orden recibido.
+ */
+export function ordenarPacientesPorNombre(pacientes: Paciente[], query: unknown): Paciente[] {
+  const q = sinAcentos(query);
+  if (!q) return pacientes || [];
+  const rango = (p: Paciente): number => {
+    const n = sinAcentos(getPacienteNombre(p));
+    if (n.startsWith(q)) return 0;
+    if (n.includes(q)) return 1;
+    return 2;
+  };
+  return (pacientes || [])
+    .map((p, i) => ({ p, i, r: rango(p) }))
+    .sort((a, b) => a.r - b.r || a.i - b.i)
+    .map((x) => x.p);
+}
