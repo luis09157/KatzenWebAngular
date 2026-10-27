@@ -81,3 +81,14 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Celular: primero los 5 campos; la foto y el QR van después (spec 103). */
+@media (max-width: 700px) {
+  .producto-form .admin-dialog-aside {
+    order: 2;
+  }
+
+  .producto-form .admin-dialog-form {
+    order: 1;
+  }
+}

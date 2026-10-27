@@ -15,6 +15,7 @@ import { ADMIN_DIALOG_CONFIG, ADMIN_DIALOG_FORM } from '../../core/config/admin-
 import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 import { ServiciosEnInventarioService } from '../servicios-en-inventario.service';
+import { ProductoDialogComponent } from '../productos/producto-dialog.component';
 import { etiquetaCategoriaProducto } from '../productos/producto-identificacion.util';
 import { cantidadConUnidad, pluralizarCantidadesEnTexto } from '../inventario-textos.util';
 import { ServiciosEnInventarioDialogComponent } from '../servicios-en-inventario/servicios-en-inventario-dialog.component';
@@ -84,6 +85,17 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
   buscarProducto(): void {
     const q = this.textoBusqueda.trim();
     this.router.navigate(['/admin/inventario/productos'], q ? { queryParams: { q } } : {});
+  }
+
+  /** Alta rápida: el mismo diálogo de Productos (5 campos y «Más datos»). */
+  nuevoProducto(): void {
+    this.dialog
+      .open(ProductoDialogComponent, { ...ADMIN_DIALOG_CONFIG, data: { producto: null, modoEdicion: false } })
+      .afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r) => {
+        if (r) void this.cargarDatos();
+      });
   }
 
   verPorPedir(): void {
