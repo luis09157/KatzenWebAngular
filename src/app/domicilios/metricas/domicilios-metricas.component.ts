@@ -107,8 +107,8 @@ export class DomiciliosMetricasComponent implements OnInit {
     this.resumen = resumir(this.filas);
     this.grafica = porMes(this.todas, this.anio);
     this.maxGrafica = Math.max(1, ...this.grafica.map((g) => g.total));
-    this.colonias = top(agrupar(this.filas, (f) => f.colonia || 'Sin colonia'));
-    this.clientes = top(agrupar(this.filas, (f) => f.cliente || 'Sin nombre'));
+    this.colonias = top(agrupar(this.filas, (f) => f.colonia || 'Sin colonia capturada'));
+    this.clientes = top(agrupar(this.filas, (f) => f.cliente || 'Dueño no capturado'));
     this.fuentes = top(
       agrupar(this.filas, (f) => f.fuente, (k) => FUENTE_DOMICILIO_LABELS[k as FuenteDomicilio] || k),
       10

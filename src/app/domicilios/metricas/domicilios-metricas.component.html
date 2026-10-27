@@ -106,7 +106,7 @@
     <ul class="dm-hist">
       <li *ngFor="let f of filasVisibles" class="dm-hist__fila">
         <div class="dm-hist__main">
-          <strong>{{ f.cliente || 'Sin nombre' }}</strong>
+          <strong>{{ f.cliente || 'Dueño no capturado' }}</strong>
           <span *ngIf="f.paciente"> · {{ f.paciente }}</span>
           <span class="dm-hist__meta">
             {{ f.fecha | date: 'd MMM y' : '' : 'es' }} · {{ fuenteLabel(f.fuente) }} · {{ f.tipo }} ·

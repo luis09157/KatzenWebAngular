@@ -1,6 +1,6 @@
 # 107 — Domicilios: cotizador, configuración e historial con métricas
 
-**Estado:** in_progress (2026-10-27) · **Nivel:** L3 (campos aditivos en Baño/Cita/Visita + `Katzen/Finanzas/TarifasDomicilio`) · **Pidió:** Luis · **OK de Luis: 2026-10-27 00:04 («si va»)**
+**Estado:** done (2026-10-27) · **Nivel:** L3 (campos aditivos en Baño/Cita/Visita + `Katzen/Finanzas/TarifasDomicilio`) · **Pidió:** Luis · **OK de Luis: 2026-10-27 00:04 («si va»)**
 
 ## Origen (KatzenApp)
 
@@ -44,4 +44,4 @@ Verificado contra 474 viajes reales en `Katzen/Gasolina` (2024–2025, solo «Se
 
 ## Rollback
 
-Quitar UI; los campos/nodos son aditivos (no rompen app ni datos). Borrar `Katzen/Domicilios` y `TarifasDomicilio` solo con OK de Luis.
+Quitar UI; los campos son aditivos (no rompen app ni datos). Borrar `Katzen/Finanzas/TarifasDomicilio` solo con OK de Luis.
