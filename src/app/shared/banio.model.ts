@@ -21,7 +21,9 @@ export interface Banio {
     | 'baño_medicado'
     | 'baño_con_corte'
     | 'baño'
-    | 'baño_con_deslanado';
+    | 'baño_con_deslanado'
+    | 'cepillado'
+    | 'baño_con_cepillado';
   estado: 'programado' | 'en_proceso' | 'completado' | 'cancelado';
   prioridad: 'baja' | 'media' | 'alta' | 'urgente';
 

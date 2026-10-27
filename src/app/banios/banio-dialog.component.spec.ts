@@ -98,7 +98,7 @@ describe('BanioDialogComponent alta simple (spec 085)', () => {
     fixture.detectChanges();
   }
 
-  it('muestra los seis servicios, el pago se puede marcar y el precio no es obligatorio', async () => {
+  it('muestra los ocho servicios, el pago se puede marcar y el precio no es obligatorio', async () => {
     await crear();
     const textos = textosBotones(fixture.nativeElement, 'Tipo de servicio').join(' | ');
 
@@ -108,6 +108,8 @@ describe('BanioDialogComponent alta simple (spec 085)', () => {
     expect(textos).toContain('Baño con corte');
     expect(textos).toContain('Baño');
     expect(textos).toContain('Baño con deslanado');
+    expect(textos).toContain('Cepillado');
+    expect(textos).toContain('Baño con cepillado');
     expect(fixture.nativeElement.textContent).not.toContain('Rápido');
     expect(fixture.nativeElement.textContent).not.toContain('Completo');
 

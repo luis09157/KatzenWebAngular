@@ -91,6 +91,8 @@ const TIPO_SERVICIO_BANIO_LABELS: Record<string, string> = {
   baño_con_corte: 'Baño con corte',
   baño: 'Baño',
   baño_con_deslanado: 'Baño con deslanado',
+  cepillado: 'Cepillado',
+  baño_con_cepillado: 'Baño con cepillado',
 };
 
 export function labelTipoServicioBanio(tipo: unknown): string {
