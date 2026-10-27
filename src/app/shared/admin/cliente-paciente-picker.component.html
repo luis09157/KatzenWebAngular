@@ -147,4 +147,23 @@
       Agregar mascota
     </button>
   </div>
+  <!-- 2026-10-26: al elegir primero al dueño, sus mascotas salen aquí para tocarlas. -->
+  <div
+    class="cpp-mascotas-dueno full-span"
+    *ngIf="clienteSeleccionado && !pacienteIdControl?.value && pacientesDelCliente.length && !disabled"
+    role="group"
+    aria-label="Mascotas del dueño"
+  >
+    <span class="cpp-mascotas-dueno__titulo">Mascotas de este dueño:</span>
+    <button
+      mat-stroked-button
+      type="button"
+      class="cpp-mascotas-dueno__btn"
+      *ngFor="let p of pacientesDelCliente"
+      (click)="onPacienteSelected(p.id!)"
+    >
+      <mat-icon>pets</mat-icon>
+      {{ etiquetaChipMascota(p) }}
+    </button>
+  </div>
 </section>

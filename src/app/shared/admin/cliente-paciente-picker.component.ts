@@ -222,6 +222,11 @@ export class ClientePacientePickerComponent implements OnInit, AfterViewInit, On
     return full.startsWith(`${nombre} `) ? full.slice(nombre.length).trim() : full;
   }
 
+  /** Botón de mascota del dueño: «Oreon — Canino · Criollo · 3 años». */
+  etiquetaChipMascota(paciente: Paciente): string {
+    return getPacientePickerRazaEdadLabel(paciente);
+  }
+
   /** Texto completo de la opción (mismo formato en todos los módulos). */
   labelOpcionPaciente(paciente: Paciente): string {
     return getPacienteBusquedaExpedienteLabel(
