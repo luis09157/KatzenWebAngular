@@ -19,7 +19,7 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.get('.loading-container', { timeout: 30000 }).should('not.exist');
     cy.get('.finanzas-contenedor', { timeout: 20000 }).should('exist');
     cy.contains('Dinero de la clínica');
-    cy.contains('.mat-mdc-tab, .mdc-tab', /Caja|Por servicio|Precios y costos|Ganancia/i).should('exist');
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Resumen|Cobros y gastos|Precios y costos/i).should('exist');
     // Si rules recién desplegadas o error de lectura previo, cierra Swal residual.
     cy.get('body').then(($b) => {
       if ($b.find('.swal2-confirm:visible').length) {
@@ -44,6 +44,7 @@ describe('Admin CRUD — Finanzas caja', () => {
     cy.get('mat-dialog-container').should('not.exist');
     cy.get('body', { timeout: 10000 }).should('not.have.class', 'swal2-shown');
 
+    cy.contains('.mat-mdc-tab, .mdc-tab', /Cobros y gastos/i).click({ force: true });
     cy.get('.buscador input').clear().type(concepto);
     cy.contains('td', concepto, { timeout: 20000 }).should('be.visible');
     cy.contains('td', 'Gasolina').should('be.visible');

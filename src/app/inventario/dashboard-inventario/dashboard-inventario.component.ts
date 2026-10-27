@@ -16,7 +16,7 @@ import { AuthProfileService } from '../../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../../core/config/staff-role.config';
 import { ServiciosEnInventarioService } from '../servicios-en-inventario.service';
 import { etiquetaCategoriaProducto } from '../productos/producto-identificacion.util';
-import { pluralizarCantidadesEnTexto } from '../inventario-textos.util';
+import { cantidadConUnidad, pluralizarCantidadesEnTexto } from '../inventario-textos.util';
 import { ServiciosEnInventarioDialogComponent } from '../servicios-en-inventario/servicios-en-inventario-dialog.component';
 
 @Component({
@@ -64,8 +64,30 @@ export class DashboardInventarioComponent implements OnInit, OnDestroy {
     return etiquetaCategoriaProducto(categoria);
   }
 
-  get productosBajoStockPreview(): Producto[] {
-    return this.productosBajoStock.slice(0, this.stockPreviewLimit);
+  /** Lo que más urge pedir primero: en 0, luego lo más lejos del mínimo. */
+  get porPedirPreview(): Producto[] {
+    return [...this.productosBajoStock]
+      .sort((a, b) => {
+        const fa = (Number(a.stock_actual) || 0) - (Number(a.stock_minimo) || 0);
+        const fb = (Number(b.stock_actual) || 0) - (Number(b.stock_minimo) || 0);
+        return (Number(a.stock_actual) || 0) - (Number(b.stock_actual) || 0) || fa - fb;
+      })
+      .slice(0, this.stockPreviewLimit);
+  }
+
+  textoBusqueda = '';
+
+  stockTexto(p: Producto): string {
+    return cantidadConUnidad(p.stock_actual, p.unidad_medida);
+  }
+
+  buscarProducto(): void {
+    const q = this.textoBusqueda.trim();
+    this.router.navigate(['/admin/inventario/productos'], q ? { queryParams: { q } } : {});
+  }
+
+  verPorPedir(): void {
+    this.router.navigate(['/admin/inventario/productos'], { queryParams: { porPedir: '1' } });
   }
 
   constructor(

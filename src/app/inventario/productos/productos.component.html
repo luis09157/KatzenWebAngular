@@ -34,7 +34,7 @@
         <mat-form-field appearance="outline" class="buscador">
           <mat-label>Buscar producto</mat-label>
           <mat-icon matPrefix>search</mat-icon>
-          <input matInput (keyup)="aplicarFiltro($event)" placeholder="Código, nombre, marca…" />
+          <input matInput [value]="filtro.texto" (input)="aplicarFiltro($event)" placeholder="Nombre, código o marca" />
         </mat-form-field>
 
         <mat-button-toggle-group
@@ -54,6 +54,34 @@
         </mat-button-toggle-group>
       </div>
 
+      <div class="catalogo-chips" *ngIf="!loading" role="group" aria-label="Filtrar catálogo">
+        <button
+          mat-stroked-button
+          type="button"
+          class="catalogo-chip catalogo-chip--pedir"
+          [class.catalogo-chip--activo]="filtro.porPedir"
+          [attr.aria-pressed]="filtro.porPedir"
+          (click)="togglePorPedir()"
+        >
+          <mat-icon>shopping_cart</mat-icon>
+          Por pedir <span class="catalogo-chip__n">{{ totalPorPedir }}</span>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          class="catalogo-chip"
+          *ngFor="let c of categorias"
+          [class.catalogo-chip--activo]="filtro.categoria === c.valor"
+          [attr.aria-pressed]="filtro.categoria === c.valor"
+          (click)="setCategoria(c.valor)"
+        >
+          {{ c.etiqueta }} <span class="catalogo-chip__n">{{ c.total }}</span>
+        </button>
+      </div>
+      <p class="catalogo-conteo cell-sub" *ngIf="!loading">
+        {{ productosFiltrados.length }} de {{ productos.length }} productos
+      </p>
+
       <div *ngIf="loading" class="loading-container">
         <mat-spinner diameter="48"></mat-spinner>
         <p>Cargando productos…</p>
@@ -62,7 +90,7 @@
       <div class="productos-grid" *ngIf="!loading && vistaCatalogo === 'cuadricula'">
         <article
           class="producto-card"
-          *ngFor="let producto of productosFiltrados"
+          *ngFor="let producto of productosCuadricula"
           (click)="abrirDetalleProducto(producto, $event)"
           (dblclick)="abrirDetalleProducto(producto, $event)"
           (keydown)="onFilaProductoKeydown(producto, $event)"
@@ -120,6 +148,13 @@
             </button>
           </div>
         </article>
+
+        <div class="catalogo-ver-mas" *ngIf="quedanCuadricula > 0">
+          <button mat-stroked-button type="button" (click)="verMasCuadricula()">
+            <mat-icon>expand_more</mat-icon>
+            Ver más ({{ quedanCuadricula }} restantes)
+          </button>
+        </div>
 
         <app-admin-empty-state
           *ngIf="!productosFiltrados.length"

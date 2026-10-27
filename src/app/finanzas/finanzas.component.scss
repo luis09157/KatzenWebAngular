@@ -515,3 +515,40 @@
 .sin-caja-nota p + p {
   margin-top: 6px;
 }
+
+/* Fase 2: «Todo / Lo que entró / Gastos» arriba de la lista de caja. */
+.caja-tipo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  button {
+    min-height: 42px;
+    border-radius: 10px;
+  }
+
+  .periodo-activo {
+    background: var(--katzen-verde-soft, #e0f7f8);
+    border-color: var(--katzen-verde, #0a969b);
+    color: var(--katzen-verde-fuerte, #065d60);
+  }
+}
+
+.caja-tipo-chips__n {
+  margin-left: 4px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* Celular: 3 columnas sin scroll lateral. */
+table.caja-table.caja-table--movil {
+  min-width: 0 !important;
+  width: 100%;
+}
+
+table.caja-table.caja-table--movil .cell-sub {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+}
