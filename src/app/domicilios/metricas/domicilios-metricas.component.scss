@@ -183,8 +183,9 @@
     padding: 0 16px;
   }
 
-  .dm-filtros mat-form-field {
-    width: calc(50% - 5px);
+  .dm-filtros mat-form-field,
+  .dm-filtros button {
+    width: 100%;
     min-width: 0;
   }
 }
