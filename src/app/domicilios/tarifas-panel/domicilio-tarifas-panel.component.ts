@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { ErrorMessagesService } from '../../core/error-messages.service';
@@ -19,6 +19,10 @@ import {
 })
 export class DomicilioTarifasPanelComponent implements OnInit {
   @Input() puedeEditar = true;
+  /** `panel` = tarjeta en una página; `dialog` = dentro de una ventana (sin tarjeta). */
+  @Input() modo: 'panel' | 'dialog' = 'panel';
+  /** Se guardó bien (la ventana se puede cerrar). */
+  @Output() guardado = new EventEmitter<void>();
 
   form: FormGroup;
   cargando = true;
@@ -142,6 +146,7 @@ export class DomicilioTarifasPanelComponent implements OnInit {
       await this.tarifas.guardar(this.valorActual());
       Swal.fire({ icon: 'success', title: 'Tarifas de domicilio guardadas', timer: 1600, showConfirmButton: false });
       this.form.markAsPristine();
+      this.guardado.emit();
     } catch (error) {
       Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar tarifas de domicilio'), 'error');
     } finally {

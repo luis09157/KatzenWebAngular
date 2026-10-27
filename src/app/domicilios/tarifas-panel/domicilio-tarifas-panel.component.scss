@@ -66,3 +66,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+.dom-tarifas__pad {
+  padding: 0 28px;
+}
+
+@media (max-width: 720px) {
+  .dom-tarifas__pad {
+    padding: 0 16px;
+  }
+}
+
+/* Que todos los campos de un renglón midan lo mismo y queden alineados. */
+.dom-tarifas__base mat-form-field,
+.dom-tarifas__tipo mat-form-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.dom-tarifas__tipo mat-checkbox {
+  align-self: center;
+}

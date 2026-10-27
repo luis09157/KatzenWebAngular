@@ -172,3 +172,48 @@
     color: #6b7280;
   }
 }
+
+/* Contenido con el mismo margen que el título del panel (antes pegado al borde). */
+.dm-body {
+  padding: 0 28px;
+}
+
+@media (max-width: 720px) {
+  .dm-body {
+    padding: 0 16px;
+  }
+
+  .dm-filtros mat-form-field,
+  .dm-filtros button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.dm-num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.dm-ok {
+  color: #047857;
+  font-weight: 600;
+}
+
+.dm-sin {
+  padding: 16px 28px;
+  color: #6b7280;
+}
+
+table.dm-tabla.dm-tabla--movil {
+  min-width: 0 !important;
+  width: 100%;
+}
+
+table.dm-tabla.dm-tabla--movil td {
+  white-space: normal;
+}
+
+table.dm-tabla .cell-sub {
+  display: block;
+}

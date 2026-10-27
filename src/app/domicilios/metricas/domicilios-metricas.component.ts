@@ -1,4 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { exportToCsv } from '../../core/utils/csv-export.util';
 import { TarifasDomicilioService } from '../tarifas-domicilio.service';
@@ -52,6 +54,31 @@ export class DomiciliosMetricasComponent implements OnInit {
   fuentes: GrupoDomicilios[] = [];
   tipos: GrupoDomicilios[] = [];
   verTodas = false;
+
+  /** Historial en tabla con buscador y paginador (2026-10-27). */
+  readonly tabla = new MatTableDataSource<FilaDomicilio>([]);
+  busqueda = '';
+  esAngosto = typeof window !== 'undefined' && window.innerWidth < 700;
+  private readonly columnasCompletas = ['fecha', 'cliente', 'para', 'lugar', 'viaje', 'precio', 'costo', 'ganancia', 'quien'];
+  private readonly columnasMovil = ['cliente', 'precio'];
+
+  get columnas(): string[] {
+    return this.esAngosto ? this.columnasMovil : this.columnasCompletas;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.esAngosto = window.innerWidth < 700;
+  }
+
+  @ViewChild(MatPaginator) set paginador(p: MatPaginator | undefined) {
+    if (p) this.tabla.paginator = p;
+  }
+
+  filtrarTabla(): void {
+    this.tabla.filter = this.busqueda.trim().toLowerCase();
+    this.tabla.paginator?.firstPage();
+  }
 
   constructor(
     private db: AngularFireDatabase,
@@ -111,6 +138,15 @@ export class DomiciliosMetricasComponent implements OnInit {
     const prefijo = this.mes ? `${this.anio}-${this.mes}` : `${this.anio}-`;
     this.filas = this.todas.filter((f) => f.fecha.startsWith(prefijo));
     this.resumen = resumir(this.filas);
+    this.tabla.filterPredicate = (f, q) =>
+      [f.cliente, f.paciente, f.colonia, f.direccion, f.tipo, f.quien, this.fuenteLabel(f.fuente)]
+        .join(' ')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .includes(q.normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+    this.tabla.data = this.filas;
+    this.filtrarTabla();
     this.grafica = porMes(this.todas, this.anio);
     this.maxGrafica = Math.max(1, ...this.grafica.map((g) => g.total));
     this.colonias = top(agrupar(this.filas, (f) => f.colonia || 'Sin colonia capturada'));
