@@ -37,4 +37,10 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
 
       - name: Build producción
-        run: npm run build
+        # Si falla, los errores salen como anotaciones (visibles en el PR sin abrir el log).
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log || {
+            grep -E "Error|error TS|NG[0-9]|budget|exceeded" build.log | head -25 | sed 's/^/::error::/'
+            exit 1
+          }
