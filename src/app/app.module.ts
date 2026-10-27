@@ -13,7 +13,6 @@ import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
 import { connectRtdbEmulatorIfEnabled } from './core/firebase-emulator';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { LayoutsModule } from './layouts/layouts.module';
 import { LandingModule } from './landing/landing.module';
 import { PrivacidadModule } from './landing/privacidad/privacidad.module';
@@ -36,7 +35,7 @@ import { PaginatorEs } from './core/paginator-es';
     AngularFireStorageModule,
     AngularFireDatabaseModule,
     AngularFireFunctionsModule,
-    DashboardModule,
+    // DashboardModule ya no se importa aquí: Hoy se carga por ruta (antes iba entero en la carga inicial).
     LayoutsModule,
     LandingModule,
     PrivacidadModule

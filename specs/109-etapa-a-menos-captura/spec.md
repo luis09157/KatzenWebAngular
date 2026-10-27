@@ -19,3 +19,7 @@ Origen: documento «KatzenVet — Análisis de experiencia y automatización» (
 ## Utils
 
 - `cierre-dia/cierre-dia.util.ts` (+ spec) · `core/paginator-es.ts` (+ spec).
+
+## Carga inicial más ligera
+
+- `AppModule` importaba `DashboardModule` de forma directa además de cargarlo por ruta (`/admin/inicio`). Eso metía Hoy completo (Cobrar, diálogos de cita, caja, alta rápida…) en la carga inicial, también para la landing y el portal. Se quita la importación directa: Hoy sigue cargando por su ruta. Sus rutas sueltas (`/inicio`, `/expediente` en la raíz) nunca se alcanzaban porque el comodín `**` va antes. Los servicios que proveía ya son `providedIn: 'root'`.
