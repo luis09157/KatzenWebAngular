@@ -12,10 +12,19 @@ import { SharedModule } from '../shared/shared.module';
 import { DomicilioTarifasPanelComponent } from './tarifas-panel/domicilio-tarifas-panel.component';
 import { DomiciliosMetricasComponent } from './metricas/domicilios-metricas.component';
 import { DomiciliosPaginaComponent } from './pagina/domicilios-pagina.component';
+import { DomicilioTarifasDialogComponent } from './tarifas-dialog/domicilio-tarifas-dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 /** Spec 107 — Finanzas: configuración de domicilios y métricas (carga diferida con Finanzas). */
 @NgModule({
-  declarations: [DomicilioTarifasPanelComponent, DomiciliosMetricasComponent, DomiciliosPaginaComponent],
+  declarations: [
+    DomicilioTarifasPanelComponent,
+    DomiciliosMetricasComponent,
+    DomiciliosPaginaComponent,
+    DomicilioTarifasDialogComponent,
+  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -28,6 +37,9 @@ import { DomiciliosPaginaComponent } from './pagina/domicilios-pagina.component'
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatDialogModule,
+    MatTableModule,
+    MatPaginatorModule,
   ],
   exports: [DomicilioTarifasPanelComponent, DomiciliosMetricasComponent, DomiciliosPaginaComponent],
 })

@@ -1,74 +1,81 @@
+<!-- En la pantalla de Domicilios se usa dentro de una ventana (modo «dialog»). -->
 <app-admin-data-panel
+  *ngIf="modo === 'panel'; else sinPanel"
   accent="teal"
   title="Cuánto cobrar por domicilio"
   description="Fórmula: km × veces que se recorre ÷ km por litro × precio del litro = gasolina. Lo que se cobra = gasolina × tu múltiplo. La veterinaria siempre puede cambiar el precio."
   meta="Igual que la app"
   [showLegend]="false"
 >
+  <div class="dom-tarifas__pad"><ng-container *ngTemplateOutlet="contenido"></ng-container></div>
+</app-admin-data-panel>
+<ng-template #sinPanel><ng-container *ngTemplateOutlet="contenido"></ng-container></ng-template>
+
+<ng-template #contenido>
   <div *ngIf="cargando" class="loading-container tab-loading">
-    <mat-spinner diameter="32"></mat-spinner>
+  <mat-spinner diameter="32"></mat-spinner>
+</div>
+
+<form *ngIf="!cargando" [formGroup]="form" class="dom-tarifas">
+  <div class="dom-tarifas__base">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Precio del litro de gasolina</mat-label>
+      <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="precioLitro" />
+      <span matTextPrefix>$&nbsp;</span>
+    </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label>Km por litro del vehículo</mat-label>
+      <input matInput type="number" min="0" step="0.1" inputmode="decimal" formControlName="kmPorLitro" />
+      <span matTextSuffix>&nbsp;km/L</span>
+    </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Redondeo del precio sugerido</mat-label>
+      <mat-select formControlName="redondeo">
+        <mat-option *ngFor="let r of redondeos" [value]="r.id">{{ r.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
-  <form *ngIf="!cargando" [formGroup]="form" class="dom-tarifas">
-    <div class="dom-tarifas__base">
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-        <mat-label>Precio del litro de gasolina</mat-label>
-        <input matInput type="number" min="0" step="0.01" inputmode="decimal" formControlName="precioLitro" />
-        <span matTextPrefix>$&nbsp;</span>
+  <h4 class="dom-tarifas__titulo">Tipos de viaje</h4>
+  <div formArrayName="tipos" class="dom-tarifas__tipos">
+    <div class="dom-tarifas__tipo" *ngFor="let t of tiposArray.controls; let i = index" [formGroupName]="i">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="dom-tarifas__nombre">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" />
+        <mat-hint *ngIf="t.get('nombreApp')?.value">En la app: {{ t.get('nombreApp')?.value }}</mat-hint>
       </mat-form-field>
       <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-        <mat-label>Km por litro del vehículo</mat-label>
-        <input matInput type="number" min="0" step="0.1" inputmode="decimal" formControlName="kmPorLitro" />
-        <span matTextSuffix>&nbsp;km/L</span>
+        <mat-label>Veces que se recorre</mat-label>
+        <input matInput type="number" min="1" step="1" inputmode="numeric" formControlName="recorridos" />
+        <mat-hint>Ida y vuelta = 2</mat-hint>
       </mat-form-field>
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label>Redondeo del precio sugerido</mat-label>
-        <mat-select formControlName="redondeo">
-          <mat-option *ngFor="let r of redondeos" [value]="r.id">{{ r.label }}</mat-option>
-        </mat-select>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+        <mat-label>Cobrar la gasolina ×</mat-label>
+        <span matTextPrefix>×&nbsp;</span>
+        <input matInput type="number" min="1" step="0.01" inputmode="decimal" formControlName="multiplo" />
+        <mat-hint>{{ hintMultiplo(i) }}</mat-hint>
       </mat-form-field>
+      <mat-checkbox formControlName="activo">Se usa</mat-checkbox>
+      <p class="dom-tarifas__ejemplo">{{ ejemplo(i) }}</p>
     </div>
+  </div>
 
-    <h4 class="dom-tarifas__titulo">Tipos de viaje</h4>
-    <div formArrayName="tipos" class="dom-tarifas__tipos">
-      <div class="dom-tarifas__tipo" *ngFor="let t of tiposArray.controls; let i = index" [formGroupName]="i">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="dom-tarifas__nombre">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" />
-          <mat-hint *ngIf="t.get('nombreApp')?.value">En la app: {{ t.get('nombreApp')?.value }}</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-          <mat-label>Veces que se recorre</mat-label>
-          <input matInput type="number" min="1" step="1" inputmode="numeric" formControlName="recorridos" />
-          <mat-hint>Ida y vuelta = 2</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-          <mat-label>Cobrar la gasolina ×</mat-label>
-          <span matTextPrefix>×&nbsp;</span>
-          <input matInput type="number" min="1" step="0.01" inputmode="decimal" formControlName="multiplo" />
-          <mat-hint>{{ hintMultiplo(i) }}</mat-hint>
-        </mat-form-field>
-        <mat-checkbox formControlName="activo">Se usa</mat-checkbox>
-        <p class="dom-tarifas__ejemplo">{{ ejemplo(i) }}</p>
-      </div>
-    </div>
-
-    <div class="dom-tarifas__acciones" *ngIf="puedeEditar">
-      <button mat-stroked-button type="button" (click)="agregarTipo()">
-        <mat-icon>add</mat-icon>
-        Otro tipo de viaje
-      </button>
-      <button
-        mat-raised-button
-        color="primary"
-        class="btn-primary-teal"
-        type="button"
-        [disabled]="guardando"
-        (click)="guardar()"
-      >
-        <mat-icon>save</mat-icon>
-        Guardar tarifas de domicilio
-      </button>
-    </div>
-  </form>
-</app-admin-data-panel>
+  <div class="dom-tarifas__acciones" *ngIf="puedeEditar">
+    <button mat-stroked-button type="button" (click)="agregarTipo()">
+      <mat-icon>add</mat-icon>
+      Otro tipo de viaje
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn-primary-teal"
+      type="button"
+      [disabled]="guardando"
+      (click)="guardar()"
+    >
+      <mat-icon>save</mat-icon>
+      Guardar tarifas de domicilio
+    </button>
+  </div>
+</form>
+</ng-template>

@@ -7,7 +7,7 @@
       subtitle="Cuántos van, cuánto se cobró, cuánto costó la gasolina y cuánto quedó."
     >
       <div bannerActions>
-        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="irAConfiguracion()">
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirConfiguracion()">
           <mat-icon>local_gas_station</mat-icon>
           Gasolina y ganancia
         </button>
@@ -16,8 +16,4 @@
 
     <app-domicilios-metricas [mesActual]="true"></app-domicilios-metricas>
   </div>
-
-  <section id="domicilios-config" class="domicilios-pagina__config">
-    <app-domicilio-tarifas-panel [puedeEditar]="true"></app-domicilio-tarifas-panel>
-  </section>
 </div>
