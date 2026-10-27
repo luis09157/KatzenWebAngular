@@ -88,7 +88,7 @@ export function filaTarifaPara(
  * Precio de la tarifa para lo elegido en «Nuevo baño».
  * - «Baño» → pelo corto o largo.
  * - «Baño con corte» → columna con corte (gato no tiene).
- * - Otros servicios (uñas, rasurado, medicado, deslanado) → sin tarifa: se escribe a mano.
+ * - Otros servicios (uñas, rasurado, medicado, deslanado, cepillado) → sin tarifa: se escribe a mano.
  */
 export function precioTarifaPeluqueria(
   tarifas: TarifasPeluqueria | null | undefined,

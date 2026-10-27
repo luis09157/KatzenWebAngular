@@ -176,9 +176,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
    */
   accionPrincipalBanio(banio: any): { tipo: 'precio' | 'iniciar' | 'listo' | 'ver'; label: string; icon: string } {
     const estado = String(banio?.estado || '');
-    if (estado !== 'cancelado' && this.faltaPrecio(banio)) {
-      return { tipo: 'precio', label: 'Poner precio', icon: 'sell' };
-    }
+    // 2026-10-27 — el precio se pone al final: «Iniciar» no lo pide; se pregunta al terminar/cobrar.
     if (estado === 'programado') {
       return { tipo: 'iniciar', label: 'Iniciar baño', icon: 'play_arrow' };
     }
@@ -583,16 +581,45 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
    * Etapa A (2026-10-27) — «Terminar y cobrar»: marca el baño como completado y lo pasa al
    * ticket del día (con su línea de domicilio si tiene), abriendo Cobrar. Antes eran 2 pantallas.
    */
+  /**
+   * 2026-10-27 — el precio se pone al final. Si falta, lo pregunta aquí mismo y lo guarda.
+   * Devuelve el baño con precio, o null si cancelaron.
+   */
+  async pedirPrecioSiFalta(banio: Banio): Promise<Banio | null> {
+    if (Number(banio?.precio_total) > 0) return banio;
+    const nombre = this.pacientesMap[banio.paciente_id] || banio.paciente || 'la mascota';
+    const res = await Swal.fire({
+      title: `¿Cuánto se cobra por ${nombre}?`,
+      input: 'number',
+      inputLabel: 'Precio del baño',
+      inputPlaceholder: '$',
+      inputAttributes: { min: '1', step: '1', inputmode: 'numeric' },
+      showCancelButton: true,
+      confirmButtonText: 'Guardar precio',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (v: string) => (Number(v) > 0 ? null : 'Escribe el precio'),
+    });
+    if (!res.isConfirmed) return null;
+    const precio = Math.round(Number(res.value) * 100) / 100;
+    try {
+      await this.baniosService.actualizarBanio(banio.id!, { precio_total: precio, precio_base: precio } as Partial<Banio>);
+    } catch (error) {
+      this.logger.error('Error al guardar precio del baño:', error);
+      Swal.fire('Error', this.errorMessages.getUserMessage(error, 'guardar el precio'), 'error');
+      return null;
+    }
+    return { ...banio, precio_total: precio, precio_base: precio };
+  }
+
   async terminarYCobrar(banio: Banio): Promise<void> {
     if (!banio?.id) return;
     if (banio.visitaId || banio.pagado || banio.cajaMovimientoId) {
       Swal.fire({ icon: 'info', title: 'Ya en cobro', text: 'Este baño ya está en un ticket o pagado. Revisa Cobrar.' });
       return;
     }
-    if (!(Number(banio.precio_total) > 0)) {
-      Swal.fire('Falta precio', 'Pon el precio antes de cobrar.', 'warning');
-      return;
-    }
+    const conPrecio = await this.pedirPrecioSiFalta(banio);
+    if (!conPrecio) return;
+    banio = conPrecio;
     if (banio.estado !== 'completado') {
       try {
         await this.baniosService.cambiarEstadoBanio(banio.id, 'completado');
@@ -606,7 +633,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   }
 
   /** Spec 085 — marca completado para que entre a la cola de mostrador (sin cobrar aún). */
-  marcarListoParaCobrar(banio: Banio): void {
+  async marcarListoParaCobrar(banio: Banio): Promise<void> {
     if (!banio?.id) return;
     if (banio.visitaId || banio.pagado || banio.cajaMovimientoId) {
       Swal.fire({
@@ -616,11 +643,9 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       });
       return;
     }
-    if (!(Number(banio.precio_total) > 0)) {
-      Swal.fire('Falta precio', 'Pon el precio al cliente antes de enviarlo a mostrador.', 'warning');
-      return;
-    }
-    this.cambiarEstado(banio, 'completado');
+    const conPrecio = await this.pedirPrecioSiFalta(banio);
+    if (!conPrecio) return;
+    this.cambiarEstado(conPrecio, 'completado');
   }
 
   /**
@@ -761,8 +786,9 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
   async agregarAVisita(banio: Banio): Promise<void> {
     if (!banio?.id) return;
     if (!(Number(banio.precio_total) > 0)) {
-      Swal.fire('Falta el precio', 'Agrega el costo en el baño antes de mandarlo a cobrar.', 'warning');
-      return;
+      const conPrecio = await this.pedirPrecioSiFalta(banio);
+      if (!conPrecio) return;
+      banio = conPrecio;
     }
     if (banio.cajaMovimientoId || banio.pagado) {
       Swal.fire({

@@ -7,19 +7,21 @@ import {
 } from './banio-tipos-servicio.util';
 
 describe('banio-tipos-servicio.util (spec 085)', () => {
-  it('Rápido ofrece solo corte de uñas, rasurado higiénico y baño medicado', () => {
+  it('Rápido ofrece corte de uñas, rasurado higiénico, baño medicado y cepillado', () => {
     expect(opcionesTipoServicioBanio(true).map((opcion) => opcion.label)).toEqual([
       'Corte de Uñas',
       'Rasurado higiénico',
       'Baño medicado',
+      'Cepillado',
     ]);
   });
 
-  it('Completo ofrece solo baño con corte, baño y baño con deslanado', () => {
+  it('Completo ofrece baño con corte, baño, baño con deslanado y baño con cepillado', () => {
     expect(opcionesTipoServicioBanio(false).map((opcion) => opcion.label)).toEqual([
       'Baño con corte',
       'Baño',
       'Baño con deslanado',
+      'Baño con cepillado',
     ]);
   });
 
@@ -38,36 +40,40 @@ describe('banio-tipos-servicio.util (spec 085)', () => {
       'baño_con_corte',
       'baño',
       'baño_con_deslanado',
+      'baño_con_cepillado',
       'corte_pelo',
     ]);
-    expect(opciones[3].label).toBe('Corte de Pelo');
+    expect(opciones[4].label).toBe('Corte de Pelo');
   });
 
   it('si el tipo ya está en el modo, no se duplica', () => {
-    expect(opcionesTipoServicioBanio(true, 'corte_uñas')).toHaveSize(3);
+    expect(opcionesTipoServicioBanio(true, 'corte_uñas')).toHaveSize(4);
   });
 
   it('la etiqueta de listado solo cubre tipos nuevos', () => {
     expect(etiquetaTipoServicioBanioNuevo('rasurado_higienico')).toBe('Rasurado higiénico');
+    expect(etiquetaTipoServicioBanioNuevo('baño_con_cepillado')).toBe('Baño con cepillado');
     expect(etiquetaTipoServicioBanioNuevo('baño_básico')).toBeNull();
     expect(etiquetaTipoServicioBanioNuevo('corte_uñas')).toBeNull();
   });
 
-  it('el alta muestra los seis servicios juntos', () => {
+  it('el alta muestra los ocho servicios juntos', () => {
     expect(opcionesTipoServicioAlta().map((opcion) => opcion.label)).toEqual([
       'Corte de Uñas',
       'Rasurado higiénico',
       'Baño medicado',
+      'Cepillado',
       'Baño con corte',
       'Baño',
       'Baño con deslanado',
+      'Baño con cepillado',
     ]);
   });
 
-  it('al editar un tipo viejo, se suma al final de los seis', () => {
+  it('al editar un tipo viejo, se suma al final de los ocho', () => {
     const opciones = opcionesTipoServicioAlta('corte_pelo');
-    expect(opciones).toHaveSize(7);
-    expect(opciones[6].label).toBe('Corte de Pelo');
+    expect(opciones).toHaveSize(9);
+    expect(opciones[8].label).toBe('Corte de Pelo');
   });
 
   it('la leyenda de cobro distingue falta de precio, por cobrar y pagado', () => {

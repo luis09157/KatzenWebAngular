@@ -11,6 +11,7 @@ export const TIPOS_SERVICIO_RAPIDO: readonly OpcionTipoServicioBanio[] = [
   { value: 'corte_uñas', label: 'Corte de Uñas', icon: 'scissors' },
   { value: 'rasurado_higienico', label: 'Rasurado higiénico', icon: 'content_cut' },
   { value: 'baño_medicado', label: 'Baño medicado', icon: 'healing' },
+  { value: 'cepillado', label: 'Cepillado', icon: 'brush' },
 ];
 
 /** Completo: el paquete ya incluye corte, deslanado y el resto. */
@@ -18,6 +19,7 @@ export const TIPOS_SERVICIO_COMPLETO: readonly OpcionTipoServicioBanio[] = [
   { value: 'baño_con_corte', label: 'Baño con corte', icon: 'content_cut' },
   { value: 'baño', label: 'Baño', icon: 'shower' },
   { value: 'baño_con_deslanado', label: 'Baño con deslanado', icon: 'brush' },
+  { value: 'baño_con_cepillado', label: 'Baño con cepillado', icon: 'brush' },
 ];
 
 /** Ya no se ofrecen al crear. Siguen visibles al editar un registro viejo. */
@@ -42,9 +44,11 @@ const ETIQUETA_LISTADO_NUEVO: Record<string, string> = {
   baño_con_corte: 'Baño con corte',
   baño: 'Baño',
   baño_con_deslanado: 'Baño con deslanado',
+  cepillado: 'Cepillado',
+  baño_con_cepillado: 'Baño con cepillado',
 };
 
-/** Alta única: los seis servicios. Un tipo viejo guardado se suma al final. */
+/** Alta única: los ocho servicios. Un tipo viejo guardado se suma al final. */
 export function opcionesTipoServicioAlta(tipoActual?: string | null): OpcionTipoServicioBanio[] {
   const base = [...TIPOS_SERVICIO_RAPIDO, ...TIPOS_SERVICIO_COMPLETO];
   const actual = String(tipoActual || '').trim();
@@ -85,7 +89,7 @@ export function tipoServicioPerteneceAlModo(tipo: string, modoRapido: boolean): 
 }
 
 /**
- * Las 3 opciones del modo. Si el valor guardado no está en esa lista
+ * Las opciones del modo. Si el valor guardado no está en esa lista
  * (baño viejo), se agrega al final para no perderlo al guardar.
  */
 export function opcionesTipoServicioBanio(modoRapido: boolean, tipoActual?: string | null): OpcionTipoServicioBanio[] {
