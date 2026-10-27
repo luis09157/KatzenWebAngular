@@ -116,3 +116,36 @@ app-cliente-paciente-picker {
   font-size: 0.875rem;
   color: #6b7280;
 }
+
+/* Mascotas del dueño elegido (botones). */
+.cpp-mascotas-dueno {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cpp-mascotas-dueno__titulo {
+  width: 100%;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.cpp-mascotas-dueno__btn.mat-mdc-outlined-button {
+  min-height: 44px;
+  border-radius: 10px;
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  padding: 6px 12px;
+
+  mat-icon {
+    margin-right: 6px;
+  }
+}
+
+/* Con la mascota primero, los botones van justo debajo de ella. */
+.cliente-paciente-picker--dual .cpp-mascotas-dueno {
+  order: -1;
+}
