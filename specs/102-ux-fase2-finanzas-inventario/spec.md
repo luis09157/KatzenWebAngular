@@ -1,6 +1,6 @@
 # 102 — Finanzas en 3 pestañas e Inventario con buscador y «Por pedir» (fase 2)
 
-**Estado:** in_progress (2026-10-26) · **Nivel:** L2 (solo UI/lectura; sin cambios en RTDB) · **Pidió:** Luis («haz el siguiente, continúa con lo pendiente»)
+**Estado:** done (2026-10-26) · **Nivel:** L2 (solo UI/lectura; sin cambios en RTDB) · **Pidió:** Luis («haz el siguiente, continúa con lo pendiente»)
 
 ## Cambios
 
