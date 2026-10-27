@@ -1,5 +1,5 @@
-import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation, inject, Injector } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { ClientesService } from '../clientes/clientes.service';
@@ -8,6 +8,7 @@ import { Subject, firstValueFrom } from 'rxjs';
 import { distinctUntilChanged, take, takeUntil } from 'rxjs/operators';
 import { Cliente } from '../core/models';
 import { DomicilioDatos } from '../domicilios/domicilio.models';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { LoggerService } from '../core/logger.service';
 import { AuthProfileService } from '../core/services/auth-profile.service';
 import { staffRoleIsVeterinarioOperativo } from '../core/config/staff-role.config';
@@ -96,9 +97,34 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDomicilioToggle(on: boolean): void {
-    this.esDomicilio = on;
-    if (!on) this.domicilio = null;
+  private readonly injector = inject(Injector);
+
+  /**
+   * Spec 107 — el cotizador se abre en su propia ventana y se carga al momento
+   * (así no pesa en la carga inicial de la app).
+   */
+  async onDomicilioToggle(on: boolean): Promise<void> {
+    if (!on) {
+      this.esDomicilio = false;
+      this.domicilio = null;
+      return;
+    }
+    this.esDomicilio = true;
+    await this.abrirCotizadorDomicilio();
+    if (!this.domicilio) this.esDomicilio = false;
+  }
+
+  async abrirCotizadorDomicilio(): Promise<void> {
+    if (!this.clienteDomicilio) {
+      await this.cargarClienteDomicilio(String(this.citaForm.get('cliente_id')?.value || ''));
+    }
+    const dom = await abrirDomicilioDialog(this.injector.get(MatDialog), {
+      cliente: this.clienteDomicilio,
+      paciente: String(this.citaForm.get('paciente')?.value || ''),
+      valor: this.domicilio,
+      accion: 'Usar este domicilio',
+    });
+    if (dom) this.domicilio = dom;
   }
 
   constructor(

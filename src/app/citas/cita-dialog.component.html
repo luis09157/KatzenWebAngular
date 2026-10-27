@@ -189,13 +189,14 @@
         >
           Es a domicilio (vamos a su casa o lo recogemos)
         </mat-checkbox>
-        <app-domicilio-cotizador
-          *ngIf="esDomicilio"
-          [cliente]="clienteDomicilio"
-          [valor]="domicilio"
-          (cambio)="domicilio = $event"
-        ></app-domicilio-cotizador>
-        <p class="cita-dom-falta" *ngIf="esDomicilio && !domicilio">Escribe los km para calcular el domicilio.</p>
+        <div class="dom-resumen" *ngIf="esDomicilio && domicilio">
+          <mat-icon aria-hidden="true">home</mat-icon>
+          <span class="dom-resumen__texto">
+            <strong>Domicilio ${{ domicilio.precio | number: '1.0-2' }}</strong>
+            · {{ domicilio.tipoNombre }} · {{ domicilio.km }} km
+          </span>
+          <button mat-button type="button" color="primary" (click)="abrirCotizadorDomicilio()">Cambiar</button>
+        </div>
       </section>
 
       <section class="form-section">

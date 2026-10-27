@@ -1,8 +1,8 @@
-import { Component, OnInit, Inject, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Inject, ViewEncapsulation, inject, Injector } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { BaniosService } from './banios.service';
 import { BaniosPacienteService } from '../pacientes/banios-paciente.service';
 import { Banio } from '../shared/banio.model';
@@ -42,6 +42,7 @@ import { take } from 'rxjs/operators';
 import { ClientesService } from '../clientes/clientes.service';
 import { Cliente } from '../core/models';
 import { DomicilioDatos } from '../domicilios/domicilio.models';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
 import {
   buscarOpcionTipoServicioBanio,
@@ -184,12 +185,34 @@ export class BanioDialogComponent implements OnInit {
     }
   }
 
-  onDomicilioToggle(on: boolean): void {
-    this.esDomicilio = on;
-    if (on && !this.clienteDomicilio) {
-      void this.cargarClienteDomicilio(String(this.banioForm.get('cliente_id')?.value || ''));
+  private readonly injector = inject(Injector);
+
+  /**
+   * Spec 107 — el cotizador se abre en su propia ventana y se carga al momento
+   * (así no pesa en la carga inicial de la app).
+   */
+  async onDomicilioToggle(on: boolean): Promise<void> {
+    if (!on) {
+      this.esDomicilio = false;
+      this.domicilio = null;
+      return;
     }
-    if (!on) this.domicilio = null;
+    this.esDomicilio = true;
+    await this.abrirCotizadorDomicilio();
+    if (!this.domicilio) this.esDomicilio = false;
+  }
+
+  async abrirCotizadorDomicilio(): Promise<void> {
+    if (!this.clienteDomicilio) {
+      await this.cargarClienteDomicilio(String(this.banioForm.get('cliente_id')?.value || ''));
+    }
+    const dom = await abrirDomicilioDialog(this.injector.get(MatDialog), {
+      cliente: this.clienteDomicilio,
+      paciente: String(this.banioForm.get('paciente')?.value || ''),
+      valor: this.domicilio,
+      accion: 'Usar este domicilio',
+    });
+    if (dom) this.domicilio = dom;
   }
 
   constructor(

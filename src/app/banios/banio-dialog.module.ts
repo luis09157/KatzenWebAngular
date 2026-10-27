@@ -20,7 +20,6 @@ import { PacienteAdminDialogModule } from '../pacientes-admin/paciente-admin-dia
 import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 import { BanioDialogComponent } from './banio-dialog.component';
-import { DomiciliosModule } from '../domicilios/domicilios.module';
 
 /** Diálogo de baño sin routing — usable desde el asistente (spec 070). */
 @NgModule({
@@ -30,7 +29,6 @@ import { DomiciliosModule } from '../domicilios/domicilios.module';
     ReactiveFormsModule,
     FormsModule,
     SharedModule,
-    DomiciliosModule,
     ClientesDialogModule,
     PacienteAdminDialogModule,
     CajaDialogModule,

@@ -13,13 +13,13 @@ import {
   productoStockBajo,
   productoDescuentaInventarioPos,
 } from '../core/utils/producto-search.util';
-import { ADMIN_DIALOG_DETAIL, ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
+import { ADMIN_DIALOG_DETAIL } from '../core/config/admin-ui.config';
 import { Cliente, Paciente } from '../core/models';
 import { getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import { ClientesService } from '../clientes/clientes.service';
 import { domicilioYaEnLineas, lineaDomicilio } from '../domicilios/domicilio-linea.util';
-import { DomicilioDialogComponent, DomicilioDialogData } from '../domicilios/dialog/domicilio-dialog.component';
-import { DomicilioDatos } from '../domicilios/domicilio.models';
+import type { DomicilioDialogData } from '../domicilios/dialog/domicilio-dialog.component';
+import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { ClienteDialogComponent } from '../clientes/cliente-dialog.component';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
@@ -912,14 +912,7 @@ export class VisitaDialogComponent implements OnInit, OnDestroy {
     }
     const paciente = String(this.form.get('paciente')?.value || '').trim();
     const data: DomicilioDialogData = { cliente, paciente };
-    const dom = await firstValueFrom(
-      this.dialog
-        .open<DomicilioDialogComponent, DomicilioDialogData, DomicilioDatos | undefined>(DomicilioDialogComponent, {
-          ...ADMIN_DIALOG_FORM,
-          data,
-        })
-        .afterClosed()
-    );
+    const dom = await abrirDomicilioDialog(this.dialog, data);
     if (!dom) return;
     this.lineas = [...this.lineas, lineaDomicilio(nuevaLineaId(), dom, { paciente })];
   }

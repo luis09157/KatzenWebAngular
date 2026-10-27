@@ -1,5 +1,11 @@
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { Subject, merge, takeUntil } from 'rxjs';
 import Swal from 'sweetalert2';
 import { Cliente } from '../../core/models';
@@ -25,6 +31,8 @@ import { direccionDeCliente } from '../domicilio-cliente.util';
  */
 @Component({
   selector: 'app-domicilio-cotizador',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule],
   templateUrl: './domicilio-cotizador.component.html',
   styleUrls: ['./domicilio-cotizador.component.scss'],
 })

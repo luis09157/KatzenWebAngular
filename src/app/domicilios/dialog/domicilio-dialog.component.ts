@@ -1,5 +1,8 @@
 import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { DomicilioCotizadorComponent } from '../cotizador/domicilio-cotizador.component';
 import { Cliente } from '../../core/models';
 import { DomicilioDatos } from '../domicilio.models';
 
@@ -7,11 +10,15 @@ export interface DomicilioDialogData {
   cliente: Cliente | null;
   paciente?: string;
   valor?: DomicilioDatos | null;
+  /** Texto del botón principal (default «Agregar al ticket»). */
+  accion?: string;
 }
 
 /** Spec 107 — cotizar/agregar un domicilio desde Cobrar. Devuelve los datos o nada. */
 @Component({
   selector: 'app-domicilio-dialog',
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, DomicilioCotizadorComponent],
   template: `
     <div class="admin-dialog-shell">
       <header class="admin-dialog-header">
@@ -45,8 +52,8 @@ export interface DomicilioDialogData {
           (click)="agregar()"
           data-cy="domicilio-agregar"
         >
-          <mat-icon>add</mat-icon>
-          Agregar al ticket
+          <mat-icon>check</mat-icon>
+          {{ data.accion || 'Agregar al ticket' }}
         </button>
       </mat-dialog-actions>
     </div>
