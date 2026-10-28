@@ -59,6 +59,8 @@ Base documental de modularidad (specs **075**–**084**; proceso specs vivas **0
 | `historiales/` | `/admin/historiales` | `Historiales_Clinicos`, notas internas | 010, 016 | Historial clínico |
 | `vacunas/` | `/admin/vacunas` | `Vacunas` | 033, 052 | Biológicos + esquemas |
 | `recordatorios/` | `/admin/recordatorios` | `Recordatorios` | 023, 053, 066 | Agenda dueño / desparasitación |
+| `para-avisar/` | diálogo (Hoy, Recordatorios, número en menú) | lee Banios, Citas, Recordatorios, Mascota, Cliente | 111 | «Para avisar hoy»: util puro `paraAvisarHoy` + WhatsApp con autorización de la vet |
+| `cierre-dia/` | diálogo (Hoy) | Banios, Citas, Visitas | 109 | Cierre del día |
 | `banios/` | `/admin/banios` | `Banios` | 018, 022, 034, **085** | Peluquería — captura rápida / listado Hoy+Mañana + búsqueda (`banio-listado-filtro` → `listado-hoy-manana.util`); tipos del diálogo en `banio-tipos-servicio.util` (Rápido ≠ Completo); fechas UI/stamp vía `datepicker.util` (local MX); no módulo paralelo |
 | `pension/` | `/admin/pension` | `Pension/Estancias` | 022, **089**, **091** | 4 paquetes; cobro `pension-cobro.util`; payload `pension-estancia-payload.util` → `omitUndefinedRtdb` en `core/utils` |
 | `visitas/` | `/admin/visitas` | `Visitas`, `Caja/*` | 032–046, 055, 065, 071, **086**, **091** | **POS / cuenta del día** · pendientes clínicos + **riel Pensión** `pendientes-pension.util` · líneas RTDB `visita-linea-rtdb.util` |

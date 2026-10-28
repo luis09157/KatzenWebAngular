@@ -1,0 +1,125 @@
+.avisar {
+  padding: 8px 4px;
+}
+
+.avisar__vacio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 8px;
+  color: #065d60;
+}
+
+.avisar__error {
+  color: #b91c1c;
+  padding: 12px 4px;
+}
+
+.avisar__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.avisar__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.avisar__fila--hecha {
+  opacity: 0.7;
+}
+
+.avisar__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.avisar__tipo {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #065d60;
+
+  &[data-tipo='banio_proximo'] {
+    color: #7c3aed;
+  }
+  &[data-tipo='recordatorio'] {
+    color: #b45309;
+  }
+}
+
+.avisar__detalle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.avisar__ver {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0f766e;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.avisar__mensaje {
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #14532d;
+  font-family: inherit;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.avisar__acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  .mat-mdc-button-base {
+    height: 44px;
+  }
+}
+
+.avisar__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #065d60;
+  font-weight: 600;
+}
+
+.avisar__resumen {
+  margin-right: auto;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .avisar__acciones {
+    width: 100%;
+
+    .mat-mdc-button-base {
+      flex: 1 1 auto;
+    }
+  }
+}

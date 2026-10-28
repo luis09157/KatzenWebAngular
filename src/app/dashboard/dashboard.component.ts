@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subject, Subscription, combineLatest } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
@@ -66,6 +66,7 @@ import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
 import KatzenSwal from '../core/ui/katzen-swal';
 import { pendientesDeDiasPasados } from '../cierre-dia/cierre-dia.util';
 import { abrirCierreDia } from '../cierre-dia/cierre-dia.launcher';
+import { abrirParaAvisar } from '../para-avisar/para-avisar.launcher';
 
 @Component({
   selector: 'app-dashboard',
@@ -138,6 +139,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   porCobrarTotal = 0;
   /** Etapa A — baños, citas y tickets de días pasados que siguen abiertos. */
   pendientesPasados = 0;
+  /** Spec 111 — clientes para avisar hoy (WhatsApp con autorización de la vet). */
+  paraAvisar = 0;
+  private readonly injectorParaAvisar = inject(Injector);
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   citasHoyCount = 0;
   citasHoy: CitaCalendarioLike[] = [];
@@ -236,6 +240,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadAgendaPeluqueriaYPension();
     this.generateCalendar();
     this.cargarPorCobrarHoy();
+    void this.contarParaAvisar();
     this.cargarRecordatoriosHoy();
     this.cargarPensionHoy();
   }
@@ -506,6 +511,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (visita) this.dialog.open(VisitaDialogComponent, { ...ADMIN_DIALOG_FORM, data: { visita } });
     }
     if (r?.cambios) this.cargarPorCobrarHoy();
+  }
+
+  /** Spec 111 — cuenta «Para avisar hoy» (se carga aparte, no pesa en la carga inicial). */
+  async contarParaAvisar(): Promise<void> {
+    const { contarParaAvisar } = await import('../para-avisar/para-avisar.loader');
+    this.paraAvisar = await contarParaAvisar(this.injectorParaAvisar);
+  }
+
+  async abrirParaAvisar(): Promise<void> {
+    const r = await abrirParaAvisar(this.dialog);
+    if (r) this.paraAvisar = r.quedan;
   }
 
   async accionPorCobrar(item: PorCobrarItem): Promise<void> {

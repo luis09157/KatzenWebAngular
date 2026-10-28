@@ -101,6 +101,13 @@
           >
             <mat-icon matListItemIcon>notifications</mat-icon>
             <span matListItemTitle>Recordatorios</span>
+            <span
+              class="admin-nav-badge admin-nav-badge--avisar"
+              *ngIf="paraAvisarCount > 0"
+              [attr.aria-label]="paraAvisarCount + ' clientes para avisar hoy'"
+              title="Clientes para avisar hoy"
+              >{{ paraAvisarCount > 99 ? '99+' : paraAvisarCount }}</span
+            >
           </a>
 
           <div class="admin-nav-group-label" *ngIf="hasMasNav">Más</div>

@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit, Injector, inject } from '@angular/core';
+import { abrirParaAvisar } from '../para-avisar/para-avisar.launcher';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { RecordatoriosService } from './recordatorios.service';
@@ -119,7 +120,22 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
     private loadingService: LoadingService
   ) {}
 
+  /** Spec 111 — clientes para avisar hoy (WhatsApp con autorización de la vet). */
+  paraAvisar = 0;
+  private readonly injectorParaAvisar = inject(Injector);
+
+  async contarParaAvisar(): Promise<void> {
+    const { contarParaAvisar } = await import('../para-avisar/para-avisar.loader');
+    this.paraAvisar = await contarParaAvisar(this.injectorParaAvisar);
+  }
+
+  async abrirParaAvisarHoy(): Promise<void> {
+    const r = await abrirParaAvisar(this.dialog);
+    if (r) this.paraAvisar = r.quedan;
+  }
+
   ngOnInit(): void {
+    void this.contarParaAvisar();
     // Spec 066: teléfono del dueño para WhatsApp / Llamar. Si falla, la tabla sigue sin esas acciones.
     this.clientesService
       .getClientes()

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -63,6 +63,10 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
   /** Spec 069 — alertas de stock activas para badge del menú. */
   alertasStockCount = 0;
+  /** Spec 111 — número junto a «Recordatorios»: clientes para avisar hoy. */
+  paraAvisarCount = 0;
+  private paraAvisarTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly injectorParaAvisar = inject(Injector);
 
   constructor(
     private authService: AuthService,
@@ -115,6 +119,9 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
             if (this.canShow('inventario')) {
               this.suscribirAlertasStock();
             }
+            if (this.canShow('recordatorios')) {
+              this.programarConteoParaAvisar();
+            }
             void this.iniciarAvisos();
             return null;
           });
@@ -123,7 +130,19 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  /** Spec 111 — cuenta «Para avisar hoy» unos segundos después de entrar y cada 30 min. */
+  private programarConteoParaAvisar(): void {
+    if (this.paraAvisarTimer) return;
+    const contar = async () => {
+      const { contarParaAvisar } = await import('../para-avisar/para-avisar.loader');
+      this.paraAvisarCount = await contarParaAvisar(this.injectorParaAvisar);
+    };
+    setTimeout(() => void contar(), 5000);
+    this.paraAvisarTimer = setInterval(() => void contar(), 30 * 60 * 1000);
+  }
+
   ngOnDestroy() {
+    if (this.paraAvisarTimer) clearInterval(this.paraAvisarTimer);
     window.removeEventListener('resize', this.resizeHandler);
     this.clearAutoHideTimer();
     this.destroy$.next();

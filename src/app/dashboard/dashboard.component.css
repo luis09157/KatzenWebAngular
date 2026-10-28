@@ -728,3 +728,10 @@ button.calendar-day {
 .cierre-aviso button {
   min-height: 44px;
 }
+
+/* Spec 111 — franja «Para avisar hoy» (verde, la de cierre es naranja). */
+.cierre-aviso--avisar {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+  color: #134e4a;
+}

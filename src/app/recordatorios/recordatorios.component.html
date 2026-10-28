@@ -7,6 +7,10 @@
       subtitle="Vacunas, desparasitación, medicamentos y seguimientos."
     >
       <div bannerActions>
+        <button mat-stroked-button color="primary" type="button" (click)="abrirParaAvisarHoy()" data-cy="recordatorios-para-avisar">
+          <mat-icon>campaign</mat-icon>
+          Para avisar hoy<span *ngIf="paraAvisar > 0">&nbsp;({{ paraAvisar }})</span>
+        </button>
         <button mat-stroked-button color="primary" type="button" (click)="abrirRegistrarDesparasitacion()">
           <mat-icon>medication</mat-icon>
           Registrar desparasitación
