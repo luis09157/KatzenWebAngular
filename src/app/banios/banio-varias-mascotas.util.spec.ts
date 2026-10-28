@@ -50,4 +50,25 @@ describe('banio-varias-mascotas.util', () => {
     const [coco] = otrasMascotasDelDueno(pacientes, 'tina');
     expect(datosBanioMascotaExtra({ tamano_perro: 'grande' }, coco, [])['tamano_perro']).toBeUndefined();
   });
+
+  it('cada mascota extra lleva su servicio, precio, nota y tamaño', () => {
+    const base = { tipo_servicio: 'baño', fecha_banio: '2026-10-28', hora_banio: '10:47', observaciones: 'nota de Eli', pagado: true, precio_total: 300 };
+    const [coco] = otrasMascotasDelDueno(pacientes, 'tina');
+    const d = datosBanioMascotaExtra(base, coco, [], { servicio: 'baño_medicado', precio: 250, nota: 'piel sensible', tamano: 'mediano' });
+    expect(d['tipo_servicio']).toBe('baño_medicado');
+    expect(d['precio_total']).toBe(250);
+    expect(d['precio_base']).toBe(250);
+    expect(d['observaciones']).toBe('piel sensible');
+    expect(d['tamano_perro']).toBe('mediano');
+    expect(d['pagado']).toBeTrue();
+    expect(d['hora_banio']).toBe('10:47');
+  });
+
+  it('sin precio ni nota propios: falta el precio y no copia la nota de la principal', () => {
+    const [coco] = otrasMascotasDelDueno(pacientes, 'tina');
+    const d = datosBanioMascotaExtra({ tipo_servicio: 'baño', observaciones: 'nota de Eli', precio_total: 300 }, coco, [], { precio: null });
+    expect(d['tipo_servicio']).toBe('baño');
+    expect(d['precio_total']).toBe(0);
+    expect(d['observaciones']).toBe('');
+  });
 });

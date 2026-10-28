@@ -46,6 +46,17 @@ import { abrirDomicilioDialog } from '../domicilios/domicilio-dialog.launcher';
 import { prefillCapturaRapidaBanio } from './banio-captura-rapida.util';
 import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente-picker.component';
 import { MascotaDelDueno, datosBanioMascotaExtra, otrasMascotasDelDueno } from './banio-varias-mascotas.util';
+
+interface DatosMascotaExtra {
+  /** '' = el mismo servicio que la principal. */
+  servicio: string;
+  tamano: string;
+  precio: number | null;
+  precioManual: boolean;
+  nota: string;
+  ultimo: PrecioAnteriorBanio | null;
+  banios: BanioConPrecio[];
+}
 import {
   buscarOpcionTipoServicioBanio,
   opcionesTipoServicioAlta,
@@ -116,18 +127,80 @@ export class BanioDialogComponent implements OnInit {
     return otrasMascotasDelDueno(fuente, pacienteId);
   }
 
-  /** 2026-10-27 — cada mascota puede llevar otro servicio (una baño, otra baño con corte). '' = igual que la principal. */
-  servicioExtra = new Map<string, string>();
+  /**
+   * 2026-10-28 — cada mascota extra es su propia tarjeta: servicio, tamaño (si su ficha no tiene),
+   * precio opcional (sugiere el último que se le cobró) y nota. Fecha, hora, pagado y domicilio son de todos.
+   */
+  datosExtra = new Map<string, DatosMascotaExtra>();
   /** Mascotas del dueño cuando el diálogo viene sin buscador («Llegó un paciente» / expediente). */
   private mascotasClienteResumen: any[] = [];
 
-  servicioDeExtra(id: string): string {
-    return this.servicioExtra.get(id) || '';
+  extra(id: string): DatosMascotaExtra {
+    let d = this.datosExtra.get(id);
+    if (!d) {
+      d = { servicio: '', tamano: '', precio: null, precioManual: false, nota: '', ultimo: null, banios: [] };
+      this.datosExtra.set(id, d);
+    }
+    return d;
   }
 
-  fijarServicioExtra(id: string, valor: string): void {
-    if (valor) this.servicioExtra.set(id, valor);
-    else this.servicioExtra.delete(id);
+  /** Servicio de la mascota extra; si no se eligió, el de la principal. */
+  servicioDeExtra(id: string): string {
+    return this.datosExtra.get(id)?.servicio || String(this.banioForm.get('tipo_servicio')?.value || '');
+  }
+
+  elegirServicioExtra(id: string, valor: string): void {
+    this.extra(id).servicio = valor;
+    this.recalcularPrecioExtra(id);
+  }
+
+  elegirTamanoExtra(id: string, t: string): void {
+    this.extra(id).tamano = t;
+  }
+
+  onPrecioExtra(id: string, valor: unknown): void {
+    const d = this.extra(id);
+    const n = valor === '' || valor === null || valor === undefined ? null : Number(valor);
+    d.precio = n !== null && Number.isFinite(n) && n >= 0 ? n : null;
+    d.precioManual = true;
+  }
+
+  onNotaExtra(id: string, valor: string): void {
+    this.extra(id).nota = String(valor || '');
+  }
+
+  /** Perro sin tamaño en su ficha → se le pide en su tarjeta. */
+  necesitaTamanoExtra(m: MascotaDelDueno): boolean {
+    const e = String(m.raw?.['especie'] || '').toLowerCase();
+    const perro = e.includes('can') || e.includes('perr');
+    return perro && !String(m.raw?.['tamano_perro'] || m.raw?.['tamano'] || '').trim();
+  }
+
+  readonly tamanosExtra: FilaTarifaPeluqueria[] = ['pequeno', 'mediano', 'grande', 'xl'];
+
+  hintPrecioExtra(id: string): string {
+    const u = this.datosExtra.get(id)?.ultimo;
+    if (!u) return 'Si aún no lo sabes, déjalo vacío.';
+    const fecha = formatearFechaLocalEs(u.fechaIso);
+    return `La última vez (${fecha}) se cobró $${u.precio} por ${u.mismoServicio ? 'este servicio' : 'su último baño'}. Cámbialo si hoy es distinto.`;
+  }
+
+  private async cargarPrecioExtra(id: string): Promise<void> {
+    try {
+      const rows = await firstValueFrom(this.baniosPacienteService.getBaniosPorPaciente(id).pipe(take(1)));
+      this.extra(id).banios = (rows || []) as BanioConPrecio[];
+    } catch {
+      this.extra(id).banios = [];
+    }
+    this.recalcularPrecioExtra(id);
+  }
+
+  /** Sugiere el último precio de esa mascota (para el servicio elegido) mientras no lo escriban a mano. */
+  private recalcularPrecioExtra(id: string): void {
+    const d = this.datosExtra.get(id);
+    if (!d) return;
+    d.ultimo = precioAnteriorBanio(d.banios, { tipoServicio: this.servicioDeExtra(id) });
+    if (!d.precioManual) d.precio = d.ultimo ? d.ultimo.precio : null;
   }
 
   /** Resumen arriba (sin buscador / al editar): «Molly · Karla Rojas». Faltaban desde un refactor y salía solo «Mascota». */
@@ -203,12 +276,20 @@ export class BanioDialogComponent implements OnInit {
   toggleMascotaExtra(id: string): void {
     if (this.mascotasExtra.has(id)) {
       this.mascotasExtra.delete(id);
-      this.servicioExtra.delete(id);
-    } else this.mascotasExtra.add(id);
+      this.datosExtra.delete(id);
+    } else {
+      this.mascotasExtra.add(id);
+      this.extra(id);
+      void this.cargarPrecioExtra(id);
+    }
   }
 
   get totalBaniosAGuardar(): number {
     return 1 + this.extrasElegidas().length;
+  }
+
+  get extrasElegidasLista(): MascotaDelDueno[] {
+    return this.extrasElegidas();
   }
 
   private extrasElegidas(): MascotaDelDueno[] {
@@ -468,6 +549,10 @@ export class BanioDialogComponent implements OnInit {
 
   elegirTipoServicio(value: string): void {
     this.banioForm.patchValue({ tipo_servicio: value });
+    // Las extras sin servicio propio siguen al de la principal: su precio sugerido cambia con él.
+    for (const id of this.datosExtra.keys()) {
+      if (!this.datosExtra.get(id)?.servicio) this.recalcularPrecioExtra(id);
+    }
     // Primero el precio que se le cobró antes a esta mascota; si no hay, tarifa / defaults por tamaño.
     if (this.aplicarPrecioAnterior()) return;
     if (this.banioForm.get('tamano_perro')?.value || this.filaTarifa) {
@@ -776,7 +861,7 @@ export class BanioDialogComponent implements OnInit {
     const clienteId = String(sel.cliente_id || '');
     if (clienteId !== this.clienteDeExtras) {
       this.mascotasExtra.clear();
-      this.servicioExtra.clear();
+      this.datosExtra.clear();
       this.clienteDeExtras = clienteId;
     }
     if (sel.paciente_id) this.mascotasExtra.delete(String(sel.paciente_id));
@@ -1141,10 +1226,21 @@ export class BanioDialogComponent implements OnInit {
             const ids = [nuevoId];
             if (!this.hidePatientInfo) {
               for (const mascota of this.extrasElegidas()) {
-                const extra = datosBanioMascotaExtra(datosLimpios, mascota, normalizeAlergias(mascota.raw));
-                const otroServicio = this.servicioExtra.get(mascota.id);
-                if (otroServicio) extra['tipo_servicio'] = otroServicio;
+                const d = this.extra(mascota.id);
+                const extra = datosBanioMascotaExtra(datosLimpios, mascota, normalizeAlergias(mascota.raw), {
+                  servicio: this.servicioDeExtra(mascota.id),
+                  precio: d.precio,
+                  nota: d.nota,
+                  tamano: d.tamano,
+                });
                 ids.push(await this.baniosService.crearBanio(extra as any));
+                if (d.tamano && this.necesitaTamanoExtra(mascota)) {
+                  try {
+                    await this.pacientesService.actualizarPaciente(mascota.id, { tamano_perro: d.tamano } as any);
+                  } catch (err) {
+                    console.warn('No se pudo guardar el tamaño en la ficha:', err);
+                  }
+                }
               }
             }
             this.dialogRef.close({ created: true, id: nuevoId, ids });

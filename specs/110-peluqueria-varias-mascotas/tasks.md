@@ -28,3 +28,10 @@ Luis: «uno solo viene a baño y el otro a baño y corte y me los agenda igual»
 - «Llegó un paciente»: paso 1 = un buscador de mascota (también por dueño o teléfono). Elegir mascota → dueño se llena y salta a «¿Qué viene a hacer?». Elegir dueño → paso 2 como antes. «Dueño nuevo» igual.
 - Resumen del baño (sin buscador / editar): vuelve «Molly · Karla Rojas» (los getters se habían perdido en un refactor; salía solo «Mascota»).
 - QA preview (sin guardar): «Llegó un paciente» → «Molly» lista 4 Molly con su dueño; elegir la de Karla Rojas → paso 3 directo. «Karla Rojas» → Molly y Milo + la dueña. Baño desde ahí: «Milo · Karla Rojas», «¿Trae más mascotas?» con Molly; servicio de Milo «Baño con corte» con Molly en «Baño» → «Guardar 2 baños». Cancelado. CI verde.
+
+## Tarjeta por mascota (2026-10-28)
+Luis: «todos tendrán diferentes precios… nota opcional por cada uno… ya lo pagaron y es a domicilio hasta abajo… el tamaño debe ser por cada paciente… si ya ha tenido baños antes puede sugerir el precio».
+- Principal y cada extra = tarjeta con su nombre (verde / morado): servicio (chips), tamaño si su ficha no tiene (se guarda en su ficha), «Precio de {nombre} (opcional)» con el último precio que se le cobró como sugerencia, «Nota de {nombre} (opcional)». Botón «Quitar».
+- Abajo, para todas: fecha, hora, «Ya lo pagaron» (aplica a todas) y «Es a domicilio» (solo el baño principal lleva el domicilio: un viaje).
+- `datosBanioMascotaExtra(base, m, alergias, {servicio, precio, nota, tamano})` (+2 tests). Ya no copia la nota de la principal.
+- QA preview (2026-10-28, sin guardar): Coco (Alejandra) principal + Maruca extra. Tarjeta Coco (verde) y Maruca (morada) con «Quitar». Maruca: «Precio de Maruca» = $280 sugerido («La última vez (28/10/2026) se cobró $280…»), tamaño pedido, nota propia. Coco «Baño», Maruca «Baño con corte» independientes → «Guardar 2 baños». 412: diálogo 400 px, sin scroll lateral. Cancelado. CI verde.
