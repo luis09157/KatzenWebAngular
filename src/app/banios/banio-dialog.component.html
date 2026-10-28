@@ -47,14 +47,15 @@
       </div>
 
       <section class="form-section">
-        <h3 class="form-section__title">Servicio</h3>
+        <h3 class="form-section__title">Servicio <span class="banio-servicio-ayuda">· toca uno o varios</span></h3>
         <div class="banio-chips" role="group" aria-label="Tipo de servicio">
           <button
             type="button"
             class="banio-chip"
             *ngFor="let tipo of tiposServicioVisibles"
-            [class.banio-chip--on]="banioForm.get('tipo_servicio')?.value === tipo.value"
-            (click)="elegirTipoServicio(tipo.value)"
+            [class.banio-chip--on]="servicioPrincipalElegido(tipo.value)"
+            [attr.aria-pressed]="servicioPrincipalElegido(tipo.value)"
+            (click)="toggleServicioPrincipal(tipo.value)"
           >
             <mat-icon>{{ tipo.icon }}</mat-icon>
             {{ tipo.label }}
@@ -153,14 +154,15 @@
         </h3>
 
         <section class="form-section">
-          <h3 class="form-section__title">Servicio de {{ m.nombre }}</h3>
+          <h3 class="form-section__title">Servicio de {{ m.nombre }} <span class="banio-servicio-ayuda">· uno o varios</span></h3>
           <div class="banio-chips" role="group" [attr.aria-label]="'Servicio de ' + m.nombre">
             <button
               type="button"
               class="banio-chip"
               *ngFor="let tipo of tiposServicioVisibles"
-              [class.banio-chip--on]="servicioDeExtra(m.id) === tipo.value"
-              (click)="elegirServicioExtra(m.id, tipo.value)"
+              [class.banio-chip--on]="servicioExtraElegido(m.id, tipo.value)"
+              [attr.aria-pressed]="servicioExtraElegido(m.id, tipo.value)"
+              (click)="toggleServicioExtra(m.id, tipo.value)"
             >
               <mat-icon>{{ tipo.icon }}</mat-icon>
               {{ tipo.label }}

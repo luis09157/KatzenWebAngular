@@ -71,4 +71,16 @@ describe('banio-varias-mascotas.util', () => {
     expect(d['precio_total']).toBe(0);
     expect(d['observaciones']).toBe('');
   });
+
+  it('una mascota extra puede llevar varios servicios con un solo precio', () => {
+    const [coco] = otrasMascotasDelDueno(pacientes, 'tina');
+    const d = datosBanioMascotaExtra({ tipo_servicio: 'baño' }, coco, [], {
+      servicio: 'baño_con_corte',
+      serviciosExtra: ['corte_uñas'],
+      precio: 350,
+    });
+    expect(d['tipo_servicio']).toBe('baño_con_corte');
+    expect(d['servicios_adicionales']).toEqual([{ servicio: 'corte_uñas', precio: 0 }]);
+    expect(d['precio_total']).toBe(350);
+  });
 });

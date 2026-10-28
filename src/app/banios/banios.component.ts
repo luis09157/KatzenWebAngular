@@ -22,7 +22,12 @@ import { CajaMovimientoDialogComponent } from '../finanzas/caja-movimiento-dialo
 import { PeriodoPreset, fechaEnRango, formatMoneyMx, resolverPeriodo } from '../core/utils/periodo-filtro.util';
 import { VisitasService } from '../visitas/visitas.service';
 import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
-import { etiquetaTipoServicioBanioNuevo, leyendaCobroBanio, textoLeyendaCobroBanio } from './banio-tipos-servicio.util';
+import {
+  etiquetaServiciosBanio,
+  etiquetaTipoServicioBanioNuevo,
+  leyendaCobroBanio,
+  textoLeyendaCobroBanio,
+} from './banio-tipos-servicio.util';
 import { BanioListadoFila, banioFechaIso, banioListadoCoincideBusqueda } from './banio-listado-filtro.util';
 import { ClasificadorAgenda, FiltroAgenda } from '../core/utils/agenda-filtros.util';
 import { AgendaListadoState } from '../shared/admin/agenda-listado.state';
@@ -305,7 +310,9 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
                 hora_banio: this.formatearHora(banio.hora_banio),
                 hora_orden: String(banio.hora_banio || ''),
                 tipo_servicio_texto:
-                  etiquetaTipoServicioBanioNuevo(banio.tipo_servicio) || this.formatearTextoSeguro(banio.tipo_servicio),
+                  etiquetaServiciosBanio(banio) ||
+                  etiquetaTipoServicioBanioNuevo(banio.tipo_servicio) ||
+                  this.formatearTextoSeguro(banio.tipo_servicio),
                 estado_texto: this.formatearTextoSeguro(banio.estado),
               };
             });
@@ -707,7 +714,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       data: {
         // Sin fechaDefault: el cobro va al día en que entra el dinero (hoy), no al del servicio (2026-10-26).
         banioId: banio.id,
-        concepto: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
+        concepto: `Baño · ${banio.paciente || 'paciente'} · ${etiquetaServiciosBanio(banio) || banio.tipo_servicio || 'servicio'}`,
         monto: Number(banio.precio_total) || 0,
         metodoPago: metodo,
         notas: banio.observaciones || '',
@@ -841,7 +848,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
         cliente: banio.cliente || this.clientesMap[clienteId] || '',
         paciente_id: banio.paciente_id,
         paciente: banio.paciente || '',
-        descripcion: `Baño · ${banio.paciente || 'paciente'} · ${banio.tipo_servicio || 'servicio'}`,
+        descripcion: `Baño · ${banio.paciente || 'paciente'} · ${etiquetaServiciosBanio(banio) || banio.tipo_servicio || 'servicio'}`,
         monto,
         categoria,
         banioId: banio.id,

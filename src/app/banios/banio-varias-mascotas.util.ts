@@ -38,6 +38,8 @@ function tamanoDe(p: Record<string, any>): string {
 export interface OpcionesMascotaExtra {
   /** Servicio propio; vacío = el de la principal. */
   servicio?: string | null;
+  /** Más servicios de esa mascota (además del principal). Precio 0: el precio es uno por mascota. */
+  serviciosExtra?: string[] | null;
   /** Precio propio (opcional); null/vacío = «Falta el precio». */
   precio?: number | null;
   /** Nota propia; no se copia la de la principal. */
@@ -67,7 +69,7 @@ export function datosBanioMascotaExtra(
     alergias_conocidas: alergias,
     precio_base: conPrecio ? precio : 0,
     precio_total: conPrecio ? precio : 0,
-    servicios_adicionales: [],
+    servicios_adicionales: (opts.serviciosExtra || []).filter(Boolean).map((servicio) => ({ servicio, precio: 0 })),
     observaciones: String(opts.nota || '').trim(),
   };
   if (opts.servicio) datos['tipo_servicio'] = opts.servicio;
