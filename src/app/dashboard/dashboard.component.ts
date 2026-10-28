@@ -56,6 +56,7 @@ import {
   isoKeyFromLocalDate,
   labelDiaSeleccionado,
 } from './dashboard-calendario.util';
+import { TrabajoHoy, listaTrabajoHoy, resumenTrabajoHoy } from './hoy-trabajo.util';
 import {
   buildMensajeWhatsappRecordatorio,
   buildTelUrl,
@@ -141,6 +142,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   pendientesPasados = 0;
   /** Spec 111 — clientes para avisar hoy (WhatsApp con autorización de la vet). */
   paraAvisar = 0;
+  /** Etapa C (spec 113) — Hoy como lista de trabajo. */
+  trabajoHoy: TrabajoHoy = { porLlegar: [], enAtencion: [], terminados: [] };
+  verTerminadosHoy = false;
+  gruposTrabajoHoy: { titulo: string; lista: AgendaEventoDia[] }[] = [];
+  /** Métricas del negocio: cerradas por defecto; se cargan al abrirlas (el dinero oficial está en Finanzas). */
+  ownerAbierto = false;
   private readonly injectorParaAvisar = inject(Injector);
   porCobrarColumns = ['tipo', 'cliente', 'descripcion', 'monto', 'acciones'];
   citasHoyCount = 0;
@@ -222,8 +229,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         : '/admin/paciente';
       this.verStockBajo = this.verOwnerDash;
       if (this.verOwnerDash) {
-        this.cargarOwnerDashboard();
-        this.cargarInversionMeta();
+        // Spec 113: las métricas del negocio se cargan solo si el admin las abre.
         this.cargarStockBajo();
       }
     });
@@ -639,6 +645,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
       baniosMap: this.baniosMap,
       estancias: this.estanciasCalendario,
     });
+    this.trabajoHoy = listaTrabajoHoy(this.eventosDeIso(hoyLocalIsoDate()));
+    this.gruposTrabajoHoy = [
+      { titulo: 'Atendiéndose', lista: this.trabajoHoy.enAtencion },
+      { titulo: 'Por llegar', lista: this.trabajoHoy.porLlegar },
+    ];
+  }
+
+  get resumenTrabajoHoy(): string {
+    return resumenTrabajoHoy(this.trabajoHoy);
+  }
+
+  abrirOwnerDash(): void {
+    this.ownerAbierto = true;
+    if (!this.snap) this.cargarOwnerDashboard();
+    if (!this.inversionMeta) this.cargarInversionMeta();
   }
 
   previousMonth(): void {
