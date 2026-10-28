@@ -33,6 +33,7 @@ import {
   rtdb,
   sendMulticast
 } from './fcm-helpers';
+import { avisosAlDuenoActivos } from './avisos-dueno-gate';
 
 interface DueItem {
   id: string;
@@ -212,15 +213,21 @@ export async function runVacunaPushSchedule(now: Date = new Date()): Promise<{
   }
 
   const byCliente = groupByClienteId(due);
-  for (const [clienteId, items] of byCliente) {
-    await notifyOwnerGroup(clienteId, items, skipFcm);
-  }
+  // Spec 112 — en pruebas: el dueño no recibe nada; el resumen al personal sí sale (abajo).
+  const alDueno = await avisosAlDuenoActivos();
+  if (alDueno) {
+    for (const [clienteId, items] of byCliente) {
+      await notifyOwnerGroup(clienteId, items, skipFcm);
+    }
 
-  const orph = due.filter((i) => !i.clienteId);
-  for (const item of orph) {
-    await markRecordatorioPush(item.id, item.r, item.kind, {
-      pushStatus: 'skipped_no_cliente'
-    });
+    const orph = due.filter((i) => !i.clienteId);
+    for (const item of orph) {
+      await markRecordatorioPush(item.id, item.r, item.kind, {
+        pushStatus: 'skipped_no_cliente'
+      });
+    }
+  } else {
+    logger.info('Avisos al dueño en pausa: solo resumen al personal', { due: due.length });
   }
 
   await notifyStaffSummary(
@@ -236,10 +243,11 @@ export async function runVacunaPushSchedule(now: Date = new Date()): Promise<{
 
   logger.info('onVacunaPushSchedule listo', {
     due: due.length,
-    owners: byCliente.size,
-    skipFcm
+    owners: alDueno ? byCliente.size : 0,
+    skipFcm,
+    alDueno
   });
-  return { due: due.length, owners: byCliente.size };
+  return { due: due.length, owners: alDueno ? byCliente.size : 0 };
 }
 
 export const onVacunaPushSchedule = onSchedule(
