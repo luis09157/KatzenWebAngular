@@ -40,3 +40,5 @@ Luis: «todos tendrán diferentes precios… nota opcional por cada uno… ya lo
 Luis: «sí me interesa que pueda ser 1 o n de servicios».
 - Chips de servicio = agregar/quitar (principal y extras). El primero es `tipo_servicio`; los demás van a `servicios_adicionales` ({servicio, precio: 0}) — campo existente; el precio sigue siendo uno por mascota.
 - Listado, detalle y cobro (caja / ticket) muestran «Baño + Corte de Uñas» (`etiquetaServiciosBanio`, +test).
+- El baño completo queda como principal aunque se toque después (`ordenarServiciosBanio`, +test).
+- QA preview (2026-10-28, sin guardar): Coco «Baño + Corte de Uñas»; Maruca extra hereda ambos y se cambia sola a «Corte de Uñas + Baño con corte» ($280 sugerido). Maruca principal: «Corte de Uñas» y luego «Baño» → precio $280 «por este servicio». Cancelado. CI verde.
