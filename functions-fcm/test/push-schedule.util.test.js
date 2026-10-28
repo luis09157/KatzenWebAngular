@@ -115,3 +115,12 @@ describe('push-schedule.util (052 ola 2)', () => {
     assert.equal(util.isQuietHours(morning, 'America/Mexico_City'), false);
   });
 });
+
+// Spec 112 — interruptor de avisos al dueño (apagado salvo `true`).
+it('avisosAlDuenoEncendidos: solo true enciende', () => {
+  const { avisosAlDuenoEncendidos } = require('../lib/avisos-dueno-gate');
+  assert.strictEqual(avisosAlDuenoEncendidos(true), true);
+  for (const v of [undefined, null, false, 'true', 1, {}]) {
+    assert.strictEqual(avisosAlDuenoEncendidos(v), false);
+  }
+});

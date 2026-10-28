@@ -16,6 +16,7 @@ import {
   rtdb,
   sendMulticast
 } from './fcm-helpers';
+import { avisosAlDuenoActivos } from './avisos-dueno-gate';
 
 export const onRecordatorioWritePush = onValueWritten(
   {
@@ -28,6 +29,12 @@ export const onRecordatorioWritePush = onValueWritten(
     const recordatorioId = event.params.recordatorioId as string;
 
     if (!after || after.activo === false || after.estado !== 'pendiente') {
+      return;
+    }
+
+    // Spec 112 — en pruebas: nada sale solo al dueño hasta que Luis encienda el interruptor.
+    if (!(await avisosAlDuenoActivos())) {
+      logger.info('Avisos al dueño en pausa: recordatorio sin push ni inbox', { recordatorioId });
       return;
     }
 

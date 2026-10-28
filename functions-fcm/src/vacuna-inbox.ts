@@ -5,6 +5,7 @@
 import * as admin from 'firebase-admin';
 import { onValueCreated } from 'firebase-functions/v2/database';
 import { logger } from 'firebase-functions';
+import { avisosAlDuenoActivos } from './avisos-dueno-gate';
 
 function rtdb(): admin.database.Database {
   return admin.database();
@@ -31,6 +32,12 @@ export const onVacunaCreatedInbox = onValueCreated(
     const vacunaId = event.params.vacunaId as string;
 
     if (!vacuna?.idPaciente) {
+      return;
+    }
+
+    // Spec 112 — en pruebas: no se escribe en el portal del dueño.
+    if (!(await avisosAlDuenoActivos())) {
+      logger.info('Avisos al dueño en pausa: vacuna sin inbox', { vacunaId });
       return;
     }
 
