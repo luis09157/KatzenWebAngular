@@ -123,7 +123,7 @@
             Nada pendiente de citas ni baños hoy. Si llega alguien, usa «Llegó un paciente».
           </p>
         </ng-template>
-        <p class="operacion-hub__link" *ngIf="trabajoHoy.terminados.length">
+        <p class="operacion-hub__link hoy-trabajo__pie" *ngIf="trabajoHoy.terminados.length">
           <button type="button" class="hoy-trabajo__ver" (click)="verTerminadosHoy = !verTerminadosHoy">
             {{ verTerminadosHoy ? 'Ocultar' : 'Ver' }} los {{ trabajoHoy.terminados.length }} ya terminados hoy
           </button>

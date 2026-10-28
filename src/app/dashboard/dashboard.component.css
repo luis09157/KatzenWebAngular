@@ -739,6 +739,7 @@ button.calendar-day {
 /* Spec 113 — Hoy como lista de trabajo */
 .hoy-trabajo__grupo {
   margin: 8px 0 4px;
+  padding: 0 20px;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -748,6 +749,7 @@ button.calendar-day {
 
 .hoy-trabajo__vacio {
   margin: 4px 0;
+  padding: 0 20px;
   color: #6b7280;
 }
 
@@ -785,4 +787,8 @@ button.calendar-day {
 
 .owner-dash-cerrado .mat-mdc-button-base {
   min-height: 44px;
+}
+
+.hoy-trabajo__pie {
+  padding: 0 20px;
 }
