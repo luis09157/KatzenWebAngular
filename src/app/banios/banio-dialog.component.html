@@ -51,8 +51,20 @@
             {{ m.nombre }}
           </button>
         </div>
+        <div class="banio-extra-servicios" *ngIf="mascotasExtra.size">
+          <ng-container *ngFor="let m of otrasMascotas; trackBy: trackMascota">
+            <mat-form-field appearance="outline" *ngIf="mascotasExtra.has(m.id)" class="banio-extra-servicio">
+              <mat-label>Servicio de {{ m.nombre }}</mat-label>
+              <mat-select [value]="servicioDeExtra(m.id)" (selectionChange)="fijarServicioExtra(m.id, $event.value)">
+                <mat-option value="">Igual: {{ nombreServicioPrincipal }}</mat-option>
+                <mat-option *ngFor="let tipo of tiposServicioVisibles" [value]="tipo.value">{{ tipo.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ng-container>
+        </div>
         <p class="banio-tarifa-hint">
-          Tócalas para agregarlas. Se hace un baño por cada una, con el mismo servicio, fecha y hora. El precio de cada una se pone al terminar.
+          Tócalas para agregarlas. Se hace un baño por cada una, misma fecha y hora; si alguna lleva otro servicio, cámbialo
+          aquí. El precio de cada una se pone al terminar.
         </p>
       </section>
 

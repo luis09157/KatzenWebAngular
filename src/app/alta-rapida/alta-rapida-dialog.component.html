@@ -2,7 +2,7 @@
   <header class="admin-dialog-header">
     <div class="admin-dialog-header__text">
       <h2 class="admin-dialog-title">Llegó un paciente</h2>
-      <p class="admin-dialog-subtitle">Dueño, mascota y qué necesita. Sin rodeos.</p>
+      <p class="admin-dialog-subtitle">Mascota y qué necesita. El dueño se llena solo.</p>
     </div>
     <button mat-icon-button type="button" class="admin-dialog-close" (click)="cancelar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>
@@ -12,7 +12,7 @@
   <mat-dialog-content class="admin-dialog-body">
     <ol class="alta-rapida-steps" aria-label="Pasos">
       <li [class.alta-rapida-steps__on]="paso === 1" [class.alta-rapida-steps__done]="paso > 1">
-        <span>1</span> Dueño
+        <span>1</span> ¿Quién llegó?
       </li>
       <li [class.alta-rapida-steps__on]="paso === 2" [class.alta-rapida-steps__done]="paso > 2">
         <span>2</span> Mascota
@@ -21,26 +21,39 @@
     </ol>
 
     <section *ngIf="paso === 1" class="alta-rapida-pane">
-      <p class="alta-rapida-lead">Busca por teléfono o nombre. Si no está, regístralo aquí.</p>
+      <p class="alta-rapida-lead">Escribe el nombre de la mascota. También la encuentras por el dueño o su teléfono.</p>
       <mat-form-field appearance="outline" class="full-span">
-        <mat-label>Teléfono o nombre del dueño</mat-label>
+        <mat-label>Mascota (o dueño / teléfono)</mat-label>
         <input
           matInput
           cdkFocusInitial
           [formControl]="clienteSearch"
           [matAutocomplete]="autoDueno"
-          placeholder="Ej. 555 o María"
+          placeholder="Ej. Molly, Karla o 811…"
+          data-cy="alta-rapida-buscar"
         />
-        <mat-icon matPrefix>search</mat-icon>
+        <mat-icon matPrefix>pets</mat-icon>
       </mat-form-field>
       <mat-autocomplete
         #autoDueno="matAutocomplete"
         [displayWith]="displayCliente"
-        (optionSelected)="elegirCliente($event.option.value)"
+        (optionSelected)="elegirOpcion($event.option.value)"
       >
-        <mat-option *ngFor="let c of filteredClientes | async" [value]="c">
-          {{ displayCliente(c) }}
-        </mat-option>
+        <ng-container *ngIf="filteredMascotas | async as mascotas">
+          <mat-optgroup *ngIf="mascotas.length" label="Mascotas">
+            <mat-option *ngFor="let p of mascotas" [value]="p">
+              <strong>{{ nombreOpcionMascota(p) }}</strong> {{ detalleOpcionMascota(p) }}
+            </mat-option>
+          </mat-optgroup>
+        </ng-container>
+        <ng-container *ngIf="filteredClientes | async as duenos">
+          <mat-optgroup *ngIf="duenos.length" label="Dueños (para elegir otra mascota o registrar una)">
+            <mat-option *ngFor="let c of duenos" [value]="c">
+              <mat-icon>person</mat-icon>
+              {{ displayCliente(c) }}
+            </mat-option>
+          </mat-optgroup>
+        </ng-container>
       </mat-autocomplete>
       <button mat-stroked-button type="button" class="alta-rapida-cta" (click)="crearDueno()">
         <mat-icon>person_add</mat-icon>
