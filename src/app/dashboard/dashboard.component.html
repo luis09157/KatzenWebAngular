@@ -62,6 +62,19 @@
         </button>
       </div>
 
+      <!-- Spec 111 (Etapa B) — para avisar hoy -->
+      <div class="cierre-aviso cierre-aviso--avisar" *ngIf="paraAvisar > 0" role="status" data-cy="hoy-para-avisar">
+        <mat-icon aria-hidden="true">campaign</mat-icon>
+        <p>
+          Tienes <strong>{{ paraAvisar }}</strong>
+          {{ paraAvisar === 1 ? 'cliente para avisar' : 'clientes para avisar' }} hoy (citas y baños de mañana, refuerzos,
+          baños que ya tocan).
+        </p>
+        <button mat-raised-button color="primary" class="btn-primary-teal" type="button" (click)="abrirParaAvisar()">
+          Para avisar hoy
+        </button>
+      </div>
+
       <div class="operacion-hub__tiles">
         <app-admin-module-card
           title="Clínica"

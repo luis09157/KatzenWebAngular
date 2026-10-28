@@ -1,0 +1,86 @@
+<div class="admin-dialog-shell">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Para avisar hoy</h2>
+      <p class="admin-dialog-subtitle">Nada se manda solo. Revisa y toca «Enviar al cliente» para abrir WhatsApp con el mensaje listo.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="avisar">
+      <div *ngIf="cargando" class="loading-container">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Buscando a quién avisar…</p>
+      </div>
+
+      <p *ngIf="error" class="avisar__error" role="alert">{{ error }}</p>
+
+      <div *ngIf="!cargando && !error && !avisos.length" class="avisar__vacio">
+        <mat-icon aria-hidden="true">task_alt</mat-icon>
+        <p>Hoy no hay a quién avisar.</p>
+      </div>
+
+      <ul class="avisar__lista" *ngIf="!cargando && avisos.length" data-cy="para-avisar-lista">
+        <li
+          class="avisar__fila"
+          *ngFor="let a of avisos"
+          [class.avisar__fila--hecha]="estado.has(a.clave)"
+        >
+          <div class="avisar__info">
+            <span class="avisar__tipo" [attr.data-tipo]="a.tipo">{{ etiquetas[a.tipo] }}</span>
+            <strong>{{ mascotas(a) }}</strong>
+            <span class="avisar__detalle">
+              {{ a.dueno || 'Sin dueño' }}<span *ngIf="!a.telefono10"> · sin teléfono completo</span>
+            </span>
+            <span class="avisar__detalle">{{ cuando(a) }}</span>
+            <button type="button" class="avisar__ver" (click)="toggleMensaje(a)">
+              {{ abierto.has(a.clave) ? 'Ocultar mensaje' : 'Ver mensaje' }}
+            </button>
+            <pre class="avisar__mensaje" *ngIf="abierto.has(a.clave)">{{ a.mensaje }}</pre>
+          </div>
+
+          <div class="avisar__acciones" *ngIf="!estado.has(a.clave); else hecho">
+            <button mat-stroked-button type="button" [disabled]="ocupado.has(a.clave)" (click)="noAvisar(a)">No avisar</button>
+            <a *ngIf="a.telefono10" mat-stroked-button [href]="telUrl(a)" aria-label="Llamar">
+              <mat-icon>call</mat-icon>
+              Llamar
+            </a>
+            <button *ngIf="!a.telefono10" mat-stroked-button type="button" (click)="copiar(a)">
+              <mat-icon>content_copy</mat-icon>
+              Copiar mensaje
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              [disabled]="!a.whatsappUrl || ocupado.has(a.clave)"
+              (click)="enviar(a)"
+              data-cy="para-avisar-enviar"
+            >
+              <mat-icon>send</mat-icon>
+              Enviar al cliente
+            </button>
+          </div>
+          <ng-template #hecho>
+            <div class="avisar__acciones avisar__acciones--hecho">
+              <span class="avisar__estado">
+                <mat-icon aria-hidden="true">{{ estado.get(a.clave) === 'enviado' ? 'check_circle' : 'block' }}</mat-icon>
+                {{ estado.get(a.clave) === 'enviado' ? 'Avisado' : 'No se avisará' }}
+              </span>
+              <button mat-button type="button" [disabled]="ocupado.has(a.clave)" (click)="deshacer(a)">Deshacer</button>
+            </div>
+          </ng-template>
+        </li>
+      </ul>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions">
+    <span class="avisar__resumen" *ngIf="!cargando && avisos.length">Quedan {{ quedan }} de {{ avisos.length }}</span>
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+  </mat-dialog-actions>
+</div>

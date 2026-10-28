@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **108** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `implementado`: 1
+Total: **109** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `implementado`: 2
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -116,3 +116,4 @@ Total: **108** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `i
 | 108 | [domicilios-pantalla](108-domicilios-pantalla/spec.md) | 108 — Pantalla propia de Domicilios | done (2026-10-27) · **Nivel:** L2 (UI; mismos datos de la spec 107) · **Pidió:** Luis («algo así como lo de peluquería… rápido y pronto, y ahí mismo poner el costo de la gasolina») |
 | 109 | [etapa-a-menos-captura](109-etapa-a-menos-captura/spec.md) | 109 — Etapa A: menos captura doble | done (2026-10-27) · **Nivel:** L2 (UI; usa los mismos guardados de siempre) · **Pidió:** Luis (análisis UX → «empiezas con la Etapa A») |
 | 110 | [peluqueria-varias-mascotas](110-peluqueria-varias-mascotas/spec.md) | Spec 110 — Peluquería: varias mascotas, hora, precio al final y cepillado | implementado · **Nivel:** L2 (UI/lógica, sin cambios de reglas ni nodos nuevos) |
+| 111 | [para-avisar-hoy](111-para-avisar-hoy/spec.md) | Spec 111 — Etapa B: «Para avisar hoy» | implementado · **Nivel:** L2 (UI/lógica; campos opcionales aditivos; sin nodos, reglas ni functions) · **Pidió:** Luis (2026-10-27, «continua con la etapa b… no pegarle ni modificar cosas que ya funcionan») |
