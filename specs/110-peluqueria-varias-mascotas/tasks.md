@@ -26,3 +26,5 @@ Luis: «uno solo viene a baño y el otro a baño y corte y me los agenda igual»
 - Nuevo baño: al marcar otra mascota sale «Servicio de {mascota}» (por defecto «Igual: {servicio}»). Cada baño se guarda con su servicio.
 - «¿Trae más mascotas?» también desde «Llegó un paciente» / expediente (sin buscador): carga las mascotas del dueño.
 - «Llegó un paciente»: paso 1 = un buscador de mascota (también por dueño o teléfono). Elegir mascota → dueño se llena y salta a «¿Qué viene a hacer?». Elegir dueño → paso 2 como antes. «Dueño nuevo» igual.
+- Resumen del baño (sin buscador / editar): vuelve «Molly · Karla Rojas» (los getters se habían perdido en un refactor; salía solo «Mascota»).
+- QA preview (sin guardar): «Llegó un paciente» → «Molly» lista 4 Molly con su dueño; elegir la de Karla Rojas → paso 3 directo. «Karla Rojas» → Molly y Milo + la dueña. Baño desde ahí: «Milo · Karla Rojas», «¿Trae más mascotas?» con Molly; servicio de Milo «Baño con corte» con Molly en «Baño» → «Guardar 2 baños». Cancelado. CI verde.
