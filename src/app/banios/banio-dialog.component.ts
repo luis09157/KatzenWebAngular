@@ -130,6 +130,20 @@ export class BanioDialogComponent implements OnInit {
     else this.servicioExtra.delete(id);
   }
 
+  /** Resumen arriba (sin buscador / al editar): «Molly · Karla Rojas». Faltaban desde un refactor y salía solo «Mascota». */
+  get nombrePacienteSeleccionado(): string {
+    return String(this.banioForm.get('paciente')?.value || this.data?.paciente || this.data?.paciente_nombre || '').trim();
+  }
+
+  get nombreClienteSeleccionado(): string {
+    return String(this.banioForm.get('cliente')?.value || this.data?.cliente || this.data?.cliente_nombre || '').trim();
+  }
+
+  get tamanoPaciente(): string {
+    const t = String(this.banioForm.get('tamano_perro')?.value || '') as TamanoPerroBanio;
+    return (t && this.tamanoLabels[t]) || '';
+  }
+
   get nombreServicioPrincipal(): string {
     const v = String(this.banioForm.get('tipo_servicio')?.value || '');
     return buscarOpcionTipoServicioBanio(v)?.label || 'el de arriba';
