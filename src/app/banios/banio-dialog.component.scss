@@ -305,14 +305,64 @@
   color: #6b7280;
 }
 
-/* 2026-10-27 — servicio por mascota extra (una baño, otra baño con corte). */
-.admin-dialog-panel app-banio-dialog .banio-extra-servicios {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 4px 12px;
-  margin-top: 12px;
+/* 2026-10-28 — tarjeta por mascota (principal y extras) */
+.admin-dialog-panel app-banio-dialog .banio-mascota {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.admin-dialog-panel app-banio-dialog .banio-extra-servicio {
-  width: 100%;
+.admin-dialog-panel app-banio-dialog .banio-mascota--varias,
+.admin-dialog-panel app-banio-dialog .banio-mascota--extra {
+  margin: 12px 0;
+  padding: 14px 16px 6px;
+  border: 1px solid #d1fae5;
+  border-left: 5px solid #0f766e;
+  border-radius: 14px;
+  background: #fbfefd;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-mascota--extra {
+  border-color: #ede9fe;
+  border-left-color: #7c3aed;
+  background: #fdfcff;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-mascota__nombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+
+  mat-icon {
+    color: #0f766e;
+  }
+}
+
+.admin-dialog-panel app-banio-dialog .banio-mascota--extra .banio-mascota__nombre mat-icon {
+  color: #7c3aed;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-mascota__quitar {
+  margin-left: auto;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: #6b7280;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-mascota__campo {
+  width: 100% !important;
+  margin-top: 12px !important;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-comun {
+  margin-top: 16px;
 }

@@ -36,38 +36,11 @@
         <p class="entity-summary__meta" *ngIf="tamanoPaciente">Tamaño: {{ tamanoPaciente }}</p>
       </div>
 
-      <section class="form-section banio-extras" *ngIf="otrasMascotas.length" data-cy="banio-otras-mascotas">
-        <h3 class="form-section__title">¿Trae más mascotas?</h3>
-        <div class="banio-chips" role="group" aria-label="Otras mascotas del dueño">
-          <button
-            type="button"
-            class="banio-chip"
-            *ngFor="let m of otrasMascotas; trackBy: trackMascota"
-            [class.banio-chip--on]="mascotasExtra.has(m.id)"
-            [attr.aria-pressed]="mascotasExtra.has(m.id)"
-            (click)="toggleMascotaExtra(m.id)"
-          >
-            <mat-icon>{{ mascotasExtra.has(m.id) ? 'check' : 'add' }}</mat-icon>
-            {{ m.nombre }}
-          </button>
-        </div>
-        <div class="banio-extra-servicios" *ngIf="mascotasExtra.size">
-          <ng-container *ngFor="let m of otrasMascotas; trackBy: trackMascota">
-            <mat-form-field appearance="outline" *ngIf="mascotasExtra.has(m.id)" class="banio-extra-servicio">
-              <mat-label>Servicio de {{ m.nombre }}</mat-label>
-              <mat-select [value]="servicioDeExtra(m.id)" (selectionChange)="fijarServicioExtra(m.id, $event.value)">
-                <mat-option value="">Igual: {{ nombreServicioPrincipal }}</mat-option>
-                <mat-option *ngFor="let tipo of tiposServicioVisibles" [value]="tipo.value">{{ tipo.label }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </ng-container>
-        </div>
-        <p class="banio-tarifa-hint">
-          Tócalas para agregarlas. Se hace un baño por cada una, misma fecha y hora; si alguna lleva otro servicio, cámbialo
-          aquí. El precio de cada una se pone al terminar.
-        </p>
-      </section>
-
+      <!-- 2026-10-28 — tarjeta de la mascota principal: servicio, tamaño, precio y nota propios -->
+      <div class="banio-mascota" [class.banio-mascota--varias]="mascotasExtra.size > 0">
+        <h3 class="banio-mascota__nombre" *ngIf="mascotasExtra.size > 0">
+          <mat-icon aria-hidden="true">pets</mat-icon>{{ nombrePacienteSeleccionado || 'Mascota' }}
+        </h3>
       <div class="banio-alerta" *ngIf="alergiasPaciente.length" role="status">
         <mat-icon>warning</mat-icon>
         <span><strong>Alergias:</strong> {{ alergiasPaciente }}</span>
@@ -119,7 +92,129 @@
         <p class="banio-tarifa-hint" *ngIf="prefillHint">{{ prefillHint }}</p>
       </section>
 
-      <div class="form-grid form-grid--2">
+        <mat-form-field appearance="outline" class="banio-mascota__campo">
+          <mat-label>{{ nombrePacienteSeleccionado ? 'Precio de ' + nombrePacienteSeleccionado + ' (opcional)' : 'Precio (opcional)' }}</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="precio_total"
+            min="0"
+            step="1"
+            placeholder="Si aún no lo sabes, déjalo vacío"
+            (input)="onPrecioTotalManual()"
+          />
+          <span matTextPrefix>$&nbsp;</span>
+          <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="banio-mascota__campo">
+          <mat-label>{{ nombrePacienteSeleccionado ? 'Nota de ' + nombrePacienteSeleccionado + ' (opcional)' : 'Nota (opcional)' }}</mat-label>
+          <textarea
+            matInput
+            formControlName="observaciones"
+            rows="2"
+            placeholder="Algo que deban saber al bañarlo"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <section class="form-section banio-extras" *ngIf="otrasMascotas.length" data-cy="banio-otras-mascotas">
+        <h3 class="form-section__title">¿Trae más mascotas?</h3>
+        <div class="banio-chips" role="group" aria-label="Otras mascotas del dueño">
+          <button
+            type="button"
+            class="banio-chip"
+            *ngFor="let m of otrasMascotas; trackBy: trackMascota"
+            [class.banio-chip--on]="mascotasExtra.has(m.id)"
+            [attr.aria-pressed]="mascotasExtra.has(m.id)"
+            (click)="toggleMascotaExtra(m.id)"
+          >
+            <mat-icon>{{ mascotasExtra.has(m.id) ? 'check' : 'add' }}</mat-icon>
+            {{ m.nombre }}
+          </button>
+        </div>
+        <p class="banio-tarifa-hint">
+          Tócalas para agregarlas. Cada una tiene su tarjeta abajo con su servicio, precio y nota. Fecha y hora son las
+          mismas para todas.
+        </p>
+      </section>
+
+      <!-- Una tarjeta por mascota extra -->
+      <div
+        class="banio-mascota banio-mascota--extra"
+        *ngFor="let m of extrasElegidasLista; trackBy: trackMascota"
+        [attr.data-cy]="'banio-extra-' + m.nombre"
+      >
+        <h3 class="banio-mascota__nombre">
+          <mat-icon aria-hidden="true">pets</mat-icon>{{ m.nombre }}
+          <button type="button" class="banio-mascota__quitar" (click)="toggleMascotaExtra(m.id)" [attr.aria-label]="'Quitar a ' + m.nombre">
+            Quitar
+          </button>
+        </h3>
+
+        <section class="form-section">
+          <h3 class="form-section__title">Servicio de {{ m.nombre }}</h3>
+          <div class="banio-chips" role="group" [attr.aria-label]="'Servicio de ' + m.nombre">
+            <button
+              type="button"
+              class="banio-chip"
+              *ngFor="let tipo of tiposServicioVisibles"
+              [class.banio-chip--on]="servicioDeExtra(m.id) === tipo.value"
+              (click)="elegirServicioExtra(m.id, tipo.value)"
+            >
+              <mat-icon>{{ tipo.icon }}</mat-icon>
+              {{ tipo.label }}
+            </button>
+          </div>
+        </section>
+
+        <section class="form-section" *ngIf="necesitaTamanoExtra(m)">
+          <h3 class="form-section__title">Tamaño de {{ m.nombre }}</h3>
+          <p class="banio-tarifa-hint">Su ficha no tiene tamaño. Elígelo una vez y se guarda para la próxima.</p>
+          <div class="banio-chips" role="group" [attr.aria-label]="'Tamaño de ' + m.nombre">
+            <button
+              type="button"
+              class="banio-chip"
+              *ngFor="let fila of tamanosExtra"
+              [class.banio-chip--on]="extra(m.id).tamano === fila"
+              (click)="elegirTamanoExtra(m.id, fila)"
+            >
+              {{ filaTarifaLabels[fila] }}
+            </button>
+          </div>
+        </section>
+
+        <mat-form-field appearance="outline" class="banio-mascota__campo">
+          <mat-label>Precio de {{ m.nombre }} (opcional)</mat-label>
+          <input
+            matInput
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Si aún no lo sabes, déjalo vacío"
+            [ngModel]="extra(m.id).precio"
+            (ngModelChange)="onPrecioExtra(m.id, $event)"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <span matTextPrefix>$&nbsp;</span>
+          <mat-hint>{{ hintPrecioExtra(m.id) }}</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="banio-mascota__campo">
+          <mat-label>Nota de {{ m.nombre }} (opcional)</mat-label>
+          <textarea
+            matInput
+            rows="2"
+            placeholder="Algo que deban saber al bañarlo"
+            [ngModel]="extra(m.id).nota"
+            (ngModelChange)="onNotaExtra(m.id, $event)"
+            [ngModelOptions]="{ standalone: true }"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- De todas: fecha, hora, pagado y domicilio -->
+      <div class="form-grid form-grid--2 banio-comun">
         <mat-form-field appearance="outline">
           <mat-label>Fecha</mat-label>
           <input
@@ -143,21 +238,6 @@
           data-cy="banio-hora"
         >
         </app-timepicker-field>
-
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Precio (opcional)</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="precio_total"
-            min="0"
-            step="1"
-            placeholder="Si aún no lo sabes, déjalo vacío"
-            (input)="onPrecioTotalManual()"
-          />
-          <span matTextPrefix>$&nbsp;</span>
-          <mat-hint>{{ hintPrecioAlCliente }}</mat-hint>
-        </mat-form-field>
 
         <div class="form-section__checkbox full-span">
           <mat-checkbox formControlName="pagado" color="primary">Ya lo pagaron</mat-checkbox>
@@ -183,15 +263,6 @@
           <button mat-button type="button" color="primary" (click)="abrirCotizadorDomicilio()">Cambiar</button>
         </div>
 
-        <mat-form-field appearance="outline" class="full-span">
-          <mat-label>Nota (opcional)</mat-label>
-          <textarea
-            matInput
-            formControlName="observaciones"
-            rows="2"
-            placeholder="Algo que deban saber al bañarlo"
-          ></textarea>
-        </mat-form-field>
       </div>
     </mat-dialog-content>
 

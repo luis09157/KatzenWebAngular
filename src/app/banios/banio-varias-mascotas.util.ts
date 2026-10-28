@@ -1,6 +1,6 @@
 /**
  * 2026-10-27 — Un dueño trae varias mascotas al baño: se crea un baño por mascota
- * con el mismo servicio, fecha y hora. El precio de cada una se pone al terminar.
+ * con la misma fecha y hora; cada una con su servicio, precio, tamaño y nota.
  */
 
 export interface MascotaDelDueno {
@@ -35,30 +35,47 @@ function tamanoDe(p: Record<string, any>): string {
   return '';
 }
 
+export interface OpcionesMascotaExtra {
+  /** Servicio propio; vacío = el de la principal. */
+  servicio?: string | null;
+  /** Precio propio (opcional); null/vacío = «Falta el precio». */
+  precio?: number | null;
+  /** Nota propia; no se copia la de la principal. */
+  nota?: string | null;
+  /** Tamaño elegido en su tarjeta (si su ficha no tenía). */
+  tamano?: string | null;
+}
+
 /**
  * Datos del baño de una mascota extra a partir del baño principal.
- * Sin precio (cada mascota cuesta distinto), sin domicilio (es un solo viaje) y con sus propias alergias.
+ * Comparte con la principal: dueño, fecha, hora y «ya lo pagaron».
+ * El domicilio NO se copia (es un solo viaje: va en el baño principal).
+ * Servicio, precio, nota y tamaño son de cada mascota.
  */
 export function datosBanioMascotaExtra(
   base: Record<string, any>,
   mascota: MascotaDelDueno,
-  alergias: string[]
+  alergias: string[],
+  opts: OpcionesMascotaExtra = {}
 ): Record<string, any> {
+  const precio = Number(opts.precio);
+  const conPrecio = opts.precio !== null && opts.precio !== undefined && Number.isFinite(precio) && precio > 0;
   const datos: Record<string, any> = {
     ...base,
     paciente_id: mascota.id,
     paciente: mascota.nombre,
     alergias_conocidas: alergias,
-    precio_base: 0,
-    precio_total: 0,
-    pagado: false,
+    precio_base: conPrecio ? precio : 0,
+    precio_total: conPrecio ? precio : 0,
     servicios_adicionales: [],
+    observaciones: String(opts.nota || '').trim(),
   };
+  if (opts.servicio) datos['tipo_servicio'] = opts.servicio;
   delete datos['domicilio'];
   delete datos['costoEstimado'];
   delete datos['plantillaCostoId'];
   delete datos['id'];
-  const tamano = tamanoDe(mascota.raw);
+  const tamano = tamanoDe(mascota.raw) || String(opts.tamano || '').trim();
   if (tamano) datos['tamano_perro'] = tamano;
   else delete datos['tamano_perro'];
   return datos;
