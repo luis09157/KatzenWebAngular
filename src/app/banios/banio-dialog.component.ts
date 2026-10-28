@@ -48,8 +48,8 @@ import { ClientePacientePickerComponent } from '../shared/admin/cliente-paciente
 import { MascotaDelDueno, datosBanioMascotaExtra, otrasMascotasDelDueno } from './banio-varias-mascotas.util';
 
 interface DatosMascotaExtra {
-  /** '' = el mismo servicio que la principal. */
-  servicio: string;
+  /** Vacío = los mismos servicios que la principal. El primero es el principal del baño. */
+  servicios: string[];
   tamano: string;
   precio: number | null;
   precioManual: boolean;
@@ -58,6 +58,9 @@ interface DatosMascotaExtra {
   banios: BanioConPrecio[];
 }
 import {
+  esServicioCompletoBanio,
+  ordenarServiciosBanio,
+  serviciosExtraDeBanio,
   buscarOpcionTipoServicioBanio,
   opcionesTipoServicioAlta,
   tipoServicioPerteneceAlModo,
@@ -138,19 +141,80 @@ export class BanioDialogComponent implements OnInit {
   extra(id: string): DatosMascotaExtra {
     let d = this.datosExtra.get(id);
     if (!d) {
-      d = { servicio: '', tamano: '', precio: null, precioManual: false, nota: '', ultimo: null, banios: [] };
+      d = { servicios: [], tamano: '', precio: null, precioManual: false, nota: '', ultimo: null, banios: [] };
       this.datosExtra.set(id, d);
     }
     return d;
   }
 
-  /** Servicio de la mascota extra; si no se eligió, el de la principal. */
-  servicioDeExtra(id: string): string {
-    return this.datosExtra.get(id)?.servicio || String(this.banioForm.get('tipo_servicio')?.value || '');
+  /** 2026-10-28 — servicios de la principal: el del formulario + `servicios_adicionales` (uno o varios). */
+  get serviciosPrincipal(): string[] {
+    const t = String(this.banioForm.get('tipo_servicio')?.value || '');
+    return [t, ...serviciosExtraDeBanio(this.banioForm.value)].filter(Boolean);
   }
 
-  elegirServicioExtra(id: string, valor: string): void {
-    this.extra(id).servicio = valor;
+  servicioPrincipalElegido(valor: string): boolean {
+    return this.serviciosPrincipal.includes(valor);
+  }
+
+  /** Toca para agregar o quitar. El primero que se elige es el principal (el que manda el precio sugerido). */
+  toggleServicioPrincipal(valor: string): void {
+    const t = String(this.banioForm.get('tipo_servicio')?.value || '');
+    const ad = [...((this.banioForm.get('servicios_adicionales')?.value as any[]) || [])];
+    if (!t) {
+      this.elegirTipoServicio(valor);
+      return;
+    }
+    if (valor === t) {
+      const i = ad.findIndex((s) => s?.servicio && s.servicio !== 'otro' && buscarOpcionTipoServicioBanio(s.servicio));
+      if (i >= 0) {
+        const [siguiente] = ad.splice(i, 1);
+        this.banioForm.patchValue({ servicios_adicionales: ad });
+        this.elegirTipoServicio(String(siguiente.servicio));
+      } else {
+        this.banioForm.patchValue({ tipo_servicio: '' });
+      }
+      return;
+    }
+    const i = ad.findIndex((s) => s?.servicio === valor);
+    if (i >= 0) {
+      ad.splice(i, 1);
+      this.banioForm.patchValue({ servicios_adicionales: ad });
+      return;
+    }
+    // Si agregan un baño completo y el principal era suelto (uñas, rasurado…), el completo pasa a principal.
+    if (esServicioCompletoBanio(valor) && !esServicioCompletoBanio(t)) {
+      ad.unshift({ servicio: t, precio: 0 });
+      this.banioForm.patchValue({ servicios_adicionales: ad });
+      this.elegirTipoServicio(valor);
+      return;
+    }
+    ad.push({ servicio: valor, precio: 0 });
+    this.banioForm.patchValue({ servicios_adicionales: ad });
+  }
+
+  /** Servicios de la mascota extra; si no se eligieron, los de la principal. */
+  serviciosDeExtra(id: string): string[] {
+    const propios = this.datosExtra.get(id)?.servicios || [];
+    return propios.length ? propios : this.serviciosPrincipal;
+  }
+
+  /** Servicio principal de la extra (el primero). */
+  servicioDeExtra(id: string): string {
+    return this.serviciosDeExtra(id)[0] || '';
+  }
+
+  servicioExtraElegido(id: string, valor: string): boolean {
+    return this.serviciosDeExtra(id).includes(valor);
+  }
+
+  toggleServicioExtra(id: string, valor: string): void {
+    const d = this.extra(id);
+    const actuales = [...this.serviciosDeExtra(id)];
+    const i = actuales.indexOf(valor);
+    if (i >= 0) actuales.splice(i, 1);
+    else actuales.push(valor);
+    d.servicios = ordenarServiciosBanio(actuales);
     this.recalcularPrecioExtra(id);
   }
 
@@ -551,7 +615,7 @@ export class BanioDialogComponent implements OnInit {
     this.banioForm.patchValue({ tipo_servicio: value });
     // Las extras sin servicio propio siguen al de la principal: su precio sugerido cambia con él.
     for (const id of this.datosExtra.keys()) {
-      if (!this.datosExtra.get(id)?.servicio) this.recalcularPrecioExtra(id);
+      if (!this.datosExtra.get(id)?.servicios.length) this.recalcularPrecioExtra(id);
     }
     // Primero el precio que se le cobró antes a esta mascota; si no hay, tarifa / defaults por tamaño.
     if (this.aplicarPrecioAnterior()) return;
@@ -1229,6 +1293,7 @@ export class BanioDialogComponent implements OnInit {
                 const d = this.extra(mascota.id);
                 const extra = datosBanioMascotaExtra(datosLimpios, mascota, normalizeAlergias(mascota.raw), {
                   servicio: this.servicioDeExtra(mascota.id),
+                  serviciosExtra: this.serviciosDeExtra(mascota.id).slice(1),
                   precio: d.precio,
                   nota: d.nota,
                   tamano: d.tamano,

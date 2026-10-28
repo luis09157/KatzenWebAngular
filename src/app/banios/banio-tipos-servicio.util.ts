@@ -123,3 +123,34 @@ function etiquetaSuelta(tipo: string): string {
   const limpio = tipo.replace(/_/g, ' ');
   return limpio.charAt(0).toUpperCase() + limpio.slice(1);
 }
+
+/** Servicios extra guardados en `servicios_adicionales` (solo los del catálogo o con nombre). */
+export function serviciosExtraDeBanio(banio: { servicios_adicionales?: unknown } | null | undefined): string[] {
+  const lista = Array.isArray(banio?.servicios_adicionales) ? (banio!.servicios_adicionales as any[]) : [];
+  return lista
+    .map((s) => String(s?.servicio === 'otro' ? s?.servicioPersonalizado || '' : s?.servicio || '').trim())
+    .filter(Boolean);
+}
+
+/**
+ * 2026-10-28 — «Baño + Corte de Uñas»: el servicio principal más los extras.
+ * Sin extras devuelve '' para que el llamador conserve su texto de siempre.
+ */
+export function etiquetaServiciosBanio(banio: { tipo_servicio?: unknown; servicios_adicionales?: unknown } | null | undefined): string {
+  const extras = serviciosExtraDeBanio(banio);
+  if (!extras.length) return '';
+  const nombre = (v: string) => buscarOpcionTipoServicioBanio(v)?.label || etiquetaSuelta(v);
+  const principal = String(banio?.tipo_servicio || '').trim();
+  return [principal, ...extras].filter(Boolean).map(nombre).join(' + ');
+}
+
+/** El servicio «completo» (baño, baño con corte…) manda sobre los sueltos (uñas, rasurado…). */
+export function esServicioCompletoBanio(tipo: string): boolean {
+  return TIPOS_SERVICIO_COMPLETO.some((o) => o.value === tipo);
+}
+
+/** Ordena para que el primero sea el principal: completos primero, sin cambiar el orden entre ellos. */
+export function ordenarServiciosBanio(servicios: string[]): string[] {
+  const unicos = [...new Set((servicios || []).filter(Boolean))];
+  return [...unicos.filter(esServicioCompletoBanio), ...unicos.filter((s) => !esServicioCompletoBanio(s))];
+}

@@ -35,3 +35,10 @@ Luis: «todos tendrán diferentes precios… nota opcional por cada uno… ya lo
 - Abajo, para todas: fecha, hora, «Ya lo pagaron» (aplica a todas) y «Es a domicilio» (solo el baño principal lleva el domicilio: un viaje).
 - `datosBanioMascotaExtra(base, m, alergias, {servicio, precio, nota, tamano})` (+2 tests). Ya no copia la nota de la principal.
 - QA preview (2026-10-28, sin guardar): Coco (Alejandra) principal + Maruca extra. Tarjeta Coco (verde) y Maruca (morada) con «Quitar». Maruca: «Precio de Maruca» = $280 sugerido («La última vez (28/10/2026) se cobró $280…»), tamaño pedido, nota propia. Coco «Baño», Maruca «Baño con corte» independientes → «Guardar 2 baños». 412: diálogo 400 px, sin scroll lateral. Cancelado. CI verde.
+
+## Uno o varios servicios por mascota (2026-10-28)
+Luis: «sí me interesa que pueda ser 1 o n de servicios».
+- Chips de servicio = agregar/quitar (principal y extras). El primero es `tipo_servicio`; los demás van a `servicios_adicionales` ({servicio, precio: 0}) — campo existente; el precio sigue siendo uno por mascota.
+- Listado, detalle y cobro (caja / ticket) muestran «Baño + Corte de Uñas» (`etiquetaServiciosBanio`, +test).
+- El baño completo queda como principal aunque se toque después (`ordenarServiciosBanio`, +test).
+- QA preview (2026-10-28, sin guardar): Coco «Baño + Corte de Uñas»; Maruca extra hereda ambos y se cambia sola a «Corte de Uñas + Baño con corte» ($280 sugerido). Maruca principal: «Corte de Uñas» y luego «Baño» → precio $280 «por este servicio». Cancelado. CI verde.

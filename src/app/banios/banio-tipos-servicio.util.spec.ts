@@ -1,4 +1,6 @@
 import {
+  etiquetaServiciosBanio,
+  ordenarServiciosBanio,
   etiquetaTipoServicioBanioNuevo,
   leyendaCobroBanio,
   opcionesTipoServicioAlta,
@@ -81,5 +83,20 @@ describe('banio-tipos-servicio.util (spec 085)', () => {
     expect(leyendaCobroBanio({ precio_total: null, pagado: true })).toBe('falta_precio');
     expect(leyendaCobroBanio({ precio_total: 80, pagado: false })).toBe('por_cobrar');
     expect(leyendaCobroBanio({ precio_total: 80, pagado: true })).toBe('pagado');
+  });
+
+  it('etiqueta con varios servicios: «Baño + Corte de Uñas»', () => {
+    expect(
+      etiquetaServiciosBanio({ tipo_servicio: 'baño', servicios_adicionales: [{ servicio: 'corte_uñas', precio: 0 }] })
+    ).toBe('Baño + Corte de Uñas');
+    expect(etiquetaServiciosBanio({ tipo_servicio: 'baño', servicios_adicionales: [] })).toBe('');
+    expect(
+      etiquetaServiciosBanio({ tipo_servicio: 'baño', servicios_adicionales: [{ servicio: 'otro', servicioPersonalizado: 'Perfume' }] })
+    ).toBe('Baño + Perfume');
+  });
+
+  it('el baño completo queda primero aunque se toque después', () => {
+    expect(ordenarServiciosBanio(['corte_uñas', 'baño', 'corte_uñas'])).toEqual(['baño', 'corte_uñas']);
+    expect(ordenarServiciosBanio(['rasurado_higienico'])).toEqual(['rasurado_higienico']);
   });
 });
