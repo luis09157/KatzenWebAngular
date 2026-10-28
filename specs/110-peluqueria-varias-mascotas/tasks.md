@@ -20,3 +20,11 @@ Cita del 28/10 a las 18:00 salía en «Jueves 29/10». `fecha` se guarda en UTC 
 - `normalizeFechaIso` y `fechaIsoLocalDeValor`: un instante con zona se pasa a día local.
 - `fechaLocalCita` (cita-agenda.util) — `fecha` manda; Cierre del día, Por cobrar hoy y tickets desde cita la usan.
 - `cita-dialog`: `fecha_hora` se guarda en hora local (antes UTC sin zona). Sin migrar datos: las 15 citas existentes se leen bien por `fecha`.
+
+## Servicio por mascota y «Llegó un paciente» por mascota (2026-10-27, noche)
+Luis: «uno solo viene a baño y el otro a baño y corte y me los agenda igual»; «Llegó un paciente también es búsqueda por dueño».
+- Nuevo baño: al marcar otra mascota sale «Servicio de {mascota}» (por defecto «Igual: {servicio}»). Cada baño se guarda con su servicio.
+- «¿Trae más mascotas?» también desde «Llegó un paciente» / expediente (sin buscador): carga las mascotas del dueño.
+- «Llegó un paciente»: paso 1 = un buscador de mascota (también por dueño o teléfono). Elegir mascota → dueño se llena y salta a «¿Qué viene a hacer?». Elegir dueño → paso 2 como antes. «Dueño nuevo» igual.
+- Resumen del baño (sin buscador / editar): vuelve «Molly · Karla Rojas» (los getters se habían perdido en un refactor; salía solo «Mascota»).
+- QA preview (sin guardar): «Llegó un paciente» → «Molly» lista 4 Molly con su dueño; elegir la de Karla Rojas → paso 3 directo. «Karla Rojas» → Molly y Milo + la dueña. Baño desde ahí: «Milo · Karla Rojas», «¿Trae más mascotas?» con Molly; servicio de Milo «Baño con corte» con Molly en «Baño» → «Guardar 2 baños». Cancelado. CI verde.

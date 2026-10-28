@@ -15,8 +15,13 @@ import { Cliente, Paciente } from '../core/models';
 import { getClienteDisplayLabel, getClienteNombreCompleto } from '../core/utils/cliente-search.util';
 import {
   filtrarPacientesDelCliente,
+  filtrarPacientesPickerDual,
+  getPacienteBusquedaExpedienteLabel,
+  getPacienteNombre,
   getPacientePickerRazaEdadLabel,
+  ordenarPacientesPorNombre,
 } from '../core/utils/paciente-search.util';
+import { getPacienteClienteId } from '../core/utils/paciente-cliente.util';
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { filtrarClientesTelefonoPrimero } from '../shared/admin/cliente-picker-search.util';
@@ -38,10 +43,12 @@ export interface AccionChip {
 export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   paso = 1;
-  clienteSearch = new FormControl<string | Cliente>('');
+  /** 2026-10-27 — se busca por mascota (también por dueño o teléfono), como en todo el sistema. */
+  clienteSearch = new FormControl<string | Cliente | Paciente>('');
   clientes: Cliente[] = [];
   pacientes: Paciente[] = [];
   filteredClientes!: Observable<Cliente[]>;
+  filteredMascotas!: Observable<Paciente[]>;
   cliente: Cliente | null = null;
   paciente: Paciente | null = null;
   avanzando = false;
@@ -68,7 +75,21 @@ export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.filteredClientes = this.clienteSearch.valueChanges.pipe(
       startWith(''),
-      map((value) => filtrarClientesTelefonoPrimero(this.clientes, this.textoBusqueda(value)))
+      map((value) => {
+        const q = this.textoBusqueda(value).trim();
+        return q ? filtrarClientesTelefonoPrimero(this.clientes, q).slice(0, 8) : [];
+      })
+    );
+    this.filteredMascotas = this.clienteSearch.valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        const q = this.textoBusqueda(value).trim();
+        if (!q) return [];
+        return ordenarPacientesPorNombre(
+          filtrarPacientesPickerDual(this.pacientes, null, q, (p) => this.duenoParaBuscar(p)),
+          q
+        ).slice(0, 30);
+      })
     );
     this.clientesService
       .getClientes()
@@ -101,10 +122,61 @@ export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
     return !!this.cliente?.id && !!this.paciente?.id;
   }
 
-  displayCliente = (c: Cliente | string | null): string => {
+  displayCliente = (c: Cliente | Paciente | string | null): string => {
     if (!c || typeof c === 'string') return typeof c === 'string' ? c : '';
-    return getClienteDisplayLabel(c);
+    if (this.esPaciente(c)) return getPacienteNombre(c as Paciente);
+    return getClienteDisplayLabel(c as Cliente);
   };
+
+  /** Opción de mascota: nombre en negritas + «especie · raza · edad · dueño». */
+  nombreOpcionMascota(p: Paciente): string {
+    return getPacienteNombre(p) || 'Sin nombre';
+  }
+
+  detalleOpcionMascota(p: Paciente): string {
+    const full = getPacienteBusquedaExpedienteLabel(p, this.nombreDuenoDe(p));
+    const nombre = this.nombreOpcionMascota(p);
+    return full.startsWith(`${nombre} `) ? full.slice(nombre.length).trim() : full;
+  }
+
+  /** Elegir la mascota llena el dueño solo y pasa directo a «¿Qué viene a hacer?». */
+  elegirOpcion(valor: Cliente | Paciente): void {
+    if (!valor) return;
+    if (!this.esPaciente(valor)) {
+      this.elegirCliente(valor as Cliente);
+      this.paso = 2;
+      return;
+    }
+    const p = valor as Paciente;
+    const dueno = this.clientes.find((c) => String(c.id) === getPacienteClienteId(p));
+    if (!dueno) {
+      Swal.fire('Mascota sin dueño', 'Esta mascota no tiene dueño registrado. Búscala por el dueño o regístralo.', 'info');
+      this.clienteSearch.setValue('', { emitEvent: true });
+      return;
+    }
+    this.cliente = dueno;
+    this.paciente = p;
+    this.clienteSearch.setValue(p, { emitEvent: false });
+    this.paso = 3;
+  }
+
+  /** Las opciones de mascota salen de `pacientes`: se distinguen por referencia (no por campos). */
+  private esPaciente(v: unknown): boolean {
+    return !!v && typeof v === 'object' && this.pacientes.includes(v as Paciente);
+  }
+
+  private nombreDuenoDe(p: Paciente): string {
+    const id = getPacienteClienteId(p);
+    const c = id ? this.clientes.find((x) => String(x.id) === id) : undefined;
+    return c ? getClienteNombreCompleto(c) : '';
+  }
+
+  /** Nombre y teléfono del dueño: también se encuentra la mascota escribiendo cualquiera de los dos. */
+  private duenoParaBuscar(p: Paciente): string {
+    const id = getPacienteClienteId(p);
+    const c = id ? this.clientes.find((x) => String(x.id) === id) : undefined;
+    return c ? `${getClienteNombreCompleto(c)} ${String(c.telefono || '')}`.trim() : '';
+  }
 
   nombreCliente(c: Cliente | null): string {
     return getClienteNombreCompleto(c);
@@ -222,10 +294,11 @@ export class AltaRapidaDialogComponent implements OnInit, OnDestroy {
     this.dialogRef.close();
   }
 
-  private textoBusqueda(value: string | Cliente | null): string {
+  private textoBusqueda(value: string | Cliente | Paciente | null): string {
     if (!value) return '';
     if (typeof value === 'string') return value;
-    return getClienteNombreCompleto(value);
+    if (this.esPaciente(value)) return getPacienteNombre(value as Paciente);
+    return getClienteNombreCompleto(value as Cliente);
   }
 }
 

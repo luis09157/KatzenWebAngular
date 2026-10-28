@@ -304,3 +304,15 @@
   font-size: 0.8125rem;
   color: #6b7280;
 }
+
+/* 2026-10-27 — servicio por mascota extra (una baño, otra baño con corte). */
+.admin-dialog-panel app-banio-dialog .banio-extra-servicios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+
+.admin-dialog-panel app-banio-dialog .banio-extra-servicio {
+  width: 100%;
+}
