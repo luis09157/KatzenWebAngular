@@ -1,3 +1,4 @@
+import { normalizeFechaIso } from '../core/utils/periodo-filtro.util';
 import { bloquearCobroDirectoEnCaja, vinculadoATicketVisita } from '../core/utils/cobro-integridad.util';
 import { descripcionCobroPension } from '../pension/pension-cobro.util';
 import { esBanioEnColaMostradorHoy } from './banio-cola-mostrador.util';
@@ -6,7 +7,7 @@ import { PorCobrarInput, PorCobrarItem } from './por-cobrar-hoy.models';
 
 function fechaIso(val: string | undefined | null): string {
   if (!val) return '';
-  return String(val).slice(0, 10);
+  return normalizeFechaIso(String(val)) || String(val).slice(0, 10);
 }
 
 /** Agrega ítems «por cobrar hoy» desde fuentes clínicas y tickets. */
@@ -61,7 +62,7 @@ export function buildPorCobrarHoy(input: PorCobrarInput): PorCobrarItem[] {
     if (c.activo === false) continue;
     if (bloquearCobroDirectoEnCaja(c)) continue;
     if (String(c.estado || '').toLowerCase() !== 'completada') continue;
-    const f = fechaIso(c.fecha_hora || c.fecha);
+    const f = fechaIso(c.fecha || c.fecha_hora);
     if (f !== hoy || !c.id || !c.cliente_id) continue;
     items.push({
       key: `cita-${c.id}`,

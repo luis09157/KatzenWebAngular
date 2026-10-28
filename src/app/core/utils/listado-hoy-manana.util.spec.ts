@@ -83,3 +83,16 @@ describe('listado-hoy-manana.util (085 / 061)', () => {
     expect(metaListadoHoyManana({ visibles: 0, totales: 0 })).toBe('');
   });
 });
+
+describe('listadoFechaIso con zona (2026-10-27)', () => {
+  it('una cita 18:00 en Monterrey (00:00Z del día siguiente) cae en su día local', () => {
+    const local = new Date(2026, 9, 28, 18, 0);
+    const iso = local.toISOString();
+    expect(listadoFechaIso(iso)).toBe('2026-10-28');
+  });
+
+  it('las fechas sin zona no cambian', () => {
+    expect(listadoFechaIso('2026-10-28')).toBe('2026-10-28');
+    expect(listadoFechaIso('2026-10-28T23:30')).toBe('2026-10-28');
+  });
+});

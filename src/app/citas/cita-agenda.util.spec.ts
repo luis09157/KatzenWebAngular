@@ -1,4 +1,5 @@
 import {
+  fechaLocalCita,
   CITA_DURACION_DEFAULT_MIN,
   findVeterinarioOverlap,
   intervalsOverlap,
@@ -115,5 +116,17 @@ describe('cita-agenda.util', () => {
       expect(d.getHours()).toBe(14);
       expect(d.getMinutes()).toBe(30);
     });
+  });
+});
+
+describe('fechaLocalCita (2026-10-27)', () => {
+  it('usa el día local de `fecha` aunque `fecha_hora` viejo diga el día UTC', () => {
+    const local = new Date(2026, 9, 28, 18, 0);
+    const cita = { fecha: local.toISOString(), fecha_hora: local.toISOString().slice(0, 16) };
+    expect(fechaLocalCita(cita)).toBe('2026-10-28');
+  });
+
+  it('sin `fecha` usa `fecha_hora`', () => {
+    expect(fechaLocalCita({ fecha_hora: '2026-10-28T18:00' })).toBe('2026-10-28');
   });
 });

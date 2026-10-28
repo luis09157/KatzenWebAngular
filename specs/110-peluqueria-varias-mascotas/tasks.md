@@ -14,3 +14,9 @@
 - Lista: baños sin precio muestran ▶ Iniciar; «Terminar y cobrar ahora» pregunta «¿Cuánto se cobra por Coco?». Cancelado.
 - 412: chips y hora en una columna, sin scroll lateral.
 - CI verde (Lint · Test · Build).
+
+## Arreglo de fechas de citas (2026-10-27)
+Cita del 28/10 a las 18:00 salía en «Jueves 29/10». `fecha` se guarda en UTC con Z (18:00 MTY = 00:00Z del 29) y la lista tomaba los 10 primeros caracteres.
+- `normalizeFechaIso` y `fechaIsoLocalDeValor`: un instante con zona se pasa a día local.
+- `fechaLocalCita` (cita-agenda.util) — `fecha` manda; Cierre del día, Por cobrar hoy y tickets desde cita la usan.
+- `cita-dialog`: `fecha_hora` se guarda en hora local (antes UTC sin zona). Sin migrar datos: las 15 citas existentes se leen bien por `fecha`.

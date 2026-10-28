@@ -370,7 +370,9 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       const [horas, minutos] = formValue.hora.split(':');
       fecha.setHours(parseInt(horas, 10), parseInt(minutos, 10));
       formValue.fecha = fecha.toISOString();
-      formValue.fecha_hora = fecha.toISOString().slice(0, 16);
+      // Hora de reloj local (antes se guardaba en UTC: 18:00 MTY quedaba «día siguiente 00:00»).
+      const p2 = (n: number) => String(n).padStart(2, '0');
+      formValue.fecha_hora = `${fecha.getFullYear()}-${p2(fecha.getMonth() + 1)}-${p2(fecha.getDate())}T${p2(fecha.getHours())}:${p2(fecha.getMinutes())}`;
     }
 
     formValue.veterinario = String(formValue.veterinario || '').trim();

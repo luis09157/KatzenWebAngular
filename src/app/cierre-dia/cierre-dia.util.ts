@@ -21,7 +21,7 @@ const s = (v: unknown) => String(v ?? '').trim();
 
 function fechaDe(...vals: unknown[]): string {
   for (const v of vals) {
-    const f = normalizeFechaIso(s(v).slice(0, 10)) || normalizeFechaIso(s(v));
+    const f = normalizeFechaIso(s(v));
     if (f) return f;
   }
   return '';
@@ -55,7 +55,8 @@ export function pendientesDeDiasPasados(
     if (!c || c['activo'] === false) continue;
     const estado = s(c['estado']).toLowerCase();
     if (estado !== 'pendiente' && estado !== 'confirmada') continue;
-    const fecha = fechaDe(c['fecha_hora'], c['fecha']);
+    // `fecha` es el instante real (UTC con Z); `fecha_hora` viejo quedó en UTC sin zona.
+    const fecha = fechaDe(c['fecha'], c['fecha_hora']);
     if (!fecha || fecha >= hoyIso) continue;
     out.push({
       tipo: 'cita',

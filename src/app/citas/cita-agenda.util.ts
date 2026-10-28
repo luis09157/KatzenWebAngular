@@ -1,3 +1,4 @@
+import { normalizeFechaIso } from '../core/utils/periodo-filtro.util';
 /**
  * Lógica pura de agenda de citas (solapamiento / duración).
  * Probable con mocks locales — sin Firebase.
@@ -25,6 +26,14 @@ export function resolveDuracionMinutos(cita: CitaAgendaLike | null | undefined):
     return CITA_DURACION_DEFAULT_MIN;
   }
   return Math.floor(n);
+}
+
+/**
+ * Día local (`YYYY-MM-DD`) de una cita. `fecha` es un instante UTC (con Z) y manda;
+ * `fecha_hora` es respaldo (en citas viejas quedó en UTC sin zona).
+ */
+export function fechaLocalCita(cita: { fecha?: string | null; fecha_hora?: string | null } | null | undefined): string {
+  return normalizeFechaIso(cita?.fecha || '') || normalizeFechaIso(cita?.fecha_hora || '') || '';
 }
 
 /** Inicio de la cita en epoch ms; null si no se puede parsear. */

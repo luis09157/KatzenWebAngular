@@ -28,6 +28,7 @@ import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { TOOLTIP_ATENDER_SIN_PACIENTE, puedeAtenderCita, pacienteIdDeCita } from './cita-atender.util';
+import { fechaLocalCita } from './cita-agenda.util';
 import { coincidenciaTextoListado, fechaHoyListadoLocal, listadoFechaIso } from '../core/utils/listado-hoy-manana.util';
 import { ClasificadorAgenda, FiltroAgenda } from '../core/utils/agenda-filtros.util';
 import { AgendaListadoState } from '../shared/admin/agenda-listado.state';
@@ -757,7 +758,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         monto,
         categoria: 'consulta',
         citaId: cita.id,
-        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
+        fecha: fechaLocalCita(cita) || undefined,
       });
       await this.citasService.guardarCita({ ...cita, visitaId });
       const visita = await this.visitasService.getVisita(visitaId);
@@ -855,7 +856,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
         categoria: 'consulta',
         citaId: cita.id,
         historialId,
-        fecha: (cita.fecha_hora || cita.fecha || '').toString().slice(0, 10) || undefined,
+        fecha: fechaLocalCita(cita) || undefined,
       });
       await this.citasService.guardarCita({ ...cita, visitaId });
       const visita = await this.visitasService.getVisita(visitaId);

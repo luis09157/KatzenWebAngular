@@ -85,6 +85,12 @@ export function fechaEnRango(fechaRaw: string | undefined | null, rango: Periodo
 export function normalizeFechaIso(fechaRaw: string | undefined | null): string | null {
   if (!fechaRaw) return null;
   const s = String(fechaRaw).trim();
+  // Instante con zona (`…T00:00:00.000Z`, `…-06:00`): el día es el LOCAL, no el de UTC.
+  // Una cita a las 18:00 en Monterrey se guarda como 00:00Z del día siguiente (2026-10-27).
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/i.test(s)) {
+    const z = new Date(s);
+    if (!isNaN(z.getTime())) return formatLocalDate(z);
+  }
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
   // dd/mm/aaaa (algunos tickets y cobros se guardaron así; `new Date` lo lee al revés o inválido) — 2026-10-26.
   const dmy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s);
