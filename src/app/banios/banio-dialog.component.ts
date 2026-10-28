@@ -58,6 +58,8 @@ interface DatosMascotaExtra {
   banios: BanioConPrecio[];
 }
 import {
+  esServicioCompletoBanio,
+  ordenarServiciosBanio,
   serviciosExtraDeBanio,
   buscarOpcionTipoServicioBanio,
   opcionesTipoServicioAlta,
@@ -175,8 +177,19 @@ export class BanioDialogComponent implements OnInit {
       return;
     }
     const i = ad.findIndex((s) => s?.servicio === valor);
-    if (i >= 0) ad.splice(i, 1);
-    else ad.push({ servicio: valor, precio: 0 });
+    if (i >= 0) {
+      ad.splice(i, 1);
+      this.banioForm.patchValue({ servicios_adicionales: ad });
+      return;
+    }
+    // Si agregan un baño completo y el principal era suelto (uñas, rasurado…), el completo pasa a principal.
+    if (esServicioCompletoBanio(valor) && !esServicioCompletoBanio(t)) {
+      ad.unshift({ servicio: t, precio: 0 });
+      this.banioForm.patchValue({ servicios_adicionales: ad });
+      this.elegirTipoServicio(valor);
+      return;
+    }
+    ad.push({ servicio: valor, precio: 0 });
     this.banioForm.patchValue({ servicios_adicionales: ad });
   }
 
@@ -201,7 +214,7 @@ export class BanioDialogComponent implements OnInit {
     const i = actuales.indexOf(valor);
     if (i >= 0) actuales.splice(i, 1);
     else actuales.push(valor);
-    d.servicios = actuales;
+    d.servicios = ordenarServiciosBanio(actuales);
     this.recalcularPrecioExtra(id);
   }
 

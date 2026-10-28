@@ -143,3 +143,14 @@ export function etiquetaServiciosBanio(banio: { tipo_servicio?: unknown; servici
   const principal = String(banio?.tipo_servicio || '').trim();
   return [principal, ...extras].filter(Boolean).map(nombre).join(' + ');
 }
+
+/** El servicio «completo» (baño, baño con corte…) manda sobre los sueltos (uñas, rasurado…). */
+export function esServicioCompletoBanio(tipo: string): boolean {
+  return TIPOS_SERVICIO_COMPLETO.some((o) => o.value === tipo);
+}
+
+/** Ordena para que el primero sea el principal: completos primero, sin cambiar el orden entre ellos. */
+export function ordenarServiciosBanio(servicios: string[]): string[] {
+  const unicos = [...new Set((servicios || []).filter(Boolean))];
+  return [...unicos.filter(esServicioCompletoBanio), ...unicos.filter((s) => !esServicioCompletoBanio(s))];
+}

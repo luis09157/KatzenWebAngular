@@ -1,5 +1,6 @@
 import {
   etiquetaServiciosBanio,
+  ordenarServiciosBanio,
   etiquetaTipoServicioBanioNuevo,
   leyendaCobroBanio,
   opcionesTipoServicioAlta,
@@ -92,5 +93,10 @@ describe('banio-tipos-servicio.util (spec 085)', () => {
     expect(
       etiquetaServiciosBanio({ tipo_servicio: 'baño', servicios_adicionales: [{ servicio: 'otro', servicioPersonalizado: 'Perfume' }] })
     ).toBe('Baño + Perfume');
+  });
+
+  it('el baño completo queda primero aunque se toque después', () => {
+    expect(ordenarServiciosBanio(['corte_uñas', 'baño', 'corte_uñas'])).toEqual(['baño', 'corte_uñas']);
+    expect(ordenarServiciosBanio(['rasurado_higienico'])).toEqual(['rasurado_higienico']);
   });
 });
