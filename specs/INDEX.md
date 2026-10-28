@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **110** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `implementado`: 2 · `código`: 1
+Total: **111** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `implementado`: 3 · `código`: 1
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -118,3 +118,4 @@ Total: **110** specs · `done`: 87 · `in_progress`: 17 · `superseded`: 3 · `i
 | 110 | [peluqueria-varias-mascotas](110-peluqueria-varias-mascotas/spec.md) | Spec 110 — Peluquería: varias mascotas, hora, precio al final y cepillado | implementado · **Nivel:** L2 (UI/lógica, sin cambios de reglas ni nodos nuevos) |
 | 111 | [para-avisar-hoy](111-para-avisar-hoy/spec.md) | Spec 111 — Etapa B: «Para avisar hoy» | implementado · **Nivel:** L2 (UI/lógica; campos opcionales aditivos; sin nodos, reglas ni functions) · **Pidió:** Luis (2026-10-27, «continua con la etapa b… no pegarle ni modificar cosas que ya funcionan») |
 | 112 | [pausa-avisos-dueno](112-pausa-avisos-dueno/spec.md) | Spec 112 — Pausa de avisos automáticos al dueño (interruptor) | código listo · deploy de `functions:fcm` lo corre Luis · **Nivel:** L3 (functions) · **Pidió:** Luis (2026-10-27: «que aún no se manden automáticamente porque seguimos en pruebas»; autorizó revisar y pausar) |
+| 113 | [etapa-c-hoy-trabajo](113-etapa-c-hoy-trabajo/spec.md) | Spec 113 — Etapa C: Hoy como lista de trabajo y pantallas más claras | implementado · **Nivel:** L2 (solo UI; sin datos) · **Pidió:** Luis (2026-10-27, «continua ahorita» con la Etapa C del documento de análisis) |

@@ -14,13 +14,6 @@
       </div>
     </app-admin-page-banner>
 
-    <app-flow-hint
-      hintId="citas-listado"
-      icon="event"
-      message="Agenda la cita con dueño y mascota. Al completarla, agrégala al ticket del día desde el menú ⋮ — no cobres aquí en caja."
-      variant="info"
-    >
-    </app-flow-hint>
 
     <app-admin-data-panel
       accent="purple"
@@ -177,7 +170,7 @@
           <th mat-header-cell *matHeaderCellDef>Veterinario</th>
           <td mat-cell *matCellDef="let cita">
             <span class="tag tag-muted" *ngIf="cita.veterinario; else sinVet"
-              >Atendido por · {{ cita.veterinario }}</span
+              >Veterinario · {{ cita.veterinario }}</span
             >
             <ng-template #sinVet><span class="tag tag-muted">N/P</span></ng-template>
           </td>
