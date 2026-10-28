@@ -3,7 +3,9 @@
 export function fechaIsoLocalDeValor(raw: unknown): string | null {
   if (!raw) return null;
   const s = String(raw);
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Instante con zona (Z / ±hh:mm) → día local, no el de UTC (cita 18:00 MTY = 00:00Z del día siguiente).
+  const conZona = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/i.test(s);
+  if (!conZona && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
   const d = new Date(s);
   if (isNaN(d.getTime())) return null;
   const y = d.getFullYear();
