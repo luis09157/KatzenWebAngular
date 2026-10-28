@@ -144,6 +144,45 @@ export class BanioDialogComponent implements OnInit {
     return (t && this.tamanoLabels[t]) || '';
   }
 
+  /** Spec 114 (A6) — tamaño que ya tiene la ficha de la mascota ('' = no tiene). */
+  private tamanoMascotaGuardado: string | null = null;
+
+  private esPerro(): boolean {
+    const e = this.especiePaciente.toLowerCase();
+    return e.includes('can') || e.includes('perr');
+  }
+
+  /** Perro sin tamaño en su ficha: se pide aquí una sola vez y se guarda en la ficha. */
+  get pideTamanoUnaVez(): boolean {
+    return !this.esEdicion && !this.hidePatientInfo && this.tamanoMascotaGuardado === '' && this.esPerro();
+  }
+
+  get muestraTamano(): boolean {
+    return this.hayTarifas || this.pideTamanoUnaVez;
+  }
+
+  get filasTamanoVisibles(): FilaTarifaPeluqueria[] {
+    return this.hayTarifas ? this.filasTarifa : this.filasTarifa.filter((f) => f !== 'gato');
+  }
+
+  private registrarTamanoMascota(p: Record<string, any> | null | undefined): void {
+    if (!p) return;
+    if (!this.especiePaciente) this.especiePaciente = String(p['especie'] || '');
+    const raw = String(p['tamano_perro'] || p['tamano'] || '').trim();
+    this.tamanoMascotaGuardado = raw;
+  }
+
+  /** Guarda en la ficha el tamaño elegido si la mascota no tenía (aditivo: `tamano_perro`). */
+  private async guardarTamanoEnFicha(pacienteId: string): Promise<void> {
+    const t = String(this.banioForm.get('tamano_perro')?.value || '');
+    if (!pacienteId || !t || this.tamanoMascotaGuardado !== '' || !this.esPerro()) return;
+    try {
+      await this.pacientesService.actualizarPaciente(pacienteId, { tamano_perro: t } as any);
+    } catch (err) {
+      console.warn('No se pudo guardar el tamaño en la ficha:', err);
+    }
+  }
+
   get nombreServicioPrincipal(): string {
     const v = String(this.banioForm.get('tipo_servicio')?.value || '');
     return buscarOpcionTipoServicioBanio(v)?.label || 'el de arriba';
@@ -743,6 +782,8 @@ export class BanioDialogComponent implements OnInit {
     if (sel.paciente_id) this.mascotasExtra.delete(String(sel.paciente_id));
     this.clienteDomicilio = (sel.clienteData as Cliente) || null;
     this.especiePaciente = String(sel.pacienteData?.['especie'] || '');
+    this.tamanoMascotaGuardado = null;
+    if (sel.pacienteData) this.registrarTamanoMascota(sel.pacienteData as any);
     this.baniosMascota = [];
     this.precioAnterior = null;
     if (sel.paciente_id) {
@@ -788,6 +829,7 @@ export class BanioDialogComponent implements OnInit {
     }
     try {
       const paciente = await firstValueFrom(this.pacientesService.getPaciente(pacienteId).pipe(take(1)));
+      if (!this.esEdicion && this.tamanoMascotaGuardado === null) this.registrarTamanoMascota(paciente as any);
       const fromMascota = normalizeAlergias(paciente);
       this.setAlergiasPaciente(fromMascota.length ? fromMascota : fallbackBanio);
     } catch {
@@ -1095,6 +1137,7 @@ export class BanioDialogComponent implements OnInit {
           .then(async (nuevoId: string) => {
             const pid = String(datosLimpios.paciente_id || this.banioForm.get('paciente_id')?.value || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
+            await this.guardarTamanoEnFicha(pid);
             const ids = [nuevoId];
             if (!this.hidePatientInfo) {
               for (const mascota of this.extrasElegidas()) {
