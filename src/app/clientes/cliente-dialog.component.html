@@ -334,6 +334,10 @@
           <mat-hint>Sirve para buscarlo después y enviarle el ticket por WhatsApp</mat-hint>
           <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
         </mat-form-field>
+        <p class="cliente-tel-duplicado" *ngIf="clienteMismoTelefono as dup" role="status" data-cy="cliente-tel-duplicado">
+          <mat-icon aria-hidden="true">warning</mat-icon>
+          <span>Ya hay un cliente con este teléfono: <strong>{{ dup.nombre }}</strong>. Revisa que no sea el mismo antes de guardar; si lo es, búscalo en vez de crearlo otra vez.</span>
+        </p>
       </div>
 
       <button type="button" class="cliente-rapido__toggle" (click)="mostrarMasDatosRapido = !mostrarMasDatosRapido">
@@ -466,6 +470,10 @@
                 />
                 <mat-error *ngIf="isFieldInvalid('telefono')">{{ getErrorMessage('telefono') }}</mat-error>
               </mat-form-field>
+              <p class="cliente-tel-duplicado" *ngIf="clienteMismoTelefono as dup" role="status" data-cy="cliente-tel-duplicado">
+                <mat-icon aria-hidden="true">warning</mat-icon>
+                <span>Ya hay un cliente con este teléfono: <strong>{{ dup.nombre }}</strong>. Revisa que no sea el mismo antes de guardar; si lo es, búscalo en vez de crearlo otra vez.</span>
+              </p>
               <mat-form-field appearance="outline">
                 <mat-label>Correo</mat-label>
                 <input matInput formControlName="correo" placeholder="correo@ejemplo.com" />

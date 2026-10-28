@@ -19,6 +19,7 @@ import { CanalRecordatorioVista, evaluarCanalRecordatorioCliente } from '../core
 import { PacienteAdminDialogComponent } from '../pacientes-admin/paciente-admin-dialog.component';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import { FolioExpedienteService } from '../core/services/folio-expediente.service';
+import { normalizarTelefonoMx } from '../recordatorios/recordatorio-whatsapp.util';
 
 @Component({
   selector: 'app-cliente-dialog',
@@ -316,6 +317,22 @@ export class ClienteDialogComponent implements OnInit {
     } finally {
       this.portalActionBusy = false;
     }
+  }
+
+  /**
+   * Spec 114 (A7) — al dar de alta: otro cliente ya tiene este teléfono (posible duplicado).
+   * Solo avisa; no bloquea el guardado.
+   */
+  get clienteMismoTelefono(): { nombre: string; telefono: string } | null {
+    if (this.data?.cliente?.id) return null;
+    const tel = normalizarTelefonoMx(this.clienteForm?.get('telefono')?.value);
+    if (!tel) return null;
+    const otro = (this.todosLosClientes || []).find(
+      (c: any) => c && c.activo !== false && normalizarTelefonoMx(c.telefono) === tel
+    );
+    if (!otro) return null;
+    const nombre = [otro.nombre, otro.apellidoPaterno].filter(Boolean).join(' ').trim() || String(otro.razonSocial || 'otro cliente');
+    return { nombre, telefono: tel };
   }
 
   ngOnInit() {
