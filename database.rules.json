@@ -1,101 +1,101 @@
 {
   "rules": {
     "peluqueros": {
-      ".read": "auth != null && auth.token.role != 'client'",
-      ".write": "auth != null && auth.token.role != 'client'"
+      ".read": "auth != null && auth.token.role == 'staff'",
+      ".write": "auth != null && auth.token.role == 'staff'"
     },
     "Katzen": {
       "Cliente": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["authUid", "correo", "activo", "portalActivo", "sucursalId"],
         "$clienteId": {
-          ".read": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && data.child('portalActivo').val() == true && data.child('activo').val() != false))",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || (auth.token.clienteId == $clienteId && data.child('portalActivo').val() == true && data.child('activo').val() != false))",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Mascota": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'idCliente' && query.equalTo == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["idCliente", "cliente_id", "activo", "sucursalId"],
         "$mascotaId": {
-          ".read": "auth != null && (auth.token.role != 'client' || ((data.child('idCliente').val() == auth.token.clienteId || data.child('cliente_id').val() == auth.token.clienteId) && data.child('activo').val() != false))",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || ((data.child('idCliente').val() == auth.token.clienteId || data.child('cliente_id').val() == auth.token.clienteId) && data.child('activo').val() != false))",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "AuthPerfiles": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
         ".write": false,
         "$uid": {
-          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
-          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role == 'staff')",
+          ".write": "auth != null && auth.token.role == 'staff' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
         }
       },
       "Usuarios": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')",
         ".indexOn": ["correo", "activo", "perfil"],
         "$uid": {
-          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
-          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role == 'staff')",
+          ".write": "auth != null && auth.token.role == 'staff' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
         }
       },
       "Vacunas": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'idPaciente' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'idPaciente' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["idPaciente", "paciente_id", "fechaRecordatorio", "activo"],
         "$vacunaId": {
-          ".read": "auth != null && (auth.token.role != 'client' || root.child('Katzen/Mascota').child(data.child('idPaciente').val()).child('idCliente').val() == auth.token.clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || root.child('Katzen/Mascota').child(data.child('idPaciente').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Citas": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["cliente_id", "paciente_id", "activo", "fecha", "sucursalId"],
         "$citaId": {
-          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Historiales_Clinicos": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["paciente_id", "idPaciente", "activo"],
         "$historialId": {
-          ".read": "auth != null && (auth.token.role != 'client' || (root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId && data.child('oculto_portal').val() != true && data.child('ocultoPortal').val() != true))",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || (root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId && data.child('oculto_portal').val() != true && data.child('ocultoPortal').val() != true))",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Historiales_Notas_Internas": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "$historialId": {
-          ".read": "auth != null && auth.token.role != 'client'",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && auth.token.role == 'staff'",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Recordatorios": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["paciente_id", "idPaciente", "activo", "estado"]
       },
       "Notificaciones": {
         "$clienteId": {
-          ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'",
+          ".read": "auth != null && (auth.token.role == 'staff' || auth.token.clienteId == $clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'",
           "$notifId": {
-            ".read": "auth != null && (auth.token.role != 'client' || auth.token.clienteId == $clienteId)",
-            ".write": "auth != null && auth.token.role != 'client'",
+            ".read": "auth != null && (auth.token.role == 'staff' || auth.token.clienteId == $clienteId)",
+            ".write": "auth != null && auth.token.role == 'staff'",
             "leida": {
-              ".write": "auth != null && (auth.token.role != 'client' || (auth.token.clienteId == $clienteId && newData.isBoolean() && newData.val() == true && (!data.exists() || data.val() == false)))"
+              ".write": "auth != null && (auth.token.role == 'staff' || (auth.token.clienteId == $clienteId && newData.isBoolean() && newData.val() == true && (!data.exists() || data.val() == false)))"
             }
           }
         }
       },
       "FcmTokens": {
         "$uid": {
-          ".read": "auth != null && (auth.uid == $uid || auth.token.role != 'client')",
+          ".read": "auth != null && (auth.uid == $uid || auth.token.role == 'staff')",
           ".write": "auth != null && auth.uid == $uid",
           "$tokenKey": {
             ".validate": "newData.hasChildren(['token']) && newData.child('token').isString()"
@@ -103,39 +103,39 @@
         }
       },
       "NotificacionesClinica": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
         ".write": false,
         ".indexOn": ["fecha", "leida", "kind"],
         "$notifId": {
-          ".read": "auth != null && auth.token.role != 'client'",
+          ".read": "auth != null && auth.token.role == 'staff'",
           "leida": {
-            ".write": "auth != null && auth.token.role != 'client' && newData.isBoolean()"
+            ".write": "auth != null && auth.token.role == 'staff' && newData.isBoolean()"
           }
         }
       },
       "Config": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
         "inversionMeta": {
-          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
+          ".write": "auth != null && auth.token.role == 'staff' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin')"
         },
         "Vacunacion": {
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".write": "auth != null && auth.token.role == 'staff'"
         },
         "clinica": {
-          ".write": "auth != null && auth.token.role != 'client' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || auth.token.staffRole == 'super_admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'super_admin')"
+          ".write": "auth != null && auth.token.role == 'staff' && (auth.token.staffRole == 'administrador' || auth.token.staffRole == 'admin' || auth.token.staffRole == 'super_admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'administrador' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'admin' || root.child('Katzen/Usuarios').child(auth.uid).child('perfil').val() == 'super_admin')"
         }
       },
       "ContactosWeb": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
         ".write": false,
         ".indexOn": ["fecha", "leido", "activo"],
         "$contactoId": {
-          ".read": "auth != null && auth.token.role != 'client'",
-          ".write": "!data.exists() && newData.hasChildren(['nombre','email','telefono','mascota','mensaje','fecha','origen','leido','activo']) && newData.child('nombre').isString() && newData.child('nombre').val().length >= 2 && newData.child('nombre').val().length <= 100 && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\.[^@]+$/) && newData.child('telefono').isString() && newData.child('telefono').val().length >= 7 && newData.child('telefono').val().length <= 20 && newData.child('mascota').isString() && newData.child('mascota').val().length >= 1 && newData.child('mascota').val().length <= 80 && newData.child('mensaje').isString() && newData.child('mensaje').val().length >= 10 && newData.child('mensaje').val().length <= 2000 && newData.child('fecha').isString() && newData.child('origen').val() == 'landing' && newData.child('leido').val() == false && newData.child('activo').val() == true || (auth != null && auth.token.role != 'client' && data.exists())"
+          ".read": "auth != null && auth.token.role == 'staff'",
+          ".write": "!data.exists() && newData.hasChildren(['nombre','email','telefono','mascota','mensaje','fecha','origen','leido','activo']) && newData.child('nombre').isString() && newData.child('nombre').val().length >= 2 && newData.child('nombre').val().length <= 100 && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\.[^@]+$/) && newData.child('telefono').isString() && newData.child('telefono').val().length >= 7 && newData.child('telefono').val().length <= 20 && newData.child('mascota').isString() && newData.child('mascota').val().length >= 1 && newData.child('mascota').val().length <= 80 && newData.child('mensaje').isString() && newData.child('mensaje').val().length >= 10 && newData.child('mensaje').val().length <= 2000 && newData.child('fecha').isString() && newData.child('origen').val() == 'landing' && newData.child('leido').val() == false && newData.child('activo').val() == true || (auth != null && auth.token.role == 'staff' && data.exists())"
         }
       },
       "PortalProvisionLog": {
-        ".read": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
         ".write": false
       },
       "PortalRegistroRate": {
@@ -143,64 +143,64 @@
         ".write": false
       },
       "Banios": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["paciente_id", "cliente_id", "activo", "fecha_banio", "estado"],
         "$banioId": {
-          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Peluqueros": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["activo", "email", "telefono"]
       },
       "TiposVacunas": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "TiposServiciosPeluqueria": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "ProductosPeluqueria": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Medicamentos": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Diagnosticos": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Tratamientos": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Log_Paciente": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "$pacienteId": {
           ".indexOn": ["fecha_creacion", "tipo"]
         }
       },
       "Campaña": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Venta": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "registro": {
           ".indexOn": ["fecha"]
         }
       },
       "Inventario": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "Productos": {
           ".indexOn": ["activo", "nombre", "codigo_barras"]
         },
@@ -218,8 +218,8 @@
         }
       },
       "Caja": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "Movimientos": {
           ".indexOn": ["fecha", "metodoPago", "activo", "tipo", "sucursalId", "categoria", "visitaId", "clienteId"]
         },
@@ -231,59 +231,59 @@
         }
       },
       "Visitas": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["cliente_id", "paciente_id", "fecha", "estado", "activo", "sucursalId"],
         "$visitaId": {
-          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "Consentimientos": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["cliente_id", "paciente_id", "fecha", "tipo", "estado", "activo"],
         "$consentimientoId": {
-          ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
-          ".write": "auth != null && auth.token.role != 'client'"
+          ".read": "auth != null && (auth.token.role == 'staff' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+          ".write": "auth != null && auth.token.role == 'staff'"
         }
       },
       "ServiciosClinica": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         ".indexOn": ["tipo", "activo", "nombre", "sucursalId"]
       },
       "Finanzas": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "PlantillasCosto": {
           ".indexOn": ["tipoServicio", "activo", "nombre"]
         }
       },
       "Pension": {
-        ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-        ".write": "auth != null && auth.token.role != 'client'",
+        ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+        ".write": "auth != null && auth.token.role == 'staff'",
         "Estancias": {
-          ".read": "auth != null && (auth.token.role != 'client' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
-          ".write": "auth != null && auth.token.role != 'client'",
+          ".read": "auth != null && (auth.token.role == 'staff' || (query.orderByChild == 'paciente_id' && root.child('Katzen/Mascota').child(query.equalTo).child('idCliente').val() == auth.token.clienteId) || (query.orderByChild == 'cliente_id' && query.equalTo == auth.token.clienteId))",
+          ".write": "auth != null && auth.token.role == 'staff'",
           ".indexOn": ["estado", "fecha_ingreso", "paciente_id", "cliente_id", "activo"],
           "$estanciaId": {
-            ".read": "auth != null && (auth.token.role != 'client' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
-            ".write": "auth != null && auth.token.role != 'client'"
+            ".read": "auth != null && (auth.token.role == 'staff' || data.child('cliente_id').val() == auth.token.clienteId || root.child('Katzen/Mascota').child(data.child('paciente_id').val()).child('idCliente').val() == auth.token.clienteId)",
+            ".write": "auth != null && auth.token.role == 'staff'"
           }
         }
       },
       "Gasolina": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Producto": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       },
       "Productos": {
-        ".read": "auth != null && auth.token.role != 'client'",
-        ".write": "auth != null && auth.token.role != 'client'"
+        ".read": "auth != null && auth.token.role == 'staff'",
+        ".write": "auth != null && auth.token.role == 'staff'"
       }
     }
   }

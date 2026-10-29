@@ -1,0 +1,30 @@
+name: Reglas RTDB
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - database.rules.json
+      - scripts/rules-test.mjs
+      - .github/workflows/rules-test.yml
+  workflow_dispatch:
+
+jobs:
+  rules:
+    name: Reglas RTDB (emulador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Herramientas del emulador (sin tocar package.json)
+        run: npm i --no-save --no-audit --no-fund firebase-tools@13.29.1 @firebase/rules-unit-testing@3.0.4 firebase@10.14.1
+      - name: Probar reglas en el emulador
+        run: npx firebase emulators:exec --only database --project demo-katzen "node scripts/rules-test.mjs"
