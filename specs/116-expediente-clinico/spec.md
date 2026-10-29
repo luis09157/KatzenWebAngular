@@ -35,6 +35,7 @@ Tres entregas separadas (una versión estable por entrega):
 - **Imprimir / PDF:** PDF A4 (sigue en otra hoja si es largo) con espacio de firma. En computadora se abre en otra pestaña para imprimir; en celular abre el menú de compartir (WhatsApp, imprimir, guardar).
 - No sale el diagnóstico presuntivo ni las notas internas.
 - Si la consulta no tiene receta ni indicaciones, lo dice y explica dónde escribirlas.
+- Expediente en celular/tablet (≤900 px): un toque en la consulta abre el detalle (antes solo doble clic y los botones están ocultos en pantallas chicas). En computadora igual que antes.
 
 **Datos:** solo lectura (consulta, mascota, dueño, `Katzen/Config/clinica/nombre`). No se guarda nada ni se manda nada solo.
 **Archivos:** `receta-documento.util.ts` (+spec), `receta-pdf.util.ts`, `receta-dialog.component.*` (standalone), accesos en `historial-detalle`, `historiales.component`, `pacientes.component`.

@@ -173,6 +173,7 @@
                     <article
                       *ngFor="let historial of historialClinico"
                       class="clinical-list__item"
+                      (click)="tocarHistorialMovil(historial)"
                       (dblclick)="verDetalleHistorial(historial)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--teal">

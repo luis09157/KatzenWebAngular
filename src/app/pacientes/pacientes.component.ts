@@ -649,6 +649,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Spec 116.2 — en celular o tablet (≤900 px, sin doble clic ni botones) un toque abre el detalle, que trae Receta. */
+  tocarHistorialMovil(historial: any): void {
+    if (typeof window !== 'undefined' && window.innerWidth <= 900) this.verDetalleHistorial(historial);
+  }
+
   /** Spec 116.2 — receta para el dueño. */
   abrirRecetaHistorial(historial: any): void {
     if (historial) abrirRecetaDialog(this.dialog, historial);
