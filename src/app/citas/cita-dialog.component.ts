@@ -17,6 +17,8 @@ import { ClientePacientePickerFields } from '../shared/admin/cliente-paciente-pi
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 
 import { GrupoMotivoCita, gruposMotivoCita } from './cita-motivos.util';
+import { diaLocalDeControl, fechaHoraLocalDeCita, fechaHoraTextoLocal, instanteLocalCita } from './cita-fecha.util';
+import { parseIsoDateToLocalDate } from '../shared/datepicker/datepicker.util';
 @Component({
   selector: 'app-cita-dialog',
   templateUrl: './cita-dialog.component.html',
@@ -139,33 +141,10 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
   ) {
     this.modoVer = data.modoVer;
 
-    let fecha = '';
-    let hora = '';
-
-    const procesarFecha = (fechaString: string) => {
-      try {
-        if (fechaString.includes('T')) {
-          const fechaPart = fechaString.split('T')[0];
-          const horaPart = fechaString.split('T')[1];
-          const horaVal = horaPart.split(':')[0] + ':' + horaPart.split(':')[1];
-          return { fecha: fechaPart, hora: horaVal };
-        }
-        return { fecha: fechaString, hora: '00:00' };
-      } catch (error) {
-        this.logger.error('Error procesando fecha de cita:', error);
-        return { fecha: '', hora: '' };
-      }
-    };
-
-    if (data.cita?.fecha) {
-      const resultado = procesarFecha(data.cita.fecha);
-      fecha = resultado.fecha;
-      hora = data.cita.hora || resultado.hora;
-    } else if (data.cita?.fecha_hora) {
-      const resultado = procesarFecha(data.cita.fecha_hora);
-      fecha = resultado.fecha;
-      hora = resultado.hora;
-    }
+    // 2026-10-29 — día y hora LOCALES (antes se tomaba el día UTC y la cita podía cambiar de día).
+    const local = fechaHoraLocalDeCita(data.cita);
+    const fecha: Date | '' = parseIsoDateToLocalDate(local.fecha) || '';
+    const hora = local.hora;
 
     const duracionInicial =
       data.cita?.duracion_minutos != null && Number(data.cita.duracion_minutos) >= CITA_DURACION_MINIMA_MIN
@@ -228,9 +207,13 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       return '—';
     }
     if (typeof raw === 'string' && raw.includes('T')) {
-      const [fecha] = raw.split('T');
+      const { fecha } = fechaHoraLocalDeCita({ fecha: raw });
       const [y, m, d] = fecha.split('-');
-      return `${d}/${m}/${y}`;
+      return fecha ? `${d}/${m}/${y}` : raw;
+    }
+    if (typeof raw === 'string') {
+      const dia = diaLocalDeControl(raw);
+      if (dia) return dia.toLocaleDateString('es-MX');
     }
     try {
       const date = new Date(raw);
@@ -366,13 +349,12 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
     }
 
     if (formValue.fecha && formValue.hora) {
-      const fecha = new Date(formValue.fecha);
-      const [horas, minutos] = formValue.hora.split(':');
-      fecha.setHours(parseInt(horas, 10), parseInt(minutos, 10));
-      formValue.fecha = fecha.toISOString();
-      // Hora de reloj local (antes se guardaba en UTC: 18:00 MTY quedaba «día siguiente 00:00»).
-      const p2 = (n: number) => String(n).padStart(2, '0');
-      formValue.fecha_hora = `${fecha.getFullYear()}-${p2(fecha.getMonth() + 1)}-${p2(fecha.getDate())}T${p2(fecha.getHours())}:${p2(fecha.getMinutes())}`;
+      // Día del calendario + hora, en hora local (a cualquier hora del día, sin límites).
+      const fecha = instanteLocalCita(formValue.fecha, formValue.hora);
+      if (fecha) {
+        formValue.fecha = fecha.toISOString();
+        formValue.fecha_hora = fechaHoraTextoLocal(fecha);
+      }
     }
 
     formValue.veterinario = String(formValue.veterinario || '').trim();
@@ -403,11 +385,11 @@ export class CitaDialogComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    const fecha = new Date(control.value);
+    const fecha = diaLocalDeControl(control.value);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    if (fecha < hoy) {
+    if (fecha && fecha < hoy) {
       return { fechaPasada: true };
     }
 
