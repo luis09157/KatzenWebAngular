@@ -242,7 +242,9 @@
         </app-timepicker-field>
 
         <div class="form-section__checkbox full-span">
-          <mat-checkbox formControlName="pagado" color="primary">Ya lo pagaron</mat-checkbox>
+          <mat-checkbox formControlName="pagado" color="primary" data-cy="banio-ya-pagaron">
+            Ya lo pagaron <span class="banio-servicio-ayuda">· al guardar se abre Cobrar para registrar el dinero</span>
+          </mat-checkbox>
         </div>
 
         <!-- Spec 107 — domicilio: se cobra aparte como línea «Domicilio» en el ticket. -->
