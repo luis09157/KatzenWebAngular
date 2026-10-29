@@ -91,27 +91,12 @@
         <div class="detail-text-block">{{ data.notas_internas }}</div>
       </section>
 
-      <section class="detail-section" *ngIf="data.archivos && data.archivos.length > 0">
+      <section class="detail-section" *ngIf="tieneArchivos">
         <h4 class="detail-section__title">
-          <mat-icon>folder</mat-icon>
-          Estudios solicitados
+          <mat-icon>photo_library</mat-icon>
+          Fotos y estudios
         </h4>
-        <div class="historial-archivos">
-          <div class="historial-archivo" *ngFor="let archivo of data.archivos; let i = index">
-            <div class="historial-archivo__info">
-              <mat-icon>description</mat-icon>
-              <span>Archivo {{ i + 1 }}</span>
-            </div>
-            <div class="historial-archivo__actions">
-              <button mat-icon-button type="button" (click)="verArchivo(archivo)" matTooltip="Ver en el navegador" aria-label="Ver archivo">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button type="button" (click)="descargarArchivo(archivo)" matTooltip="Descargar" aria-label="Descargar archivo">
-                <mat-icon>download</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
+        <app-fotos-expediente [archivos]="data.archivos"></app-fotos-expediente>
       </section>
 
       <section class="detail-section">

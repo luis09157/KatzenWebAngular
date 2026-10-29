@@ -197,6 +197,12 @@
                           {{ historial.manejo_terapeutico }}
                         </p>
                         <p class="clinical-list__note" *ngIf="historial.receta">{{ historial.receta }}</p>
+                        <app-fotos-expediente
+                          class="clinical-list__fotos"
+                          [archivos]="historial.archivos"
+                          [compacto]="true"
+                          (click)="$event.stopPropagation()"
+                        ></app-fotos-expediente>
                       </div>
                       <div
                         class="row-actions hide-mobile"

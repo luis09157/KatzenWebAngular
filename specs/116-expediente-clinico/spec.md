@@ -1,0 +1,27 @@
+# Spec 116 — Expediente clínico: fotos, receta y cobro al terminar
+
+**Pidió:** Luis (29 oct 2026): «los expedientes tengan posibilidad de agregar imágenes, fácil, que no sea complicado subir fotos». WhatsApp: nada automático, solo un botón para la veterinaria.
+
+Tres entregas separadas (una versión estable por entrega):
+
+1. **116.1 Fotos en la consulta** (esta) — L2.
+2. 116.2 Receta para el dueño (imprimir / PDF / WhatsApp con botón) — pendiente.
+3. 116.3 «¿Cobrar ahora?» al guardar consulta o vacuna — pendiente.
+
+## 116.1 Fotos y estudios en la consulta
+
+**Antes:** el adjunto estaba escondido en «Más datos (opcional)», máx. 5, no abría la cámara, y **al editar una consulta se borraban los archivos** (`archivos = []` si no se elegían nuevos). La ruta usaba `data.paciente_id` (vacío al editar o al elegir mascota en el diálogo) y si una foto fallaba la consulta se guardaba sin avisar.
+
+**Ahora:**
+- Bloque visible «Fotos y estudios» debajo de la nota: **Tomar foto** (cámara trasera en celular) y **Elegir foto o archivo** (galería, varias a la vez, o PDF).
+- Miniaturas al instante, ✕ para quitar; las nuevas se marcan «Nueva» y se suben al tocar Guardar.
+- La foto se achica en el navegador (lado mayor 1600 px, JPEG) → sube rápido con poca señal. Si el navegador no puede leerla (HEIC en Chrome de escritorio) se sube tal cual (≤10 MB).
+- Hasta **10** por consulta. PDF ≤10 MB.
+- Al editar se **conservan** las que ya tenía. Quitar una solo la saca de la consulta (el archivo no se borra de Storage).
+- Si una foto no sube, la consulta **no se guarda** y queda abierta para reintentar.
+- Detalle de la consulta y ficha de la mascota (Pacientes y ficha rápida): galería de miniaturas; al tocar se abre en grande (pantalla completa en celular, flechas entre fotos). PDF como renglón «Ver».
+
+**Datos (aditivo, sin cambios de contrato):** mismo campo `Katzen/Historiales_Clinicos/{id}/archivos: string[]` (URLs de descarga), misma carpeta `historiales_clinicos/{pacienteId}/{archivo}` y mismas `storage.rules` (imagen o PDF, <10 MB, sesión iniciada). No requiere deploy de reglas. Lectura tolerante a legacy (array, objeto o texto).
+
+**Archivos:** `historial-archivos.util.ts` (+spec), `historial-foto-reducir.ts`, `fotos-expediente.component.ts` (galería + visor, standalone), `historial-dialog.*`, `historial-detalle.*`, fichas en `pacientes/` y `pacientes-admin/`.
+**Intacto:** guardado de la consulta (servicio), notas internas, log de actividad, portal, cobro.

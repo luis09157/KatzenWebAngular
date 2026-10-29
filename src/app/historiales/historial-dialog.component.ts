@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HistorialesService } from './historiales.service';
 import { PacientesService } from '../pacientes/pacientes.service';
 import Swal from 'sweetalert2';
@@ -16,6 +16,26 @@ import { CurrentStaffService } from '../core/services/current-staff.service';
 import { ClientePacientePickerFields, ClientePacienteSelection } from '../shared/admin/cliente-paciente-picker.models';
 import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
+import {
+  esImagenArchivoHistorial,
+  esTipoPermitidoHistorial,
+  MAX_ARCHIVOS_HISTORIAL,
+  MAX_BYTES_FOTO_ORIGINAL,
+  MAX_BYTES_STORAGE_HISTORIAL,
+  nombreStorageArchivo,
+  nombreVisibleArchivo,
+  normalizarArchivosHistorial,
+} from './historial-archivos.util';
+import { reducirFotoParaSubir } from './historial-foto-reducir';
+import { abrirVisorFotos } from './fotos-expediente.component';
+
+/** Spec 116.1 — foto/archivo elegido que aún no se sube. */
+export interface ArchivoPorSubir {
+  file: File;
+  /** URL local para la miniatura (solo fotos). */
+  preview: string | null;
+  esImagen: boolean;
+}
 
 @Component({
   selector: 'app-historial-dialog',
@@ -30,11 +50,22 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   loading = false;
   pacienteInfo: any = null;
 
-  // Propiedades para manejo de archivos
-  archivosSeleccionados: File[] = [];
-  archivosSubidos: string[] = [];
+  // Spec 116.1 — fotos y estudios
+  /** Ya guardados en la consulta (URLs). Se conservan al editar. */
+  archivosGuardados: string[] = [];
+  /** Elegidos en esta edición; se suben al guardar. */
+  archivosPorSubir: ArchivoPorSubir[] = [];
   subiendoArchivos = false;
-  maxArchivos = 5; // Máximo 5 archivos por historial
+  progresoSubida = '';
+  readonly maxArchivos = MAX_ARCHIVOS_HISTORIAL;
+
+  get totalArchivos(): number {
+    return this.archivosGuardados.length + this.archivosPorSubir.length;
+  }
+
+  get puedeAgregarArchivos(): boolean {
+    return this.totalArchivos < this.maxArchivos && !this.loading;
+  }
 
   readonly pickerFields: ClientePacientePickerFields = {
     clienteId: 'cliente_id',
@@ -79,7 +110,8 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     private errorMessages: ErrorMessagesService,
     private loadingService: LoadingService,
     private logger: LoggerService,
-    private currentStaff: CurrentStaffService
+    private currentStaff: CurrentStaffService,
+    private matDialog: MatDialog
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
@@ -150,6 +182,9 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         notas_internas: this.data.historial?.notas_internas || '',
       });
 
+      // Spec 116.1 — al editar se conservan las fotos que ya tenía.
+      this.archivosGuardados = normalizarArchivosHistorial(this.data.historial?.archivos);
+
       if (this.isEditMode && this.data.historial?.id) {
         this.historialesService
           .getNotasInternas(this.data.historial.id)
@@ -197,6 +232,7 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.archivosPorSubir.forEach((a) => a.preview && URL.revokeObjectURL(a.preview));
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -272,13 +308,16 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
         delete historialData.hora;
         delete historialData.minuto;
 
-        // Subir archivos si hay alguno seleccionado (opcional)
-        if (this.archivosSeleccionados.length > 0) {
-          historialData.archivos = await this.subirArchivos();
-        } else {
-          // Si no hay archivos, establecer como array vacío
-          historialData.archivos = [];
+        // Spec 116.1 — las fotos que ya tenía + las nuevas. Si alguna no sube, no se guarda
+        // (la consulta sigue abierta para reintentar y no se pierde nada).
+        const pacienteIdArchivos = String(
+          historialData.paciente_id || this.data?.historial?.paciente_id || this.data?.paciente_id || ''
+        );
+        const nuevas = await this.subirArchivos(pacienteIdArchivos);
+        if (nuevas === null) {
+          return;
         }
+        historialData.archivos = [...this.archivosGuardados, ...nuevas];
 
         if (this.data?.cita_id && !this.isEditMode) {
           historialData.cita_id = this.data.cita_id;
@@ -382,94 +421,121 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Métodos para manejo de archivos
-  onArchivoSeleccionado(event: any) {
-    const archivos = event.target.files;
-    if (archivos) {
-      for (let i = 0; i < archivos.length; i++) {
-        const archivo = archivos[i];
-
-        // Validar tipo de archivo
-        if (!this.validarTipoArchivo(archivo)) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Tipo de archivo no válido',
-            text: `El archivo "${archivo.name}" no es un tipo válido. Solo se permiten PDF, PNG, JPEG y JPG.`,
-          });
-          continue;
-        }
-
-        // Validar tamaño (máximo 10MB)
-        if (archivo.size > 10 * 1024 * 1024) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Archivo demasiado grande',
-            text: `El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`,
-          });
-          continue;
-        }
-
-        // Validar cantidad máxima
-        if (this.archivosSeleccionados.length >= this.maxArchivos) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Límite de archivos alcanzado',
-            text: `Solo puedes subir un máximo de ${this.maxArchivos} archivos.`,
-          });
-          break;
-        }
-
-        this.archivosSeleccionados.push(archivo);
+  // Spec 116.1 — fotos y estudios
+  async onArchivoSeleccionado(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const archivos = Array.from(input?.files || []);
+    if (input) input.value = '';
+    const avisos: string[] = [];
+    for (const archivo of archivos) {
+      if (this.totalArchivos >= this.maxArchivos) {
+        avisos.push(`Solo caben ${this.maxArchivos} fotos o archivos por consulta.`);
+        break;
       }
+      if (!esTipoPermitidoHistorial(archivo.type, archivo.name)) {
+        avisos.push(`«${archivo.name}» no es foto ni PDF.`);
+        continue;
+      }
+      const esPdf = archivo.type === 'application/pdf' || /\.pdf$/i.test(archivo.name);
+      const limite = esPdf ? MAX_BYTES_STORAGE_HISTORIAL : MAX_BYTES_FOTO_ORIGINAL;
+      if (archivo.size > limite) {
+        avisos.push(`«${archivo.name}» pesa más de ${Math.round(limite / 1024 / 1024)} MB.`);
+        continue;
+      }
+      const esImagen = !esPdf;
+      let preview: string | null = null;
+      if (esImagen) {
+        try {
+          preview = URL.createObjectURL(archivo);
+        } catch {
+          preview = null;
+        }
+      }
+      this.archivosPorSubir.push({ file: archivo, preview, esImagen });
+    }
+    if (avisos.length) {
+      Swal.fire({ icon: 'warning', title: 'Algunos no se agregaron', html: avisos.join('<br>') });
     }
   }
 
-  validarTipoArchivo(archivo: File): boolean {
-    const tiposPermitidos = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-    return tiposPermitidos.includes(archivo.type);
+  quitarArchivoPorSubir(index: number): void {
+    const [quitado] = this.archivosPorSubir.splice(index, 1);
+    if (quitado?.preview) URL.revokeObjectURL(quitado.preview);
   }
 
-  removerArchivo(index: number) {
-    this.archivosSeleccionados.splice(index, 1);
+  /** Quita la foto de esta consulta (el archivo no se borra de Storage). */
+  quitarArchivoGuardado(index: number): void {
+    this.archivosGuardados.splice(index, 1);
   }
 
-  async subirArchivos(): Promise<string[]> {
-    if (this.archivosSeleccionados.length === 0) {
+  esImagenGuardada(url: string): boolean {
+    return esImagenArchivoHistorial(url);
+  }
+
+  nombreArchivoGuardado(url: string, i: number): string {
+    return nombreVisibleArchivo(url, i);
+  }
+
+  verFotoGuardada(url: string): void {
+    const fotos = this.archivosGuardados.filter((u) => esImagenArchivoHistorial(u));
+    abrirVisorFotos(this.matDialog, fotos, Math.max(0, fotos.indexOf(url)));
+  }
+
+  /**
+   * Sube las fotos/archivos nuevos. Regresa sus URLs, o `null` si alguno falló
+   * (en ese caso no se guarda la consulta y se avisa).
+   */
+  async subirArchivos(pacienteId: string): Promise<string[] | null> {
+    if (this.archivosPorSubir.length === 0) {
       return [];
+    }
+    if (!pacienteId) {
+      Swal.fire({ icon: 'warning', title: 'Falta la mascota', text: 'Elige la mascota antes de subir fotos.' });
+      return null;
     }
 
     this.subiendoArchivos = true;
-    const urlsArchivos: string[] = [];
+    const total = this.archivosPorSubir.length;
+    let listos = 0;
+    this.progresoSubida = `Subiendo fotos… 0 de ${total}`;
+    const timestamp = Date.now();
 
     try {
-      for (const archivo of this.archivosSeleccionados) {
-        const timestamp = Date.now();
-        const nombreArchivo = `${timestamp}_${archivo.name}`;
-        const rutaArchivo = `historiales_clinicos/${this.data.paciente_id}/${nombreArchivo}`;
+      const urls = await Promise.all(
+        this.archivosPorSubir.map(async (item, n) => {
+          const archivo = item.esImagen ? await reducirFotoParaSubir(item.file) : item.file;
+          if (archivo.size > MAX_BYTES_STORAGE_HISTORIAL) {
+            throw new Error(`«${item.file.name}» sigue pesando más de 10 MB.`);
+          }
+          const ruta = `historiales_clinicos/${pacienteId}/${nombreStorageArchivo(archivo.name, timestamp, n)}`;
+          const contentType = archivo.type || (item.esImagen ? 'image/jpeg' : 'application/pdf');
+          const tarea = this.storage.upload(ruta, archivo, { contentType });
+          await lastValueFrom(tarea.snapshotChanges());
+          const url = await firstValueFrom(this.storage.ref(ruta).getDownloadURL());
+          listos++;
+          this.progresoSubida = `Subiendo fotos… ${listos} de ${total}`;
+          return String(url);
+        })
+      );
 
-        const ref = this.storage.ref(rutaArchivo);
-        const tarea = this.storage.upload(rutaArchivo, archivo);
-
-        await lastValueFrom(tarea.snapshotChanges());
-        const url = await firstValueFrom(ref.getDownloadURL());
-
-        urlsArchivos.push(url);
-      }
-
-      this.archivosSubidos = [...this.archivosSubidos, ...urlsArchivos];
-      this.archivosSeleccionados = [];
-
-      return urlsArchivos;
+      this.archivosPorSubir.forEach((a) => a.preview && URL.revokeObjectURL(a.preview));
+      this.archivosPorSubir = [];
+      return urls;
     } catch (error) {
       this.logger.error('Error al subir archivos:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al subir archivos',
-        text: this.errorMessages.getUserMessage(error, 'subir archivos'),
-      });
-      return [];
+      setTimeout(
+        () =>
+          Swal.fire({
+            icon: 'error',
+            title: 'No se subieron las fotos',
+            text: `${this.errorMessages.getUserMessage(error, 'subir archivos')} La consulta no se guardó todavía: revisa la señal y vuelve a tocar Guardar.`,
+          }),
+        0
+      );
+      return null;
     } finally {
       this.subiendoArchivos = false;
+      this.progresoSubida = '';
     }
   }
 

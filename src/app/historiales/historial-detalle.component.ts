@@ -12,6 +12,7 @@ import { Movimiento } from '../shared/inventario.models';
 import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.component';
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import Swal from 'sweetalert2';
+import { normalizarArchivosHistorial } from './historial-archivos.util';
 
 @Component({
   selector: 'app-historial-detalle',
@@ -38,6 +39,11 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     private inventarioService: InventarioService,
     private dialog: MatDialog
   ) {}
+
+  /** Spec 116.1 */
+  get tieneArchivos(): boolean {
+    return normalizarArchivosHistorial(this.data?.archivos).length > 0;
+  }
 
   ngOnInit() {
     this.cargarInformacion();

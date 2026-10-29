@@ -1,3 +1,4 @@
+import { FotosExpedienteComponent } from '../historiales/fotos-expediente.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -44,6 +45,7 @@ const routes: Routes = [{ path: '', component: PacientesAdminComponent }];
 @NgModule({
   declarations: [PacientesAdminComponent, PacienteFichaDialogComponent],
   imports: [
+    FotosExpedienteComponent,
     CommonModule,
     ReactiveFormsModule,
     FormsModule,

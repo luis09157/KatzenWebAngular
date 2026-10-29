@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialesService } from './historiales.service';
@@ -27,6 +27,7 @@ describe('HistorialDialogComponent', () => {
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<HistorialDialogComponent>>;
 
   const stubExtras = [
+    { provide: MatDialog, useValue: { open: () => undefined } },
     { provide: ErrorMessagesService, useValue: { getUserMessage: () => 'error' } },
     { provide: LoadingService, useValue: { show: () => undefined, hide: () => undefined } },
     { provide: LoggerService, useValue: { log: () => undefined, error: () => undefined, warn: () => undefined } },
@@ -291,6 +292,80 @@ describe('HistorialDialogComponent', () => {
       await component.guardarHistorial();
 
       expect(historialesServiceSpy.crearHistorial).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Fotos y estudios (spec 116.1)', () => {
+    const motivoYNota = { historia_clinica: 'Revisión', notas_internas: 'Todo bien' };
+
+    it('al editar conserva las fotos que ya tenía', async () => {
+      component.data.historial = {
+        id: 'h1',
+        paciente_id: 'pac123',
+        fecha_registro: '2026-10-29 10:00:00',
+        archivos: { a: 'https://x/o/historiales_clinicos%2Fpac123%2F1_0_a.jpg' },
+      };
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.actualizarHistorial.and.resolveTo();
+
+      await component.guardarHistorial();
+
+      const cambios = historialesServiceSpy.actualizarHistorial.calls.mostRecent().args[1];
+      expect(cambios.archivos).toEqual(['https://x/o/historiales_clinicos%2Fpac123%2F1_0_a.jpg']);
+    });
+
+    it('quitar una foto guardada la saca de la consulta', async () => {
+      component.data.historial = {
+        id: 'h1',
+        paciente_id: 'pac123',
+        fecha_registro: '2026-10-29 10:00:00',
+        archivos: ['u1.jpg', 'u2.pdf'],
+      };
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.actualizarHistorial.and.resolveTo();
+
+      component.quitarArchivoGuardado(0);
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.actualizarHistorial.calls.mostRecent().args[1].archivos).toEqual(['u2.pdf']);
+    });
+
+    it('consulta nueva sin fotos guarda lista vacía', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.crearHistorial.and.resolveTo({ key: 'n1' });
+
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.crearHistorial.calls.mostRecent().args[0].archivos).toEqual([]);
+    });
+
+    it('si una foto no sube, no guarda la consulta y la deja para reintentar', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      const storage = TestBed.inject(AngularFireStorage) as unknown as jasmine.SpyObj<AngularFireStorage>;
+      storage.upload.and.throwError('sin señal');
+      const pdf = new File(['%PDF'], 'lab.pdf', { type: 'application/pdf' });
+      component.archivosPorSubir = [{ file: pdf, preview: null, esImagen: false }];
+
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.crearHistorial).not.toHaveBeenCalled();
+      expect(component.archivosPorSubir.length).toBe(1);
+      expect(component.loading).toBeFalse();
+    });
+
+    it('no deja agregar más del máximo', async () => {
+      fixture.detectChanges();
+      component.archivosGuardados = Array.from({ length: component.maxArchivos }, (_, i) => `u${i}.jpg`);
+      const foto = new File(['x'], 'f.jpg', { type: 'image/jpeg' });
+
+      await component.onArchivoSeleccionado({ target: { files: [foto], value: '' } } as unknown as Event);
+
+      expect(component.archivosPorSubir.length).toBe(0);
+      expect(component.puedeAgregarArchivos).toBeFalse();
     });
   });
 });
