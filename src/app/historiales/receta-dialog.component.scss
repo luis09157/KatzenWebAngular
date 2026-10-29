@@ -130,11 +130,12 @@
 
 @media (max-width: 599px) {
   .receta-dialog__acciones {
-    flex-direction: column-reverse;
+    flex-direction: column-reverse !important;
     align-items: stretch !important;
   }
 
-  .receta-dialog__btn {
+  .receta-dialog__acciones .mat-mdc-button-base {
     width: 100%;
+    margin: 0 !important;
   }
 }
