@@ -12,5 +12,6 @@
 - [x] Util puro + tests (`receta-documento.util.spec.ts`): vista, fecha sin brincar de día, peso, mensaje sin diagnóstico, enlace wa.me, nombre del PDF
 - [x] PDF A4 multi-hoja + diálogo con WhatsApp / Imprimir
 - [x] Accesos: detalle, menú Historiales, expediente
-- [ ] CI verde
-- [ ] QA preview 375 y 1280 (abrir receta de «Control de rutina (PRUEBA)» de Oreon; PDF; WhatsApp abre el chat, sin enviar)
+- [x] CI verde — PR #42 (incluye #41)
+- [x] QA preview 29 oct (solo lectura, nada enviado): 375 → en el expediente de Oreon (Luis) un toque abre la consulta «Control de rutina (PRUEBA)», botón Receta → vista con clínica, 5 de junio de 2026, Oreon · Felino · Peso 5 kg, Dueño, Indicaciones «Vitamina B12 oral por 5 días», Atendió. WhatsApp (interceptado, sin abrir): `wa.me/528112464359` con «Hola Luis, te compartimos la receta de Oreon…», sin diagnóstico. 1280 → ícono 💊 del expediente abre la receta; Imprimir / PDF → PDF A4 de 1 hoja revisado a ojo (encabezado, datos, indicaciones, firma), sin diagnóstico.
+- Ajustes tras QA: botones apilados en celular; saludo «Hola Luis» aunque el nombre esté en mayúsculas; en celular un toque abre la consulta (antes no había forma).
