@@ -21,5 +21,6 @@
 - [x] Servicio + tests (Después / Cobrar ahora / cancelar monto / sin dueño / error)
 - [x] Consulta: 4 tests (nueva pregunta y cierra después; cita no; editar no; error no bloquea)
 - [x] Vacuna aplicada nueva: un solo aviso con refuerzo
-- [ ] CI verde
-- [ ] QA preview
+- [x] CI verde — PR #43 (incluye #41 y #42): lint + todas las pruebas unitarias + build
+- [x] QA preview 29 oct (solo lectura): formularios de consulta y vacuna abren sin errores con el servicio nuevo; Historiales, Citas, Cobrar, Vacunas y Hoy cargan sin errores de consola.
+- [ ] QA con guardado real: bloqueado para el agente (la vista previa escribe en producción). Pendiente con Luis: consulta de prueba en Oreon → «Después» → borrar; y otra → «Cobrar ahora» $1 → quitar la línea del ticket.
