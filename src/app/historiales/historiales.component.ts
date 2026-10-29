@@ -6,6 +6,7 @@ import { MigrationService } from '../shared/migration.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
+import { abrirRecetaDialog } from './receta-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
@@ -431,6 +432,11 @@ export class HistorialesComponent implements OnInit, OnDestroy, AfterViewInit {
           this.cargarEstadisticas();
         }
       });
+  }
+
+  /** Spec 116.2 */
+  abrirReceta(historial: any) {
+    if (historial) abrirRecetaDialog(this.dialog, historial);
   }
 
   verHistorialDetalle(historial: any) {

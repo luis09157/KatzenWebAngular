@@ -1,0 +1,140 @@
+/* Spec 116.2 — receta para el dueño */
+.receta-dialog__cargando {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 4px;
+  color: #475569;
+}
+
+.receta-dialog__vacia {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #7c2d12;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.receta-hoja {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  color: #0f172a;
+}
+
+.receta-hoja__cabeza {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #0a969b;
+  color: #fff;
+
+  strong {
+    font-size: 1.05rem;
+  }
+
+  span {
+    font-size: 0.85rem;
+  }
+}
+
+.receta-hoja__paciente {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #e2e8f0;
+
+  h3 {
+    margin: 0 0 2px;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.receta-hoja__seccion {
+  padding: 12px 16px 0;
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #065d60;
+  }
+
+  p {
+    margin: 0;
+    white-space: pre-line;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+}
+
+.receta-hoja__firma {
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  color: #475569;
+  text-align: right;
+}
+
+.receta-dialog__aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: #92400e;
+
+  mat-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.receta-dialog__acciones {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-end !important;
+  gap: 8px;
+}
+
+.receta-dialog__btn {
+  min-height: 44px;
+
+  mat-spinner {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+}
+
+@media (max-width: 599px) {
+  .receta-dialog__acciones {
+    flex-direction: column-reverse;
+    align-items: stretch !important;
+  }
+
+  .receta-dialog__btn {
+    width: 100%;
+  }
+}

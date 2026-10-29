@@ -20,6 +20,7 @@ import { RecordatorioDialogComponent } from '../recordatorios/recordatorio-dialo
 import { VacunaDialogComponent } from '../vacunas/vacuna-dialog.component';
 import { VacunaDetalleComponent } from '../vacunas/vacuna-detalle.component';
 import { HistorialDetalleComponent } from '../historiales/historial-detalle.component';
+import { abrirRecetaDialog } from '../historiales/receta-dialog.component';
 import { RecordatorioDetalleComponent } from '../recordatorios/recordatorio-detalle.component';
 import { CitaDialogComponent } from '../citas/cita-dialog.component';
 import { CitasService } from '../citas/citas.service';
@@ -646,6 +647,11 @@ export class PacientesComponent implements OnInit, OnDestroy {
 
         this.isCreatingHistorial = false;
       });
+  }
+
+  /** Spec 116.2 — receta para el dueño. */
+  abrirRecetaHistorial(historial: any): void {
+    if (historial) abrirRecetaDialog(this.dialog, historial);
   }
 
   editarHistorialClinico(historial: any) {

@@ -212,6 +212,15 @@
                         <button
                           mat-icon-button
                           type="button"
+                          matTooltip="Receta para el dueño"
+                          aria-label="Receta para el dueño"
+                          (click)="abrirRecetaHistorial(historial); $event.stopPropagation()"
+                        >
+                          <mat-icon>medication</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
                           matTooltip="Editar"
                           (click)="editarHistorialClinico(historial); $event.stopPropagation()"
                         >

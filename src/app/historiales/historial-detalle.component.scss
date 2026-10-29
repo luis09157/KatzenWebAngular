@@ -249,3 +249,20 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Spec 116.2 — tres botones caben en celular */
+.admin-dialog-panel app-historial-detalle .admin-dialog-actions,
+.admin-dialog-panel app-historial-detalle .mat-mdc-dialog-actions {
+  flex-wrap: wrap !important;
+}
+
+@media (max-width: 640px) {
+  .admin-dialog-panel app-historial-detalle .admin-dialog-actions,
+  .admin-dialog-panel app-historial-detalle .mat-mdc-dialog-actions {
+    padding: 12px 16px 16px !important;
+  }
+
+  .admin-dialog-panel app-historial-detalle .admin-dialog-actions .mat-mdc-button-base {
+    flex: 1 1 auto;
+  }
+}

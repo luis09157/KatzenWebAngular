@@ -5,7 +5,7 @@
 Tres entregas separadas (una versión estable por entrega):
 
 1. **116.1 Fotos en la consulta** (esta) — L2.
-2. 116.2 Receta para el dueño (imprimir / PDF / WhatsApp con botón) — pendiente.
+2. **116.2 Receta para el dueño** (imprimir / PDF / WhatsApp con botón) — L2.
 3. 116.3 «¿Cobrar ahora?» al guardar consulta o vacuna — pendiente.
 
 ## 116.1 Fotos y estudios en la consulta
@@ -25,3 +25,16 @@ Tres entregas separadas (una versión estable por entrega):
 
 **Archivos:** `historial-archivos.util.ts` (+spec), `historial-foto-reducir.ts`, `fotos-expediente.component.ts` (galería + visor, standalone), `historial-dialog.*`, `historial-detalle.*`, fichas en `pacientes/` y `pacientes-admin/`.
 **Intacto:** guardado de la consulta (servicio), notas internas, log de actividad, portal, cobro.
+
+## 116.2 Receta para el dueño
+
+**Antes:** la receta solo era un campo de texto dentro de «Más datos»; no se podía imprimir ni mandar.
+
+**Ahora:** botón **Receta** en el detalle de la consulta, en el menú ⋮ de Historiales («Receta para el dueño») y en el expediente de la mascota (ícono 💊 en cada consulta). Abre una vista previa con clínica, fecha de la consulta, mascota (especie · raza · sexo · peso), dueño, **Receta**, **Indicaciones** (manejo terapéutico) y quién atendió.
+- **Enviar por WhatsApp:** abre el chat del dueño con la receta escrita en el mensaje. La veterinaria revisa y aprieta enviar. Sin teléfono de 10 dígitos el botón se apaga y se avisa.
+- **Imprimir / PDF:** PDF A4 (sigue en otra hoja si es largo) con espacio de firma. En computadora se abre en otra pestaña para imprimir; en celular abre el menú de compartir (WhatsApp, imprimir, guardar).
+- No sale el diagnóstico presuntivo ni las notas internas.
+- Si la consulta no tiene receta ni indicaciones, lo dice y explica dónde escribirlas.
+
+**Datos:** solo lectura (consulta, mascota, dueño, `Katzen/Config/clinica/nombre`). No se guarda nada ni se manda nada solo.
+**Archivos:** `receta-documento.util.ts` (+spec), `receta-pdf.util.ts`, `receta-dialog.component.*` (standalone), accesos en `historial-detalle`, `historiales.component`, `pacientes.component`.

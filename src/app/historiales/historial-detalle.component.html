@@ -133,6 +133,10 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="admin-dialog-actions">
+    <button mat-stroked-button type="button" class="historial-detalle__receta" (click)="abrirReceta()">
+      <mat-icon>medication</mat-icon>
+      Receta
+    </button>
     <button mat-stroked-button type="button" (click)="consumirInventario()">
       <mat-icon>inventory_2</mat-icon>
       Consumir inventario

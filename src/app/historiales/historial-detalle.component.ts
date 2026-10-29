@@ -13,6 +13,7 @@ import { SalidaDialogComponent } from '../inventario/movimientos/salida-dialog.c
 import { ADMIN_DIALOG_CONFIG } from '../core/config/admin-ui.config';
 import Swal from 'sweetalert2';
 import { normalizarArchivosHistorial } from './historial-archivos.util';
+import { abrirRecetaDialog } from './receta-dialog.component';
 
 @Component({
   selector: 'app-historial-detalle',
@@ -39,6 +40,11 @@ export class HistorialDetalleComponent implements OnInit, OnDestroy {
     private inventarioService: InventarioService,
     private dialog: MatDialog
   ) {}
+
+  /** Spec 116.2 — receta para el dueño. */
+  abrirReceta(): void {
+    abrirRecetaDialog(this.dialog, this.data);
+  }
 
   /** Spec 116.1 */
   get tieneArchivos(): boolean {

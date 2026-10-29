@@ -1,0 +1,82 @@
+<div class="admin-dialog-shell receta-dialog">
+  <header class="admin-dialog-header">
+    <div class="admin-dialog-header__text">
+      <h2 class="admin-dialog-title">Receta para el dueño</h2>
+      <p class="admin-dialog-subtitle">Revisa y elige cómo entregarla. Nada se manda solo.</p>
+    </div>
+    <button mat-icon-button type="button" class="admin-dialog-close" (click)="cerrar()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="admin-dialog-body">
+    <div class="receta-dialog__cargando" *ngIf="cargando">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>Preparando la receta…</span>
+    </div>
+
+    <ng-container *ngIf="!cargando && view">
+      <div class="receta-dialog__vacia" *ngIf="!tieneContenido">
+        <mat-icon>edit_note</mat-icon>
+        <p>
+          Esta consulta no tiene receta ni indicaciones. Edita la consulta y escríbelas en
+          <strong>«Más datos» → Receta / Manejo terapéutico</strong>.
+        </p>
+      </div>
+
+      <article class="receta-hoja" *ngIf="tieneContenido">
+        <header class="receta-hoja__cabeza">
+          <strong>{{ view.clinica }}</strong>
+          <span>{{ view.fecha }}</span>
+        </header>
+        <div class="receta-hoja__paciente">
+          <h3>{{ view.paciente }}</h3>
+          <p *ngIf="view.pacienteDetalle || view.peso">
+            {{ view.pacienteDetalle }}<ng-container *ngIf="view.pacienteDetalle && view.peso"> · </ng-container
+            ><ng-container *ngIf="view.peso">Peso: {{ view.peso }}</ng-container>
+          </p>
+          <p *ngIf="view.dueno">Dueño: {{ view.dueno }}</p>
+        </div>
+        <section class="receta-hoja__seccion" *ngIf="view.receta">
+          <h4>Receta</h4>
+          <p>{{ view.receta }}</p>
+        </section>
+        <section class="receta-hoja__seccion" *ngIf="view.indicaciones">
+          <h4>Indicaciones</h4>
+          <p>{{ view.indicaciones }}</p>
+        </section>
+        <footer class="receta-hoja__firma" *ngIf="view.veterinario">Atendió: {{ view.veterinario }}</footer>
+      </article>
+
+      <p class="receta-dialog__aviso" *ngIf="tieneContenido && !urlWhatsApp">
+        <mat-icon>info</mat-icon>
+        El dueño no tiene un teléfono de 10 dígitos. Puedes imprimirla o mandarla en PDF.
+      </p>
+    </ng-container>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="admin-dialog-actions receta-dialog__acciones">
+    <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+    <button
+      mat-stroked-button
+      type="button"
+      class="receta-dialog__btn"
+      (click)="imprimirPdf()"
+      [disabled]="cargando || ocupado || !tieneContenido"
+    >
+      <mat-spinner *ngIf="ocupado" diameter="18"></mat-spinner>
+      <mat-icon *ngIf="!ocupado">print</mat-icon>
+      Imprimir / PDF
+    </button>
+    <button
+      mat-raised-button
+      type="button"
+      class="btn-primary-teal receta-dialog__btn receta-dialog__btn--wa"
+      (click)="enviarWhatsApp()"
+      [disabled]="cargando || !tieneContenido || !urlWhatsApp"
+    >
+      <mat-icon>chat</mat-icon>
+      Enviar por WhatsApp
+    </button>
+  </mat-dialog-actions>
+</div>
