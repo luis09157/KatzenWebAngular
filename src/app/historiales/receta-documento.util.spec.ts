@@ -1,6 +1,7 @@
 import {
   buildRecetaView,
   fechaRecetaTexto,
+  nombreParaSaludo,
   nombreArchivoPdfReceta,
   pesoTexto,
   textoWhatsAppReceta,
@@ -78,6 +79,15 @@ describe('receta-documento.util (spec 116.2)', () => {
     const v = buildRecetaView({ receta: 'Pastilla' }, { nombre: 'Coco' }, { nombre: 'Ale', telefono: '123' }, 'K', hoy);
     expect(textoWhatsAppReceta(v)).not.toContain('Indicaciones');
     expect(urlWhatsAppReceta(v)).toBeNull();
+  });
+
+  it('saludo con el nombre bien escrito aunque esté en mayúsculas', () => {
+    expect(nombreParaSaludo('LUIS')).toBe('Luis');
+    expect(nombreParaSaludo('MARÍA-JOSÉ')).toBe('María-José');
+    expect(nombreParaSaludo('Luis')).toBe('Luis');
+    expect(nombreParaSaludo('')).toBe('');
+    const v = buildRecetaView({ receta: 'x' }, { nombre: 'Oreon' }, { nombre: 'LUIS ALFONSO', telefono: '8112464359' }, 'K', hoy);
+    expect(textoWhatsAppReceta(v)).toContain('Hola Luis,');
   });
 
   it('nombre del PDF', () => {

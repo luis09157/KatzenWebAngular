@@ -94,6 +94,13 @@ export function pesoTexto(peso: unknown): string {
   return /^\d+([.,]\d+)?$/.test(t) ? `${t} kg` : t;
 }
 
+/** `LUIS` → `Luis`; respeta nombres que ya vienen con mayúsculas y minúsculas. */
+export function nombreParaSaludo(nombre: string): string {
+  const t = limpio(nombre);
+  if (!t || t !== t.toUpperCase()) return t;
+  return t.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_m, a: string, b: string) => a + b.toUpperCase());
+}
+
 function nombreCompleto(c: RecetaClienteInput | null | undefined): string {
   return [c?.nombre, c?.apellidoPaterno, c?.apellidoMaterno]
     .map((x) => limpio(x))
@@ -122,7 +129,7 @@ export function buildRecetaView(
     // El peso de la consulta manda; si no hay, el de la ficha.
     peso: pesoTexto(historial.peso) || pesoTexto(paciente?.peso),
     dueno,
-    duenoNombre: limpio(cliente?.nombre).split(/\s+/)[0] || dueno.split(/\s+/)[0] || '',
+    duenoNombre: nombreParaSaludo(limpio(cliente?.nombre).split(/\s+/)[0] || dueno.split(/\s+/)[0] || ''),
     receta: limpio(historial.receta),
     indicaciones: limpio(historial.manejo_terapeutico),
     veterinario: limpio(historial.medico_atendio),
