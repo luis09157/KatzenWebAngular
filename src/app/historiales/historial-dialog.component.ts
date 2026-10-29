@@ -28,6 +28,8 @@ import {
 } from './historial-archivos.util';
 import { reducirFotoParaSubir } from './historial-foto-reducir';
 import { abrirVisorFotos } from './fotos-expediente.component';
+import { CobrarAlTerminarService } from '../visitas/cobrar-al-terminar.service';
+import { debeOfrecerCobroConsulta, lineaCobroConsulta } from '../visitas/cobrar-al-terminar.util';
 
 /** Spec 116.1 — foto/archivo elegido que aún no se sube. */
 export interface ArchivoPorSubir {
@@ -111,7 +113,8 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     private logger: LoggerService,
     private currentStaff: CurrentStaffService,
-    private matDialog: MatDialog
+    private matDialog: MatDialog,
+    private cobrarAlTerminar: CobrarAlTerminarService
   ) {
     const ahora = new Date();
     this.historialForm = this.fb.group({
@@ -344,6 +347,9 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
             await this.registrarHistorialEnLog(historialData, 'creado');
           }
 
+          // Spec 116.3 — «¿Cobrar ahora?» (no si viene de una cita: Citas ya lo pregunta).
+          await this.ofrecerCobroAlTerminar(historialData);
+
           this.dialogRef.close(historialData);
         }
       } catch (error) {
@@ -536,6 +542,24 @@ export class HistorialDialogComponent implements OnInit, OnDestroy {
     } finally {
       this.subiendoArchivos = false;
       this.progresoSubida = '';
+    }
+  }
+
+  /** Spec 116.3 — nunca impide cerrar: si algo falla, la consulta ya quedó guardada. */
+  private async ofrecerCobroAlTerminar(historialData: any): Promise<void> {
+    if (!debeOfrecerCobroConsulta({ esNueva: true, citaId: historialData?.cita_id || this.data?.cita_id })) return;
+    try {
+      this.loadingService.hide();
+      const clienteInfo = String(this.pacienteInfo?.cliente_id || this.pacienteInfo?.idCliente || '');
+      await this.cobrarAlTerminar.ofrecer({
+        titulo: 'Consulta guardada',
+        linea: lineaCobroConsulta(historialData, {
+          clienteId: this.data?.cliente_id || clienteInfo,
+          paciente: this.pacienteInfo?.nombre || this.data?.paciente,
+        }),
+      });
+    } catch (error) {
+      this.logger.error('Cobrar al terminar (consulta):', error);
     }
   }
 

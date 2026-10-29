@@ -15,3 +15,11 @@
 - [x] CI verde — PR #42 (incluye #41)
 - [x] QA preview 29 oct (solo lectura, nada enviado): 375 → en el expediente de Oreon (Luis) un toque abre la consulta «Control de rutina (PRUEBA)», botón Receta → vista con clínica, 5 de junio de 2026, Oreon · Felino · Peso 5 kg, Dueño, Indicaciones «Vitamina B12 oral por 5 días», Atendió. WhatsApp (interceptado, sin abrir): `wa.me/528112464359` con «Hola Luis, te compartimos la receta de Oreon…», sin diagnóstico. 1280 → ícono 💊 del expediente abre la receta; Imprimir / PDF → PDF A4 de 1 hoja revisado a ojo (encabezado, datos, indicaciones, firma), sin diagnóstico.
 - Ajustes tras QA: botones apilados en celular; saludo «Hola Luis» aunque el nombre esté en mayúsculas; en celular un toque abre la consulta (antes no había forma).
+
+## 116.3 «¿Cobrar ahora?»
+- [x] Util puro + tests (cuándo preguntar; línea de consulta/vacuna; día local)
+- [x] Servicio + tests (Después / Cobrar ahora / cancelar monto / sin dueño / error)
+- [x] Consulta: 4 tests (nueva pregunta y cierra después; cita no; editar no; error no bloquea)
+- [x] Vacuna aplicada nueva: un solo aviso con refuerzo
+- [ ] CI verde
+- [ ] QA preview

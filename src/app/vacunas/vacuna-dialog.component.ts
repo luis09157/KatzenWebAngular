@@ -24,6 +24,8 @@ import { StaffPickerFields } from '../shared/admin/staff-picker.models';
 import { AsegurarRefuerzoResultado } from '../recordatorios/recordatorios.service';
 import { formatRtdbLocal, resolverFechaRecordatorioRefuerzo } from './vacuna-recordatorio.util';
 import { mensajeHintClientePaciente } from '../shared/components/flow-hint/flow-hint.util';
+import { CobrarAlTerminarService } from '../visitas/cobrar-al-terminar.service';
+import { debeOfrecerCobroVacuna, lineaCobroVacuna } from '../visitas/cobrar-al-terminar.util';
 import { fusionarTiposConejoEnCatalogo, TIPOS_VACUNAS_FALLBACK } from './esquema-vacuna.defaults';
 import { ConfirmacionEsquemaResultado, SugerenciaEsquema } from './esquema-vacuna.models';
 import { esPacienteFallecido, extraerHoraHhMm, sugerirEsquema } from './esquema-vacuna.util';
@@ -113,7 +115,8 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     private logger: LoggerService,
     private matDialog: MatDialog,
-    private currentStaff: CurrentStaffService
+    private currentStaff: CurrentStaffService,
+    private cobrarAlTerminar: CobrarAlTerminarService
   ) {
     this.vacunaForm = this.fb.group({
       // Información básica
@@ -402,7 +405,12 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
             await this.registrarVacunaEnLog(vacunaData, 'creada');
           }
           this.loadingService.hide();
-          await this.mostrarExitoGuardado('Vacuna creada correctamente', refuerzo);
+          // Spec 116.3 — vacuna aplicada: un solo aviso «guardada + ¿Cobrar ahora?».
+          if (debeOfrecerCobroVacuna({ esNueva: true, vacuna: vacunaData })) {
+            await this.ofrecerCobroVacuna(vacunaData, refuerzo);
+          } else {
+            await this.mostrarExitoGuardado('Vacuna creada correctamente', refuerzo);
+          }
         }
 
         this.logger.log('VacunaDialogComponent - Operación completada exitosamente, cerrando diálogo');
@@ -761,6 +769,35 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
       vacunaData.fechaRecordatorio = formatRtdbLocal(fecha);
       vacunaData.proximaAplicacion = formatRtdbLocal(fecha).slice(0, 10);
     }
+  }
+
+  /** Spec 116.3 — nunca impide cerrar: la vacuna ya quedó guardada. */
+  private async ofrecerCobroVacuna(vacunaData: any, refuerzo?: AsegurarRefuerzoResultado): Promise<void> {
+    try {
+      const detalle = this.textoExitoGuardado('', refuerzo).trim();
+      await this.cobrarAlTerminar.ofrecer({
+        titulo: 'Vacuna guardada',
+        detalle: detalle || undefined,
+        linea: lineaCobroVacuna(vacunaData, {
+          clienteId: String(this.pacienteInfo?.cliente_id || this.pacienteInfo?.idCliente || this.data?.cliente_id || ''),
+          paciente: vacunaData.pacienteDisplay || this.pacienteInfo?.nombre || this.data?.paciente,
+        }),
+      });
+    } catch (error) {
+      this.logger.error('Cobrar al terminar (vacuna):', error);
+    }
+  }
+
+  private textoExitoGuardado(base: string, refuerzo?: AsegurarRefuerzoResultado): string {
+    let text = base;
+    if (refuerzo?.action === 'created') {
+      text = `${base}\nSe creó recordatorio de refuerzo para el ${refuerzo.fechaLabel}.`;
+    } else if (refuerzo?.action === 'updated') {
+      text = `${base}\nSe actualizó el recordatorio de refuerzo (${refuerzo.fechaLabel}).`;
+    } else if (refuerzo?.action === 'skipped' && refuerzo.reason === 'sin_fecha') {
+      text = `${base}\nNo se agendó recordatorio de refuerzo.`;
+    }
+    return text;
   }
 
   private async mostrarExitoGuardado(base: string, refuerzo?: AsegurarRefuerzoResultado): Promise<void> {
