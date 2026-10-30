@@ -15,6 +15,6 @@ describe('Admin login E2E', () => {
   it('redirige rutas protegidas tras login', () => {
     cy.loginAdmin();
     cy.navigateAdmin('/admin/clientes');
-    cy.contains('Administración de Clientes', { timeout: 20000 });
+    cy.contains('Clientes', { timeout: 20000 });
   });
 });

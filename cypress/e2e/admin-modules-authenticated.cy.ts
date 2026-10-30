@@ -5,17 +5,17 @@ describe('Admin modules authenticated', () => {
   });
 
   const modules: Array<{ path: string; container: string; title: string }> = [
-    { path: '/admin/citas', container: '.citas-contenedor', title: 'Administración de Citas' },
+    { path: '/admin/citas', container: '.citas-contenedor', title: 'Citas' },
     {
       path: '/admin/historiales',
       container: '.historiales-contenedor',
-      title: 'Administración de Historiales Clínicos',
+      title: 'Consultas',
     },
-    { path: '/admin/vacunas', container: '.vacunas-contenedor', title: 'Administración de Vacunas' },
-    { path: '/admin/recordatorios', container: '.recordatorios-contenedor', title: 'Administración de Recordatorios' },
+    { path: '/admin/vacunas', container: '.vacunas-contenedor', title: 'Vacunas' },
+    { path: '/admin/recordatorios', container: '.recordatorios-contenedor', title: 'Recordatorios' },
     { path: '/admin/usuarios', container: '.usuarios-contenedor', title: 'Personal staff y portal' },
-    { path: '/admin/pacientes-admin', container: '.pacientes-contenedor', title: 'Administración de Pacientes' },
-    { path: '/admin/contactos-web', container: '.contactos-contenedor', title: 'Administración de Contactos Web' },
+    { path: '/admin/pacientes-admin', container: '.pacientes-contenedor', title: 'Pacientes' },
+    { path: '/admin/contactos-web', container: '.contactos-contenedor', title: 'Contactos web' },
     { path: '/admin/inventario/productos', container: '.admin-page', title: 'Catálogo de Productos' },
     { path: '/admin/inventario/proveedores', container: '.admin-page', title: 'Proveedores' },
     { path: '/admin/inventario/ordenes', container: '.admin-page', title: 'Órdenes de compra' },

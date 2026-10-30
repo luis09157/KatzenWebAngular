@@ -687,7 +687,8 @@
 /* ── «+ Agregar» del expediente (spec 096): un solo botón, siempre visible ── */
 .expediente-fab {
   position: sticky;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  /* 2026-10-30 — encima de la barra inferior del sistema (si está) */
+  bottom: calc(16px + var(--admin-bottom-nav-h, env(safe-area-inset-bottom, 0px)));
   z-index: 30;
   display: flex;
   justify-content: flex-end;
@@ -728,7 +729,7 @@
 
 @media (max-width: 600px) {
   .expediente-fab {
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12px + var(--admin-bottom-nav-h, env(safe-area-inset-bottom, 0px)));
   }
 
   .expediente-fab .expediente-fab__btn.mat-mdc-fab {

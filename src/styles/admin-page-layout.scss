@@ -711,3 +711,8 @@
     display: none;
   }
 }
+
+/* 2026-10-30 — si el resumen está todo en cero, también se oculta su título. */
+.admin-content .section-eyebrow:has(+ app-admin-kpi-grid.kpi-vacio) {
+  display: none;
+}

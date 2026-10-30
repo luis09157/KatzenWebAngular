@@ -396,7 +396,8 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: 0;
+      /* 2026-10-30 — encima de la barra inferior del sistema */
+      bottom: var(--admin-bottom-nav-h, 0px);
       z-index: 8;
       padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid var(--admin-border, #e2e8f0);
