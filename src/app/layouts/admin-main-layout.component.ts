@@ -357,6 +357,22 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  /** 2026-10-30 — barra inferior en celular (Hoy · Pacientes · Peluquería · Cobrar · Más). */
+  get barraInferior(): { label: string; icono: string; ruta: string; activo: boolean }[] {
+    const path = (this.currentUrl || '').split(/[?#]/)[0];
+    const items: { label: string; icono: string; ruta: string; activo: boolean }[] = [];
+    if (this.canShow('inicio')) items.push({ label: 'Hoy', icono: 'today', ruta: '/admin/inicio', activo: path === '/admin/inicio' || path === '/admin' });
+    const pacientes = this.rutaPacientes;
+    if (pacientes) items.push({ label: 'Pacientes', icono: 'pets', ruta: pacientes, activo: this.rutaPacientesActiva });
+    if (this.canShow('banios')) items.push({ label: 'Peluquería', icono: 'spa', ruta: '/admin/banios', activo: path.startsWith('/admin/banios') });
+    if (this.canShow('visitas')) items.push({ label: 'Cobrar', icono: 'point_of_sale', ruta: '/admin/visitas', activo: path.startsWith('/admin/visitas') });
+    return items;
+  }
+
+  get muestraBarraInferior(): boolean {
+    return this.isMobile && this.barraInferior.length >= 2;
+  }
+
   /** «Pacientes» queda marcado en el directorio y dentro del expediente. */
   get rutaPacientesActiva(): boolean {
     const path = (this.currentUrl || '').split(/[?#]/)[0];

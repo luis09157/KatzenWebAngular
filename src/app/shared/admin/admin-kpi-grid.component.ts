@@ -1,10 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, ContentChildren, HostBinding, QueryList } from '@angular/core';
+import { AdminStatCardComponent } from './admin-stat-card.component';
+import { resumenKpiVacio } from './admin-kpi-vacio.util';
 
 @Component({
   selector: 'app-admin-kpi-grid',
   template: '<div class="kpi-grid"><ng-content></ng-content></div>',
   styles: [`
     :host { display: block; margin-bottom: 24px; min-width: 0; }
+    /* 2026-10-30 — todo en cero: no se muestra (ver admin-kpi-vacio.util). */
+    :host(.kpi-vacio) { display: none; }
     .kpi-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -26,4 +30,11 @@ import { Component } from '@angular/core';
     }
   `]
 })
-export class AdminKpiGridComponent {}
+export class AdminKpiGridComponent {
+  @ContentChildren(AdminStatCardComponent) tarjetas?: QueryList<AdminStatCardComponent>;
+
+  @HostBinding('class.kpi-vacio')
+  get vacio(): boolean {
+    return resumenKpiVacio(this.tarjetas?.toArray() || []);
+  }
+}

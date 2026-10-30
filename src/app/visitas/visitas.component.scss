@@ -396,7 +396,8 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: 0;
+      /* 2026-10-30 — encima de la barra inferior del sistema */
+      bottom: var(--admin-bottom-nav-h, 0px);
       z-index: 8;
       padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid var(--admin-border, #e2e8f0);
@@ -439,4 +440,15 @@
 .pos-home-tile--corte-hecho .pos-home-tile__hint {
   color: #047857;
   font-weight: 600;
+}
+
+/* 2026-10-30 — con la barra inferior del sistema, la barra Caja/Tickets/Productos va al final
+   de la página (no flotante): flotando tapaba «Ver historial de tickets». */
+@media (max-width: 600px) {
+  :host-context(.admin-shell--barra-inferior) .visitas-contenedor.pos-home .pos-home__dock {
+    position: static;
+    margin-top: 12px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 12px;
+  }
 }

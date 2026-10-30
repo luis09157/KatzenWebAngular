@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **116** specs · `done`: 87 · `in_progress`: 17 · `implementado`: 4 · `sin`: 4 · `superseded`: 3 · `código`: 1
+Total: **117** specs · `done`: 87 · `in_progress`: 17 · `sin`: 5 · `implementado`: 4 · `superseded`: 3 · `código`: 1
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -124,3 +124,4 @@ Total: **116** specs · `done`: 87 · `in_progress`: 17 · `implementado`: 4 · 
 | 116 | [expediente-clinico](116-expediente-clinico/spec.md) | Spec 116 — Expediente clínico: fotos, receta y cobro al terminar | sin Estado |
 | 117 | [campanita-avisos](117-campanita-avisos/spec.md) | Spec 117 — Campanita de avisos en la barra superior | sin Estado |
 | 118 | [uso-dia-a-dia](118-uso-dia-a-dia/spec.md) | Spec 118 — Uso del día a día (puntos 2 y 3 de la revisión) | sin Estado |
+| 119 | [ui-navegacion](119-ui-navegacion/spec.md) | Spec 119 — UI: barra inferior, nombres unificados y resúmenes en cero | sin Estado |

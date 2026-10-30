@@ -1,4 +1,4 @@
-<mat-sidenav-container class="admin-shell">
+<mat-sidenav-container class="admin-shell" [class.admin-shell--barra-inferior]="muestraBarraInferior">
   <mat-sidenav
     #sidenav
     [mode]="isMobile ? 'over' : 'side'"
@@ -353,5 +353,22 @@
     <div class="admin-content">
       <router-outlet></router-outlet>
     </div>
+    <!-- 2026-10-30 — barra inferior en celular: lo de todos los días a un toque -->
+    <nav class="admin-bottom-nav" *ngIf="muestraBarraInferior" aria-label="Navegación principal">
+      <a
+        *ngFor="let item of barraInferior"
+        class="admin-bottom-nav__item"
+        [routerLink]="item.ruta"
+        [class.admin-bottom-nav__item--activo]="item.activo"
+        [attr.aria-current]="item.activo ? 'page' : null"
+      >
+        <mat-icon>{{ item.icono }}</mat-icon>
+        <span>{{ item.label }}</span>
+      </a>
+      <button type="button" class="admin-bottom-nav__item" (click)="toggleSidenav()" aria-label="Más opciones del menú">
+        <mat-icon>menu</mat-icon>
+        <span>Más</span>
+      </button>
+    </nav>
   </mat-sidenav-content>
 </mat-sidenav-container>
