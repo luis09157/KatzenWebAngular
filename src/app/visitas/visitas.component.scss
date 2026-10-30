@@ -441,3 +441,14 @@
   color: #047857;
   font-weight: 600;
 }
+
+/* 2026-10-30 — con la barra inferior del sistema, la barra Caja/Tickets/Productos va al final
+   de la página (no flotante): flotando tapaba «Ver historial de tickets». */
+@media (max-width: 600px) {
+  :host-context(.admin-shell--barra-inferior) .visitas-contenedor.pos-home .pos-home__dock {
+    position: static;
+    margin-top: 12px;
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 12px;
+  }
+}
