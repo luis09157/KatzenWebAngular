@@ -4,7 +4,7 @@
 >
 > Memoria / proceso: [`agent-guardrails`](memory/agent-guardrails.md) · [`module-map`](memory/module-map.md) · specs vivas **[078](078-plan-automatizacion-y-specs-vivas/spec.md)** · [`PLAN-UX`](PLAN-UX-VETERINARIAS.md) · [`ROADMAP`](ROADMAP.md)
 
-Total: **114** specs · `done`: 87 · `in_progress`: 17 · `implementado`: 4 · `superseded`: 3 · `sin`: 2 · `código`: 1
+Total: **115** specs · `done`: 87 · `in_progress`: 17 · `implementado`: 4 · `superseded`: 3 · `sin`: 3 · `código`: 1
 
 | # | Carpeta | Título | Estado |
 |---|---------|--------|--------|
@@ -122,3 +122,4 @@ Total: **114** specs · `done`: 87 · `in_progress`: 17 · `implementado`: 4 · 
 | 114 | [etapa-d-datos-una-vez](114-etapa-d-datos-una-vez/spec.md) | Spec 114 — Etapa D (parte sin tocar datos viejos): datos que faltan una vez y cliente repetido | implementado · **Nivel:** L2 · **Pidió:** Luis (2026-10-27 «continua ahorita») |
 | 115 | [revision-bugs-graves](115-revision-bugs-graves/spec.md) | Spec 115 — Bugs graves de la revisión del 29 oct 2026 | sin Estado |
 | 116 | [expediente-clinico](116-expediente-clinico/spec.md) | Spec 116 — Expediente clínico: fotos, receta y cobro al terminar | sin Estado |
+| 117 | [campanita-avisos](117-campanita-avisos/spec.md) | Spec 117 — Campanita de avisos en la barra superior | sin Estado |

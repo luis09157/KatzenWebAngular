@@ -101,13 +101,6 @@
           >
             <mat-icon matListItemIcon>notifications</mat-icon>
             <span matListItemTitle>Recordatorios</span>
-            <span
-              class="admin-nav-badge admin-nav-badge--avisar"
-              *ngIf="paraAvisarCount > 0"
-              [attr.aria-label]="paraAvisarCount + ' clientes para avisar hoy'"
-              title="Clientes para avisar hoy"
-              >{{ paraAvisarCount > 99 ? '99+' : paraAvisarCount }}</span
-            >
           </a>
 
           <div class="admin-nav-group-label" *ngIf="hasMasNav">Más</div>
@@ -256,6 +249,68 @@
           <mat-option *ngFor="let sucursal of sucursales" [value]="sucursal.id">{{ sucursal.nombre }}</mat-option>
         </mat-select>
       </mat-form-field>
+      <!-- Spec 117 — campanita de avisos (antes era el número junto a «Recordatorios») -->
+      <button
+        *ngIf="muestraCampanita"
+        mat-icon-button
+        type="button"
+        class="admin-campanita"
+        [matMenuTriggerFor]="campanitaMenu"
+        (menuOpened)="refrescarCampanita()"
+        [attr.aria-label]="totalCampanita ? totalCampanita + ' avisos' : 'Avisos'"
+      >
+        <mat-icon>{{ totalCampanita ? 'notifications_active' : 'notifications_none' }}</mat-icon>
+        <span class="admin-campanita__globo" *ngIf="totalCampanita">{{ globoCampanita }}</span>
+      </button>
+      <mat-menu #campanitaMenu="matMenu" class="admin-campanita-menu" xPosition="before">
+        <div class="admin-campanita-menu__cabeza" (click)="$event.stopPropagation()">
+          <strong>Avisos</strong>
+          <span *ngIf="cargandoCampanita">Actualizando…</span>
+        </div>
+        <button
+          mat-menu-item
+          type="button"
+          class="admin-campanita-menu__item"
+          *ngFor="let item of itemsCampanitaVisibles"
+          (click)="irAAviso(item.ruta)"
+        >
+          <mat-icon>{{ item.icono }}</mat-icon>
+          <span class="admin-campanita-menu__texto">
+            <span class="admin-campanita-menu__titulo">{{ item.titulo }}</span>
+            <span class="admin-campanita-menu__detalle">{{ item.detalle }}</span>
+          </span>
+        </button>
+        <p class="admin-campanita-menu__mas" *ngIf="itemsCampanita.length > itemsCampanitaVisibles.length">
+          y {{ itemsCampanita.length - itemsCampanitaVisibles.length }} más en «Avisar por WhatsApp»
+        </p>
+        <button
+          mat-menu-item
+          type="button"
+          class="admin-campanita-menu__item"
+          *ngIf="muestraInventarioEnCampanita"
+          (click)="irAAviso('/admin/inventario/alertas')"
+        >
+          <mat-icon>inventory_2</mat-icon>
+          <span class="admin-campanita-menu__texto">
+            <span class="admin-campanita-menu__titulo">Inventario · {{ alertasStockCount }} {{ alertasStockCount === 1 ? 'alerta' : 'alertas' }}</span>
+            <span class="admin-campanita-menu__detalle">Productos por agotarse o caducar</span>
+          </span>
+        </button>
+        <div class="admin-campanita-menu__vacio" *ngIf="!totalCampanita && !cargandoCampanita" (click)="$event.stopPropagation()">
+          <mat-icon>check_circle</mat-icon>
+          <span>Todo al día. No hay clientes por avisar.</span>
+        </div>
+        <button
+          mat-menu-item
+          type="button"
+          class="admin-campanita-menu__accion"
+          *ngIf="itemsCampanita.length"
+          (click)="abrirParaAvisarDesdeCampanita()"
+        >
+          <mat-icon>chat</mat-icon>
+          <span>Avisar por WhatsApp</span>
+        </button>
+      </mat-menu>
       <span class="admin-user-chip hide-mobile" *ngIf="getNombreUsuario()">
         <mat-icon>person</mat-icon>
         <span>{{ getNombreUsuario() }}</span>
