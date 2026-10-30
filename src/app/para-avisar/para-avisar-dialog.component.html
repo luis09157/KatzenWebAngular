@@ -42,7 +42,23 @@
             <pre class="avisar__mensaje" *ngIf="abierto.has(a.clave)">{{ a.mensaje }}</pre>
           </div>
 
-          <div class="avisar__acciones" *ngIf="!estado.has(a.clave); else hecho">
+          <div class="avisar__acciones avisar__acciones--confirmar" *ngIf="!estado.has(a.clave) && porConfirmar.has(a.clave)">
+            <span class="avisar__pregunta">¿Ya lo mandaste en WhatsApp?</span>
+            <button mat-stroked-button type="button" [disabled]="ocupado.has(a.clave)" (click)="todaviaNo(a)">Todavía no</button>
+            <button
+              mat-raised-button
+              color="primary"
+              class="btn-primary-teal"
+              type="button"
+              [disabled]="ocupado.has(a.clave)"
+              (click)="confirmarEnviado(a)"
+              data-cy="para-avisar-confirmar"
+            >
+              <mat-icon>check</mat-icon>
+              Sí, ya lo mandé
+            </button>
+          </div>
+          <div class="avisar__acciones" *ngIf="!estado.has(a.clave) && !porConfirmar.has(a.clave)">
             <button mat-stroked-button type="button" [disabled]="ocupado.has(a.clave)" (click)="noAvisar(a)">No avisar</button>
             <a *ngIf="a.telefono10" mat-stroked-button [href]="telUrl(a)" aria-label="Llamar">
               <mat-icon>call</mat-icon>
@@ -65,7 +81,7 @@
               Enviar al cliente
             </button>
           </div>
-          <ng-template #hecho>
+          <ng-container *ngIf="estado.has(a.clave)">
             <div class="avisar__acciones avisar__acciones--hecho">
               <span class="avisar__estado">
                 <mat-icon aria-hidden="true">{{ estado.get(a.clave) === 'enviado' ? 'check_circle' : 'block' }}</mat-icon>
@@ -73,7 +89,7 @@
               </span>
               <button mat-button type="button" [disabled]="ocupado.has(a.clave)" (click)="deshacer(a)">Deshacer</button>
             </div>
-          </ng-template>
+          </ng-container>
         </li>
       </ul>
     </div>

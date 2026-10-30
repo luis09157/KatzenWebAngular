@@ -444,6 +444,9 @@
     >
       <mat-icon>play_arrow</mat-icon> Iniciar baño
     </button>
+    <button mat-menu-item *ngIf="puedeRegresar(menuContext)" (click)="regresarAProgramado(menuContext)">
+      <mat-icon>undo</mat-icon> Regresar a programado (se inició por error)
+    </button>
     <button
       mat-menu-item
       *ngIf="menuContext?.estado !== 'cancelado'"

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialesService } from './historiales.service';
@@ -18,6 +18,7 @@ import { ErrorMessagesService } from '../core/error-messages.service';
 import { LoadingService } from '../core/loading.service';
 import { LoggerService } from '../core/logger.service';
 import { CurrentStaffService } from '../core/services/current-staff.service';
+import { CobrarAlTerminarService } from '../visitas/cobrar-al-terminar.service';
 
 describe('HistorialDialogComponent', () => {
   let component: HistorialDialogComponent;
@@ -26,7 +27,13 @@ describe('HistorialDialogComponent', () => {
   let pacientesServiceSpy: jasmine.SpyObj<PacientesService>;
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<HistorialDialogComponent>>;
 
+  let cobrarSpy: jasmine.Spy;
   const stubExtras = [
+    {
+      provide: CobrarAlTerminarService,
+      useFactory: () => ({ ofrecer: (cobrarSpy = jasmine.createSpy('ofrecer').and.resolveTo('despues')) }),
+    },
+    { provide: MatDialog, useValue: { open: () => undefined } },
     { provide: ErrorMessagesService, useValue: { getUserMessage: () => 'error' } },
     { provide: LoadingService, useValue: { show: () => undefined, hide: () => undefined } },
     { provide: LoggerService, useValue: { log: () => undefined, error: () => undefined, warn: () => undefined } },
@@ -291,6 +298,137 @@ describe('HistorialDialogComponent', () => {
       await component.guardarHistorial();
 
       expect(historialesServiceSpy.crearHistorial).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('¿Cobrar ahora? (spec 116.3)', () => {
+    const motivoYNota = { historia_clinica: 'Revisión', notas_internas: 'Todo bien' };
+
+    it('consulta nueva: pregunta el cobro con la línea de la consulta y luego cierra', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue({ ...motivoYNota, cliente_id: 'cli1', diagnostico_presuntivo: 'Otitis' });
+      historialesServiceSpy.crearHistorial.and.resolveTo({ key: 'n1' });
+      dialogRefSpy.close.and.callFake(() => expect(cobrarSpy).toHaveBeenCalled());
+
+      await component.guardarHistorial();
+
+      expect(cobrarSpy).toHaveBeenCalledTimes(1);
+      const arg = cobrarSpy.calls.mostRecent().args[0];
+      expect(arg.titulo).toBe('Consulta guardada');
+      expect(arg.linea.historialId).toBe('n1');
+      expect(arg.linea.cliente_id).toBe('cli1');
+      expect(arg.linea.paciente_id).toBe('pac123');
+      expect(arg.linea.categoria).toBe('consulta');
+      expect(arg.linea.descripcion).toBe('Consulta · Firulais · Otitis');
+      expect(dialogRefSpy.close).toHaveBeenCalled();
+    });
+
+    it('si viene de una cita no pregunta (Citas ya lo hace)', async () => {
+      component.data.cita_id = 'cita1';
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.crearHistorial.and.resolveTo({ key: 'n2' });
+
+      await component.guardarHistorial();
+
+      expect(cobrarSpy).not.toHaveBeenCalled();
+      expect(dialogRefSpy.close).toHaveBeenCalled();
+    });
+
+    it('al editar no pregunta', async () => {
+      component.data.historial = { id: 'h1', paciente_id: 'pac123', fecha_registro: '2026-10-29 10:00:00' };
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.actualizarHistorial.and.resolveTo();
+
+      await component.guardarHistorial();
+
+      expect(cobrarSpy).not.toHaveBeenCalled();
+    });
+
+    it('si el cobro falla, la consulta igual se cierra guardada', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.crearHistorial.and.resolveTo({ key: 'n3' });
+      cobrarSpy.and.rejectWith(new Error('sin red'));
+
+      await component.guardarHistorial();
+
+      expect(dialogRefSpy.close).toHaveBeenCalled();
+    });
+  });
+
+  describe('Fotos y estudios (spec 116.1)', () => {
+    const motivoYNota = { historia_clinica: 'Revisión', notas_internas: 'Todo bien' };
+
+    it('al editar conserva las fotos que ya tenía', async () => {
+      component.data.historial = {
+        id: 'h1',
+        paciente_id: 'pac123',
+        fecha_registro: '2026-10-29 10:00:00',
+        archivos: { a: 'https://x/o/historiales_clinicos%2Fpac123%2F1_0_a.jpg' },
+      };
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.actualizarHistorial.and.resolveTo();
+
+      await component.guardarHistorial();
+
+      const cambios = historialesServiceSpy.actualizarHistorial.calls.mostRecent().args[1];
+      expect(cambios.archivos).toEqual(['https://x/o/historiales_clinicos%2Fpac123%2F1_0_a.jpg']);
+    });
+
+    it('quitar una foto guardada la saca de la consulta', async () => {
+      component.data.historial = {
+        id: 'h1',
+        paciente_id: 'pac123',
+        fecha_registro: '2026-10-29 10:00:00',
+        archivos: ['u1.jpg', 'u2.pdf'],
+      };
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.actualizarHistorial.and.resolveTo();
+
+      component.quitarArchivoGuardado(0);
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.actualizarHistorial.calls.mostRecent().args[1].archivos).toEqual(['u2.pdf']);
+    });
+
+    it('consulta nueva sin fotos guarda lista vacía', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      historialesServiceSpy.crearHistorial.and.resolveTo({ key: 'n1' });
+
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.crearHistorial.calls.mostRecent().args[0].archivos).toEqual([]);
+    });
+
+    it('si una foto no sube, no guarda la consulta y la deja para reintentar', async () => {
+      fixture.detectChanges();
+      component.historialForm.patchValue(motivoYNota);
+      const storage = TestBed.inject(AngularFireStorage) as unknown as jasmine.SpyObj<AngularFireStorage>;
+      storage.upload.and.throwError('sin señal');
+      const pdf = new File(['%PDF'], 'lab.pdf', { type: 'application/pdf' });
+      component.archivosPorSubir = [{ file: pdf, preview: null, esImagen: false }];
+
+      await component.guardarHistorial();
+
+      expect(historialesServiceSpy.crearHistorial).not.toHaveBeenCalled();
+      expect(component.archivosPorSubir.length).toBe(1);
+      expect(component.loading).toBeFalse();
+    });
+
+    it('no deja agregar más del máximo', async () => {
+      fixture.detectChanges();
+      component.archivosGuardados = Array.from({ length: component.maxArchivos }, (_, i) => `u${i}.jpg`);
+      const foto = new File(['x'], 'f.jpg', { type: 'image/jpeg' });
+
+      await component.onArchivoSeleccionado({ target: { files: [foto], value: '' } } as unknown as Event);
+
+      expect(component.archivosPorSubir.length).toBe(0);
+      expect(component.puedeAgregarArchivos).toBeFalse();
     });
   });
 });

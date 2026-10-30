@@ -755,3 +755,9 @@
     flex: 1 1 calc(50% - 8px);
   }
 }
+
+/* Spec 116.1 — fotos de la consulta en la ficha */
+:host-context(.admin-content) .clinical-list__fotos {
+  display: block;
+  margin-top: 8px;
+}

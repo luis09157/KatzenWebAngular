@@ -34,3 +34,97 @@ body {
   margin: 0 auto;
   padding: 0 1rem;
 }
+
+/* Spec 117 — menú de la campanita (panel en overlay, por eso va global) */
+.admin-campanita-menu.mat-mdc-menu-panel {
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  max-height: min(70vh, 560px);
+}
+
+.admin-campanita-menu__cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.admin-campanita-menu__cabeza span {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.admin-campanita-menu .admin-campanita-menu__item.mat-mdc-menu-item {
+  height: auto;
+  min-height: 56px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  align-items: flex-start;
+}
+
+.admin-campanita-menu .admin-campanita-menu__item .mat-icon {
+  margin-top: 2px;
+  color: #0a969b;
+}
+
+.admin-campanita-menu__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  white-space: normal;
+}
+
+.admin-campanita-menu__titulo {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.admin-campanita-menu__detalle {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.admin-campanita-menu__mas {
+  margin: 4px 16px 8px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.admin-campanita-menu__vacio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 16px;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.admin-campanita-menu__vacio .mat-icon {
+  color: #16a34a;
+}
+
+.admin-campanita-menu .admin-campanita-menu__accion.mat-mdc-menu-item {
+  border-top: 1px solid #e5e7eb;
+  color: #065d60;
+  font-weight: 600;
+}
+
+.admin-campanita-menu .admin-campanita-menu__accion .mat-icon {
+  color: #065d60;
+}
+
+/* 2026-10-30 — botón principal de SweetAlert con el verde de marca (antes salía morado
+   donde no se pasaba confirmButtonColor). Un color explícito en el fire sigue mandando (estilo en línea). */
+div.swal2-popup .swal2-styled.swal2-confirm {
+  background-color: #0a969b;
+}
+div.swal2-popup .swal2-styled.swal2-confirm:focus-visible {
+  box-shadow: 0 0 0 3px rgba(10, 150, 155, 0.35);
+}

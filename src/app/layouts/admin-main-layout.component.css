@@ -127,3 +127,27 @@
 .admin-nav-badge--avisar {
   background: #0f766e;
 }
+
+/* Spec 117 — campanita de avisos en la barra superior */
+.admin-campanita {
+  position: relative;
+  margin-right: 4px;
+}
+
+.admin-campanita__globo {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
+  pointer-events: none;
+}

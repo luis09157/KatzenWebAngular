@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { hoyLocalIsoDate } from '../core/utils/periodo-filtro.util';
 import { formatearFechaLocalEs } from '../shared/datepicker/datepicker.util';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -306,7 +307,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async checkOut(estancia: PensionEstancia): Promise<void> {
     if (!estancia?.id || !this.puedeCheckOut(estancia)) return;
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = hoyLocalIsoDate(); // día local (con UTC, después de las 6 pm salía el día siguiente)
     const confirm = await Swal.fire({
       title: '¿Check-out?',
       html: `${estancia.paciente || 'Paciente'} sale hoy (${hoy}).<br>Puedes cobrar en caja después.`,
@@ -443,7 +444,7 @@ export class PensionComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!result?.ok || !id) return;
         this.loadingService.show(LOADING_MESSAGES.updating);
         try {
-          const hoy = new Date().toISOString().slice(0, 10);
+          const hoy = hoyLocalIsoDate(); // día local (con UTC, después de las 6 pm salía el día siguiente)
           await this.pensionService.actualizarEstancia(estancia.id!, {
             cajaMovimientoId: id,
             estado: 'finalizada',

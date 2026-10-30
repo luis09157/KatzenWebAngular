@@ -338,3 +338,9 @@
     margin: 0;
   }
 }
+
+/* Spec 116.1 — fotos de la consulta en la ficha */
+.paciente-ficha-dialog .clinical-list__fotos {
+  display: block;
+  margin-top: 8px;
+}

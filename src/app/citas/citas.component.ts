@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CitasService } from './citas.service';
@@ -530,12 +531,7 @@ export class CitasComponent implements OnInit, OnDestroy, AfterViewInit {
                 return;
               }
               setTimeout(() => {
-                Swal.fire({
-                  title: '¡Éxito!',
-                  text: 'Cita guardada correctamente',
-                  icon: 'success',
-                  confirmButtonText: 'Entendido',
-                });
+                void avisoBreve('Cita guardada correctamente');
               }, 0);
             })
             .catch((error) => {

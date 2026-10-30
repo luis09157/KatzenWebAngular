@@ -19,6 +19,7 @@ import { CajaDialogModule } from '../finanzas/caja-dialog.module';
 import { VisitasDialogModule } from '../visitas/visitas-dialog.module';
 import { HistorialDialogComponent } from './historial-dialog.component';
 import { HistorialDetalleComponent } from './historial-detalle.component';
+import { FotosExpedienteComponent } from './fotos-expediente.component';
 
 /** Diálogos de historial sin routing — usable desde el asistente (spec 070). */
 @NgModule({
@@ -43,7 +44,8 @@ import { HistorialDetalleComponent } from './historial-detalle.component';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
+    FotosExpedienteComponent,
   ],
-  exports: [HistorialDialogComponent, HistorialDetalleComponent],
+  exports: [HistorialDialogComponent, HistorialDetalleComponent, FotosExpedienteComponent],
 })
 export class HistorialDialogModule {}

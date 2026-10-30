@@ -1,4 +1,4 @@
-import { Component, Injector, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, Injector, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -20,6 +20,7 @@ import { AyudaDialogComponent } from '../ayuda/ayuda-dialog.component';
 import Swal from 'sweetalert2';
 
 import { AvisosDialogComponent } from '../shared/admin/avisos-dialog.component';
+import { ItemCampanita, itemsCampanita, textoGlobito } from '../para-avisar/campanita.util';
 @Component({
   selector: 'app-admin-main-layout',
   templateUrl: './admin-main-layout.component.html',
@@ -63,8 +64,12 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   readonly rtdbEmulator = !environment.production && environment.useRtdbEmulator;
   /** Spec 069 — alertas de stock activas para badge del menú. */
   alertasStockCount = 0;
-  /** Spec 111 — número junto a «Recordatorios»: clientes para avisar hoy. */
+  /** Spec 111 — clientes para avisar hoy. Spec 117: se muestra en la campanita de arriba. */
   paraAvisarCount = 0;
+  /** Spec 117 — renglones de la campanita. */
+  itemsCampanita: ItemCampanita[] = [];
+  cargandoCampanita = false;
+  private readonly maxItemsCampanita = 8;
   private paraAvisarTimer: ReturnType<typeof setInterval> | null = null;
   private readonly injectorParaAvisar = inject(Injector);
 
@@ -133,12 +138,67 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
   /** Spec 111 — cuenta «Para avisar hoy» unos segundos después de entrar y cada 30 min. */
   private programarConteoParaAvisar(): void {
     if (this.paraAvisarTimer) return;
-    const contar = async () => {
-      const { contarParaAvisar } = await import('../para-avisar/para-avisar.loader');
-      this.paraAvisarCount = await contarParaAvisar(this.injectorParaAvisar);
-    };
-    setTimeout(() => void contar(), 5000);
-    this.paraAvisarTimer = setInterval(() => void contar(), 30 * 60 * 1000);
+    setTimeout(() => void this.refrescarCampanita(), 5000);
+    this.paraAvisarTimer = setInterval(() => void this.refrescarCampanita(), 30 * 60 * 1000);
+  }
+
+  /** Spec 117 — la campanita se ve si la persona puede ver Recordatorios o Inventario. */
+  get muestraCampanita(): boolean {
+    return this.canShow('recordatorios') || this.canShow('inventario');
+  }
+
+  /** Solo avisos del día: las alertas de inventario (suelen ser muchas) van como renglón, sin sumar. */
+  get totalCampanita(): number {
+    return this.itemsCampanita.length;
+  }
+
+  get muestraInventarioEnCampanita(): boolean {
+    return this.alertasStockCount > 0 && this.canShow('inventario');
+  }
+
+  get globoCampanita(): string {
+    return textoGlobito(this.totalCampanita);
+  }
+
+  get itemsCampanitaVisibles(): ItemCampanita[] {
+    return this.itemsCampanita.slice(0, this.maxItemsCampanita);
+  }
+
+  private ultimaCampanitaMs = 0;
+
+  /** 2026-10-30 — al regresar a la pestaña, si pasaron 5 min, actualiza la campanita. */
+  @HostListener('document:visibilitychange')
+  alRegresarALaPestana(): void {
+    if (document.visibilityState !== 'visible' || !this.paraAvisarTimer) return;
+    if (Date.now() - this.ultimaCampanitaMs >= 5 * 60_000) void this.refrescarCampanita();
+  }
+
+  /** Spec 117 — recarga los avisos (al entrar, cada 30 min y al abrir la campanita). Solo lee. */
+  async refrescarCampanita(): Promise<void> {
+    if (!this.canShow('recordatorios') || this.cargandoCampanita) return;
+    this.cargandoCampanita = true;
+    this.ultimaCampanitaMs = Date.now();
+    try {
+      const { cargarParaAvisar } = await import('../para-avisar/para-avisar.loader');
+      const avisos = await cargarParaAvisar(this.injectorParaAvisar);
+      this.itemsCampanita = itemsCampanita(avisos);
+      this.paraAvisarCount = avisos.length;
+    } catch (error) {
+      this.logger.error('Campanita: no se pudieron cargar los avisos', error);
+    } finally {
+      this.cargandoCampanita = false;
+    }
+  }
+
+  irAAviso(ruta: string): void {
+    void this.router.navigateByUrl(ruta);
+  }
+
+  /** Spec 117 — abre «Para avisar hoy» (botones de WhatsApp; nada se manda solo). */
+  async abrirParaAvisarDesdeCampanita(): Promise<void> {
+    const { abrirParaAvisar } = await import('../para-avisar/para-avisar.launcher');
+    await abrirParaAvisar(this.dialog);
+    void this.refrescarCampanita();
   }
 
   ngOnDestroy() {

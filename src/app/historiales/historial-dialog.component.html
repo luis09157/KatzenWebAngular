@@ -78,6 +78,115 @@
         <p class="hint-text">No se muestra al dueño en el portal.</p>
       </section>
 
+      <!-- Spec 116.1 — fotos y estudios: visibles, cámara directa en celular -->
+      <section class="form-section historial-fotos">
+        <h3 class="form-section__title">
+          <mat-icon>photo_camera</mat-icon>
+          Fotos y estudios
+          <span class="form-section__badge form-section__badge--optional">Opcional</span>
+        </h3>
+
+        <div class="historial-fotos__botones">
+          <input
+            type="file"
+            #fotoCamara
+            accept="image/*"
+            capture="environment"
+            class="historial-fotos__input"
+            (change)="onArchivoSeleccionado($event)"
+          />
+          <input
+            type="file"
+            #fotoGaleria
+            accept="image/*,application/pdf,.pdf"
+            multiple
+            class="historial-fotos__input"
+            (change)="onArchivoSeleccionado($event)"
+          />
+          <button
+            type="button"
+            mat-flat-button
+            class="historial-fotos__btn historial-fotos__btn--camara"
+            (click)="fotoCamara.click()"
+            [disabled]="!puedeAgregarArchivos"
+          >
+            <mat-icon>photo_camera</mat-icon>
+            Tomar foto
+          </button>
+          <button
+            type="button"
+            mat-stroked-button
+            class="historial-fotos__btn"
+            (click)="fotoGaleria.click()"
+            [disabled]="!puedeAgregarArchivos"
+          >
+            <mat-icon>add_photo_alternate</mat-icon>
+            Elegir foto o archivo
+          </button>
+        </div>
+
+        <div class="historial-fotos__grid" *ngIf="totalArchivos > 0">
+          <div class="historial-fotos__item" *ngFor="let url of archivosGuardados; let i = index">
+            <button
+              *ngIf="esImagenGuardada(url); else docGuardado"
+              type="button"
+              class="historial-fotos__mini"
+              (click)="verFotoGuardada(url)"
+              [attr.aria-label]="'Ver foto ' + (i + 1)"
+            >
+              <img [src]="url" alt="" loading="lazy" />
+            </button>
+            <ng-template #docGuardado>
+              <a class="historial-fotos__mini historial-fotos__mini--doc" [href]="url" target="_blank" rel="noopener noreferrer">
+                <mat-icon>picture_as_pdf</mat-icon>
+                <span>{{ nombreArchivoGuardado(url, i) }}</span>
+              </a>
+            </ng-template>
+            <button
+              type="button"
+              class="historial-fotos__quitar"
+              (click)="quitarArchivoGuardado(i)"
+              [disabled]="loading"
+              aria-label="Quitar de esta consulta"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="historial-fotos__item historial-fotos__item--nuevo" *ngFor="let a of archivosPorSubir; let i = index">
+            <div class="historial-fotos__mini" [class.historial-fotos__mini--doc]="!a.preview">
+              <img *ngIf="a.preview; else docNuevo" [src]="a.preview" alt="" />
+              <ng-template #docNuevo>
+                <mat-icon>{{ a.esImagen ? 'image' : 'picture_as_pdf' }}</mat-icon>
+                <span>{{ a.file.name }}</span>
+              </ng-template>
+            </div>
+            <span class="historial-fotos__nueva">Nueva</span>
+            <button
+              type="button"
+              class="historial-fotos__quitar"
+              (click)="quitarArchivoPorSubir(i)"
+              [disabled]="loading"
+              aria-label="Quitar foto"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <p class="hint-text" *ngIf="!subiendoArchivos">
+          {{
+            archivosPorSubir.length
+              ? 'Las fotos nuevas se suben al guardar.'
+              : 'Heridas, radiografías, laboratorios… hasta ' + maxArchivos + ' por consulta.'
+          }}
+        </p>
+        <div class="historial-fotos__subiendo" *ngIf="subiendoArchivos">
+          <mat-spinner diameter="18"></mat-spinner>
+          <span>{{ progresoSubida }}</span>
+        </div>
+      </section>
+
       <button type="button" class="historial-mas-datos" (click)="mostrarMasDatos = !mostrarMasDatos">
         <mat-icon>{{ mostrarMasDatos ? 'expand_less' : 'expand_more' }}</mat-icon>
         {{ mostrarMasDatos ? 'Ocultar más datos' : 'Más datos (opcional)' }}
@@ -174,69 +283,6 @@
             </mat-form-field>
           </div>
 
-          <div class="archivos-section">
-            <div class="archivos-header">
-              <h4>Archivos adjuntos</h4>
-              <span class="archivos-info">PDF, PNG, JPEG hasta 10 MB (máx. 5 archivos)</span>
-            </div>
-            <div class="archivo-input-container">
-              <input
-                type="file"
-                #archivoInput
-                multiple
-                accept=".pdf,.png,.jpeg,.jpg"
-                (change)="onArchivoSeleccionado($event)"
-                class="archivo-input"
-                [disabled]="archivosSeleccionados.length >= maxArchivos"
-              />
-              <button
-                type="button"
-                mat-stroked-button
-                color="primary"
-                (click)="archivoInput.click()"
-                [disabled]="archivosSeleccionados.length >= maxArchivos"
-              >
-                <mat-icon>attach_file</mat-icon>
-                Seleccionar archivos
-              </button>
-            </div>
-            <div class="archivos-lista" *ngIf="archivosSeleccionados.length > 0">
-              <h5>Archivos a subir</h5>
-              <div class="archivo-item" *ngFor="let archivo of archivosSeleccionados; let i = index">
-                <div class="archivo-info">
-                  <mat-icon>description</mat-icon>
-                  <span>{{ archivo.name }}</span>
-                  <span class="archivo-tamaño">({{ (archivo.size / 1024 / 1024).toFixed(2) }} MB)</span>
-                </div>
-                <button
-                  type="button"
-                  mat-icon-button
-                  color="warn"
-                  (click)="removerArchivo(i)"
-                  aria-label="Quitar archivo"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
-            </div>
-            <div class="archivos-lista" *ngIf="archivosSubidos.length > 0">
-              <h5>Archivos subidos</h5>
-              <div class="archivo-item" *ngFor="let archivo of archivosSubidos; let i = index">
-                <div class="archivo-info">
-                  <mat-icon>cloud_done</mat-icon>
-                  <span>Archivo {{ i + 1 }}</span>
-                  <a [href]="archivo" target="_blank" rel="noopener noreferrer" class="archivo-link">
-                    <mat-icon>open_in_new</mat-icon>
-                    Ver
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div class="archivo-loading" *ngIf="subiendoArchivos">
-              <mat-spinner diameter="20"></mat-spinner>
-              <span>Subiendo archivos…</span>
-            </div>
-          </div>
         </section>
 
         <section class="form-section">

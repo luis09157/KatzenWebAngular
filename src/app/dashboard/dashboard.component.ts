@@ -1,4 +1,5 @@
-import { Component, Injector, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, Injector, OnDestroy, OnInit, inject } from '@angular/core';
+import { refrescoHoy } from './hoy-refresco.util';
 import { Subject, Subscription, combineLatest } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
@@ -251,7 +252,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.cargarPensionHoy();
   }
 
+  /** 2026-10-30 — día que se está mostrando y último conteo de «Para avisar hoy». */
+  private diaMostrado = hoyLocalIsoDate();
+  private ultimoConteoAvisarMs = Date.now();
+  private refrescoTimer: ReturnType<typeof setInterval> | null = setInterval(() => this.revisarRefresco(), 5 * 60_000);
+
+  /** Al regresar a la pestaña (o cada 5 min): si cambió el día recarga; si pasó un rato, recuenta avisos. */
+  @HostListener('document:visibilitychange')
+  revisarRefresco(): void {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    const r = refrescoHoy(this.diaMostrado, this.ultimoConteoAvisarMs);
+    if (r.recargarPagina) {
+      window.location.reload();
+      return;
+    }
+    if (r.recontarAvisos) void this.contarParaAvisar();
+  }
+
   ngOnDestroy(): void {
+    if (this.refrescoTimer) clearInterval(this.refrescoTimer);
     this.ownerSub?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
@@ -521,6 +540,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   /** Spec 111 — cuenta «Para avisar hoy» (se carga aparte, no pesa en la carga inicial). */
   async contarParaAvisar(): Promise<void> {
+    this.ultimoConteoAvisarMs = Date.now();
     const { contarParaAvisar } = await import('../para-avisar/para-avisar.loader');
     this.paraAvisar = await contarParaAvisar(this.injectorParaAvisar);
   }

@@ -173,6 +173,7 @@
                     <article
                       *ngFor="let historial of historialClinico"
                       class="clinical-list__item"
+                      (click)="tocarHistorialMovil(historial)"
                       (dblclick)="verDetalleHistorial(historial)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--teal">
@@ -197,12 +198,27 @@
                           {{ historial.manejo_terapeutico }}
                         </p>
                         <p class="clinical-list__note" *ngIf="historial.receta">{{ historial.receta }}</p>
+                        <app-fotos-expediente
+                          class="clinical-list__fotos"
+                          [archivos]="historial.archivos"
+                          [compacto]="true"
+                          (click)="$event.stopPropagation()"
+                        ></app-fotos-expediente>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Receta para el dueño"
+                          aria-label="Receta para el dueño"
+                          (click)="abrirRecetaHistorial(historial); $event.stopPropagation()"
+                        >
+                          <mat-icon>medication</mat-icon>
+                        </button>
                         <button
                           mat-icon-button
                           type="button"
@@ -242,6 +258,7 @@
                     <article
                       *ngFor="let recordatorio of recordatorios"
                       class="clinical-list__item"
+                      (click)="esPantallaChica() && verDetalleRecordatorio(recordatorio)"
                       (dblclick)="verDetalleRecordatorio(recordatorio)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--orange">
@@ -260,7 +277,7 @@
                         </div>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
@@ -321,6 +338,7 @@
                     <article
                       *ngFor="let vacuna of vacunas"
                       class="clinical-list__item"
+                      (click)="esPantallaChica() && verVacunaDetalle(vacuna)"
                       (dblclick)="verVacunaDetalle(vacuna)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--blue">
@@ -340,7 +358,7 @@
                         <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
@@ -418,7 +436,7 @@
                         </div>
                         <p class="clinical-list__note" *ngIf="item.notas">{{ item.notas }}</p>
                       </div>
-                      <div class="row-actions hide-mobile" (click)="$event.stopPropagation()">
+                      <div class="row-actions" (click)="$event.stopPropagation()">
                         <button mat-icon-button type="button" matTooltip="Editar" (click)="editarConsentimiento(item)">
                           <mat-icon>edit</mat-icon>
                         </button>

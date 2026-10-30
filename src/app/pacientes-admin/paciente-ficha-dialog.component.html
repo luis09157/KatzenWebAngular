@@ -93,6 +93,12 @@
                   </div>
                   <p class="clinical-list__note" *ngIf="item.manejo_terapeutico">{{ item.manejo_terapeutico }}</p>
                   <p class="clinical-list__note" *ngIf="item.receta">{{ item.receta }}</p>
+                  <app-fotos-expediente
+                    class="clinical-list__fotos"
+                    [archivos]="item.archivos"
+                    [compacto]="true"
+                    (click)="$event.stopPropagation()"
+                  ></app-fotos-expediente>
                 </div>
               </article>
             </div>
