@@ -287,7 +287,7 @@
           mat-menu-item
           type="button"
           class="admin-campanita-menu__item"
-          *ngIf="alertasStockCount > 0 && canShow('inventario')"
+          *ngIf="muestraInventarioEnCampanita"
           (click)="irAAviso('/admin/inventario/alertas')"
         >
           <mat-icon>inventory_2</mat-icon>
@@ -298,7 +298,7 @@
         </button>
         <div class="admin-campanita-menu__vacio" *ngIf="!totalCampanita && !cargandoCampanita" (click)="$event.stopPropagation()">
           <mat-icon>check_circle</mat-icon>
-          <span>Todo al día. No hay avisos pendientes.</span>
+          <span>Todo al día. No hay clientes por avisar.</span>
         </div>
         <button
           mat-menu-item

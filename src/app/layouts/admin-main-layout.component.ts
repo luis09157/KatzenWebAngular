@@ -147,8 +147,13 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     return this.canShow('recordatorios') || this.canShow('inventario');
   }
 
+  /** Solo avisos del día: las alertas de inventario (suelen ser muchas) van como renglón, sin sumar. */
   get totalCampanita(): number {
-    return this.itemsCampanita.length + (this.canShow('inventario') ? this.alertasStockCount : 0);
+    return this.itemsCampanita.length;
+  }
+
+  get muestraInventarioEnCampanita(): boolean {
+    return this.alertasStockCount > 0 && this.canShow('inventario');
   }
 
   get globoCampanita(): string {
