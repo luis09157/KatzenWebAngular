@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
@@ -501,11 +502,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.cargarRecordatorios(this.pacienteSeleccionado.id);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Recordatorio actualizado correctamente',
-          });
+          void avisoBreve('Recordatorio actualizado correctamente');
         }
       });
   }
@@ -526,11 +523,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
           .bajaLogicaRecordatorio(recordatorio.id)
           .then(() => {
             this.cargarRecordatorios(this.pacienteSeleccionado.id);
-            Swal.fire({
-              icon: 'success',
-              title: 'Borrado',
-              text: 'Recordatorio borrado correctamente',
-            });
+            void avisoBreve('Borrado', 'Recordatorio borrado correctamente');
           })
           .catch((error) => {
             console.error('Error al eliminar recordatorio:', error);
@@ -548,20 +541,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
     if (nuevoEstado === 'completado') {
       this.recordatoriosService.marcarCompletado(recordatorio.id).then(() => {
         this.cargarRecordatorios(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Completado!',
-          text: 'Recordatorio marcado como completado',
-        });
+        void avisoBreve('¡Completado!', 'Recordatorio marcado como completado');
       });
     } else {
       this.recordatoriosService.marcarPendiente(recordatorio.id).then(() => {
         this.cargarRecordatorios(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Pendiente!',
-          text: 'Recordatorio marcado como pendiente',
-        });
+        void avisoBreve('¡Pendiente!', 'Recordatorio marcado como pendiente');
       });
     }
   }
@@ -649,9 +634,14 @@ export class PacientesComponent implements OnInit, OnDestroy {
       });
   }
 
-  /** Spec 116.2 — en celular o tablet (≤900 px, sin doble clic ni botones) un toque abre el detalle, que trae Receta. */
+  /** Celular o tablet (≤900 px): sin doble clic, un toque abre el detalle. */
+  esPantallaChica(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 900;
+  }
+
+  /** Spec 116.2 — en celular un toque abre el detalle de la consulta, que trae Receta. */
   tocarHistorialMovil(historial: any): void {
-    if (typeof window !== 'undefined' && window.innerWidth <= 900) this.verDetalleHistorial(historial);
+    if (this.esPantallaChica()) this.verDetalleHistorial(historial);
   }
 
   /** Spec 116.2 — receta para el dueño. */
@@ -676,7 +666,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
           this.historialesService
             .actualizarHistorial(historial.id, result)
             .then(() => {
-              Swal.fire('Éxito', 'Historial clínico actualizado correctamente', 'success');
+              void avisoBreve('Historial clínico actualizado correctamente');
               this.cargarHistorialClinico(this.pacienteSeleccionado.id);
               // Registrar en el log
               this.pacientesService.registrarEdicionHistorialClinico(this.pacienteSeleccionado.id, result);
@@ -720,7 +710,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
         this.historialesService
           .bajaLogicaHistorial(historial.id)
           .then(() => {
-            Swal.fire('Borrado', 'El historial fue borrado correctamente.', 'success');
+            void avisoBreve('Borrado', 'El historial fue borrado correctamente.');
             this.cargarHistorialClinico(this.pacienteSeleccionado.id);
             // Registrar en el log
             this.pacientesService.registrarEliminacionHistorialClinico(this.pacienteSeleccionado.id, historial);
@@ -1056,11 +1046,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.cargarVacunas(this.pacienteSeleccionado.id);
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Vacuna actualizada correctamente',
-          });
+          void avisoBreve('Vacuna actualizada correctamente');
         }
       });
   }
@@ -1079,7 +1065,7 @@ export class PacientesComponent implements OnInit, OnDestroy {
         this.vacunasService
           .bajaLogicaVacuna(vacuna.id)
           .then(() => {
-            Swal.fire('Borrada', 'Vacuna borrada correctamente.', 'success');
+            void avisoBreve('Borrada', 'Vacuna borrada correctamente.');
             this.cargarVacunas(this.pacienteSeleccionado.id);
             // Registrar en el log
             this.pacientesService.registrarEliminacionVacuna(this.pacienteSeleccionado.id, vacuna);
@@ -1097,20 +1083,12 @@ export class PacientesComponent implements OnInit, OnDestroy {
     if (nuevoEstado === 'aplicada') {
       this.vacunasService.marcarAplicada(vacuna.id).then(() => {
         this.cargarVacunas(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Aplicada!',
-          text: 'Vacuna marcada como aplicada',
-        });
+        void avisoBreve('¡Aplicada!', 'Vacuna marcada como aplicada');
       });
     } else {
       this.vacunasService.marcarPendiente(vacuna.id).then(() => {
         this.cargarVacunas(this.pacienteSeleccionado.id);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Pendiente!',
-          text: 'Vacuna marcada como pendiente',
-        });
+        void avisoBreve('¡Pendiente!', 'Vacuna marcada como pendiente');
       });
     }
   }

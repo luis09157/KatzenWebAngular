@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit, Injector, inject } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { abrirParaAvisar } from '../para-avisar/para-avisar.launcher';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -466,7 +467,7 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
         await this.recordatoriosService.eliminarRecordatorio(recordatorio.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: 'Borrado', text: 'Recordatorio borrado correctamente' });
+          void avisoBreve('Borrado', 'Recordatorio borrado correctamente');
           this.cargarRecordatorios();
         }, 0);
       } catch (error) {
@@ -486,7 +487,7 @@ export class RecordatoriosComponent implements OnInit, OnDestroy, AfterViewInit 
       }
       this.loadingService.hide();
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Recordatorio marcado como ${nuevoEstado}` });
+        void avisoBreve('¡Estado actualizado!', `Recordatorio marcado como ${nuevoEstado}`);
         this.cargarRecordatorios();
       }, 0);
     } catch (error) {

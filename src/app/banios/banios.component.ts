@@ -1,4 +1,6 @@
 import { Component, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
+import { puedeRegresarAProgramado } from './banio-regresar.util';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -543,7 +545,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Borrado', 'El baño ha sido borrado correctamente', 'success');
+              void avisoBreve('Borrado', 'El baño ha sido borrado correctamente');
               this.cargarBanios();
             }, 0);
           })
@@ -559,6 +561,16 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
     });
   }
 
+  /** 2026-10-30 — deshacer «Iniciar» por error. */
+  puedeRegresar(banio: any): boolean {
+    return puedeRegresarAProgramado(banio);
+  }
+
+  regresarAProgramado(banio: any): void {
+    if (!puedeRegresarAProgramado(banio)) return;
+    this.cambiarEstado(banio, 'programado');
+  }
+
   cambiarEstado(banio: any, nuevoEstado: string) {
     this.loadingService.show();
     this.baniosService
@@ -566,11 +578,16 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       .then(() => {
         this.loadingService.hide();
         setTimeout(() => {
-          const msg =
-            nuevoEstado === 'completado'
-              ? 'Listo para cobrar: aparecerá en Cobrar → Por cobrar hoy con el precio designado.'
-              : 'El estado del baño ha sido actualizado';
-          Swal.fire(nuevoEstado === 'completado' ? 'Listo para mostrador' : 'Estado actualizado', msg, 'success');
+          // 2026-10-30 — aviso breve (sin OK).
+          if (nuevoEstado === 'completado') {
+            void avisoBreve('Listo para mostrador', 'Aparece en Cobrar → Por cobrar hoy.', 3000);
+          } else if (nuevoEstado === 'en_proceso') {
+            void avisoBreve('Baño iniciado');
+          } else if (nuevoEstado === 'programado') {
+            void avisoBreve('Regresó a programado', 'Se puede iniciar de nuevo.');
+          } else {
+            void avisoBreve('Estado actualizado');
+          }
           this.cargarBanios();
         }, 0);
       })
@@ -674,7 +691,7 @@ export class BaniosComponent implements OnDestroy, AfterViewInit {
       .then(() => {
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire('Pagado', 'El baño ha sido marcado como pagado', 'success');
+          void avisoBreve('Pagado', 'El baño ha sido marcado como pagado');
           this.cargarBanios();
         }, 0);
       })

@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
@@ -236,12 +237,7 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
     }).then((result) => {
       if (result.isConfirmed) {
         this.baniosPacienteService.bajaLogicaBanioPaciente(banio.id!).then(() => {
-          Swal.fire({
-            title: 'Borrado',
-            text: 'El baño ha sido borrado correctamente',
-            icon: 'success',
-            confirmButtonText: 'Aceptar'
-          });
+          void avisoBreve('Borrado', 'El baño ha sido borrado correctamente');
           this.cargarBanios();
           this.cargarEstadisticas();
           this.banioEliminado.emit(banio);
@@ -260,12 +256,7 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
 
   cambiarEstadoBanio(banio: BanioPaciente, nuevoEstado: string) {
     this.baniosPacienteService.cambiarEstadoBanioPaciente(banio.id!, nuevoEstado as any).then(() => {
-      Swal.fire({
-        title: 'Estado actualizado',
-        text: `El baño ha sido marcado como ${nuevoEstado}`,
-        icon: 'success',
-        confirmButtonText: 'Aceptar'
-      });
+      void avisoBreve('Estado actualizado', `El baño ha sido marcado como ${nuevoEstado}`);
       this.cargarBanios();
       this.cargarEstadisticas();
     }).catch(error => {
@@ -281,12 +272,7 @@ export class BaniosPacienteComponent implements OnInit, OnDestroy {
 
   marcarComoPagado(banio: BanioPaciente) {
     this.baniosPacienteService.marcarComoPagado(banio.id!).then(() => {
-      Swal.fire({
-        title: 'Pago registrado',
-        text: 'El baño ha sido marcado como pagado',
-        icon: 'success',
-        confirmButtonText: 'Aceptar'
-      });
+      void avisoBreve('Pago registrado', 'El baño ha sido marcado como pagado');
       this.cargarBanios();
       this.cargarEstadisticas();
     }).catch(error => {

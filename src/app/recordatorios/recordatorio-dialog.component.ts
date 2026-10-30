@@ -1,4 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -360,7 +361,7 @@ export class RecordatorioDialogComponent implements OnInit, OnDestroy {
     } else if (this.esDesparasitacion) {
       text = 'Desparasitación registrada. No se agendó la siguiente dosis.';
     }
-    await Swal.fire({ icon: 'success', title: 'Listo', text });
+    void avisoBreve('Listo', text, text.length > 30 ? 4500 : 2200);
   }
 
   cancelar() {

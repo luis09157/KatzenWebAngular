@@ -119,3 +119,12 @@ body {
 .admin-campanita-menu .admin-campanita-menu__accion .mat-icon {
   color: #065d60;
 }
+
+/* 2026-10-30 — botón principal de SweetAlert con el verde de marca (antes salía morado
+   donde no se pasaba confirmButtonColor). Un color explícito en el fire sigue mandando (estilo en línea). */
+div.swal2-popup .swal2-styled.swal2-confirm {
+  background-color: #0a969b;
+}
+div.swal2-popup .swal2-styled.swal2-confirm:focus-visible {
+  box-shadow: 0 0 0 3px rgba(10, 150, 155, 0.35);
+}

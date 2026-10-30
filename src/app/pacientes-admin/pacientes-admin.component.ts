@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
@@ -337,7 +338,7 @@ export class PacientesAdminComponent implements OnInit, OnDestroy {
           .then(() => {
             this.loadingService.hide();
             setTimeout(() => {
-              Swal.fire('Borrado', 'Paciente borrado correctamente.', 'success');
+              void avisoBreve('Borrado', 'Paciente borrado correctamente.');
               this.cargarDatos();
             }, 0);
           })

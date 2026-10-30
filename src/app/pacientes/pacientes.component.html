@@ -206,7 +206,7 @@
                         ></app-fotos-expediente>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
@@ -258,6 +258,7 @@
                     <article
                       *ngFor="let recordatorio of recordatorios"
                       class="clinical-list__item"
+                      (click)="esPantallaChica() && verDetalleRecordatorio(recordatorio)"
                       (dblclick)="verDetalleRecordatorio(recordatorio)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--orange">
@@ -276,7 +277,7 @@
                         </div>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
@@ -337,6 +338,7 @@
                     <article
                       *ngFor="let vacuna of vacunas"
                       class="clinical-list__item"
+                      (click)="esPantallaChica() && verVacunaDetalle(vacuna)"
                       (dblclick)="verVacunaDetalle(vacuna)"
                     >
                       <div class="clinical-list__icon clinical-list__icon--blue">
@@ -356,7 +358,7 @@
                         <p class="clinical-list__note" *ngIf="vacuna.observaciones">{{ vacuna.observaciones }}</p>
                       </div>
                       <div
-                        class="row-actions hide-mobile"
+                        class="row-actions"
                         (click)="$event.stopPropagation()"
                         (dblclick)="$event.stopPropagation()"
                       >
@@ -434,7 +436,7 @@
                         </div>
                         <p class="clinical-list__note" *ngIf="item.notas">{{ item.notas }}</p>
                       </div>
-                      <div class="row-actions hide-mobile" (click)="$event.stopPropagation()">
+                      <div class="row-actions" (click)="$event.stopPropagation()">
                         <button mat-icon-button type="button" matTooltip="Editar" (click)="editarConsentimiento(item)">
                           <mat-icon>edit</mat-icon>
                         </button>

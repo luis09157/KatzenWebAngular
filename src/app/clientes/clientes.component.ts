@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 import { ClientesService } from './clientes.service';
@@ -428,7 +429,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loadingService.hide();
         const mensaje = nuevoEstado ? 'activado' : 'desactivado';
         setTimeout(() => {
-          Swal.fire('Éxito', `Cliente ${mensaje} correctamente`, 'success');
+          void avisoBreve(`Cliente ${mensaje} correctamente`);
           this.ngOnInit();
         }, 0);
       })
@@ -556,12 +557,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
 
               this.loadingService.hide();
               setTimeout(() => {
-                Swal.fire({
-                  title: '¡Éxito!',
-                  text: 'Cliente guardado correctamente',
-                  icon: 'success',
-                  confirmButtonText: 'Entendido',
-                });
+                void avisoBreve('Cliente guardado correctamente');
               }, 0);
             })
             .catch((error) => {
@@ -703,11 +699,7 @@ export class ClientesComponent implements OnInit, OnDestroy, AfterViewInit {
             this.cargarEstadisticas();
             const mascotasTxt = res.mascotas.length ? res.mascotas.join(', ') : 'ninguna';
             setTimeout(() => {
-              Swal.fire(
-                'Borrado',
-                `Cliente oculto. Mascotas: ${mascotasTxt}. Citas: ${res.citasCanceladas}. Otros registros: ${res.relacionadosDesactivados}. Los datos se conservan.`,
-                'success'
-              );
+              void avisoBreve('Borrado', `Cliente oculto. Mascotas: ${mascotasTxt}. Citas: ${res.citasCanceladas}. Otros registros: ${res.relacionadosDesactivados}. Los datos se conservan.`, 5000);
             }, 0);
           })
           .catch((err) => {

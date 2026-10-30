@@ -39,6 +39,8 @@ export class ParaAvisarDialogComponent implements OnInit {
   estado = new Map<string, EstadoFila>();
   ocupado = new Set<string>();
   abierto = new Set<string>();
+  /** 2026-10-30 — WhatsApp abierto, falta que la veterinaria confirme que sí lo mandó. */
+  porConfirmar = new Set<string>();
   readonly etiquetas = TIPO_AVISO_LABELS;
 
   constructor(
@@ -81,11 +83,23 @@ export class ParaAvisarDialogComponent implements OnInit {
     else this.abierto.add(a.clave);
   }
 
-  /** Abre WhatsApp con el mensaje escrito y marca el aviso como enviado. */
-  async enviar(a: AvisoPendiente): Promise<void> {
+  /**
+   * Abre WhatsApp con el mensaje escrito. No marca nada todavía: la veterinaria confirma
+   * «Sí, ya lo mandé» al regresar (antes se marcaba aunque no lo enviara).
+   */
+  enviar(a: AvisoPendiente): void {
     if (!a.whatsappUrl) return;
     window.open(a.whatsappUrl, '_blank', 'noopener');
+    this.porConfirmar.add(a.clave);
+  }
+
+  async confirmarEnviado(a: AvisoPendiente): Promise<void> {
     await this.marcar(a, 'enviado');
+    if (this.estado.get(a.clave) === 'enviado') this.porConfirmar.delete(a.clave);
+  }
+
+  todaviaNo(a: AvisoPendiente): void {
+    this.porConfirmar.delete(a.clave);
   }
 
   async noAvisar(a: AvisoPendiente): Promise<void> {

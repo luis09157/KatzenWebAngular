@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -809,11 +810,8 @@ export class VacunaDialogComponent implements OnInit, OnDestroy {
     } else if (refuerzo?.action === 'skipped' && refuerzo.reason === 'sin_fecha') {
       text = `${base}\nNo se agendó recordatorio de refuerzo.`;
     }
-    await Swal.fire({
-      icon: 'success',
-      title: '¡Éxito!',
-      text,
-    });
+    const [titulo, ...resto] = text.split('\n');
+    void avisoBreve(titulo, resto.join(' ') || undefined, resto.length ? 4500 : 2200);
   }
 
   // Cargar tipos de vacunas desde Firebase con fallback

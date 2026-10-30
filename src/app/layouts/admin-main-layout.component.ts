@@ -1,4 +1,4 @@
-import { Component, Injector, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, Injector, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter, takeUntil, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -164,10 +164,20 @@ export class AdminMainLayoutComponent implements OnInit, OnDestroy {
     return this.itemsCampanita.slice(0, this.maxItemsCampanita);
   }
 
+  private ultimaCampanitaMs = 0;
+
+  /** 2026-10-30 — al regresar a la pestaña, si pasaron 5 min, actualiza la campanita. */
+  @HostListener('document:visibilitychange')
+  alRegresarALaPestana(): void {
+    if (document.visibilityState !== 'visible' || !this.paraAvisarTimer) return;
+    if (Date.now() - this.ultimaCampanitaMs >= 5 * 60_000) void this.refrescarCampanita();
+  }
+
   /** Spec 117 — recarga los avisos (al entrar, cada 30 min y al abrir la campanita). Solo lee. */
   async refrescarCampanita(): Promise<void> {
     if (!this.canShow('recordatorios') || this.cargandoCampanita) return;
     this.cargandoCampanita = true;
+    this.ultimaCampanitaMs = Date.now();
     try {
       const { cargarParaAvisar } = await import('../para-avisar/para-avisar.loader');
       const avisos = await cargarParaAvisar(this.injectorParaAvisar);

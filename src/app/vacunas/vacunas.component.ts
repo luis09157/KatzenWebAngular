@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { avisoBreve } from '../core/ui/aviso-breve';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { VacunasService } from './vacunas.service';
@@ -382,11 +383,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
         await this.vacunasService.bajaLogicaVacuna(vacuna.id);
         this.loadingService.hide();
         setTimeout(() => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Borrada',
-            html: '<p>La vacuna ha sido borrada correctamente.</p><p class="text-muted">El historial médico ha sido actualizado.</p>',
-          });
+          void avisoBreve('Vacuna borrada');
           this.cargarVacunas();
         }, 0);
       } catch (error) {
@@ -414,7 +411,7 @@ export class VacunasComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.loadingService.hide();
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: '¡Estado actualizado!', text: `Vacuna marcada como ${nuevoEstado}` });
+        void avisoBreve('¡Estado actualizado!', `Vacuna marcada como ${nuevoEstado}`);
         this.cargarVacunas();
       }, 0);
     } catch (error) {
