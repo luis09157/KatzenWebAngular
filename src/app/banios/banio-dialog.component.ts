@@ -58,6 +58,7 @@ interface DatosMascotaExtra {
   banios: BanioConPrecio[];
 }
 import {
+  etiquetaServiciosBanio,
   esServicioCompletoBanio,
   ordenarServiciosBanio,
   serviciosExtraDeBanio,
@@ -68,6 +69,9 @@ import {
 import { debeMostrarPickerAltaRapida } from '../alta-rapida/alta-rapida-prefill.util';
 import { formatLocalDateToIso, parseIsoDateToLocalDate } from '../shared/datepicker/datepicker.util';
 
+import { VisitasService } from '../visitas/visitas.service';
+import { VisitaDialogComponent } from '../visitas/visita-dialog.component';
+import { ADMIN_DIALOG_FORM } from '../core/config/admin-ui.config';
 @Component({
   selector: 'app-banio-dialog',
   templateUrl: './banio-dialog.component.html',
@@ -231,6 +235,70 @@ export class BanioDialogComponent implements OnInit {
 
   onNotaExtra(id: string, valor: string): void {
     this.extra(id).nota = String(valor || '');
+  }
+
+  /**
+   * 2026-10-29 (spec 115.2) — «Ya lo pagaron» registra el dinero: cada baño entra al ticket del
+   * cliente y se abre Cobrar. Al cerrar el ticket se crea el cobro en caja y el baño queda pagado
+   * (spec 039). Antes solo marcaba `pagado` y el dinero no llegaba a Finanzas ni al corte.
+   */
+  private readonly visitasService = inject(VisitasService);
+  private banioOriginal: Record<string, any> | null = null;
+
+  get quiereRegistrarPago(): boolean {
+    if (!this.banioForm.get('pagado')?.value) return false;
+    const o = this.banioOriginal;
+    // Un baño que ya estaba pagado, en un ticket o con cobro en caja no se vuelve a cobrar.
+    return !(o && (o['pagado'] === true || o['visitaId'] || o['cajaMovimientoId']));
+  }
+
+  /** Mascotas sin precio cuando se quiere registrar el pago (no se puede cobrar $0). */
+  private mascotasSinPrecioParaCobrar(): string[] {
+    const faltan: string[] = [];
+    if (!(Number(this.banioForm.get('precio_total')?.value) > 0)) {
+      faltan.push(this.nombrePacienteSeleccionado || 'la mascota');
+    }
+    if (!this.esEdicion && !this.hidePatientInfo) {
+      for (const m of this.extrasElegidas()) {
+        if (!(Number(this.extra(m.id).precio) > 0)) faltan.push(m.nombre);
+      }
+    }
+    return faltan;
+  }
+
+  /** Agrega cada baño con precio al ticket del día del cliente; devuelve el ticket. */
+  private async agregarBaniosAlTicket(banios: Array<{ id: string; datos: Record<string, any> }>): Promise<string | null> {
+    let visitaId: string | null = null;
+    for (const b of banios) {
+      const monto = Number(b.datos['precio_total']) || 0;
+      const clienteId = String(b.datos['cliente_id'] || '');
+      if (!(monto > 0) || !clienteId || !b.id) continue;
+      const tipo = String(b.datos['tipo_servicio'] || '');
+      const servicios =
+        etiquetaServiciosBanio(b.datos) || buscarOpcionTipoServicioBanio(tipo)?.label || tipo.replace(/_/g, ' ') || 'servicio';
+      const r = await this.visitasService.agregarServicioAVisita({
+        cliente_id: clienteId,
+        cliente: String(b.datos['cliente'] || this.nombreClienteSeleccionado || ''),
+        paciente_id: String(b.datos['paciente_id'] || ''),
+        paciente: String(b.datos['paciente'] || ''),
+        descripcion: `Baño · ${b.datos['paciente'] || 'paciente'} · ${servicios}`,
+        monto,
+        categoria: tipo.toLowerCase().includes('corte') ? 'corte' : 'banio',
+        banioId: b.id,
+        fecha: String(b.datos['fecha_banio'] || '') || undefined,
+      });
+      visitaId = r.visitaId;
+    }
+    return visitaId;
+  }
+
+  /** Cierra este diálogo y abre Cobrar con el ticket. */
+  private async abrirCobrar(visitaId: string | null, resultado: unknown): Promise<void> {
+    const dialog = this.injector.get(MatDialog);
+    this.dialogRef.close(resultado);
+    if (!visitaId) return;
+    const visita = await this.visitasService.getVisita(visitaId);
+    if (visita) dialog.open(VisitaDialogComponent, { ...ADMIN_DIALOG_FORM, data: { visita } });
   }
 
   /** Perro sin tamaño en su ficha → se le pide en su tarjeta. */
@@ -703,6 +771,7 @@ export class BanioDialogComponent implements OnInit {
     if (this.data.id) {
       this.baniosService.getBanioById(this.data.id).subscribe((banio) => {
         if (banio) {
+          this.banioOriginal = { ...banio } as Record<string, any>;
           // Normalizar datos para cumplir validaciones requeridas
           const normalizado: any = { ...banio };
           if (banio.domicilio && typeof banio.domicilio === 'object') {
@@ -1138,6 +1207,20 @@ export class BanioDialogComponent implements OnInit {
       return;
     }
 
+    // Spec 115.2 — para registrar el pago cada mascota necesita su precio.
+    const registrarPago = this.quiereRegistrarPago;
+    if (registrarPago) {
+      const faltan = this.mascotasSinPrecioParaCobrar();
+      if (faltan.length) {
+        Swal.fire(
+          'Falta el precio',
+          `Para registrar el pago pon el precio de ${faltan.join(', ')}. Si aún no lo saben, quita «Ya lo pagaron» y se cobra al terminar.`,
+          'warning'
+        );
+        return;
+      }
+    }
+
     if (this.banioForm.valid) {
       this.loading = true;
 
@@ -1197,6 +1280,9 @@ export class BanioDialogComponent implements OnInit {
       if (!datosLimpios.plantillaCostoId) {
         delete datosLimpios.plantillaCostoId;
       }
+
+      // Spec 115.2 — el baño queda pagado cuando se cierre el ticket (con su cobro en caja), no antes.
+      if (registrarPago) datosLimpios.pagado = false;
 
       // Spec 107 — domicilio aparte del precio del baño. En edición, null lo quita.
       if (this.esDomicilio && this.domicilio) {
@@ -1266,6 +1352,12 @@ export class BanioDialogComponent implements OnInit {
           .then(async () => {
             const pid = String(this.banioForm.get('paciente_id')?.value || this.data.paciente_id || '');
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
+            if (registrarPago) {
+              const datos = { ...(this.banioOriginal || {}), ...payload };
+              const visitaId = await this.agregarBaniosAlTicket([{ id: String(this.data.id), datos }]);
+              await this.abrirCobrar(visitaId, true);
+              return;
+            }
             this.dialogRef.close(true);
           })
           .catch((error) => {
@@ -1288,6 +1380,7 @@ export class BanioDialogComponent implements OnInit {
             await this.sincronizarAlergiasMascota(pid, alergiasSync);
             await this.guardarTamanoEnFicha(pid);
             const ids = [nuevoId];
+            const paraCobrar: Array<{ id: string; datos: Record<string, any> }> = [{ id: nuevoId, datos: datosLimpios }];
             if (!this.hidePatientInfo) {
               for (const mascota of this.extrasElegidas()) {
                 const d = this.extra(mascota.id);
@@ -1298,7 +1391,10 @@ export class BanioDialogComponent implements OnInit {
                   nota: d.nota,
                   tamano: d.tamano,
                 });
-                ids.push(await this.baniosService.crearBanio(extra as any));
+                if (registrarPago) extra['pagado'] = false;
+                const idExtra = await this.baniosService.crearBanio(extra as any);
+                ids.push(idExtra);
+                paraCobrar.push({ id: idExtra, datos: extra });
                 if (d.tamano && this.necesitaTamanoExtra(mascota)) {
                   try {
                     await this.pacientesService.actualizarPaciente(mascota.id, { tamano_perro: d.tamano } as any);
@@ -1307,6 +1403,25 @@ export class BanioDialogComponent implements OnInit {
                   }
                 }
               }
+            }
+            if (registrarPago) {
+              try {
+                const visitaId = await this.agregarBaniosAlTicket(paraCobrar);
+                await this.abrirCobrar(visitaId, { created: true, id: nuevoId, ids });
+              } catch (err) {
+                console.error('No se pudo pasar a Cobrar:', err);
+                this.dialogRef.close({ created: true, id: nuevoId, ids });
+                setTimeout(
+                  () =>
+                    Swal.fire(
+                      'Baño guardado',
+                      'No se pudo abrir Cobrar. Cóbralo desde Peluquería con «Agregar al ticket del cliente».',
+                      'warning'
+                    ),
+                  0
+                );
+              }
+              return;
             }
             this.dialogRef.close({ created: true, id: nuevoId, ids });
           })
